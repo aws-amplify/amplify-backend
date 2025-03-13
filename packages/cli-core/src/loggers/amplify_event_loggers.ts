@@ -6,6 +6,9 @@ import {
   CfnDeploymentStackEvent,
 } from './cfn-deployment-progress/cfn_deployment_progress_logger.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
+import { WriteStream } from 'node:tty';
+import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
+import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -204,9 +207,9 @@ export class AmplifyEventLogger {
         msg.message.includes('destroying..')) &&
       !this.cfnDeploymentProgressLogger
     ) {
-      this.cfnDeploymentProgressLogger = new CfnDeploymentProgressLogger({
-        printer: this.printer,
-      });
+      this.cfnDeploymentProgressLogger = this.getNewCfnDeploymentProgressLogger(
+        this.printer
+      );
       this.printer.startSpinner('Deployment in progress...', {
         timeoutSeconds: 300,
       });
@@ -258,5 +261,20 @@ export class AmplifyEventLogger {
       // CDKs formatted cfn deployment progress
       this.printer.print(msg.message);
     }
+  };
+
+  private getNewCfnDeploymentProgressLogger = (printer: Printer) => {
+    const getBlockWidth = () =>
+      printer.stdout instanceof WriteStream ? printer.stdout.columns : 600;
+    const getBlockHeight = () =>
+      printer.stdout instanceof WriteStream ? printer.stdout.rows : 100;
+    return new CfnDeploymentProgressLogger({
+      getBlockWidth,
+      rewritableBlock: new RewritableBlock(
+        getBlockWidth,
+        getBlockHeight,
+        new AmplifyIOEventsBridgeSingletonFactory(printer).getInstance()
+      ),
+    });
   };
 }

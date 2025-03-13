@@ -2,8 +2,6 @@ import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 import { RewritableBlock } from './rewritable_block.js';
 import { ColorName, format } from '../../format/format.js';
-import { Printer } from '../../printer/printer.js';
-import { WriteStream } from 'node:tty';
 
 /**
  * Collects events from CDK Toolkit about cfn deployment and structures them
@@ -61,8 +59,7 @@ export class CfnDeploymentProgressLogger {
   private timeStampWidth = 12;
   private statusWidth = 20;
   private resourceNameIndentation = 0;
-  private blockWidth: number;
-  private blockHeight: number;
+  private readonly getBlockWidth: () => number;
 
   /**
    * Instantiate the CFN deployment progress builder
@@ -74,19 +71,8 @@ export class CfnDeploymentProgressLogger {
       ? props.resourcesTotal + 1
       : undefined;
 
-    this.blockWidth =
-      props.printer?.stdout instanceof WriteStream
-        ? props.printer.stdout.columns
-        : 600;
-    this.blockHeight =
-      props.printer?.stdout instanceof WriteStream
-        ? props.printer.stdout.rows
-        : 100;
-    this.block = new RewritableBlock(
-      this.blockWidth,
-      this.blockHeight,
-      props.printer
-    );
+    this.getBlockWidth = props.getBlockWidth;
+    this.block = props.rewritableBlock;
     this.resourceNameCache = {};
   }
 
@@ -283,7 +269,7 @@ export class CfnDeploymentProgressLogger {
 
     const width = Math.max(
       Math.min(
-        this.blockWidth - PROGRESSBAR_EXTRA_SPACE - 1,
+        this.getBlockWidth() - PROGRESSBAR_EXTRA_SPACE - 1,
         MAX_PROGRESSBAR_WIDTH
       ),
       MIN_PROGRESSBAR_WIDTH
@@ -500,5 +486,10 @@ type PrinterProps = {
    */
   readonly resourcesTotal?: number;
 
-  readonly printer?: Printer;
+  readonly rewritableBlock: RewritableBlock;
+
+  /**
+   * width of the block in which to render the CFN progress. It's a function since windows height and width are dynamic
+   */
+  readonly getBlockWidth: () => number;
 };

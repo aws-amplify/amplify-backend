@@ -1388,7 +1388,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:02.605Z'),
+        Timestamp: new Date('2025-03-11T16:01:02.605'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
         ClientRequestToken: 'exec427e962e-bfc9-4252-bc3b-1ed31e38ff16',
@@ -1449,7 +1449,7 @@ export const data = [
         LogicalResourceId: 'function1351588B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:05.733Z'),
+        Timestamp: new Date('2025-03-11T16:01:05.733'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/5065dd0842feb96b950d214ec1e2f9faabd3ad868f6d75d5d999b56e9327c4d6.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1485,7 +1485,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:05.887Z'),
+        Timestamp: new Date('2025-03-11T16:01:05.887'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1521,7 +1521,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:05.954Z'),
+        Timestamp: new Date('2025-03-11T16:01:05.954'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1556,7 +1556,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-function1351588B-BKOK4T9JC4H3/0a317b30-fe92-11ef-8435-0ac0e5399efb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:06.468Z'),
+        Timestamp: new Date('2025-03-11T16:01:06.468'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1593,7 +1593,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:06.534Z'),
+        Timestamp: new Date('2025-03-11T16:01:06.534'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1629,7 +1629,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:06.616Z'),
+        Timestamp: new Date('2025-03-11T16:01:06.616'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1664,7 +1664,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:07.460Z'),
+        Timestamp: new Date('2025-03-11T16:01:07.460'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1701,7 +1701,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:08.196Z'),
+        Timestamp: new Date('2025-03-11T16:01:08.196'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
       },
@@ -1728,7 +1728,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRole4BCAA6E2',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:08.687Z'),
+        Timestamp: new Date('2025-03-11T16:01:08.687'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1762,7 +1762,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:08.791Z'),
+        Timestamp: new Date('2025-03-11T16:01:08.791'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zXNOw6DMBBF0bXQDxM+DW1ASkkBC0CDPSDzsSXGDgVi7xGgVKd692WYFhkmEe0SKz3Hi+nxqFk869aTmoF26Y6F1l5TZ53mSbC++QSrvHEWDK14NG5hqAZ7eYLkHYmwF3xfgORYBjWzL0kYnhpWg/03TmhYXNgUwz1oPY3GjidcjzjJ65slmBaYRpMYE2/BerMyNo8/CCaiyMQAAAA="}',
@@ -1796,7 +1796,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '0a317b30-fe92-11ef-8435-0ac0e5399efb',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:09.741Z'),
+        Timestamp: new Date('2025-03-11T16:01:09.741'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1833,7 +1833,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:09.749Z'),
+        Timestamp: new Date('2025-03-11T16:01:09.749'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1868,7 +1868,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '0a317b30-fe92-11ef-8435-0ac0e5399efb',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:09.874Z'),
+        Timestamp: new Date('2025-03-11T16:01:09.874'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zXNOw6DMBBF0bXQDxM+DW1ASkkBC0CDPSDzsSXGDgVi7xGgVKd692WYFhkmEe0SKz3Hi+nxqFk869aTmoF26Y6F1l5TZ53mSbC++QSrvHEWDK14NG5hqAZ7eYLkHYmwF3xfgORYBjWzL0kYnhpWg/03TmhYXNgUwz1oPY3GjidcjzjJ65slmBaYRpMYE2/BerMyNo8/CCaiyMQAAAA="}',
@@ -1965,7 +1965,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:12.866Z'),
+        Timestamp: new Date('2025-03-11T16:01:12.866'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2003,7 +2003,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:13.555Z'),
+        Timestamp: new Date('2025-03-11T16:01:13.555'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2041,7 +2041,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:14.390Z'),
+        Timestamp: new Date('2025-03-11T16:01:14.390'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2079,7 +2079,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:14.433Z'),
+        Timestamp: new Date('2025-03-11T16:01:14.433'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2117,7 +2117,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:15.180Z'),
+        Timestamp: new Date('2025-03-11T16:01:15.180'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2155,7 +2155,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:15.356Z'),
+        Timestamp: new Date('2025-03-11T16:01:15.356'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2258,7 +2258,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:16.108Z'),
+        Timestamp: new Date('2025-03-11T16:01:16.108'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2296,7 +2296,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:16.830Z'),
+        Timestamp: new Date('2025-03-11T16:01:16.830'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2333,7 +2333,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:18.645Z'),
+        Timestamp: new Date('2025-03-11T16:01:18.645'),
         ResourceStatus: 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
       },
       progress: {
@@ -2360,7 +2360,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:26.456Z'),
+        Timestamp: new Date('2025-03-11T16:01:26.456'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2395,7 +2395,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:01:26.851Z'),
+        Timestamp: new Date('2025-03-11T16:01:26.851'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"sayhellolambdaServiceRoleDefaultPolicy4256F36F","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"ssm:GetParameters","Resource":"arn:aws:ssm:us-west-2:123456789012:parameter/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk"]}',
@@ -2430,7 +2430,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaEFA46D92',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:01:27.489Z'),
+        Timestamp: new Date('2025-03-11T16:01:27.489'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk","MemorySize":"512","Runtime":"nodejs18.x","Timeout":"3","Environment":{"Variables":{"TEST_NAME_BUCKET_NAME":"<value will be resolved during runtime>","AMPLIFY_SSM_ENV_CONFIG":"{\\"/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME\\":{\\"name\\":\\"TEST_NAME_BUCKET_NAME\\"}}"}},"Handler":"index.handler","EphemeralStorage":{"Size":"512"},"Code":{"S3Bucket":"cdk-hnb659fds-assets-123456789012-us-west-2","S3Key":"aca5c01abb5bae3c9a0387478d7962aa5580a6ed97a5d12549501d7f1874b091.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"Architectures":["x86_64"]}',
@@ -2465,7 +2465,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: 'ampli-sayhe-F97PGy3MCub4',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:01:27.943Z'),
+        Timestamp: new Date('2025-03-11T16:01:27.943'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2502,7 +2502,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:01:29.225Z'),
+        Timestamp: new Date('2025-03-11T16:01:29.225'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2602,7 +2602,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:29.661Z'),
+        Timestamp: new Date('2025-03-11T16:01:29.661'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2639,7 +2639,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:01:35.563Z'),
+        Timestamp: new Date('2025-03-11T16:01:35.563'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk","MemorySize":"512","Runtime":"nodejs18.x","Timeout":"3","Environment":{"Variables":{"TEST_NAME_BUCKET_NAME":"<value will be resolved during runtime>","AMPLIFY_SSM_ENV_CONFIG":"{\\"/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME\\":{\\"name\\":\\"TEST_NAME_BUCKET_NAME\\"}}"}},"Handler":"index.handler","EphemeralStorage":{"Size":"512"},"Code":{"S3Bucket":"cdk-hnb659fds-assets-123456789012-us-west-2","S3Key":"aca5c01abb5bae3c9a0387478d7962aa5580a6ed97a5d12549501d7f1874b091.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"Architectures":["x86_64"]}',
@@ -2739,7 +2739,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: 'ampli-sayhe-F97PGy3MCub4',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:01:43.497Z'),
+        Timestamp: new Date('2025-03-11T16:01:43.497'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"sayhellolambdaServiceRoleDefaultPolicy4256F36F","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"ssm:GetParameters","Resource":"arn:aws:ssm:us-west-2:123456789012:parameter/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk"]}',
@@ -2775,7 +2775,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-function1351588B-BKOK4T9JC4H3/0a317b30-fe92-11ef-8435-0ac0e5399efb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:44.339Z'),
+        Timestamp: new Date('2025-03-11T16:01:44.339'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -2865,7 +2865,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-function1351588B-BKOK4T9JC4H3/0a317b30-fe92-11ef-8435-0ac0e5399efb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:53.149Z'),
+        Timestamp: new Date('2025-03-11T16:01:53.149'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/5065dd0842feb96b950d214ec1e2f9faabd3ad868f6d75d5d999b56e9327c4d6.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2899,7 +2899,7 @@ export const data = [
         LogicalResourceId: 'storage0EC3F24A',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:53.680Z'),
+        Timestamp: new Date('2025-03-11T16:01:53.680'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/a217e7c300711883159bfa09d4a6a99f762c9d59542ae5bb802ebac85abdb443.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysampleprojectappusersandbox0e1752a889functionsayhellolambdaServiceRole6B7F66E6Ref":"amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk","referencetoamplifysampleprojectappusersandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysampleprojectappusersandbox0e1752a889functionsayhellolambdaB2E612D0Arn":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2934,7 +2934,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-storage0EC3F24A-IU5R2F6HCKAD/26c26890-fe92-11ef-a416-06859f48abf1',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:01:54.628Z'),
+        Timestamp: new Date('2025-03-11T16:01:54.628'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2970,7 +2970,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:57.526Z'),
+        Timestamp: new Date('2025-03-11T16:01:57.526'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12MwY7CMAxEv4V76qXdC1foeVdV+wHIJKYybRIUu6BV1H9H0K1Y7Wlm7DdTQbmrYLvBuxTWDcXIJ8jfJEquU7SDwbscs3xCPkx2IDX1Ofy6RZo4sv15n5c8mxH9ySHU59BQ8izCMRhGD7mNIz35l77ra1HEQ+40cegbTOhJKb3+a5hnU0+i0bckcUp2Gfvjv/B65dD/o5oUb+woHVDI7EVIO8X+ya3EbEJ0BBf5uFVbKHdQbi7CXKQpKHuCdtEHWulAxDMBAAA="}',
@@ -3006,7 +3006,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:57.537Z'),
+        Timestamp: new Date('2025-03-11T16:01:57.537'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3043,7 +3043,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:57.558Z'),
+        Timestamp: new Date('2025-03-11T16:01:57.558'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -3079,7 +3079,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketB4152AD5',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T16:01:57.564Z'),
+        Timestamp: new Date('2025-03-11T16:01:57.564'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"ExposedHeaders":["x-amz-server-side-encryption","x-amz-request-id","x-amz-id-2","ETag"],"AllowedMethods":["GET","HEAD","PUT","POST","DELETE"],"AllowedOrigins":["*"],"AllowedHeaders":["*"],"MaxAge":"3000"}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"testName","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3113,7 +3113,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '26c26890-fe92-11ef-a416-06859f48abf1',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:58.504Z'),
+        Timestamp: new Date('2025-03-11T16:01:58.504'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3151,7 +3151,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:58.513Z'),
+        Timestamp: new Date('2025-03-11T16:01:58.513'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3190,7 +3190,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:01:58.534Z'),
+        Timestamp: new Date('2025-03-11T16:01:58.534'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3228,7 +3228,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T16:01:58.588Z'),
+        Timestamp: new Date('2025-03-11T16:01:58.588'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3263,7 +3263,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '26c26890-fe92-11ef-a416-06859f48abf1',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T16:01:58.617Z'),
+        Timestamp: new Date('2025-03-11T16:01:58.617'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12MwY7CMAxEv4V76qXdC1foeVdV+wHIJKYybRIUu6BV1H9H0K1Y7Wlm7DdTQbmrYLvBuxTWDcXIJ8jfJEquU7SDwbscs3xCPkx2IDX1Ofy6RZo4sv15n5c8mxH9ySHU59BQ8izCMRhGD7mNIz35l77ra1HEQ+40cegbTOhJKb3+a5hnU0+i0bckcUp2Gfvjv/B65dD/o5oUb+woHVDI7EVIO8X+ya3EbEJ0BBf5uFVbKHdQbi7CXKQpKHuCdtEHWulAxDMBAAA="}',
@@ -3364,7 +3364,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T16:02:12.537Z'),
+        Timestamp: new Date('2025-03-11T16:02:12.537'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"ExposedHeaders":["x-amz-server-side-encryption","x-amz-request-id","x-amz-id-2","ETag"],"AllowedMethods":["GET","HEAD","PUT","POST","DELETE"],"AllowedOrigins":["*"],"AllowedHeaders":["*"],"MaxAge":"3000"}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"testName","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3399,7 +3399,7 @@ export const data = [
         LogicalResourceId: 'TESTNAMEBUCKETNAMEParameter6D140BDA',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T16:02:13.080Z'),
+        Timestamp: new Date('2025-03-11T16:02:13.080'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME"}',
@@ -3435,7 +3435,7 @@ export const data = [
           'testNameBucketAllowBucketNotificationsToamplifysampleprojectappusersandbox0e1752a889functionsayhellolambda6952570FF2CCBD02',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T16:02:13.589Z'),
+        Timestamp: new Date('2025-03-11T16:02:13.589'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"FunctionName":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY","Action":"lambda:InvokeFunction","SourceArn":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","SourceAccount":"123456789012","Principal":"s3.amazonaws.com"}',
@@ -3471,7 +3471,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:13.735Z'),
+        Timestamp: new Date('2025-03-11T16:02:13.735'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"storageAccess524979CAB","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:GetObject","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/public/*","Effect":"Allow"},{"Condition":{"StringLike":{"s3:prefix":["public/*","public/"]}},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","Effect":"Allow"},{"Action":"s3:PutObject","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/public/*","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk"]}',
@@ -3572,7 +3572,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T16:02:13.996Z'),
+        Timestamp: new Date('2025-03-11T16:02:13.996'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3610,7 +3610,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-user-sandbox-0-testNameBucketAllowBucketNotificationsToamp-qb3HVxQkplQL',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T16:02:14.436Z'),
+        Timestamp: new Date('2025-03-11T16:02:14.436'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3648,7 +3648,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T16:02:14.567Z'),
+        Timestamp: new Date('2025-03-11T16:02:14.567'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/sampleprojectapp/user-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME"}',
@@ -3683,7 +3683,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: 'ampli-stora-JHYjcV7a2aNs',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:14.702Z'),
+        Timestamp: new Date('2025-03-11T16:02:14.702'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3721,7 +3721,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-user-sandbox-0-testNameBucketAllowBucketNotificationsToamp-qb3HVxQkplQL',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T16:02:14.951Z'),
+        Timestamp: new Date('2025-03-11T16:02:14.951'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"FunctionName":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY","Action":"lambda:InvokeFunction","SourceArn":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","SourceAccount":"123456789012","Principal":"s3.amazonaws.com"}',
@@ -3759,7 +3759,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:02:15.168Z'),
+        Timestamp: new Date('2025-03-11T16:02:15.168'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3797,7 +3797,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T16:02:15.254Z'),
+        Timestamp: new Date('2025-03-11T16:02:15.254'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -3834,7 +3834,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:15.767Z'),
+        Timestamp: new Date('2025-03-11T16:02:15.767'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:PutBucketNotification","Resource":"*","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M"]}',
@@ -3871,7 +3871,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:16.207Z'),
+        Timestamp: new Date('2025-03-11T16:02:16.207'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-123456789012-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -3907,7 +3907,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketPolicyA5C458BB',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T16:02:16.233Z'),
+        Timestamp: new Date('2025-03-11T16:02:16.233'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Bucket":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl"}}]}}',
@@ -3943,7 +3943,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: 'ampli-Bucke-9PaK0L9Zfk0e',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:17.126Z'),
+        Timestamp: new Date('2025-03-11T16:02:17.126'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3981,7 +3981,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T16:02:17.613Z'),
+        Timestamp: new Date('2025-03-11T16:02:17.613'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4019,7 +4019,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--CustomS3AutoDeleteObject-zpbBnClFk5CT',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:17.675Z'),
+        Timestamp: new Date('2025-03-11T16:02:17.675'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4057,7 +4057,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T16:02:18.082Z'),
+        Timestamp: new Date('2025-03-11T16:02:18.082'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Bucket":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl"}}]}}',
@@ -4094,7 +4094,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--CustomS3AutoDeleteObject-zpbBnClFk5CT',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:23.942Z'),
+        Timestamp: new Date('2025-03-11T16:02:23.942'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--CustomS3AutoDeleteObjects-o7ZVn2t4Grfl","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-123456789012-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -4196,7 +4196,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T16:02:24.646Z'),
+        Timestamp: new Date('2025-03-11T16:02:24.646'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--CustomS3AutoDeleteObject-zpbBnClFk5CT","BucketName":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi"}',
@@ -4233,7 +4233,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '01fd7f70-c941-4235-8c9a-e629a7ced301',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T16:02:27.513Z'),
+        Timestamp: new Date('2025-03-11T16:02:27.513'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4271,7 +4271,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '01fd7f70-c941-4235-8c9a-e629a7ced301',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T16:02:27.763Z'),
+        Timestamp: new Date('2025-03-11T16:02:27.763'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--CustomS3AutoDeleteObject-zpbBnClFk5CT","BucketName":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi"}',
@@ -4307,7 +4307,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: 'ampli-stora-JHYjcV7a2aNs',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:30.242Z'),
+        Timestamp: new Date('2025-03-11T16:02:30.242'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"storageAccess524979CAB","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:GetObject","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/public/*","Effect":"Allow"},{"Condition":{"StringLike":{"s3:prefix":["public/*","public/"]}},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","Effect":"Allow"},{"Action":"s3:PutObject","Resource":"arn:aws:s3:::amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi/public/*","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk"]}',
@@ -4343,7 +4343,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: 'ampli-Bucke-9PaK0L9Zfk0e',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T16:02:32.676Z'),
+        Timestamp: new Date('2025-03-11T16:02:32.676'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:PutBucketNotification","Resource":"*","Effect":"Allow"}]},"Roles":["amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M"]}',
@@ -4380,7 +4380,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:33.729Z'),
+        Timestamp: new Date('2025-03-11T16:02:33.729'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M","Runtime":"python3.11","Description":"AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)","Timeout":"300","Handler":"index.handler","Code":{"ZipFile":"import boto3  # type: ignore\\nimport json\\nimport logging\\nimport urllib.request\\n\\ns3 = boto3.client(\\"s3\\")\\n\\nEVENTBRIDGE_CONFIGURATION = \'EventBridgeConfiguration\'\\nCONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]\\n\\ndef handler(event: dict, context):\\n  response_status = \\"SUCCESS\\"\\n  error_message = \\"\\"\\n  try:\\n    props = event[\\"ResourceProperties\\"]\\n    notification_configuration = props[\\"NotificationConfiguration\\"]\\n    managed = props.get(\'Managed\', \'true\').lower() == \'true\'\\n    skipDestinationValidation = props.get(\'SkipDestinationValidation\', \'false\').lower() == \'true\'\\n    stack_id = event[\'StackId\']\\n    old = event.get(\\"OldResourceProperties\\", {}).get(\\"NotificationConfiguration\\", {})\\n    if managed:\\n      config = handle_managed(event[\\"RequestType\\"], notification_configuration)\\n    else:\\n      config = handle_unmanaged(props[\\"BucketName\\"], stack_id, event[\\"RequestType\\"], notification_configuration, old)\\n    s3.put_bucket_notification_configuration(Bucket=props[\\"BucketName\\"], NotificationConfiguration=config, SkipDestinationValidation=skipDestinationValidation)\\n  except Exception as e:\\n    logging.exception(\\"Failed to put bucket notification configuration\\")\\n    response_status = \\"FAILED\\"\\n    error_message = f\\"Error: {str(e)}. \\"\\n  finally:\\n    submit_response(event, context, response_status, error_message)\\n\\ndef handle_managed(request_type, notification_configuration):\\n  if request_type == \'Delete\':\\n    return {}\\n  return notification_configuration\\n\\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration, old):\\n  def get_id(n):\\n    n[\'Id\'] = \'\'\\n    sorted_notifications = sort_filter_rules(n)\\n    strToHash=json.dumps(sorted_notifications, sort_keys=True).replace(\'\\"Name\\": \\"prefix\\"\', \'\\"Name\\": \\"Prefix\\"\').replace(\'\\"Name\\": \\"suffix\\"\', \'\\"Name\\": \\"Suffix\\"\')\\n    return f\\"{stack_id}-{hash(strToHash)}\\"\\n  def with_id(n):\\n    n[\'Id\'] = get_id(n)\\n    return n\\n\\n  external_notifications = {}\\n  existing_notifications = s3.get_bucket_notification_configuration(Bucket=bucket)\\n  for t in CONFIGURATION_TYPES:\\n    if request_type == \'Update\':\\n        old_incoming_ids = [get_id(n) for n in old.get(t, [])]\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not get_id(n) in old_incoming_ids]      \\n    elif request_type == \'Delete\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n[\'Id\'].startswith(f\\"{stack_id}-\\")]\\n    elif request_type == \'Create\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, [])]\\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  if request_type == \'Delete\':\\n    return external_notifications\\n\\n  notifications = {}\\n  for t in CONFIGURATION_TYPES:\\n    external = external_notifications.get(t, [])\\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\\n    notifications[t] = external + incoming\\n\\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  return notifications\\n\\ndef submit_response(event: dict, context, response_status: str, error_message: str):\\n  response_body = json.dumps(\\n    {\\n      \\"Status\\": response_status,\\n      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",\\n      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],\\n      \\"StackId\\": event[\\"StackId\\"],\\n      \\"RequestId\\": event[\\"RequestId\\"],\\n      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],\\n      \\"NoEcho\\": False,\\n    }\\n  ).encode(\\"utf-8\\")\\n  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}\\n  try:\\n    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")\\n    with urllib.request.urlopen(req) as response:\\n      print(response.read().decode(\\"utf-8\\"))\\n    print(\\"Status code: \\" + response.reason)\\n  except Exception as e:\\n      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))\\n\\ndef sort_filter_rules(json_obj):\\n  if not isinstance(json_obj, dict):\\n      return json_obj\\n  for key, value in json_obj.items():\\n      if isinstance(value, dict):\\n          json_obj[key] = sort_filter_rules(value)\\n      elif isinstance(value, list):\\n          json_obj[key] = [sort_filter_rules(item) for item in value]\\n  if \\"Filter\\" in json_obj and \\"Key\\" in json_obj[\\"Filter\\"] and \\"FilterRules\\" in json_obj[\\"Filter\\"][\\"Key\\"]:\\n      filter_rules = json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"]\\n      sorted_filter_rules = sorted(filter_rules, key=lambda x: x[\\"Name\\"])\\n      json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"] = sorted_filter_rules\\n  return json_obj"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4483,7 +4483,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--BucketNotificationsHandl-aKzST0shZ5Sf',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:35.095Z'),
+        Timestamp: new Date('2025-03-11T16:02:35.095'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4522,7 +4522,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-sampleprojectapp--BucketNotificationsHandl-aKzST0shZ5Sf',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T16:02:41.443Z'),
+        Timestamp: new Date('2025-03-11T16:02:41.443'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::123456789012:role/amplify-sampleprojectapp--BucketNotificationsHandle-JOYPZ2GxBf3M","Runtime":"python3.11","Description":"AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)","Timeout":"300","Handler":"index.handler","Code":{"ZipFile":"import boto3  # type: ignore\\nimport json\\nimport logging\\nimport urllib.request\\n\\ns3 = boto3.client(\\"s3\\")\\n\\nEVENTBRIDGE_CONFIGURATION = \'EventBridgeConfiguration\'\\nCONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]\\n\\ndef handler(event: dict, context):\\n  response_status = \\"SUCCESS\\"\\n  error_message = \\"\\"\\n  try:\\n    props = event[\\"ResourceProperties\\"]\\n    notification_configuration = props[\\"NotificationConfiguration\\"]\\n    managed = props.get(\'Managed\', \'true\').lower() == \'true\'\\n    skipDestinationValidation = props.get(\'SkipDestinationValidation\', \'false\').lower() == \'true\'\\n    stack_id = event[\'StackId\']\\n    old = event.get(\\"OldResourceProperties\\", {}).get(\\"NotificationConfiguration\\", {})\\n    if managed:\\n      config = handle_managed(event[\\"RequestType\\"], notification_configuration)\\n    else:\\n      config = handle_unmanaged(props[\\"BucketName\\"], stack_id, event[\\"RequestType\\"], notification_configuration, old)\\n    s3.put_bucket_notification_configuration(Bucket=props[\\"BucketName\\"], NotificationConfiguration=config, SkipDestinationValidation=skipDestinationValidation)\\n  except Exception as e:\\n    logging.exception(\\"Failed to put bucket notification configuration\\")\\n    response_status = \\"FAILED\\"\\n    error_message = f\\"Error: {str(e)}. \\"\\n  finally:\\n    submit_response(event, context, response_status, error_message)\\n\\ndef handle_managed(request_type, notification_configuration):\\n  if request_type == \'Delete\':\\n    return {}\\n  return notification_configuration\\n\\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration, old):\\n  def get_id(n):\\n    n[\'Id\'] = \'\'\\n    sorted_notifications = sort_filter_rules(n)\\n    strToHash=json.dumps(sorted_notifications, sort_keys=True).replace(\'\\"Name\\": \\"prefix\\"\', \'\\"Name\\": \\"Prefix\\"\').replace(\'\\"Name\\": \\"suffix\\"\', \'\\"Name\\": \\"Suffix\\"\')\\n    return f\\"{stack_id}-{hash(strToHash)}\\"\\n  def with_id(n):\\n    n[\'Id\'] = get_id(n)\\n    return n\\n\\n  external_notifications = {}\\n  existing_notifications = s3.get_bucket_notification_configuration(Bucket=bucket)\\n  for t in CONFIGURATION_TYPES:\\n    if request_type == \'Update\':\\n        old_incoming_ids = [get_id(n) for n in old.get(t, [])]\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not get_id(n) in old_incoming_ids]      \\n    elif request_type == \'Delete\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n[\'Id\'].startswith(f\\"{stack_id}-\\")]\\n    elif request_type == \'Create\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, [])]\\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  if request_type == \'Delete\':\\n    return external_notifications\\n\\n  notifications = {}\\n  for t in CONFIGURATION_TYPES:\\n    external = external_notifications.get(t, [])\\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\\n    notifications[t] = external + incoming\\n\\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  return notifications\\n\\ndef submit_response(event: dict, context, response_status: str, error_message: str):\\n  response_body = json.dumps(\\n    {\\n      \\"Status\\": response_status,\\n      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",\\n      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],\\n      \\"StackId\\": event[\\"StackId\\"],\\n      \\"RequestId\\": event[\\"RequestId\\"],\\n      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],\\n      \\"NoEcho\\": False,\\n    }\\n  ).encode(\\"utf-8\\")\\n  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}\\n  try:\\n    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")\\n    with urllib.request.urlopen(req) as response:\\n      print(response.read().decode(\\"utf-8\\"))\\n    print(\\"Status code: \\" + response.reason)\\n  except Exception as e:\\n      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))\\n\\ndef sort_filter_rules(json_obj):\\n  if not isinstance(json_obj, dict):\\n      return json_obj\\n  for key, value in json_obj.items():\\n      if isinstance(value, dict):\\n          json_obj[key] = sort_filter_rules(value)\\n      elif isinstance(value, list):\\n          json_obj[key] = [sort_filter_rules(item) for item in value]\\n  if \\"Filter\\" in json_obj and \\"Key\\" in json_obj[\\"Filter\\"] and \\"FilterRules\\" in json_obj[\\"Filter\\"][\\"Key\\"]:\\n      filter_rules = json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"]\\n      sorted_filter_rules = sorted(filter_rules, key=lambda x: x[\\"Name\\"])\\n      json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"] = sorted_filter_rules\\n  return json_obj"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4558,7 +4558,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T16:02:42.015Z'),
+        Timestamp: new Date('2025-03-11T16:02:42.015'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--BucketNotificationsHandl-aKzST0shZ5Sf","BucketName":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","NotificationConfiguration":{"LambdaFunctionConfigurations":[{"Events":["s3:ObjectRemoved:*"],"LambdaFunctionArn":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY"}]},"Managed":"true","SkipDestinationValidation":"false"}',
@@ -4593,7 +4593,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T16:02:45.021Z'),
+        Timestamp: new Date('2025-03-11T16:02:45.021'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4629,7 +4629,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T16:02:45.215Z'),
+        Timestamp: new Date('2025-03-11T16:02:45.215'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--BucketNotificationsHandl-aKzST0shZ5Sf","BucketName":"amplify-sampleprojectapp-pr-testnamebucketb4152ad5-e7nzpywgxjfi","NotificationConfiguration":{"LambdaFunctionConfigurations":[{"Events":["s3:ObjectRemoved:*"],"LambdaFunctionArn":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY"}]},"Managed":"true","SkipDestinationValidation":"false"}',
@@ -4730,7 +4730,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-storage0EC3F24A-IU5R2F6HCKAD/26c26890-fe92-11ef-a416-06859f48abf1',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:46.191Z'),
+        Timestamp: new Date('2025-03-11T16:02:46.191'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -4815,7 +4815,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-storage0EC3F24A-IU5R2F6HCKAD/26c26890-fe92-11ef-a416-06859f48abf1',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:55.293Z'),
+        Timestamp: new Date('2025-03-11T16:02:55.293'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/a217e7c300711883159bfa09d4a6a99f762c9d59542ae5bb802ebac85abdb443.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysampleprojectappusersandbox0e1752a889functionsayhellolambdaServiceRole6B7F66E6Ref":"amplify-sampleprojectapp--sayhellolambdaServiceRole-dYY4WEu00Fkk","referencetoamplifysampleprojectappusersandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysampleprojectappusersandbox0e1752a889functionsayhellolambdaB2E612D0Arn":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp-pr-sayhellolambdaEFA46D92-dhZij4y0tmIY"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4850,7 +4850,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:56.603Z'),
+        Timestamp: new Date('2025-03-11T16:02:56.603'),
         ResourceStatus: 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
         ClientRequestToken: 'exec427e962e-bfc9-4252-bc3b-1ed31e38ff16',
       },
@@ -4877,7 +4877,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:57.715Z'),
+        Timestamp: new Date('2025-03-11T16:02:57.715'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4916,7 +4916,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:58.904Z'),
+        Timestamp: new Date('2025-03-11T16:02:58.904'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4954,7 +4954,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:59.342Z'),
+        Timestamp: new Date('2025-03-11T16:02:59.342'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4992,7 +4992,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:02:59.431Z'),
+        Timestamp: new Date('2025-03-11T16:02:59.431'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5030,7 +5030,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:03:00.059Z'),
+        Timestamp: new Date('2025-03-11T16:03:00.059'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5067,7 +5067,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:03:00.241Z'),
+        Timestamp: new Date('2025-03-11T16:03:00.241'),
         ResourceStatus: 'UPDATE_COMPLETE',
       },
       progress: {
@@ -5107,7 +5107,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:03:07.950Z'),
+        Timestamp: new Date('2025-03-11T16:03:07.950'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5142,7 +5142,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:03:08.377Z'),
+        Timestamp: new Date('2025-03-11T16:03:08.377'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5177,7 +5177,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T16:03:08.547Z'),
+        Timestamp: new Date('2025-03-11T16:03:08.547'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ClientRequestToken: 'exec427e962e-bfc9-4252-bc3b-1ed31e38ff16',
       },

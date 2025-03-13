@@ -1413,7 +1413,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:02.531Z'),
+        Timestamp: new Date('2025-03-11T03:26:02.531'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
         ClientRequestToken: 'exec35dd3144-7c45-43b2-bbc0-5c85440a20c6',
@@ -1470,7 +1470,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:05.358Z'),
+        Timestamp: new Date('2025-03-11T03:26:05.358'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1506,7 +1506,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:05.379Z'),
+        Timestamp: new Date('2025-03-11T03:26:05.379'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1542,7 +1542,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:05.962Z'),
+        Timestamp: new Date('2025-03-11T03:26:05.962'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1578,7 +1578,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:06.112Z'),
+        Timestamp: new Date('2025-03-11T03:26:06.112'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1614,7 +1614,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:06.670Z'),
+        Timestamp: new Date('2025-03-11T03:26:06.670'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1651,7 +1651,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:07.299Z'),
+        Timestamp: new Date('2025-03-11T03:26:07.299'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
       },
@@ -1725,7 +1725,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:11.423Z'),
+        Timestamp: new Date('2025-03-11T03:26:11.423'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1763,7 +1763,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:12.151Z'),
+        Timestamp: new Date('2025-03-11T03:26:12.151'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1801,7 +1801,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:12.944Z'),
+        Timestamp: new Date('2025-03-11T03:26:12.944'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1839,7 +1839,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:13.025Z'),
+        Timestamp: new Date('2025-03-11T03:26:13.025'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1937,7 +1937,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:13.723Z'),
+        Timestamp: new Date('2025-03-11T03:26:13.723'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1975,7 +1975,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:13.855Z'),
+        Timestamp: new Date('2025-03-11T03:26:13.855'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2013,7 +2013,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:14.548Z'),
+        Timestamp: new Date('2025-03-11T03:26:14.548'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2051,7 +2051,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:15.223Z'),
+        Timestamp: new Date('2025-03-11T03:26:15.223'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2088,7 +2088,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:16.764Z'),
+        Timestamp: new Date('2025-03-11T03:26:16.764'),
         ResourceStatus: 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
       },
       progress: {
@@ -2113,7 +2113,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:17.634Z'),
+        Timestamp: new Date('2025-03-11T03:26:17.634'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2148,7 +2148,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:18.725Z'),
+        Timestamp: new Date('2025-03-11T03:26:18.725'),
         ResourceStatus: 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
         ClientRequestToken: 'exec35dd3144-7c45-43b2-bbc0-5c85440a20c6',
       },
@@ -2175,7 +2175,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:19.805Z'),
+        Timestamp: new Date('2025-03-11T03:26:19.805'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2214,7 +2214,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:21.127Z'),
+        Timestamp: new Date('2025-03-11T03:26:21.127'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:123456789012:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2252,7 +2252,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:21.541Z'),
+        Timestamp: new Date('2025-03-11T03:26:21.541'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2290,7 +2290,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:21.550Z'),
+        Timestamp: new Date('2025-03-11T03:26:21.550'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysampleprojectappusersandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:123456789012:function:amplify-sampleprojectapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2328,7 +2328,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:21.964Z'),
+        Timestamp: new Date('2025-03-11T03:26:21.964'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2420,7 +2420,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:22.137Z'),
+        Timestamp: new Date('2025-03-11T03:26:22.137'),
         ResourceStatus: 'UPDATE_COMPLETE',
       },
       progress: {
@@ -2445,7 +2445,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:30.163Z'),
+        Timestamp: new Date('2025-03-11T03:26:30.163'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-sampleprojectapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysampleprojectappusersandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysampleprojectappusersandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-sampleprojectapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2495,7 +2495,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:30.602Z'),
+        Timestamp: new Date('2025-03-11T03:26:30.602'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-123456789012-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2530,7 +2530,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:123456789012:stack/amplify-sampleprojectapp-user-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:26:30.775Z'),
+        Timestamp: new Date('2025-03-11T03:26:30.775'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ClientRequestToken: 'exec35dd3144-7c45-43b2-bbc0-5c85440a20c6',
       },

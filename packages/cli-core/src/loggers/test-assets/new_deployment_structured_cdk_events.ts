@@ -1295,7 +1295,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:36.161Z'),
+        Timestamp: new Date('2025-03-11T03:09:36.161'),
         ResourceStatus: 'REVIEW_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
       },
@@ -1322,7 +1322,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:42.534Z'),
+        Timestamp: new Date('2025-03-11T03:09:42.534'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
         ClientRequestToken: 'execc444e03a-46a9-4962-95e6-c1a015cefd81',
@@ -1348,7 +1348,7 @@ export const data = [
         LogicalResourceId: 'function1351588B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:44.861Z'),
+        Timestamp: new Date('2025-03-11T03:09:44.861'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/5065dd0842feb96b950d214ec1e2f9faabd3ad868f6d75d5d999b56e9327c4d6.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1382,7 +1382,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:44.863Z'),
+        Timestamp: new Date('2025-03-11T03:09:44.863'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zPSM7Qw0jNQTCwv1k1OydbNyUzSqw4uSUzO1nFOy/MvLSkoLQGxwEK1Onn5Kal6WcX6ZUYGeoYWeoaKWcWZmbpFpXklmbmpekEQGgDqjI8HVAAAAA=="}',
@@ -1417,7 +1417,7 @@ export const data = [
         LogicalResourceId: 'MyCustomResourcesBB610599',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:44.872Z'),
+        Timestamp: new Date('2025-03-11T03:09:44.872'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1482,7 +1482,7 @@ export const data = [
         LogicalResourceId: 'auth179371D7',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:44.898Z'),
+        Timestamp: new Date('2025-03-11T03:09:44.898'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1517,7 +1517,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-function1351588B-1ALPB9V7YWDR8/4898f1d0-fe26-11ef-9e4a-068c781f1cdb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:45.456Z'),
+        Timestamp: new Date('2025-03-11T03:09:45.456'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1553,7 +1553,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:45.499Z'),
+        Timestamp: new Date('2025-03-11T03:09:45.499'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1590,7 +1590,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:09:45.592Z'),
+        Timestamp: new Date('2025-03-11T03:09:45.592'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1626,7 +1626,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:45.831Z'),
+        Timestamp: new Date('2025-03-11T03:09:45.831'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1661,7 +1661,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:45.936Z'),
+        Timestamp: new Date('2025-03-11T03:09:45.936'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zPSM7Qw0jNQTCwv1k1OydbNyUzSqw4uSUzO1nFOy/MvLSkoLQGxwEK1Onn5Kal6WcX6ZUYGeoYWeoaKWcWZmbpFpXklmbmpekEQGgDqjI8HVAAAAA=="}',
@@ -1696,7 +1696,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:47.606Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.606'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/02LwQ6CMBBEv4V7WYETV8PJizEYz6a2qy6UbUIXiWn674YYlNPMvJmpoKwrKDI9h9zYPnd0g3jEIGjPok2v9Byu0fgHk3iIl4DjyXunmjv//GoaR8iyrf7kYJGF5L2et7n1Dvci2jwHZEmK9ABxgctw0ZRUi8FPo8Gk2FuELuxeVQFlDWXWBaJ8nFhoQGi/+gFim9/a1wAAAA=="}',
@@ -1730,7 +1730,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:47.614Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.614'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zXNOw6DMBBF0bXQDxM+DW1ASkkBC0CDPSDzsSXGDgVi7xGgVKd692WYFhkmEe0SKz3Hi+nxqFk869aTmoF26Y6F1l5TZ53mSbC++QSrvHEWDK14NG5hqAZ7eYLkHYmwF3xfgORYBjWzL0kYnhpWg/03TmhYXNgUwz1oPY3GjidcjzjJ65slmBaYRpMYE2/BerMyNo8/CCaiyMQAAAA="}',
@@ -1765,7 +1765,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:09:47.616Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.616'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"UserPoolTags":{"amplify:deployment-type":"sandbox","amplify:friendly-name":"amplifyAuth","created-by":"amplify"},"Policies":{"PasswordPolicy":{"RequireNumbers":"true","MinimumLength":"8","RequireUppercase":"true","RequireLowercase":"true","RequireSymbols":"true"}},"VerificationMessageTemplate":{"EmailMessage":"The verification code to your new account is {####}","SmsMessage":"The verification code to your new account is {####}","EmailSubject":"Verify your new account","DefaultEmailOption":"CONFIRM_WITH_CODE"},"Schema":[{"Mutable":"true","Required":"true","Name":"email"}],"AdminCreateUserConfig":{"AllowAdminCreateUserOnly":"false"},"UsernameConfiguration":{"CaseSensitive":"false"},"SmsVerificationMessage":"The verification code to your new account is {####}","UserAttributeUpdateSettings":{"AttributesRequireVerificationBeforeUpdate":["email"]},"EmailVerificationSubject":"Verify your new account","AutoVerifiedAttributes":["email"],"EmailVerificationMessage":"The verification code to your new account is {####}","UsernameAttributes":["email"],"AccountRecoverySetting":{"RecoveryMechanisms":[{"Priority":"1","Name":"verified_email"}]}}',
@@ -1800,7 +1800,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRole4BCAA6E2',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:47.618Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.618'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1854,7 +1854,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:47.723Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.723'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12JvQ4CIRAGn+V6+AQqensTf3qDsCZ7p5y64BWEdzeendVMZhya9Q5mCIvomCZ94wt2JIXSsYQ4KevN3w2LnJs8BW1fqZLaXvMqXUkWtNP84PiNq/TeVZ4TYZTN2xlYDzuMwqxfNRe+Ew4/fgBWxymaiQAAAA=="}',
@@ -1889,7 +1889,7 @@ export const data = [
         LogicalResourceId: 'CustomQueue6CD3A366',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SQS::Queue',
-        Timestamp: new Date('2025-03-11T03:09:47.743Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.743'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1924,7 +1924,7 @@ export const data = [
         LogicalResourceId: 'CustomTopicsAF1A51E0',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SNS::Topic',
-        Timestamp: new Date('2025-03-11T03:09:47.924Z'),
+        Timestamp: new Date('2025-03-11T03:09:47.924'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1958,7 +1958,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.509Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.509'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -1995,7 +1995,7 @@ export const data = [
         PhysicalResourceId:
           'https://sqs.us-west-2.amazonaws.com/504152962427/amplify-samplesamsaraapp-pravgupt-sandbox-0e175-CustomQueue6CD3A366-EOFQh4OhMQV0',
         ResourceType: 'AWS::SQS::Queue',
-        Timestamp: new Date('2025-03-11T03:09:48.562Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.562'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2030,7 +2030,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.580Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.580'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2065,7 +2065,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '4898f1d0-fe26-11ef-9e4a-068c781f1cdb',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.587Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.587'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2102,7 +2102,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:48.598Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.598'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2137,7 +2137,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.618Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.618'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/02LwQ6CMBBEv4V7WYETV8PJizEYz6a2qy6UbUIXiWn674YYlNPMvJmpoKwrKDI9h9zYPnd0g3jEIGjPok2v9Byu0fgHk3iIl4DjyXunmjv//GoaR8iyrf7kYJGF5L2et7n1Dvci2jwHZEmK9ABxgctw0ZRUi8FPo8Gk2FuELuxeVQFlDWXWBaJ8nFhoQGi/+gFim9/a1wAAAA=="}',
@@ -2171,7 +2171,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.648Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.648'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12JvQ4CIRAGn+V6+AQqensTf3qDsCZ7p5y64BWEdzeendVMZhya9Q5mCIvomCZ94wt2JIXSsYQ4KevN3w2LnJs8BW1fqZLaXvMqXUkWtNP84PiNq/TeVZ4TYZTN2xlYDzuMwqxfNRe+Ew4/fgBWxymaiQAAAA=="}',
@@ -2205,7 +2205,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '4898f1d0-fe26-11ef-9e4a-068c781f1cdb',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:09:48.675Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.675'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zXNOw6DMBBF0bXQDxM+DW1ASkkBC0CDPSDzsSXGDgVi7xGgVKd692WYFhkmEe0SKz3Hi+nxqFk869aTmoF26Y6F1l5TZ53mSbC++QSrvHEWDK14NG5hqAZ7eYLkHYmwF3xfgORYBjWzL0kYnhpWg/03TmhYXNgUwz1oPY3GjidcjzjJ65slmBaYRpMYE2/BerMyNo8/CCaiyMQAAAA="}',
@@ -2241,7 +2241,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:sns:us-west-2:504152962427:amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR-CustomTopicsAF1A51E0-XeY9VPMpYePI',
         ResourceType: 'AWS::SNS::Topic',
-        Timestamp: new Date('2025-03-11T03:09:48.768Z'),
+        Timestamp: new Date('2025-03-11T03:09:48.768'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2277,7 +2277,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:09:49.328Z'),
+        Timestamp: new Date('2025-03-11T03:09:49.328'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2314,7 +2314,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:sns:us-west-2:504152962427:amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR-CustomTopicsAF1A51E0-XeY9VPMpYePI',
         ResourceType: 'AWS::SNS::Topic',
-        Timestamp: new Date('2025-03-11T03:09:49.370Z'),
+        Timestamp: new Date('2025-03-11T03:09:49.370'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2349,7 +2349,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:09:49.996Z'),
+        Timestamp: new Date('2025-03-11T03:09:49.996'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"UserPoolTags":{"amplify:deployment-type":"sandbox","amplify:friendly-name":"amplifyAuth","created-by":"amplify"},"Policies":{"PasswordPolicy":{"RequireNumbers":"true","MinimumLength":"8","RequireUppercase":"true","RequireLowercase":"true","RequireSymbols":"true"}},"VerificationMessageTemplate":{"EmailMessage":"The verification code to your new account is {####}","SmsMessage":"The verification code to your new account is {####}","EmailSubject":"Verify your new account","DefaultEmailOption":"CONFIRM_WITH_CODE"},"Schema":[{"Mutable":"true","Required":"true","Name":"email"}],"AdminCreateUserConfig":{"AllowAdminCreateUserOnly":"false"},"UsernameConfiguration":{"CaseSensitive":"false"},"SmsVerificationMessage":"The verification code to your new account is {####}","UserAttributeUpdateSettings":{"AttributesRequireVerificationBeforeUpdate":["email"]},"EmailVerificationSubject":"Verify your new account","AutoVerifiedAttributes":["email"],"EmailVerificationMessage":"The verification code to your new account is {####}","UsernameAttributes":["email"],"AccountRecoverySetting":{"RecoveryMechanisms":[{"Priority":"1","Name":"verified_email"}]}}',
@@ -2384,7 +2384,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPoolAppClient2626C6F8',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Cognito::UserPoolClient',
-        Timestamp: new Date('2025-03-11T03:09:50.371Z'),
+        Timestamp: new Date('2025-03-11T03:09:50.371'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"CallbackURLs":["https://example.com"],"AllowedOAuthFlows":["code"],"UserPoolId":"us-west-2_j6BNFhRJd","ExplicitAuthFlows":["ALLOW_CUSTOM_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"AllowedOAuthFlowsUserPoolClient":"true","PreventUserExistenceErrors":"ENABLED","SupportedIdentityProviders":["COGNITO"]}',
@@ -2419,7 +2419,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPoolAppClient2626C6F8',
         PhysicalResourceId: '1f198iuo1sqf1g76kl9pplu4um',
         ResourceType: 'AWS::Cognito::UserPoolClient',
-        Timestamp: new Date('2025-03-11T03:09:51.273Z'),
+        Timestamp: new Date('2025-03-11T03:09:51.273'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2485,7 +2485,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPoolAppClient2626C6F8',
         PhysicalResourceId: '1f198iuo1sqf1g76kl9pplu4um',
         ResourceType: 'AWS::Cognito::UserPoolClient',
-        Timestamp: new Date('2025-03-11T03:09:51.842Z'),
+        Timestamp: new Date('2025-03-11T03:09:51.842'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"CallbackURLs":["https://example.com"],"AllowedOAuthFlows":["code"],"UserPoolId":"us-west-2_j6BNFhRJd","ExplicitAuthFlows":["ALLOW_CUSTOM_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"AllowedOAuthFlowsUserPoolClient":"true","PreventUserExistenceErrors":"ENABLED","SupportedIdentityProviders":["COGNITO"]}',
@@ -2520,7 +2520,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPool3FDE84CC',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Cognito::IdentityPool',
-        Timestamp: new Date('2025-03-11T03:09:52.241Z'),
+        Timestamp: new Date('2025-03-11T03:09:52.241'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"CognitoIdentityProviders":[{"ProviderName":"cognito-idp.us-west-2.amazonaws.com/us-west-2_j6BNFhRJd","ClientId":"1f198iuo1sqf1g76kl9pplu4um"}],"AllowUnauthenticatedIdentities":"true","SupportedLoginProviders":{},"IdentityPoolTags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2555,7 +2555,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPool3FDE84CC',
         PhysicalResourceId: 'us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb',
         ResourceType: 'AWS::Cognito::IdentityPool',
-        Timestamp: new Date('2025-03-11T03:09:53.098Z'),
+        Timestamp: new Date('2025-03-11T03:09:53.098'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2591,7 +2591,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPool3FDE84CC',
         PhysicalResourceId: 'us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb',
         ResourceType: 'AWS::Cognito::IdentityPool',
-        Timestamp: new Date('2025-03-11T03:09:53.607Z'),
+        Timestamp: new Date('2025-03-11T03:09:53.607'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"CognitoIdentityProviders":[{"ProviderName":"cognito-idp.us-west-2.amazonaws.com/us-west-2_j6BNFhRJd","ClientId":"1f198iuo1sqf1g76kl9pplu4um"}],"AllowUnauthenticatedIdentities":"true","SupportedLoginProviders":{},"IdentityPoolTags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2626,7 +2626,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthunauthenticatedUserRole2B524D9E',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:53.981Z'),
+        Timestamp: new Date('2025-03-11T03:09:53.981'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"StringEquals":{"cognito-identity.amazonaws.com:aud":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb"},"ForAnyValue:StringLike":{"cognito-identity.amazonaws.com:amr":"unauthenticated"}},"Action":"sts:AssumeRoleWithWebIdentity","Effect":"Allow","Principal":{"Federated":"cognito-identity.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2661,7 +2661,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthauthenticatedUserRoleD8DA3689',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:53.992Z'),
+        Timestamp: new Date('2025-03-11T03:09:53.992'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"StringEquals":{"cognito-identity.amazonaws.com:aud":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb"},"ForAnyValue:StringLike":{"cognito-identity.amazonaws.com:amr":"authenticated"}},"Action":"sts:AssumeRoleWithWebIdentity","Effect":"Allow","Principal":{"Federated":"cognito-identity.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2697,7 +2697,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:54.916Z'),
+        Timestamp: new Date('2025-03-11T03:09:54.916'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2734,7 +2734,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:09:54.957Z'),
+        Timestamp: new Date('2025-03-11T03:09:54.957'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -2851,7 +2851,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:05.227Z'),
+        Timestamp: new Date('2025-03-11T03:10:05.227'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2886,7 +2886,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:05.555Z'),
+        Timestamp: new Date('2025-03-11T03:10:05.555'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"sayhellolambdaServiceRoleDefaultPolicy4256F36F","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"ssm:GetParameters","Resource":"arn:aws:ssm:us-west-2:504152962427:parameter/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j"]}',
@@ -2921,7 +2921,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaEFA46D92',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:06.054Z'),
+        Timestamp: new Date('2025-03-11T03:10:06.054'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j","MemorySize":"512","Runtime":"nodejs18.x","Timeout":"3","Environment":{"Variables":{"TEST_NAME_BUCKET_NAME":"<value will be resolved during runtime>","AMPLIFY_SSM_ENV_CONFIG":"{\\"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME\\":{\\"name\\":\\"TEST_NAME_BUCKET_NAME\\"}}"}},"Handler":"index.handler","EphemeralStorage":{"Size":"512"},"Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"aca5c01abb5bae3c9a0387478d7962aa5580a6ed97a5d12549501d7f1874b091.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"Architectures":["x86_64"]}',
@@ -2986,7 +2986,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: 'ampli-sayhe-Xu9jRucG3At9',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:06.635Z'),
+        Timestamp: new Date('2025-03-11T03:10:06.635'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3023,7 +3023,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:07.472Z'),
+        Timestamp: new Date('2025-03-11T03:10:07.472'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3080,7 +3080,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:11.460Z'),
+        Timestamp: new Date('2025-03-11T03:10:11.460'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"StringEquals":{"cognito-identity.amazonaws.com:aud":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb"},"ForAnyValue:StringLike":{"cognito-identity.amazonaws.com:amr":"authenticated"}},"Action":"sts:AssumeRoleWithWebIdentity","Effect":"Allow","Principal":{"Federated":"cognito-identity.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3116,7 +3116,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:11.476Z'),
+        Timestamp: new Date('2025-03-11T03:10:11.476'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"StringEquals":{"cognito-identity.amazonaws.com:aud":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb"},"ForAnyValue:StringLike":{"cognito-identity.amazonaws.com:amr":"unauthenticated"}},"Action":"sts:AssumeRoleWithWebIdentity","Effect":"Allow","Principal":{"Federated":"cognito-identity.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyAuth","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3151,7 +3151,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPoolRoleAttachment045F17C8',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Cognito::IdentityPoolRoleAttachment',
-        Timestamp: new Date('2025-03-11T03:10:12.958Z'),
+        Timestamp: new Date('2025-03-11T03:10:12.958'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"RoleMappings":{"UserPoolWebClientRoleMapping":{"Type":"Token","AmbiguousRoleResolution":"AuthenticatedRole","IdentityProvider":"cognito-idp.us-west-2.amazonaws.com/us-west-2_j6BNFhRJd:1f198iuo1sqf1g76kl9pplu4um"}},"IdentityPoolId":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","Roles":{"authenticated":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","unauthenticated":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47"}}',
@@ -3187,7 +3187,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:13.590Z'),
+        Timestamp: new Date('2025-03-11T03:10:13.590'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j","MemorySize":"512","Runtime":"nodejs18.x","Timeout":"3","Environment":{"Variables":{"TEST_NAME_BUCKET_NAME":"<value will be resolved during runtime>","AMPLIFY_SSM_ENV_CONFIG":"{\\"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME\\":{\\"name\\":\\"TEST_NAME_BUCKET_NAME\\"}}"}},"Handler":"index.handler","EphemeralStorage":{"Size":"512"},"Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"aca5c01abb5bae3c9a0387478d7962aa5580a6ed97a5d12549501d7f1874b091.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"say-hello","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"Architectures":["x86_64"]}',
@@ -3252,7 +3252,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPoolRoleAttachment045F17C8',
         PhysicalResourceId: 'us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb',
         ResourceType: 'AWS::Cognito::IdentityPoolRoleAttachment',
-        Timestamp: new Date('2025-03-11T03:10:13.734Z'),
+        Timestamp: new Date('2025-03-11T03:10:13.734'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3288,7 +3288,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthIdentityPoolRoleAttachment045F17C8',
         PhysicalResourceId: 'us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb',
         ResourceType: 'AWS::Cognito::IdentityPoolRoleAttachment',
-        Timestamp: new Date('2025-03-11T03:10:15.350Z'),
+        Timestamp: new Date('2025-03-11T03:10:15.350'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"RoleMappings":{"UserPoolWebClientRoleMapping":{"Type":"Token","AmbiguousRoleResolution":"AuthenticatedRole","IdentityProvider":"cognito-idp.us-west-2.amazonaws.com/us-west-2_j6BNFhRJd:1f198iuo1sqf1g76kl9pplu4um"}},"IdentityPoolId":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","Roles":{"authenticated":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","unauthenticated":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47"}}',
@@ -3324,7 +3324,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:16.323Z'),
+        Timestamp: new Date('2025-03-11T03:10:16.323'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -3379,7 +3379,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:18.929Z'),
+        Timestamp: new Date('2025-03-11T03:10:18.929'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3415,7 +3415,7 @@ export const data = [
         PhysicalResourceId:
           'https://sqs.us-west-2.amazonaws.com/504152962427/amplify-samplesamsaraapp-pravgupt-sandbox-0e175-CustomQueue6CD3A366-EOFQh4OhMQV0',
         ResourceType: 'AWS::SQS::Queue',
-        Timestamp: new Date('2025-03-11T03:10:19.304Z'),
+        Timestamp: new Date('2025-03-11T03:10:19.304'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3448,7 +3448,7 @@ export const data = [
         LogicalResourceId: 'data7552DF31',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:19.442Z'),
+        Timestamp: new Date('2025-03-11T03:10:19.442'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3485,7 +3485,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:19.844Z'),
+        Timestamp: new Date('2025-03-11T03:10:19.844'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -3510,7 +3510,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:20.184Z'),
+        Timestamp: new Date('2025-03-11T03:10:20.184'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -3562,7 +3562,7 @@ export const data = [
         LogicalResourceId: 'sayhellolambdaServiceRoleDefaultPolicy4256F36F',
         PhysicalResourceId: 'ampli-sayhe-Xu9jRucG3At9',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:22.081Z'),
+        Timestamp: new Date('2025-03-11T03:10:22.081'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"sayhellolambdaServiceRoleDefaultPolicy4256F36F","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"ssm:GetParameters","Resource":"arn:aws:ssm:us-west-2:504152962427:parameter/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j"]}',
@@ -3598,7 +3598,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-function1351588B-1ALPB9V7YWDR8/4898f1d0-fe26-11ef-9e4a-068c781f1cdb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:22.924Z'),
+        Timestamp: new Date('2025-03-11T03:10:22.924'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -3625,7 +3625,7 @@ export const data = [
           'AMPLIFYDATAMODELINTROSPECTIONSCHEMAKEYParameterB6AEAE8A',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:23.173Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.173'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"modelIntrospectionSchema.json","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY"}',
@@ -3661,7 +3661,7 @@ export const data = [
         LogicalResourceId: 'AMPLIFYDATADEFAULTNAMEParameterE7C23CC4',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:23.187Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.187'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"amplifyData","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_DEFAULT_NAME"}',
@@ -3697,7 +3697,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:23.206Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.206'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -3732,7 +3732,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:23.206Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.206'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1VQy27CMBD8Fu7GBXrhGoLaC0WUSL1Gi7MJBj9Sr0MURfn3yjGEcprHyuPZXfHlesUXM2hpLorrXMkT7/dIHovMg7iyI5JtnEAGLeU91DV1RvD+00F9/lVJLTdAyNLSjM73LqnlP5WJM2pge2twCx6yGJWW5qkGRu+83zTiij5M7izCwSopuqd911GEn8PrvC+wVrbTaDyPo+1kMCBCTzwJMDAF+lQA79PS7KBD94OOpDUsk6ZS6K35aIzwwZlIWk7mwCRo3h+tGpcY8VkxsoERad5n3klTHcCBRo9unD/EMAQZ75s25K2erhxSHzx2zVXomUNLQkmetJQqOVZn40qZh0qa6iU/iC+o69F/yT84e5MFung6YwvkF3q7rRZ8uebL2YWknLvGeKmRHyP+AfOB530iAgAA"}',
@@ -3768,7 +3768,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucket9CCB4ACA',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:23.211Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.211'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"AllowedMethods":["GET","HEAD"],"AllowedOrigins":["https://us-west-2.console.aws.amazon.com/amplify"],"AllowedHeaders":["*"]}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"true","Key":"aws-cdk:cr-owned:bb5e5747"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3805,7 +3805,7 @@ export const data = [
           'modelIntrospectionSchemaBucketDeploymentAwsCliLayer13C432F7',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:23.212Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.212'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Description":"/opt/awscli/aws","Content":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"14700f3f8dd2f4997b0e6380f2714c17996184ef4a12d7990ce58b009105e158.zip"}}',
@@ -3841,7 +3841,7 @@ export const data = [
         LogicalResourceId: 'modelIntrospectionSchemaBucketF566B665',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:23.224Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.224'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"true","Key":"aws-cdk:cr-owned:6e3f6317"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3877,7 +3877,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:23.229Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.229'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Description":"/opt/awscli/aws","Content":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"14700f3f8dd2f4997b0e6380f2714c17996184ef4a12d7990ce58b009105e158.zip"}}',
@@ -3913,7 +3913,7 @@ export const data = [
         LogicalResourceId: 'amplifyDataGraphQLAPI42A6FA33',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::GraphQLApi',
-        Timestamp: new Date('2025-03-11T03:10:23.231Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.231'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"AdditionalAuthenticationProviders":[{"UserPoolConfig":{"UserPoolId":"us-west-2_j6BNFhRJd","AwsRegion":"us-west-2"},"AuthenticationType":"AMAZON_COGNITO_USER_POOLS"}],"AuthenticationType":"AWS_IAM","Name":"amplifyData"}',
@@ -3949,7 +3949,7 @@ export const data = [
           'CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleA41FC8C2',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:23.292Z'),
+        Timestamp: new Date('2025-03-11T03:10:23.292'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -3986,7 +3986,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_DEFAULT_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:24.047Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.047'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4021,7 +4021,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:24.098Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.098'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4059,7 +4059,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:24.111Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.111'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4098,7 +4098,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:24.152Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.152'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4134,7 +4134,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:24.172Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.172'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1VQy27CMBD8Fu7GBXrhGoLaC0WUSL1Gi7MJBj9Sr0MURfn3yjGEcprHyuPZXfHlesUXM2hpLorrXMkT7/dIHovMg7iyI5JtnEAGLeU91DV1RvD+00F9/lVJLTdAyNLSjM73LqnlP5WJM2pge2twCx6yGJWW5qkGRu+83zTiij5M7izCwSopuqd911GEn8PrvC+wVrbTaDyPo+1kMCBCTzwJMDAF+lQA79PS7KBD94OOpDUsk6ZS6K35aIzwwZlIWk7mwCRo3h+tGpcY8VkxsoERad5n3klTHcCBRo9unD/EMAQZ75s25K2erhxSHzx2zVXomUNLQkmetJQqOVZn40qZh0qa6iU/iC+o69F/yT84e5MFung6YwvkF3q7rRZ8uebL2YWknLvGeKmRHyP+AfOB530iAgAA"}',
@@ -4171,7 +4171,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:24.243Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.243'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4209,7 +4209,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:24.369Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.369'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4247,7 +4247,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:24.373Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.373'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4285,7 +4285,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau',
         ResourceType: 'AWS::AppSync::GraphQLApi',
-        Timestamp: new Date('2025-03-11T03:10:24.544Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.544'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4322,7 +4322,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_DEFAULT_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:24.605Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.605'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"amplifyData","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_DEFAULT_NAME"}',
@@ -4358,7 +4358,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau',
         ResourceType: 'AWS::AppSync::GraphQLApi',
-        Timestamp: new Date('2025-03-11T03:10:24.624Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.624'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}],"AdditionalAuthenticationProviders":[{"UserPoolConfig":{"UserPoolId":"us-west-2_j6BNFhRJd","AwsRegion":"us-west-2"},"AuthenticationType":"AMAZON_COGNITO_USER_POOLS"}],"AuthenticationType":"AWS_IAM","Name":"amplifyData"}',
@@ -4395,7 +4395,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:24.704Z'),
+        Timestamp: new Date('2025-03-11T03:10:24.704'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"modelIntrospectionSchema.json","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY"}',
@@ -4456,7 +4456,7 @@ export const data = [
         LogicalResourceId: 'amplifyDataGraphQLAPITransformerSchemaFF50A789',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::GraphQLSchema',
-        Timestamp: new Date('2025-03-11T03:10:25.290Z'),
+        Timestamp: new Date('2025-03-11T03:10:25.290'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DefinitionS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e4431ba6094a85d53a88932fa10581de7e18e61c2310024b9907e52df11e26e6.graphql","ApiId":"viu3cvmcnvdx7dufpcbaimflau"}',
@@ -4491,7 +4491,7 @@ export const data = [
         LogicalResourceId: 'AMPLIFYDATAGRAPHQLENDPOINTParameter1C2CBB16',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:25.347Z'),
+        Timestamp: new Date('2025-03-11T03:10:25.347'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"https://ystl6ikbafavph56jdnbbbklmu.appsync-api.us-west-2.amazonaws.com/graphql","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_GRAPHQL_ENDPOINT"}',
@@ -4527,7 +4527,7 @@ export const data = [
           'amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:25.379Z'),
+        Timestamp: new Date('2025-03-11T03:10:25.379'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4563,7 +4563,7 @@ export const data = [
         LogicalResourceId: 'amplifyDataGraphQLAPINONEDS684BF699',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:10:25.409Z'),
+        Timestamp: new Date('2025-03-11T03:10:25.409'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"NONE","Description":"None Data Source for Pipeline functions","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"NONE_DS"}',
@@ -4600,7 +4600,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:26.111Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.111'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4638,7 +4638,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_GRAPHQL_ENDPOINT',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:26.163Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.163'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4675,7 +4675,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/NONE_DS',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:10:26.322Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.322'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4712,7 +4712,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/NONE_DS',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:10:26.479Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.479'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"NONE","Description":"None Data Source for Pipeline functions","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"NONE_DS"}',
@@ -4747,7 +4747,7 @@ export const data = [
         LogicalResourceId: 'amplifyDataGraphQLAPITransformerSchemaFF50A789',
         PhysicalResourceId: 'viu3cvmcnvdx7dufpcbaimflauGraphQLSchema',
         ResourceType: 'AWS::AppSync::GraphQLSchema',
-        Timestamp: new Date('2025-03-11T03:10:26.535Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.535'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -4784,7 +4784,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_GRAPHQL_ENDPOINT',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:26.639Z'),
+        Timestamp: new Date('2025-03-11T03:10:26.639'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"https://ystl6ikbafavph56jdnbbbklmu.appsync-api.us-west-2.amazonaws.com/graphql","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_GRAPHQL_ENDPOINT"}',
@@ -4819,7 +4819,7 @@ export const data = [
         LogicalResourceId: 'AmplifyManagedTableIsCompleteRoleF825222C',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:28.285Z'),
+        Timestamp: new Date('2025-03-11T03:10:28.285'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"Policies":[{"PolicyName":"CreateUpdateDeleteTablesPolicy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:CreateTable","dynamodb:UpdateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:DescribeContinuousBackups","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:UpdateTimeToLive","dynamodb:TagResource","dynamodb:UntagResource","dynamodb:ListTagsOfResource"],"Resource":"arn:aws:dynamodb:us-west-2:504152962427:table/*-viu3cvmcnvdx7dufpcbaimflau-NONE","Effect":"Allow"},{"Action":"lambda:ListTags","Resource":"arn:aws:lambda:us-west-2:504152962427:function:*TableManager*","Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4880,7 +4880,7 @@ export const data = [
         LogicalResourceId: 'AmplifyTableWaiterStateMachineRole470BE899',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:28.285Z'),
+        Timestamp: new Date('2025-03-11T03:10:28.285'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"states.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4916,7 +4916,7 @@ export const data = [
         LogicalResourceId: 'AmplifyManagedTableOnEventRoleB4E71DEA',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:28.310Z'),
+        Timestamp: new Date('2025-03-11T03:10:28.310'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"Policies":[{"PolicyName":"CreateUpdateDeleteTablesPolicy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:CreateTable","dynamodb:UpdateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:DescribeContinuousBackups","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:UpdateTimeToLive","dynamodb:TagResource","dynamodb:UntagResource","dynamodb:ListTagsOfResource"],"Resource":"arn:aws:dynamodb:us-west-2:504152962427:table/*-viu3cvmcnvdx7dufpcbaimflau-NONE","Effect":"Allow"},{"Action":"lambda:ListTags","Resource":"arn:aws:lambda:us-west-2:504152962427:function:*TableManager*","Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -4951,7 +4951,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:28.328Z'),
+        Timestamp: new Date('2025-03-11T03:10:28.328'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zWNywqDMBBFv8V9nPrYuK2FLkvRD5AxmUp8JOAklRLy70VtV+dczuIWkFcFZAlunEo1pbPuITyIHanWoZwEbtwFjQuExs4kbi9z8GlnLT/7PC2KGZdeIYS7N9Jpa/b29yi47JCZHMN1h+ASai8ncjUyRdEQW79KEkdtHQ7aDMfZL0RhrCIY+fIuMsgryJORtU5Xb5xeCJqTX6fR9hzPAAAA"}',
@@ -4988,7 +4988,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:lambda:us-west-2:504152962427:layer:modelIntrospectionSchemaBucketDeploymentAwsCliLayer13C432F7:57',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:29.087Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.087'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5026,7 +5026,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:29.155Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.155'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5064,7 +5064,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:29.331Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.331'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5100,7 +5100,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:29.365Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.365'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5135,7 +5135,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:29.468Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.468'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/zWNywqDMBBFv8V9nPrYuK2FLkvRD5AxmUp8JOAklRLy70VtV+dczuIWkFcFZAlunEo1pbPuITyIHanWoZwEbtwFjQuExs4kbi9z8GlnLT/7PC2KGZdeIYS7N9Jpa/b29yi47JCZHMN1h+ASai8ncjUyRdEQW79KEkdtHQ7aDMfZL0RhrCIY+fIuMsgryJORtU5Xb5xeCJqTX6fR9hzPAAAA"}',
@@ -5171,7 +5171,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyManagedTableIsComp-vfts7GBgyzuC',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:29.518Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.518'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5210,7 +5210,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:lambda:us-west-2:504152962427:layer:modelIntrospectionSchemaBucketDeploymentAwsCliLayer13C432F7:57',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:29.652Z'),
+        Timestamp: new Date('2025-03-11T03:10:29.652'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Description":"/opt/awscli/aws","Content":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"14700f3f8dd2f4997b0e6380f2714c17996184ef4a12d7990ce58b009105e158.zip"}}',
@@ -5265,7 +5265,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-function1351588B-1ALPB9V7YWDR8/4898f1d0-fe26-11ef-9e4a-068c781f1cdb',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:31.976Z'),
+        Timestamp: new Date('2025-03-11T03:10:31.976'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/5065dd0842feb96b950d214ec1e2f9faabd3ad868f6d75d5d999b56e9327c4d6.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5303,7 +5303,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:lambda:us-west-2:504152962427:layer:amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905:246',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:31.990Z'),
+        Timestamp: new Date('2025-03-11T03:10:31.990'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5340,7 +5340,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:32.170Z'),
+        Timestamp: new Date('2025-03-11T03:10:32.170'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5375,7 +5375,7 @@ export const data = [
         LogicalResourceId: 'storage0EC3F24A',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:32.389Z'),
+        Timestamp: new Date('2025-03-11T03:10:32.389'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/a217e7c300711883159bfa09d4a6a99f762c9d59542ae5bb802ebac85abdb443.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889functionsayhellolambdaServiceRole6B7F66E6Ref":"amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889functionsayhellolambdaB2E612D0Arn":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5413,7 +5413,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:lambda:us-west-2:504152962427:layer:amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905:246',
         ResourceType: 'AWS::Lambda::LayerVersion',
-        Timestamp: new Date('2025-03-11T03:10:32.555Z'),
+        Timestamp: new Date('2025-03-11T03:10:32.555'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Description":"/opt/awscli/aws","Content":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"14700f3f8dd2f4997b0e6380f2714c17996184ef4a12d7990ce58b009105e158.zip"}}',
@@ -5448,7 +5448,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-storage0EC3F24A-WLG2OAHRFDNF/64ee0eb0-fe26-11ef-b5ad-061643229203',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:10:33.092Z'),
+        Timestamp: new Date('2025-03-11T03:10:33.092'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5515,7 +5515,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketB4152AD5',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:35.752Z'),
+        Timestamp: new Date('2025-03-11T03:10:35.752'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"ExposedHeaders":["x-amz-server-side-encryption","x-amz-request-id","x-amz-id-2","ETag"],"AllowedMethods":["GET","HEAD","PUT","POST","DELETE"],"AllowedOrigins":["*"],"AllowedHeaders":["*"],"MaxAge":"3000"}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"testName","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5549,7 +5549,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:35.759Z'),
+        Timestamp: new Date('2025-03-11T03:10:35.759'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12MwY7CMAxEv4V76qXdC1foeVdV+wHIJKYybRIUu6BV1H9H0K1Y7Wlm7DdTQbmrYLvBuxTWDcXIJ8jfJEquU7SDwbscs3xCPkx2IDX1Ofy6RZo4sv15n5c8mxH9ySHU59BQ8izCMRhGD7mNIz35l77ra1HEQ+40cegbTOhJKb3+a5hnU0+i0bckcUp2Gfvjv/B65dD/o5oUb+woHVDI7EVIO8X+ya3EbEJ0BBf5uFVbKHdQbi7CXKQpKHuCdtEHWulAxDMBAAA="}',
@@ -5585,7 +5585,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:35.794Z'),
+        Timestamp: new Date('2025-03-11T03:10:35.794'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5622,7 +5622,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:35.810Z'),
+        Timestamp: new Date('2025-03-11T03:10:35.810'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -5659,7 +5659,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:36.756Z'),
+        Timestamp: new Date('2025-03-11T03:10:36.756'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5694,7 +5694,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '64ee0eb0-fe26-11ef-b5ad-061643229203',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:36.767Z'),
+        Timestamp: new Date('2025-03-11T03:10:36.767'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5732,7 +5732,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:36.795Z'),
+        Timestamp: new Date('2025-03-11T03:10:36.795'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5768,7 +5768,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '64ee0eb0-fe26-11ef-b5ad-061643229203',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:10:36.856Z'),
+        Timestamp: new Date('2025-03-11T03:10:36.856'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/12MwY7CMAxEv4V76qXdC1foeVdV+wHIJKYybRIUu6BV1H9H0K1Y7Wlm7DdTQbmrYLvBuxTWDcXIJ8jfJEquU7SDwbscs3xCPkx2IDX1Ofy6RZo4sv15n5c8mxH9ySHU59BQ8izCMRhGD7mNIz35l77ra1HEQ+40cegbTOhJKb3+a5hnU0+i0bckcUp2Gfvjv/B65dD/o5oUb+woHVDI7EVIO8X+ya3EbEJ0BBf5uFVbKHdQbi7CXKQpKHuCdtEHWulAxDMBAAA="}',
@@ -5805,7 +5805,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:36.866Z'),
+        Timestamp: new Date('2025-03-11T03:10:36.866'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -5842,7 +5842,7 @@ export const data = [
         LogicalResourceId: 'amplifyDataGraphQLAPITransformerSchemaFF50A789',
         PhysicalResourceId: 'viu3cvmcnvdx7dufpcbaimflauGraphQLSchema',
         ResourceType: 'AWS::AppSync::GraphQLSchema',
-        Timestamp: new Date('2025-03-11T03:10:37.160Z'),
+        Timestamp: new Date('2025-03-11T03:10:37.160'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DefinitionS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e4431ba6094a85d53a88932fa10581de7e18e61c2310024b9907e52df11e26e6.graphql","ApiId":"viu3cvmcnvdx7dufpcbaimflau"}',
@@ -5879,7 +5879,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:37.870Z'),
+        Timestamp: new Date('2025-03-11T03:10:37.870'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"AllowedMethods":["GET","HEAD"],"AllowedOrigins":["https://us-west-2.console.aws.amazon.com/amplify"],"AllowedHeaders":["*"]}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"true","Key":"aws-cdk:cr-owned:bb5e5747"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5916,7 +5916,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:38.025Z'),
+        Timestamp: new Date('2025-03-11T03:10:38.025'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"true","Key":"aws-cdk:cr-owned:6e3f6317"},{"Value":"amplify","Key":"created-by"}]}',
@@ -5952,7 +5952,7 @@ export const data = [
           'AMPLIFYDATAMODELINTROSPECTIONSCHEMABUCKETNAMEParameter47BF4F44',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:38.500Z'),
+        Timestamp: new Date('2025-03-11T03:10:38.500'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME"}',
@@ -6020,7 +6020,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:39.448Z'),
+        Timestamp: new Date('2025-03-11T03:10:39.448'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6059,7 +6059,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:40.034Z'),
+        Timestamp: new Date('2025-03-11T03:10:40.034'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME"}',
@@ -6097,7 +6097,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:40.931Z'),
+        Timestamp: new Date('2025-03-11T03:10:40.931'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -6135,7 +6135,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:40.976Z'),
+        Timestamp: new Date('2025-03-11T03:10:40.976'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6172,7 +6172,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:41.891Z'),
+        Timestamp: new Date('2025-03-11T03:10:41.891'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -6209,7 +6209,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketPolicyF1C1C548',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:41.989Z'),
+        Timestamp: new Date('2025-03-11T03:10:41.989'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw"}}]}}',
@@ -6245,7 +6245,7 @@ export const data = [
         LogicalResourceId: 'modelIntrospectionSchemaBucketPolicy4DAB0D15',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:42.051Z'),
+        Timestamp: new Date('2025-03-11T03:10:42.051'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw"}}]}}',
@@ -6281,7 +6281,7 @@ export const data = [
           'CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:42.069Z'),
+        Timestamp: new Date('2025-03-11T03:10:42.069'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*"],"Resource":["arn:aws:s3:::cdk-hnb659fds-assets-504152962427-us-west-2","arn:aws:s3:::cdk-hnb659fds-assets-504152962427-us-west-2/*"],"Effect":"Allow"},{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*","s3:DeleteObject*","s3:PutObject","s3:PutObjectLegalHold","s3:PutObjectRetention","s3:PutObjectTagging","s3:PutObjectVersionTagging","s3:Abort*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy/*"],"Effect":"Allow"},{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*","s3:DeleteObject*","s3:PutObject","s3:PutObjectLegalHold","s3:PutObjectRetention","s3:PutObjectTagging","s3:PutObjectVersionTagging","s3:Abort*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh"]}',
@@ -6348,7 +6348,7 @@ export const data = [
           'CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B',
         PhysicalResourceId: 'ampli-Custo-Sq7uwaI2iybL',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:43.042Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.042'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6386,7 +6386,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:43.181Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.181'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6424,7 +6424,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:43.191Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.191'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6463,7 +6463,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:43.452Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.452'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6501,7 +6501,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:43.631Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.631'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw"}}]}}',
@@ -6538,7 +6538,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:43.649Z'),
+        Timestamp: new Date('2025-03-11T03:10:43.649'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw"}}]}}',
@@ -6575,7 +6575,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:45.628Z'),
+        Timestamp: new Date('2025-03-11T03:10:45.628'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"states.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6612,7 +6612,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:45.969Z'),
+        Timestamp: new Date('2025-03-11T03:10:45.969'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"Policies":[{"PolicyName":"CreateUpdateDeleteTablesPolicy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:CreateTable","dynamodb:UpdateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:DescribeContinuousBackups","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:UpdateTimeToLive","dynamodb:TagResource","dynamodb:UntagResource","dynamodb:ListTagsOfResource"],"Resource":"arn:aws:dynamodb:us-west-2:504152962427:table/*-viu3cvmcnvdx7dufpcbaimflau-NONE","Effect":"Allow"},{"Action":"lambda:ListTags","Resource":"arn:aws:lambda:us-west-2:504152962427:function:*TableManager*","Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6649,7 +6649,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--AmplifyManagedTableIsComp-vfts7GBgyzuC',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:46.219Z'),
+        Timestamp: new Date('2025-03-11T03:10:46.219'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"Policies":[{"PolicyName":"CreateUpdateDeleteTablesPolicy","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:CreateTable","dynamodb:UpdateTable","dynamodb:DeleteTable","dynamodb:DescribeTable","dynamodb:DescribeContinuousBackups","dynamodb:DescribeTimeToLive","dynamodb:UpdateContinuousBackups","dynamodb:UpdateTimeToLive","dynamodb:TagResource","dynamodb:UntagResource","dynamodb:ListTagsOfResource"],"Resource":"arn:aws:dynamodb:us-west-2:504152962427:table/*-viu3cvmcnvdx7dufpcbaimflau-NONE","Effect":"Allow"},{"Action":"lambda:ListTags","Resource":"arn:aws:lambda:us-west-2:504152962427:function:*TableManager*","Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6686,7 +6686,7 @@ export const data = [
           'TableManagerCustomProviderframeworkisComplete2E51021B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:47.210Z'),
+        Timestamp: new Date('2025-03-11T03:10:47.210'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyManagedTableIsComp-vfts7GBgyzuC","Runtime":"nodejs18.x","Description":"AmplifyManagedTable - isComplete (amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/data/amplifyData/AmplifyTableManager/TableManagerCustomProvider)","Timeout":"840","Handler":"amplify-table-manager-handler.isComplete","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"ca9699b9a2845c45e80cba1111f95ae2ac773af7d87163ae9c808ec547e38e00.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6754,7 +6754,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:48.669Z'),
+        Timestamp: new Date('2025-03-11T03:10:48.669'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -6793,7 +6793,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:49.609Z'),
+        Timestamp: new Date('2025-03-11T03:10:49.609'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-xTbeOpvkSoWw","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -6830,7 +6830,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketAutoDeleteObjectsCustomResource437F26F5',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:50.235Z'),
+        Timestamp: new Date('2025-03-11T03:10:50.235'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg","BucketName":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy"}',
@@ -6867,7 +6867,7 @@ export const data = [
           'modelIntrospectionSchemaBucketAutoDeleteObjectsCustomResourceFE57309F',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:50.252Z'),
+        Timestamp: new Date('2025-03-11T03:10:50.252'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg","BucketName":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd"}',
@@ -6904,7 +6904,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon',
         ResourceType: 'AWS::S3::Bucket',
-        Timestamp: new Date('2025-03-11T03:10:50.440Z'),
+        Timestamp: new Date('2025-03-11T03:10:50.440'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"CorsConfiguration":{"CorsRules":[{"ExposedHeaders":["x-amz-server-side-encryption","x-amz-request-id","x-amz-id-2","ETag"],"AllowedMethods":["GET","HEAD","PUT","POST","DELETE"],"AllowedOrigins":["*"],"AllowedHeaders":["*"],"MaxAge":"3000"}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"testName","Key":"amplify:friendly-name"},{"Value":"true","Key":"aws-cdk:auto-delete-objects"},{"Value":"amplify","Key":"created-by"}]}',
@@ -6939,7 +6939,7 @@ export const data = [
         LogicalResourceId: 'TESTNAMEBUCKETNAMEParameter6D140BDA',
         PhysicalResourceId: '',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:50.920Z'),
+        Timestamp: new Date('2025-03-11T03:10:50.920'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME"}',
@@ -6975,7 +6975,7 @@ export const data = [
           'testNameBucketAllowBucketNotificationsToamplifysamplesamsaraapppravguptsandbox0e1752a889functionsayhellolambda6952570FF2CCBD02',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T03:10:51.535Z'),
+        Timestamp: new Date('2025-03-11T03:10:51.535'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"FunctionName":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1","Action":"lambda:InvokeFunction","SourceArn":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","SourceAccount":"504152962427","Principal":"s3.amazonaws.com"}',
@@ -7011,7 +7011,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:51.536Z'),
+        Timestamp: new Date('2025-03-11T03:10:51.536'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"storageAccess524979CAB","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:GetObject","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/public/*","Effect":"Allow"},{"Condition":{"StringLike":{"s3:prefix":["public/*","public/"]}},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","Effect":"Allow"},{"Action":"s3:PutObject","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/public/*","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j"]}',
@@ -7047,7 +7047,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:51.866Z'),
+        Timestamp: new Date('2025-03-11T03:10:51.866'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7085,7 +7085,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pravgupt-sandbox-0-testNameBucketAllowBucketNotificationsToamp-qNKrHcsEz1Ym',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T03:10:52.541Z'),
+        Timestamp: new Date('2025-03-11T03:10:52.541'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7143,7 +7143,7 @@ export const data = [
         PhysicalResourceId:
           '/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME',
         ResourceType: 'AWS::SSM::Parameter',
-        Timestamp: new Date('2025-03-11T03:10:52.588Z'),
+        Timestamp: new Date('2025-03-11T03:10:52.588'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"String","Value":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","Tags":{"amplify:deployment-type":"sandbox","created-by":"amplify"},"Name":"/amplify/resource_reference/samplesamsaraapp/pravgupt-sandbox-0e1752a889/TEST_NAME_BUCKET_NAME"}',
@@ -7178,7 +7178,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: 'ampli-stora-RKKC8E62tanW',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:52.798Z'),
+        Timestamp: new Date('2025-03-11T03:10:52.798'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7216,7 +7216,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pravgupt-sandbox-0-testNameBucketAllowBucketNotificationsToamp-qNKrHcsEz1Ym',
         ResourceType: 'AWS::Lambda::Permission',
-        Timestamp: new Date('2025-03-11T03:10:53.042Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.042'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"FunctionName":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1","Action":"lambda:InvokeFunction","SourceArn":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","SourceAccount":"504152962427","Principal":"s3.amazonaws.com"}',
@@ -7253,7 +7253,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketAutoDeleteObjectsCustomResource437F26F5',
         PhysicalResourceId: 'ed6f1374-ff41-4e91-81da-7d2fad8dbbd8',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:53.073Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.073'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7291,7 +7291,7 @@ export const data = [
           'modelIntrospectionSchemaBucketAutoDeleteObjectsCustomResourceFE57309F',
         PhysicalResourceId: '5d1ff60c-78b0-48ca-a975-880804fbf5df',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:53.159Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.159'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7329,7 +7329,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsBucketAutoDeleteObjectsCustomResource437F26F5',
         PhysicalResourceId: 'ed6f1374-ff41-4e91-81da-7d2fad8dbbd8',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:53.244Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.244'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg","BucketName":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy"}',
@@ -7367,7 +7367,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:53.335Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.335'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]}}',
@@ -7404,7 +7404,7 @@ export const data = [
           'modelIntrospectionSchemaBucketAutoDeleteObjectsCustomResourceFE57309F',
         PhysicalResourceId: '5d1ff60c-78b0-48ca-a975-880804fbf5df',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:10:53.346Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.346'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-5M9QOculhKhg","BucketName":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd"}',
@@ -7442,7 +7442,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:10:53.485Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.485'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ManagedPolicyArns":["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -7479,7 +7479,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:53.939Z'),
+        Timestamp: new Date('2025-03-11T03:10:53.939'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:PutBucketNotification","Resource":"*","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF"]}',
@@ -7515,7 +7515,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketPolicyA5C458BB',
         PhysicalResourceId: '',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:54.294Z'),
+        Timestamp: new Date('2025-03-11T03:10:54.294'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT"}}]}}',
@@ -7551,7 +7551,7 @@ export const data = [
           'CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:54.300Z'),
+        Timestamp: new Date('2025-03-11T03:10:54.300'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -7589,7 +7589,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:54.815Z'),
+        Timestamp: new Date('2025-03-11T03:10:54.815'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyManagedTableIsComp-vfts7GBgyzuC","Runtime":"nodejs18.x","Description":"AmplifyManagedTable - isComplete (amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/data/amplifyData/AmplifyTableManager/TableManagerCustomProvider)","Timeout":"840","Handler":"amplify-table-manager-handler.isComplete","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"ca9699b9a2845c45e80cba1111f95ae2ac773af7d87163ae9c808ec547e38e00.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -7626,7 +7626,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: 'ampli-Bucke-emEa9LFGhAog',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:55.156Z'),
+        Timestamp: new Date('2025-03-11T03:10:55.156'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7664,7 +7664,7 @@ export const data = [
           'AmplifyTableWaiterStateMachineRoleDefaultPolicy89F3836A',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:55.313Z'),
+        Timestamp: new Date('2025-03-11T03:10:55.313'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"AmplifyTableWaiterStateMachineRoleDefaultPolicy89F3836A","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"lambda:InvokeFunction","Resource":["arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj","arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj:*"],"Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy"]}',
@@ -7701,7 +7701,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:55.342Z'),
+        Timestamp: new Date('2025-03-11T03:10:55.342'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7739,7 +7739,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObject-chBkLsmuy8D7',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:55.798Z'),
+        Timestamp: new Date('2025-03-11T03:10:55.798'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7777,7 +7777,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon',
         ResourceType: 'AWS::S3::BucketPolicy',
-        Timestamp: new Date('2025-03-11T03:10:55.825Z'),
+        Timestamp: new Date('2025-03-11T03:10:55.825'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Bucket":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Condition":{"Bool":{"aws:SecureTransport":"false"}},"Action":"s3:*","Resource":["arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/*"],"Effect":"Deny","Principal":{"AWS":"*"}},{"Action":["s3:PutBucketPolicy","s3:GetBucket*","s3:List*","s3:DeleteObject*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/*"],"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT"}}]}}',
@@ -7813,7 +7813,7 @@ export const data = [
           'AmplifyTableWaiterStateMachineRoleDefaultPolicy89F3836A',
         PhysicalResourceId: 'ampli-Ampli-gBNsYGINwVfQ',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:56.247Z'),
+        Timestamp: new Date('2025-03-11T03:10:56.247'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -7881,7 +7881,7 @@ export const data = [
           'CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B',
         PhysicalResourceId: 'ampli-Custo-Sq7uwaI2iybL',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:10:58.528Z'),
+        Timestamp: new Date('2025-03-11T03:10:58.528'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBServiceRoleDefaultPolicyFF1C635B","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*"],"Resource":["arn:aws:s3:::cdk-hnb659fds-assets-504152962427-us-west-2","arn:aws:s3:::cdk-hnb659fds-assets-504152962427-us-west-2/*"],"Effect":"Allow"},{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*","s3:DeleteObject*","s3:PutObject","s3:PutObjectLegalHold","s3:PutObjectRetention","s3:PutObjectTagging","s3:PutObjectVersionTagging","s3:Abort*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy/*"],"Effect":"Allow"},{"Action":["s3:GetObject*","s3:GetBucket*","s3:List*","s3:DeleteObject*","s3:PutObject","s3:PutObjectLegalHold","s3:PutObjectRetention","s3:PutObjectTagging","s3:PutObjectVersionTagging","s3:Abort*"],"Resource":["arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","arn:aws:s3:::amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd/*"],"Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh"]}',
@@ -7918,7 +7918,7 @@ export const data = [
           'CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1536MiBC5D8AB21',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:10:59.606Z'),
+        Timestamp: new Date('2025-03-11T03:10:59.606'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh","MemorySize":"1536","Runtime":"python3.11","Timeout":"900","Environment":{"Variables":{"AWS_CA_BUNDLE":"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"}},"Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762.zip"},"Layers":["arn:aws:lambda:us-west-2:504152962427:layer:amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905:246"],"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -7986,7 +7986,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:01.078Z'),
+        Timestamp: new Date('2025-03-11T03:11:01.078'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8025,7 +8025,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomS3AutoDeleteObject-chBkLsmuy8D7',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:01.971Z'),
+        Timestamp: new Date('2025-03-11T03:11:01.971'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomS3AutoDeleteObjects-PjfysbA25ktT","MemorySize":"128","Runtime":"nodejs20.x","Description":"Lambda function for auto-deleting objects in amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon S3 bucket.","Timeout":"900","Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"}}',
@@ -8062,7 +8062,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:11:02.485Z'),
+        Timestamp: new Date('2025-03-11T03:11:02.485'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-chBkLsmuy8D7","BucketName":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon"}',
@@ -8099,7 +8099,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '41d5e844-f777-492a-bd64-36ecfc79bede',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:11:05.575Z'),
+        Timestamp: new Date('2025-03-11T03:11:05.575'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8137,7 +8137,7 @@ export const data = [
           'testNameBucketAutoDeleteObjectsCustomResource245F058C',
         PhysicalResourceId: '41d5e844-f777-492a-bd64-36ecfc79bede',
         ResourceType: 'Custom::S3AutoDeleteObjects',
-        Timestamp: new Date('2025-03-11T03:11:05.737Z'),
+        Timestamp: new Date('2025-03-11T03:11:05.737'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomS3AutoDeleteObject-chBkLsmuy8D7","BucketName":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon"}',
@@ -8203,7 +8203,7 @@ export const data = [
         LogicalResourceId: 'storageAccess524979CAB',
         PhysicalResourceId: 'ampli-stora-RKKC8E62tanW',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:08.332Z'),
+        Timestamp: new Date('2025-03-11T03:11:08.332'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"storageAccess524979CAB","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:GetObject","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/public/*","Effect":"Allow"},{"Condition":{"StringLike":{"s3:prefix":["public/*","public/"]}},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","Effect":"Allow"},{"Action":"s3:PutObject","Resource":"arn:aws:s3:::amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon/public/*","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j"]}',
@@ -8239,7 +8239,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36',
         PhysicalResourceId: 'ampli-Bucke-emEa9LFGhAog',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:10.645Z'),
+        Timestamp: new Date('2025-03-11T03:11:10.645'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"s3:PutBucketNotification","Resource":"*","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF"]}',
@@ -8306,7 +8306,7 @@ export const data = [
           'AmplifyTableWaiterStateMachineRoleDefaultPolicy89F3836A',
         PhysicalResourceId: 'ampli-Ampli-gBNsYGINwVfQ',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:11.717Z'),
+        Timestamp: new Date('2025-03-11T03:11:11.717'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"AmplifyTableWaiterStateMachineRoleDefaultPolicy89F3836A","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"lambda:InvokeFunction","Resource":["arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj","arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj:*"],"Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy"]}',
@@ -8343,7 +8343,7 @@ export const data = [
           'BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:11.733Z'),
+        Timestamp: new Date('2025-03-11T03:11:11.733'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF","Runtime":"python3.11","Description":"AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)","Timeout":"300","Handler":"index.handler","Code":{"ZipFile":"import boto3  # type: ignore\\nimport json\\nimport logging\\nimport urllib.request\\n\\ns3 = boto3.client(\\"s3\\")\\n\\nEVENTBRIDGE_CONFIGURATION = \'EventBridgeConfiguration\'\\nCONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]\\n\\ndef handler(event: dict, context):\\n  response_status = \\"SUCCESS\\"\\n  error_message = \\"\\"\\n  try:\\n    props = event[\\"ResourceProperties\\"]\\n    notification_configuration = props[\\"NotificationConfiguration\\"]\\n    managed = props.get(\'Managed\', \'true\').lower() == \'true\'\\n    skipDestinationValidation = props.get(\'SkipDestinationValidation\', \'false\').lower() == \'true\'\\n    stack_id = event[\'StackId\']\\n    old = event.get(\\"OldResourceProperties\\", {}).get(\\"NotificationConfiguration\\", {})\\n    if managed:\\n      config = handle_managed(event[\\"RequestType\\"], notification_configuration)\\n    else:\\n      config = handle_unmanaged(props[\\"BucketName\\"], stack_id, event[\\"RequestType\\"], notification_configuration, old)\\n    s3.put_bucket_notification_configuration(Bucket=props[\\"BucketName\\"], NotificationConfiguration=config, SkipDestinationValidation=skipDestinationValidation)\\n  except Exception as e:\\n    logging.exception(\\"Failed to put bucket notification configuration\\")\\n    response_status = \\"FAILED\\"\\n    error_message = f\\"Error: {str(e)}. \\"\\n  finally:\\n    submit_response(event, context, response_status, error_message)\\n\\ndef handle_managed(request_type, notification_configuration):\\n  if request_type == \'Delete\':\\n    return {}\\n  return notification_configuration\\n\\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration, old):\\n  def get_id(n):\\n    n[\'Id\'] = \'\'\\n    sorted_notifications = sort_filter_rules(n)\\n    strToHash=json.dumps(sorted_notifications, sort_keys=True).replace(\'\\"Name\\": \\"prefix\\"\', \'\\"Name\\": \\"Prefix\\"\').replace(\'\\"Name\\": \\"suffix\\"\', \'\\"Name\\": \\"Suffix\\"\')\\n    return f\\"{stack_id}-{hash(strToHash)}\\"\\n  def with_id(n):\\n    n[\'Id\'] = get_id(n)\\n    return n\\n\\n  external_notifications = {}\\n  existing_notifications = s3.get_bucket_notification_configuration(Bucket=bucket)\\n  for t in CONFIGURATION_TYPES:\\n    if request_type == \'Update\':\\n        old_incoming_ids = [get_id(n) for n in old.get(t, [])]\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not get_id(n) in old_incoming_ids]      \\n    elif request_type == \'Delete\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n[\'Id\'].startswith(f\\"{stack_id}-\\")]\\n    elif request_type == \'Create\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, [])]\\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  if request_type == \'Delete\':\\n    return external_notifications\\n\\n  notifications = {}\\n  for t in CONFIGURATION_TYPES:\\n    external = external_notifications.get(t, [])\\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\\n    notifications[t] = external + incoming\\n\\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  return notifications\\n\\ndef submit_response(event: dict, context, response_status: str, error_message: str):\\n  response_body = json.dumps(\\n    {\\n      \\"Status\\": response_status,\\n      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",\\n      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],\\n      \\"StackId\\": event[\\"StackId\\"],\\n      \\"RequestId\\": event[\\"RequestId\\"],\\n      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],\\n      \\"NoEcho\\": False,\\n    }\\n  ).encode(\\"utf-8\\")\\n  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}\\n  try:\\n    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")\\n    with urllib.request.urlopen(req) as response:\\n      print(response.read().decode(\\"utf-8\\"))\\n    print(\\"Status code: \\" + response.reason)\\n  except Exception as e:\\n      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))\\n\\ndef sort_filter_rules(json_obj):\\n  if not isinstance(json_obj, dict):\\n      return json_obj\\n  for key, value in json_obj.items():\\n      if isinstance(value, dict):\\n          json_obj[key] = sort_filter_rules(value)\\n      elif isinstance(value, list):\\n          json_obj[key] = [sort_filter_rules(item) for item in value]\\n  if \\"Filter\\" in json_obj and \\"Key\\" in json_obj[\\"Filter\\"] and \\"FilterRules\\" in json_obj[\\"Filter\\"][\\"Key\\"]:\\n      filter_rules = json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"]\\n      sorted_filter_rules = sorted(filter_rules, key=lambda x: x[\\"Name\\"])\\n      json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"] = sorted_filter_rules\\n  return json_obj"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -8381,7 +8381,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:12.498Z'),
+        Timestamp: new Date('2025-03-11T03:11:12.498'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--CustomCDKBucketDeployment-8LAhu5LuKWdh","MemorySize":"1536","Runtime":"python3.11","Timeout":"900","Environment":{"Variables":{"AWS_CA_BUNDLE":"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"}},"Handler":"index.handler","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"c6358465bf49dfae556bb430bf9c81fa578c221b82c308e3707901b1dd654762.zip"},"Layers":["arn:aws:lambda:us-west-2:504152962427:layer:amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentAwsCliLayerE322F905:246"],"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -8417,7 +8417,7 @@ export const data = [
         LogicalResourceId: 'AmplifyTableWaiterStateMachine060600BC',
         PhysicalResourceId: '',
         ResourceType: 'AWS::StepFunctions::StateMachine',
-        Timestamp: new Date('2025-03-11T03:11:12.785Z'),
+        Timestamp: new Date('2025-03-11T03:11:12.785'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DefinitionString":"{\\"StartAt\\":\\"framework-isComplete-task\\",\\"States\\":{\\"framework-isComplete-task\\":{\\"End\\":true,\\"Retry\\":[{\\"ErrorEquals\\":[\\"States.ALL\\"],\\"IntervalSeconds\\":10,\\"MaxAttempts\\":360,\\"BackoffRate\\":1}],\\"Type\\":\\"Task\\",\\"Resource\\":\\"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj\\"}}}","RoleArn":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy"}',
@@ -8455,7 +8455,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--BucketNotificationsHandl-wDpMapIc5Vv0',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:13.044Z'),
+        Timestamp: new Date('2025-03-11T03:11:13.044'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8493,7 +8493,7 @@ export const data = [
           'modelIntrospectionSchemaBucketDeploymentCustomResource1536MiB104B97EC',
         PhysicalResourceId: '',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:13.045Z'),
+        Timestamp: new Date('2025-03-11T03:11:13.045'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE","SourceMarkers":[{}],"Prune":"true","OutputObjectKeys":"true","SourceBucketNames":["cdk-hnb659fds-assets-504152962427-us-west-2"],"DestinationBucketName":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","SourceObjectKeys":["907cb295088857ccb545b8aae83288bd9dfa82115bb0d20a0ae0d08dc8872f8a.zip"]}',
@@ -8530,7 +8530,7 @@ export const data = [
           'amplifyDataAmplifyCodegenAssetsAmplifyCodegenAssetsDeploymentCustomResource1536MiB21775929',
         PhysicalResourceId: '',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:13.071Z'),
+        Timestamp: new Date('2025-03-11T03:11:13.071'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE","SourceMarkers":[{}],"Prune":"true","OutputObjectKeys":"true","DestinationBucketArn":"arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","SourceBucketNames":["cdk-hnb659fds-assets-504152962427-us-west-2"],"DestinationBucketName":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","SourceObjectKeys":["2f050e6b9affea69843658b09b5d9073acc9cda9170a30ff043def78a33c6ad0.zip"]}',
@@ -8567,7 +8567,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1',
         ResourceType: 'AWS::StepFunctions::StateMachine',
-        Timestamp: new Date('2025-03-11T03:11:13.769Z'),
+        Timestamp: new Date('2025-03-11T03:11:13.769'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8605,7 +8605,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1',
         ResourceType: 'AWS::StepFunctions::StateMachine',
-        Timestamp: new Date('2025-03-11T03:11:14.383Z'),
+        Timestamp: new Date('2025-03-11T03:11:14.383'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DefinitionString":"{\\"StartAt\\":\\"framework-isComplete-task\\",\\"States\\":{\\"framework-isComplete-task\\":{\\"End\\":true,\\"Retry\\":[{\\"ErrorEquals\\":[\\"States.ALL\\"],\\"IntervalSeconds\\":10,\\"MaxAttempts\\":360,\\"BackoffRate\\":1}],\\"Type\\":\\"Task\\",\\"Resource\\":\\"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-cZeTnIy9r0Qj\\"}}}","RoleArn":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyTableWaiterStateMa-1ryCCa4XjQFy"}',
@@ -8672,7 +8672,7 @@ export const data = [
           'AmplifyManagedTableOnEventRoleDefaultPolicyF6DABCB6',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:14.827Z'),
+        Timestamp: new Date('2025-03-11T03:11:14.827'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"PolicyName":"AmplifyManagedTableOnEventRoleDefaultPolicyF6DABCB6","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"states:StartExecution","Resource":"arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU"]}',
@@ -8709,7 +8709,7 @@ export const data = [
           'AmplifyManagedTableOnEventRoleDefaultPolicyF6DABCB6',
         PhysicalResourceId: 'ampli-Ampli-DuoyvWHi0ciZ',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:15.850Z'),
+        Timestamp: new Date('2025-03-11T03:11:15.850'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8748,7 +8748,7 @@ export const data = [
         PhysicalResourceId:
           'aws.cdk.s3deployment.4b926316-2b9f-4c1f-8a5d-bb1d21a4d5b9',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:18.042Z'),
+        Timestamp: new Date('2025-03-11T03:11:18.042'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8787,7 +8787,7 @@ export const data = [
         PhysicalResourceId:
           'aws.cdk.s3deployment.4b926316-2b9f-4c1f-8a5d-bb1d21a4d5b9',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:18.173Z'),
+        Timestamp: new Date('2025-03-11T03:11:18.173'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE","SourceMarkers":[{}],"Prune":"true","OutputObjectKeys":"true","SourceBucketNames":["cdk-hnb659fds-assets-504152962427-us-west-2"],"DestinationBucketName":"amplify-samplesamsaraapp--modelintrospectionschema-z4rbpk8zgeqd","SourceObjectKeys":["907cb295088857ccb545b8aae83288bd9dfa82115bb0d20a0ae0d08dc8872f8a.zip"]}',
@@ -8825,7 +8825,7 @@ export const data = [
         PhysicalResourceId:
           'aws.cdk.s3deployment.1e022f6d-0a27-42f4-8e80-e018ec4f6b7f',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:18.208Z'),
+        Timestamp: new Date('2025-03-11T03:11:18.208'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -8864,7 +8864,7 @@ export const data = [
         PhysicalResourceId:
           'aws.cdk.s3deployment.1e022f6d-0a27-42f4-8e80-e018ec4f6b7f',
         ResourceType: 'Custom::CDKBucketDeployment',
-        Timestamp: new Date('2025-03-11T03:11:18.374Z'),
+        Timestamp: new Date('2025-03-11T03:11:18.374'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--CustomCDKBucketDeploymen-5sKtTmupcesE","SourceMarkers":[{}],"Prune":"true","OutputObjectKeys":"true","DestinationBucketArn":"arn:aws:s3:::amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","SourceBucketNames":["cdk-hnb659fds-assets-504152962427-us-west-2"],"DestinationBucketName":"amplify-samplesamsaraapp--amplifydataamplifycodege-v1bzay4pc2uy","SourceObjectKeys":["2f050e6b9affea69843658b09b5d9073acc9cda9170a30ff043def78a33c6ad0.zip"]}',
@@ -8902,7 +8902,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--BucketNotificationsHandl-wDpMapIc5Vv0',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:19.139Z'),
+        Timestamp: new Date('2025-03-11T03:11:19.139'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--BucketNotificationsHandle-6x3HjXvp0yNF","Runtime":"python3.11","Description":"AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)","Timeout":"300","Handler":"index.handler","Code":{"ZipFile":"import boto3  # type: ignore\\nimport json\\nimport logging\\nimport urllib.request\\n\\ns3 = boto3.client(\\"s3\\")\\n\\nEVENTBRIDGE_CONFIGURATION = \'EventBridgeConfiguration\'\\nCONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]\\n\\ndef handler(event: dict, context):\\n  response_status = \\"SUCCESS\\"\\n  error_message = \\"\\"\\n  try:\\n    props = event[\\"ResourceProperties\\"]\\n    notification_configuration = props[\\"NotificationConfiguration\\"]\\n    managed = props.get(\'Managed\', \'true\').lower() == \'true\'\\n    skipDestinationValidation = props.get(\'SkipDestinationValidation\', \'false\').lower() == \'true\'\\n    stack_id = event[\'StackId\']\\n    old = event.get(\\"OldResourceProperties\\", {}).get(\\"NotificationConfiguration\\", {})\\n    if managed:\\n      config = handle_managed(event[\\"RequestType\\"], notification_configuration)\\n    else:\\n      config = handle_unmanaged(props[\\"BucketName\\"], stack_id, event[\\"RequestType\\"], notification_configuration, old)\\n    s3.put_bucket_notification_configuration(Bucket=props[\\"BucketName\\"], NotificationConfiguration=config, SkipDestinationValidation=skipDestinationValidation)\\n  except Exception as e:\\n    logging.exception(\\"Failed to put bucket notification configuration\\")\\n    response_status = \\"FAILED\\"\\n    error_message = f\\"Error: {str(e)}. \\"\\n  finally:\\n    submit_response(event, context, response_status, error_message)\\n\\ndef handle_managed(request_type, notification_configuration):\\n  if request_type == \'Delete\':\\n    return {}\\n  return notification_configuration\\n\\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration, old):\\n  def get_id(n):\\n    n[\'Id\'] = \'\'\\n    sorted_notifications = sort_filter_rules(n)\\n    strToHash=json.dumps(sorted_notifications, sort_keys=True).replace(\'\\"Name\\": \\"prefix\\"\', \'\\"Name\\": \\"Prefix\\"\').replace(\'\\"Name\\": \\"suffix\\"\', \'\\"Name\\": \\"Suffix\\"\')\\n    return f\\"{stack_id}-{hash(strToHash)}\\"\\n  def with_id(n):\\n    n[\'Id\'] = get_id(n)\\n    return n\\n\\n  external_notifications = {}\\n  existing_notifications = s3.get_bucket_notification_configuration(Bucket=bucket)\\n  for t in CONFIGURATION_TYPES:\\n    if request_type == \'Update\':\\n        old_incoming_ids = [get_id(n) for n in old.get(t, [])]\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not get_id(n) in old_incoming_ids]      \\n    elif request_type == \'Delete\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n[\'Id\'].startswith(f\\"{stack_id}-\\")]\\n    elif request_type == \'Create\':\\n        external_notifications[t] = [n for n in existing_notifications.get(t, [])]\\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  if request_type == \'Delete\':\\n    return external_notifications\\n\\n  notifications = {}\\n  for t in CONFIGURATION_TYPES:\\n    external = external_notifications.get(t, [])\\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\\n    notifications[t] = external + incoming\\n\\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\\n\\n  return notifications\\n\\ndef submit_response(event: dict, context, response_status: str, error_message: str):\\n  response_body = json.dumps(\\n    {\\n      \\"Status\\": response_status,\\n      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",\\n      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],\\n      \\"StackId\\": event[\\"StackId\\"],\\n      \\"RequestId\\": event[\\"RequestId\\"],\\n      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],\\n      \\"NoEcho\\": False,\\n    }\\n  ).encode(\\"utf-8\\")\\n  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}\\n  try:\\n    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")\\n    with urllib.request.urlopen(req) as response:\\n      print(response.read().decode(\\"utf-8\\"))\\n    print(\\"Status code: \\" + response.reason)\\n  except Exception as e:\\n      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))\\n\\ndef sort_filter_rules(json_obj):\\n  if not isinstance(json_obj, dict):\\n      return json_obj\\n  for key, value in json_obj.items():\\n      if isinstance(value, dict):\\n          json_obj[key] = sort_filter_rules(value)\\n      elif isinstance(value, list):\\n          json_obj[key] = [sort_filter_rules(item) for item in value]\\n  if \\"Filter\\" in json_obj and \\"Key\\" in json_obj[\\"Filter\\"] and \\"FilterRules\\" in json_obj[\\"Filter\\"][\\"Key\\"]:\\n      filter_rules = json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"]\\n      sorted_filter_rules = sorted(filter_rules, key=lambda x: x[\\"Name\\"])\\n      json_obj[\\"Filter\\"][\\"Key\\"][\\"FilterRules\\"] = sorted_filter_rules\\n  return json_obj"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -8938,7 +8938,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: '',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T03:11:19.717Z'),
+        Timestamp: new Date('2025-03-11T03:11:19.717'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--BucketNotificationsHandl-wDpMapIc5Vv0","BucketName":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","NotificationConfiguration":{"LambdaFunctionConfigurations":[{"Events":["s3:ObjectRemoved:*"],"LambdaFunctionArn":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1"}]},"Managed":"true","SkipDestinationValidation":"false"}',
@@ -9003,7 +9003,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T03:11:22.706Z'),
+        Timestamp: new Date('2025-03-11T03:11:22.706'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -9039,7 +9039,7 @@ export const data = [
         LogicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         PhysicalResourceId: 'testNameBucketNotificationsB9BE9A01',
         ResourceType: 'Custom::S3BucketNotifications',
-        Timestamp: new Date('2025-03-11T03:11:22.867Z'),
+        Timestamp: new Date('2025-03-11T03:11:22.867'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--BucketNotificationsHandl-wDpMapIc5Vv0","BucketName":"amplify-samplesamsaraapp-pr-testnamebucketb4152ad5-sueguvwpfgon","NotificationConfiguration":{"LambdaFunctionConfigurations":[{"Events":["s3:ObjectRemoved:*"],"LambdaFunctionArn":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1"}]},"Managed":"true","SkipDestinationValidation":"false"}',
@@ -9075,7 +9075,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-storage0EC3F24A-WLG2OAHRFDNF/64ee0eb0-fe26-11ef-b5ad-061643229203',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:23.743Z'),
+        Timestamp: new Date('2025-03-11T03:11:23.743'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -9142,7 +9142,7 @@ export const data = [
           'AmplifyManagedTableOnEventRoleDefaultPolicyF6DABCB6',
         PhysicalResourceId: 'ampli-Ampli-DuoyvWHi0ciZ',
         ResourceType: 'AWS::IAM::Policy',
-        Timestamp: new Date('2025-03-11T03:11:31.341Z'),
+        Timestamp: new Date('2025-03-11T03:11:31.341'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"PolicyName":"AmplifyManagedTableOnEventRoleDefaultPolicyF6DABCB6","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"states:StartExecution","Resource":"arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1","Effect":"Allow"}]},"Roles":["amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU"]}',
@@ -9178,7 +9178,7 @@ export const data = [
         LogicalResourceId: 'TableManagerCustomProviderframeworkonEvent1DFC2ECC',
         PhysicalResourceId: '',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:32.477Z'),
+        Timestamp: new Date('2025-03-11T03:11:32.477'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU","Runtime":"nodejs18.x","Description":"AmplifyManagedTable - onEvent (amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/data/amplifyData/AmplifyTableManager/TableManagerCustomProvider)","Timeout":"840","Environment":{"Variables":{"WAITER_STATE_MACHINE_ARN":"arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1"}},"Handler":"amplify-table-manager-handler.onEvent","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"ca9699b9a2845c45e80cba1111f95ae2ac773af7d87163ae9c808ec547e38e00.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9238,7 +9238,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-storage0EC3F24A-WLG2OAHRFDNF/64ee0eb0-fe26-11ef-b5ad-061643229203',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:33.664Z'),
+        Timestamp: new Date('2025-03-11T03:11:33.664'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/a217e7c300711883159bfa09d4a6a99f762c9d59542ae5bb802ebac85abdb443.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889functionsayhellolambdaServiceRole6B7F66E6Ref":"amplify-samplesamsaraapp--sayhellolambdaServiceRole-4WyV3ZXcXY2j","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889functionNestedStackfunctionNestedStackResourceC6A79258Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889functionsayhellolambdaB2E612D0Arn":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp-pr-sayhellolambdaEFA46D92-SavDejwvL2I1"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9275,7 +9275,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:34.247Z'),
+        Timestamp: new Date('2025-03-11T03:11:34.247'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -9338,7 +9338,7 @@ export const data = [
         PhysicalResourceId:
           'amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp',
         ResourceType: 'AWS::Lambda::Function',
-        Timestamp: new Date('2025-03-11T03:11:40.414Z'),
+        Timestamp: new Date('2025-03-11T03:11:40.414'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Role":"arn:aws:iam::504152962427:role/amplify-samplesamsaraapp--AmplifyManagedTableOnEven-yCH0qLjXsoPU","Runtime":"nodejs18.x","Description":"AmplifyManagedTable - onEvent (amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/data/amplifyData/AmplifyTableManager/TableManagerCustomProvider)","Timeout":"840","Environment":{"Variables":{"WAITER_STATE_MACHINE_ARN":"arn:aws:states:us-west-2:504152962427:stateMachine:AmplifyTableWaiterStateMachine060600BC-gIKdFgi50jZ1"}},"Handler":"amplify-table-manager-handler.onEvent","Code":{"S3Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","S3Key":"ca9699b9a2845c45e80cba1111f95ae2ac773af7d87163ae9c808ec547e38e00.zip"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9375,7 +9375,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:41.274Z'),
+        Timestamp: new Date('2025-03-11T03:11:41.274'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -9433,7 +9433,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataAmplifyTableManagerNestedStackA-1JMJ1D9EH891L/60c880e0-fe26-11ef-ab14-0a8a0b41c98f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:42.837Z'),
+        Timestamp: new Date('2025-03-11T03:11:42.837'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/193c5f412086be216636e53fa8e74d99c431936435b456c4b0b7252704331c51.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9470,7 +9470,7 @@ export const data = [
           'amplifyDataPersonNestedStackPersonNestedStackResource28D60818',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:43.455Z'),
+        Timestamp: new Date('2025-03-11T03:11:43.455'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9507,7 +9507,7 @@ export const data = [
           'amplifyDataPostNestedStackPostNestedStackResourceB65AFCD3',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:43.616Z'),
+        Timestamp: new Date('2025-03-11T03:11:43.616'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9545,7 +9545,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:44.275Z'),
+        Timestamp: new Date('2025-03-11T03:11:44.275'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -9584,7 +9584,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:11:44.455Z'),
+        Timestamp: new Date('2025-03-11T03:11:44.455'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -9652,7 +9652,7 @@ export const data = [
           'MutationdeletePersonpostAuth0FunctionMutationdeletePersonpostAuth0FunctionAppSyncFunction178DC157',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.966Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.966'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonpostAuth0Function"}',
@@ -9689,7 +9689,7 @@ export const data = [
           'QuerylistPeopleauth0FunctionQuerylistPeopleauth0FunctionAppSyncFunction54C0D154',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.969Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.969'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeopleauth0Function"}',
@@ -9726,7 +9726,7 @@ export const data = [
           'MutationupdatePersoninit0FunctionMutationupdatePersoninit0FunctionAppSyncFunction1245D23B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.971Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.971'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersoninit0Function"}',
@@ -9763,7 +9763,7 @@ export const data = [
           'MutationcreatePersonpostAuth0FunctionMutationcreatePersonpostAuth0FunctionAppSyncFunction04EFC40F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.978Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.978'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonpostAuth0Function"}',
@@ -9800,7 +9800,7 @@ export const data = [
           'SubscriptionOnCreatePersonDataResolverFnSubscriptionOnCreatePersonDataResolverFnAppSyncFunctionCDDD5891',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.979Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.979'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnCreatePersonDataResolverFn"}',
@@ -9837,7 +9837,7 @@ export const data = [
           'SubscriptionOnDeletePersonDataResolverFnSubscriptionOnDeletePersonDataResolverFnAppSyncFunction10D6A6CE',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.982Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.982'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnDeletePersonDataResolverFn"}',
@@ -9874,7 +9874,7 @@ export const data = [
           'QuerylistPeoplepreAuth0FunctionQuerylistPeoplepreAuth0FunctionAppSyncFunction8DA9EDA1',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.983Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.983'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6ce8d75a422db2491407ccfc9807e5de43e86bed091909b805008adb8243b05d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeoplepreAuth0Function"}',
@@ -9910,7 +9910,7 @@ export const data = [
         LogicalResourceId: 'PersonIAMRole325FD7BD',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:11:47.987Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.987'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"RoleName":"PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE","Policies":[{"PolicyName":"DynamoDBAccess","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:BatchGetItem","dynamodb:BatchWriteItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:GetItem","dynamodb:Scan","dynamodb:Query","dynamodb:UpdateItem","dynamodb:ConditionCheckItem","dynamodb:DescribeTable","dynamodb:GetRecords","dynamodb:GetShardIterator"],"Resource":["arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE/*"],"Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"appsync.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -9946,7 +9946,7 @@ export const data = [
           'SubscriptiononCreatePersonpostAuth0FunctionSubscriptiononCreatePersonpostAuth0FunctionAppSyncFunction5919295E',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.989Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.989'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePersonpostAuth0Function"}',
@@ -9981,7 +9981,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:47.991Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.991'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1WOwW6DMAyGn6X34BV66XUF7dhNsHtlEoNSQoJip1WFePcJOnXa6fcnf7L/AvJjAfsd3jnTZsicbWE+EwuZRlAPquz8F0YcSSiuUAZvrNjgVU0cUtSkysQSxj/s/GvGO19m8/A4BtPCN7aOTsikLI4w18E97eBoUThN/PAa5mrTq7ZCweZ18j99JK/XEmXwne1TxK3R72d3o7goPlyQmYThfQ3FBzglPZCsBZbV/UwyJVHbuhHsre8X5YMhuPLbrdhDfoR8d2Vrs5i82JGgfuYPmws9YTYBAAA="}',
@@ -10017,7 +10017,7 @@ export const data = [
           'MutationcreatePersoninit0FunctionMutationcreatePersoninit0FunctionAppSyncFunctionD4A94967',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.994Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.994'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/3cf32e28e3985b88b598dacbcc9a81cbb12cab62b6507082eb20a0702d3c197e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersoninit0Function"}',
@@ -10054,7 +10054,7 @@ export const data = [
           'MutationcreatePersonauth0FunctionMutationcreatePersonauth0FunctionAppSyncFunctionEAFBF427',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:47.998Z'),
+        Timestamp: new Date('2025-03-11T03:11:47.998'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/b371d68ddfbdd11b176756ce33b2c4e79d26fcc2fd4b7c0c9e75d06efacee90e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonauth0Function"}',
@@ -10091,7 +10091,7 @@ export const data = [
           'SubscriptiononUpdatePersonpostAuth0FunctionSubscriptiononUpdatePersonpostAuth0FunctionAppSyncFunction8A075045',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.008Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.008'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePersonpostAuth0Function"}',
@@ -10128,7 +10128,7 @@ export const data = [
           'SubscriptiononDeletePersonauth0FunctionSubscriptiononDeletePersonauth0FunctionAppSyncFunctionABDD4455',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.008Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.008'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePersonauth0Function"}',
@@ -10165,7 +10165,7 @@ export const data = [
           'SubscriptiononCreatePersonauth0FunctionSubscriptiononCreatePersonauth0FunctionAppSyncFunctionF5035C7D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.008Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.008'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePersonauth0Function"}',
@@ -10202,7 +10202,7 @@ export const data = [
           'QuerygetPersonpostAuth0FunctionQuerygetPersonpostAuth0FunctionAppSyncFunctionF5352000',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.010Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.010'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonpostAuth0Function"}',
@@ -10239,7 +10239,7 @@ export const data = [
           'MutationcreatePersonpreAuth0FunctionMutationcreatePersonpreAuth0FunctionAppSyncFunction335C1A9F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.016Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.016'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fface358117b1edafc4dbe09854c750ff9d1cad2ab9aed9cff18b5df478d3d5d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonpreAuth0Function"}',
@@ -10276,7 +10276,7 @@ export const data = [
           'SubscriptiononDeletePersonpostAuth0FunctionSubscriptiononDeletePersonpostAuth0FunctionAppSyncFunctionA71D2E0E',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.017Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.017'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePersonpostAuth0Function"}',
@@ -10313,7 +10313,7 @@ export const data = [
           'QuerylistPeoplepostAuth0FunctionQuerylistPeoplepostAuth0FunctionAppSyncFunction1786EC37',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.022Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.022'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeoplepostAuth0Function"}',
@@ -10350,7 +10350,7 @@ export const data = [
           'MutationdeletePersonpreAuth0FunctionMutationdeletePersonpreAuth0FunctionAppSyncFunction4A91334D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.024Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.024'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/97e4049e52fffaf523b49966a1225677c0fd7c09e296e1832b5bb95086e5c3e4.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonpreAuth0Function"}',
@@ -10387,7 +10387,7 @@ export const data = [
           'QuerygetPersonpreAuth0FunctionQuerygetPersonpreAuth0FunctionAppSyncFunction3473CCE0',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.026Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.026'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6479af76f5a4d8b61b53dd3cee8e18ae192b629ad15ced7b342690a9ebbdd8c2.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonpreAuth0Function"}',
@@ -10424,7 +10424,7 @@ export const data = [
           'MutationupdatePersonpreAuth0FunctionMutationupdatePersonpreAuth0FunctionAppSyncFunction7AAE6AAD',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.029Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.029'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fface358117b1edafc4dbe09854c750ff9d1cad2ab9aed9cff18b5df478d3d5d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonpreAuth0Function"}',
@@ -10461,7 +10461,7 @@ export const data = [
           'SubscriptionOnUpdatePersonDataResolverFnSubscriptionOnUpdatePersonDataResolverFnAppSyncFunction531174D3',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.033Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.033'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnUpdatePersonDataResolverFn"}',
@@ -10498,7 +10498,7 @@ export const data = [
           'QuerygetPersonauth0FunctionQuerygetPersonauth0FunctionAppSyncFunction6DF9D0C4',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.036Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.036'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonauth0Function"}',
@@ -10535,7 +10535,7 @@ export const data = [
           'MutationupdatePersonpostAuth0FunctionMutationupdatePersonpostAuth0FunctionAppSyncFunctionB321A1F7',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.040Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.040'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonpostAuth0Function"}',
@@ -10570,7 +10570,7 @@ export const data = [
         LogicalResourceId: 'PersonTable',
         PhysicalResourceId: '',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:11:48.045Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.045'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","streamSpecification":{"streamViewType":"NEW_AND_OLD_IMAGES"},"billingMode":"PAY_PER_REQUEST","attributeDefinitions":[{"attributeType":"S","attributeName":"name"},{"attributeType":"S","attributeName":"dateOfBirth"}],"keySchema":[{"attributeName":"name","keyType":"HASH"},{"attributeName":"dateOfBirth","keyType":"RANGE"}],"replaceTableUponGsiUpdate":"true","allowDestructiveGraphqlSchemaUpdates":"true","tableName":"Person-viu3cvmcnvdx7dufpcbaimflau-NONE","sseSpecification":{"sseEnabled":"true"}}',
@@ -10606,7 +10606,7 @@ export const data = [
           'SubscriptiononUpdatePersonauth0FunctionSubscriptiononUpdatePersonauth0FunctionAppSyncFunction353AC226',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.055Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.055'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePersonauth0Function"}',
@@ -10643,7 +10643,7 @@ export const data = [
           'QuerygetPostauth0FunctionQuerygetPostauth0FunctionAppSyncFunctionB1D588DF',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.160Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.160'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPostauth0Function"}',
@@ -10680,7 +10680,7 @@ export const data = [
           'MutationupdatePostpostAuth0FunctionMutationupdatePostpostAuth0FunctionAppSyncFunctionB977D8DD',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.173Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.173'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostpostAuth0Function"}',
@@ -10717,7 +10717,7 @@ export const data = [
           'SubscriptiononDeletePostpostAuth0FunctionSubscriptiononDeletePostpostAuth0FunctionAppSyncFunction80B1275A',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.182Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.182'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePostpostAuth0Function"}',
@@ -10754,7 +10754,7 @@ export const data = [
           'QuerygetPostpostAuth0FunctionQuerygetPostpostAuth0FunctionAppSyncFunctionC72E5C0F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.184Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.184'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPostpostAuth0Function"}',
@@ -10791,7 +10791,7 @@ export const data = [
           'SubscriptiononCreatePostpostAuth0FunctionSubscriptiononCreatePostpostAuth0FunctionAppSyncFunction3197D95D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.196Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.196'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePostpostAuth0Function"}',
@@ -10828,7 +10828,7 @@ export const data = [
           'SubscriptiononCreatePostauth0FunctionSubscriptiononCreatePostauth0FunctionAppSyncFunction24934FF1',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.198Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.198'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePostauth0Function"}',
@@ -10865,7 +10865,7 @@ export const data = [
           'SubscriptionOnDeletePostDataResolverFnSubscriptionOnDeletePostDataResolverFnAppSyncFunction9D84E829',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.200Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.200'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnDeletePostDataResolverFn"}',
@@ -10902,7 +10902,7 @@ export const data = [
           'QuerylistPostByAuthorNamepostAuth0FunctionQuerylistPostByAuthorNamepostAuth0FunctionAppSyncFunctionAF7022BA',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.200Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.200'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostByAuthorNamepostAuth0Function"}',
@@ -10939,7 +10939,7 @@ export const data = [
           'MutationdeletePostpostAuth0FunctionMutationdeletePostpostAuth0FunctionAppSyncFunctionFF4E884F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.201Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.201'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePostpostAuth0Function"}',
@@ -10975,7 +10975,7 @@ export const data = [
         LogicalResourceId: 'PostIAMRole83BF708F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:11:48.206Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.206'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"RoleName":"PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE","Policies":[{"PolicyName":"DynamoDBAccess","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:BatchGetItem","dynamodb:BatchWriteItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:GetItem","dynamodb:Scan","dynamodb:Query","dynamodb:UpdateItem","dynamodb:ConditionCheckItem","dynamodb:DescribeTable","dynamodb:GetRecords","dynamodb:GetShardIterator"],"Resource":["arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE/*"],"Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"appsync.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -11009,7 +11009,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:48.212Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.212'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1WOwW6DMAyGn6X34BV66XUF7dhNsHtlEoNSQoJip1WFePcJOnXa6fcnf7L/AvJjAfsd3jnTZsicbWE+EwuZRlAPquz8F0YcSSiuUAZvrNjgVU0cUtSkysQSxj/s/GvGO19m8/A4BtPCN7aOTsikLI4w18E97eBoUThN/PAa5mrTq7ZCweZ18j99JK/XEmXwne1TxK3R72d3o7goPlyQmYThfQ3FBzglPZCsBZbV/UwyJVHbuhHsre8X5YMhuPLbrdhDfoR8d2Vrs5i82JGgfuYPmws9YTYBAAA="}',
@@ -11045,7 +11045,7 @@ export const data = [
           'SubscriptionOnCreatePostDataResolverFnSubscriptionOnCreatePostDataResolverFnAppSyncFunctionB4572868',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.213Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.213'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnCreatePostDataResolverFn"}',
@@ -11080,7 +11080,7 @@ export const data = [
         LogicalResourceId: 'PostTable',
         PhysicalResourceId: '',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:11:48.223Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.223'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","globalSecondaryIndexes":[{"indexName":"postsByAuthorName","keySchema":[{"attributeName":"authorName","keyType":"HASH"}],"projection":{"projectionType":"ALL"}},{"indexName":"gsi-Person.authoredPosts","keySchema":[{"attributeName":"authorName","keyType":"HASH"},{"attributeName":"authorDoB","keyType":"RANGE"}],"projection":{"projectionType":"ALL"}}],"streamSpecification":{"streamViewType":"NEW_AND_OLD_IMAGES"},"billingMode":"PAY_PER_REQUEST","attributeDefinitions":[{"attributeType":"S","attributeName":"id"},{"attributeType":"S","attributeName":"authorName"},{"attributeType":"S","attributeName":"authorDoB"}],"keySchema":[{"attributeName":"id","keyType":"HASH"}],"replaceTableUponGsiUpdate":"true","allowDestructiveGraphqlSchemaUpdates":"true","tableName":"Post-viu3cvmcnvdx7dufpcbaimflau-NONE","sseSpecification":{"sseEnabled":"true"}}',
@@ -11116,7 +11116,7 @@ export const data = [
           'SubscriptionOnUpdatePostDataResolverFnSubscriptionOnUpdatePostDataResolverFnAppSyncFunction325AAFC9',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.233Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.233'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnUpdatePostDataResolverFn"}',
@@ -11153,7 +11153,7 @@ export const data = [
           'SubscriptiononUpdatePostpostAuth0FunctionSubscriptiononUpdatePostpostAuth0FunctionAppSyncFunction3D79B6CB',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.242Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.242'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePostpostAuth0Function"}',
@@ -11190,7 +11190,7 @@ export const data = [
           'QuerylistPostspostAuth0FunctionQuerylistPostspostAuth0FunctionAppSyncFunction3585C8F4',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.245Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.245'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostspostAuth0Function"}',
@@ -11227,7 +11227,7 @@ export const data = [
           'MutationcreatePostinit0FunctionMutationcreatePostinit0FunctionAppSyncFunction9E444A7F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.254Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.254'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/a183ddccbd956316c38ef97177b8f088ef0826f62023323f5ae6053d348ccffc.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostinit0Function"}',
@@ -11264,7 +11264,7 @@ export const data = [
           'QuerylistPostByAuthorNameauth0FunctionQuerylistPostByAuthorNameauth0FunctionAppSyncFunction06AD9EED',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.258Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.258'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostByAuthorNameauth0Function"}',
@@ -11301,7 +11301,7 @@ export const data = [
           'QuerylistPostsauth0FunctionQuerylistPostsauth0FunctionAppSyncFunctionCDCF8956',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.260Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.260'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostsauth0Function"}',
@@ -11338,7 +11338,7 @@ export const data = [
           'MutationcreatePostauth0FunctionMutationcreatePostauth0FunctionAppSyncFunctionF347AB28',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.271Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.271'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/b371d68ddfbdd11b176756ce33b2c4e79d26fcc2fd4b7c0c9e75d06efacee90e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostauth0Function"}',
@@ -11375,7 +11375,7 @@ export const data = [
           'MutationcreatePostpostAuth0FunctionMutationcreatePostpostAuth0FunctionAppSyncFunction2C708069',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.281Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.281'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostpostAuth0Function"}',
@@ -11412,7 +11412,7 @@ export const data = [
           'SubscriptiononDeletePostauth0FunctionSubscriptiononDeletePostauth0FunctionAppSyncFunction79C0574D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.291Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.291'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePostauth0Function"}',
@@ -11449,7 +11449,7 @@ export const data = [
           'SubscriptiononUpdatePostauth0FunctionSubscriptiononUpdatePostauth0FunctionAppSyncFunction503CE6B6',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.329Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.329'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePostauth0Function"}',
@@ -11486,7 +11486,7 @@ export const data = [
           'MutationupdatePostinit0FunctionMutationupdatePostinit0FunctionAppSyncFunctionBAC7D532',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.384Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.384'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostinit0Function"}',
@@ -11524,7 +11524,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xzshloqv7fbofo5aeqhdhmssye',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.850Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.850'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11560,7 +11560,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:48.889Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.889'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11598,7 +11598,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/rtuod4by7jhy3huiay4jrkmjai',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.890Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.890'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11636,7 +11636,7 @@ export const data = [
         PhysicalResourceId:
           'PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:11:48.892Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.892'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11674,7 +11674,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/y6n3rntrbjarxbdlpvl7ablvem',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.939Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.939'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11713,7 +11713,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/canepqvehnhgxecri4j4k4vnve',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.965Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.965'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11752,7 +11752,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/u4xigewz4zfczaig42yrteflvi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.966Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.966'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11791,7 +11791,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ipphbnslorhvbjq32vomehyvwm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.967Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.967'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11827,7 +11827,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:48.969Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.969'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1WOwW6DMAyGn6X34BV66XUF7dhNsHtlEoNSQoJip1WFePcJOnXa6fcnf7L/AvJjAfsd3jnTZsicbWE+EwuZRlAPquz8F0YcSSiuUAZvrNjgVU0cUtSkysQSxj/s/GvGO19m8/A4BtPCN7aOTsikLI4w18E97eBoUThN/PAa5mrTq7ZCweZ18j99JK/XEmXwne1TxK3R72d3o7goPlyQmYThfQ3FBzglPZCsBZbV/UwyJVHbuhHsre8X5YMhuPLbrdhDfoR8d2Vrs5i82JGgfuYPmws9YTYBAAA="}',
@@ -11864,7 +11864,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/iahzeuag4bcvrhsbk267gebwcy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.977Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.977'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11903,7 +11903,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/adfrud25i5fipoho5nx6ksdvzi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.983Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.983'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11942,7 +11942,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/q7g4tvej45ekbeop2fs3p6cfne',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.991Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.991'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -11981,7 +11981,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ajf44aiyrra6lobpoeyeb2725m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:48.997Z'),
+        Timestamp: new Date('2025-03-11T03:11:48.997'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12020,7 +12020,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/burerubgtzgy3fbnwamnim5gsu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.003Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.003'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12059,7 +12059,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ymta6czdpvgujovpgq2ed7xwqu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.020Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.020'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12098,7 +12098,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/krzf6k55v5b5zfah4jke3xroyu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.029Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.029'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12137,7 +12137,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/2bbvvn3a3zhwvlwhaxd4kakxaq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.061Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.061'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12176,7 +12176,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/o7nsnvfisvaavi45xk2wnvyjdq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.064Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.064'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12215,7 +12215,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/fyidpe3oereo3dhe3xasbqfkau',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.075Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.075'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12254,7 +12254,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/e5zigmbcjjherly4yxoldxxjdq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.080Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.080'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12293,7 +12293,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/2af672djzrghzhru3gy2h2ra6m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.181Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.181'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12332,7 +12332,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/wl3qvbnd5jd5nawwzanupavuge',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.188Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.188'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12371,7 +12371,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/vno7vviemfbq3cskdpqb4wf2iq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.199Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.199'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12410,7 +12410,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/s5x55itbhbf3tpiu4cud2kgzea',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.214Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.214'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12449,7 +12449,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/fmlxksyjavfbvjusnfsi434ahm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.277Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.277'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12488,7 +12488,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/t6jwemewbreatn324nkfka5bzq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.302Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.302'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12527,7 +12527,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xjy4vpmgzrf5vfrka2xz5ax7xq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.304Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.304'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12566,7 +12566,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pxohmrxt7fdbbf4ru4io72oja4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.323Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.323'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12603,7 +12603,7 @@ export const data = [
         LogicalResourceId: 'PostIAMRole83BF708F',
         PhysicalResourceId: 'PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:11:49.329Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.329'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12641,7 +12641,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/rvse2amhrjc4rowyig2n4gakny',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.343Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.343'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12680,7 +12680,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/oxq542ir35grho7woxkksiueya',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.374Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.374'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12719,7 +12719,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xzshloqv7fbofo5aeqhdhmssye',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.414Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.414'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonpostAuth0Function"}',
@@ -12757,7 +12757,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/rtuod4by7jhy3huiay4jrkmjai',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.427Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.427'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePersonauth0Function"}',
@@ -12792,7 +12792,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:49.449Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.449'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -12830,7 +12830,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/adfrud25i5fipoho5nx6ksdvzi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.479Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.479'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fface358117b1edafc4dbe09854c750ff9d1cad2ab9aed9cff18b5df478d3d5d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonpreAuth0Function"}',
@@ -12868,7 +12868,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/canepqvehnhgxecri4j4k4vnve',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.500Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.500'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeopleauth0Function"}',
@@ -12906,7 +12906,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ipphbnslorhvbjq32vomehyvwm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.507Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.507'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePersonpostAuth0Function"}',
@@ -12944,7 +12944,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/krzf6k55v5b5zfah4jke3xroyu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.515Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.515'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePersonauth0Function"}',
@@ -12982,7 +12982,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/iahzeuag4bcvrhsbk267gebwcy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.517Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.517'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fface358117b1edafc4dbe09854c750ff9d1cad2ab9aed9cff18b5df478d3d5d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonpreAuth0Function"}',
@@ -13020,7 +13020,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/q7g4tvej45ekbeop2fs3p6cfne',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.520Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.520'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/3cf32e28e3985b88b598dacbcc9a81cbb12cab62b6507082eb20a0702d3c197e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersoninit0Function"}',
@@ -13055,7 +13055,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:11:49.524Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.524'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/1WOwW6DMAyGn6X34BV66XUF7dhNsHtlEoNSQoJip1WFePcJOnXa6fcnf7L/AvJjAfsd3jnTZsicbWE+EwuZRlAPquz8F0YcSSiuUAZvrNjgVU0cUtSkysQSxj/s/GvGO19m8/A4BtPCN7aOTsikLI4w18E97eBoUThN/PAa5mrTq7ZCweZ18j99JK/XEmXwne1TxK3R72d3o7goPlyQmYThfQ3FBzglPZCsBZbV/UwyJVHbuhHsre8X5YMhuPLbrdhDfoR8d2Vrs5i82JGgfuYPmws9YTYBAAA="}',
@@ -13092,7 +13092,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/u4xigewz4zfczaig42yrteflvi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.528Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.528'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeoplepostAuth0Function"}',
@@ -13130,7 +13130,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/y6n3rntrbjarxbdlpvl7ablvem',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.539Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.539'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonpostAuth0Function"}',
@@ -13168,7 +13168,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/t5mufmbzkzapde3hzp75hg67qa',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.548Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.548'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -13207,7 +13207,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ymta6czdpvgujovpgq2ed7xwqu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.551Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.551'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostByAuthorNamepostAuth0Function"}',
@@ -13245,7 +13245,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/e5zigmbcjjherly4yxoldxxjdq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.570Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.570'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePersonpostAuth0Function"}',
@@ -13283,7 +13283,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/2bbvvn3a3zhwvlwhaxd4kakxaq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.582Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.582'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonpostAuth0Function"}',
@@ -13321,7 +13321,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ajf44aiyrra6lobpoeyeb2725m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.583Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.583'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonauth0Function"}',
@@ -13359,7 +13359,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/fyidpe3oereo3dhe3xasbqfkau',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.585Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.585'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnDeletePostDataResolverFn"}',
@@ -13397,7 +13397,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/o7nsnvfisvaavi45xk2wnvyjdq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.593Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.593'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnDeletePersonDataResolverFn"}',
@@ -13435,7 +13435,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/burerubgtzgy3fbnwamnim5gsu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.621Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.621'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonpostAuth0Function"}',
@@ -13473,7 +13473,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/s5x55itbhbf3tpiu4cud2kgzea',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.737Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.737'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostsauth0Function"}',
@@ -13511,7 +13511,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/vno7vviemfbq3cskdpqb4wf2iq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.768Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.768'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnUpdatePostDataResolverFn"}',
@@ -13549,7 +13549,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/2af672djzrghzhru3gy2h2ra6m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.786Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.786'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostByAuthorNameauth0Function"}',
@@ -13587,7 +13587,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/wl3qvbnd5jd5nawwzanupavuge',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.810Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.810'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePostauth0Function"}',
@@ -13625,7 +13625,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/oxq542ir35grho7woxkksiueya',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.856Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.856'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostinit0Function"}',
@@ -13663,7 +13663,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/fmlxksyjavfbvjusnfsi434ahm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.872Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.872'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePersonauth0Function"}',
@@ -13701,7 +13701,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pxohmrxt7fdbbf4ru4io72oja4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.878Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.878'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/b371d68ddfbdd11b176756ce33b2c4e79d26fcc2fd4b7c0c9e75d06efacee90e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostauth0Function"}',
@@ -13739,7 +13739,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/rvse2amhrjc4rowyig2n4gakny',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.901Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.901'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnCreatePersonDataResolverFn"}',
@@ -13777,7 +13777,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xjy4vpmgzrf5vfrka2xz5ax7xq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.913Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.913'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostpostAuth0Function"}',
@@ -13815,7 +13815,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/t6jwemewbreatn324nkfka5bzq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:49.954Z'),
+        Timestamp: new Date('2025-03-11T03:11:49.954'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePostauth0Function"}',
@@ -13853,7 +13853,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/t5mufmbzkzapde3hzp75hg67qa',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:50.063Z'),
+        Timestamp: new Date('2025-03-11T03:11:50.063'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6f3a2a9d562ae3058cc1aed6741edbf5edcaef7b3df7b03f52478816a1c95ffb.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePostauth0Function"}',
@@ -13919,7 +13919,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononCreatePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:51.188Z'),
+        Timestamp: new Date('2025-03-11T03:11:51.188'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["krzf6k55v5b5zfah4jke3xroyu","ipphbnslorhvbjq32vomehyvwm","rvse2amhrjc4rowyig2n4gakny"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onCreatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onCreatePerson"}',
@@ -13956,7 +13956,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onCreatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:51.982Z'),
+        Timestamp: new Date('2025-03-11T03:11:51.982'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -13995,7 +13995,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pqgozercwrbj3cjatyede77iya',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.541Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.541'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14034,7 +14034,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/nsj2vbqnencgdcvkvecvto3dhe',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.609Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.609'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14073,7 +14073,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ws6pdgnb4vdorg34wpzktmpqna',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.613Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.613'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14112,7 +14112,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/asuozcoisnfflemlchxtro5vfy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.621Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.621'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14151,7 +14151,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/elpd2jyumbgbtasdzpvdvswppi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.708Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.708'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14190,7 +14190,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pjzmxql5p5amzcnxjthxrqmi5e',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.742Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.742'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14229,7 +14229,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/sqbdsim3era7hbldb2tc4yowru',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.770Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.770'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14268,7 +14268,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pvkkb35yjfgrpd2a5vs6lmli5m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.834Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.834'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14307,7 +14307,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/le4jjjcmtbbutnrkmsnftgqgpy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.836Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.836'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14346,7 +14346,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/4w37fqizgbb5vg4dgkcn4xcgze',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.854Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.854'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14385,7 +14385,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/y3nyyr3in5actgxuiub3v3innm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.870Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.870'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14423,7 +14423,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onCreatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:53.880Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.880'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["krzf6k55v5b5zfah4jke3xroyu","ipphbnslorhvbjq32vomehyvwm","rvse2amhrjc4rowyig2n4gakny"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onCreatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onCreatePerson"}',
@@ -14461,7 +14461,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/eqez5hms3vfzvgcqwkiolm6wwi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.895Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.895'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14500,7 +14500,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/eiwhn45dkzccjcrmgr225mjmw4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.902Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.902'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14539,7 +14539,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/6qvzm6r7ivgcnncvwldb2jebhq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.920Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.920'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14578,7 +14578,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ricuclsdirhmrbpvm5aujsq2ue',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.942Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.942'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14617,7 +14617,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/cweru2kg7zaf3e5l7wjjwgdzc4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:53.956Z'),
+        Timestamp: new Date('2025-03-11T03:11:53.956'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14656,7 +14656,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/f77355katfg57o76tz4gihe4au',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.012Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.012'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -14695,7 +14695,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pqgozercwrbj3cjatyede77iya',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.113Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.113'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/b371d68ddfbdd11b176756ce33b2c4e79d26fcc2fd4b7c0c9e75d06efacee90e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePersonauth0Function"}',
@@ -14733,7 +14733,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/asuozcoisnfflemlchxtro5vfy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.239Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.239'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPostspostAuth0Function"}',
@@ -14771,7 +14771,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/nsj2vbqnencgdcvkvecvto3dhe',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.260Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.260'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnUpdatePersonDataResolverFn"}',
@@ -14809,7 +14809,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ws6pdgnb4vdorg34wpzktmpqna',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.320Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.320'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePostpostAuth0Function"}',
@@ -14847,7 +14847,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pjzmxql5p5amzcnxjthxrqmi5e',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.399Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.399'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononCreatePostpostAuth0Function"}',
@@ -14885,7 +14885,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/elpd2jyumbgbtasdzpvdvswppi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.412Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.412'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononUpdatePostpostAuth0Function"}',
@@ -14923,7 +14923,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/eqez5hms3vfzvgcqwkiolm6wwi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.420Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.420'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePersonpostAuth0Function"}',
@@ -14961,7 +14961,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pvkkb35yjfgrpd2a5vs6lmli5m',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.421Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.421'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPostpostAuth0Function"}',
@@ -14999,7 +14999,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/sqbdsim3era7hbldb2tc4yowru',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.452Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.452'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersoninit0Function"}',
@@ -15037,7 +15037,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/4w37fqizgbb5vg4dgkcn4xcgze',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.496Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.496'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/88d5b7081b0dc9c39fd0bffedf56f011b2a7cf1ce5cc227f47a1e94efee8067c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPostauth0Function"}',
@@ -15075,7 +15075,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/y3nyyr3in5actgxuiub3v3innm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.510Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.510'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6ce8d75a422db2491407ccfc9807e5de43e86bed091909b805008adb8243b05d.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerylistPeoplepreAuth0Function"}',
@@ -15113,7 +15113,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/le4jjjcmtbbutnrkmsnftgqgpy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.515Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.515'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptiononDeletePostpostAuth0Function"}',
@@ -15151,7 +15151,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/6qvzm6r7ivgcnncvwldb2jebhq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.524Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.524'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostpostAuth0Function"}',
@@ -15189,7 +15189,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ricuclsdirhmrbpvm5aujsq2ue',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.583Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.583'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/a183ddccbd956316c38ef97177b8f088ef0826f62023323f5ae6053d348ccffc.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationcreatePostinit0Function"}',
@@ -15227,7 +15227,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/eiwhn45dkzccjcrmgr225mjmw4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.606Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.606'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl","DataSourceName":"NONE_DS","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"SubscriptionOnCreatePostDataResolverFn"}',
@@ -15265,7 +15265,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/cweru2kg7zaf3e5l7wjjwgdzc4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.615Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.615'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/6479af76f5a4d8b61b53dd3cee8e18ae192b629ad15ced7b342690a9ebbdd8c2.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QuerygetPersonpreAuth0Function"}',
@@ -15303,7 +15303,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/f77355katfg57o76tz4gihe4au',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:11:54.639Z'),
+        Timestamp: new Date('2025-03-11T03:11:54.639'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/97e4049e52fffaf523b49966a1225677c0fd7c09e296e1832b5bb95086e5c3e4.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonpreAuth0Function"}',
@@ -15339,7 +15339,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononUpdatePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:55.674Z'),
+        Timestamp: new Date('2025-03-11T03:11:55.674'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["fmlxksyjavfbvjusnfsi434ahm","e5zigmbcjjherly4yxoldxxjdq","nsj2vbqnencgdcvkvecvto3dhe"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onUpdatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onUpdatePerson"}',
@@ -15375,7 +15375,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononDeletePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:55.723Z'),
+        Timestamp: new Date('2025-03-11T03:11:55.723'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["rtuod4by7jhy3huiay4jrkmjai","eqez5hms3vfzvgcqwkiolm6wwi","o7nsnvfisvaavi45xk2wnvyjdq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onDeletePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onDeletePerson"}',
@@ -15412,7 +15412,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onUpdatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:56.390Z'),
+        Timestamp: new Date('2025-03-11T03:11:56.390'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15450,7 +15450,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onDeletePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:56.508Z'),
+        Timestamp: new Date('2025-03-11T03:11:56.508'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15517,7 +15517,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononDeletePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:55.874Z'),
+        Timestamp: new Date('2025-03-11T03:11:55.874'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["t5mufmbzkzapde3hzp75hg67qa","le4jjjcmtbbutnrkmsnftgqgpy","fyidpe3oereo3dhe3xasbqfkau"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onDeletePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onDeletePost"}',
@@ -15552,7 +15552,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononCreatePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:55.898Z'),
+        Timestamp: new Date('2025-03-11T03:11:55.898'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["wl3qvbnd5jd5nawwzanupavuge","pjzmxql5p5amzcnxjthxrqmi5e","eiwhn45dkzccjcrmgr225mjmw4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onCreatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onCreatePost"}',
@@ -15588,7 +15588,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onDeletePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:56.644Z'),
+        Timestamp: new Date('2025-03-11T03:11:56.644'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15625,7 +15625,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onCreatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:56.655Z'),
+        Timestamp: new Date('2025-03-11T03:11:56.655'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15661,7 +15661,7 @@ export const data = [
         LogicalResourceId: 'SubscriptiononUpdatePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:57.008Z'),
+        Timestamp: new Date('2025-03-11T03:11:57.008'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["t6jwemewbreatn324nkfka5bzq","elpd2jyumbgbtasdzpvdvswppi","vno7vviemfbq3cskdpqb4wf2iq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onUpdatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onUpdatePost"}',
@@ -15697,7 +15697,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onUpdatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:57.915Z'),
+        Timestamp: new Date('2025-03-11T03:11:57.915'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15734,7 +15734,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onUpdatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:58.343Z'),
+        Timestamp: new Date('2025-03-11T03:11:58.343'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["fmlxksyjavfbvjusnfsi434ahm","e5zigmbcjjherly4yxoldxxjdq","nsj2vbqnencgdcvkvecvto3dhe"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onUpdatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onUpdatePerson"}',
@@ -15771,7 +15771,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onDeletePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:58.514Z'),
+        Timestamp: new Date('2025-03-11T03:11:58.514'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["rtuod4by7jhy3huiay4jrkmjai","eqez5hms3vfzvgcqwkiolm6wwi","o7nsnvfisvaavi45xk2wnvyjdq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onDeletePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onDeletePerson"}',
@@ -15808,7 +15808,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onDeletePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:58.600Z'),
+        Timestamp: new Date('2025-03-11T03:11:58.600'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["t5mufmbzkzapde3hzp75hg67qa","le4jjjcmtbbutnrkmsnftgqgpy","fyidpe3oereo3dhe3xasbqfkau"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onDeletePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onDeletePost"}',
@@ -15844,7 +15844,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onCreatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:58.614Z'),
+        Timestamp: new Date('2025-03-11T03:11:58.614'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["wl3qvbnd5jd5nawwzanupavuge","pjzmxql5p5amzcnxjthxrqmi5e","eiwhn45dkzccjcrmgr225mjmw4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onCreatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onCreatePost"}',
@@ -15880,7 +15880,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Subscription/resolvers/onUpdatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:11:59.739Z'),
+        Timestamp: new Date('2025-03-11T03:11:59.739'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Subscription","PipelineConfig":{"Functions":["t6jwemewbreatn324nkfka5bzq","elpd2jyumbgbtasdzpvdvswppi","vno7vviemfbq3cskdpqb4wf2iq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Subscription\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"onUpdatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"NONE\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"onUpdatePost"}',
@@ -15944,7 +15944,7 @@ export const data = [
         LogicalResourceId: 'PersonTable',
         PhysicalResourceId: 'Person-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:12:03.614Z'),
+        Timestamp: new Date('2025-03-11T03:12:03.614'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -15979,7 +15979,7 @@ export const data = [
         LogicalResourceId: 'PersonTable',
         PhysicalResourceId: 'Person-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:12:03.776Z'),
+        Timestamp: new Date('2025-03-11T03:12:03.776'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","streamSpecification":{"streamViewType":"NEW_AND_OLD_IMAGES"},"billingMode":"PAY_PER_REQUEST","attributeDefinitions":[{"attributeType":"S","attributeName":"name"},{"attributeType":"S","attributeName":"dateOfBirth"}],"keySchema":[{"attributeName":"name","keyType":"HASH"},{"attributeName":"dateOfBirth","keyType":"RANGE"}],"replaceTableUponGsiUpdate":"true","allowDestructiveGraphqlSchemaUpdates":"true","tableName":"Person-viu3cvmcnvdx7dufpcbaimflau-NONE","sseSpecification":{"sseEnabled":"true"}}',
@@ -16015,7 +16015,7 @@ export const data = [
         PhysicalResourceId:
           'PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:12:06.876Z'),
+        Timestamp: new Date('2025-03-11T03:12:06.876'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"RoleName":"PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE","Policies":[{"PolicyName":"DynamoDBAccess","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:BatchGetItem","dynamodb:BatchWriteItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:GetItem","dynamodb:Scan","dynamodb:Query","dynamodb:UpdateItem","dynamodb:ConditionCheckItem","dynamodb:DescribeTable","dynamodb:GetRecords","dynamodb:GetShardIterator"],"Resource":["arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE/*"],"Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"appsync.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -16049,7 +16049,7 @@ export const data = [
         LogicalResourceId: 'PersonDataSource',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:08.010Z'),
+        Timestamp: new Date('2025-03-11T03:12:08.010'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"AMAZON_DYNAMODB","ServiceRoleArn":"arn:aws:iam::504152962427:role/PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBConfig":{"TableName":"Person-viu3cvmcnvdx7dufpcbaimflau-NONE","AwsRegion":"us-west-2"},"Name":"PersonTable"}',
@@ -16113,7 +16113,7 @@ export const data = [
         LogicalResourceId: 'PostIAMRole83BF708F',
         PhysicalResourceId: 'PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'AWS::IAM::Role',
-        Timestamp: new Date('2025-03-11T03:12:07.437Z'),
+        Timestamp: new Date('2025-03-11T03:12:07.437'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"RoleName":"PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE","Policies":[{"PolicyName":"DynamoDBAccess","PolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":["dynamodb:BatchGetItem","dynamodb:BatchWriteItem","dynamodb:PutItem","dynamodb:DeleteItem","dynamodb:GetItem","dynamodb:Scan","dynamodb:Query","dynamodb:UpdateItem","dynamodb:ConditionCheckItem","dynamodb:DescribeTable","dynamodb:GetRecords","dynamodb:GetShardIterator"],"Resource":["arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE/*"],"Effect":"Allow"}]}}],"AssumeRolePolicyDocument":{"Version":"2012-10-17","Statement":[{"Action":"sts:AssumeRole","Effect":"Allow","Principal":{"Service":"appsync.amazonaws.com"}}]},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -16148,7 +16148,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/PersonTable',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:08.945Z'),
+        Timestamp: new Date('2025-03-11T03:12:08.945'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16184,7 +16184,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/PersonTable',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:09.118Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.118'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"AMAZON_DYNAMODB","ServiceRoleArn":"arn:aws:iam::504152962427:role/PersonIAMRole2af744-viu3cvmcnvdx7dufpcbaimflau-NONE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBConfig":{"TableName":"Person-viu3cvmcnvdx7dufpcbaimflau-NONE","AwsRegion":"us-west-2"},"Name":"PersonTable"}',
@@ -16220,7 +16220,7 @@ export const data = [
           'MutationupdatePersonauth0FunctionMutationupdatePersonauth0FunctionAppSyncFunction36E326CF',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.771Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.771'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/245ed8ac5185462a6923b7e45a318fec4c9ba0c45d1d720abd5b20317aa3dc6a.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonauth0Function"}',
@@ -16257,7 +16257,7 @@ export const data = [
           'MutationdeletePersonauth0FunctionMutationdeletePersonauth0FunctionAppSyncFunction226CC37B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.795Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.795'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/29e4bdb03133f87f2b1acb547959ffd4cfd22804026994c5b61db33084127353.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonauth0Function"}',
@@ -16294,7 +16294,7 @@ export const data = [
           'MutationCreatePersonDataResolverFnMutationCreatePersonDataResolverFnAppSyncFunctionD6255519',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.799Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.799'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/725b7ed3971927a1e99c853643b4ca575c3d612fff9b50d3f616c4feeb79a7d7.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationCreatePersonDataResolverFn"}',
@@ -16331,7 +16331,7 @@ export const data = [
           'QueryGetPersonDataResolverFnQueryGetPersonDataResolverFnAppSyncFunction9DC39353',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.806Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.806'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryGetPersonDataResolverFn"}',
@@ -16368,7 +16368,7 @@ export const data = [
           'QueryListPeopleDataResolverFnQueryListPeopleDataResolverFnAppSyncFunction7527A154',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.822Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.822'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPeopleDataResolverFn"}',
@@ -16405,7 +16405,7 @@ export const data = [
           'MutationUpdatePersonDataResolverFnMutationUpdatePersonDataResolverFnAppSyncFunctionA221542D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.832Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.832'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationUpdatePersonDataResolverFn"}',
@@ -16442,7 +16442,7 @@ export const data = [
           'MutationDeletePersonDataResolverFnMutationDeletePersonDataResolverFnAppSyncFunctionB6FC28BE',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:09.959Z'),
+        Timestamp: new Date('2025-03-11T03:12:09.959'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationDeletePersonDataResolverFn"}',
@@ -16480,7 +16480,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/yinna5ej4bbepbktuomzalefvm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.734Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.734'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16519,7 +16519,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/i4o6yg3y3vf3bbl3urh2adq44i',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.771Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.771'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16558,7 +16558,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/63rjstxnn5hathylg3wndsobga',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.789Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.789'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16597,7 +16597,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/4hkoybx3zzfofjjhpppcbrqcvy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.832Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.832'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16636,7 +16636,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ubj45swovvgolhtldji7lz7me4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.938Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.938'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16675,7 +16675,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/yeto4rgbf5bmzhhrlfzilewmpu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:10.992Z'),
+        Timestamp: new Date('2025-03-11T03:12:10.992'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16714,7 +16714,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/n6qk3jmx6bavpg6d24rgyii4ci',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.062Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.062'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -16753,7 +16753,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/yinna5ej4bbepbktuomzalefvm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.317Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.317'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/29e4bdb03133f87f2b1acb547959ffd4cfd22804026994c5b61db33084127353.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePersonauth0Function"}',
@@ -16791,7 +16791,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/i4o6yg3y3vf3bbl3urh2adq44i',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.335Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.335'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/245ed8ac5185462a6923b7e45a318fec4c9ba0c45d1d720abd5b20317aa3dc6a.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePersonauth0Function"}',
@@ -16829,7 +16829,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/63rjstxnn5hathylg3wndsobga',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.359Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.359'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationUpdatePersonDataResolverFn"}',
@@ -16867,7 +16867,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/4hkoybx3zzfofjjhpppcbrqcvy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.392Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.392'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/725b7ed3971927a1e99c853643b4ca575c3d612fff9b50d3f616c4feeb79a7d7.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationCreatePersonDataResolverFn"}',
@@ -16905,7 +16905,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ubj45swovvgolhtldji7lz7me4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.565Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.565'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPeopleDataResolverFn"}',
@@ -16943,7 +16943,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/yeto4rgbf5bmzhhrlfzilewmpu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.594Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.594'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryGetPersonDataResolverFn"}',
@@ -16981,7 +16981,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/n6qk3jmx6bavpg6d24rgyii4ci',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:11.619Z'),
+        Timestamp: new Date('2025-03-11T03:12:11.619'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationDeletePersonDataResolverFn"}',
@@ -17017,7 +17017,7 @@ export const data = [
         LogicalResourceId: 'ListPersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.019Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.019'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["y3nyyr3in5actgxuiub3v3innm","canepqvehnhgxecri4j4k4vnve","u4xigewz4zfczaig42yrteflvi","ubj45swovvgolhtldji7lz7me4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPeople\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPeople"}',
@@ -17052,7 +17052,7 @@ export const data = [
         LogicalResourceId: 'CreatePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.152Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.152'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["q7g4tvej45ekbeop2fs3p6cfne","iahzeuag4bcvrhsbk267gebwcy","pqgozercwrbj3cjatyede77iya","y6n3rntrbjarxbdlpvl7ablvem","4hkoybx3zzfofjjhpppcbrqcvy"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"createPerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"createPerson"}',
@@ -17087,7 +17087,7 @@ export const data = [
         LogicalResourceId: 'DeletePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.158Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.158'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["f77355katfg57o76tz4gihe4au","yinna5ej4bbepbktuomzalefvm","xzshloqv7fbofo5aeqhdhmssye","n6qk3jmx6bavpg6d24rgyii4ci"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"deletePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"deletePerson"}',
@@ -17122,7 +17122,7 @@ export const data = [
         LogicalResourceId: 'UpdatePersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.212Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.212'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["sqbdsim3era7hbldb2tc4yowru","adfrud25i5fipoho5nx6ksdvzi","i4o6yg3y3vf3bbl3urh2adq44i","2bbvvn3a3zhwvlwhaxd4kakxaq","63rjstxnn5hathylg3wndsobga"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"updatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"updatePerson"}',
@@ -17157,7 +17157,7 @@ export const data = [
         LogicalResourceId: 'GetPersonResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.220Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.220'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["cweru2kg7zaf3e5l7wjjwgdzc4","ajf44aiyrra6lobpoeyeb2725m","burerubgtzgy3fbnwamnim5gsu","yeto4rgbf5bmzhhrlfzilewmpu"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"getPerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"getPerson"}',
@@ -17193,7 +17193,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPeople',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.806Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.806'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17230,7 +17230,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/createPerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.903Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.903'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17297,7 +17297,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/updatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:13.957Z'),
+        Timestamp: new Date('2025-03-11T03:12:13.957'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17334,7 +17334,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/getPerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:14.010Z'),
+        Timestamp: new Date('2025-03-11T03:12:14.010'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17371,7 +17371,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/deletePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:14.020Z'),
+        Timestamp: new Date('2025-03-11T03:12:14.020'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17407,7 +17407,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPeople',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:15.687Z'),
+        Timestamp: new Date('2025-03-11T03:12:15.687'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["y3nyyr3in5actgxuiub3v3innm","canepqvehnhgxecri4j4k4vnve","u4xigewz4zfczaig42yrteflvi","ubj45swovvgolhtldji7lz7me4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPeople\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPeople"}',
@@ -17443,7 +17443,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/updatePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:15.893Z'),
+        Timestamp: new Date('2025-03-11T03:12:15.893'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["sqbdsim3era7hbldb2tc4yowru","adfrud25i5fipoho5nx6ksdvzi","i4o6yg3y3vf3bbl3urh2adq44i","2bbvvn3a3zhwvlwhaxd4kakxaq","63rjstxnn5hathylg3wndsobga"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"updatePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"updatePerson"}',
@@ -17479,7 +17479,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/createPerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:15.920Z'),
+        Timestamp: new Date('2025-03-11T03:12:15.920'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["q7g4tvej45ekbeop2fs3p6cfne","iahzeuag4bcvrhsbk267gebwcy","pqgozercwrbj3cjatyede77iya","y6n3rntrbjarxbdlpvl7ablvem","4hkoybx3zzfofjjhpppcbrqcvy"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"createPerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"createPerson"}',
@@ -17514,7 +17514,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/getPerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:15.937Z'),
+        Timestamp: new Date('2025-03-11T03:12:15.937'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["cweru2kg7zaf3e5l7wjjwgdzc4","ajf44aiyrra6lobpoeyeb2725m","burerubgtzgy3fbnwamnim5gsu","yeto4rgbf5bmzhhrlfzilewmpu"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"getPerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"getPerson"}',
@@ -17550,7 +17550,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/deletePerson',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:15.962Z'),
+        Timestamp: new Date('2025-03-11T03:12:15.962'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["f77355katfg57o76tz4gihe4au","yinna5ej4bbepbktuomzalefvm","xzshloqv7fbofo5aeqhdhmssye","n6qk3jmx6bavpg6d24rgyii4ci"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"deletePerson\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"deletePerson"}',
@@ -17586,7 +17586,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:17.915Z'),
+        Timestamp: new Date('2025-03-11T03:12:17.915'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -17661,7 +17661,7 @@ export const data = [
         LogicalResourceId: 'PostTable',
         PhysicalResourceId: 'Post-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:12:28.249Z'),
+        Timestamp: new Date('2025-03-11T03:12:28.249'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17696,7 +17696,7 @@ export const data = [
         LogicalResourceId: 'PostTable',
         PhysicalResourceId: 'Post-viu3cvmcnvdx7dufpcbaimflau-NONE',
         ResourceType: 'Custom::AmplifyDynamoDBTable',
-        Timestamp: new Date('2025-03-11T03:12:28.405Z'),
+        Timestamp: new Date('2025-03-11T03:12:28.405'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ServiceToken":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","globalSecondaryIndexes":[{"indexName":"postsByAuthorName","keySchema":[{"attributeName":"authorName","keyType":"HASH"}],"projection":{"projectionType":"ALL"}},{"indexName":"gsi-Person.authoredPosts","keySchema":[{"attributeName":"authorName","keyType":"HASH"},{"attributeName":"authorDoB","keyType":"RANGE"}],"projection":{"projectionType":"ALL"}}],"streamSpecification":{"streamViewType":"NEW_AND_OLD_IMAGES"},"billingMode":"PAY_PER_REQUEST","attributeDefinitions":[{"attributeType":"S","attributeName":"id"},{"attributeType":"S","attributeName":"authorName"},{"attributeType":"S","attributeName":"authorDoB"}],"keySchema":[{"attributeName":"id","keyType":"HASH"}],"replaceTableUponGsiUpdate":"true","allowDestructiveGraphqlSchemaUpdates":"true","tableName":"Post-viu3cvmcnvdx7dufpcbaimflau-NONE","sseSpecification":{"sseEnabled":"true"}}',
@@ -17755,7 +17755,7 @@ export const data = [
         LogicalResourceId: 'PostDataSource',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:29.500Z'),
+        Timestamp: new Date('2025-03-11T03:12:29.500'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Type":"AMAZON_DYNAMODB","ServiceRoleArn":"arn:aws:iam::504152962427:role/PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBConfig":{"TableName":"Post-viu3cvmcnvdx7dufpcbaimflau-NONE","AwsRegion":"us-west-2"},"Name":"PostTable"}',
@@ -17790,7 +17790,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/PostTable',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:30.464Z'),
+        Timestamp: new Date('2025-03-11T03:12:30.464'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -17826,7 +17826,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/datasources/PostTable',
         ResourceType: 'AWS::AppSync::DataSource',
-        Timestamp: new Date('2025-03-11T03:12:30.620Z'),
+        Timestamp: new Date('2025-03-11T03:12:30.620'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Type":"AMAZON_DYNAMODB","ServiceRoleArn":"arn:aws:iam::504152962427:role/PostIAMRolebbce9b-viu3cvmcnvdx7dufpcbaimflau-NONE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBConfig":{"TableName":"Post-viu3cvmcnvdx7dufpcbaimflau-NONE","AwsRegion":"us-west-2"},"Name":"PostTable"}',
@@ -17863,7 +17863,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPersonNestedStackPersonNestedSt-72810Y0AHA1T/8f510a40-fe26-11ef-978a-06d488f07943',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:30.830Z'),
+        Timestamp: new Date('2025-03-11T03:12:30.830'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/f7bafc4fb5028045158fda2645f666d5744ff73a7236cbd21784e1b94aaef720.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -17900,7 +17900,7 @@ export const data = [
           'QueryListPostByAuthorNameDataResolverFnQueryListPostByAuthorNameDataResolverFnAppSyncFunction1850214D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.262Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.262'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/098c998f215c333f57348ca8912f66057ae6b574fe34013033dc54362ee2372c.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c89821d3a34d8f9a69feb7faded2de554cfee32627d772bc8d842a1a145408f5.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPostByAuthorNameDataResolverFn"}',
@@ -17937,7 +17937,7 @@ export const data = [
           'MutationDeletePostDataResolverFnMutationDeletePostDataResolverFnAppSyncFunction45B37C12',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.273Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.273'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationDeletePostDataResolverFn"}',
@@ -17974,7 +17974,7 @@ export const data = [
           'MutationUpdatePostDataResolverFnMutationUpdatePostDataResolverFnAppSyncFunctionBF7D410D',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.282Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.282'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationUpdatePostDataResolverFn"}',
@@ -18011,7 +18011,7 @@ export const data = [
           'MutationdeletePostauth0FunctionMutationdeletePostauth0FunctionAppSyncFunctionFBE21CB7',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.285Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.285'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/29e4bdb03133f87f2b1acb547959ffd4cfd22804026994c5b61db33084127353.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePostauth0Function"}',
@@ -18048,7 +18048,7 @@ export const data = [
           'MutationCreatePostDataResolverFnMutationCreatePostDataResolverFnAppSyncFunctionE45E2000',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.297Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.297'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/47614d6b888488252a8a44b7911b69efcddb1eb2454ca31132d72d6444247204.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationCreatePostDataResolverFn"}',
@@ -18085,7 +18085,7 @@ export const data = [
           'QueryGetPostDataResolverFnQueryGetPostDataResolverFnAppSyncFunction06724190',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.300Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.300'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryGetPostDataResolverFn"}',
@@ -18122,7 +18122,7 @@ export const data = [
           'QueryListPostsDataResolverFnQueryListPostsDataResolverFnAppSyncFunction3D526AB7',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.313Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.313'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPostsDataResolverFn"}',
@@ -18159,7 +18159,7 @@ export const data = [
           'MutationupdatePostauth0FunctionMutationupdatePostauth0FunctionAppSyncFunction3E057835',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:31.348Z'),
+        Timestamp: new Date('2025-03-11T03:12:31.348'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/245ed8ac5185462a6923b7e45a318fec4c9ba0c45d1d720abd5b20317aa3dc6a.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostauth0Function"}',
@@ -18197,7 +18197,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/6fev6wvoifdqrdzpujtnbk34xq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.248Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.248'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18236,7 +18236,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ncodh2vo6fd67o4tg6cqdts4oi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.294Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.294'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18275,7 +18275,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/5oiturj5ibdcbln4b3wq42xkmu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.303Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.303'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18314,7 +18314,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pve2vddaxjd6vgfw4emnurjfxm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.384Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.384'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18353,7 +18353,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/igqfuoioybaxvffexgf4djlgo4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.392Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.392'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18392,7 +18392,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/gu2lusp6tvhipm5etaj673xjba',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.456Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.456'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18431,7 +18431,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/e6fnxcow6nh6dh7kynfwrnuejm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.482Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.482'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18470,7 +18470,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xpu2kxsipzf3ximnumlpxvpihy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.586Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.586'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -18509,7 +18509,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ncodh2vo6fd67o4tg6cqdts4oi',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.846Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.846'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/29e4bdb03133f87f2b1acb547959ffd4cfd22804026994c5b61db33084127353.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationdeletePostauth0Function"}',
@@ -18547,7 +18547,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/5oiturj5ibdcbln4b3wq42xkmu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.876Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.876'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/47614d6b888488252a8a44b7911b69efcddb1eb2454ca31132d72d6444247204.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationCreatePostDataResolverFn"}',
@@ -18585,7 +18585,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/6fev6wvoifdqrdzpujtnbk34xq',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.934Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.934'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationUpdatePostDataResolverFn"}',
@@ -18623,7 +18623,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/gu2lusp6tvhipm5etaj673xjba',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.948Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.948'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPostsDataResolverFn"}',
@@ -18661,7 +18661,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/igqfuoioybaxvffexgf4djlgo4',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:32.997Z'),
+        Timestamp: new Date('2025-03-11T03:12:32.997'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationDeletePostDataResolverFn"}',
@@ -18699,7 +18699,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/e6fnxcow6nh6dh7kynfwrnuejm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:33.025Z'),
+        Timestamp: new Date('2025-03-11T03:12:33.025'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/098c998f215c333f57348ca8912f66057ae6b574fe34013033dc54362ee2372c.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c89821d3a34d8f9a69feb7faded2de554cfee32627d772bc8d842a1a145408f5.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryListPostByAuthorNameDataResolverFn"}',
@@ -18737,7 +18737,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/pve2vddaxjd6vgfw4emnurjfxm',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:33.069Z'),
+        Timestamp: new Date('2025-03-11T03:12:33.069'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"QueryGetPostDataResolverFn"}',
@@ -18775,7 +18775,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/xpu2kxsipzf3ximnumlpxvpihy',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:33.149Z'),
+        Timestamp: new Date('2025-03-11T03:12:33.149'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/245ed8ac5185462a6923b7e45a318fec4c9ba0c45d1d720abd5b20317aa3dc6a.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"MutationupdatePostauth0Function"}',
@@ -18836,7 +18836,7 @@ export const data = [
         LogicalResourceId: 'DeletePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.202Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.202'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["ncodh2vo6fd67o4tg6cqdts4oi","ws6pdgnb4vdorg34wpzktmpqna","igqfuoioybaxvffexgf4djlgo4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"deletePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"deletePost"}',
@@ -18871,7 +18871,7 @@ export const data = [
         LogicalResourceId: 'QuerylistPostByAuthorNameResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.270Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.270'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["2af672djzrghzhru3gy2h2ra6m","ymta6czdpvgujovpgq2ed7xwqu","e6fnxcow6nh6dh7kynfwrnuejm"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPostByAuthorName\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPostByAuthorName"}',
@@ -18906,7 +18906,7 @@ export const data = [
         LogicalResourceId: 'GetPostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.353Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.353'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["4w37fqizgbb5vg4dgkcn4xcgze","pvkkb35yjfgrpd2a5vs6lmli5m","pve2vddaxjd6vgfw4emnurjfxm"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"getPost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"getPost"}',
@@ -18940,7 +18940,7 @@ export const data = [
         LogicalResourceId: 'ListPostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.472Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.472'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["s5x55itbhbf3tpiu4cud2kgzea","asuozcoisnfflemlchxtro5vfy","gu2lusp6tvhipm5etaj673xjba"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPosts\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPosts"}',
@@ -18975,7 +18975,7 @@ export const data = [
         LogicalResourceId: 'CreatePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.496Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.496'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["ricuclsdirhmrbpvm5aujsq2ue","pxohmrxt7fdbbf4ru4io72oja4","xjy4vpmgzrf5vfrka2xz5ax7xq","5oiturj5ibdcbln4b3wq42xkmu"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"createPost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"createPost"}',
@@ -19010,7 +19010,7 @@ export const data = [
         LogicalResourceId: 'UpdatePostResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.671Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.671'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["oxq542ir35grho7woxkksiueya","xpu2kxsipzf3ximnumlpxvpihy","6qvzm6r7ivgcnncvwldb2jebhq","6fev6wvoifdqrdzpujtnbk34xq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"updatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"updatePost"}',
@@ -19046,7 +19046,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/deletePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:34.981Z'),
+        Timestamp: new Date('2025-03-11T03:12:34.981'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19083,7 +19083,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPostByAuthorName',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:35.092Z'),
+        Timestamp: new Date('2025-03-11T03:12:35.092'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19120,7 +19120,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/getPost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:35.094Z'),
+        Timestamp: new Date('2025-03-11T03:12:35.094'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19156,7 +19156,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPosts',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:35.167Z'),
+        Timestamp: new Date('2025-03-11T03:12:35.167'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19193,7 +19193,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/createPost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:35.235Z'),
+        Timestamp: new Date('2025-03-11T03:12:35.235'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19230,7 +19230,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/updatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:35.380Z'),
+        Timestamp: new Date('2025-03-11T03:12:35.380'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19267,7 +19267,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPostByAuthorName',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:36.965Z'),
+        Timestamp: new Date('2025-03-11T03:12:36.965'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["2af672djzrghzhru3gy2h2ra6m","ymta6czdpvgujovpgq2ed7xwqu","e6fnxcow6nh6dh7kynfwrnuejm"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPostByAuthorName\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPostByAuthorName"}',
@@ -19303,7 +19303,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/getPost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:36.993Z'),
+        Timestamp: new Date('2025-03-11T03:12:36.993'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["4w37fqizgbb5vg4dgkcn4xcgze","pvkkb35yjfgrpd2a5vs6lmli5m","pve2vddaxjd6vgfw4emnurjfxm"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"getPost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"getPost"}',
@@ -19338,7 +19338,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Query/resolvers/listPosts',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:37.086Z'),
+        Timestamp: new Date('2025-03-11T03:12:37.086'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Query","PipelineConfig":{"Functions":["s5x55itbhbf3tpiu4cud2kgzea","asuozcoisnfflemlchxtro5vfy","gu2lusp6tvhipm5etaj673xjba"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Query\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"listPosts\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"listPosts"}',
@@ -19373,7 +19373,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/deletePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:37.105Z'),
+        Timestamp: new Date('2025-03-11T03:12:37.105'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["ncodh2vo6fd67o4tg6cqdts4oi","ws6pdgnb4vdorg34wpzktmpqna","igqfuoioybaxvffexgf4djlgo4"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"deletePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"deletePost"}',
@@ -19408,7 +19408,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/createPost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:37.173Z'),
+        Timestamp: new Date('2025-03-11T03:12:37.173'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["ricuclsdirhmrbpvm5aujsq2ue","pxohmrxt7fdbbf4ru4io72oja4","xjy4vpmgzrf5vfrka2xz5ax7xq","5oiturj5ibdcbln4b3wq42xkmu"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"createPost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"createPost"}',
@@ -19443,7 +19443,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Mutation/resolvers/updatePost',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:37.262Z'),
+        Timestamp: new Date('2025-03-11T03:12:37.262'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Mutation","PipelineConfig":{"Functions":["oxq542ir35grho7woxkksiueya","xpu2kxsipzf3ximnumlpxvpihy","6qvzm6r7ivgcnncvwldb2jebhq","6fev6wvoifdqrdzpujtnbk34xq"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Mutation\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"updatePost\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"updatePost"}',
@@ -19479,7 +19479,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:38.531Z'),
+        Timestamp: new Date('2025-03-11T03:12:38.531'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -19537,7 +19537,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataPostNestedStackPostNestedStackR-Q6BBZ46K7MMS/8f707920-fe26-11ef-b737-06b888091933',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:45.083Z'),
+        Timestamp: new Date('2025-03-11T03:12:45.083'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/209a0048df688fe6a8997016c796a69b318d368ae30d416e1656d209d881a050.json","Parameters":{"DynamoDBModelTableReadIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource9097D1B4Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataAmplifyTableManagerT93BF9650":"arn:aws:lambda:us-west-2:504152962427:function:amplify-samplesamsaraapp--TableManagerCustomProvid-dJlbgplvtxTp","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","DynamoDBEnableServerSideEncryption":"true","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","DynamoDBEnablePointInTimeRecovery":"false","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","DynamoDBBillingMode":"PAY_PER_REQUEST","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","DynamoDBModelTableWriteIOPS":"5","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -19574,7 +19574,7 @@ export const data = [
           'amplifyDataConnectionStackNestedStackConnectionStackNestedStackResourceAB0F312B',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:45.626Z'),
+        Timestamp: new Date('2025-03-11T03:12:45.626'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -19637,7 +19637,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:46.412Z'),
+        Timestamp: new Date('2025-03-11T03:12:46.412'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19675,7 +19675,7 @@ export const data = [
           'PostAuthorDataResolverFnPostAuthorDataResolverFnAppSyncFunction89F00125',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:48.674Z'),
+        Timestamp: new Date('2025-03-11T03:12:48.674'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/dcb70e4856bc9a423e02b8b9e9c2ab3f71479784572d4c04a02d1f5b61a9f9ac.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c3534669fc2486ce8786b1a3efd6c0848cd3c4835de33940c0f49c28c9d8abef.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PostAuthorDataResolverFn"}',
@@ -19712,7 +19712,7 @@ export const data = [
           'Postauthorauth0FunctionPostauthorauth0FunctionAppSyncFunction453E4126',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:48.685Z'),
+        Timestamp: new Date('2025-03-11T03:12:48.685'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/5b2dd26ac19f6a54684f2769d465463159cc27a441d7ac8b8efafdec1b2370fd.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"Postauthorauth0Function"}',
@@ -19747,7 +19747,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: '',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:12:48.696Z'),
+        Timestamp: new Date('2025-03-11T03:12:48.696'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/yXMPQ6DMAxA4bOwB5efhbUgdewAB0BuMChAHYQdUIW4e0U7fXrLyyAtMkgi3CW23RTP7gXHk0SpaxTtZHCX9pC8RRFSgfuFkRzKYCfSEoUMLot82MJR9fwIbNV5rjz3bggrXmGqnmsSP2+0nqf5PRrFwfFwGvYdwSi3LUsgLSCNRnEuXgOrexPUf796F96XpwAAAA=="}',
@@ -19783,7 +19783,7 @@ export const data = [
           'PersonAuthoredPostsDataResolverFnPersonAuthoredPostsDataResolverFnAppSyncFunctionCC61F83F',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:48.708Z'),
+        Timestamp: new Date('2025-03-11T03:12:48.708'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/49e7a1f2fb4c809b82bed6b0242a2a3bcfa2c5276ebd2539ff330fee36f8fe18.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/db826cc870f25dcd05aff645c3b384ba3a97115acc5373e580c14379eb0430b3.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PersonAuthoredPostsDataResolverFn"}',
@@ -19820,7 +19820,7 @@ export const data = [
           'PersonauthoredPostsauth0FunctionPersonauthoredPostsauth0FunctionAppSyncFunctionC5A66FBD',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:48.710Z'),
+        Timestamp: new Date('2025-03-11T03:12:48.710'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/5b2dd26ac19f6a54684f2769d465463159cc27a441d7ac8b8efafdec1b2370fd.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PersonauthoredPostsauth0Function"}',
@@ -19858,7 +19858,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/jr2obx7rtndtji5jmygxhq32de',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:49.485Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.485'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19894,7 +19894,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: 'b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:12:49.588Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.588'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19932,7 +19932,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/cq665qvecnchjgorkyyikuolgu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:49.652Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.652'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -19968,7 +19968,7 @@ export const data = [
         LogicalResourceId: 'CDKMetadata',
         PhysicalResourceId: 'b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CDK::Metadata',
-        Timestamp: new Date('2025-03-11T03:12:49.674Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.674'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"Analytics":"v2:deflate64:H4sIAAAAAAAA/yXMPQ6DMAxA4bOwB5efhbUgdewAB0BuMChAHYQdUIW4e0U7fXrLyyAtMkgi3CW23RTP7gXHk0SpaxTtZHCX9pC8RRFSgfuFkRzKYCfSEoUMLot82MJR9fwIbNV5rjz3bggrXmGqnmsSP2+0nqf5PRrFwfFwGvYdwSi3LUsgLSCNRnEuXgOrexPUf796F96XpwAAAA=="}',
@@ -20005,7 +20005,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/s3heqlpfizfhpnrn4nndfcuqxa',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:49.685Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.685'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -20044,7 +20044,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ag2kdiurmfak5fu7s63vh6bmfe',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:49.699Z'),
+        Timestamp: new Date('2025-03-11T03:12:49.699'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -20083,7 +20083,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/jr2obx7rtndtji5jmygxhq32de',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:50.003Z'),
+        Timestamp: new Date('2025-03-11T03:12:50.003'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/5b2dd26ac19f6a54684f2769d465463159cc27a441d7ac8b8efafdec1b2370fd.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"Postauthorauth0Function"}',
@@ -20121,7 +20121,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/cq665qvecnchjgorkyyikuolgu',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:50.255Z'),
+        Timestamp: new Date('2025-03-11T03:12:50.255'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"DataSourceName":"NONE_DS","ResponseMappingTemplate":"$util.toJson({})","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/5b2dd26ac19f6a54684f2769d465463159cc27a441d7ac8b8efafdec1b2370fd.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PersonauthoredPostsauth0Function"}',
@@ -20159,7 +20159,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/s3heqlpfizfhpnrn4nndfcuqxa',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:50.285Z'),
+        Timestamp: new Date('2025-03-11T03:12:50.285'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/dcb70e4856bc9a423e02b8b9e9c2ab3f71479784572d4c04a02d1f5b61a9f9ac.vtl","DataSourceName":"PersonTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/c3534669fc2486ce8786b1a3efd6c0848cd3c4835de33940c0f49c28c9d8abef.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PostAuthorDataResolverFn"}',
@@ -20197,7 +20197,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/functions/ag2kdiurmfak5fu7s63vh6bmfe',
         ResourceType: 'AWS::AppSync::FunctionConfiguration',
-        Timestamp: new Date('2025-03-11T03:12:50.293Z'),
+        Timestamp: new Date('2025-03-11T03:12:50.293'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"ResponseMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/49e7a1f2fb4c809b82bed6b0242a2a3bcfa2c5276ebd2539ff330fee36f8fe18.vtl","DataSourceName":"PostTable","FunctionVersion":"2018-05-29","RequestMappingTemplateS3Location":"s3://cdk-hnb659fds-assets-504152962427-us-west-2/db826cc870f25dcd05aff645c3b384ba3a97115acc5373e580c14379eb0430b3.vtl","ApiId":"viu3cvmcnvdx7dufpcbaimflau","Name":"PersonAuthoredPostsDataResolverFn"}',
@@ -20248,7 +20248,7 @@ export const data = [
         LogicalResourceId: 'PersonauthoredPostsResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:51.188Z'),
+        Timestamp: new Date('2025-03-11T03:12:51.188'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Person","PipelineConfig":{"Functions":["cq665qvecnchjgorkyyikuolgu","ag2kdiurmfak5fu7s63vh6bmfe"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Person\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"authoredPosts\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"authoredPosts"}',
@@ -20284,7 +20284,7 @@ export const data = [
         LogicalResourceId: 'PostauthorResolver',
         PhysicalResourceId: '',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:51.234Z'),
+        Timestamp: new Date('2025-03-11T03:12:51.234'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceProperties:
           '{"TypeName":"Post","PipelineConfig":{"Functions":["jr2obx7rtndtji5jmygxhq32de","s3heqlpfizfhpnrn4nndfcuqxa"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Post\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"author\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"author"}',
@@ -20320,7 +20320,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Person/resolvers/authoredPosts',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:51.917Z'),
+        Timestamp: new Date('2025-03-11T03:12:51.917'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -20358,7 +20358,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Post/resolvers/author',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:52.101Z'),
+        Timestamp: new Date('2025-03-11T03:12:52.101'),
         ResourceStatus: 'CREATE_IN_PROGRESS',
         ResourceStatusReason: 'Resource creation Initiated',
         ResourceProperties:
@@ -20395,7 +20395,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Person/resolvers/authoredPosts',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:53.807Z'),
+        Timestamp: new Date('2025-03-11T03:12:53.807'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Person","PipelineConfig":{"Functions":["cq665qvecnchjgorkyyikuolgu","ag2kdiurmfak5fu7s63vh6bmfe"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Person\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"authoredPosts\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Post-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"authoredPosts"}',
@@ -20431,7 +20431,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:appsync:us-west-2:504152962427:apis/viu3cvmcnvdx7dufpcbaimflau/types/Post/resolvers/author',
         ResourceType: 'AWS::AppSync::Resolver',
-        Timestamp: new Date('2025-03-11T03:12:53.951Z'),
+        Timestamp: new Date('2025-03-11T03:12:53.951'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TypeName":"Post","PipelineConfig":{"Functions":["jr2obx7rtndtji5jmygxhq32de","s3heqlpfizfhpnrn4nndfcuqxa"]},"RequestMappingTemplate":"$util.qr($ctx.stash.put(\\"typeName\\", \\"Post\\"))\\n$util.qr($ctx.stash.put(\\"fieldName\\", \\"author\\"))\\n$util.qr($ctx.stash.put(\\"conditions\\", []))\\n$util.qr($ctx.stash.put(\\"metadata\\", {}))\\n$util.qr($ctx.stash.metadata.put(\\"dataSourceType\\", \\"AMAZON_DYNAMODB\\"))\\n$util.qr($ctx.stash.metadata.put(\\"apiId\\", \\"viu3cvmcnvdx7dufpcbaimflau\\"))\\n$util.qr($ctx.stash.put(\\"connectionAttributes\\", {}))\\n$util.qr($ctx.stash.put(\\"tableName\\", \\"Person-viu3cvmcnvdx7dufpcbaimflau-NONE\\"))\\n$util.qr($ctx.stash.put(\\"authRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"unauthRole\\", \\"arn:aws:sts::504152962427:assumed-role/amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47/CognitoIdentityCredentials\\"))\\n$util.qr($ctx.stash.put(\\"identityPoolId\\", \\"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb\\"))\\n$util.qr($ctx.stash.put(\\"adminRoles\\", []))\\n$util.toJson({})","ResponseMappingTemplate":"$util.toJson($ctx.prev.result)","Kind":"PIPELINE","ApiId":"viu3cvmcnvdx7dufpcbaimflau","FieldName":"author"}',
@@ -20467,7 +20467,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:54.540Z'),
+        Timestamp: new Date('2025-03-11T03:12:54.540'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -20515,7 +20515,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0-amplifyDataConnectionStackNestedStackConne-L130VQDWLV66/b460a660-fe26-11ef-a711-06b25169542f',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:56.737Z'),
+        Timestamp: new Date('2025-03-11T03:12:56.737'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/83ef1d85f437ccf9bf6d749fd82f93b06ce961419558f4618e4da3765db7a706.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostPostTable365E2F9CTableArn":"arn:aws:dynamodb:us-west-2:504152962427:table/Post-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonPersonTableF02A70DBTableArn":"arn:aws:dynamodb:us-west-2:504152962427:table/Person-viu3cvmcnvdx7dufpcbaimflau-NONE","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonNestedStackPersonNestedStackResource35C2DCE5Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPersonPersonDataSourceDA3812F2Name":"PersonTable","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPIB1F14B28ApiId":"viu3cvmcnvdx7dufpcbaimflau","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataGraphQLAPINONEDS97A6DFB0Name":"NONE_DS","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostNestedStackPostNestedStackResource01FEDE53Outputsamplifysamplesamsaraapppravguptsandbox0e1752a889dataamplifyDataPostPostDataSourceED97F46CName":"PostTable"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplifyData","Key":"amplify:friendly-name"},{"Value":"amplify","Key":"created-by"}]}',
@@ -20552,7 +20552,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:12:58.026Z'),
+        Timestamp: new Date('2025-03-11T03:12:58.026'),
         ResourceStatus: 'CREATE_COMPLETE',
       },
       progress: {
@@ -20677,7 +20677,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-data7552DF31-1BIXA5GN4FTBJ/5d3a02f0-fe26-11ef-9db3-0a546862b135',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:13:22.261Z'),
+        Timestamp: new Date('2025-03-11T03:13:22.261'),
         ResourceStatus: 'CREATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/76f3f913f2bffd4d3b833199e6d331903453796a752c920c60d3aa8456e8a975.json","Parameters":{"referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthIdentityPool5160F57DRef":"us-west-2:6568ef94-3300-4149-bc98-f2266342f0bb","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthUserPool0A15674BRef":"us-west-2_j6BNFhRJd","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthunauthenticatedUserRoleC92E0CFERef":"amplify-samplesamsaraapp--amplifyAuthunauthenticate-Rieux6W03N47","referencetoamplifysamplesamsaraapppravguptsandbox0e1752a889authNestedStackauthNestedStackResource1C2A2D1EOutputsamplifysamplesamsaraapppravguptsandbox0e1752a889authamplifyAuthauthenticatedUserRole11751600Ref":"amplify-samplesamsaraapp--amplifyAuthauthenticatedU-y26Xh6dN3Ku9"},"Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -20713,7 +20713,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:13:23.162Z'),
+        Timestamp: new Date('2025-03-11T03:13:23.162'),
         ResourceStatus: 'CREATE_COMPLETE',
         ClientRequestToken: 'execc444e03a-46a9-4962-95e6-c1a015cefd81',
       },

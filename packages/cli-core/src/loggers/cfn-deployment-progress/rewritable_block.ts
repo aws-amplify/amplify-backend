@@ -1,6 +1,5 @@
 import wrapAnsi from 'wrap-ansi';
-import { Printer } from '../../printer/printer.js';
-import { AmplifyIOEventsBridgeSingletonFactory } from '../amplify_io_events_bridge_singleton_factory.js';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 /**
  * A class representing re-writable display lines
@@ -8,33 +7,28 @@ import { AmplifyIOEventsBridgeSingletonFactory } from '../amplify_io_events_brid
 export class RewritableBlock {
   private lastHeight = 0;
   private trailingEmptyLines = 0;
-  private readonly ioHost;
 
   /**
    * Constructor for RewritableBlock
-   * @param width the width of the block
-   * @param height the height of the block
-   * @param printer an optional AmplifyPrinter instance
+   * @param getBlockWidth A function that returns the width of the block
+   * @param getBlockHeight A function that returns the height of the block
+   * @param ioHost to send new updates to display
    */
   constructor(
-    private readonly width: number,
-    private readonly height: number,
-    private readonly printer?: Printer
-  ) {
-    this.ioHost = new AmplifyIOEventsBridgeSingletonFactory(
-      this.printer
-    ).getInstance();
-  }
+    private readonly getBlockWidth: () => number,
+    private readonly getBlockHeight: () => number,
+    private readonly ioHost: AmplifyIOHost
+  ) {}
 
   /**
    * Display the given lines in this rewritable block. It expands to make room for more lines
    * and keep the size of the block constant until finished.
    */
   async displayLines(lines: string[]) {
-    lines = this.terminalWrap(this.width, this.expandNewlines(lines));
+    lines = this.terminalWrap(this.getBlockWidth(), this.expandNewlines(lines));
     lines = lines.slice(
       0,
-      this.getMaxBlockHeight(this.height, this.lastHeight, lines)
+      this.getMaxBlockHeight(this.getBlockHeight(), this.lastHeight, lines)
     );
 
     const progressUpdate: string[] = [];

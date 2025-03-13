@@ -71,101 +71,101 @@ void describe('amplify sandbox event logging', () => {
       ),
       [
         '',
-        `${cll()} 11:26:02 PM | ${format.color(
+        `${cll()}  3:26:02 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('Root stack'),
           'Green'
         )}${EOL}`,
-        `${cll()} 11:26:02 PM | ${format.color(
+        `${cll()}  3:26:02 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('Root stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:07 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ data stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:06 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:06 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('data'),
           'Green'
         )}${EOL}`,
-        `${cll()} 11:26:02 PM | ${format.color(
+        `${cll()}  3:26:02 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('Root stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:07 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ data stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:06 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:06 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('data'),
           'Green'
-        )}${EOL}${cll()} 11:26:12 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:12 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ Person'),
           'Green'
-        )}${EOL}${cll()} 11:26:13 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:13 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ Post'),
           'Green'
         )}${EOL}`,
-        `${cll()} 11:26:02 PM | ${format.color(
+        `${cll()}  3:26:02 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('Root stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:07 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ data stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:06 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:06 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('data'),
           'Green'
-        )}${EOL}${cll()} 11:26:12 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:12 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ Person'),
           'Green'
-        )}${EOL}${cll()} 11:26:13 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:13 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ Post'),
           'Green'
         )}${EOL}`,
-        `${cll()} 11:26:18 PM | ${format.color(
+        `${cll()}  3:26:18 AM | ${format.color(
           'UPDATE_COMPLETE_CLEA',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('Root stack'),
           'Green'
-        )}${EOL}${cll()} 11:26:16 PM | ${format.color(
+        )}${EOL}${cll()}  3:26:16 AM | ${format.color(
           'UPDATE_COMPLETE_CLEA',
           'Green'
         )} | CloudFormation:Stack      | ${format.color(
@@ -261,19 +261,19 @@ void describe('amplify sandbox event logging', () => {
           case 1:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:09:42 PM | ${format.color(
+              `${cll()}  3:09:42 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:09:44 PM | ${format.color(
+              )}${EOL}${cll()}  3:09:44 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function'),
                 'Green'
-              )}${EOL}${cll()} 11:09:44 PM | ${format.color(
+              )}${EOL}${cll()}  3:09:44 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -285,79 +285,79 @@ void describe('amplify sandbox event logging', () => {
           case 9:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:09:42 PM | ${format.color(
+              `${cll()}  3:09:42 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:10:20 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Green'
-              )}${EOL}${cll()} 11:10:24 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:24 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | S3:Bucket                 | ${format.color(
                 format.bold('∟ AmplifyCodegenAssetsBucket'),
                 'Green'
-              )}${EOL}${cll()} 11:10:23 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:23 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | Lambda:LayerVersion       | ${format.color(
                 format.bold('  ∟ AwsCliLayer'),
                 'Green'
-              )}${EOL}${cll()} 11:10:26 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:26 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ AmplifyTableManager'),
                 'Green'
-              )}${EOL}${cll()} 11:10:28 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:28 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Role                  | ${format.color(
                 format.bold('  ∟ AmplifyManagedTableIsCompleteRole'),
                 'Green'
-              )}${EOL}${cll()} 11:10:24 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:24 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Role                  | ${format.color(
                 format.bold('  ∟ ServiceRole'),
                 'Green'
-              )}${EOL}${cll()} 11:10:24 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:24 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Role                  | ${format.color(
                 format.bold('  ∟ Role'),
                 'Green'
-              )}${EOL}${cll()} 11:10:26 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:26 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:GraphQLSchema     | ${format.color(
                 format.bold('  ∟ TransformerSchema'),
                 'Green'
-              )}${EOL}${cll()} 11:10:24 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:24 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | S3:Bucket                 | ${format.color(
                 format.bold('∟ modelIntrospectionSchemaBucket'),
                 'Green'
-              )}${EOL}${cll()} 11:10:23 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:23 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | Lambda:LayerVersion       | ${format.color(
                 format.bold('  ∟ AwsCliLayer'),
                 'Green'
-              )}${EOL}${cll()} 11:09:45 PM | ${format.color(
+              )}${EOL}${cll()}  3:09:45 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function'),
                 'Green'
-              )}${EOL}${cll()} 11:09:45 PM | ${format.color(
+              )}${EOL}${cll()}  3:09:45 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -369,37 +369,37 @@ void describe('amplify sandbox event logging', () => {
           case 19:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:09:42 PM | ${format.color(
+              `${cll()}  3:09:42 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:10:20 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Green'
-              )}${EOL}${cll()} 11:10:26 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:26 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ AmplifyTableManager'),
                 'Green'
-              )}${EOL}${cll()} 11:11:15 PM | ${format.color(
+              )}${EOL}${cll()}  3:11:15 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Policy                | ${format.color(
                 format.bold('  ∟ DefaultPolicy'),
                 'Green'
-              )}${EOL}${cll()} 11:10:33 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:33 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('storage'),
                 'Green'
-              )}${EOL}${cll()} 11:11:19 PM | ${format.color(
+              )}${EOL}${cll()}  3:11:19 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | S3BucketNotifications     | ${format.color(
@@ -411,61 +411,61 @@ void describe('amplify sandbox event logging', () => {
           case 29:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:09:42 PM | ${format.color(
+              `${cll()}  3:09:42 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:10:20 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Green'
-              )}${EOL}${cll()} 11:11:44 PM | ${format.color(
+              )}${EOL}${cll()}  3:11:44 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ Person'),
                 'Green'
-              )}${EOL}${cll()} 11:12:13 PM | ${format.color(
+              )}${EOL}${cll()}  3:12:13 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:Resolver          | ${format.color(
                 format.bold('  ∟ mutationCreatePersonResolver'),
                 'Green'
-              )}${EOL}${cll()} 11:12:13 PM | ${format.color(
+              )}${EOL}${cll()}  3:12:13 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:Resolver          | ${format.color(
                 format.bold('  ∟ mutationDeletePersonResolver'),
                 'Green'
-              )}${EOL}${cll()} 11:12:13 PM | ${format.color(
+              )}${EOL}${cll()}  3:12:13 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:Resolver          | ${format.color(
                 format.bold('  ∟ mutationUpdatePersonResolver'),
                 'Green'
-              )}${EOL}${cll()} 11:12:13 PM | ${format.color(
+              )}${EOL}${cll()}  3:12:13 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:Resolver          | ${format.color(
                 format.bold('  ∟ queryGetPersonResolver'),
                 'Green'
-              )}${EOL}${cll()} 11:12:13 PM | ${format.color(
+              )}${EOL}${cll()}  3:12:13 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AppSync:Resolver          | ${format.color(
                 format.bold('  ∟ queryListPeopleResolver'),
                 'Green'
-              )}${EOL}${cll()} 11:11:44 PM | ${format.color(
+              )}${EOL}${cll()}  3:11:44 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ Post'),
                 'Green'
-              )}${EOL}${cll()} 11:11:48 PM | ${format.color(
+              )}${EOL}${cll()}  3:11:48 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | AmplifyDynamoDBTable      | ${format.color(
@@ -477,13 +477,13 @@ void describe('amplify sandbox event logging', () => {
           case 41:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:09:42 PM | ${format.color(
+              `${cll()}  3:09:42 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:10:20 PM | ${format.color(
+              )}${EOL}${cll()}  3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -543,7 +543,7 @@ void describe('amplify sandbox event logging', () => {
           case 1:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 12:01:02 PM | ${format.color(
+              `${cll()}  4:01:02 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -555,31 +555,31 @@ void describe('amplify sandbox event logging', () => {
           case 4:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 12:01:02 PM | ${format.color(
+              `${cll()}  4:01:02 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:08 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:08 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:07 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:07 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Green'
-              )}${EOL}${cll()} 12:01:06 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:06 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function'),
                 'Green'
-              )}${EOL}${cll()} 12:01:09 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:09 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Role                  | ${format.color(
@@ -591,25 +591,25 @@ void describe('amplify sandbox event logging', () => {
           case 9:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 12:01:02 PM | ${format.color(
+              `${cll()}  4:01:02 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:18 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:06 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:06 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function'),
                 'Green'
-              )}${EOL}${cll()} 12:01:27 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:27 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | IAM:Policy                | ${format.color(
@@ -621,25 +621,25 @@ void describe('amplify sandbox event logging', () => {
           case 19:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 12:01:02 PM | ${format.color(
+              `${cll()}  4:01:02 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:18 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:54 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:54 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('storage'),
                 'Green'
-              )}${EOL}${cll()} 12:02:33 PM | ${format.color(
+              )}${EOL}${cll()}  4:02:33 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | Lambda:Function           | ${format.color(
@@ -653,19 +653,19 @@ void describe('amplify sandbox event logging', () => {
           case 23:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 12:01:02 PM | ${format.color(
+              `${cll()}  4:01:02 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:18 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Green'
-              )}${EOL}${cll()} 12:01:54 PM | ${format.color(
+              )}${EOL}${cll()}  4:01:54 PM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -725,7 +725,7 @@ void describe('amplify sandbox event logging', () => {
           case 1:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:20:31 PM | ${format.color(
+              `${cll()}  3:20:31 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -737,13 +737,13 @@ void describe('amplify sandbox event logging', () => {
           case 4:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:20:31 PM | ${format.color(
+              `${cll()}  3:20:31 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:20:45 PM | ${format.color(
+              )}${EOL}${cll()}  3:20:45 AM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -755,31 +755,31 @@ void describe('amplify sandbox event logging', () => {
           case 7:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:20:47 PM | ${format.color(
+              `${cll()}  3:20:47 AM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:20:48 PM | ${format.color(
+              )}${EOL}${cll()}  3:20:48 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('storage0EC3F24A'),
                 'Yellow'
-              )}${EOL}${cll()} 11:20:48 PM | ${format.color(
+              )}${EOL}${cll()}  3:20:48 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ storage stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:20:59 PM | ${format.color(
+              )}${EOL}${cll()}  3:20:59 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | IAM:Role                  | ${format.color(
                 format.bold('  ∟ Role'),
                 'Yellow'
-              )}${EOL}${cll()} 11:20:59 PM | ${format.color(
+              )}${EOL}${cll()}  3:20:59 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | IAM:Role                  | ${format.color(
@@ -793,25 +793,25 @@ void describe('amplify sandbox event logging', () => {
           case 9:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:20:47 PM | ${format.color(
+              `${cll()}  3:20:47 AM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:21:10 PM | ${format.color(
+              )}${EOL}${cll()}  3:21:10 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function1351588B'),
                 'Yellow'
-              )}${EOL}${cll()} 11:21:10 PM | ${format.color(
+              )}${EOL}${cll()}  3:21:10 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ function stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:21:16 PM | ${format.color(
+              )}${EOL}${cll()}  3:21:16 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | IAM:Role                  | ${format.color(
@@ -824,13 +824,13 @@ void describe('amplify sandbox event logging', () => {
           case 11:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:20:47 PM | ${format.color(
+              `${cll()}  3:20:47 AM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:21:10 PM | ${format.color(
+              )}${EOL}${cll()}  3:21:10 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
@@ -877,7 +877,7 @@ void describe('amplify sandbox event logging', () => {
           case 1:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:05:29 PM | ${format.color(
+              `${cll()}  3:05:29 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
@@ -889,85 +889,85 @@ void describe('amplify sandbox event logging', () => {
           case 4:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:05:29 PM | ${format.color(
+              `${cll()}  3:05:29 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:32 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:32 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ MyCustomResources stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:32 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ storage stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:41 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:41 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | Lambda:LayerVersion       | ${format.color(
                 format.bold('∟ AwsCliLayer'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:34 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:34 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ ConnectionStack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:41 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:41 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | IAM:Policy                | ${format.color(
                 format.bold('  ∟ DefaultPolicy'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:39 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:39 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | Lambda:Function           | ${format.color(
                 format.bold('  ∟ Handler'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('MyCustomResources'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:33 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:33 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | SQS:Queue                 | ${format.color(
                 format.bold('∟ CustomQueue'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:33 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:33 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | SNS:Topic                 | ${format.color(
                 format.bold('∟ CustomTopics'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('storage'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:37 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:37 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | Lambda:Function           | ${format.color(
@@ -981,49 +981,49 @@ void describe('amplify sandbox event logging', () => {
           case 9:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:05:29 PM | ${format.color(
+              `${cll()}  3:05:29 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:32 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:32 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ MyCustomResources stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:45 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:45 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ Person'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:53 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:53 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('MyCustomResources'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:33 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:33 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | SNS:Topic                 | ${format.color(
@@ -1035,13 +1035,13 @@ void describe('amplify sandbox event logging', () => {
           case 19:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:05:29 PM | ${format.color(
+              `${cll()}  3:05:29 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:05:31 PM | ${format.color(
+              )}${EOL}${cll()}  3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
@@ -1053,19 +1053,19 @@ void describe('amplify sandbox event logging', () => {
           case 25:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:05:29 PM | ${format.color(
+              `${cll()}  3:05:29 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:07:25 PM | ${format.color(
+              )}${EOL}${cll()}  3:07:25 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ auth stack'),
                 'Yellow'
-              )}${EOL}${cll()} 11:07:25 PM | ${format.color(
+              )}${EOL}${cll()}  3:07:25 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
                 'Yellow'
               )} | CloudFormation:Stack      | ${format.color(
@@ -1115,7 +1115,7 @@ void describe('amplify sandbox event logging', () => {
           case 1:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:31:09 PM | ${format.color(
+              `${cll()}  3:31:09 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
@@ -1127,25 +1127,25 @@ void describe('amplify sandbox event logging', () => {
           case 3:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:31:09 PM | ${format.color(
+              `${cll()}  3:31:09 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:31:17 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:17 AM | ${format.color(
                 'UPDATE_ROLLBACK_IN_P',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ auth stack'),
                 'Green'
-              )}${EOL}${cll()} 11:31:12 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:12 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('auth'),
                 'Green'
-              )}${EOL}${cll()} 11:31:17 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:17 AM | ${format.color(
                 'UPDATE_FAILED       ',
                 'Red'
               )} | Cognito:UserPool          | ${format.color(
@@ -1160,25 +1160,25 @@ void describe('amplify sandbox event logging', () => {
           case 5:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:31:23 PM | ${format.color(
+              `${cll()}  3:31:23 AM | ${format.color(
                 'UPDATE_ROLLBACK_IN_P',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:31:33 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:33 AM | ${format.color(
                 'UPDATE_ROLLBACK_COMP',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ auth stack'),
                 'Green'
-              )}${EOL}${cll()} 11:31:25 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:25 AM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('auth'),
                 'Green'
-              )}${EOL}${cll()} 11:31:17 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:17 AM | ${format.color(
                 'UPDATE_FAILED       ',
                 'Red'
               )} | Cognito:UserPool          | ${format.color(
@@ -1193,13 +1193,13 @@ void describe('amplify sandbox event logging', () => {
           case 7:
             assert.deepStrictEqual(
               prefixTextActual,
-              `${cll()} 11:31:36 PM | ${format.color(
+              `${cll()}  3:31:36 AM | ${format.color(
                 'UPDATE_ROLLBACK_COMP',
                 'Green'
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('Root stack'),
                 'Green'
-              )}${EOL}${cll()} 11:31:17 PM | ${format.color(
+              )}${EOL}${cll()}  3:31:17 AM | ${format.color(
                 'UPDATE_FAILED       ',
                 'Red'
               )} | Cognito:UserPool          | ${format.color(

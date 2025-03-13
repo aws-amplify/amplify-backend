@@ -1415,7 +1415,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:09.619Z'),
+        Timestamp: new Date('2025-03-11T03:31:09.619'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
         ClientRequestToken: 'exec68c0d34b-36e7-4663-a2f2-9200a5f44eef',
@@ -1468,7 +1468,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:12.338Z'),
+        Timestamp: new Date('2025-03-11T03:31:12.338'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1504,7 +1504,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:12.380Z'),
+        Timestamp: new Date('2025-03-11T03:31:12.380'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/d00ac45dd4a60a3d170b74ff85c881d0e4359cbbc3de10dd76a4256db540dd2e.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1541,7 +1541,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:12.895Z'),
+        Timestamp: new Date('2025-03-11T03:31:12.895'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceStatusReason: 'User Initiated',
       },
@@ -1568,7 +1568,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:12.930Z'),
+        Timestamp: new Date('2025-03-11T03:31:12.930'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1620,7 +1620,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:31:15.774Z'),
+        Timestamp: new Date('2025-03-11T03:31:15.774'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"UserPoolTags":{"amplify:deployment-type":"sandbox","amplify:friendly-name":"amplifyAuth","created-by":"amplify"},"Policies":{"PasswordPolicy":{"RequireNumbers":"true","MinimumLength":"8","RequireUppercase":"true","RequireLowercase":"true","RequireSymbols":"true"}},"VerificationMessageTemplate":{"EmailMessage":"The verification code to your new account is {####}","SmsMessage":"The verification code to your new account is {####}","EmailSubject":"Verify your new account","DefaultEmailOption":"CONFIRM_WITH_CODE"},"Schema":[{"Mutable":"true","Required":"true","Name":"email"}],"AdminCreateUserConfig":{"AllowAdminCreateUserOnly":"false"},"UsernameConfiguration":{"CaseSensitive":"false"},"SmsVerificationMessage":"The verification code to your new account is {####}","UserAttributeUpdateSettings":{"AttributesRequireVerificationBeforeUpdate":["email"]},"EmailConfiguration":{"EmailSendingAccount":"DEVELOPER","SourceArn":"arn:aws:ses:us-west-2:504152962427:identity/blah@blah.com","From":"blah@blah.com"},"EmailVerificationSubject":"Verify your new account","AutoVerifiedAttributes":["email"],"EmailVerificationMessage":"The verification code to your new account is {####}","UsernameAttributes":["email"],"AccountRecoverySetting":{"RecoveryMechanisms":[{"Priority":"1","Name":"verified_email"}]}}',
@@ -1655,7 +1655,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:31:17.316Z'),
+        Timestamp: new Date('2025-03-11T03:31:17.316'),
         ResourceStatus: 'UPDATE_FAILED',
         ResourceStatusReason:
           'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:504152962427:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
@@ -1693,7 +1693,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:17.634Z'),
+        Timestamp: new Date('2025-03-11T03:31:17.634'),
         ResourceStatus: 'UPDATE_ROLLBACK_IN_PROGRESS',
         ResourceStatusReason:
           'The following resource(s) failed to update: [amplifyAuthUserPool4BA7F805]. ',
@@ -1770,7 +1770,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:23.235Z'),
+        Timestamp: new Date('2025-03-11T03:31:23.235'),
         ResourceStatus: 'UPDATE_FAILED',
         ResourceStatusReason:
           'Embedded stack arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847 was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to update: [amplifyAuthUserPool4BA7F805]. ',
@@ -1808,7 +1808,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:23.538Z'),
+        Timestamp: new Date('2025-03-11T03:31:23.538'),
         ResourceStatus: 'UPDATE_ROLLBACK_IN_PROGRESS',
         ResourceStatusReason:
           'The following resource(s) failed to update: [auth179371D7]. ',
@@ -1836,7 +1836,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:25.602Z'),
+        Timestamp: new Date('2025-03-11T03:31:25.602'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1872,7 +1872,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:25.625Z'),
+        Timestamp: new Date('2025-03-11T03:31:25.625'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1909,7 +1909,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:25.903Z'),
+        Timestamp: new Date('2025-03-11T03:31:25.903'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -1971,7 +1971,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:31:29.693Z'),
+        Timestamp: new Date('2025-03-11T03:31:29.693'),
         ResourceStatus: 'UPDATE_IN_PROGRESS',
         ResourceProperties:
           '{"UserPoolTags":{"amplify:deployment-type":"sandbox","amplify:friendly-name":"amplifyAuth","created-by":"amplify"},"Policies":{"PasswordPolicy":{"RequireNumbers":"true","MinimumLength":"8","RequireUppercase":"true","RequireLowercase":"true","RequireSymbols":"true"}},"VerificationMessageTemplate":{"EmailMessage":"The verification code to your new account is {####}","SmsMessage":"The verification code to your new account is {####}","EmailSubject":"Verify your new account","DefaultEmailOption":"CONFIRM_WITH_CODE"},"Schema":[{"Mutable":"true","Required":"true","Name":"email"}],"AdminCreateUserConfig":{"AllowAdminCreateUserOnly":"false"},"UsernameConfiguration":{"CaseSensitive":"false"},"SmsVerificationMessage":"The verification code to your new account is {####}","UserAttributeUpdateSettings":{"AttributesRequireVerificationBeforeUpdate":["email"]},"EmailVerificationSubject":"Verify your new account","AutoVerifiedAttributes":["email"],"EmailVerificationMessage":"The verification code to your new account is {####}","UsernameAttributes":["email"],"AccountRecoverySetting":{"RecoveryMechanisms":[{"Priority":"1","Name":"verified_email"}]}}',
@@ -2021,7 +2021,7 @@ export const data = [
         LogicalResourceId: 'amplifyAuthUserPool4BA7F805',
         PhysicalResourceId: 'us-west-2_j6BNFhRJd',
         ResourceType: 'AWS::Cognito::UserPool',
-        Timestamp: new Date('2025-03-11T03:31:31.647Z'),
+        Timestamp: new Date('2025-03-11T03:31:31.647'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"UserPoolTags":{"amplify:deployment-type":"sandbox","amplify:friendly-name":"amplifyAuth","created-by":"amplify"},"Policies":{"PasswordPolicy":{"RequireNumbers":"true","MinimumLength":"8","RequireUppercase":"true","RequireLowercase":"true","RequireSymbols":"true"}},"VerificationMessageTemplate":{"EmailMessage":"The verification code to your new account is {####}","SmsMessage":"The verification code to your new account is {####}","EmailSubject":"Verify your new account","DefaultEmailOption":"CONFIRM_WITH_CODE"},"Schema":[{"Mutable":"true","Required":"true","Name":"email"}],"AdminCreateUserConfig":{"AllowAdminCreateUserOnly":"false"},"UsernameConfiguration":{"CaseSensitive":"false"},"SmsVerificationMessage":"The verification code to your new account is {####}","UserAttributeUpdateSettings":{"AttributesRequireVerificationBeforeUpdate":["email"]},"EmailVerificationSubject":"Verify your new account","AutoVerifiedAttributes":["email"],"EmailVerificationMessage":"The verification code to your new account is {####}","UsernameAttributes":["email"],"AccountRecoverySetting":{"RecoveryMechanisms":[{"Priority":"1","Name":"verified_email"}]}}',
@@ -2057,7 +2057,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:33.457Z'),
+        Timestamp: new Date('2025-03-11T03:31:33.457'),
         ResourceStatus: 'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
       },
       progress: {
@@ -2107,7 +2107,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:36.241Z'),
+        Timestamp: new Date('2025-03-11T03:31:36.241'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2143,7 +2143,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:36.769Z'),
+        Timestamp: new Date('2025-03-11T03:31:36.769'),
         ResourceStatus: 'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
         ClientRequestToken: 'exec68c0d34b-36e7-4663-a2f2-9200a5f44eef',
       },
@@ -2170,7 +2170,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-MyCustomResourcesBB610599-O9MPSU7CLLBR/48a46380-fe26-11ef-9a27-02b76afe5d0d',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:37.807Z'),
+        Timestamp: new Date('2025-03-11T03:31:37.807'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/2b0cd76a5fea2795b3e3b23e2c4cb8eaf621211d2c9e2303e2868ac0be4607bc.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2208,7 +2208,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:38.791Z'),
+        Timestamp: new Date('2025-03-11T03:31:38.791'),
         ResourceStatus: 'UPDATE_ROLLBACK_COMPLETE',
       },
       progress: {
@@ -2283,7 +2283,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889-auth179371D7-1N176OGP9R2MV/489d1080-fe26-11ef-b1c7-0a7dea314847',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:47.995Z'),
+        Timestamp: new Date('2025-03-11T03:31:47.995'),
         ResourceStatus: 'UPDATE_COMPLETE',
         ResourceProperties:
           '{"TemplateURL":"https://s3.us-west-2.amazonaws.com/cdk-hnb659fds-assets-504152962427-us-west-2/53b8945b363f121c80e07e812f42fa6e33a8f3fdbc9b75d4b3374959bb62f47d.json","Tags":[{"Value":"sandbox","Key":"amplify:deployment-type"},{"Value":"amplify","Key":"created-by"}]}',
@@ -2319,7 +2319,7 @@ export const data = [
         PhysicalResourceId:
           'arn:aws:cloudformation:us-west-2:504152962427:stack/amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889/4300c130-fe26-11ef-b04b-0624c0eedabf',
         ResourceType: 'AWS::CloudFormation::Stack',
-        Timestamp: new Date('2025-03-11T03:31:48.167Z'),
+        Timestamp: new Date('2025-03-11T03:31:48.167'),
         ResourceStatus: 'UPDATE_ROLLBACK_COMPLETE',
         ClientRequestToken: 'exec68c0d34b-36e7-4663-a2f2-9200a5f44eef',
       },
