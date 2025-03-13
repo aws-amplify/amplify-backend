@@ -153,6 +153,7 @@ export type DataProps = {
   /**
    * Mapping of model name to existing DynamoDB table that should be used as the data source.
    * Each element in the array represents a mapping for a specific branch.
+   * @experimental migratedAmplifyGen1DynamoDbTableMappings is experimental and is not recommended for production use. This functionality may be changed or removed without warning.
    */
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
 };
