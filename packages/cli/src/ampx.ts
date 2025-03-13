@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
-import { PostCommandNoticesProcessor } from './notices/post_command_notices_processor.js';
+import { NoticesRenderer } from './notices/notices_renderer.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url)),
@@ -43,7 +43,7 @@ verifyCommandName();
 
 const parser = createMainParser(libraryVersion);
 const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
-const postCommandNoticesProcessor = new PostCommandNoticesProcessor(
+const postCommandNoticesProcessor = new NoticesRenderer(
   packageManagerController,
 );
 

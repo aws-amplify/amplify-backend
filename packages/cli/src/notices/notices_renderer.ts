@@ -5,11 +5,11 @@ import { printer } from '@aws-amplify/cli-core';
 import { hideBin } from 'yargs/helpers';
 
 /**
- * Processes and renders notices after command execution.
+ * Renders notices.
  */
-export class PostCommandNoticesProcessor {
+export class NoticesRenderer {
   /**
-   * Creates post command notices' processor.
+   * Creates notices renderer.
    */
   constructor(
     packageManagerController: PackageManagerController,
