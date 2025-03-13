@@ -371,6 +371,7 @@ const extractImportedModels = (
   };
 };
 
+/* partition a list based on a predicate. If isLeft is true, the item goes in the left list, otherwise it goes in the right list */
 const partition = <I>(
   array: readonly I[],
   isLeft: (item: I) => boolean,
