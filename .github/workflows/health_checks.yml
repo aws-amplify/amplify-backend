@@ -212,7 +212,7 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run set-script-shell
-      - run: npm run test:coverage:threshold
+      - run: npm${{ matrix.os == 'windows-latest' && '.cmd'}} run test:coverage:threshold
   test_scripts:
     needs:
       - build
