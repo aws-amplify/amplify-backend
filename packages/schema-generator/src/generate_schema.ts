@@ -54,7 +54,7 @@ export class SchemaGenerator {
             message: err.message,
             resolution: 'Check the database schema.',
           },
-          err
+          err,
         );
       }
       const databaseError = err as DatabaseConnectError;
@@ -66,7 +66,7 @@ export class SchemaGenerator {
             resolution:
               'Check if the credentials are correct. Also, check if the database is running and accessible from the network.',
           },
-          databaseError
+          databaseError,
         );
       }
       throw err;
@@ -117,7 +117,7 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     const database = decodeURIComponent(parsedDatabaseUrl?.pathname?.slice(1));
     // Default engine is MySQL
     const engine = constructDBEngine(
-      parsedDatabaseUrl?.protocol?.slice(0, -1) ?? DEFAULT_ENGINE
+      parsedDatabaseUrl?.protocol?.slice(0, -1) ?? DEFAULT_ENGINE,
     );
     const port = parsedDatabaseUrl?.port
       ? parseInt(parsedDatabaseUrl?.port, 10)
@@ -141,11 +141,11 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
         'DatabaseUrlParseError',
         {
           message: `One or more parts of the database URL is missing. Missing [${missingParts.join(
-            ', '
+            ', ',
           )}].`,
           resolution:
             'Ensure the database URL follows the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
-        }
+        },
       );
     }
 
@@ -158,7 +158,7 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
         message: `Unable to parse the database URL. ${error.message}`,
         resolution: 'Check if the database URL is correct and accessible.',
       },
-      error
+      error,
     );
   }
 };
@@ -177,7 +177,7 @@ const constructDBEngine = (engine: string): SQLEngine => {
           message: `Unsupported database engine: ${engine}`,
           resolution:
             'Ensure that database URL specifies supported engine. Supported engines are "mysql", "postgresql", "postgres".',
-        }
+        },
       );
   }
 };

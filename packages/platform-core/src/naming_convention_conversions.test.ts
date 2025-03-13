@@ -18,7 +18,7 @@ void describe('screaming snake conversions', () => {
     void it(`should successfully convert ${testCase.input} to ${testCase.expected}`, () => {
       assert.equal(
         new NamingConverter().toScreamingSnakeCase(testCase.input),
-        testCase.expected
+        testCase.expected,
       );
     });
   });

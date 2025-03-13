@@ -14,10 +14,10 @@ void describe('translateStackStatus', () => {
       StackStatus.UPDATE_COMPLETE,
     ];
     const translated = deployedStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.DEPLOYED
+      (status) => status === BackendDeploymentStatus.DEPLOYED,
     );
     assert.equal(assertion, true);
   });
@@ -35,10 +35,10 @@ void describe('translateStackStatus', () => {
       StackStatus.UPDATE_FAILED,
     ];
     const translated = failedStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.FAILED
+      (status) => status === BackendDeploymentStatus.FAILED,
     );
     assert.equal(assertion, true);
   });
@@ -56,10 +56,10 @@ void describe('translateStackStatus', () => {
       StackStatus.UPDATE_ROLLBACK_IN_PROGRESS,
     ];
     const translated = deployingStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.DEPLOYING
+      (status) => status === BackendDeploymentStatus.DEPLOYING,
     );
     assert.equal(assertion, true);
   });
@@ -67,10 +67,10 @@ void describe('translateStackStatus', () => {
   void it('translates deleting', async () => {
     const deletedStatuses = [StackStatus.DELETE_IN_PROGRESS];
     const translated = deletedStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.DELETING
+      (status) => status === BackendDeploymentStatus.DELETING,
     );
     assert.equal(assertion, true);
   });
@@ -78,10 +78,10 @@ void describe('translateStackStatus', () => {
   void it('translates deleted', async () => {
     const deletedStatuses = [StackStatus.DELETE_COMPLETE];
     const translated = deletedStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.DELETED
+      (status) => status === BackendDeploymentStatus.DELETED,
     );
     assert.equal(assertion, true);
   });
@@ -89,10 +89,10 @@ void describe('translateStackStatus', () => {
   void it('translates unknown', async () => {
     const unknownStatuses = ['unknown', undefined];
     const translated = unknownStatuses.map((status) =>
-      mapper.translateStackStatus(status)
+      mapper.translateStackStatus(status),
     );
     const assertion = translated.every(
-      (status) => status === BackendDeploymentStatus.UNKNOWN
+      (status) => status === BackendDeploymentStatus.UNKNOWN,
     );
     assert.equal(assertion, true);
   });

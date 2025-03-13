@@ -12,7 +12,7 @@ void describe('NestedStackResolver', () => {
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(
         stack,
-        new AttributionMetadataStorage()
+        new AttributionMetadataStorage(),
       );
       const testStack = stackResolver.getStackFor('test');
       const otherStack = stackResolver.getStackFor('other');
@@ -27,7 +27,7 @@ void describe('NestedStackResolver', () => {
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(
         stack,
-        new AttributionMetadataStorage()
+        new AttributionMetadataStorage(),
       );
       const testStack1 = stackResolver.getStackFor('test');
       const testStack2 = stackResolver.getStackFor('test');
@@ -41,11 +41,11 @@ void describe('NestedStackResolver', () => {
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(
         stack,
-        new AttributionMetadataStorage()
+        new AttributionMetadataStorage(),
       );
       const customStack = stackResolver.createCustomStack('test1');
       const attributionMetadata = JSON.parse(
-        customStack.templateOptions.description || '{}'
+        customStack.templateOptions.description || '{}',
       );
       assert.equal(attributionMetadata.stackType, 'custom');
       assert.equal(attributionMetadata.createdWith, packageJson.version);
@@ -56,7 +56,7 @@ void describe('NestedStackResolver', () => {
       const stack = new Stack(app);
       const stackResolver = new NestedStackResolver(
         stack,
-        new AttributionMetadataStorage()
+        new AttributionMetadataStorage(),
       );
       stackResolver.createCustomStack('test');
       assert.throws(() => stackResolver.createCustomStack('test'));

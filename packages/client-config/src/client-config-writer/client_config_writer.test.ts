@@ -26,14 +26,14 @@ void describe('client config writer', () => {
   const clientFormatter = new ClientConfigFormatterLegacy(undefined as never);
   const fspMock = {
     writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
-      Promise.resolve()
+      Promise.resolve(),
     ),
   };
   const clientConfigWriter: ClientConfigWriter = new ClientConfigWriter(
     pathResolverMock,
     nameResolverMock,
     clientFormatter,
-    fspMock as never
+    fspMock as never,
   );
 
   beforeEach(() => {
@@ -59,25 +59,25 @@ void describe('client config writer', () => {
 
     pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
-      () => ClientConfigFileBaseName.LEGACY
+      () => ClientConfigFileBaseName.LEGACY,
     );
     const formatMock = mock.method(
       clientFormatter,
       'format',
-      () => formattedContent
+      () => formattedContent,
     );
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
       ClientConfigVersionOption.V0,
       outDir,
-      format
+      format,
     );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[0],
-      ClientConfigFileBaseName.LEGACY
+      ClientConfigFileBaseName.LEGACY,
     );
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], outDir);
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[2], format);
@@ -89,11 +89,11 @@ void describe('client config writer', () => {
     assert.strictEqual(fspMock.writeFile.mock.callCount(), 1);
     assert.strictEqual(
       fspMock.writeFile.mock.calls[0].arguments[0],
-      targetFile
+      targetFile,
     );
     assert.strictEqual(
       fspMock.writeFile.mock.calls[0].arguments[1],
-      formattedContent
+      formattedContent,
     );
   });
 
@@ -105,25 +105,25 @@ void describe('client config writer', () => {
 
     pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
-      () => ClientConfigFileBaseName.DEFAULT
+      () => ClientConfigFileBaseName.DEFAULT,
     );
     const formatMock = mock.method(
       clientFormatter,
       'format',
-      () => formattedContent
+      () => formattedContent,
     );
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
       DEFAULT_CLIENT_CONFIG_VERSION,
       outDir,
-      format
+      format,
     );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[0],
-      ClientConfigFileBaseName.DEFAULT
+      ClientConfigFileBaseName.DEFAULT,
     );
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], outDir);
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[2], format);
@@ -135,11 +135,11 @@ void describe('client config writer', () => {
     assert.strictEqual(fspMock.writeFile.mock.callCount(), 1);
     assert.strictEqual(
       fspMock.writeFile.mock.calls[0].arguments[0],
-      targetFile
+      targetFile,
     );
     assert.strictEqual(
       fspMock.writeFile.mock.calls[0].arguments[1],
-      formattedContent
+      formattedContent,
     );
   });
 
@@ -150,35 +150,35 @@ void describe('client config writer', () => {
 
     pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
-      () => ClientConfigFileBaseName.DEFAULT
+      () => ClientConfigFileBaseName.DEFAULT,
     );
 
     const formatMock = mock.method(
       clientFormatter,
       'format',
-      () => formattedContent
+      () => formattedContent,
     );
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
       DEFAULT_CLIENT_CONFIG_VERSION,
-      outDir
+      outDir,
     );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[0],
-      ClientConfigFileBaseName.DEFAULT
+      ClientConfigFileBaseName.DEFAULT,
     );
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[2],
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
 
     assert.strictEqual(formatMock.mock.callCount(), 1);
     assert.strictEqual(
       formatMock.mock.calls[0].arguments[1],
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
   });
 
@@ -192,11 +192,11 @@ void describe('client config writer', () => {
     });
 
     fspMock.writeFile.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error('EACCES: Permission denied'))
+      Promise.reject(new Error('EACCES: Permission denied')),
     );
     pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
-      () => ClientConfigFileBaseName.DEFAULT
+      () => ClientConfigFileBaseName.DEFAULT,
     );
 
     await assert.rejects(
@@ -205,14 +205,14 @@ void describe('client config writer', () => {
           clientConfig,
           DEFAULT_CLIENT_CONFIG_VERSION,
           outDir,
-          format
+          format,
         ),
       (error: AmplifyUserError) => {
         assert.strictEqual(error.name, expectedErr.name);
         assert.strictEqual(error.message, expectedErr.message);
         assert.strictEqual(error.resolution, expectedErr.resolution);
         return true;
-      }
+      },
     );
   });
 });

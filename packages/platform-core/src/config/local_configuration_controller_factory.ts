@@ -27,7 +27,7 @@ export class ConfigurationControllerFactory {
    * Returns a LocalConfigurationController
    */
   getInstance = (
-    configFileName: LocalConfigurationFileName
+    configFileName: LocalConfigurationFileName,
   ): ConfigurationController => {
     if (this.controllers[configFileName]) {
       return this.controllers[configFileName];
@@ -35,7 +35,7 @@ export class ConfigurationControllerFactory {
 
     this.controllers[configFileName] = new LocalConfigurationController(
       'amplify',
-      configFileName
+      configFileName,
     );
     return this.controllers[configFileName];
   };

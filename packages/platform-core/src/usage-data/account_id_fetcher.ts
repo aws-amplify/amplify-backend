@@ -21,7 +21,7 @@ export class AccountIdFetcher {
     }
     try {
       const stsResponse = await this.stsClient.send(
-        new GetCallerIdentityCommand({})
+        new GetCallerIdentityCommand({}),
       );
       if (stsResponse && stsResponse.Account) {
         const accountIdBucket = stsResponse.Account.slice(0, -2);

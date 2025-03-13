@@ -17,7 +17,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
  * Asserts that a BackendIdentifier is a BackendIdentifier
  */
 export const isBackendIdentifier = (
-  backendIdentifier: DeployedBackendIdentifier
+  backendIdentifier: DeployedBackendIdentifier,
 ): backendIdentifier is BackendIdentifier => {
   return (
     'namespace' in backendIdentifier &&
@@ -29,7 +29,7 @@ export const isBackendIdentifier = (
  * Asserts that a BackendIdentifier is a AppNameAndBranchBackendIdentifier
  */
 export const isAppNameAndBranchIdentifier = (
-  backendIdentifier: DeployedBackendIdentifier
+  backendIdentifier: DeployedBackendIdentifier,
 ): backendIdentifier is AppNameAndBranchBackendIdentifier => {
   return 'appName' in backendIdentifier;
 };
@@ -37,7 +37,7 @@ export const isAppNameAndBranchIdentifier = (
  * Asserts that a BackendIdentifier is a StackIdentifier
  */
 export const isStackIdentifier = (
-  backendIdentifier: DeployedBackendIdentifier
+  backendIdentifier: DeployedBackendIdentifier,
 ): backendIdentifier is StackIdentifier => {
   return 'stackName' in backendIdentifier;
 };
@@ -50,26 +50,26 @@ export class BackendOutputFetcherFactory {
    */
   constructor(
     private cfnClient: CloudFormationClient,
-    private amplifyClient: AmplifyClient
+    private amplifyClient: AmplifyClient,
   ) {}
   getStrategy = (backendIdentifier: DeployedBackendIdentifier) => {
     if (isStackIdentifier(backendIdentifier)) {
       return new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
-        new PassThroughMainStackNameResolver(backendIdentifier)
+        new PassThroughMainStackNameResolver(backendIdentifier),
       );
     } else if (isBackendIdentifier(backendIdentifier)) {
       return new StackMetadataBackendOutputRetrievalStrategy(
         this.cfnClient,
-        new BackendIdentifierMainStackNameResolver(backendIdentifier)
+        new BackendIdentifierMainStackNameResolver(backendIdentifier),
       );
     }
     return new StackMetadataBackendOutputRetrievalStrategy(
       this.cfnClient,
       new AppNameAndBranchMainStackNameResolver(
         this.amplifyClient,
-        backendIdentifier
-      )
+        backendIdentifier,
+      ),
     );
   };
 }

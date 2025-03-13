@@ -10,7 +10,10 @@ export abstract class TestCdkProjectBase {
   /**
    * The base test project class constructor.
    */
-  constructor(readonly name: string, readonly projectDirPath: string) {
+  constructor(
+    readonly name: string,
+    readonly projectDirPath: string,
+  ) {
     this.stackName = `amplify-test-cdk-stack-${shortUuid()}`;
   }
 
@@ -24,14 +27,14 @@ export abstract class TestCdkProjectBase {
         '--context',
         `test-stack-name=${this.stackName}`,
       ],
-      this.projectDirPath
+      this.projectDirPath,
     ).run();
   };
 
   tearDown = async () => {
     await cdkCli(
       ['destroy', '--force', '--context', `test-stack-name=${this.stackName}`],
-      this.projectDirPath
+      this.projectDirPath,
     ).run();
   };
 

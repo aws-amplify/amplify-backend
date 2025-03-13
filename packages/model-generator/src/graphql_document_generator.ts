@@ -16,7 +16,9 @@ export class AppSyncGraphqlDocumentGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
+    private resultBuilder: (
+      fileMap: Record<string, string>,
+    ) => GenerationResult,
   ) {}
   generateModels = async ({
     targetFormat,

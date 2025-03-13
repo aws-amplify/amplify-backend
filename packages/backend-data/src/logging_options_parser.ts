@@ -21,7 +21,7 @@ const DEFAULT_RETENTION: LogRetention = '1 week';
  * Converts logging options to CDK.
  */
 export const convertLoggingOptionsToCDK = (
-  loggingOptions: DataLoggingOptions | undefined
+  loggingOptions: DataLoggingOptions | undefined,
 ): CDKLoggingOptions | undefined => {
   if (!loggingOptions) {
     return undefined;
@@ -39,22 +39,22 @@ export const convertLoggingOptionsToCDK = (
 
   const excludeVerboseContent = shouldApplyDefaultLogging
     ? DEFAULT_EXCLUDE_VERBOSE_CONTENT
-    : config.excludeVerboseContent ?? DEFAULT_EXCLUDE_VERBOSE_CONTENT;
+    : (config.excludeVerboseContent ?? DEFAULT_EXCLUDE_VERBOSE_CONTENT);
 
   // For level and retention, we rely on converters. If config is empty or logging is true, use defaults.
   const dataLogLevel = shouldApplyDefaultLogging
     ? DEFAULT_LEVEL
-    : config.fieldLogLevel ?? DEFAULT_LEVEL;
+    : (config.fieldLogLevel ?? DEFAULT_LEVEL);
 
   const logRetention = shouldApplyDefaultLogging
     ? DEFAULT_RETENTION
-    : config.retention ?? DEFAULT_RETENTION;
+    : (config.retention ?? DEFAULT_RETENTION);
 
   const fieldLogLevel = new LogLevelConverter().toCDKAppsyncFieldLogLevel(
-    dataLogLevel
+    dataLogLevel,
   )!;
   const retention = new LogRetentionConverter().toCDKRetentionDays(
-    logRetention
+    logRetention,
   )!;
 
   return {

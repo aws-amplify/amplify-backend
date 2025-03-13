@@ -71,20 +71,20 @@ export class AccessTestingProjectTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityClient: CognitoIdentityClient = new CognitoIdentityClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly stsClient: STSClient = new STSClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -99,14 +99,14 @@ export class AccessTestingProjectTestProjectCreator
       this.amplifyClient,
       this.cognitoIdentityClient,
       this.cognitoIdentityProviderClient,
-      this.stsClient
+      this.stsClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -129,7 +129,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -143,24 +143,24 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     amplifyClient: AmplifyClient,
     private readonly cognitoIdentityClient: CognitoIdentityClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly stsClient: STSClient
+    private readonly stsClient: STSClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
     const clientConfig = await generateClientConfig(backendId, '1.3');
     await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
-      clientConfig
+      clientConfig,
     );
     await this.assertAmplifyAuthAccessToData(clientConfig);
     await this.assertGenericIamRolesAccessToData(clientConfig);
@@ -171,7 +171,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * I.e. roles not created by auth construct.
    */
   private assertGenericIamRolesAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.3'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>,
   ) => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -180,11 +180,11 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     const roleWithAccessToDataArn = clientConfig.custom
       .roleWithAccessToDataArn as string;
     const roleWithAccessToDataCredentials = await this.assumeRole(
-      roleWithAccessToDataArn
+      roleWithAccessToDataArn,
     );
     const appSyncClientForRoleWithAccessToData = this.createAppSyncClient(
       clientConfig,
-      roleWithAccessToDataCredentials
+      roleWithAccessToDataCredentials,
     );
     // evaluates successfully
     await appSyncClientForRoleWithAccessToData.query({
@@ -216,11 +216,11 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     const roleWithoutAccessToDataArn = clientConfig.custom
       .roleWithoutAccessToDataArn as string;
     const roleWithoutAccessToDataCredentials = await this.assumeRole(
-      roleWithoutAccessToDataArn
+      roleWithoutAccessToDataArn,
     );
     const appSyncClientForRoleWithoutAccessToData = this.createAppSyncClient(
       clientConfig,
-      roleWithoutAccessToDataCredentials
+      roleWithoutAccessToDataCredentials,
     );
     await assert.rejects(
       () =>
@@ -239,10 +239,10 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Response not successful: Received status code 401'
+          'Response not successful: Received status code 401',
         );
         return true;
-      }
+      },
     );
 
     await assert.rejects(
@@ -262,10 +262,10 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Response not successful: Received status code 401'
+          'Response not successful: Received status code 401',
         );
         return true;
-      }
+      },
     );
   };
 
@@ -273,7 +273,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * This asserts that authenticated and unauthenticated roles have relevant access to data API.
    */
   private assertAmplifyAuthAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.3'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>,
   ): Promise<void> => {
     if (!clientConfig.auth) {
       throw new Error('Client config is missing auth section');
@@ -281,11 +281,11 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
-        clientConfig.auth
+        clientConfig.auth,
       ).getNewAuthenticatedUserCredentials();
     const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
       clientConfig,
-      authenticatedUserCredentials.iamCredentials
+      authenticatedUserCredentials.iamCredentials,
     );
 
     // evaluates successfully
@@ -319,19 +319,19 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Not Authorized to access listPublicTodos on type Query'
+          'Not Authorized to access listPublicTodos on type Query',
         );
         return true;
-      }
+      },
     );
 
     const guestAccessCredentials = await new AmplifyAuthCredentialsFactory(
       this.cognitoIdentityProviderClient,
-      clientConfig.auth
+      clientConfig.auth,
     ).getGuestAccessCredentials();
     const appSyncClientForGuestUser = this.createAppSyncClient(
       clientConfig,
-      guestAccessCredentials
+      guestAccessCredentials,
     );
 
     // evaluates successfully
@@ -365,10 +365,10 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Response not successful: Received status code 401'
+          'Response not successful: Received status code 401',
         );
         return true;
-      }
+      },
     );
   };
 
@@ -378,11 +378,10 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * unauthorized roles. I.e. it tests trust policy.
    */
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.3'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>,
   ): Promise<void> => {
-    const simpleAuthUser = await this.createAuthenticatedSimpleAuthCognitoUser(
-      clientConfig
-    );
+    const simpleAuthUser =
+      await this.createAuthenticatedSimpleAuthCognitoUser(clientConfig);
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
     }
@@ -396,15 +395,15 @@ class AccessTestingProjectTestProject extends TestProjectBase {
             RoleArn: authRoleArn,
             RoleSessionName: shortUuid(),
             WebIdentityToken: simpleAuthUser.openIdToken,
-          })
+          }),
         ),
       (err: Error) => {
         assert.strictEqual(
           err.message,
-          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
+          'Not authorized to perform sts:AssumeRoleWithWebIdentity',
         );
         return true;
-      }
+      },
     );
 
     await assert.rejects(
@@ -414,20 +413,20 @@ class AccessTestingProjectTestProject extends TestProjectBase {
             RoleArn: unAuthRoleArn,
             RoleSessionName: shortUuid(),
             WebIdentityToken: simpleAuthUser.openIdToken,
-          })
+          }),
         ),
       (err: Error) => {
         assert.strictEqual(
           err.message,
-          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
+          'Not authorized to perform sts:AssumeRoleWithWebIdentity',
         );
         return true;
-      }
+      },
     );
   };
 
   private createAuthenticatedSimpleAuthCognitoUser = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.3'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>,
   ): Promise<SimpleAuthCognitoUser> => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -447,7 +446,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         TemporaryPassword: temporaryPassword,
         UserPoolId: simpleAuthUserPoolId,
         MessageAction: 'SUPPRESS',
-      })
+      }),
     );
 
     const initiateAuthResponse: InitiateAuthCommandOutput =
@@ -459,7 +458,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
             USERNAME: username,
             PASSWORD: temporaryPassword,
           },
-        })
+        }),
       );
 
     const respondToAuthChallengeResponse: RespondToAuthChallengeCommandOutput =
@@ -472,7 +471,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
             USERNAME: username,
             NEW_PASSWORD: password,
           },
-        })
+        }),
       );
 
     const logins: Record<string, string> = {};
@@ -486,7 +485,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         new GetIdCommand({
           IdentityPoolId: simpleAuthIdentityPoolId,
           Logins: logins,
-        })
+        }),
       );
 
     const getOpenIdTokenResponse: GetOpenIdTokenCommandOutput =
@@ -494,7 +493,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         new GetOpenIdTokenCommand({
           IdentityId: getIdResponse.IdentityId,
           Logins: logins,
-        })
+        }),
       );
 
     if (!getOpenIdTokenResponse.Token) {
@@ -508,7 +507,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
 
   private createAppSyncClient = (
     clientConfig: ClientConfigVersionTemplateType<'1.3'>,
-    credentials: IamCredentials
+    credentials: IamCredentials,
   ): ApolloClient<NormalizedCacheObject> => {
     if (!clientConfig.data?.url) {
       throw new Error('Appsync API URL is undefined');
@@ -542,7 +541,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         new AssumeRoleCommand({
           RoleArn: roleArn,
           RoleSessionName: shortUuid(),
-        })
+        }),
       );
 
     if (

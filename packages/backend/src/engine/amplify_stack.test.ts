@@ -22,7 +22,7 @@ void describe('AmplifyStack', () => {
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('AWS::CloudFormation::Stack', 1);
     const nestedStacks = rootStackTemplate.findResources(
-      'AWS::CloudFormation::Stack'
+      'AWS::CloudFormation::Stack',
     );
     const actualStackLogicalId = Object.keys(nestedStacks)[0]; // we already asserted there's only one
     assert.ok(actualStackLogicalId.startsWith('testName'));
@@ -43,7 +43,7 @@ void describe('AmplifyStack', () => {
             'cognito-identity.amazonaws.com:amr': 'authenticated',
           },
         },
-        'sts:AssumeRoleWithWebIdentity'
+        'sts:AssumeRoleWithWebIdentity',
       ),
     });
     assert.doesNotThrow(() => Template.fromStack(rootStack));
@@ -60,7 +60,7 @@ void describe('AmplifyStack', () => {
             'cognito-identity.amazonaws.com:aud': 'testIdpId',
           },
         },
-        'sts:AssumeRoleWithWebIdentity'
+        'sts:AssumeRoleWithWebIdentity',
       ),
     });
 
@@ -81,7 +81,7 @@ void describe('AmplifyStack', () => {
             'cognito-identity.amazonaws.com:amr': 'authenticated',
           },
         },
-        'sts:AssumeRoleWithWebIdentity'
+        'sts:AssumeRoleWithWebIdentity',
       ),
     });
 

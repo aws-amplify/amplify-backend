@@ -16,7 +16,7 @@ export class AppSyncPolicyGenerator {
    */
   constructor(
     private readonly graphqlApi: IGraphqlApi,
-    private readonly modelIntrospectionSchemaArn?: string
+    private readonly modelIntrospectionSchemaArn?: string,
   ) {
     this.stack = Stack.of(graphqlApi);
   }
@@ -45,7 +45,7 @@ export class AppSyncPolicyGenerator {
         new PolicyStatement({
           actions: ['s3:GetObject'],
           resources: [this.modelIntrospectionSchemaArn],
-        })
+        }),
       );
     }
 

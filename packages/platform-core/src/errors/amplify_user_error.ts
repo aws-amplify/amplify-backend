@@ -4,7 +4,7 @@ import { AmplifyError, AmplifyUserErrorOptions } from './amplify_error';
  * Base class for all Amplify user errors
  */
 export class AmplifyUserError<
-  T extends string = string
+  T extends string = string,
 > extends AmplifyError<T> {
   /**
    * Create a new Amplify Error.

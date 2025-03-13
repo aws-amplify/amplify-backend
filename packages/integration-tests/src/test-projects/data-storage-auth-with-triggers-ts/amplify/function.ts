@@ -7,7 +7,7 @@ export const defaultNodeFunc = defineFunction({
   environment: {
     TEST_SECRET: secret('amazonSecret'),
     TEST_SHARED_SECRET: secret(
-      process.env[amplifySharedSecretNameKey] as string
+      process.env[amplifySharedSecretNameKey] as string,
     ),
   },
   timeoutSeconds: 5,
@@ -19,7 +19,7 @@ export const node16Func = defineFunction({
   environment: {
     TEST_SECRET: secret('amazonSecret'),
     TEST_SHARED_SECRET: secret(
-      process.env[amplifySharedSecretNameKey] as string
+      process.env[amplifySharedSecretNameKey] as string,
     ),
   },
   timeoutSeconds: 5,

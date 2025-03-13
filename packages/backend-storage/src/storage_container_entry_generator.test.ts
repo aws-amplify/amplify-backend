@@ -39,7 +39,7 @@ void describe('StorageGenerator', () => {
       stack = createStackAndSetContext();
 
       ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub(
-        stack
+        stack,
       );
 
       generateContainerEntryProps = {
@@ -48,7 +48,7 @@ void describe('StorageGenerator', () => {
       } as unknown as GenerateContainerEntryProps;
 
       const constructContainer = new ConstructContainerStub(
-        new StackResolverStub(stack)
+        new StackResolverStub(stack),
       );
 
       const outputStorageStrategy =
@@ -66,11 +66,11 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName' },
         getInstanceProps,
-        new StorageAccessOrchestratorFactory()
+        new StorageAccessOrchestratorFactory(),
       );
 
       const storageInstance = storageGenerator.generateContainerEntry(
-        generateContainerEntryProps
+        generateContainerEntryProps,
       );
 
       assert.ok(storageInstance instanceof AmplifyStorage);
@@ -82,7 +82,7 @@ void describe('StorageGenerator', () => {
           name: 'coolBucketName',
         },
         getInstanceProps,
-        new StorageAccessOrchestratorFactory()
+        new StorageAccessOrchestratorFactory(),
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);
@@ -107,7 +107,7 @@ void describe('StorageGenerator', () => {
         'getInstance',
         () => ({
           orchestrateStorageAccess: orchestrateStorageAccessMock,
-        })
+        }),
       );
 
       const accessRulesCallback: StorageAccessGenerator = () => ({});
@@ -118,7 +118,7 @@ void describe('StorageGenerator', () => {
           access: accessRulesCallback,
         },
         getInstanceProps,
-        storageAccessOrchestratorFactoryStub
+        storageAccessOrchestratorFactoryStub,
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);
@@ -126,7 +126,7 @@ void describe('StorageGenerator', () => {
       assert.equal(orchestrateStorageAccessMock.mock.callCount(), 1);
       assert.equal(
         getInstanceMock.mock.calls[0].arguments[0],
-        accessRulesCallback
+        accessRulesCallback,
       );
     });
 
@@ -147,7 +147,7 @@ void describe('StorageGenerator', () => {
               lambda: testFunction,
               cfnResources: {
                 cfnFunction: testFunction.node.tryFindChild(
-                  'Resource'
+                  'Resource',
                 ) as CfnFunction,
               },
             },
@@ -164,7 +164,7 @@ void describe('StorageGenerator', () => {
           },
         },
         getInstanceProps,
-        new StorageAccessOrchestratorFactory()
+        new StorageAccessOrchestratorFactory(),
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);

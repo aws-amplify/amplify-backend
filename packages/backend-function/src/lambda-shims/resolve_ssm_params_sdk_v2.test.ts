@@ -78,7 +78,7 @@ void describe('internalAmplifyFunctionResolveSsmParams', () => {
               Parameters: parameters,
             }),
         };
-      }
+      },
     );
     await internalAmplifyFunctionResolveSsmParams(client);
     assert.equal(mockGetParameters.mock.callCount(), 10);

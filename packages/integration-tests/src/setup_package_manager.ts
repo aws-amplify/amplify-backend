@@ -37,12 +37,12 @@ const initializeYarnClassic = async (execaOptions: {
   await execa(
     packageManager,
     ['config', 'set', 'registry', customRegistry],
-    execaOptions
+    execaOptions,
   );
   await execa(
     packageManager,
     ['config', 'set', 'network-timeout', '60000'],
-    execaOptions
+    execaOptions,
   );
   await execa(packageManager, ['config', 'get', 'registry'], execaOptions);
   await execa(packageManager, ['cache', 'clean'], execaOptions);
@@ -58,17 +58,17 @@ const initializeYarnModern = async (execaOptions: {
   await execa(
     packageManager,
     ['config', 'set', 'npmRegistryServer', customRegistry],
-    execaOptions
+    execaOptions,
   );
   await execa(
     packageManager,
     ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
-    execaOptions
+    execaOptions,
   );
   await execa(
     packageManager,
     ['config', 'set', 'nodeLinker', 'node-modules'],
-    execaOptions
+    execaOptions,
   );
   await execa(packageManager, ['cache', 'clean'], execaOptions);
 };
@@ -77,7 +77,7 @@ const initializeYarnModern = async (execaOptions: {
  * Sets up the package manager for the e2e flow
  */
 export const setupPackageManager = async (
-  dir: string
+  dir: string,
 ): Promise<{
   packageManager: PackageManager;
   packageManagerExecutable: PackageManagerExecutable;

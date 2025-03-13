@@ -21,7 +21,7 @@ export const handler = async () => {
     new SendMessageCommand({
       QueueUrl: queueUrl,
       MessageBody: messageBody,
-    })
+    }),
   );
 
   return 'It is working';

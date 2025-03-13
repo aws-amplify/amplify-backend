@@ -30,7 +30,7 @@ export class SandboxSecretSetCommand
   constructor(
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
     private readonly secretClient: SecretClient,
-    private readonly readStream: ReadStream = process.stdin
+    private readonly readStream: ReadStream = process.stdin,
   ) {
     this.command = 'set <secret-name>';
     this.describe = 'Set a sandbox secret';
@@ -40,17 +40,17 @@ export class SandboxSecretSetCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SecretSetCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SecretSetCommandOptionsKebabCase>,
   ): Promise<void> => {
     const secretValue = await this.readSecretValue();
 
     const secretIdentifier = await this.secretClient.setSecret(
       await this.sandboxIdResolver.resolve(args.identifier),
       args.secretName,
-      secretValue
+      secretValue,
     );
     printer.print(
-      `Successfully created version ${secretIdentifier.version} of secret ${secretIdentifier.name}`
+      `Successfully created version ${secretIdentifier.version} of secret ${secretIdentifier.name}`,
     );
   };
 

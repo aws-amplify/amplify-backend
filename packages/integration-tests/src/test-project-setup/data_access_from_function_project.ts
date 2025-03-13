@@ -31,11 +31,11 @@ export class DataAccessFromFunctionTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -47,14 +47,14 @@ export class DataAccessFromFunctionTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.amplifyClient
+      this.amplifyClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -71,7 +71,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -82,19 +82,19 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    amplifyClient: AmplifyClient
+    amplifyClient: AmplifyClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
 
@@ -129,7 +129,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
   }
 
   private assertDataFunctionCallSucceeds = async (
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
   ): Promise<void> => {
     // The todoCount query calls the todoCount lambda
     const response = await apolloClient.query<number>({
@@ -146,7 +146,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
   };
 
   private assertNoopWithImportCallSucceeds = async (
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
   ): Promise<void> => {
     // The noopImport query calls the noopImport lambda
     const response = await apolloClient.query<number>({

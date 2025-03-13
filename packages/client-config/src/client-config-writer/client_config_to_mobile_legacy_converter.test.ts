@@ -9,7 +9,7 @@ void describe('client config converter', () => {
   const testPackageVersion = 'test_package_version;';
   const converter = new ClientConfigMobileConverter(
     testPackageName,
-    testPackageVersion
+    testPackageVersion,
   );
   const expectedUserAgent = `${testPackageName}/${testPackageVersion}`;
 

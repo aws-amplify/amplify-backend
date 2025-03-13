@@ -37,7 +37,7 @@ export class FunctionEnvironmentTypeGenerator {
 
     // Add Lambda runtime environment variables to the typed shim
     declarations.push(
-      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */`
+      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */`,
     );
     declarations.push(`type ${lambdaEnvVarTypeName} = {`);
     for (const key in staticEnvironmentVariables) {
@@ -54,7 +54,7 @@ export class FunctionEnvironmentTypeGenerator {
      * 2. Defined by resource access mechanisms
      */
     declarations.push(
-      `/** Amplify backend environment variables available at runtime, this includes environment variables defined in \`defineFunction\` and by cross resource mechanisms */`
+      `/** Amplify backend environment variables available at runtime, this includes environment variables defined in \`defineFunction\` and by cross resource mechanisms */`,
     );
     declarations.push(`type ${amplifyBackendEnvVarTypeName} = {`);
 
@@ -71,7 +71,7 @@ export class FunctionEnvironmentTypeGenerator {
     const content = `${this.header}${EOL}${
       this.envAssignment
     } as unknown as ${lambdaEnvVarTypeName} & ${amplifyBackendEnvVarTypeName};${EOL}${EOL}${declarations.join(
-      EOL
+      EOL,
     )}`;
 
     this.writeShimFile(content);

@@ -38,7 +38,7 @@ void describe('Printer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
-      /hello world/
+      /hello world/,
     );
     assert.match(mockedWrite.mock.calls[1].arguments[0].toString(), /\n/);
   });
@@ -53,7 +53,7 @@ void describe('Printer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
-      /hello world/
+      /hello world/,
     );
     assert.match(mockedWrite.mock.calls[1].arguments[0].toString(), /\n/);
   });
@@ -71,7 +71,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      true
+      true,
     ).indicateProgress(message, async () => {
       await new Promise((resolve) => setTimeout(resolve, 90));
     });
@@ -83,7 +83,7 @@ void describe('Printer', () => {
     assert.deepStrictEqual(
       logMessages.length,
       3,
-      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`,
     ); // 2 for progress and 1 for final result
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
@@ -98,7 +98,7 @@ void describe('Printer', () => {
       process.stdout,
       process.stderr,
       50,
-      false // explicitly disable tty
+      false, // explicitly disable tty
     ).indicateProgress(message, async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
@@ -111,7 +111,7 @@ void describe('Printer', () => {
     assert.strictEqual(
       logMessages.length,
       2,
-      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`,
     );
     assert.match(logMessages[0], /Message(.*)/);
     assert.match(logMessages[1], /✔.*Message(.*)/);
@@ -128,7 +128,7 @@ void describe('Printer', () => {
         async () => {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           throw new Error(errorMessage);
-        }
+        },
       );
     } catch (error) {
       assert.strictEqual((error as Error).message, errorMessage);
@@ -140,18 +140,18 @@ void describe('Printer', () => {
   void it('startSpinner start animating spinner with message until stopSpinner is called in TTY terminal', async () => {
     const message = 'Message 1';
 
-    // Refresh rate of 50 ms
+    // Refresh rate of 100 ms
     const printer = new Printer(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
-      50,
-      true
+      100,
+      true,
     );
     printer.startSpinner(spinnerId, message);
 
-    // Wait for 190 ms
-    await new Promise((resolve) => setTimeout(resolve, 190));
+    // Wait for 400 ms
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     // Stop spinner
     printer.stopSpinner(spinnerId);
@@ -164,7 +164,7 @@ void describe('Printer', () => {
     assert.deepStrictEqual(
       logMessages.length,
       4,
-      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`,
     );
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
@@ -180,7 +180,7 @@ void describe('Printer', () => {
       process.stdout,
       process.stderr,
       50,
-      false // simulate non-tty
+      false, // simulate non-tty
     );
     printer.startSpinner(spinnerId, message);
 
@@ -198,7 +198,7 @@ void describe('Printer', () => {
     assert.deepStrictEqual(
       logMessages.length,
       1,
-      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`,
     );
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
@@ -214,7 +214,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      true
+      true,
     );
     printer.startSpinner(spinnerId, message, {
       timeoutSeconds: 0.1,
@@ -234,7 +234,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      true
+      true,
     );
     printer.startSpinner(spinnerId, message, {
       timeoutSeconds: 0.1,
@@ -261,7 +261,7 @@ void describe('Printer', () => {
     printer.updateSpinner(invalidSpinnerId, { prefixText: 'some test' });
     assert.match(
       mockedTTYWrite.mock.calls[0].arguments[0].toString(),
-      /Spinner with id some-invalid-id not found or already stopped/
+      /Spinner with id some-invalid-id not found or already stopped/,
     );
     printer.stopSpinner(invalidSpinnerId);
   });
@@ -275,7 +275,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      true
+      true,
     );
     printer.startSpinner(spinnerId, message);
     printer.updateSpinner(spinnerId, {
@@ -294,7 +294,7 @@ void describe('Printer', () => {
     assert.deepStrictEqual(
       logMessages.length,
       2,
-      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`,
     );
     // Both logs should have the `message` value
     logMessages.forEach((message) => {

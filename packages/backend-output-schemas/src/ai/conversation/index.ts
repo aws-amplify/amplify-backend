@@ -6,7 +6,7 @@ export const versionedAIConversationOutputSchema = z.discriminatedUnion(
   [
     aiConversationOutputSchemaV1,
     // this is where additional function major version schemas would go
-  ]
+  ],
 );
 
 export type AIConversationOutput = z.infer<

@@ -5,14 +5,14 @@ import { DependabotVersionUpdateHandler } from './components/dependabot_version_
 const baseRef = process.argv[2];
 if (baseRef === undefined) {
   throw new Error(
-    'No base ref specified for handle dependabot version update check'
+    'No base ref specified for handle dependabot version update check',
   );
 }
 
 const dependabotVersionUpdateHandler = new DependabotVersionUpdateHandler(
   baseRef,
   new GitClient(),
-  new GithubClient()
+  new GithubClient(),
 );
 
 try {

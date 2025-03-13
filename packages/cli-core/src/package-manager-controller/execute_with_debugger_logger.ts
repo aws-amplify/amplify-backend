@@ -11,7 +11,7 @@ export const executeWithDebugLogger = (
   executable: string,
   args?: Readonly<string[]>,
   execa = _execa,
-  options?: ExecaOptions
+  options?: ExecaOptions,
 ): ReturnType<ExecaMethod> => {
   try {
     const childProcess = execa(executable, args, {
@@ -21,10 +21,10 @@ export const executeWithDebugLogger = (
     });
 
     childProcess?.stdout?.on('data', (data: string) =>
-      printer.log(data, LogLevel.DEBUG)
+      printer.log(data, LogLevel.DEBUG),
     );
     childProcess?.stderr?.on('data', (data: string) =>
-      printer.log(data, LogLevel.DEBUG)
+      printer.log(data, LogLevel.DEBUG),
     );
 
     return childProcess;
@@ -33,7 +33,7 @@ export const executeWithDebugLogger = (
       `\`${executable}${
         args ? ' ' + args.join(' ') : ''
       }\` did not exit successfully. Rerun with --debug for more information.`,
-      { cause: err }
+      { cause: err },
     );
   }
 };

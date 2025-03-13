@@ -24,7 +24,7 @@ let [baselineRepositoryPath, workingDirectory] = runArgs;
 
 if (!baselineRepositoryPath || !workingDirectory) {
   throw new Error(
-    'Usage: tsx scripts/check_api_changes.ts <baselineBranchPath> <workingDirectory>'
+    'Usage: tsx scripts/check_api_changes.ts <baselineBranchPath> <workingDirectory>',
   );
 }
 
@@ -38,11 +38,11 @@ if (!path.isAbsolute(workingDirectory)) {
 
 const latestRepositoryPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '..'
+  '..',
 );
 
 console.log(
-  `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`
+  `Validating API changes between latest ${latestRepositoryPath} and baseline ${baselineRepositoryPath}`,
 );
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
@@ -65,15 +65,15 @@ const validationResults = await Promise.allSettled(
     const baselinePackagePath = path.join(
       baselineRepositoryPath,
       'packages',
-      packageName
+      packageName,
     );
     const baselinePackageApiReportPath = path.join(
       baselinePackagePath,
-      'API.md'
+      'API.md',
     );
     if (!existsSync(baselinePackageApiReportPath)) {
       console.log(
-        `Skipping ${packageName} as it does not have baseline API.md file`
+        `Skipping ${packageName} as it does not have baseline API.md file`,
       );
       return;
     }
@@ -83,10 +83,10 @@ const validationResults = await Promise.allSettled(
       packagePath,
       baselinePackageApiReportPath,
       workingDirectory,
-      excludedTypesByPackageName[packageName]
+      excludedTypesByPackageName[packageName],
     ).validate();
     console.log(`Validation of ${packageName} completed successfully`);
-  })
+  }),
 );
 
 const errors: Array<Error> = [];
@@ -101,6 +101,6 @@ if (errors.length > 0) {
     errors,
     `Breaking API changes detected. See below for details.
     If these changes are intentional, this is okay.
-    Otherwise, update the PR to remove the unintentional breaks`
+    Otherwise, update the PR to remove the unintentional breaks`,
   );
 }

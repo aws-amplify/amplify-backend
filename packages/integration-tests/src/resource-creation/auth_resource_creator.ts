@@ -52,20 +52,20 @@ export class AuthResourceCreator {
    */
   constructor(
     private cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private cognitoIdentityClient: CognitoIdentityClient = new CognitoIdentityClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private iamClient: IAMClient = new IAMClient(e2eToolingClientConfig),
-    private createResourceNameSuffix: () => string = shortUuid
+    private createResourceNameSuffix: () => string = shortUuid,
   ) {}
 
   cleanupResources = async () => {
     // delete in reverse order
     const list = this.cleanup.map((t) => t.arn ?? t.id);
     console.log(
-      `Attempting to delete a total of ${this.cleanup.length} resources`
+      `Attempting to delete a total of ${this.cleanup.length} resources`,
     );
     console.log('Resource descriptions/ARNs/IDs:', list);
     const failedTasks: CleanupTask[] = [];
@@ -81,7 +81,7 @@ export class AuthResourceCreator {
     }
     console.error(
       'Failed tasks:',
-      failedTasks.map((t) => t.arn ?? t.id)
+      failedTasks.map((t) => t.arn ?? t.id),
     );
   };
 
@@ -92,7 +92,7 @@ export class AuthResourceCreator {
         PoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.PoolName
         }-${this.createResourceNameSuffix()}`,
-      })
+      }),
     );
     const userPool = result.UserPool;
     if (!userPool) {
@@ -101,7 +101,7 @@ export class AuthResourceCreator {
     this.cleanup.push({
       run: async () => {
         await this.cognitoIdentityProviderClient.send(
-          new DeleteUserPoolCommand({ UserPoolId: userPool.Id })
+          new DeleteUserPoolCommand({ UserPoolId: userPool.Id }),
         );
       },
       arn: userPool.Arn,
@@ -110,7 +110,7 @@ export class AuthResourceCreator {
   };
 
   createUserPoolClientBase = async (
-    props: CreateUserPoolClientCommandInput
+    props: CreateUserPoolClientCommandInput,
   ) => {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolClientCommand({
@@ -118,7 +118,7 @@ export class AuthResourceCreator {
         ClientName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.ClientName
         }-${this.createResourceNameSuffix()}`,
-      })
+      }),
     );
     const client = result.UserPoolClient;
     if (!client) {
@@ -130,7 +130,7 @@ export class AuthResourceCreator {
           new DeleteUserPoolClientCommand({
             ClientId: client.ClientId,
             UserPoolId: client.UserPoolId,
-          })
+          }),
         );
       },
       id: `UserPoolClientId: ${client.ClientId}`,
@@ -139,7 +139,7 @@ export class AuthResourceCreator {
   };
 
   createUserPoolDomainBase = async (
-    props: CreateUserPoolDomainCommandInput
+    props: CreateUserPoolDomainCommandInput,
   ) => {
     const domain = `${TEST_AMPLIFY_RESOURCE_PREFIX}${
       props.Domain
@@ -148,7 +148,7 @@ export class AuthResourceCreator {
       new CreateUserPoolDomainCommand({
         ...props,
         Domain: domain,
-      })
+      }),
     );
     // if it didn't throw, domain was created.
     this.cleanup.push({
@@ -157,7 +157,7 @@ export class AuthResourceCreator {
           new DeleteUserPoolDomainCommand({
             Domain: domain,
             UserPoolId: props.UserPoolId,
-          })
+          }),
         );
       },
       id: `Domain: ${domain}`,
@@ -166,17 +166,17 @@ export class AuthResourceCreator {
   };
 
   createIdentityProviderBase = async (
-    props: CreateIdentityProviderCommandInput
+    props: CreateIdentityProviderCommandInput,
   ) => {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateIdentityProviderCommand({
         ...props,
-      })
+      }),
     );
     const provider = result.IdentityProvider;
     if (!provider) {
       throw new Error(
-        `An error occurred while creating the identity provider ${props.ProviderName}`
+        `An error occurred while creating the identity provider ${props.ProviderName}`,
       );
     }
     this.cleanup.push({
@@ -185,7 +185,7 @@ export class AuthResourceCreator {
           new DeleteIdentityProviderCommand({
             UserPoolId: props.UserPoolId,
             ProviderName: provider.ProviderName,
-          })
+          }),
         );
       },
       id: `Provider: ${provider.ProviderName}`,
@@ -200,7 +200,7 @@ export class AuthResourceCreator {
         IdentityPoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.IdentityPoolName
         }-${this.createResourceNameSuffix()}`,
-      })
+      }),
     );
     const identityPoolId = identityPoolResponse.IdentityPoolId;
     if (!identityPoolId) {
@@ -209,7 +209,7 @@ export class AuthResourceCreator {
     this.cleanup.push({
       run: async () => {
         await this.cognitoIdentityClient.send(
-          new DeleteIdentityPoolCommand({ IdentityPoolId: identityPoolId })
+          new DeleteIdentityPoolCommand({ IdentityPoolId: identityPoolId }),
         );
       },
       id: `IdentityPool: ${identityPoolResponse.IdentityPoolId}`,
@@ -228,18 +228,18 @@ export class AuthResourceCreator {
         RoleName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.RoleName
         }-${this.createResourceNameSuffix()}`,
-      })
+      }),
     );
     const role = result.Role;
     if (!role) {
       throw new Error(
-        `An error occurred while creating the role: ${props.RoleName}`
+        `An error occurred while creating the role: ${props.RoleName}`,
       );
     }
     this.cleanup.push({
       run: async () => {
         await this.iamClient.send(
-          new DeleteRoleCommand({ RoleName: role.RoleName })
+          new DeleteRoleCommand({ RoleName: role.RoleName }),
         );
       },
       arn: role.Arn,
@@ -254,7 +254,7 @@ export class AuthResourceCreator {
         GroupName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.GroupName
         }-${this.createResourceNameSuffix()}`,
-      })
+      }),
     );
     const group = result.Group;
     if (!group || !group.GroupName) {
@@ -266,7 +266,7 @@ export class AuthResourceCreator {
           new DeleteGroupCommand({
             UserPoolId: props.UserPoolId,
             GroupName: group.GroupName,
-          })
+          }),
         );
       },
       id: `Group: ${group.GroupName}`,
@@ -278,13 +278,13 @@ export class AuthResourceCreator {
     groupName: string,
     userPoolId: string,
     identityPoolId: string,
-    permissionBoundaryArn: string
+    permissionBoundaryArn: string,
   ) => {
     const groupRole = await this.createRoleBase({
       RoleName: 'ref-auth-group-role',
       AssumeRolePolicyDocument: this.getIdentityPoolAssumeRolePolicyDocument(
         identityPoolId,
-        'authenticated'
+        'authenticated',
       ),
       PermissionsBoundary: permissionBoundaryArn,
     });
@@ -307,13 +307,13 @@ export class AuthResourceCreator {
     userPoolId: string,
     userPoolClientId: string,
     identityPoolId: string,
-    permissionBoundaryArn: string
+    permissionBoundaryArn: string,
   ) => {
     const authRole = await this.createRoleBase({
       RoleName: `ref-auth-role`,
       AssumeRolePolicyDocument: this.getIdentityPoolAssumeRolePolicyDocument(
         identityPoolId,
-        'authenticated'
+        'authenticated',
       ),
       PermissionsBoundary: permissionBoundaryArn,
     });
@@ -321,7 +321,7 @@ export class AuthResourceCreator {
       RoleName: `ref-unauth-role`,
       AssumeRolePolicyDocument: this.getIdentityPoolAssumeRolePolicyDocument(
         identityPoolId,
-        'unauthenticated'
+        'unauthenticated',
       ),
       PermissionsBoundary: permissionBoundaryArn,
     });
@@ -340,7 +340,7 @@ export class AuthResourceCreator {
               AmbiguousRoleResolution: 'AuthenticatedRole',
             },
         },
-      })
+      }),
     );
 
     return {
@@ -351,7 +351,7 @@ export class AuthResourceCreator {
 
   private getIdentityPoolAssumeRolePolicyDocument = (
     identityPoolId: string,
-    roleType: 'authenticated' | 'unauthenticated'
+    roleType: 'authenticated' | 'unauthenticated',
   ) => {
     return `{
         "Version": "2012-10-17",

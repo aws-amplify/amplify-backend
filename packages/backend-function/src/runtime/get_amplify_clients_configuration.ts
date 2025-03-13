@@ -46,7 +46,7 @@ export type ResourceConfig = {
 
 const getResourceConfig = (
   env: ExtendedAmplifyClientEnv,
-  modelIntrospectionSchema: object
+  modelIntrospectionSchema: object,
 ): ResourceConfig => {
   return {
     API: {
@@ -102,7 +102,7 @@ export type DataClientConfig = {
 
 const extendEnv = (
   env: DataClientEnv & Record<string, unknown>,
-  dataName: string
+  dataName: string,
 ): ExtendedAmplifyClientEnv => {
   const bucketName = `${dataName}${dataBucketNameContent}`;
   const keyName = `${dataName}${dataKeyNameContent}`;
@@ -118,7 +118,7 @@ const extendEnv = (
     )
   ) {
     throw new Error(
-      `The data environment variables are malformed. env=${JSON.stringify(env)}`
+      `The data environment variables are malformed. env=${JSON.stringify(env)}`,
     );
   }
 
@@ -145,14 +145,14 @@ const extendEnv = (
  */
 export const getAmplifyDataClientConfig = async (
   env: DataClientEnv,
-  s3Client?: S3Client
+  s3Client?: S3Client,
 ): Promise<DataClientConfig> => {
   if (!s3Client) {
     s3Client = new S3Client();
   }
 
   const dataName = new NamingConverter().toScreamingSnakeCase(
-    env.AMPLIFY_DATA_DEFAULT_NAME
+    env.AMPLIFY_DATA_DEFAULT_NAME,
   );
   const extendedEnv = extendEnv(env, dataName);
 
@@ -163,7 +163,7 @@ export const getAmplifyDataClientConfig = async (
       new GetObjectCommand({
         Bucket: extendedEnv.dataBucket,
         Key: extendedEnv.dataKey,
-      })
+      }),
     );
     const modelIntrospectionSchemaJson =
       await response.Body?.transformToString();
@@ -172,12 +172,12 @@ export const getAmplifyDataClientConfig = async (
     if (caught instanceof NoSuchKey) {
       throw new Error(
         'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.',
-        { cause: caught }
+        { cause: caught },
       );
     } else if (caught instanceof S3ServiceException) {
       throw new Error(
         `Error retrieving the schema from S3. You may need to grant this function authorization on the schema. ${caught.name}: ${caught.message}.`,
-        { cause: caught }
+        { cause: caught },
       );
     } else {
       throw caught;
@@ -188,7 +188,7 @@ export const getAmplifyDataClientConfig = async (
 
   const resourceConfig = getResourceConfig(
     extendedEnv,
-    modelIntrospectionSchema
+    modelIntrospectionSchema,
   );
 
   return { resourceConfig, libraryOptions };

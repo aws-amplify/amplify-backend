@@ -19,7 +19,7 @@ export class BackendLocator {
     for (const fileExtension of this.supportedFileExtensions) {
       if (
         fs.existsSync(
-          path.resolve(this.rootDir, this.relativePath + fileExtension)
+          path.resolve(this.rootDir, this.relativePath + fileExtension),
         )
       ) {
         return this.relativePath + fileExtension;

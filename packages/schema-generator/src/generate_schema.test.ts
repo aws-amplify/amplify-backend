@@ -79,7 +79,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should parse database url correctly', async () => {
     const dbConfig = parseDatabaseUrl(
-      'mysql://user:password@test-host-name:3306/db'
+      'mysql://user:password@test-host-name:3306/db',
     );
     assert.strictEqual(dbConfig.engine, 'mysql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -91,7 +91,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should parse database url correctly with special characters', async () => {
     const dbConfig = parseDatabaseUrl(
-      'mysql://user:password@123!@test-host-name:3306/db'
+      'mysql://user:password@123!@test-host-name:3306/db',
     );
     assert.strictEqual(dbConfig.engine, 'mysql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -103,7 +103,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should parse postgres url correctly', async () => {
     const dbConfig = parseDatabaseUrl(
-      'postgresql://user:password@test-host-name:5432/db'
+      'postgresql://user:password@test-host-name:5432/db',
     );
     assert.strictEqual(dbConfig.engine, 'postgresql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -115,7 +115,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should parse database url with postgres protocol correctly', async () => {
     const dbConfig = parseDatabaseUrl(
-      'postgres://user:password@test-host-name:5432/db'
+      'postgres://user:password@test-host-name:5432/db',
     );
     assert.strictEqual(dbConfig.engine, 'postgresql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -127,7 +127,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should assign default port for mysql db url', async () => {
     const dbConfig = parseDatabaseUrl(
-      'mysql://user:password@test-host-name/db'
+      'mysql://user:password@test-host-name/db',
     );
     assert.strictEqual(dbConfig.engine, 'mysql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -139,7 +139,7 @@ void describe('SchemaGenerator', () => {
 
   void it('should assign default port for postgres db url', async () => {
     const dbConfig = parseDatabaseUrl(
-      'postgres://user:password@test-host-name/db'
+      'postgres://user:password@test-host-name/db',
     );
     assert.strictEqual(dbConfig.engine, 'postgresql');
     assert.strictEqual(dbConfig.username, 'user');
@@ -186,11 +186,11 @@ void describe('SchemaGenerator', () => {
         assert.strictEqual(error.name, 'DatabaseSchemaError');
         assert.strictEqual(
           error.message,
-          'Imported SQL schema is invalid. Imported schema is missing columns: missingColumn'
+          'Imported SQL schema is invalid. Imported schema is missing columns: missingColumn',
         );
         assert.strictEqual(error.resolution, 'Check the database schema.');
         return true;
-      }
+      },
     );
   });
 
@@ -213,7 +213,7 @@ void describe('SchemaGenerator', () => {
         assert.strictEqual(error.message, 'Imported SQL schema is empty.');
         assert.strictEqual(error.resolution, 'Check the database schema.');
         return true;
-      }
+      },
     );
   });
 });

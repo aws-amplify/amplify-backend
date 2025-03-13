@@ -29,7 +29,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     public readonly name: T,
     public readonly classification: AmplifyErrorClassification,
     private readonly options: AmplifyErrorOptions,
-    public readonly cause?: Error
+    public readonly cause?: Error,
   ) {
     // If an AmplifyError was already thrown, we must allow it to reach the user.
     // This ensures that resolution steps, and the original error are bubbled up.
@@ -55,8 +55,8 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           options,
           cause,
         },
-        errorSerializer
-      )
+        errorSerializer,
+      ),
     ).toString('base64');
   }
 
@@ -122,7 +122,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'Ensure your AWS credentials are correctly set and refreshed.',
         },
-        error
+        error,
       );
     }
     if (error instanceof Error && isRequestSignatureError(error)) {
@@ -133,7 +133,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
         },
-        error
+        error,
       );
     }
     if (error instanceof Error && isYargsValidationError(error)) {
@@ -143,7 +143,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           message: errorMessage,
           resolution: 'Please see the underlying error message for resolution.',
         },
-        error
+        error,
       );
     }
     if (error instanceof Error && isENotFoundError(error)) {
@@ -154,7 +154,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'Ensure domain name is correct and network connection is stable.',
         },
-        error
+        error,
       );
     }
     /**
@@ -169,7 +169,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'Check your backend definition in the `amplify` folder for syntax and type errors.',
         },
-        error
+        error,
       );
     }
     if (error instanceof Error && isInsufficientDiskSpaceError(error)) {
@@ -180,7 +180,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'There appears to be insufficient space on your system to finish. Clear up some disk space and try again.',
         },
-        error
+        error,
       );
     }
     if (error instanceof Error && isOutOfMemoryError(error)) {
@@ -191,7 +191,18 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           resolution:
             'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
         },
-        error
+        error,
+      );
+    }
+    if (error instanceof Error && isInotifyError(error)) {
+      return new AmplifyUserError(
+        'InsufficientInotifyWatchersError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be an insufficient number of inotify watchers. To increase the amount of inotify watchers, change the `fs.inotify.max_user_watches` setting in your system config files to a higher value.',
+        },
+        error,
       );
     }
     return new AmplifyFault(
@@ -199,13 +210,13 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       {
         message: errorMessage,
       },
-      error instanceof Error ? error : new Error(String(error))
+      error instanceof Error ? error : new Error(String(error)),
     );
   };
 }
 
 const tryFindSerializedErrorJSONString = (
-  _stderr: string
+  _stderr: string,
 ): string | undefined => {
   let errorJSONString = tryFindSerializedErrorJSONStringV2(_stderr);
   if (!errorJSONString) {
@@ -218,7 +229,7 @@ const tryFindSerializedErrorJSONString = (
  * Tries to find serialized string assuming that it is in a form of serialized JSON encoded with base64.
  */
 const tryFindSerializedErrorJSONStringV2 = (
-  _stderr: string
+  _stderr: string,
 ): string | undefined => {
   /**
    * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
@@ -245,7 +256,7 @@ const tryFindSerializedErrorJSONStringV2 = (
  * @deprecated This is old format left for backwards compatibility in case that synth-time components are using older version of platform-core.
  */
 const tryFindSerializedErrorJSONStringV1 = (
-  _stderr: string
+  _stderr: string,
 ): string | undefined => {
   /**
    * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
@@ -317,7 +328,7 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
   return (
     !!err &&
     ['ENOSPC: no space left on device', 'code ENOSPC'].some((message) =>
-      err.message.includes(message)
+      err.message.includes(message),
     )
   );
 };
@@ -328,6 +339,10 @@ const isOutOfMemoryError = (err?: Error): boolean => {
     (err.message.includes('process out of memory') ||
       err.message.includes('connect ENOMEM'))
   );
+};
+
+const isInotifyError = (err?: Error): boolean => {
+  return !!err && err.message.includes('inotify_add_watch');
 };
 
 /**

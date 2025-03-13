@@ -120,7 +120,7 @@ void describe('ReferenceAuthInitializer', () => {
   let listGroupsResponse: ListGroupsCommandOutput;
   const rejectsAndMatchError = async (
     fn: Promise<unknown>,
-    expectedErrorMessage: string
+    expectedErrorMessage: string,
   ): Promise<void> => {
     await assert.rejects(fn, (error: Error) => {
       assert.strictEqual(error.message, expectedErrorMessage);
@@ -131,7 +131,7 @@ void describe('ReferenceAuthInitializer', () => {
     handler = new ReferenceAuthInitializer(
       identityClient,
       identityProviderClient,
-      uuidMock
+      uuidMock,
     );
     describeUserPoolResponse = {
       ...httpSuccess,
@@ -170,7 +170,7 @@ void describe('ReferenceAuthInitializer', () => {
           | GetUserPoolMfaConfigCommand
           | ListIdentityProvidersCommand
           | DescribeUserPoolClientCommand
-          | ListGroupsCommand
+          | ListGroupsCommand,
       ) => {
         if (request instanceof DescribeUserPoolCommand) {
           if (describeUserPoolResponse.$metadata.httpStatusCode !== 200) {
@@ -203,13 +203,13 @@ void describe('ReferenceAuthInitializer', () => {
           return listGroupsResponse;
         }
         return undefined;
-      }
+      },
     );
     mock.method(
       identityClient,
       'send',
       async (
-        request: DescribeIdentityPoolCommand | GetIdentityPoolRolesCommand
+        request: DescribeIdentityPoolCommand | GetIdentityPoolRolesCommand,
       ) => {
         if (request instanceof DescribeIdentityPoolCommand) {
           if (describeIdentityPoolResponse.$metadata.httpStatusCode !== 200) {
@@ -224,7 +224,7 @@ void describe('ReferenceAuthInitializer', () => {
           return getIdentityPoolRolesResponse;
         }
         return undefined;
-      }
+      },
     );
   });
   void it('handles create events', async () => {
@@ -232,7 +232,7 @@ void describe('ReferenceAuthInitializer', () => {
     assert.deepEqual(result.Status, 'SUCCESS');
     assert.equal(
       result.PhysicalResourceId,
-      '00000000-0000-0000-0000-000000000000'
+      '00000000-0000-0000-0000-000000000000',
     );
     assert.deepEqual(result.Data, expectedData);
   });
@@ -252,7 +252,7 @@ void describe('ReferenceAuthInitializer', () => {
     describeUserPoolResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
 
@@ -263,7 +263,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'Failed to retrieve the specified UserPool.'
+      'Failed to retrieve the specified UserPool.',
     );
   });
 
@@ -277,7 +277,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'Failed to retrieve password policy.'
+      'Failed to retrieve password policy.',
     );
   });
 
@@ -292,7 +292,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The specified user pool is configured with alias attributes which are not currently supported.'
+      'The specified user pool is configured with alias attributes which are not currently supported.',
     );
   });
 
@@ -307,7 +307,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'You must configure a domain for your UserPool if external login providers are enabled.'
+      'You must configure a domain for your UserPool if external login providers are enabled.',
     );
   });
 
@@ -323,7 +323,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`
+      `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`,
     );
   });
 
@@ -334,7 +334,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
 
@@ -345,7 +345,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'An error occurred while retrieving the groups for the user pool.'
+      'An error occurred while retrieving the groups for the user pool.',
     );
   });
 
@@ -353,7 +353,7 @@ void describe('ReferenceAuthInitializer', () => {
     getUserPoolMfaConfigResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
 
@@ -366,7 +366,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
 
@@ -377,7 +377,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'An error occurred while retrieving identity providers for the user pool.'
+      'An error occurred while retrieving identity providers for the user pool.',
     );
   });
 
@@ -385,7 +385,7 @@ void describe('ReferenceAuthInitializer', () => {
     describeUserPoolClientResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
   void it('throws if fetching user pool client returns undefined', async () => {
@@ -395,7 +395,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'An error occurred while retrieving the user pool client details.'
+      'An error occurred while retrieving the user pool client details.',
     );
   });
   void it('throws if user pool client does not have sign-out / logout URLs configured and external login providers are enabled', async () => {
@@ -408,7 +408,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+      'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.',
     );
   });
   void it('throws if user pool client does not have callback URLs configured and external login providers are enabled', async () => {
@@ -421,7 +421,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
+      'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.',
     );
   });
 
@@ -436,7 +436,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
   void it('throws if fetching identity pool returns undefined', async () => {
@@ -448,7 +448,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'An error occurred while retrieving the identity pool details.'
+      'An error occurred while retrieving the identity pool details.',
     );
   });
 
@@ -456,7 +456,7 @@ void describe('ReferenceAuthInitializer', () => {
     getIdentityPoolRolesResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      awsSDKErrorMessageMock.message
+      awsSDKErrorMessageMock.message,
     );
   });
   void it('throws if fetching identity pool roles return undefined', async () => {
@@ -466,7 +466,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'An error occurred while retrieving the roles for the identity pool.'
+      'An error occurred while retrieving the roles for the identity pool.',
     );
   });
   // throws if userPool or client doesn't match identity pool
@@ -484,7 +484,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.',
     );
   });
   void it('throws if identity pool does not have cognito identity providers configured', async () => {
@@ -494,7 +494,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The specified identity pool does not have any cognito identity providers.'
+      'The specified identity pool does not have any cognito identity providers.',
     );
   });
   void it('throws if the client id does not match any cognito provider on the identity pool', async () => {
@@ -511,7 +511,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.',
     );
   });
   void it('throws if auth role ARN does not match', async () => {
@@ -525,7 +525,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
+      'The provided authRoleArn does not match the authenticated role for the specified identity pool.',
     );
   });
   void it('throws if unauth role ARN does not match', async () => {
@@ -539,7 +539,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
+      'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.',
     );
   });
   void it('throws if user pool client is not a web client', async () => {
@@ -552,7 +552,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'The specified user pool client is not configured as a web client.'
+      'The specified user pool client is not configured as a web client.',
     );
   });
 });

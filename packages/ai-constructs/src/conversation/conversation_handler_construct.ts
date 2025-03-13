@@ -88,7 +88,7 @@ export class ConversationHandlerFunction
   constructor(
     scope: Construct,
     id: string,
-    private readonly props: ConversationHandlerFunctionProps
+    private readonly props: ConversationHandlerFunctionProps,
   ) {
     super(scope, id);
 
@@ -121,12 +121,12 @@ export class ConversationHandlerFunction
             identifiers: [
               new CustomDataIdentifier(
                 'JWTToken',
-                'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*'
+                'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
               ),
             ],
           }),
         }),
-      }
+      },
     );
 
     if (this.props.models && this.props.models.length > 0) {
@@ -134,7 +134,7 @@ export class ConversationHandlerFunction
         (model) =>
           `arn:aws:bedrock:${
             model.region ?? Stack.of(this).region
-          }::foundation-model/${model.modelId}`
+          }::foundation-model/${model.modelId}`,
       );
       conversationHandler.addToRolePolicy(
         new PolicyStatement({
@@ -144,7 +144,7 @@ export class ConversationHandlerFunction
             'bedrock:InvokeModelWithResponseStream',
           ],
           resources,
-        })
+        }),
       );
     }
 
@@ -152,7 +152,7 @@ export class ConversationHandlerFunction
       lambda: conversationHandler,
       cfnResources: {
         cfnFunction: conversationHandler.node.findChild(
-          'Resource'
+          'Resource',
         ) as CfnFunction,
       },
     };
@@ -166,7 +166,7 @@ export class ConversationHandlerFunction
   private storeOutput = (
     outputStorageStrategy:
       | BackendOutputStorageStrategy<AIConversationOutput>
-      | undefined
+      | undefined,
   ): void => {
     outputStorageStrategy?.appendToBackendOutputList(aiConversationOutputKey, {
       version: '1',
@@ -187,7 +187,7 @@ export class ConversationHandlerFunction
       !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
     ) {
       throw new Error(
-        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
+        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`,
       );
     }
     return this.props.memoryMB;
@@ -205,11 +205,11 @@ export class ConversationHandlerFunction
       !isWholeNumberBetweenInclusive(
         this.props.timeoutSeconds,
         timeoutMin,
-        timeoutMax
+        timeoutMax,
       )
     ) {
       throw new Error(
-        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
+        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`,
       );
     }
     return this.props.timeoutSeconds;
@@ -219,5 +219,5 @@ export class ConversationHandlerFunction
 const isWholeNumberBetweenInclusive = (
   test: number,
   min: number,
-  max: number
+  max: number,
 ) => min <= test && test <= max && test % 1 === 0;

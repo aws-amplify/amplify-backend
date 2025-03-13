@@ -12,14 +12,14 @@ import { DefaultDirectives, Directive } from '@aws-amplify/graphql-directives';
  * Transforms an AppSync introspection schema for use in form generation
  */
 export const transformIntrospectionSchema = async (
-  modelIntrospectionSchema: string
+  modelIntrospectionSchema: string,
 ): Promise<GenericDataSchema> => {
   const result = await appsync.preset.buildGeneratesSection({
     baseOutputDir: './',
     schema: parse(modelIntrospectionSchema),
     config: {
       directives: DefaultDirectives.map(
-        (directive: Directive) => directive.definition
+        (directive: Directive) => directive.definition,
       ).join(os.EOL),
       isTimestampFieldsAdded: true,
       emitAuthProvider: true,

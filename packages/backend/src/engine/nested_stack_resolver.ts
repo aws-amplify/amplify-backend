@@ -21,7 +21,7 @@ export class NestedStackResolver implements StackResolver {
    */
   constructor(
     private readonly rootStack: Stack,
-    private readonly attributionMetadataStorage: AttributionMetadataStorage
+    private readonly attributionMetadataStorage: AttributionMetadataStorage,
   ) {}
 
   /**
@@ -36,7 +36,7 @@ export class NestedStackResolver implements StackResolver {
     this.attributionMetadataStorage.storeAttributionMetadata(
       stack,
       `custom`,
-      fileURLToPath(new URL('../../package.json', import.meta.url))
+      fileURLToPath(new URL('../../package.json', import.meta.url)),
     );
     return stack;
   };
@@ -49,7 +49,7 @@ export class NestedStackResolver implements StackResolver {
     if (!this.stacks[resourceGroupName]) {
       this.stacks[resourceGroupName] = new NestedStack(
         this.rootStack,
-        resourceGroupName
+        resourceGroupName,
       );
     }
     return this.stacks[resourceGroupName];

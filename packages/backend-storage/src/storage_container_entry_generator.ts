@@ -26,7 +26,7 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory()
+    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory(),
   ) {}
 
   generateContainerEntry = ({
@@ -55,7 +55,7 @@ export class StorageContainerEntryGenerator
             break;
         }
         amplifyStorage.addTrigger(events, handler);
-      }
+      },
     );
 
     if (!this.props.access) {
@@ -75,7 +75,7 @@ export class StorageContainerEntryGenerator
         this.props.access,
         this.getInstanceProps,
         ssmEnvironmentEntries,
-        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
+        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket),
       );
 
     // the orchestrator generates policies according to the accessDefinition and attaches the policies to appropriate roles

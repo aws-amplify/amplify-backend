@@ -14,7 +14,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -28,7 +28,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -42,7 +42,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -56,7 +56,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -70,7 +70,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -84,7 +84,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      schedule
+      schedule,
     );
 
     assert.equal(schedules.length, 1);
@@ -99,7 +99,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      functionSchedules
+      functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
@@ -115,14 +115,14 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      functionSchedules
+      functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
     assert.equal(schedules[0].expressionString, expectedExpressionEveryMinute);
     assert.equal(
       schedules[1].expressionString,
-      expectedExpressionEveryMidnight
+      expectedExpressionEveryMidnight,
     );
   });
 
@@ -134,7 +134,7 @@ void describe('ScheduleParser', () => {
 
     const schedules = convertFunctionSchedulesToRuleSchedules(
       testLambda,
-      functionSchedules
+      functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
@@ -153,7 +153,7 @@ void describe('ScheduleParser', () => {
       {
         message:
           'Function schedule rate must be set with a positive whole number',
-      }
+      },
     );
   });
 
@@ -168,7 +168,7 @@ void describe('ScheduleParser', () => {
       {
         message:
           'Function schedule rate must be set with a positive whole number',
-      }
+      },
     );
   });
 
@@ -191,7 +191,7 @@ void describe('ScheduleParser', () => {
       },
       {
         message: expectedErrors.join(os.EOL),
-      }
+      },
     );
   });
 
@@ -218,7 +218,7 @@ void describe('ScheduleParser', () => {
       },
       {
         message: expectedErrors.join(os.EOL),
-      }
+      },
     );
   });
 
@@ -241,7 +241,7 @@ void describe('ScheduleParser', () => {
       },
       {
         message: expectedErrors.join(os.EOL),
-      }
+      },
     );
   });
 
@@ -264,7 +264,7 @@ void describe('ScheduleParser', () => {
       },
       {
         message: expectedErrors.join(os.EOL),
-      }
+      },
     );
   });
 
@@ -279,7 +279,7 @@ void describe('ScheduleParser', () => {
       {
         message:
           'Function schedule rate must be greater than the function timeout of 120 seconds',
-      }
+      },
     );
   });
 });

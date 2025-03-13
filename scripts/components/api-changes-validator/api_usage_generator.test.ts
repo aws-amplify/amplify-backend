@@ -356,17 +356,17 @@ void describe('Api usage generator', () => {
   for (const testCase of testCases) {
     void it(testCase.description, () => {
       const apiReportAST = ApiReportParser.parse(
-        nestInMarkdownCodeBlock(testCase.apiReportCode)
+        nestInMarkdownCodeBlock(testCase.apiReportCode),
       );
       const apiUsage = new ApiUsageGenerator(
         'samplePackageName',
         apiReportAST,
-        ['SampleIgnoredType']
+        ['SampleIgnoredType'],
       ).generate();
       assert.strictEqual(
         // .replace() removes EOL differences between Windows and other OS so output matches for all
         apiUsage.replace(/[\r]/g, '').trim(),
-        testCase.expectedApiUsage.trim()
+        testCase.expectedApiUsage.trim(),
       );
     });
   }

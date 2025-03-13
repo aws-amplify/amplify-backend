@@ -18,7 +18,7 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
    * Create a new instance of a CDK construct in the provided scope.
    */
   generateContainerEntry: (
-    props: GenerateContainerEntryProps
+    props: GenerateContainerEntryProps,
   ) => ResourceProvider<T>;
 };
 
@@ -34,10 +34,10 @@ export type GenerateContainerEntryProps = {
  */
 export type ConstructContainer = {
   getOrCompute: (
-    generator: ConstructContainerEntryGenerator
+    generator: ConstructContainerEntryGenerator,
   ) => ResourceProvider;
   registerConstructFactory: (token: string, provider: ConstructFactory) => void;
   getConstructFactory: <T extends ResourceProvider>(
-    token: string
+    token: string,
   ) => ConstructFactory<T> | undefined;
 };

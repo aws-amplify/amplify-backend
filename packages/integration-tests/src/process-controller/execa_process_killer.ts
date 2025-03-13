@@ -5,7 +5,7 @@ import { ExecaMethod, execa } from 'execa';
  * @param processInstance an instance of execa child process
  */
 export const killExecaProcess = async (
-  processInstance: ReturnType<ExecaMethod>
+  processInstance: ReturnType<ExecaMethod>,
 ) => {
   if (process.platform.startsWith('win')) {
     if (typeof processInstance.pid !== 'number') {

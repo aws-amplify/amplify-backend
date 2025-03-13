@@ -15,13 +15,13 @@ export class ClientConfigMobileConverter {
    */
   constructor(
     private readonly packageName: string,
-    private readonly packageVersion: string
+    private readonly packageVersion: string,
   ) {}
   /**
    * Converts client config to a shape consumable by mobile libraries.
    */
   convertToMobileConfig = (
-    clientConfig: ClientConfigLegacy
+    clientConfig: ClientConfigLegacy,
   ): ClientConfigMobile => {
     const userAgent = `${this.packageName}/${this.packageVersion}`;
 
@@ -122,7 +122,7 @@ export class ClientConfigMobileConverter {
         };
         if (clientConfig.aws_appsync_additionalAuthenticationTypes) {
           for (const additionalAuthenticationType of clientConfig.aws_appsync_additionalAuthenticationTypes.split(
-            ','
+            ',',
           )) {
             mobileConfig.auth.plugins.awsCognitoAuthPlugin.AppSync[
               `data_${additionalAuthenticationType}`

@@ -4,7 +4,7 @@ import * as path from 'path';
 let result = await glob('packages/*');
 result = result.filter((result) => !result.includes('integration-tests'));
 result.push(
-  path.join('packages', 'integration-tests', 'lib', 'test-in-memory')
+  path.join('packages', 'integration-tests', 'lib', 'test-in-memory'),
 );
 
 console.log(result.join(' '));

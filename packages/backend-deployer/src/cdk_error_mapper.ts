@@ -18,7 +18,7 @@ export class CdkErrorMapper {
   constructor(private readonly formatter: BackendDeployerOutputFormatter) {}
 
   getAmplifyError = (
-    error: Error
+    error: Error,
   ): AmplifyError<CDKDeploymentError | string> => {
     let underlyingError: Error | undefined = error;
 
@@ -30,7 +30,7 @@ export class CdkErrorMapper {
 
     const errorMessage = stripANSI(error.message);
     const matchingError = this.getKnownErrors().find((knownError) =>
-      knownError.errorRegex.test(errorMessage)
+      knownError.errorRegex.test(errorMessage),
     );
 
     if (matchingError) {
@@ -49,7 +49,7 @@ export class CdkErrorMapper {
               matchingError.humanReadableErrorMessage =
                 matchingError.humanReadableErrorMessage.replace(
                   placeHolder,
-                  value
+                  value,
                 );
 
               matchingError.resolutionMessage =
@@ -62,7 +62,7 @@ export class CdkErrorMapper {
           matchingError.humanReadableErrorMessage =
             matchingError.humanReadableErrorMessage.replace(
               new RegExp(`${this.multiLineEolRegex}$`),
-              ''
+              '',
             );
         } else {
           underlyingError.message = matchGroups[0];
@@ -76,7 +76,7 @@ export class CdkErrorMapper {
               message: matchingError.humanReadableErrorMessage,
               resolution: matchingError.resolutionMessage,
             },
-            underlyingError
+            underlyingError,
           )
         : new AmplifyFault(
             matchingError.errorName,
@@ -84,7 +84,7 @@ export class CdkErrorMapper {
               message: matchingError.humanReadableErrorMessage,
               resolution: matchingError.resolutionMessage,
             },
-            underlyingError
+            underlyingError,
           );
     }
     return AmplifyError.fromError(error);
@@ -186,7 +186,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
+        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`,
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -238,7 +238,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
+        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`,
       ),
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
@@ -325,7 +325,7 @@ export class CdkErrorMapper {
     {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
-        `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
+        `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`,
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -337,7 +337,7 @@ export class CdkErrorMapper {
     {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
-        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`
+        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`,
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -349,7 +349,7 @@ export class CdkErrorMapper {
     {
       // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
+        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`,
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
@@ -360,7 +360,7 @@ export class CdkErrorMapper {
     {
       // Captures other forms of transform error
       errorRegex: new RegExp(
-        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`
+        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`,
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
@@ -417,7 +417,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
+        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`,
       ),
       humanReadableErrorMessage: 'The {filePath} is not a valid JSON.',
       resolutionMessage: `Check package.json file and make sure it is a valid JSON.`,
@@ -426,7 +426,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `(?<npmError>(npm error|npm ERR!) code ENOENT${this.multiLineEolRegex}((npm error|npm ERR!) (.*)${this.multiLineEolRegex})*)`
+        `(?<npmError>(npm error|npm ERR!) code ENOENT${this.multiLineEolRegex}((npm error|npm ERR!) (.*)${this.multiLineEolRegex})*)`,
       ),
       humanReadableErrorMessage: 'NPM error occurred: {npmError}',
       resolutionMessage: `See https://docs.npmjs.com/common-errors for resolution.`,
@@ -438,7 +438,7 @@ export class CdkErrorMapper {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
-        'm'
+        'm',
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -485,7 +485,7 @@ export class CdkErrorMapper {
         /Failed to retrieve backend secret (?<secretName>.*) for.*ParameterNotFound/,
       humanReadableErrorMessage: `The secret {secretName} specified in the backend does not exist.`,
       resolutionMessage: `Create secrets using the command ${this.formatter.normalizeAmpxCommand(
-        'sandbox secret set'
+        'sandbox secret set',
       )}. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets`,
       errorName: 'SecretNotSetError',
       classification: 'ERROR',
@@ -501,7 +501,7 @@ export class CdkErrorMapper {
     {
       errorRegex: new RegExp(
         `amplify-.*-(branch|sandbox)-.*fail: (?<publishFailure>.*)${this.multiLineEolRegex}.*Failed to publish asset`,
-        'm'
+        'm',
       ),
       humanReadableErrorMessage: `CDK failed to publish assets due to '{publishFailure}'`,
       resolutionMessage: `Check the error message for more details.`,
@@ -523,7 +523,7 @@ export class CdkErrorMapper {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
-        'm'
+        'm',
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -581,7 +581,7 @@ If your circular dependency issue is not resolved with this workaround, please c
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
-        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
+        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`,
       ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:

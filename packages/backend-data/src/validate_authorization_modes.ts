@@ -3,7 +3,7 @@ import { AuthorizationModes } from './types.js';
 
 type AuthorizationModeValidator = (
   inputAuthorizationModes: AuthorizationModes | undefined,
-  transformedAuthorizationModes: CDKAuthorizationModes
+  transformedAuthorizationModes: CDKAuthorizationModes,
 ) => void;
 
 /**
@@ -17,7 +17,7 @@ const validateAtLeastOneAuthModeIsConfigured: AuthorizationModeValidator = (
     userPoolConfig,
     oidcConfig,
     apiKeyConfig,
-  }: CDKAuthorizationModes
+  }: CDKAuthorizationModes,
 ): void => {
   if (
     !iamConfig &&
@@ -27,7 +27,7 @@ const validateAtLeastOneAuthModeIsConfigured: AuthorizationModeValidator = (
     !apiKeyConfig
   ) {
     throw new Error(
-      'At least one authorization mode is required on the API. Either add Auth to the project to get IAM and UserPool authorization, or specify apiKeyConfig, lambdaConfig, or oidcConfig via authorization modes.'
+      'At least one authorization mode is required on the API. Either add Auth to the project to get IAM and UserPool authorization, or specify apiKeyConfig, lambdaConfig, or oidcConfig via authorization modes.',
     );
   }
 };
@@ -39,8 +39,8 @@ const validateAtLeastOneAuthModeIsConfigured: AuthorizationModeValidator = (
  */
 export const validateAuthorizationModes = (
   inputAuthorizationModes: AuthorizationModes | undefined,
-  transformedAuthorizationModes: CDKAuthorizationModes
+  transformedAuthorizationModes: CDKAuthorizationModes,
 ): void =>
   [validateAtLeastOneAuthModeIsConfigured].forEach((validate) =>
-    validate(inputAuthorizationModes, transformedAuthorizationModes)
+    validate(inputAuthorizationModes, transformedAuthorizationModes),
   );

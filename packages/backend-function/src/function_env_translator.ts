@@ -31,7 +31,7 @@ export class FunctionEnvironmentTranslator {
     private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
     private readonly backendSecretResolver: BackendSecretResolver,
-    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
+    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator,
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       this.addEnvironmentEntry(key, value);
@@ -42,7 +42,7 @@ export class FunctionEnvironmentTranslator {
       this.amplifySsmEnvConfigKey,
       Lazy.string({
         produce: () => JSON.stringify(this.ssmEnvVars),
-      })
+      }),
     );
 
     this.lambda.node.addValidation({
@@ -61,8 +61,8 @@ export class FunctionEnvironmentTranslator {
                     resource: 'parameter',
                     resourceName: path,
                   },
-                  Stack.of(this.lambda)
-                )
+                  Stack.of(this.lambda),
+                ),
               ),
           });
           this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
@@ -75,7 +75,7 @@ export class FunctionEnvironmentTranslator {
     this.lambda.node.addValidation({
       validate: (): string[] => {
         this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
-          this.amplifyBackendEnvVarNames
+          this.amplifyBackendEnvVarNames,
         );
         return [];
       },
@@ -91,7 +91,7 @@ export class FunctionEnvironmentTranslator {
     {
       if (key === this.amplifySsmEnvConfigKey) {
         throw new Error(
-          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`
+          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`,
         );
       }
       if (typeof value === 'undefined') {

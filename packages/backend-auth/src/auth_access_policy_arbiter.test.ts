@@ -30,11 +30,11 @@ void describe('AuthAccessPolicyArbiter', () => {
       stack = createStackAndSetContext();
 
       constructContainer = new ConstructContainerStub(
-        new StackResolverStub(stack)
+        new StackResolverStub(stack),
       );
 
       outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
 
       importPathVerifier = new ImportPathVerifierStub();
@@ -68,7 +68,7 @@ void describe('AuthAccessPolicyArbiter', () => {
         ],
         getInstanceProps,
         [{ name: 'TEST_USERPOOL_ID', path: 'test/ssm/path/to/userpool/id' }],
-        new UserPoolAccessPolicyFactory(userpool)
+        new UserPoolAccessPolicyFactory(userpool),
       );
 
       authAccessPolicyArbiter.arbitratePolicies();
@@ -98,7 +98,7 @@ void describe('AuthAccessPolicyArbiter', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[1].arguments[0].document.toJSON(),
@@ -115,11 +115,11 @@ void describe('AuthAccessPolicyArbiter', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        [{ name: 'TEST_USERPOOL_ID', path: 'test/ssm/path/to/userpool/id' }]
+        [{ name: 'TEST_USERPOOL_ID', path: 'test/ssm/path/to/userpool/id' }],
       );
     });
   });

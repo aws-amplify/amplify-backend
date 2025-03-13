@@ -42,7 +42,10 @@ export class TestCommandError extends Error {
   /**
    * Creates new test command error.
    */
-  constructor(readonly error: Error, readonly output: string) {
+  constructor(
+    readonly error: Error,
+    readonly output: string,
+  ) {
     super();
   }
 }
@@ -59,7 +62,7 @@ export class TestCommandRunner {
     private usageDataEmitter: UsageDataEmitter = {
       emitFailure: () => Promise.resolve(),
       emitSuccess: () => Promise.resolve(),
-    }
+    },
   ) {
     this.parser = parser
       // Pin locale

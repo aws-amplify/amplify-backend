@@ -15,7 +15,7 @@ void describe('amplify error', () => {
       new AmplifyUserError('AccessDeniedError', {
         message: 'some downstream error message',
         resolution: 'test resolution',
-      })
+      }),
     );
     const sampleStderr = `some random stderr
 before the actual error message
@@ -39,7 +39,7 @@ and some after the error message
         details: 'test error details',
         resolution: 'test resolution',
       },
-      new Error('some generic error')
+      new Error('some generic error'),
     );
     const sampleStderr = `some random stderr
 before the actual error message
@@ -69,7 +69,7 @@ and some after the error message
         details: 'test error details',
         resolution: 'test resolution',
       },
-      new TestError('some test error')
+      new TestError('some test error'),
     );
     const sampleStderr = `some random stderr
 before the actual error message
@@ -114,7 +114,7 @@ and some after the error message
       assert.deepStrictEqual(actual?.classification, 'ERROR');
       assert.deepStrictEqual(
         actual?.message,
-        'paths must start with "/" and end with "/*'
+        'paths must start with "/" and end with "/*',
       );
       assert.deepStrictEqual(actual?.resolution, 'test resolution');
     });
@@ -144,7 +144,7 @@ and some after the error message
       assert.deepStrictEqual(actual?.classification, 'ERROR');
       assert.deepStrictEqual(
         actual?.message,
-        `Cannot read properties of undefined (reading 'data')`
+        `Cannot read properties of undefined (reading 'data')`,
       );
       assert.deepStrictEqual(actual?.resolution, 'test resolution');
     });
@@ -154,7 +154,7 @@ and some after the error message
     void it('deserialize when string is encoded with single quote', () => {
       const sampleStderr = `some random stderr
       serializedError: '${Buffer.from(
-        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}',
       ).toString('base64')}',
 and some after the error message
     `;
@@ -168,7 +168,7 @@ and some after the error message
     void it('deserialize when string is encoded with double quote', () => {
       const sampleStderr = `some random stderr
       serializedError: "${Buffer.from(
-        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}',
       ).toString('base64')}",
 and some after the error message
     `;
@@ -182,7 +182,7 @@ and some after the error message
     void it('deserialize when string is encoded with back ticks', () => {
       const sampleStderr = `some random stderr
       serializedError: \`${Buffer.from(
-        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}',
       ).toString('base64')}\`,
 and some after the error message
     `;
@@ -213,7 +213,7 @@ void describe('AmplifyError.fromError', async () => {
       assert.ok(
         AmplifyError.isAmplifyError(actual) &&
           actual.name === 'InvalidCommandInputError',
-        `Failed the test for error ${error.message}`
+        `Failed the test for error ${error.message}`,
       );
     });
   });
@@ -223,7 +223,7 @@ void describe('AmplifyError.fromError', async () => {
     assert.ok(
       AmplifyError.isAmplifyError(actual) &&
         actual.name === 'DomainNotFoundError',
-      `Failed the test for error ${error.message}`
+      `Failed the test for error ${error.message}`,
     );
   });
   void it('wraps SyntaxErrors in AmplifyUserError', () => {
@@ -232,12 +232,12 @@ void describe('AmplifyError.fromError', async () => {
     const actual = AmplifyError.fromError(error);
     assert.ok(
       AmplifyError.isAmplifyError(actual) && actual.name === 'SyntaxError',
-      `Failed the test for error ${error.message}`
+      `Failed the test for error ${error.message}`,
     );
   });
   void it('wraps credentials related errors in AmplifyUserError', () => {
     const error = new Error(
-      'The security token included in the request is expired'
+      'The security token included in the request is expired',
     );
     [
       'ExpiredToken',
@@ -251,13 +251,13 @@ void describe('AmplifyError.fromError', async () => {
       assert.ok(
         AmplifyError.isAmplifyError(actual) &&
           actual.name === 'CredentialsError',
-        `Failed the test while wrapping error ${name}`
+        `Failed the test while wrapping error ${name}`,
       );
     });
   });
   void it('wraps request signature related errors in AmplifyUserError', () => {
     const error = new Error(
-      'The request signature we calculated does not match the signature you provided.'
+      'The request signature we calculated does not match the signature you provided.',
     );
     ['InvalidSignatureException', 'SignatureDoesNotMatch'].forEach((name) => {
       error.name = name;
@@ -265,14 +265,14 @@ void describe('AmplifyError.fromError', async () => {
       assert.ok(
         AmplifyError.isAmplifyError(actual) &&
           actual.name === 'RequestSignatureError',
-        `Failed the test while wrapping error ${name}`
+        `Failed the test while wrapping error ${name}`,
       );
     });
   });
   void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
     const insufficientDiskSpaceErrors = [
       new Error(
-        "ENOSPC: no space left on device, open '/some/path/amplify_outputs.json'"
+        "ENOSPC: no space left on device, open '/some/path/amplify_outputs.json'",
       ),
       new Error('npm ERR! code ENOSPC'),
     ];
@@ -281,7 +281,7 @@ void describe('AmplifyError.fromError', async () => {
       assert.ok(
         AmplifyError.isAmplifyError(actual) &&
           actual.name === 'InsufficientDiskSpaceError',
-        `Failed the test for error ${error.message}`
+        `Failed the test for error ${error.message}`,
       );
     });
   });
@@ -296,24 +296,35 @@ void describe('AmplifyError.fromError', async () => {
   });
   void it('wraps InsufficientMemorySpaceError in AmplifyUserError when process runs out of memory', () => {
     const error = new Error(
-      'FATAL ERROR: Zone Allocation failed - process out of memory.'
+      'FATAL ERROR: Zone Allocation failed - process out of memory.',
     );
     const actual = AmplifyError.fromError(error);
     assert.ok(
       AmplifyError.isAmplifyError(actual) &&
         actual.name === 'InsufficientMemorySpaceError',
-      `Failed the test for error ${error.message}`
+      `Failed the test for error ${error.message}`,
     );
   });
   void it('wraps InsufficientMemorySpaceError in AmplifyUserError when connection cannot be established due to lack of memory', () => {
     const error = new Error(
-      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)'
+      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
     );
     const actual = AmplifyError.fromError(error);
     assert.ok(
       AmplifyError.isAmplifyError(actual) &&
         actual.name === 'InsufficientMemorySpaceError',
-      `Failed the test for error ${error.message}`
+      `Failed the test for error ${error.message}`,
+    );
+  });
+  void it('wraps InsufficientInotifyWatchersError in AmplifyUserError when system has reached the limit of inotify watchers', () => {
+    const error = new Error(
+      `Error: inotify_add_watch on '/some/path' failed: No space left on device`,
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientInotifyWatchersError',
+      `Failed the test for error ${error.message}`,
     );
   });
 });

@@ -28,7 +28,7 @@ void describe('InitialProjectFileGenerator', () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
       packageManagerControllerMock,
-      fsMock as never
+      fsMock as never,
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
@@ -43,11 +43,11 @@ void describe('InitialProjectFileGenerator', () => {
     ]);
     assert.equal(
       fsMock.writeFile.mock.calls[0].arguments[0],
-      path.join(process.cwd(), 'testDir', 'amplify', 'package.json')
+      path.join(process.cwd(), 'testDir', 'amplify', 'package.json'),
     );
     assert.deepStrictEqual(
       JSON.parse(fsMock.writeFile.mock.calls[0].arguments[1]),
-      { type: 'module' }
+      { type: 'module' },
     );
   });
 
@@ -55,20 +55,20 @@ void describe('InitialProjectFileGenerator', () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
       packageManagerControllerMock,
-      fsMock as never
+      fsMock as never,
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
     assert.equal(
       packageManagerControllerMock.initializeTsConfig.mock.callCount(),
-      1
+      1,
     );
     assert.deepStrictEqual(
       packageManagerControllerMock.initializeTsConfig.mock.calls[0].arguments.slice(
         0,
-        3
+        3,
       ),
-      [path.join(process.cwd(), 'testDir', 'amplify')]
+      [path.join(process.cwd(), 'testDir', 'amplify')],
     );
   });
 });

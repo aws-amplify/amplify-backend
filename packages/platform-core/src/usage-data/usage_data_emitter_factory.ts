@@ -8,11 +8,11 @@ import { Dependency } from '@aws-amplify/plugin-types';
 export type UsageDataEmitter = {
   emitSuccess: (
     metrics?: Record<string, number>,
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => Promise<void>;
   emitFailure: (
     error: AmplifyError,
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => Promise<void>;
 };
 
@@ -25,10 +25,10 @@ export class UsageDataEmitterFactory {
    */
   getInstance = async (
     libraryVersion: string,
-    dependencies?: Array<Dependency>
+    dependencies?: Array<Dependency>,
   ): Promise<UsageDataEmitter> => {
     const configController = configControllerFactory.getInstance(
-      'usage_data_preferences.json'
+      'usage_data_preferences.json',
     );
 
     const usageDataTrackingDisabledLocalFile =

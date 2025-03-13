@@ -7,7 +7,7 @@ export const defaultNodeFunc = defineFunction({
   environment: {
     TEST_SECRET: secret('amazonSecret'),
     TEST_SHARED_SECRET: secret(
-      process.env[amplifySharedSecretNameKey] as string
+      process.env[amplifySharedSecretNameKey] as string,
     ),
     // adding another env var to check that function config updates can be hotswapped
     NEW_ENV_VAR: 'someValue',
@@ -21,7 +21,7 @@ export const node16Func = defineFunction({
   environment: {
     TEST_SECRET: secret('amazonSecret'),
     TEST_SHARED_SECRET: secret(
-      process.env[amplifySharedSecretNameKey] as string
+      process.env[amplifySharedSecretNameKey] as string,
     ),
   },
   timeoutSeconds: 5,

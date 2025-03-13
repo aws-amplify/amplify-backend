@@ -14,12 +14,12 @@ void describe('GraphQl tool', () => {
   const query = 'testQuery';
   const accessToken = 'testAccessToken';
   const userAgentProvider = new UserAgentProvider(
-    {} as unknown as ConversationTurnEvent
+    {} as unknown as ConversationTurnEvent,
   );
   mock.method(userAgentProvider, 'getUserAgent', () => '');
 
   const createGraphQlTool = (
-    graphqlRequestExecutor: GraphqlRequestExecutor
+    graphqlRequestExecutor: GraphqlRequestExecutor,
   ): GraphQlTool => {
     return new GraphQlTool(
       'testName',
@@ -29,7 +29,7 @@ void describe('GraphQl tool', () => {
       query,
       accessToken,
       userAgentProvider,
-      graphqlRequestExecutor
+      graphqlRequestExecutor,
     );
   };
 
@@ -40,14 +40,14 @@ void describe('GraphQl tool', () => {
     const graphqlRequestExecutor = new GraphqlRequestExecutor(
       '',
       '',
-      userAgentProvider
+      userAgentProvider,
     );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
       () =>
         // Mock successful Appsync response
-        Promise.resolve(testResponse)
+        Promise.resolve(testResponse),
     );
     const tool = createGraphQlTool(graphqlRequestExecutor);
     const toolResult = await tool.execute({ test: 'input' });

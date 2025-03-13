@@ -22,7 +22,7 @@ import { testConcurrencyLevel } from '../test_concurrency.js';
  * Defines deployment test
  */
 export const defineDeploymentTest = (
-  testProjectCreator: TestProjectCreator
+  testProjectCreator: TestProjectCreator,
 ) => {
   void describe(
     'deployment tests',
@@ -57,22 +57,21 @@ export const defineDeploymentTest = (
         void it(`[${testProjectCreator.name}] deploys fully`, async () => {
           await testProject.deploy(branchBackendIdentifier);
           await testProject.assertPostDeployment(branchBackendIdentifier);
-          const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
-            testBranch
-          );
+          const testBranchDetails =
+            await amplifyAppPool.fetchTestBranchDetails(testBranch);
           assert.ok(
             testBranchDetails.backend?.stackArn,
-            'branch should have stack associated'
+            'branch should have stack associated',
           );
           assert.ok(
             testBranchDetails.backend?.stackArn?.includes(
-              branchBackendIdentifier.namespace
-            )
+              branchBackendIdentifier.namespace,
+            ),
           );
           assert.ok(
             testBranchDetails.backend?.stackArn?.includes(
-              branchBackendIdentifier.name
-            )
+              branchBackendIdentifier.name,
+            ),
           );
 
           // test generating all client formats
@@ -91,12 +90,12 @@ export const defineDeploymentTest = (
                 '--format',
                 format,
               ],
-              testProject.projectDirPath
+              testProject.projectDirPath,
             ).run();
 
             await testProject.assertClientConfigExists(
               testProject.projectDirPath,
-              format
+              format,
             );
           }
         });
@@ -112,13 +111,13 @@ export const defineDeploymentTest = (
             testProject.projectAmplifyDirPath,
             {
               recursive: true,
-            }
+            },
           );
 
           // inject failure
           await fs.appendFile(
             path.join(testProject.projectAmplifyDirPath, 'backend.ts'),
-            "this won't compile"
+            "this won't compile",
           );
         });
 
@@ -127,12 +126,12 @@ export const defineDeploymentTest = (
             const predicatedActionBuilder = new PredicatedActionBuilder();
             await ampxCli(
               ['sandbox', '--dirToWatch', 'amplify'],
-              testProject.projectDirPath
+              testProject.projectDirPath,
             )
               .do(
                 predicatedActionBuilder.waitForLineIncludes(
-                  'TypeScript validation check failed'
-                )
+                  'TypeScript validation check failed',
+                ),
               )
               .do(waitForSandboxToBecomeIdle())
               .do(predicatedActionBuilder.sendCtrlC())
@@ -152,18 +151,18 @@ export const defineDeploymentTest = (
                 testProject.projectDirPath,
                 {
                   env: { CI: 'true' },
-                }
+                },
               )
                 .do(
                   new PredicatedActionBuilder().waitForLineIncludes(
-                    'TypeScript validation check failed'
-                  )
+                    'TypeScript validation check failed',
+                  ),
                 )
-                .run()
+                .run(),
             );
           });
         });
       });
-    }
+    },
   );
 };

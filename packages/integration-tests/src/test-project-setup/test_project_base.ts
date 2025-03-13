@@ -63,7 +63,7 @@ export abstract class TestProjectBase {
     readonly projectDirPath: string,
     readonly projectAmplifyDirPath: string,
     protected readonly cfnClient: CloudFormationClient,
-    protected readonly amplifyClient: AmplifyClient
+    protected readonly amplifyClient: AmplifyClient,
   ) {}
 
   /**
@@ -71,7 +71,7 @@ export abstract class TestProjectBase {
    */
   async deploy(
     backendIdentifier: BackendIdentifier,
-    environment?: Record<string, string>
+    environment?: Record<string, string>,
   ) {
     if (backendIdentifier.type === 'sandbox') {
       await ampxCli(['sandbox'], this.projectDirPath, {
@@ -95,7 +95,7 @@ export abstract class TestProjectBase {
             CI: 'true',
             ...environment,
           },
-        }
+        },
       ).run();
     }
   }
@@ -105,7 +105,7 @@ export abstract class TestProjectBase {
    */
   async tearDown(
     backendIdentifier: BackendIdentifier,
-    waitForStackDeletion: boolean = false
+    waitForStackDeletion: boolean = false,
   ) {
     if (backendIdentifier.type === 'sandbox') {
       await ampxCli(['sandbox', 'delete'], this.projectDirPath)
@@ -117,7 +117,7 @@ export abstract class TestProjectBase {
       await this.cfnClient.send(
         new DeleteStackCommand({
           StackName: stackName,
-        })
+        }),
       );
       if (waitForStackDeletion) {
         await this.waitForStackDeletion(stackName);
@@ -132,7 +132,7 @@ export abstract class TestProjectBase {
    */
   async waitForStackDeletion(
     stackName: string,
-    timeoutInMS: number = 3 * 60 * 1000
+    timeoutInMS: number = 3 * 60 * 1000,
   ): Promise<boolean> {
     let attempts = 0;
     let totalTimeWaitedMs = 0;
@@ -147,10 +147,10 @@ export abstract class TestProjectBase {
         const status = await this.cfnClient.send(
           new DescribeStacksCommand({
             StackName: stackName,
-          })
+          }),
         );
         console.log(
-          JSON.stringify(status.Stacks?.map((s) => s.StackName) ?? [])
+          JSON.stringify(status.Stacks?.map((s) => s.StackName) ?? []),
         );
         if (!status.Stacks || status.Stacks.length == 0) {
           console.log(`Stack ${stackName} was deleted successfully.`);
@@ -166,7 +166,7 @@ export abstract class TestProjectBase {
         }
         console.error(
           `Could not describe stack ${stackName} while waiting for deletion.`,
-          e
+          e,
         );
         throw e;
       }
@@ -174,7 +174,7 @@ export abstract class TestProjectBase {
     console.error(
       `Stack ${stackName} did not delete within ${
         timeoutInMS / 1000
-      } seconds, continuing.`
+      } seconds, continuing.`,
     );
     return false;
   }
@@ -194,7 +194,7 @@ export abstract class TestProjectBase {
   async assertPostDeployment(backendId: BackendIdentifier): Promise<void> {
     await this.assertClientConfigExists(
       this.projectDirPath,
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
   }
 
@@ -206,8 +206,8 @@ export abstract class TestProjectBase {
       await getClientConfigPath(
         ClientConfigFileBaseName.DEFAULT,
         dir ?? this.projectDirPath,
-        format
-      )
+        format,
+      ),
     );
 
     assert.ok(clientConfigStats.isFile());
@@ -226,8 +226,8 @@ export abstract class TestProjectBase {
             '@aws-amplify',
             'deployed-backend-client',
             'lib',
-            'backend_output_client_factory.js'
-          )
+            'backend_output_client_factory.js',
+          ),
         ).toString()
       );
 

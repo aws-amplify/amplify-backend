@@ -17,7 +17,7 @@ export class ReleaseDeprecator {
     private readonly githubClient: GithubClient,
     private readonly gitClient: GitClient,
     private readonly npmClient: NpmClient,
-    private readonly distTagMover: DistTagMover
+    private readonly distTagMover: DistTagMover,
   ) {}
 
   /**
@@ -36,15 +36,15 @@ export class ReleaseDeprecator {
 
     const releaseCommitHashToDeprecate =
       await this.gitClient.getNearestReleaseCommit(
-        this.gitRefToStartReleaseSearchFrom
+        this.gitRefToStartReleaseSearchFrom,
       );
 
     const releaseTagsToDeprecate = await this.gitClient.getTagsAtCommit(
-      releaseCommitHashToDeprecate
+      releaseCommitHashToDeprecate,
     );
 
     const previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
-      releaseCommitHashToDeprecate
+      releaseCommitHashToDeprecate,
     );
 
     // Create the changeset revert PR
@@ -57,7 +57,7 @@ export class ReleaseDeprecator {
     ]);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges(
-      `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`
+      `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`,
     );
     await this.gitClient.push({ force: true });
 
@@ -68,7 +68,7 @@ export class ReleaseDeprecator {
         head: prBranch,
         title: `Deprecate release ${releaseCommitHashToDeprecate}`,
         body: `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`,
-      }
+      },
     );
 
     console.log(`Created deprecation PR at ${prUrl}`);
@@ -78,14 +78,14 @@ export class ReleaseDeprecator {
 
     await this.distTagMover.moveDistTags(
       releaseTagsToDeprecate,
-      previousReleaseTags
+      previousReleaseTags,
     );
 
     for (const releaseTag of releaseTagsToDeprecate) {
       console.log(`Deprecating package version ${releaseTag}`);
       await this.npmClient.deprecatePackage(
         releaseTag,
-        this.deprecationMessage
+        this.deprecationMessage,
       );
       console.log(`Done!${EOL}`);
     }

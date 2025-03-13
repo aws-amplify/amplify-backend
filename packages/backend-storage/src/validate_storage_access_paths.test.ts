@@ -46,7 +46,7 @@ void describe('validateStorageAccessPaths', () => {
       {
         message:
           'For any given path, only one other path can be a prefix of it. Found [foo/bar/baz/*] which has prefixes [foo/*, foo/bar/*].',
-      }
+      },
     );
   });
 
@@ -55,7 +55,7 @@ void describe('validateStorageAccessPaths', () => {
       () => validateStorageAccessPaths(['foo/{entity_id}/{entity_id}/*']),
       {
         message: `The ${entityIdPathToken} token can only appear once in a path. Found [foo/{entity_id}/{entity_id}/*]`,
-      }
+      },
     );
   });
 
@@ -82,13 +82,13 @@ void describe('validateStorageAccessPaths', () => {
       () => validateStorageAccessPaths(['foo/{entity_id}/*', 'foo/*']),
       {
         message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
-      }
+      },
     );
     assert.throws(
       () => validateStorageAccessPaths(['foo/bar/{entity_id}/*', 'foo/*']),
       {
         message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
-      }
+      },
     );
   });
 });

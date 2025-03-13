@@ -25,11 +25,11 @@ export class CustomOutputsTestProjectCreator implements TestProjectCreator {
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -41,14 +41,14 @@ export class CustomOutputsTestProjectCreator implements TestProjectCreator {
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.amplifyClient
+      this.amplifyClient,
     );
     await fsp.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -64,7 +64,7 @@ class CustomOutputsTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -75,48 +75,48 @@ class CustomOutputsTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    amplifyClient: AmplifyClient
+    amplifyClient: AmplifyClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   assertPostDeployment = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> => {
     await super.assertPostDeployment(backendId);
 
     const clientConfigPath = await getClientConfigPath(
       ClientConfigFileBaseName.DEFAULT,
       this.projectDirPath,
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
     const clientConfig: ClientConfig = JSON.parse(
-      await fsp.readFile(clientConfigPath, 'utf-8')
+      await fsp.readFile(clientConfigPath, 'utf-8'),
     );
 
     assert.strictEqual(
       clientConfig.auth?.user_pool_id,
-      'fakeCognitoUserPoolId'
+      'fakeCognitoUserPoolId',
     );
     assert.strictEqual(
       clientConfig.custom?.someConstant1,
-      'someHardCodedValue1'
+      'someHardCodedValue1',
     );
     assert.strictEqual(
       clientConfig.custom?.someConstant2,
-      'someHardCodedValue2'
+      'someHardCodedValue2',
     );
     assert.ok(clientConfig.custom?.restApiUrl);
     assert.ok(
       /^https:\/\/\S+\.execute-api\.\S+\.amazonaws\.com\/prod\//.test(
-        (clientConfig.custom?.restApiUrl as string) ?? 'undefined'
-      )
+        (clientConfig.custom?.restApiUrl as string) ?? 'undefined',
+      ),
     );
   };
 }

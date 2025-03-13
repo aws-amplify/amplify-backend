@@ -20,7 +20,7 @@ export class NpmPackageManagerController extends PackageManagerControllerBase {
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
     protected readonly existsSync = _existsSync,
-    protected readonly lockFileReader = new NpmLockFileReader()
+    protected readonly lockFileReader = new NpmLockFileReader(),
   ) {
     super(
       cwd,
@@ -32,7 +32,7 @@ export class NpmPackageManagerController extends PackageManagerControllerBase {
       path,
       execa,
       executeWithDebugLogger,
-      existsSync
+      existsSync,
     );
   }
 }

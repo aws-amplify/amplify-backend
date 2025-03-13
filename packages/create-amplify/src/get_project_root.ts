@@ -34,7 +34,7 @@ export const getProjectRoot = async () => {
   if (!isExistProjectRoot) {
     printer.log(
       `The provided directory (${projectRoot}) does not exist.`,
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
     printer.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
     try {
@@ -46,7 +46,7 @@ export const getProjectRoot = async () => {
           message: `Failed to create project directory`,
           resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
         },
-        err as Error
+        err as Error,
       );
     }
   }

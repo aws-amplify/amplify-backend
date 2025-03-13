@@ -88,7 +88,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     const parseAndAssignObject = <T>(
       obj: T,
       key: keyof T,
-      value: string | undefined
+      value: string | undefined,
     ) => {
       if (value == null) {
         return;
@@ -113,31 +113,31 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     parseAndAssignObject(
       authClientConfig.auth,
       'mfa_methods',
-      authOutput.payload.mfaTypes
+      authOutput.payload.mfaTypes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'standard_required_attributes',
-      authOutput.payload.signupAttributes
+      authOutput.payload.signupAttributes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'username_attributes',
-      authOutput.payload.usernameAttributes
+      authOutput.payload.usernameAttributes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'user_verification_types',
-      authOutput.payload.verificationMechanisms
+      authOutput.payload.verificationMechanisms,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'groups',
-      authOutput.payload.groups
+      authOutput.payload.groups,
     );
 
     if (authOutput.payload.mfaConfiguration) {
@@ -171,12 +171,12 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       };
       if (authOutput.payload.passwordPolicyMinLength) {
         authClientConfig.auth.password_policy.min_length = Number.parseInt(
-          authOutput.payload.passwordPolicyMinLength
+          authOutput.payload.passwordPolicyMinLength,
         );
       }
       if (authOutput.payload.passwordPolicyRequirements) {
         const requirements = JSON.parse(
-          authOutput.payload.passwordPolicyRequirements
+          authOutput.payload.passwordPolicyRequirements,
         ) as string[];
         for (const requirement of requirements) {
           switch (requirement) {
@@ -260,7 +260,7 @@ export class AuthClientConfigContributorV1_1
     const parseAndAssignObject = <T>(
       obj: T,
       key: keyof T,
-      value: string | undefined
+      value: string | undefined,
     ) => {
       if (value == null) {
         return;
@@ -285,25 +285,25 @@ export class AuthClientConfigContributorV1_1
     parseAndAssignObject(
       authClientConfig.auth,
       'mfa_methods',
-      authOutput.payload.mfaTypes
+      authOutput.payload.mfaTypes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'standard_required_attributes',
-      authOutput.payload.signupAttributes
+      authOutput.payload.signupAttributes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'username_attributes',
-      authOutput.payload.usernameAttributes
+      authOutput.payload.usernameAttributes,
     );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'user_verification_types',
-      authOutput.payload.verificationMechanisms
+      authOutput.payload.verificationMechanisms,
     );
 
     if (authOutput.payload.mfaConfiguration) {
@@ -337,12 +337,12 @@ export class AuthClientConfigContributorV1_1
       };
       if (authOutput.payload.passwordPolicyMinLength) {
         authClientConfig.auth.password_policy.min_length = Number.parseInt(
-          authOutput.payload.passwordPolicyMinLength
+          authOutput.payload.passwordPolicyMinLength,
         );
       }
       if (authOutput.payload.passwordPolicyRequirements) {
         const requirements = JSON.parse(
-          authOutput.payload.passwordPolicyRequirements
+          authOutput.payload.passwordPolicyRequirements,
         ) as string[];
         for (const requirement of requirements) {
           switch (requirement) {
@@ -415,7 +415,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
    * @param modelIntrospectionSchemaAdapter the adapter to provide the model introspection schema from s3 uri
    */
   constructor(
-    private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
+    private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter,
   ) {}
 
   /**
@@ -439,13 +439,13 @@ export class DataClientConfigContributor implements ClientConfigContributor {
         graphqlOutput.payload.awsAppsyncAuthenticationType,
       authorization_types:
         graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
-          ','
+          ',',
         ) as AwsAppsyncAuthorizationType[],
     };
 
     const modelIntrospection =
       await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
-        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
+        graphqlOutput.payload.amplifyApiModelSchemaS3Uri,
       );
 
     if (modelIntrospection) {
@@ -474,7 +474,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     }
     const config: Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs> = {};
     const bucketsStringArray = JSON.parse(
-      storageOutput.payload.buckets ?? '[]'
+      storageOutput.payload.buckets ?? '[]',
     );
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
@@ -497,7 +497,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
             bucket_name: bucketName,
             aws_region: storageRegion,
             paths,
-          })
+          }),
         ),
     };
 
@@ -523,7 +523,7 @@ export class StorageClientConfigContributorV1_1
     }
     const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
     const bucketsStringArray = JSON.parse(
-      storageOutput.payload.buckets ?? '[]'
+      storageOutput.payload.buckets ?? '[]',
     );
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
@@ -543,7 +543,7 @@ export class StorageClientConfigContributorV1_1
             name,
             bucket_name: bucketName,
             aws_region: storageRegion,
-          })
+          }),
         ),
     };
 

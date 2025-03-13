@@ -8,7 +8,7 @@ import { getBackendIdentifier } from './backend_identifier.js';
 export const createDefaultStack = (app = new App()): Stack => {
   const mainStackCreator = new ProjectEnvironmentMainStackCreator(
     app,
-    getBackendIdentifier(app)
+    getBackendIdentifier(app),
   );
   return mainStackCreator.getOrCreateMainStack();
 };

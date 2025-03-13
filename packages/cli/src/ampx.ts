@@ -17,7 +17,7 @@ import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 import { PostCommandNoticesProcessor } from './notices/post_command_notices_processor.js';
 
 const packageJson = new PackageJsonReader().read(
-  fileURLToPath(new URL('../package.json', import.meta.url))
+  fileURLToPath(new URL('../package.json', import.meta.url)),
 );
 const libraryVersion = packageJson.version;
 
@@ -34,7 +34,7 @@ const dependencies = await packageManagerController.tryGetDependencies();
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
-  dependencies
+  dependencies,
 );
 
 attachUnhandledExceptionListeners(usageDataEmitter);

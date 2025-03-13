@@ -25,7 +25,7 @@ some_other_dep@12.13.14:
   resolved "https://registry.yarnpkg.com/some_other_dep"
   integrity some-other-sha
   dependencies:
-    sub_dep_3 "~2.0.1"`
+    sub_dep_3 "~2.0.1"`,
   );
   const yarnClassicLockFileReader = new YarnClassicLockFileReader();
 
@@ -51,14 +51,14 @@ some_other_dep@12.13.14:
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
       fspReadFileMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), 'yarn.lock')
+      path.resolve(process.cwd(), 'yarn.lock'),
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
   void it('returns undefined when yarn.lock is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
+      Promise.reject(new Error()),
     );
     const lockFileContents =
       await yarnClassicLockFileReader.getLockFileContentsFromCwd();
@@ -73,7 +73,7 @@ some_other_dep@12.13.14:
 # yarn lockfile v1
 
 
-`
+`,
     );
     const lockFileContents =
       await yarnClassicLockFileReader.getLockFileContentsFromCwd();

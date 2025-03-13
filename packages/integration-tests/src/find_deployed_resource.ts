@@ -17,8 +17,8 @@ export class DeployedResourcesFinder {
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   /**
@@ -33,14 +33,14 @@ export class DeployedResourcesFinder {
     backendId: BackendIdentifier,
     resourceType: string,
     physicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
-    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+    logicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const stackName = BackendIdentifierConversions.toStackName(backendId);
     return await this.findNamesByStackName(
       stackName,
       resourceType,
       physicalNamePredicate,
-      logicalNamePredicate
+      logicalNamePredicate,
     );
   };
 
@@ -56,7 +56,7 @@ export class DeployedResourcesFinder {
     stackName: string,
     resourceType: string,
     physicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
-    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+    logicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const queue = [stackName];
 
@@ -65,7 +65,7 @@ export class DeployedResourcesFinder {
     while (queue.length > 0) {
       const currentStack = queue.pop();
       const response = await this.cfnClient.send(
-        new DescribeStackResourcesCommand({ StackName: currentStack })
+        new DescribeStackResourcesCommand({ StackName: currentStack }),
       );
 
       for (const resource of response.StackResources || []) {

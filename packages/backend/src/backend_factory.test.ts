@@ -57,7 +57,7 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
-      rootStack
+      rootStack,
     );
 
     const bucketStack = Stack.of(rootStack.node.findChild('test'));
@@ -96,7 +96,7 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
-      rootStack
+      rootStack,
     );
 
     const rootStackTemplate = Template.fromStack(rootStack);
@@ -140,11 +140,11 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
-      rootStack
+      rootStack,
     );
     assert.equal(
       backend.resources.testConstructFactory.resources.bucket.node.id,
-      'test-bucket'
+      'test-bucket',
     );
   });
 
@@ -158,7 +158,7 @@ void describe('Backend', () => {
     const rootStackTemplate = Template.fromStack(rootStack);
     assert.equal(
       JSON.parse(rootStackTemplate.toJSON().Description).stackType,
-      'root'
+      'root',
     );
   });
 

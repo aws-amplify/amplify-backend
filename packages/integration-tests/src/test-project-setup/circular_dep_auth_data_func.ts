@@ -19,11 +19,11 @@ export class CircularDepAuthDataFuncTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -35,14 +35,14 @@ export class CircularDepAuthDataFuncTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.amplifyClient
+      this.amplifyClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -59,7 +59,7 @@ class CircularDepAuthDataFuncTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -70,14 +70,14 @@ class CircularDepAuthDataFuncTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    amplifyClient: AmplifyClient
+    amplifyClient: AmplifyClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 }

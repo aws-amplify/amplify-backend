@@ -26,7 +26,7 @@ export class BackendOutputClientError extends Error {
   constructor(
     code: BackendOutputClientErrorType,
     message: string,
-    options?: ErrorOptions
+    options?: ErrorOptions,
   ) {
     super(message, options);
     this.code = code;
@@ -43,14 +43,14 @@ export class BackendOutputClientError extends Error {
    * See https://github.com/nodejs/node/issues/17943.
    */
   static isBackendOutputClientError = (
-    error: unknown
+    error: unknown,
   ): error is BackendOutputClientError => {
     return (
       error instanceof Error &&
       'code' in error &&
       typeof error.code === 'string' &&
       (Object.values(BackendOutputClientErrorType) as unknown[]).includes(
-        error.code
+        error.code,
       ) &&
       typeof error.message === 'string'
     );
@@ -62,7 +62,7 @@ export class BackendOutputClientError extends Error {
  */
 export type BackendOutputClient = {
   readonly getOutput: (
-    backendIdentifier: DeployedBackendIdentifier
+    backendIdentifier: DeployedBackendIdentifier,
   ) => Promise<UnifiedBackendOutput>;
 };
 
@@ -89,12 +89,12 @@ export class BackendOutputClientFactory {
     awsClientProvider?: AWSClientProvider<{
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
-    }>
+    }>,
   ): BackendOutputClient => {
     return new DefaultBackendOutputClient(
       awsClientProvider?.getCloudFormationClient() ??
         new CloudFormationClient(),
-      awsClientProvider?.getAmplifyClient() ?? new AmplifyClient()
+      awsClientProvider?.getAmplifyClient() ?? new AmplifyClient(),
     );
   };
 }

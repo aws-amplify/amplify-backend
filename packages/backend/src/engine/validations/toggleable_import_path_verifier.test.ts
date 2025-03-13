@@ -11,14 +11,14 @@ void describe('ToggleableImportPathVerifier', () => {
   void it('does nothing if disabled', () => {
     const verifier = new ToggleableImportPathVerifier(false);
     assert.doesNotThrow(() =>
-      verifier.verify(incorrectStackTrace, 'auth', 'test message')
+      verifier.verify(incorrectStackTrace, 'auth', 'test message'),
     );
   });
 
   void it('does nothing if importStack is undefined', () => {
     const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
-      verifier.verify(undefined, 'auth', 'test message')
+      verifier.verify(undefined, 'auth', 'test message'),
     );
   });
 
@@ -28,7 +28,7 @@ void describe('ToggleableImportPathVerifier', () => {
 
     const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
-      verifier.verify(tooShortStack, 'auth', 'test message')
+      verifier.verify(tooShortStack, 'auth', 'test message'),
     );
   });
 
@@ -40,7 +40,7 @@ void describe('ToggleableImportPathVerifier', () => {
 
     const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
-      verifier.verify(malformedStacktrace, 'auth', 'test message')
+      verifier.verify(malformedStacktrace, 'auth', 'test message'),
     );
   });
 
@@ -48,7 +48,7 @@ void describe('ToggleableImportPathVerifier', () => {
     const verifier = new ToggleableImportPathVerifier();
     assert.throws(
       () => verifier.verify(incorrectStackTrace, 'auth', 'test message'),
-      new Error('test message')
+      new Error('test message'),
     );
   });
 
@@ -60,7 +60,7 @@ void describe('ToggleableImportPathVerifier', () => {
 
     const verifier = new ToggleableImportPathVerifier();
     assert.doesNotThrow(() =>
-      verifier.verify(correctStackTrace, 'auth', 'test message')
+      verifier.verify(correctStackTrace, 'auth', 'test message'),
     );
   });
 });

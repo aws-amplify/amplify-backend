@@ -17,8 +17,8 @@ if (scheduleFunctionLambdaRole) {
     Role.fromRoleArn(
       queueStack,
       'LambdaExecutionRole',
-      scheduleFunctionLambdaRole.roleArn
-    )
+      scheduleFunctionLambdaRole.roleArn,
+    ),
   );
 }
 backend.funcWithSchedule.addEnvironment('SQS_QUEUE_URL', queue.queueUrl);
@@ -29,7 +29,7 @@ const customEmailSenderLambdaRole = customEmailSenderLambda.role;
 const customEmailSenderQueueStack = Stack.of(customEmailSenderLambda);
 const emailSenderQueue = new Queue(
   customEmailSenderQueueStack,
-  'amplify-customEmailSenderQueue'
+  'amplify-customEmailSenderQueue',
 );
 
 if (customEmailSenderLambdaRole) {
@@ -37,13 +37,13 @@ if (customEmailSenderLambdaRole) {
     Role.fromRoleArn(
       customEmailSenderQueueStack,
       'CustomEmailSenderLambdaExecutionRole',
-      customEmailSenderLambdaRole.roleArn
-    )
+      customEmailSenderLambdaRole.roleArn,
+    ),
   );
 }
 backend.funcCustomEmailSender.addEnvironment(
   'CUSTOM_SENDER_SQS_QUEUE_URL',
-  emailSenderQueue.queueUrl
+  emailSenderQueue.queueUrl,
 );
 
 // Queue setup for customSmsSender
@@ -52,7 +52,7 @@ const customSmsSenderLambdaRole = customSmsSenderLambda.role;
 const customSmsSenderQueueStack = Stack.of(customSmsSenderLambda);
 const smsSenderQueue = new Queue(
   customSmsSenderQueueStack,
-  'amplify-customSmsSenderQueue'
+  'amplify-customSmsSenderQueue',
 );
 
 if (customSmsSenderLambdaRole) {
@@ -60,11 +60,11 @@ if (customSmsSenderLambdaRole) {
     Role.fromRoleArn(
       customSmsSenderQueueStack,
       'CustomSmsSenderLambdaExecutionRole',
-      customSmsSenderLambdaRole.roleArn
-    )
+      customSmsSenderLambdaRole.roleArn,
+    ),
   );
 }
 backend.funcCustomSmsSender.addEnvironment(
   'CUSTOM_SENDER_SQS_QUEUE_URL',
-  smsSenderQueue.queueUrl
+  smsSenderQueue.queueUrl,
 );

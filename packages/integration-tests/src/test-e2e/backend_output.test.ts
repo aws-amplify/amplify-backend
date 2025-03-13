@@ -31,7 +31,7 @@ import { CloudTrailClient } from '@aws-sdk/client-cloudtrail';
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
-  new URL('../e2e-outputs-tests', import.meta.url)
+  new URL('../e2e-outputs-tests', import.meta.url),
 );
 
 void describe(
@@ -55,7 +55,7 @@ void describe(
         s3Client,
         iamClient,
         cloudTrailClient,
-        resourceFinder
+        resourceFinder,
       );
 
     let branchBackendIdentifier: BackendIdentifier;
@@ -66,7 +66,7 @@ void describe(
       await createTestDirectory(rootTestDir);
       testProject =
         await dataStorageAuthWithTriggerTestProjectCreator.createProject(
-          rootTestDir
+          rootTestDir,
         );
       await setupDeployedBackendClient(testProject.projectDirPath);
       testBranch = await amplifyAppPool.createTestBranch();
@@ -90,5 +90,5 @@ void describe(
       await testProject.assertPostDeployment(branchBackendIdentifier);
       await testProject.assertDeployedClientOutputs(branchBackendIdentifier);
     });
-  }
+  },
 );

@@ -12,7 +12,7 @@ import { TestCdkProjectCreator } from '../../test-project-setup/cdk/test_cdk_pro
  * Defines cdk deployment test
  */
 export const defineCdkDeploymentTest = (
-  testCdkProjectCreator: TestCdkProjectCreator
+  testCdkProjectCreator: TestCdkProjectCreator,
 ) => {
   void describe(
     'cdk deployment tests',
@@ -30,9 +30,8 @@ export const defineCdkDeploymentTest = (
           let testCdkProject: TestCdkProjectBase;
 
           beforeEach(async () => {
-            testCdkProject = await testCdkProjectCreator.createProject(
-              rootTestDir
-            );
+            testCdkProject =
+              await testCdkProjectCreator.createProject(rootTestDir);
           });
 
           afterEach(async () => {
@@ -45,6 +44,6 @@ export const defineCdkDeploymentTest = (
           });
         });
       });
-    }
+    },
   );
 };

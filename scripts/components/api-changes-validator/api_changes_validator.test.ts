@@ -10,21 +10,21 @@ import { EOL } from 'os';
 
 const testResourcesPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
-  'test-resources'
+  'test-resources',
 );
 const testProjectsWithBreaksPath = path.join(
   testResourcesPath,
   'test-projects',
-  'with-breaks'
+  'with-breaks',
 );
 const testProjectsWithBreaks = await fsp.readdir(testProjectsWithBreaksPath);
 const testProjectsWithoutBreaksPath = path.join(
   testResourcesPath,
   'test-projects',
-  'without-breaks'
+  'without-breaks',
 );
 const testProjectsWithoutBreaks = await fsp.readdir(
-  testProjectsWithoutBreaksPath
+  testProjectsWithoutBreaksPath,
 );
 const workingDirectory = path.join(testResourcesPath, 'working-directory');
 
@@ -44,25 +44,25 @@ void describe('Api changes validator', { concurrency: true }, () => {
     void it(`detects break in project ${testProject}`, async () => {
       const latestPackagePath = path.join(
         testProjectsWithBreaksPath,
-        testProject
+        testProject,
       );
       const expectedErrorMessage = (
         await fsp.readFile(
           path.join(latestPackagePath, 'expected-error-message.txt'),
-          'utf-8'
+          'utf-8',
         )
       ).trim();
       await execa('npx', ['tsc', '--build'], { cwd: latestPackagePath });
       const baselinePackageApiReportPath = path.join(
         latestPackagePath,
-        'API.md'
+        'API.md',
       );
       const validator = new ApiChangesValidator(
         latestPackagePath,
         baselinePackageApiReportPath,
         workingDirectory,
         [],
-        'npmLocalLink'
+        'npmLocalLink',
       );
 
       await assert.rejects(
@@ -70,10 +70,10 @@ void describe('Api changes validator', { concurrency: true }, () => {
         (error: Error) => {
           assert.ok(
             error.message.includes(expectedErrorMessage),
-            `Error message ${EOL}${error.message}${EOL} must contain ${EOL}${expectedErrorMessage}${EOL}`
+            `Error message ${EOL}${error.message}${EOL} must contain ${EOL}${expectedErrorMessage}${EOL}`,
           );
           return true;
-        }
+        },
       );
     });
   }
@@ -82,19 +82,19 @@ void describe('Api changes validator', { concurrency: true }, () => {
     void it(`passes for project ${testProject}`, async () => {
       const latestPackagePath = path.join(
         testProjectsWithoutBreaksPath,
-        testProject
+        testProject,
       );
       await execa('npx', ['tsc', '--build'], { cwd: latestPackagePath });
       const baselinePackageApiReportPath = path.join(
         latestPackagePath,
-        'API.md'
+        'API.md',
       );
       const validator = new ApiChangesValidator(
         latestPackagePath,
         baselinePackageApiReportPath,
         workingDirectory,
         ['SampleIgnoredType'],
-        'npmLocalLink'
+        'npmLocalLink',
       );
 
       // expect successful execution

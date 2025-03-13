@@ -30,7 +30,7 @@ export class StorageAccessPolicyFactory {
     permissions: Map<
       InternalStorageAction,
       { allow: Set<StoragePath>; deny: Set<StoragePath> }
-    >
+    >,
   ) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
@@ -44,13 +44,13 @@ export class StorageAccessPolicyFactory {
       ({ allow: allowPrefixes, deny: denyPrefixes }, action) => {
         if (allowPrefixes.size > 0) {
           statements.push(
-            this.getStatement(allowPrefixes, action, Effect.ALLOW)
+            this.getStatement(allowPrefixes, action, Effect.ALLOW),
           );
         }
         if (denyPrefixes.size > 0) {
           statements.push(this.getStatement(denyPrefixes, action, Effect.DENY));
         }
-      }
+      },
     );
 
     if (statements.length === 0) {
@@ -65,14 +65,14 @@ export class StorageAccessPolicyFactory {
       `${this.stack.node.path}Access${this.stack.node.children.length}`,
       {
         statements,
-      }
+      },
     );
   };
 
   private getStatement = (
     s3Prefixes: Readonly<Set<StoragePath>>,
     action: InternalStorageAction,
-    effect: Effect
+    effect: Effect,
   ) => {
     switch (action) {
       case 'delete':
@@ -82,7 +82,7 @@ export class StorageAccessPolicyFactory {
           effect,
           actions: actionMap[action],
           resources: Array.from(s3Prefixes).map(
-            (s3Prefix) => `${this.bucket.bucketArn}/${s3Prefix}`
+            (s3Prefix) => `${this.bucket.bucketArn}/${s3Prefix}`,
           ),
         });
       case 'list':

@@ -18,7 +18,7 @@ void describe('sandbox delete command', () => {
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
-    () => null
+    () => null,
   );
 
   beforeEach(async () => {
@@ -30,11 +30,11 @@ void describe('sandbox delete command', () => {
           type: 'sandbox',
         }),
       printer,
-      format
+      format,
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>
-      Promise.resolve()
+      Promise.resolve(),
     ) as never; // couldn't figure out a good way to type the sandboxDeleteMock so that TS was happy here
 
     const clientConfigGeneratorAdapterMock =
@@ -45,7 +45,7 @@ void describe('sandbox delete command', () => {
       sandboxFactory,
       [sandboxDeleteCommand, createSandboxSecretCommand()],
       clientConfigGeneratorAdapterMock,
-      commandMiddleware
+      commandMiddleware,
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
@@ -55,7 +55,7 @@ void describe('sandbox delete command', () => {
 
   void it('deletes sandbox after confirming with user', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
+      Promise.resolve(true),
     );
     await commandRunner.runCommand('sandbox delete');
 
@@ -67,13 +67,13 @@ void describe('sandbox delete command', () => {
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      undefined
+      undefined,
     );
   });
 
   void it('deletes sandbox with profile', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
+      Promise.resolve(true),
     );
     await commandRunner.runCommand('sandbox delete --profile test_profile');
 
@@ -85,13 +85,13 @@ void describe('sandbox delete command', () => {
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      'test_profile'
+      'test_profile',
     );
   });
 
   void it('deletes sandbox with user provided identifier', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
+      Promise.resolve(true),
     );
     await commandRunner.runCommand('sandbox delete --identifier test-App-Name');
 
@@ -104,7 +104,7 @@ void describe('sandbox delete command', () => {
 
   void it('does not delete sandbox if user said no', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(false)
+      Promise.resolve(false),
     );
     await commandRunner.runCommand('sandbox delete');
 

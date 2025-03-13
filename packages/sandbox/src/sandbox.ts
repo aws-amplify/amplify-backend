@@ -51,5 +51,5 @@ export type SandboxDeleteOptions = {
   profile?: string;
 };
 export type BackendIdSandboxResolver = (
-  identifier?: string
+  identifier?: string,
 ) => Promise<BackendIdentifier>;

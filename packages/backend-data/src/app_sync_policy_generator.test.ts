@@ -55,7 +55,7 @@ void describe('AppSyncPolicyGenerator', () => {
       queryPolicy.attachToRole(
         new Role(stack, 'testRole', {
           assumedBy: new AccountPrincipal('1234'),
-        })
+        }),
       );
 
       const template = Template.fromStack(stack);
@@ -95,7 +95,7 @@ void describe('AppSyncPolicyGenerator', () => {
     queryPolicy.attachToRole(
       new Role(stack, 'testRole', {
         assumedBy: new AccountPrincipal('1234'),
-      })
+      }),
     );
 
     const template = Template.fromStack(stack);

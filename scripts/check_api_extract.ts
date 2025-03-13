@@ -16,8 +16,8 @@ const updatedAPIFiles = gitDiffFiles
 if (updatedAPIFiles.length > 0) {
   throw new Error(
     `Expected no API.md file updates but found ${updatedAPIFiles.join(
-      ', '
-    )}\nRun 'npm run update:api' and commit the updates to fix.`
+      ', ',
+    )}\nRun 'npm run update:api' and commit the updates to fix.`,
   );
 }
 
@@ -34,8 +34,8 @@ const scanPromises = allApiExtractFiles.map(async (apiExtractFile) => {
   if (forbiddenImports) {
     forbiddenImports.forEach((forbiddenImport) =>
       errors.push(
-        `Found forbiddenImport ${forbiddenImport} in ${apiExtractFile}\nDid you forget to export type?`
-      )
+        `Found forbiddenImport ${forbiddenImport} in ${apiExtractFile}\nDid you forget to export type?`,
+      ),
     );
   }
 });

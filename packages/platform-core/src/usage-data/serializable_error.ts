@@ -17,7 +17,7 @@ export class SerializableError {
   // [\\w.\\-_@\\\\/]+ -> matches nested directories and file name
   private filePathRegex = new RegExp(
     `(file:/+)?${homedir().replaceAll('\\', '/')}[\\w.\\-_@\\\\/]+`,
-    'g'
+    'g',
   );
   private stackTraceRegex =
     /^\s*at (?:((?:\[object object\])?[^\\/]+(?: \[as \S+\])?) )?\(?(.*?):(\d+)(?::(\d+))?\)?\s*$/i;
@@ -57,7 +57,7 @@ export class SerializableError {
         }
       });
       const processedPaths = this.processPaths(
-        result.map((trace) => trace.file)
+        result.map((trace) => trace.file),
       );
       result.forEach((trace, index) => {
         trace.file = processedPaths[index];

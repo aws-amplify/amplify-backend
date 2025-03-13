@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 void describe('Sparse matrix generator', () => {
   void it('generates sparse matrix', async () => {
     const testDirectory = fileURLToPath(
-      new URL('./test-resources/sparse-generator-test-stubs', import.meta.url)
+      new URL('./test-resources/sparse-generator-test-stubs', import.meta.url),
     );
     const matrix = await new SparseTestMatrixGenerator({
       testGlobPattern: `${testDirectory}/*.test.ts`,
