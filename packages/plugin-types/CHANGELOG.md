@@ -1,5 +1,12 @@
 # @aws-amplify/plugin-types
 
+## 1.8.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+
 ## 1.8.0
 
 ### Minor Changes

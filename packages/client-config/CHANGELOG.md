@@ -1,5 +1,19 @@
 # @aws-amplify/client-config
 
+## 1.5.8
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+  - @aws-amplify/deployed-backend-client@1.5.2
+  - @aws-amplify/backend-output-schemas@1.4.1
+  - @aws-amplify/model-generator@1.0.13
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+
 ## 1.5.7
 
 ### Patch Changes
