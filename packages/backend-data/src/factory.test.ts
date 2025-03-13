@@ -67,7 +67,7 @@ const createStackAndSetContext = (settings: {
   );
   app.node.setContext(
     'amplifyEnvironmentName',
-    settings.amplifyEnvironmentName
+    settings.amplifyEnvironmentName,
   );
   const stack = new Stack(app);
   return stack;
@@ -985,10 +985,10 @@ void describe('Table Import', () => {
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const blogStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['Blog'])
+      Stack.of(instance.resources.nestedStacks['Blog']),
     );
     const importedModelStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
     );
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
@@ -1020,7 +1020,7 @@ void describe('Table Import', () => {
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
     );
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
@@ -1085,7 +1085,7 @@ void describe('Table Import', () => {
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
     );
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
@@ -1124,7 +1124,7 @@ void describe('Table Import', () => {
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
     );
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
@@ -1162,7 +1162,7 @@ void describe('Table Import', () => {
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
-      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
     );
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
