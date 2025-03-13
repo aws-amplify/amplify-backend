@@ -2,6 +2,7 @@ import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 import { RewritableBlock } from './rewritable_block.js';
 import { ColorName, format } from '../../format/format.js';
+import { EOL } from 'os';
 
 /**
  * Collects events from CDK Toolkit about cfn deployment and structures them
@@ -305,7 +306,7 @@ export class CfnDeploymentProgressLogger {
    */
   private failureReasonOnNextLine = (event: StackEvent) => {
     return this.isFailureStatus(event)
-      ? `\n${' '.repeat(
+      ? `${EOL}${' '.repeat(
           this.timeStampWidth + this.statusWidth + 6
         )}${format.color(this.failureReason(event) ?? '', 'Red')}`
       : '';

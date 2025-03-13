@@ -1,5 +1,6 @@
 import wrapAnsi from 'wrap-ansi';
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { EOL } from 'os';
 
 /**
  * A class representing re-writable display lines
@@ -33,14 +34,14 @@ export class RewritableBlock {
 
     const progressUpdate: string[] = [];
     for (const line of lines) {
-      progressUpdate.push(this.cll() + line + '\n');
+      progressUpdate.push(this.cll() + line + EOL);
     }
 
     this.trailingEmptyLines = Math.max(0, this.lastHeight - lines.length);
 
     // Clear remainder of unwritten lines
     for (let i = 0; i < this.trailingEmptyLines; i++) {
-      progressUpdate.push(this.cll() + '\n');
+      progressUpdate.push(this.cll() + EOL);
     }
 
     await this.ioHost.notify({
@@ -74,7 +75,7 @@ export class RewritableBlock {
         hard: true,
         trim: true,
         wordWrap: false,
-      }).split('\n')
+      }).split(EOL)
     );
   };
 
@@ -82,7 +83,7 @@ export class RewritableBlock {
    * Make sure there are no hidden newlines in the input strings
    */
   expandNewlines = (lines: string[]): string[] => {
-    return lines.flatMap((line) => line.split('\n'));
+    return lines.flatMap((line) => line.split(EOL));
   };
 
   getMaxBlockHeight = (
