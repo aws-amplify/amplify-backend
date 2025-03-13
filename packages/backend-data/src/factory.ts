@@ -42,7 +42,13 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
+import {
+  Annotations,
+  Aspects,
+  IAspect,
+  RemovalPolicy,
+  Tags,
+} from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -156,6 +162,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
       // ensure all branch names are unique
       if (this.props.migratedAmplifyGen1DynamoDbTableMap) {
+        // Remove this warning for GA
+        Annotations.of(scope).addWarning(
+          'migratedAmplifyGen1DynamoDbTableMap is experimental and is not recommended for production use. This functionality may be changed or removed without warning.',
+        );
         const branchNames = new Set<string>();
         for (const tableMap of this.props.migratedAmplifyGen1DynamoDbTableMap) {
           if (branchNames.has(tableMap.branchName)) {
