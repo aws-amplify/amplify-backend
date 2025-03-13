@@ -8,14 +8,13 @@
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { Printer as Printer_2 } from '../index.js';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
 
-// @public (undocumented)
-export const amplifyIOEventsBridgeFactory: AmplifyIOEventsBridgeSingletonFactory;
-
 // @public
 export class AmplifyIOEventsBridgeSingletonFactory {
+    constructor(printer?: Printer_2);
     getInstance: () => AmplifyIOHost;
 }
 

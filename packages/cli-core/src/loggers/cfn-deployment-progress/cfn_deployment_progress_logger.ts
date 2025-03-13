@@ -2,6 +2,8 @@ import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 import { RewritableBlock } from './rewritable_block.js';
 import { ColorName, format } from '../../format/format.js';
+import { Printer } from '../../printer/printer.js';
+import { WriteStream } from 'node:tty';
 
 /**
  * Collects events from CDK Toolkit about cfn deployment and structures them
@@ -54,13 +56,13 @@ export class CfnDeploymentProgressLogger {
 
   private readonly failures = new Array<StackEvent>();
 
-  private readonly getBlockWidth: () => number;
-  private readonly getBlockHeight: () => number;
   private block;
   private rootStackDisplay = 'Root stack';
   private timeStampWidth = 12;
   private statusWidth = 20;
   private resourceNameIndentation = 0;
+  private blockWidth: number;
+  private blockHeight: number;
 
   /**
    * Instantiate the CFN deployment progress builder
@@ -72,9 +74,19 @@ export class CfnDeploymentProgressLogger {
       ? props.resourcesTotal + 1
       : undefined;
 
-    this.getBlockWidth = props.getBlockWidth;
-    this.getBlockHeight = props.getBlockHeight;
-    this.block = new RewritableBlock(this.getBlockWidth, this.getBlockHeight);
+    this.blockWidth =
+      props.printer?.stdout instanceof WriteStream
+        ? props.printer.stdout.columns
+        : 600;
+    this.blockHeight =
+      props.printer?.stdout instanceof WriteStream
+        ? props.printer.stdout.rows
+        : 100;
+    this.block = new RewritableBlock(
+      this.blockWidth,
+      this.blockHeight,
+      props.printer
+    );
     this.resourceNameCache = {};
   }
 
@@ -271,7 +283,7 @@ export class CfnDeploymentProgressLogger {
 
     const width = Math.max(
       Math.min(
-        this.getBlockWidth() - PROGRESSBAR_EXTRA_SPACE - 1,
+        this.blockWidth - PROGRESSBAR_EXTRA_SPACE - 1,
         MAX_PROGRESSBAR_WIDTH
       ),
       MIN_PROGRESSBAR_WIDTH
@@ -488,13 +500,5 @@ type PrinterProps = {
    */
   readonly resourcesTotal?: number;
 
-  /**
-   * width of the block in which to render the CFN progress
-   */
-  readonly getBlockWidth: () => number;
-
-  /**
-   * height  of the block in which to render the CFN progress
-   */
-  readonly getBlockHeight: () => number;
+  readonly printer?: Printer;
 };

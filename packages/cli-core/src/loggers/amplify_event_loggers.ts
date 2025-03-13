@@ -1,26 +1,24 @@
-import { LogLevel } from '../printer/printer.js';
-import { minimumLogLevel, printer } from '../printer.js';
+import { LogLevel, Printer } from '../printer/printer.js';
+import { printer as globalPrinter, minimumLogLevel } from '../printer.js';
 import { format } from '../format/format.js';
 import {
   CfnDeploymentProgressLogger,
   CfnDeploymentStackEvent,
 } from './cfn-deployment-progress/cfn_deployment_progress_logger.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
-import { WriteStream } from 'tty';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
  * to the amplify_io_event_bridge for showing relevant information to customers
  */
 export class AmplifyEventLogger {
-  private printer = printer; // default stdout
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
 
   /**
    * a logger instance to be used for CDK events
    */
-  constructor() {}
+  constructor(private readonly printer: Printer = globalPrinter) {}
 
   getEventLoggers = () => {
     if (minimumLogLevel === LogLevel.DEBUG) {
@@ -207,14 +205,7 @@ export class AmplifyEventLogger {
       !this.cfnDeploymentProgressLogger
     ) {
       this.cfnDeploymentProgressLogger = new CfnDeploymentProgressLogger({
-        getBlockWidth: () =>
-          this.printer.stdout instanceof WriteStream
-            ? this.printer.stdout.columns
-            : 600,
-        getBlockHeight: () =>
-          this.printer.stdout instanceof WriteStream
-            ? this.printer.stdout.rows
-            : 100,
+        printer: this.printer,
       });
       this.printer.startSpinner('Deployment in progress...', {
         timeoutSeconds: 300,

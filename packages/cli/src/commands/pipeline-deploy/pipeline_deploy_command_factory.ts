@@ -1,8 +1,8 @@
 import { CommandModule } from 'yargs';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import {
+  AmplifyIOEventsBridgeSingletonFactory,
   PackageManagerControllerFactory,
-  amplifyIOEventsBridgeFactory,
   format,
 } from '@aws-amplify/cli-core';
 
@@ -36,7 +36,8 @@ export const createPipelineDeployCommand = (): CommandModule<
     awsClientProvider
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
-  const cdkEventsBridgeIoHost = amplifyIOEventsBridgeFactory.getInstance();
+  const cdkEventsBridgeIoHost =
+    new AmplifyIOEventsBridgeSingletonFactory().getInstance();
 
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController(),
