@@ -1,5 +1,16 @@
 # @aws-amplify/cli-core
 
+## 1.4.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 32bcc0b: increase spinner time to more accurately capture spinner refreshes in unit tests
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+  - @aws-amplify/platform-core@1.6.5
+
 ## 1.4.0
 
 ### Minor Changes
