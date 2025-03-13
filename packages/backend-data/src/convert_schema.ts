@@ -277,7 +277,7 @@ export const splitSchemasByTableMap = (
     if (!isDataSchema(schema)) {
       const { importedSchemas, nonImportedSchema } = extractImportedModels(
         schema,
-        amplifyGen1DynamoDbTableMapping?.modelTableNameMap,
+        amplifyGen1DynamoDbTableMapping?.modelNameToTableNameMapping,
       );
       if (importedSchemas.length > 0) {
         return [

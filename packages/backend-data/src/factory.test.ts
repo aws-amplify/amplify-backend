@@ -973,7 +973,7 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
@@ -1008,7 +1008,7 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
@@ -1041,7 +1041,7 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
@@ -1067,13 +1067,13 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
         {
           branchName: 'prod',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-prod',
           },
         },
@@ -1107,13 +1107,13 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
         {
           branchName: 'sandbox',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-sandbox',
           },
         },
@@ -1146,13 +1146,13 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
         {
           branchName: 'prop',
-          modelTableNameMap: undefined,
+          modelNameToTableNameMapping: undefined,
         },
       ],
     });
@@ -1181,13 +1181,13 @@ void describe('Table Import', () => {
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev1',
           },
         },
         {
           branchName: 'dev',
-          modelTableNameMap: {
+          modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev2',
           },
         },

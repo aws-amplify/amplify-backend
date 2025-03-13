@@ -15,7 +15,7 @@ import { LogRetention } from '@aws-amplify/plugin-types';
 // @public
 export type AmplifyGen1DynamoDbTableMapping = {
     branchName: string;
-    modelTableNameMap?: ModelTableNameMap;
+    modelNameToTableNameMapping?: Record<string, string>;
 };
 
 // @public
@@ -69,9 +69,6 @@ export type LambdaAuthorizationModeProps = {
     function: ConstructFactory<AmplifyFunction>;
     timeToLiveInSeconds?: number;
 };
-
-// @public
-export type ModelTableNameMap = Record<string, string>;
 
 // @public
 export type OIDCAuthorizationModeProps = {

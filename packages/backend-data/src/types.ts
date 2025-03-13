@@ -251,10 +251,5 @@ export type DataLogLevel = Extract<
  */
 export type AmplifyGen1DynamoDbTableMapping = {
   branchName: string;
-  modelTableNameMap?: ModelTableNameMap;
+  modelNameToTableNameMapping?: Record<string, string>;
 };
-
-/**
- * Mapping of model name to dynamodb table name.
- */
-export type ModelTableNameMap = Record<string, string>;
