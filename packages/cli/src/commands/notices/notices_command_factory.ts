@@ -15,6 +15,6 @@ export const createNoticesCommand = (): NoticesCommand => {
   const noticesPrinter = new NoticesPrinter(packageManagerController);
   return new NoticesCommand(
     new NoticesListCommand(noticesController, noticesPrinter),
-    new NoticesAcknowledgeCommand(noticesController)
+    new NoticesAcknowledgeCommand(noticesController),
   );
 };

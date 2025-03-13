@@ -13,12 +13,12 @@ export class PostCommandNoticesProcessor {
   constructor(
     packageManagerController: PackageManagerController,
     private readonly noticesController: NoticesController = new NoticesController(
-      packageManagerController
+      packageManagerController,
     ),
     private readonly noticesPrinter: NoticesPrinter = new NoticesPrinter(
-      packageManagerController
+      packageManagerController,
     ),
-    private readonly _printer = printer
+    private readonly _printer = printer,
   ) {}
 
   tryFindAndPrintApplicableNotices = async (command: string | undefined) => {

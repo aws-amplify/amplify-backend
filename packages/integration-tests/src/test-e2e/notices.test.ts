@@ -40,28 +40,28 @@ void describe('Notices', () => {
       .stdout;
     assert.ok(
       stdout.includes('This is a test notice'),
-      `${stdout} must include 'This is a test notice'`
+      `${stdout} must include 'This is a test notice'`,
     );
     assert.strictEqual(
       stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
       stdout.lastIndexOf(
-        'https://github.com/aws-amplify/amplify-backend/issues/1'
+        'https://github.com/aws-amplify/amplify-backend/issues/1',
       ),
-      'Single notice must be shown only once in the output'
+      'Single notice must be shown only once in the output',
     );
 
     // Prints unacknowledged notice after random command
     stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
     assert.ok(
       stdout.includes('This is a test notice'),
-      `${stdout} must include 'This is a test notice'`
+      `${stdout} must include 'This is a test notice'`,
     );
     assert.strictEqual(
       stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
       stdout.lastIndexOf(
-        'https://github.com/aws-amplify/amplify-backend/issues/1'
+        'https://github.com/aws-amplify/amplify-backend/issues/1',
       ),
-      'Single notice must be shown only once in the output'
+      'Single notice must be shown only once in the output',
     );
 
     // Acknowledges notice
@@ -70,7 +70,7 @@ void describe('Notices', () => {
     ).stdout;
     assert.ok(
       stdout.includes('has been acknowledged'),
-      `${stdout} must include 'has been acknowledged'`
+      `${stdout} must include 'has been acknowledged'`,
     );
 
     // Assert that acknowledged notices in not included in listing
@@ -78,14 +78,14 @@ void describe('Notices', () => {
       .stdout;
     assert.ok(
       !stdout.includes('This is a test notice'),
-      `${stdout} must not include 'This is a test notice'`
+      `${stdout} must not include 'This is a test notice'`,
     );
 
     // Assert that acknowledged notices in not included after random command
     stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
     assert.ok(
       !stdout.includes('This is a test notice'),
-      `${stdout} must not include 'This is a test notice'`
+      `${stdout} must not include 'This is a test notice'`,
     );
   });
 });

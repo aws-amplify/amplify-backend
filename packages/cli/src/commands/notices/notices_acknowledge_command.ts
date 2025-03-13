@@ -35,7 +35,7 @@ export class NoticesAcknowledgeCommand
    * @inheritDoc
    */
   handler = async (
-    args: NoticesAcknowledgeCommandOptionsKebabCase
+    args: NoticesAcknowledgeCommandOptionsKebabCase,
   ): Promise<void> => {
     const noticeId = args['notice-id'];
     await this.noticesController.acknowledge(noticeId);

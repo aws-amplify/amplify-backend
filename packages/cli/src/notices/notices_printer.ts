@@ -10,7 +10,7 @@ export class NoticesPrinter {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly _printer = printer
+    private readonly _printer = printer,
   ) {}
   print = (notices: Array<Notice>) => {
     if (notices.length === 0) {
@@ -24,8 +24,8 @@ export class NoticesPrinter {
     }
     this._printer.print(
       `If you don't want to see a notice anymore, use "${this.packageManagerController.getCommand(
-        ['ampx', 'notices', 'acknowledge', '<notice-id>']
-      )}".`
+        ['ampx', 'notices', 'acknowledge', '<notice-id>'],
+      )}".`,
     );
   };
 

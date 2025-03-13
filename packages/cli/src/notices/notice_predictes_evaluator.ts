@@ -11,7 +11,7 @@ export class NoticePredicatesEvaluator {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly _process = process
+    private readonly _process = process,
   ) {}
 
   evaluate = async (predicates: Notice['predicates']): Promise<boolean> => {
@@ -26,7 +26,7 @@ export class NoticePredicatesEvaluator {
           if (
             !(await this.evaluatePackageVersion(
               predicate.packageName,
-              predicate.versionRange
+              predicate.versionRange,
             ))
           ) {
             return false;
@@ -62,7 +62,7 @@ export class NoticePredicatesEvaluator {
 
   private evaluatePackageVersion = async (
     packageName: string,
-    versionRange: string
+    versionRange: string,
   ): Promise<boolean> => {
     const dependencies =
       await this.packageManagerController.tryGetDependencies();

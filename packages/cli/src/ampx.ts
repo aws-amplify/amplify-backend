@@ -54,7 +54,7 @@ try {
   }
 
   await new PostCommandNoticesProcessor(
-    packageManagerController
+    packageManagerController,
   ).tryFindAndPrintApplicableNotices(subCommands);
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {

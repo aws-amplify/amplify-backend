@@ -21,17 +21,17 @@ export class NoticesController {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly configurationController = configControllerFactory.getInstance(
-      'notices.json'
+      'notices.json',
     ),
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
-      new PackageJsonReader()
+      new PackageJsonReader(),
     ),
     private readonly noticesManifestFetcher = new NoticesManifestFetcher(
-      configurationController
+      configurationController,
     ),
     private readonly noticePredicatesEvaluator = new NoticePredicatesEvaluator(
-      packageManagerController
-    )
+      packageManagerController,
+    ),
   ) {}
   getApplicableNotices = async (opts?: {
     includeAcknowledged: boolean;
@@ -52,14 +52,13 @@ export class NoticesController {
   };
 
   private filterAcknowledgedNotices = async (
-    notices: Array<Notice>
+    notices: Array<Notice>,
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
       const path = await this.getNoticeAcknowledgementPath(notice.id);
-      const isAcknowledged: boolean = await this.configurationController.get(
-        path
-      );
+      const isAcknowledged: boolean =
+        await this.configurationController.get(path);
       if (!isAcknowledged) {
         filteredNotices.push(notice);
       }
@@ -68,7 +67,7 @@ export class NoticesController {
   };
 
   private applyPredicates = async (
-    notices: Array<Notice>
+    notices: Array<Notice>,
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
@@ -80,7 +79,7 @@ export class NoticesController {
   };
 
   private getNoticeAcknowledgementPath = async (
-    noticeId: string
+    noticeId: string,
   ): Promise<string> => {
     return `acknowledgements.${await this.namespaceResolver.resolve()}.${noticeId}`;
   };

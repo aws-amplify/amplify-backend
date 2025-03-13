@@ -21,7 +21,7 @@ export class NoticesCommand implements CommandModule<object> {
    */
   constructor(
     private readonly noticesListCommand: NoticesListCommand,
-    private readonly noticesAcknowledgeCommand: NoticesAcknowledgeCommand
+    private readonly noticesAcknowledgeCommand: NoticesAcknowledgeCommand,
   ) {
     this.command = 'notices';
     this.describe = 'Notices';

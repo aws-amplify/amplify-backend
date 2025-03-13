@@ -21,7 +21,7 @@ export class NoticesListCommand implements CommandModule<object> {
    */
   constructor(
     private readonly noticesController: NoticesController,
-    private readonly noticesPrinter: NoticesPrinter
+    private readonly noticesPrinter: NoticesPrinter,
   ) {
     this.command = 'list';
     this.describe = 'Displays a list of relevant notices';

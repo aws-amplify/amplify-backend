@@ -29,7 +29,7 @@ export class NoticesManifestFetcher {
     private readonly noticesManifestUrl = process.env
       .AMPLIFY_BACKEND_NOTICES_ENDPOINT ||
       'https://notices.cli.amplify.aws/notices.json',
-    private readonly cacheTTLMs = 60 * 60 * 1000 // one hour
+    private readonly cacheTTLMs = 60 * 60 * 1000, // one hour
   ) {}
 
   fetchNoticesManifest = async (): Promise<NoticesManifest> => {
@@ -53,7 +53,7 @@ export class NoticesManifestFetcher {
     try {
       const response = await fetch(this.noticesManifestUrl);
       const noticesManifest = noticesManifestSchema.parse(
-        await response.json()
+        await response.json(),
       );
       await this.noticeManifestValidator.validate(noticesManifest);
 
@@ -62,16 +62,16 @@ export class NoticesManifestFetcher {
 
       await this.configurationController.set(
         cacheContentPath,
-        Buffer.from(JSON.stringify(noticesManifest)).toString('base64')
+        Buffer.from(JSON.stringify(noticesManifest)).toString('base64'),
       );
       await this.configurationController.set(
         cacheContentRefreshTime,
-        this.refreshedAt
+        this.refreshedAt,
       );
     } catch (e) {
       printer.log(
         `Unable to fetch notices manifest from ${this.noticesManifestUrl}`,
-        LogLevel.DEBUG
+        LogLevel.DEBUG,
       );
       if (e instanceof Error) {
         printer.log(e.message, LogLevel.DEBUG);
@@ -93,10 +93,10 @@ export class NoticesManifestFetcher {
       }
       const decodedContent = Buffer.from(
         serializedCachedContent,
-        'base64'
+        'base64',
       ).toString('utf-8');
       const cachedManifest = noticesManifestSchema.parse(
-        JSON.parse(decodedContent)
+        JSON.parse(decodedContent),
       );
       await this.noticeManifestValidator.validate(cachedManifest);
       this.cachedManifest = cachedManifest;
