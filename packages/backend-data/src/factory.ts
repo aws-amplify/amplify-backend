@@ -156,10 +156,14 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
+      const isSandboxDeployment =
+        scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+
       // get the branch name and use the imported table map for that key
-      // use the sandbox key when the branch name is not available (e.g. in the sandbox deployment)
-      const amplifyBranchName =
-        scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
+      // use the sandbox key when in sandbox deployment
+      const amplifyBranchName = isSandboxDeployment
+        ? 'sandbox'
+        : scope.node.tryGetContext(CDKContextKey.BACKEND_NAME);
       // ensure all branch names are unique
       if (this.props.migratedAmplifyGen1DynamoDbTableMappings) {
         // Remove this warning for GA

@@ -972,7 +972,7 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
@@ -981,7 +981,6 @@ void describe('Table Import', () => {
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const blogStack = Template.fromStack(
@@ -1007,7 +1006,7 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
@@ -1016,7 +1015,6 @@ void describe('Table Import', () => {
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
@@ -1040,7 +1038,7 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
@@ -1049,7 +1047,6 @@ void describe('Table Import', () => {
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
       message: 'Imported model not found in schema: ImportedModel',
@@ -1066,7 +1063,7 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
@@ -1081,7 +1078,6 @@ void describe('Table Import', () => {
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
@@ -1106,7 +1102,7 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
@@ -1145,20 +1141,19 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev',
           },
         },
         {
-          branchName: 'prop',
+          branchName: 'prod',
           modelNameToTableNameMapping: undefined,
         },
       ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
@@ -1180,13 +1175,13 @@ void describe('Table Import', () => {
       schema,
       migratedAmplifyGen1DynamoDbTableMappings: [
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev1',
           },
         },
         {
-          branchName: 'dev',
+          branchName: 'testEnvName',
           modelNameToTableNameMapping: {
             ImportedModel: 'ImportedModel-1234-dev2',
           },
@@ -1196,7 +1191,6 @@ void describe('Table Import', () => {
 
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
-      amplifyEnvironmentName: 'dev',
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
       message:
