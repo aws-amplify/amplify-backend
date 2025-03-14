@@ -1,5 +1,18 @@
 # @aws-amplify/backend-auth
 
+## 1.5.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [2102071]
+  - @aws-amplify/backend-output-schemas@1.4.1
+  - @aws-amplify/backend-output-storage@1.1.5
+  - @aws-amplify/auth-construct@1.6.1
+  - @aws-amplify/plugin-types@1.8.1
+
 ## 1.5.0
 
 ### Minor Changes

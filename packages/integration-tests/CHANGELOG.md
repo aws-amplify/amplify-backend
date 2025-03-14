@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.6.4
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+
 ## 0.6.3
 
 ### Patch Changes
