@@ -15,7 +15,7 @@ export type TypedConfigurationFileName =
 /**
  * Instantiates TypedConfigurationFile
  */
-class TypedConfigurationFileFactory {
+export class TypedConfigurationFileFactory {
   private readonly files: Record<string, TypedConfigurationFile<unknown>>;
 
   /**

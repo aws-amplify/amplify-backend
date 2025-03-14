@@ -227,8 +227,12 @@ export type TypedConfigurationFile<T> = {
     delete: () => Promise<void>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "TypedConfigurationFileFactory" needs to be exported by the entry point index.internal.d.ts
-//
+// @public
+export class TypedConfigurationFileFactory {
+    constructor();
+    getInstance: <T extends z.ZodTypeAny>(fileName: TypedConfigurationFileName, schema: T, valueIfDoesNotExists: z.TypeOf<T>) => TypedConfigurationFile<z.TypeOf<T>>;
+}
+
 // @public (undocumented)
 export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
 
