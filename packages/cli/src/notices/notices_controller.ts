@@ -1,9 +1,6 @@
 import { Notice } from '@aws-amplify/cli-core';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
-import {
-  PackageJsonReader,
-  typedConfigurationFileFactory,
-} from '@aws-amplify/platform-core';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 import {
   LocalNamespaceResolver,
   NamespaceResolver,
@@ -11,25 +8,10 @@ import {
 import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesRendererParams } from './notices_renderer.js';
-import { z } from 'zod';
-
-const acknowledgementFileSchema = z.object({
-  projectAcknowledgements: z.array(
-    z.object({
-      projectName: z.string(),
-      noticeId: z.string(),
-      acknowledgedAt: z.number(),
-    }),
-  ),
-});
-
-const acknowledgementFileInstance = typedConfigurationFileFactory.getInstance(
-  'notices_acknowledgments.json',
-  acknowledgementFileSchema,
-  {
-    projectAcknowledgements: [],
-  },
-);
+import {
+  acknowledgementFileInstance,
+  noticesPrintingTrackerFileInstance,
+} from './notices_files.js';
 
 /**
  * A notices controller.
@@ -41,12 +23,14 @@ export class NoticesController {
   constructor(
     packageManagerController: PackageManagerController,
     private readonly acknowledgementFile = acknowledgementFileInstance,
+    private readonly noticesPrintingTrackerFile = noticesPrintingTrackerFileInstance,
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
       new PackageJsonReader(),
     ),
     private readonly noticesManifestFetcher = new NoticesManifestFetcher(),
     private readonly noticePredicatesEvaluator = new NoticePredicatesEvaluator(
       packageManagerController,
+      namespaceResolver,
     ),
   ) {}
   getApplicableNotices = async (
@@ -74,6 +58,26 @@ export class NoticesController {
     await this.acknowledgementFile.write(acknowledgementFileContent);
   };
 
+  recordPrintingTimes = async (notices: Array<Notice>) => {
+    const trackerFileContent = await this.noticesPrintingTrackerFile.read();
+    const projectName = await this.namespaceResolver.resolve();
+    for (const notice of notices) {
+      const trackerItem = trackerFileContent.printTimes.find((item) => {
+        return item.noticeId === notice.id && item.projectName === projectName;
+      });
+      if (trackerItem) {
+        trackerItem.shownAt = Date.now();
+      } else {
+        trackerFileContent.printTimes.push({
+          projectName,
+          noticeId: notice.id,
+          shownAt: Date.now(),
+        });
+      }
+    }
+    await this.noticesPrintingTrackerFile.write(trackerFileContent);
+  };
+
   private filterAcknowledgedNotices = async (
     notices: Array<Notice>,
   ): Promise<Array<Notice>> => {
@@ -98,9 +102,7 @@ export class NoticesController {
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
-      if (
-        await this.noticePredicatesEvaluator.evaluate(notice.predicates, opts)
-      ) {
+      if (await this.noticePredicatesEvaluator.evaluate(notice, opts)) {
         filteredNotices.push(notice);
       }
     }

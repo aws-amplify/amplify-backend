@@ -37,7 +37,8 @@ export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
         this.data = this.schema.parse(this.valueIfDoesNotExists);
       }
     }
-    return this.data;
+    // return deep clone.
+    return this.schema.parse(this.data);
   };
 
   write = async (data: z.infer<T>): Promise<void> => {

@@ -9,7 +9,8 @@ export type TypedConfigurationFile<T> = {
 
 export type TypedConfigurationFileName =
   | 'notices_manifest_cache.json'
-  | 'notices_acknowledgments.json';
+  | 'notices_acknowledgments.json'
+  | 'notices_printing_tracker.json';
 
 /**
  * Instantiates TypedConfigurationFile

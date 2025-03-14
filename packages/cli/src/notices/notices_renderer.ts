@@ -40,6 +40,7 @@ export class NoticesRenderer {
     if (notices.length > 0) {
       this._printer.printNewLine();
       this.noticesPrinter.print(notices);
+      await this.noticesController.recordPrintingTimes(notices);
     }
   };
 }

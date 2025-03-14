@@ -5,23 +5,7 @@ import {
   noticesManifestSchema,
   printer,
 } from '@aws-amplify/cli-core';
-import { typedConfigurationFileFactory } from '@aws-amplify/platform-core';
-import { z } from 'zod';
-
-const noticesManifestCacheSchema = z.object({
-  noticesManifest: noticesManifestSchema,
-  refreshedAt: z.number(),
-});
-
-const fileCacheInstance = typedConfigurationFileFactory.getInstance(
-  'notices_manifest_cache.json',
-  noticesManifestCacheSchema,
-  {
-    noticesManifest: { notices: [] },
-    // stale
-    refreshedAt: 0,
-  },
-);
+import { fileCacheInstance } from './notices_files.js';
 
 /**
  * Notices manifest fetcher.
