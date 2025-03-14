@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 1.5.1
+
+### Patch Changes
+
+- b2f9042: fix: exclude logs streaming options from sandbox command help output
+
 ## 1.5.0
 
 ### Minor Changes
