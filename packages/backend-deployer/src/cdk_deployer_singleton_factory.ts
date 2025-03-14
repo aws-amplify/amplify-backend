@@ -1,19 +1,30 @@
 import {
+  AmplifyIOHost,
   BackendIdentifier,
-  type PackageManagerController,
+  PackageManagerController,
+  SDKProfileResolver,
 } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { Toolkit } from '@aws-cdk/toolkit-lib';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  /**
+   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
+   */
   profile?: string;
 };
 
 export type DestroyProps = {
+  /**
+   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
+   */
   profile?: string;
 };
 
@@ -56,6 +67,8 @@ export class BackendDeployerFactory {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly formatter: BackendDeployerOutputFormatter,
+    private readonly backendDeployerIOHost: AmplifyIOHost,
+    private readonly sdkProfileResolver: SDKProfileResolver,
   ) {}
 
   /**
@@ -67,6 +80,15 @@ export class BackendDeployerFactory {
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
         this.packageManagerController,
+        new Toolkit({
+          ioHost: this.backendDeployerIOHost,
+          emojis: false,
+          color: false,
+          sdkConfig: {
+            profile: this.sdkProfileResolver(),
+          },
+        }),
+        this.backendDeployerIOHost,
       );
     }
     return BackendDeployerFactory.instance;

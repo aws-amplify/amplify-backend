@@ -27,6 +27,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -39,6 +40,12 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve(),
   );
+  const mockIoHost: AmplifyIOHost = {
+    notify: mock.fn(),
+    requestResponse: mock.fn(),
+  };
+  const mockProfileResolver = mock.fn();
+
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
     new Printer(LogLevel.DEBUG),
@@ -50,6 +57,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
+      mockIoHost,
+      mockProfileResolver,
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -105,6 +114,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
+      mockIoHost,
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -132,6 +143,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
+      mockIoHost,
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -169,6 +182,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
+      mockIoHost,
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -206,6 +221,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
+      mockIoHost,
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

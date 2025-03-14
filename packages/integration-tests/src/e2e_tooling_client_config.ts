@@ -1,6 +1,6 @@
 import { fromIni } from '@aws-sdk/credential-providers';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
-
+import { AwsCredentialIdentityProvider } from '@smithy/types';
 const E2E_TOOLING_PROFILE = 'e2e-tooling';
 
 const E2E_TOOLING_REGION = process.env.CI
@@ -12,7 +12,17 @@ const E2E_TOOLING_REGION = process.env.CI
 // We load credentials for e2e-tooling from a separate profile so that we can isolate permissions required to run Gen2 commands
 // vs permissions required to orchestrate test setup, teardown, and assertions.
 
-export const e2eToolingClientConfig = process.env.CI
+export const e2eToolingClientConfig:
+  | {
+      credentials: AwsCredentialIdentityProvider;
+      region: string | undefined;
+      maxAttempts: number;
+    }
+  | {
+      maxAttempts: number;
+      credentials?: undefined;
+      region?: undefined;
+    } = process.env.CI
   ? {
       credentials: fromIni({ profile: E2E_TOOLING_PROFILE }),
       region: E2E_TOOLING_REGION,

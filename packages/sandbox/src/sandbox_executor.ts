@@ -38,6 +38,10 @@ export class AmplifySandboxExecutor {
   deploy = async (
     backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean,
+    /**
+     *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+     * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
+     */
     profile: string | undefined,
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
@@ -60,6 +64,10 @@ export class AmplifySandboxExecutor {
    */
   destroy = (
     backendId: BackendIdentifier,
+    /**
+     * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+     * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
+     */
     profile: string | undefined,
   ): Promise<DestroyResult> => {
     this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);

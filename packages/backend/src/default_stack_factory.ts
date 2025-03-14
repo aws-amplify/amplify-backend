@@ -10,5 +10,10 @@ export const createDefaultStack = (app = new App()): Stack => {
     app,
     getBackendIdentifier(app),
   );
+  process.once('message', (message) => {
+    if (message === 'amplifySynth') {
+      app.synth({ errorOnDuplicateSynth: false });
+    }
+  });
   return mainStackCreator.getOrCreateMainStack();
 };

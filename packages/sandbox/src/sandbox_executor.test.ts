@@ -14,6 +14,7 @@ import {
   SecretListItem,
   getSecretClientWithAmplifyErrorHandling,
 } from '@aws-amplify/backend-secret';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -28,9 +29,17 @@ const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
 
+const mockIoHost: AmplifyIOHost = {
+  notify: mock.fn(),
+  requestResponse: mock.fn(),
+};
+const mockProfileResolver = mock.fn();
+
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
+  mockIoHost,
+  mockProfileResolver,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClientWithAmplifyErrorHandling();

@@ -1,6 +1,6 @@
 import { LogLevel, Printer } from './printer/printer.js';
 
-const minimumLogLevel = process.argv.includes('--debug')
+export const minimumLogLevel = process.argv.includes('--debug')
   ? LogLevel.DEBUG
   : LogLevel.INFO;
 
