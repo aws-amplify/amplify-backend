@@ -5,10 +5,13 @@ import {
   noticesManifestSchema,
   printer,
 } from '@aws-amplify/cli-core';
-import { ConfigurationController } from '@aws-amplify/platform-core';
+import { ZodSchemaTypedConfigurationFile } from '@aws-amplify/platform-core';
+import { z } from 'zod';
 
-const cacheContentPath = 'noticesManifestCache.content';
-const cacheContentRefreshTime = 'noticesManifestCache.refreshedAt';
+const noticesManifestCacheSchema = z.object({
+  noticesManifest: noticesManifestSchema,
+  refreshedAt: z.number(),
+});
 
 /**
  * Notices manifest fetcher.
@@ -22,7 +25,10 @@ export class NoticesManifestFetcher {
    * Creates new notices manifest fetcher.
    */
   constructor(
-    private readonly configurationController: ConfigurationController,
+    private readonly fileCache = new ZodSchemaTypedConfigurationFile(
+      noticesManifestCacheSchema,
+      'notices-manifest-cache.json',
+    ),
     private readonly noticeManifestValidator = new NoticesManifestValidator({
       checkLinksWithGitHubApi: false,
     }),
@@ -60,14 +66,10 @@ export class NoticesManifestFetcher {
       this.cachedManifest = noticesManifest;
       this.refreshedAt = Date.now();
 
-      await this.configurationController.set(
-        cacheContentPath,
-        Buffer.from(JSON.stringify(noticesManifest)).toString('base64'),
-      );
-      await this.configurationController.set(
-        cacheContentRefreshTime,
-        this.refreshedAt,
-      );
+      await this.fileCache.write({
+        noticesManifest: noticesManifest,
+        refreshedAt: this.refreshedAt,
+      });
     } catch (e) {
       printer.log(
         `Unable to fetch notices manifest from ${this.noticesManifestUrl}`,
@@ -81,26 +83,15 @@ export class NoticesManifestFetcher {
 
   private tryLoadManifestFromDisk = async (): Promise<void> => {
     try {
-      const serializedCachedContent: string | undefined =
-        await this.configurationController.get(cacheContentPath);
-      if (!serializedCachedContent) {
+      const cachedContent = await this.fileCache.tryRead();
+      if (!cachedContent) {
         return;
       }
-      const refreshedAt: number | undefined =
-        await this.configurationController.get(cacheContentRefreshTime);
-      if (!refreshedAt) {
-        return;
-      }
-      const decodedContent = Buffer.from(
-        serializedCachedContent,
-        'base64',
-      ).toString('utf-8');
-      const cachedManifest = noticesManifestSchema.parse(
-        JSON.parse(decodedContent),
+      await this.noticeManifestValidator.validate(
+        cachedContent.noticesManifest,
       );
-      await this.noticeManifestValidator.validate(cachedManifest);
-      this.cachedManifest = cachedManifest;
-      this.refreshedAt = refreshedAt;
+      this.cachedManifest = cachedContent.noticesManifest;
+      this.refreshedAt = cachedContent.refreshedAt;
     } catch (e) {
       printer.log('Unable to read cached notices manifest', LogLevel.DEBUG);
       if (e instanceof Error) {

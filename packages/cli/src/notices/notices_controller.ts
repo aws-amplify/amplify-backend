@@ -27,9 +27,7 @@ export class NoticesController {
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
       new PackageJsonReader(),
     ),
-    private readonly noticesManifestFetcher = new NoticesManifestFetcher(
-      configurationController,
-    ),
+    private readonly noticesManifestFetcher = new NoticesManifestFetcher(),
     private readonly noticePredicatesEvaluator = new NoticePredicatesEvaluator(
       packageManagerController,
     ),

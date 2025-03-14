@@ -4,16 +4,19 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { Dependency } from '@aws-amplify/plugin-types';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
+import fsp from 'fs/promises';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import z from 'zod';
+import { z } from 'zod';
 
 declare namespace __export__cdk {
     export {
@@ -232,6 +235,17 @@ export type UsageDataEmitter = {
 // @public
 export class UsageDataEmitterFactory {
     getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
+}
+
+// @public
+export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny = z.ZodTypeAny> {
+    constructor(schema: T, fileName: string, _fsp?: typeof fsp);
+    // (undocumented)
+    read: () => Promise<z.infer<T>>;
+    // (undocumented)
+    tryRead: () => Promise<z.infer<T> | undefined>;
+    // (undocumented)
+    write: (data: z.infer<T>) => Promise<void>;
 }
 
 // (No @packageDocumentation comment for this package)
