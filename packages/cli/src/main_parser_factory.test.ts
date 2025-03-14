@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   TestCommandError,
@@ -6,9 +6,15 @@ import {
 } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
 import { version } from '#package.json';
+import { NoticesRenderer } from './notices/notices_renderer.js';
 
 void describe('main parser', { concurrency: false }, () => {
-  const parser = createMainParser(version);
+  const tryFindAndPrintApplicableNoticesMock = mock.fn();
+  const noticesRenderer = {
+    tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,
+  } as unknown as NoticesRenderer;
+
+  const parser = createMainParser(version, noticesRenderer);
   const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {

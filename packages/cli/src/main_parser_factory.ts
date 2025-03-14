@@ -4,12 +4,17 @@ import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
 import { createInfoCommand } from './commands/info/info_command_factory.js';
+import { createNoticesCommand } from './commands/notices/notices_command_factory.js';
 import * as path from 'path';
+import { NoticesRenderer } from './notices/notices_renderer.js';
 
 /**
  * Creates main parser.
  */
-export const createMainParser = (libraryVersion: string): Argv => {
+export const createMainParser = (
+  libraryVersion: string,
+  noticesRenderer: NoticesRenderer,
+): Argv => {
   const parser = yargs()
     .version(libraryVersion)
     // This option is being used indirectly to configure the log level of the Printer instance.
@@ -24,10 +29,11 @@ export const createMainParser = (libraryVersion: string): Argv => {
     // This tells yargs that the command name is `ampx`.
     .scriptName(path.parse(process.argv[1]).name)
     .command(createGenerateCommand())
-    .command(createSandboxCommand())
+    .command(createSandboxCommand(noticesRenderer))
     .command(createPipelineDeployCommand())
     .command(createConfigureCommand())
     .command(createInfoCommand())
+    .command(createNoticesCommand())
     .help()
     .alias('h', 'help')
     .alias('v', 'version')

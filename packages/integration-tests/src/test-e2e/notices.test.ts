@@ -1,0 +1,101 @@
+import { after, before, describe, it } from 'node:test';
+import assert from 'assert';
+import { MinimalWithTypescriptIdiomTestProjectCreator } from '../test-project-setup/minimal_with_typescript_idioms.js';
+import {
+  createTestDirectory,
+  deleteTestDirectory,
+  rootTestDir,
+} from '../setup_test_directory.js';
+import { TestProjectBase } from '../test-project-setup/test_project_base.js';
+import { execa } from 'execa';
+import { typedConfigurationFileFactory } from '@aws-amplify/platform-core';
+import { z } from 'zod';
+
+const betaEndpoint = 'https://beta.notices.cli.amplify.aws/notices.json';
+
+void describe('Notices', () => {
+  const projectCreator = new MinimalWithTypescriptIdiomTestProjectCreator();
+  let testProject: TestProjectBase;
+  const manifestCache = typedConfigurationFileFactory.getInstance(
+    'notices_manifest_cache.json',
+    z.string(),
+    '',
+  );
+  const acknowledgementFile = typedConfigurationFileFactory.getInstance(
+    'notices_acknowledgments.json',
+    z.string(),
+    '',
+  );
+
+  before(async () => {
+    await manifestCache.delete();
+    await acknowledgementFile.delete();
+    await createTestDirectory(rootTestDir);
+    testProject = await projectCreator.createProject(rootTestDir);
+  });
+  after(async () => {
+    await deleteTestDirectory(rootTestDir);
+  });
+
+  void it('displays, lists and acknowledges notice', async () => {
+    const execaOptions = {
+      cwd: testProject.projectDirPath,
+      env: {
+        AMPLIFY_BACKEND_NOTICES_ENDPOINT: betaEndpoint,
+      },
+    };
+
+    // Prints unacknowledged notice in listing
+    let stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
+      .stdout;
+    assert.ok(
+      stdout.includes('This is a test notice'),
+      `${stdout} must include 'This is a test notice'`,
+    );
+    assert.strictEqual(
+      stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
+      stdout.lastIndexOf(
+        'https://github.com/aws-amplify/amplify-backend/issues/1',
+      ),
+      'Single notice must be shown only once in the output',
+    );
+
+    // Prints unacknowledged notice after random command
+    stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
+    assert.ok(
+      stdout.includes('This is a test notice'),
+      `${stdout} must include 'This is a test notice'`,
+    );
+    assert.strictEqual(
+      stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
+      stdout.lastIndexOf(
+        'https://github.com/aws-amplify/amplify-backend/issues/1',
+      ),
+      'Single notice must be shown only once in the output',
+    );
+
+    // Acknowledges notice
+    stdout = (
+      await execa('npx', ['ampx', 'notices', 'acknowledge', '1'], execaOptions)
+    ).stdout;
+    assert.ok(
+      stdout.includes('has been acknowledged'),
+      `${stdout} must include 'has been acknowledged'`,
+    );
+
+    // Assert that acknowledged notices in not included in listing
+    stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
+      .stdout;
+    assert.ok(
+      !stdout.includes('This is a test notice'),
+      `${stdout} must not include 'This is a test notice'`,
+    );
+
+    // Assert that acknowledged notices in not included after random command
+    stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
+    assert.ok(
+      !stdout.includes('This is a test notice'),
+      `${stdout} must not include 'This is a test notice'`,
+    );
+  });
+});

@@ -24,14 +24,14 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { NoticesRenderer } from '../../notices/notices_renderer.js';
 
 /**
  * Creates wired sandbox command.
  */
-export const createSandboxCommand = (): CommandModule<
-  object,
-  SandboxCommandOptionsKebabCase
-> => {
+export const createSandboxCommand = (
+  noticesRenderer: NoticesRenderer,
+): CommandModule<object, SandboxCommandOptionsKebabCase> => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
   );
@@ -70,6 +70,7 @@ export const createSandboxCommand = (): CommandModule<
         dependencies,
       );
     },
+    noticesRenderer,
   );
 
   const commandMiddleWare = new CommandMiddleware(printer);

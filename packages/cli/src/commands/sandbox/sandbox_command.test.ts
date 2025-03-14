@@ -21,15 +21,21 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { AmplifyError } from '@aws-amplify/platform-core';
+import { NoticesRenderer } from '../../notices/notices_renderer.js';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
 // To check if client config already exists before creating an empty one.
 mock.method(fs, 'existsSync', () => true);
 
+const tryFindAndPrintApplicableNoticesMock = mock.fn();
+const noticesRenderer = {
+  tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,
+} as unknown as NoticesRenderer;
+
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
-    assert.ok(createSandboxCommand() instanceof SandboxCommand);
+    assert.ok(createSandboxCommand(noticesRenderer) instanceof SandboxCommand);
   });
 });
 

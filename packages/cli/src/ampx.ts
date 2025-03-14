@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import { NoticesRenderer } from './notices/notices_renderer.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url)),
@@ -27,9 +28,9 @@ if (libraryVersion == undefined) {
   });
 }
 
-const dependencies = await new PackageManagerControllerFactory()
-  .getPackageManagerController()
-  .tryGetDependencies();
+const packageManagerController =
+  new PackageManagerControllerFactory().getPackageManagerController();
+const dependencies = await packageManagerController.tryGetDependencies();
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
@@ -40,7 +41,8 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 
 verifyCommandName();
 
-const parser = createMainParser(libraryVersion);
+const noticesRenderer = new NoticesRenderer(packageManagerController);
+const parser = createMainParser(libraryVersion, noticesRenderer);
 const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
 
 try {
@@ -52,9 +54,16 @@ try {
     metricDimension.command = subCommands;
   }
 
+  await noticesRenderer.tryFindAndPrintApplicableNotices({
+    event: 'postCommand',
+  });
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {
+    await noticesRenderer.tryFindAndPrintApplicableNotices({
+      event: 'postCommand',
+      error: e,
+    });
     await errorHandler(format.error(e), e);
   }
 }
