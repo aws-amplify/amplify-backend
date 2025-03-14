@@ -7,9 +7,7 @@ export type ConfigurationController = {
   write: () => Promise<void>;
 };
 
-export type LocalConfigurationFileName =
-  | 'usage_data_preferences.json'
-  | 'notices.json';
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 /**
  * Instantiates LocalConfigurationController

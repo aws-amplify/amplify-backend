@@ -2,7 +2,7 @@ import { Notice } from '@aws-amplify/cli-core';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
 import {
   PackageJsonReader,
-  configControllerFactory,
+  typedConfigurationFileFactory,
 } from '@aws-amplify/platform-core';
 import {
   LocalNamespaceResolver,
@@ -11,6 +11,25 @@ import {
 import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesRendererParams } from './notices_renderer.js';
+import { z } from 'zod';
+
+const acknowledgementFileSchema = z.object({
+  projectAcknowledgements: z.array(
+    z.object({
+      projectName: z.string(),
+      noticeId: z.string(),
+      acknowledgedAt: z.number(),
+    }),
+  ),
+});
+
+const acknowledgementFileInstance = typedConfigurationFileFactory.getInstance(
+  'notices_acknowledgments.json',
+  acknowledgementFileSchema,
+  {
+    projectAcknowledgements: [],
+  },
+);
 
 /**
  * A notices controller.
@@ -21,9 +40,7 @@ export class NoticesController {
    */
   constructor(
     packageManagerController: PackageManagerController,
-    private readonly configurationController = configControllerFactory.getInstance(
-      'notices.json',
-    ),
+    private readonly acknowledgementFile = acknowledgementFileInstance,
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
       new PackageJsonReader(),
     ),
@@ -48,18 +65,26 @@ export class NoticesController {
   };
 
   acknowledge = async (noticeId: string) => {
-    const path = await this.getNoticeAcknowledgementPath(noticeId);
-    await this.configurationController.set(path, true);
+    const acknowledgementFileContent = await this.acknowledgementFile.read();
+    acknowledgementFileContent.projectAcknowledgements.push({
+      projectName: await this.namespaceResolver.resolve(),
+      noticeId,
+      acknowledgedAt: Date.now(),
+    });
+    await this.acknowledgementFile.write(acknowledgementFileContent);
   };
 
   private filterAcknowledgedNotices = async (
     notices: Array<Notice>,
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
+    const acknowledgementFileContent = await this.acknowledgementFile.read();
+    const projectName = await this.namespaceResolver.resolve();
     for (const notice of notices) {
-      const path = await this.getNoticeAcknowledgementPath(notice.id);
       const isAcknowledged: boolean =
-        await this.configurationController.get(path);
+        acknowledgementFileContent.projectAcknowledgements.find((ack) => {
+          return ack.projectName === projectName && ack.noticeId === notice.id;
+        }) !== undefined;
       if (!isAcknowledged) {
         filteredNotices.push(notice);
       }
@@ -80,11 +105,5 @@ export class NoticesController {
       }
     }
     return filteredNotices;
-  };
-
-  private getNoticeAcknowledgementPath = async (
-    noticeId: string,
-  ): Promise<string> => {
-    return `acknowledgements.${await this.namespaceResolver.resolve()}.${noticeId}`;
   };
 }

@@ -5,13 +5,23 @@ import {
   noticesManifestSchema,
   printer,
 } from '@aws-amplify/cli-core';
-import { ZodSchemaTypedConfigurationFile } from '@aws-amplify/platform-core';
+import { typedConfigurationFileFactory } from '@aws-amplify/platform-core';
 import { z } from 'zod';
 
 const noticesManifestCacheSchema = z.object({
   noticesManifest: noticesManifestSchema,
   refreshedAt: z.number(),
 });
+
+const fileCacheInstance = typedConfigurationFileFactory.getInstance(
+  'notices_manifest_cache.json',
+  noticesManifestCacheSchema,
+  {
+    noticesManifest: { notices: [] },
+    // stale
+    refreshedAt: 0,
+  },
+);
 
 /**
  * Notices manifest fetcher.
@@ -25,10 +35,7 @@ export class NoticesManifestFetcher {
    * Creates new notices manifest fetcher.
    */
   constructor(
-    private readonly fileCache = new ZodSchemaTypedConfigurationFile(
-      noticesManifestCacheSchema,
-      'notices-manifest-cache.json',
-    ),
+    private readonly fileCache = fileCacheInstance,
     private readonly noticeManifestValidator = new NoticesManifestValidator({
       checkLinksWithGitHubApi: false,
     }),
@@ -83,10 +90,7 @@ export class NoticesManifestFetcher {
 
   private tryLoadManifestFromDisk = async (): Promise<void> => {
     try {
-      const cachedContent = await this.fileCache.tryRead();
-      if (!cachedContent) {
-        return;
-      }
+      const cachedContent = await this.fileCache.read();
       await this.noticeManifestValidator.validate(
         cachedContent.noticesManifest,
       );

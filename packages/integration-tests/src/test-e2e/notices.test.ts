@@ -8,18 +8,28 @@ import {
 } from '../setup_test_directory.js';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { execa } from 'execa';
-import { configControllerFactory } from '@aws-amplify/platform-core';
+import { typedConfigurationFileFactory } from '@aws-amplify/platform-core';
+import { z } from 'zod';
 
 const betaEndpoint = 'https://beta.notices.cli.amplify.aws/notices.json';
 
 void describe('Notices', () => {
   const projectCreator = new MinimalWithTypescriptIdiomTestProjectCreator();
   let testProject: TestProjectBase;
-  const configurationController =
-    configControllerFactory.getInstance('notices.json');
+  const manifestCache = typedConfigurationFileFactory.getInstance(
+    'notices_manifest_cache.json',
+    z.string(),
+    '',
+  );
+  const acknowledgementFile = typedConfigurationFileFactory.getInstance(
+    'notices_acknowledgments.json',
+    z.string(),
+    '',
+  );
 
   before(async () => {
-    await configurationController.clear();
+    await manifestCache.delete();
+    await acknowledgementFile.delete();
     await createTestDirectory(rootTestDir);
     testProject = await projectCreator.createProject(rootTestDir);
   });
