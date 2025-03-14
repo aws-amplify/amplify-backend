@@ -707,6 +707,70 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
+  void it('stops after synthesis when dryRun is true', async () => {
+    executeCommandMock.mock.mockImplementation(() => Promise.resolve());
+
+    // Perform dry run deployment
+    const result = await invoker.deploy(sandboxBackendId, {
+      dryRun: true,
+      validateAppSources: true,
+      ...sandboxDeployProps,
+    });
+
+    assert.strictEqual(executeCommandMock.mock.callCount(), 3);
+
+    // Call 0 -> synth
+    assert.deepStrictEqual(executeCommandMock.mock.calls[0].arguments[0], [
+      'cdk',
+      'synth',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+      '--context',
+      'amplify-backend-namespace=foo',
+      '--context',
+      'amplify-backend-name=bar',
+      '--context',
+      'amplify-backend-type=sandbox',
+      '--hotswap-fallback',
+      '--method=direct',
+      '--context',
+      `secretLastUpdated=${
+        sandboxDeployProps.secretLastUpdated?.getTime() as number
+      }`,
+      '--quiet',
+    ]);
+
+    // Call 1 -> tsc showConfig
+    assert.deepStrictEqual(executeCommandMock.mock.calls[1].arguments[0], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
+    ]);
+
+    // Call 2 -> tsc
+    assert.deepStrictEqual(executeCommandMock.mock.calls[2].arguments[0], [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      '--project',
+      'amplify',
+    ]);
+
+    // return structure contains only synthesis metrics and should be same
+    assert.ok(result.deploymentTimes);
+    assert.ok(typeof result.deploymentTimes.synthesisTime === 'number');
+    assert.strictEqual(
+      result.deploymentTimes.totalTime,
+      result.deploymentTimes.synthesisTime,
+      'Total time should equal synthesis time for dry runs'
+    );
+  });
+
   void it('returns human readable errors', async () => {
     mock.method(invoker, 'executeCommand', () => {
       throw new Error('Access Denied');
