@@ -167,7 +167,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       // ensure all branch names are unique
       if (this.props.migratedAmplifyGen1DynamoDbTableMappings) {
         // Remove this warning for GA
-        Annotations.of(scope).addWarning(
+        Annotations.of(scope).addInfo(
           'migratedAmplifyGen1DynamoDbTableMappings is experimental and is not recommended for production use. This functionality may be changed or removed without warning.',
         );
         const branchNames = new Set<string>();
