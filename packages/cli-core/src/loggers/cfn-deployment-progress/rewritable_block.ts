@@ -50,6 +50,7 @@ export class RewritableBlock {
       time: new Date(),
       action: 'amplify',
       level: 'info',
+      data: undefined,
     });
 
     this.lastHeight = Math.max(this.lastHeight, lines.length);

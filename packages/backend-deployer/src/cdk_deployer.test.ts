@@ -353,7 +353,10 @@ void describe('invokeCDKCommand', () => {
 
   void it('throws the original synth error if the synth failed to generate function env declaration files', async () => {
     // simulate first toolkit call for synth as throwing error
-    const synthError = new AssemblyError('some error');
+    const synthError = AssemblyError.withCause(
+      'some error',
+      new Error('some error cause'),
+    );
     synthMock.mock.mockImplementationOnce(() => {
       throw synthError;
     });

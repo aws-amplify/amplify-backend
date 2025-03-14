@@ -71,6 +71,7 @@ export class CDKDeployer implements BackendDeployer {
       action: 'amplify',
       time: new Date(),
       level: 'info',
+      data: undefined,
     });
 
     try {
@@ -92,6 +93,7 @@ export class CDKDeployer implements BackendDeployer {
       action: 'amplify',
       time: new Date(),
       level: 'result',
+      data: undefined,
     });
 
     // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
@@ -102,6 +104,7 @@ export class CDKDeployer implements BackendDeployer {
       action: 'amplify',
       time: new Date(),
       level: 'info',
+      data: undefined,
     });
 
     try {
@@ -129,6 +132,7 @@ export class CDKDeployer implements BackendDeployer {
         action: 'amplify',
         time: new Date(),
         level: 'result',
+        data: undefined,
       });
     }
 
