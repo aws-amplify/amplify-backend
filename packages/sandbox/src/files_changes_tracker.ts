@@ -38,7 +38,7 @@ export class FilesChangesTracker {
  * Creates a new instance of files changes tracker.
  */
 export const createFilesChangesTracker = async (
-  rootPath: string
+  rootPath: string,
 ): Promise<FilesChangesTracker> => {
   const tsFiles = await glob('**/*.{ts,tsx}', {
     ignore: 'node_modules/**',

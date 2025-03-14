@@ -13,7 +13,7 @@ void describe('format', () => {
     const formatter = new Format('yarn');
     assert.strictEqual(
       formatter.normalizeAmpxCommand('help'),
-      cyan('yarn ampx help')
+      cyan('yarn ampx help'),
     );
   });
 
@@ -24,7 +24,7 @@ void describe('format', () => {
       },
       {
         message: 'The command must be non-empty',
-      }
+      },
     );
   });
 
@@ -62,7 +62,7 @@ void describe('format', () => {
         format.indent('');
       },
       Error,
-      'Message cannot be empty'
+      'Message cannot be empty',
     );
   });
 
@@ -128,7 +128,7 @@ void describe('format.error', async () => {
       red(bold('[Error]')) +
       ' something went wrong' +
       format.indent(
-        os.EOL + 'Caused by: ' + red(bold('[Error]')) + ' nested error'
+        os.EOL + 'Caused by: ' + red(bold('[Error]')) + ' nested error',
       );
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
@@ -152,7 +152,7 @@ void describe('format when terminal colors disabled', async () => {
     assert.strictEqual(
       coloredMessage.includes('\x1b['),
       false,
-      'Color codes should not be present'
+      'Color codes should not be present',
     );
     assert.strictEqual(coloredMessage, 'Hello');
   });
@@ -164,7 +164,7 @@ void describe('format when terminal colors disabled', async () => {
     assert.strictEqual(
       coloredMessage.includes('\x1b['),
       false,
-      'Color codes should not be present'
+      'Color codes should not be present',
     );
     assert.strictEqual(coloredMessage, 'npx ampx hello');
   });

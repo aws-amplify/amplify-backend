@@ -33,7 +33,7 @@ const schema = a.schema({
       a.handler.custom({
         dataSource: a.ref('Todo'),
         entry: './js_custom_fn.js',
-      })
+      }),
     ),
 
   echo: a
@@ -52,8 +52,8 @@ const schema = a.schema({
       a.handler.function(
         defineFunction({
           entry: './echo/handler2.ts',
-        })
-      )
+        }),
+      ),
     ),
 }) as never; // Not 100% sure why TS is complaining here. The error I'm getting is "The inferred type of 'schema' references an inaccessible 'unique symbol' type. A type annotation is necessary."
 

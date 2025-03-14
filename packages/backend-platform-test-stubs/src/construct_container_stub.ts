@@ -33,14 +33,14 @@ export class ConstructContainerStub implements ConstructContainer {
    * Otherwise, the generator is called and the value is cached and returned
    */
   getOrCompute = (
-    generator: ConstructContainerEntryGenerator
+    generator: ConstructContainerEntryGenerator,
   ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifierStub();
       const backendSecretResolver = new BackendSecretResolverStub(
         scope,
-        backendId
+        backendId,
       );
       const ssmEnvironmentEntriesGenerator =
         new SsmEnvironmentEntriesGeneratorStub(scope);
@@ -53,7 +53,7 @@ export class ConstructContainerStub implements ConstructContainer {
           backendSecretResolver,
           ssmEnvironmentEntriesGenerator,
           stableBackendIdentifiers,
-        })
+        }),
       );
     }
     // safe because we checked for existence above
@@ -71,7 +71,7 @@ export class ConstructContainerStub implements ConstructContainer {
    * By convention, tokens should be the name of type T
    */
   getConstructFactory = <T extends ResourceProvider>(
-    token: string
+    token: string,
   ): ConstructFactory<T> | undefined => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
@@ -85,14 +85,14 @@ export class ConstructContainerStub implements ConstructContainer {
    */
   registerConstructFactory = (
     token: string,
-    provider: ConstructFactory
+    provider: ConstructFactory,
   ): void => {
     if (
       token in this.providerFactoryTokenMap &&
       this.providerFactoryTokenMap[token] !== provider
     ) {
       throw new Error(
-        `Token ${token} is already registered to a ProviderFactory`
+        `Token ${token} is already registered to a ProviderFactory`,
       );
     }
     this.providerFactoryTokenMap[token] = provider;

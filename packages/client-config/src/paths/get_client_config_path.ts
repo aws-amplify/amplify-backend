@@ -13,7 +13,7 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 export const getClientConfigPath = async (
   fileName: ClientConfigFileBaseName,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
 ) => {
   const defaultArgs = {
     out: process.cwd(),
@@ -44,7 +44,7 @@ export const getClientConfigPath = async (
                 resolution:
                   'Ensure that you have access for creating this file path and that the path is correct',
               },
-              error
+              error,
             );
           }
         }

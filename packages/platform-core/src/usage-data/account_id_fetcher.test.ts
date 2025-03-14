@@ -9,7 +9,7 @@ void describe('AccountIdFetcher', async () => {
     const mockSend = mock.method(STSClient.prototype, 'send', () =>
       Promise.resolve({
         Account: '123456789012',
-      } as GetCallerIdentityCommandOutput)
+      } as GetCallerIdentityCommandOutput),
     );
 
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
@@ -21,7 +21,7 @@ void describe('AccountIdFetcher', async () => {
 
   void test('returns no account ID when STS fails', async () => {
     const mockSend = mock.method(STSClient.prototype, 'send', () =>
-      Promise.reject(new Error('STS error'))
+      Promise.reject(new Error('STS error')),
     );
 
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
@@ -35,7 +35,7 @@ void describe('AccountIdFetcher', async () => {
     const mockSend = mock.method(STSClient.prototype, 'send', () =>
       Promise.resolve({
         Account: '123456789012',
-      } as GetCallerIdentityCommandOutput)
+      } as GetCallerIdentityCommandOutput),
     );
 
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
@@ -53,7 +53,7 @@ void describe('AccountIdFetcher', async () => {
     const mockSend = mock.method(STSClient.prototype, 'send', () =>
       Promise.resolve({
         Account: '123456789012',
-      } as GetCallerIdentityCommandOutput)
+      } as GetCallerIdentityCommandOutput),
     );
 
     // different accountIdFetcher to avoid returning cached account UUID
@@ -64,7 +64,7 @@ void describe('AccountIdFetcher', async () => {
     mock.method(STSClient.prototype, 'send', () =>
       Promise.resolve({
         Account: '123456789901', // should fall in different account id bucket
-      } as GetCallerIdentityCommandOutput)
+      } as GetCallerIdentityCommandOutput),
     );
     const accountId2 = await accountIdFetcher2.fetch();
 

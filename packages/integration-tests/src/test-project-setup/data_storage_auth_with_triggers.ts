@@ -38,25 +38,25 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly secretClient: SecretClient = getSecretClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly s3Client: S3Client = new S3Client(e2eToolingClientConfig),
     private readonly iamClient: IAMClient = new IAMClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cloudTrailClient: CloudTrailClient = new CloudTrailClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -74,14 +74,14 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.s3Client,
       this.iamClient,
       this.cloudTrailClient,
-      this.resourceFinder
+      this.resourceFinder,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
 
     return project;
@@ -99,17 +99,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   readonly sourceProjectRootURL: URL = new URL(
     this.sourceProjectRootPath,
-    import.meta.url
+    import.meta.url,
   );
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     `${this.sourceProjectRootPath}/amplify`,
-    import.meta.url
+    import.meta.url,
   );
 
   private readonly sourceProjectUpdateDirURL: URL = new URL(
     `${this.sourceProjectRootPath}/hotswap-update-files`,
-    import.meta.url
+    import.meta.url,
   );
 
   private readonly testSecretNames = [
@@ -140,14 +140,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly cloudTrailClient: CloudTrailClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
@@ -156,7 +156,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    */
   override async deploy(
     backendIdentifier: BackendIdentifier,
-    environment: Record<string, string> = {}
+    environment: Record<string, string> = {},
   ) {
     this.amplifySharedSecret =
       amplifySharedSecretNameKey in environment
@@ -209,7 +209,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
     // Check that deployed lambda is working correctly
@@ -218,13 +218,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const defaultNodeLambda = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('defaultNodeFunction')
+      (name) => name.includes('defaultNodeFunction'),
     );
 
     const node16Lambda = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('node16Function')
+      (name) => name.includes('node16Function'),
     );
 
     assert.equal(defaultNodeLambda.length, 1);
@@ -243,12 +243,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::S3::Bucket',
-      (bucketName) => bucketName.includes('testnamebucket')
+      (bucketName) => bucketName.includes('testnamebucket'),
     );
     assert.equal(
       bucketName.length,
       1,
-      `Expected one test bucket but found ${JSON.stringify(bucketName)}`
+      `Expected one test bucket but found ${JSON.stringify(bucketName)}`,
     );
     // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
     this.testBucketName = bucketName[0];
@@ -256,7 +256,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     // store the roles associated with this deployment so we can assert that they are deleted when the stack is torn down
     this.testRoleNames = await this.resourceFinder.findByBackendIdentifier(
       backendId,
-      'AWS::IAM::Role'
+      'AWS::IAM::Role',
     );
 
     // ensure typed shim files are generated by checking for onDelete's typed shim
@@ -268,10 +268,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
             '.amplify',
             'generated',
             'env',
-            'onDelete.ts'
-          )
+            'onDelete.ts',
+          ),
         )
-      ).isFile()
+      ).isFile(),
     );
 
     // ensure that all environment variables are present in the typed shim file for defaultNodeLambda function
@@ -280,11 +280,11 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       '.amplify',
       'generated',
       'env',
-      'defaultNodeFunction.ts'
+      'defaultNodeFunction.ts',
     );
     const fileContent = await fs.readFile(
       defaultNodeLambdaTypedShimPath,
-      'utf8'
+      'utf8',
     );
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
@@ -293,8 +293,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const outputsObject = JSON.parse(
       await fs.readFile(
         path.join(this.projectDirPath, 'amplify_outputs.json'),
-        'utf-8'
-      )
+        'utf-8',
+      ),
     );
     assert.ok(
       isMatch(outputsObject.storage.buckets[0].paths, {
@@ -311,7 +311,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           // eslint-disable-next-line spellcheck/spell-checker
           entityidentity: ['get', 'list', 'write', 'delete'],
         },
-      })
+      }),
     );
 
     assert.ok(
@@ -326,7 +326,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
             precedence: 1,
           },
         },
-      ])
+      ]),
     );
   }
 
@@ -337,14 +337,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private getSourceProjectUpdatePath = (suffix: string) =>
     pathToFileURL(
-      path.join(fileURLToPath(this.sourceProjectUpdateDirURL), suffix)
+      path.join(fileURLToPath(this.sourceProjectUpdateDirURL), suffix),
     );
 
   private getTestProjectPath = (suffix: string) =>
     pathToFileURL(path.join(this.projectAmplifyDirPath, suffix));
 
   private setUpDeployEnvironment = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> => {
     for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
@@ -354,12 +354,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.secretClient.setSecret(
       backendId.namespace,
       this.amplifySharedSecret,
-      secretValue
+      secretValue,
     );
   };
 
   private clearDeployEnvironment = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> => {
     // clear secrets
     for (const secretName of this.testSecretNames) {
@@ -367,20 +367,20 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
     await this.secretClient.removeSecret(
       backendId.namespace,
-      this.amplifySharedSecret
+      this.amplifySharedSecret,
     );
   };
 
   private checkLambdaResponse = async (
     lambdaName: string,
-    expectedResponse: unknown
+    expectedResponse: unknown,
   ) => {
     // invoke the lambda
     const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: lambdaName })
+      new InvokeCommand({ FunctionName: lambdaName }),
     );
     const responsePayload = JSON.parse(
-      response.Payload?.transformToString() || ''
+      response.Payload?.transformToString() || '',
     );
 
     // check expected response
@@ -447,7 +447,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private checkIfDeleteBucketEventArrived = async (
-    bucketName: string
+    bucketName: string,
   ): Promise<boolean> => {
     try {
       const lookupEventsResponse = await this.cloudTrailClient.send(
@@ -466,7 +466,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
               AttributeValue: bucketName,
             },
           ],
-        })
+        }),
       );
       return (lookupEventsResponse.Events?.length ?? 0) > 0;
     } catch (err) {
@@ -496,7 +496,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         } catch (err) {
           if (err instanceof Error) {
             console.log(
-              `Got error [${err.name}] while polling for deletion of [${roleName}].`
+              `Got error [${err.name}] while polling for deletion of [${roleName}].`,
             );
           }
           // continue polling
@@ -509,8 +509,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     if (remainingRoles.size > 0) {
       assert.fail(
         `Timed out waiting for role deletion. Remaining roles were [${Array.from(
-          remainingRoles
-        ).join(', ')}]`
+          remainingRoles,
+        ).join(', ')}]`,
       );
     }
     // if we got here all the roles were cleaned up within the timeout

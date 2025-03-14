@@ -116,7 +116,7 @@ const staleDurationInMilliseconds = 3 * 60 * 60 * 1000; // 3 hours in millisecon
 const logGroupStaleDurationInMilliseconds = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 const isStackStale = (
-  stackSummary: StackSummary | undefined
+  stackSummary: StackSummary | undefined,
 ): boolean | undefined => {
   if (!stackSummary?.CreationTime) {
     return;
@@ -128,7 +128,7 @@ const isStackStale = (
 };
 
 const isLogGroupStale = (
-  logGroup: LogGroup | undefined
+  logGroup: LogGroup | undefined,
 ): boolean | undefined => {
   if (!logGroup?.creationTime) {
     return;
@@ -153,15 +153,15 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
       new ListStacksCommand({
         NextToken: nextToken,
         StackStatusFilter: Object.keys(StackStatus).filter(
-          (status) => status != StackStatus.DELETE_COMPLETE
+          (status) => status != StackStatus.DELETE_COMPLETE,
         ) as Array<StackStatus>,
-      })
+      }),
     );
     nextToken = listStacksResponse.NextToken;
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
         stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
-        isStackStale(stackSummary)
+        isStackStale(stackSummary),
     ).forEach((item) => {
       stackSummaries.push(item);
     });
@@ -180,7 +180,7 @@ for (const staleStack of allStaleStacks) {
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
       console.log(
-        `Failed to kick off ${stackName} stack deletion. ${errorMessage}`
+        `Failed to kick off ${stackName} stack deletion. ${errorMessage}`,
       );
     }
   }
@@ -192,7 +192,7 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
     listBucketsResponse.Buckets?.filter(
       (bucket) =>
         isStale(bucket.CreationDate) &&
-        bucket.Name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX)
+        bucket.Name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX),
     ) ?? []
   );
 };
@@ -206,11 +206,11 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
       new ListObjectsV2Command({
         Bucket: bucketName,
         ContinuationToken: nextToken,
-      })
+      }),
     );
     const objectsToDelete: ObjectIdentifier[] | undefined =
       listObjectsResponse.Contents?.map(
-        (s3Object) => s3Object as ObjectIdentifier
+        (s3Object) => s3Object as ObjectIdentifier,
       );
     if (objectsToDelete && objectsToDelete.length > 0) {
       await s3Client.send(
@@ -219,7 +219,7 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
           Delete: {
             Objects: objectsToDelete,
           },
-        })
+        }),
       );
     }
     nextToken = listObjectsResponse.NextContinuationToken;
@@ -230,18 +230,18 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
       new ListObjectVersionsCommand({
         Bucket: bucketName,
         KeyMarker: nextToken,
-      })
+      }),
     );
     const objectsToDelete = ([] as ObjectIdentifier[])
       .concat(
         listVersionsResponse.DeleteMarkers?.map(
-          (s3Object) => s3Object as ObjectIdentifier
-        ) ?? []
+          (s3Object) => s3Object as ObjectIdentifier,
+        ) ?? [],
       )
       .concat(
         listVersionsResponse.Versions?.map(
-          (s3Object) => s3Object as ObjectIdentifier
-        ) ?? []
+          (s3Object) => s3Object as ObjectIdentifier,
+        ) ?? [],
       );
     if (objectsToDelete.length > 0) {
       await s3Client.send(
@@ -250,7 +250,7 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
           Delete: {
             Objects: objectsToDelete,
           },
-        })
+        }),
       );
     }
     nextToken = listVersionsResponse.NextKeyMarker;
@@ -281,11 +281,11 @@ const listStaleCognitoUserPools = async () => {
         new ListUserPoolsCommand({
           NextToken: nextToken,
           MaxResults: 60,
-        })
+        }),
       );
     nextToken = listUserPoolsResponse.NextToken;
     listUserPoolsResponse.UserPools?.filter((userPool) =>
-      isStale(userPool.CreationDate)
+      isStale(userPool.CreationDate),
     ).forEach((item) => {
       userPools.push(item);
     });
@@ -301,26 +301,26 @@ for (const staleUserPool of staleUserPools) {
       const describeUserPoolResponse = await cognitoClient.send(
         new DescribeUserPoolCommand({
           UserPoolId: staleUserPool.Id,
-        })
+        }),
       );
       if (describeUserPoolResponse.UserPool?.Domain) {
         await cognitoClient.send(
           new DeleteUserPoolDomainCommand({
             UserPoolId: describeUserPoolResponse.UserPool.Id,
             Domain: describeUserPoolResponse.UserPool?.Domain,
-          })
+          }),
         );
       }
       await cognitoClient.send(
         new DeleteUserPoolCommand({
           UserPoolId: staleUserPool.Id,
-        })
+        }),
       );
       console.log(`Successfully deleted ${staleUserPool.Name} user pool`);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
       console.log(
-        `Failed to delete ${staleUserPool.Name} user pool. ${errorMessage}`
+        `Failed to delete ${staleUserPool.Name} user pool. ${errorMessage}`,
       );
     }
   }
@@ -335,7 +335,7 @@ const listAllTestAmplifyApps = async (): Promise<Array<App>> => {
         new ListAppsCommand({
           maxResults: 100,
           nextToken,
-        })
+        }),
       );
     nextToken = listAppsCommandOutput.nextToken;
     listAppsCommandOutput.apps
@@ -348,7 +348,7 @@ const listAllTestAmplifyApps = async (): Promise<Array<App>> => {
 };
 
 const listStaleAmplifyAppBranches = async (
-  appId: string
+  appId: string,
 ): Promise<Array<Branch>> => {
   let nextToken: string | undefined = undefined;
   const branches: Array<Branch> = [];
@@ -359,7 +359,7 @@ const listStaleAmplifyAppBranches = async (
           appId,
           maxResults: 50,
           nextToken,
-        })
+        }),
       );
     nextToken = listBranchesCommandOutput.nextToken;
     if (listBranchesCommandOutput.branches) {
@@ -407,15 +407,15 @@ for (const staleBranch of allStaleBranches) {
       new DeleteBranchCommand({
         appId: staleBranch.appId,
         branchName: staleBranch.branchName,
-      })
+      }),
     );
     console.log(
-      `Successfully deleted ${staleBranch.branchName} branch of app ${staleBranch.appId}`
+      `Successfully deleted ${staleBranch.branchName} branch of app ${staleBranch.appId}`,
     );
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
-      `Failed to delete ${staleBranch.branchName} branch of app ${staleBranch.appId}. ${errorMessage}`
+      `Failed to delete ${staleBranch.branchName} branch of app ${staleBranch.appId}. ${errorMessage}`,
     );
   }
 }
@@ -427,7 +427,7 @@ const listAllStaleRoles = async (): Promise<Array<Role>> => {
     const listRolesCommandOutput: ListRolesCommandOutput = await iamClient.send(
       new ListRolesCommand({
         Marker: nextToken,
-      })
+      }),
     );
     nextToken = listRolesCommandOutput.Marker;
     if (listRolesCommandOutput.Roles) {
@@ -435,7 +435,7 @@ const listAllStaleRoles = async (): Promise<Array<Role>> => {
         (role: Role) =>
           (role.RoleName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
             role.RoleName?.startsWith(TEST_CDK_RESOURCE_PREFIX)) &&
-          isStale(role.CreateDate)
+          isStale(role.CreateDate),
       ).forEach((role: Role) => {
         roles.push(role);
       });
@@ -449,38 +449,38 @@ for (const staleRole of allStaleRoles) {
   try {
     // delete inline policies
     const inlinePolicies: ListRolePoliciesCommandOutput = await iamClient.send(
-      new ListRolePoliciesCommand({ RoleName: staleRole.RoleName })
+      new ListRolePoliciesCommand({ RoleName: staleRole.RoleName }),
     );
     for (const policyName of inlinePolicies.PolicyNames || []) {
       await iamClient.send(
         new DeleteRolePolicyCommand({
           RoleName: staleRole.RoleName,
           PolicyName: policyName,
-        })
+        }),
       );
     }
     // detach policies
     const attachedPolicies: ListAttachedRolePoliciesCommandOutput =
       await iamClient.send(
-        new ListAttachedRolePoliciesCommand({ RoleName: staleRole.RoleName })
+        new ListAttachedRolePoliciesCommand({ RoleName: staleRole.RoleName }),
       );
     for (const policy of attachedPolicies.AttachedPolicies || []) {
       await iamClient.send(
         new DetachRolePolicyCommand({
           RoleName: staleRole.RoleName,
           PolicyArn: policy.PolicyArn,
-        })
+        }),
       );
     }
     // delete role
     await iamClient.send(
-      new DeleteRoleCommand({ RoleName: staleRole.RoleName })
+      new DeleteRoleCommand({ RoleName: staleRole.RoleName }),
     );
     console.log(`Successfully deleted ${staleRole.RoleName} IAM Role`);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
-      `Failed to delete ${staleRole.RoleName} IAM Role. ${errorMessage}`
+      `Failed to delete ${staleRole.RoleName} IAM Role. ${errorMessage}`,
     );
   }
 }
@@ -503,12 +503,12 @@ const listAllStaleSSMParameters = async (): Promise<
               Values: ['/amplify/'],
             },
           ],
-        })
+        }),
       );
     nextToken = describeParametersCommandOutput.NextToken;
     if (describeParametersCommandOutput.Parameters) {
       describeParametersCommandOutput.Parameters.filter(
-        (parameter: ParameterMetadata) => isStale(parameter.LastModifiedDate)
+        (parameter: ParameterMetadata) => isStale(parameter.LastModifiedDate),
       ).forEach((parameter: ParameterMetadata) => {
         parameters.push(parameter);
       });
@@ -523,13 +523,13 @@ for (const staleSSMParameter of allStaleSSMParameters) {
     await ssmClient.send(
       new DeleteParameterCommand({
         Name: staleSSMParameter.Name,
-      })
+      }),
     );
     console.log(`Successfully deleted ${staleSSMParameter.Name} SSM parameter`);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
-      `Failed to delete ${staleSSMParameter.Name} SSM parameter. ${errorMessage}`
+      `Failed to delete ${staleSSMParameter.Name} SSM parameter. ${errorMessage}`,
     );
   }
 }
@@ -544,7 +544,7 @@ const listAllStaleDynamoDBTables = async (): Promise<
       await ddbClient.send(
         new ListTablesCommand({
           ExclusiveStartTableName: nextToken,
-        })
+        }),
       );
     nextToken = listTablesCommandOutput.LastEvaluatedTableName;
     if (listTablesCommandOutput.TableNames) {
@@ -557,7 +557,7 @@ const listAllStaleDynamoDBTables = async (): Promise<
       await ddbClient.send(
         new DescribeTableCommand({
           TableName: tableName,
-        })
+        }),
       );
     if (describeTableCommandOutput.Table) {
       tables.push(describeTableCommandOutput.Table);
@@ -572,15 +572,15 @@ for (const staleDynamoDBTable of allStaleDynamoDBTables) {
     await ddbClient.send(
       new DeleteTableCommand({
         TableName: staleDynamoDBTable.TableName,
-      })
+      }),
     );
     console.log(
-      `Successfully deleted ${staleDynamoDBTable.TableName} DDB table`
+      `Successfully deleted ${staleDynamoDBTable.TableName} DDB table`,
     );
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
-      `Failed to delete ${staleDynamoDBTable.TableName} DDB table. ${errorMessage}`
+      `Failed to delete ${staleDynamoDBTable.TableName} DDB table. ${errorMessage}`,
     );
   }
 }
@@ -593,7 +593,7 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
       await cloudWatchClient.send(
         new DescribeLogGroupsCommand({
           nextToken,
-        })
+        }),
       );
     nextToken = listLogGroupsResponse.nextToken;
     listLogGroupsResponse.logGroups
@@ -601,9 +601,9 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
         (logGroup) =>
           (logGroup.logGroupName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
             logGroup.logGroupName?.startsWith(
-              `/aws/lambda/${TEST_AMPLIFY_RESOURCE_PREFIX}`
+              `/aws/lambda/${TEST_AMPLIFY_RESOURCE_PREFIX}`,
             )) &&
-          isLogGroupStale(logGroup)
+          isLogGroupStale(logGroup),
       )
       .forEach((item) => {
         logGroups.push(item);
@@ -618,13 +618,13 @@ for (const logGroup of allStaleLogGroups) {
     await cloudWatchClient.send(
       new DeleteLogGroupCommand({
         logGroupName: logGroup.logGroupName,
-      })
+      }),
     );
     console.log(`Successfully deleted ${logGroup.logGroupName} log group`);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
-      `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`
+      `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`,
     );
   }
 }

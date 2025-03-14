@@ -103,13 +103,13 @@ export enum BackendStatus {
 
 export type DeployedBackendClient = {
   listBackends: (
-    listBackendsRequest?: ListBackendsRequest
+    listBackendsRequest?: ListBackendsRequest,
   ) => ListBackendsResponse;
   deleteSandbox: (
-    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>,
   ) => Promise<void>;
   getBackendMetadata: (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ) => Promise<BackendMetadata>;
 };
 
@@ -125,7 +125,7 @@ export class DeployedBackendClientFactory {
       getS3Client: S3Client;
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
-    }>
+    }>,
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
     const arnGenerator = new ArnGenerator();
@@ -133,7 +133,7 @@ export class DeployedBackendClientFactory {
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       stackStatusMapper,
       arnGenerator,
-      arnParser
+      arnParser,
     );
 
     return new DefaultDeployedBackendClient(
@@ -142,7 +142,7 @@ export class DeployedBackendClientFactory {
       BackendOutputClientFactory.getInstance(awsClientProvider),
       deployedResourcesEnumerator,
       stackStatusMapper,
-      arnParser
+      arnParser,
     );
   }
 }

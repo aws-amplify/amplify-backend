@@ -112,7 +112,7 @@ void describe('config controller', () => {
     assert.deepStrictEqual(mockedFsWriteFile.mock.calls[0].arguments[1], '{}');
     assert.deepStrictEqual(
       mockedFsWriteFile.mock.calls[1].arguments[1],
-      JSON.stringify({ hello: { world: true } })
+      JSON.stringify({ hello: { world: true } }),
     );
   });
 });

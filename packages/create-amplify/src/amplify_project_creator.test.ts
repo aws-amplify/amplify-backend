@@ -32,50 +32,50 @@ void describe('AmplifyProjectCreator', () => {
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
       gitIgnoreInitializerMock as never,
-      initialProjectFileGeneratorMock as never
+      initialProjectFileGeneratorMock as never,
     );
 
     await amplifyProjectCreator.create();
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
-      2
+      2,
     );
     assert.equal(projectRootValidatorMock.validate.mock.callCount(), 1);
     assert.equal(
       initialProjectFileGeneratorMock.generateInitialProjectFiles.mock.callCount(),
-      1
+      1,
     );
     assert.equal(
       logSpy.mock.calls[1].arguments[0],
-      bold(blue(`Installing devDependencies:`))
+      bold(blue(`Installing devDependencies:`)),
     );
     assert.equal(
       logSpy.mock.calls[3].arguments[0],
-      bold(blue(`Installing dependencies:`))
+      bold(blue(`Installing dependencies:`)),
     );
     assert.equal(
       indicateProgressSpy.mock.calls[0].arguments[0],
-      `Installing devDependencies`
+      `Installing devDependencies`,
     );
     assert.equal(
       indicateProgressSpy.mock.calls[0].arguments[2],
-      `DevDependencies installed`
+      `DevDependencies installed`,
     );
     assert.equal(
       indicateProgressSpy.mock.calls[1].arguments[0],
-      `Installing dependencies`
+      `Installing dependencies`,
     );
     assert.equal(
       indicateProgressSpy.mock.calls[1].arguments[2],
-      `Dependencies installed`
+      `Dependencies installed`,
     );
     assert.equal(
       indicateProgressSpy.mock.calls[2].arguments[0],
-      `Creating template files`
+      `Creating template files`,
     );
     assert.equal(
       indicateProgressSpy.mock.calls[2].arguments[2],
-      `Template files created`
+      `Template files created`,
     );
     // at least for one call of logSpy, its first argument will be Successfully created a new project!
     assert.equal(
@@ -84,28 +84,28 @@ void describe('AmplifyProjectCreator', () => {
           call.arguments[0] === green('Successfully created a new project!')
         );
       }),
-      true
+      true,
     );
     assert.equal(
       logSpy.mock.calls.some((call) => {
         return call.arguments[0] === bold(blue('Welcome to AWS Amplify!'));
       }),
-      true
+      true,
     );
     assert.equal(
       logSpy.mock.calls.some((call) => {
         return (
           call.arguments[0] ===
           `Navigate to your project directory using ${cyan(
-            'cd .testProjectRoot'
+            'cd .testProjectRoot',
           )} and then:${EOL} - Get started by running ${cyan(
-            'npx ampx sandbox'
+            'npx ampx sandbox',
           )}.${EOL} - Run ${cyan(
-            'npx ampx help'
+            'npx ampx help',
           )} for a list of available commands.`
         );
       }),
-      true
+      true,
     );
 
     assert.equal(
@@ -114,14 +114,14 @@ void describe('AmplifyProjectCreator', () => {
           call.arguments[0] ===
           grey(
             `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-              'npx ampx configure telemetry disable'
+              'npx ampx configure telemetry disable',
             )}. To learn more about telemetry, visit ${underline(
-              blue('https://docs.amplify.aws/react/reference/telemetry')
-            )}`
+              blue('https://docs.amplify.aws/react/reference/telemetry'),
+            )}`,
           )
         );
       }),
-      true
+      true,
     );
   });
 });

@@ -38,7 +38,7 @@ void describe('deploy command', () => {
   const generateClientConfigMock = mock.method(
     clientConfigGenerator,
     'generateClientConfigToFile',
-    () => Promise.resolve()
+    () => Promise.resolve(),
   );
   const mockIoHost: AmplifyIOHost = {
     notify: mock.fn(),
@@ -48,7 +48,7 @@ void describe('deploy command', () => {
 
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
-    new Printer(LogLevel.DEBUG)
+    new Printer(LogLevel.DEBUG),
   );
   const formatterStub: BackendDeployerOutputFormatter = {
     normalizeAmpxCommand: () => 'test command',
@@ -58,13 +58,13 @@ void describe('deploy command', () => {
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
-      mockProfileResolver
+      mockProfileResolver,
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
       backendDeployer,
-      isCI
+      isCI,
     ) as CommandModule<object, PipelineDeployCommandOptions>;
     const parser = yargs().command(deployCommand);
     return new TestCommandRunner(parser);
@@ -79,7 +79,7 @@ void describe('deploy command', () => {
     assert.match(output, /Commands:/);
     assert.match(
       output,
-      /Command to deploy backends in a custom CI\/CD pipeline/
+      /Command to deploy backends in a custom CI\/CD pipeline/,
     );
   });
 
@@ -93,19 +93,19 @@ void describe('deploy command', () => {
     await assert.rejects(
       () =>
         getCommandRunner().runCommand(
-          'pipeline-deploy --app-id abc --branch test-branch'
+          'pipeline-deploy --app-id abc --branch test-branch',
         ),
       (err: TestCommandError) => {
         assert.match(
           err.error.message,
-          /It looks like this command is being run outside of a CI\/CD workflow/
+          /It looks like this command is being run outside of a CI\/CD workflow/,
         );
         assert.deepStrictEqual(
           err.error.name,
-          'RunningPipelineDeployNotInCiError'
+          'RunningPipelineDeployNotInCiError',
         );
         return true;
-      }
+      },
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
@@ -115,15 +115,15 @@ void describe('deploy command', () => {
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
-      mockProfileResolver
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch'
+      'pipeline-deploy --app-id abc --branch test-branch',
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
@@ -144,15 +144,15 @@ void describe('deploy command', () => {
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
-      mockProfileResolver
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-out-dir src'
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-out-dir src',
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
@@ -183,15 +183,15 @@ void describe('deploy command', () => {
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
-      mockProfileResolver
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-version 0'
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-version 0',
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
@@ -222,15 +222,15 @@ void describe('deploy command', () => {
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
-      mockProfileResolver
+      mockProfileResolver,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
       'deploy',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-format dart'
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-format dart',
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
@@ -260,13 +260,13 @@ void describe('deploy command', () => {
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
-          'pipeline-deploy --app-id abc --branch'
+          'pipeline-deploy --app-id abc --branch',
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
         assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
         return true;
-      }
+      },
     );
   });
 
@@ -274,13 +274,13 @@ void describe('deploy command', () => {
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
-          'pipeline-deploy --app-id --branch testBranch'
+          'pipeline-deploy --app-id --branch testBranch',
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
         assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
         return true;
-      }
+      },
     );
   });
 });

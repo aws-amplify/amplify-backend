@@ -18,7 +18,7 @@ export class ToggleableImportPathVerifier implements ImportPathVerifier {
   verify = (
     importStack: string | undefined,
     expectedImportSuffix: string,
-    errorMessage: string
+    errorMessage: string,
   ): void => {
     if (!this.doVerify) {
       return;

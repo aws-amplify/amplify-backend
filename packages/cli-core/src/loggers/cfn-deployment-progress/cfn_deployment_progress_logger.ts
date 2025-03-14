@@ -96,7 +96,7 @@ export class CfnDeploymentProgressLogger {
     // Hydrate friendly name resource cache
     if (event.ResourceType === 'AWS::CloudFormation::Stack') {
       const nestedStackName = this.getFriendlyNameFromNestedStackName(
-        event.LogicalResourceId
+        event.LogicalResourceId,
       );
       if (nestedStackName) {
         this.resourceNameCache[event.LogicalResourceId] = nestedStackName;
@@ -189,27 +189,27 @@ export class CfnDeploymentProgressLogger {
         // Always display the root stack first
         if (
           this.resourceNameCache[b.LogicalResourceId].startsWith(
-            this.rootStackDisplay
+            this.rootStackDisplay,
           ) &&
           !this.resourceNameCache[a.LogicalResourceId].startsWith(
-            this.rootStackDisplay
+            this.rootStackDisplay,
           )
         ) {
           return 1;
         }
         if (
           this.resourceNameCache[a.LogicalResourceId].startsWith(
-            this.rootStackDisplay
+            this.rootStackDisplay,
           ) &&
           !this.resourceNameCache[b.LogicalResourceId].startsWith(
-            this.rootStackDisplay
+            this.rootStackDisplay,
           )
         ) {
           return -1;
         }
         // Rest order them lexicographical so that we "group" all child resources together
         return this.resourceNameCache[a.LogicalResourceId].localeCompare(
-          this.resourceNameCache[b.LogicalResourceId]
+          this.resourceNameCache[b.LogicalResourceId],
         );
       }
       // If we don't have friendly names, just order them based on the time
@@ -220,13 +220,13 @@ export class CfnDeploymentProgressLogger {
       ...toPrint
         .filter(
           // If we don't have LogicalResourceId we don't have anything
-          (res) => res.LogicalResourceId
+          (res) => res.LogicalResourceId,
         )
         .map((res) => {
           const color = this.colorFromStatusActivity(res.ResourceStatus);
 
           return this.getFormattedLine(res, color);
-        })
+        }),
     );
 
     await this.block.displayLines(lines);
@@ -271,9 +271,9 @@ export class CfnDeploymentProgressLogger {
     const width = Math.max(
       Math.min(
         this.getBlockWidth() - PROGRESSBAR_EXTRA_SPACE - 1,
-        MAX_PROGRESSBAR_WIDTH
+        MAX_PROGRESSBAR_WIDTH,
       ),
-      MIN_PROGRESSBAR_WIDTH
+      MIN_PROGRESSBAR_WIDTH,
     );
 
     if (!this.resourcesTotal) {
@@ -288,7 +288,7 @@ export class CfnDeploymentProgressLogger {
     const partialChar =
       PARTIAL_BLOCK[Math.floor(remainder * PARTIAL_BLOCK.length)];
     const filler = '·'.repeat(
-      innerWidth - Math.floor(chars) - (partialChar ? 1 : 0)
+      innerWidth - Math.floor(chars) - (partialChar ? 1 : 0),
     );
 
     const color: ColorName = this.rollingBack ? 'Yellow' : 'Green';
@@ -307,7 +307,7 @@ export class CfnDeploymentProgressLogger {
   private failureReasonOnNextLine = (event: StackEvent) => {
     return this.isFailureStatus(event)
       ? `${EOL}${' '.repeat(
-          this.timeStampWidth + this.statusWidth + 6
+          this.timeStampWidth + this.statusWidth + 6,
         )}${format.color(this.failureReason(event) ?? '', 'Red')}`
       : '';
   };
@@ -315,7 +315,7 @@ export class CfnDeploymentProgressLogger {
   private isFailureStatus = (event: StackEvent) => {
     if (
       (event.ResourceStatusReason?.includes(
-        'The following resource(s) failed'
+        'The following resource(s) failed',
       ) ||
         event.ResourceStatusReason === 'Initiated by parent stack') &&
       event.ResourceType === 'AWS::CloudFormation::Stack'
@@ -333,40 +333,40 @@ export class CfnDeploymentProgressLogger {
   private getFormattedLine = (event: StackEvent, color?: ColorName) => {
     const timeStamp = this.padLeft(
       this.timeStampWidth,
-      new Date(event.Timestamp!).toLocaleTimeString()
+      new Date(event.Timestamp!).toLocaleTimeString(),
     );
     const status = color
       ? format.color(
           this.padRight(
             this.statusWidth,
-            (event.ResourceStatus || '').slice(0, this.statusWidth)
+            (event.ResourceStatus || '').slice(0, this.statusWidth),
           ),
-          color
+          color,
         )
       : this.padRight(
           this.statusWidth,
-          (event.ResourceStatus || '').slice(0, this.statusWidth)
+          (event.ResourceStatus || '').slice(0, this.statusWidth),
         );
 
     const resourceType = this.padRight(
       this.resourceTypeColumnWidth,
       this.shorten(
         this.resourceTypeColumnWidth,
-        event.ResourceType?.split('::').slice(1).join(':') || ''
-      )
+        event.ResourceType?.split('::').slice(1).join(':') || '',
+      ),
     );
 
     const formattedResourceName = this.getFormattedResourceDisplayName(
-      event.LogicalResourceId!
+      event.LogicalResourceId!,
     );
     const resourceNameToDisplay = color
       ? format.color(
           format.bold(this.shorten(100, formattedResourceName)),
-          color
+          color,
         )
       : format.bold(this.shorten(100, formattedResourceName));
     return `${timeStamp} | ${status} | ${resourceType} | ${resourceNameToDisplay}${this.failureReasonOnNextLine(
-      event
+      event,
     )}`;
   };
 
@@ -386,7 +386,7 @@ export class CfnDeploymentProgressLogger {
       // make sure it's never more than 1 than the previous padding.
       this.resourceNameIndentation = Math.min(
         paths.length - 1,
-        this.resourceNameIndentation
+        this.resourceNameIndentation,
       );
       resourceNameDisplay =
         '  '.repeat(this.resourceNameIndentation++) + '∟ ' + resourceName;
@@ -410,7 +410,7 @@ export class CfnDeploymentProgressLogger {
    * and make them show up in Root stack hierarchy
    */
   private getFriendlyNameFromNestedStackName = (
-    stackName: string
+    stackName: string,
   ): string | undefined => {
     const parts = stackName.split('-');
     if (parts && parts.length === 7 && parts[3] === 'sandbox') {
@@ -424,7 +424,7 @@ export class CfnDeploymentProgressLogger {
   };
 
   private colorFromStatusActivity = (
-    status?: string
+    status?: string,
   ): ColorName | undefined => {
     if (!status) {
       return;

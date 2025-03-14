@@ -17,19 +17,19 @@ export class CfnTokenBackendSecret implements BackendSecret {
    */
   constructor(
     private readonly secretName: string,
-    private readonly secretResourceFactory: BackendSecretFetcherFactory
+    private readonly secretResourceFactory: BackendSecretFetcherFactory,
   ) {}
   /**
    * Get a reference to the value within a CDK scope.
    */
   resolve = (
     scope: Construct,
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: BackendIdentifier,
   ): SecretValue => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
       this.secretName,
-      backendIdentifier
+      backendIdentifier,
     );
 
     const val = secretResource.getAttString(`${this.secretName}`);
@@ -43,11 +43,11 @@ export class CfnTokenBackendSecret implements BackendSecret {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier,
-        this.secretName
+        this.secretName,
       ),
       sharedSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier.namespace,
-        this.secretName
+        this.secretName,
       ),
     };
   };

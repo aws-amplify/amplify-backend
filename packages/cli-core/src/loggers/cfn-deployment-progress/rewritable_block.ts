@@ -18,7 +18,7 @@ export class RewritableBlock {
   constructor(
     private readonly getBlockWidth: () => number,
     private readonly getBlockHeight: () => number,
-    private readonly ioHost: AmplifyIOHost
+    private readonly ioHost: AmplifyIOHost,
   ) {}
 
   /**
@@ -29,7 +29,7 @@ export class RewritableBlock {
     lines = this.terminalWrap(this.getBlockWidth(), this.expandNewlines(lines));
     lines = lines.slice(
       0,
-      this.getMaxBlockHeight(this.getBlockHeight(), this.lastHeight, lines)
+      this.getMaxBlockHeight(this.getBlockHeight(), this.lastHeight, lines),
     );
 
     const progressUpdate: string[] = [];
@@ -75,7 +75,7 @@ export class RewritableBlock {
         hard: true,
         trim: true,
         wordWrap: false,
-      }).split(EOL)
+      }).split(EOL),
     );
   };
 
@@ -89,7 +89,7 @@ export class RewritableBlock {
   getMaxBlockHeight = (
     windowHeight: number | undefined,
     lastHeight: number,
-    lines: string[]
+    lines: string[],
   ): number => {
     if (windowHeight === undefined) {
       return Math.max(lines.length, lastHeight);

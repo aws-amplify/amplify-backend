@@ -10,7 +10,7 @@ void describe('Graphql executor test', () => {
   const accessToken = 'testToken';
   const userAgent = 'testUserAgent';
   const userAgentProvider = new UserAgentProvider(
-    {} as unknown as ConversationTurnEvent
+    {} as unknown as ConversationTurnEvent,
   );
   mock.method(userAgentProvider, 'getUserAgent', () => userAgent);
 
@@ -19,13 +19,13 @@ void describe('Graphql executor test', () => {
       fetch,
       (): Promise<Response> =>
         // Mock successful Appsync response
-        Promise.resolve(new Response('{}', { status: 200 }))
+        Promise.resolve(new Response('{}', { status: 200 })),
     );
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
       userAgentProvider,
-      fetchMock
+      fetchMock,
     );
     const query = 'testQuery';
     const variables = {
@@ -42,7 +42,7 @@ void describe('Graphql executor test', () => {
     assert.strictEqual(request.method, 'POST');
     assert.strictEqual(
       request.headers.get('Content-Type'),
-      'application/graphql'
+      'application/graphql',
     );
     assert.strictEqual(request.headers.get('Authorization'), accessToken);
     assert.strictEqual(request.headers.get('x-amz-user-agent'), userAgent);
@@ -58,13 +58,13 @@ void describe('Graphql executor test', () => {
       fetch,
       (): Promise<Response> =>
         // Mock successful Appsync response
-        Promise.resolve(new Response('{}', { status: 200 }))
+        Promise.resolve(new Response('{}', { status: 200 })),
     );
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
       userAgentProvider,
-      fetchMock
+      fetchMock,
     );
     const query = 'testQuery';
     const variables = {
@@ -77,14 +77,14 @@ void describe('Graphql executor test', () => {
       },
       {
         userAgent: 'methodScopedUserAgent',
-      }
+      },
     );
 
     assert.strictEqual(fetchMock.mock.calls.length, 1);
     const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
     assert.strictEqual(
       request.headers.get('x-amz-user-agent'),
-      'methodScopedUserAgent'
+      'methodScopedUserAgent',
     );
   });
 
@@ -97,14 +97,14 @@ void describe('Graphql executor test', () => {
           new Response('Body with error', {
             status: 400,
             headers: { testHeaderKey: 'testHeaderValue' },
-          })
-        )
+          }),
+        ),
     );
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
       userAgentProvider,
-      fetchMock
+      fetchMock,
     );
     const query = 'testQuery';
     const variables = {
@@ -116,10 +116,10 @@ void describe('Graphql executor test', () => {
         assert.strictEqual(
           error.message,
           // eslint-disable-next-line spellcheck/spell-checker
-          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body=Body with error'
+          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body=Body with error',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -136,15 +136,15 @@ void describe('Graphql executor test', () => {
             {
               status: 200,
               headers: { testHeaderKey: 'testHeaderValue' },
-            }
-          )
-        )
+            },
+          ),
+        ),
     );
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
       userAgentProvider,
-      fetchMock
+      fetchMock,
     );
     const query = 'testQuery';
     const variables = {
@@ -156,10 +156,10 @@ void describe('Graphql executor test', () => {
         assert.strictEqual(
           error.message,
           // eslint-disable-next-line spellcheck/spell-checker
-          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body={"errors":["Some GQL error"]}'
+          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body={"errors":["Some GQL error"]}',
         );
         return true;
-      }
+      },
     );
   });
 });

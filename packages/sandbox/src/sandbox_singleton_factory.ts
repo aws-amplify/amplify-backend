@@ -29,7 +29,7 @@ export class SandboxSingletonFactory {
     private readonly sandboxIdResolver: BackendIdSandboxResolver,
     private readonly sdkProfileResolver: SDKProfileResolver,
     private readonly printer: Printer,
-    private readonly format: Format
+    private readonly format: Format,
   ) {}
 
   /**
@@ -40,30 +40,30 @@ export class SandboxSingletonFactory {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
       const cdkEventsBridgeIoHost = new AmplifyIOEventsBridgeSingletonFactory(
-        this.printer
+        this.printer,
       ).getInstance();
 
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController(),
         this.format,
         cdkEventsBridgeIoHost,
-        this.sdkProfileResolver
+        this.sdkProfileResolver,
       );
       SandboxSingletonFactory.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
           backendDeployerFactory.getInstance(),
           getSecretClientWithAmplifyErrorHandling(),
-          this.printer
+          this.printer,
         ),
         new SSMClient(),
         new LambdaFunctionLogStreamer(
           new LambdaClient(),
           new CloudWatchLogEventMonitor(new CloudWatchLogsClient()),
           BackendOutputClientFactory.getInstance(),
-          this.printer
+          this.printer,
         ),
-        this.printer
+        this.printer,
       );
     }
     return SandboxSingletonFactory.instance;

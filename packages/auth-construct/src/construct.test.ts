@@ -147,11 +147,11 @@ void describe('Auth construct', () => {
     assert.equal(Object.keys(auth.resources.groups).length, 2);
     assert.equal(
       auth.resources.groups['admins'].cfnUserGroup.groupName,
-      'admins'
+      'admins',
     );
     assert.equal(
       auth.resources.groups['managers'].cfnUserGroup.groupName,
-      'managers'
+      'managers',
     );
     // validate generated template
     const template = Template.fromStack(stack);
@@ -197,7 +197,7 @@ void describe('Auth construct', () => {
           ],
         },
       },
-      matchingRoleCount
+      matchingRoleCount,
     );
   });
 
@@ -233,7 +233,7 @@ void describe('Auth construct', () => {
         }),
       {
         message: 'At least one of email or phone must be enabled.',
-      }
+      },
     );
   });
 
@@ -367,7 +367,7 @@ void describe('Auth construct', () => {
       {
         message:
           "Invalid email settings. Property 'verificationEmailBody' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
-      }
+      },
     );
   });
 
@@ -390,7 +390,7 @@ void describe('Auth construct', () => {
       {
         message:
           "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link.",
-      }
+      },
     );
   });
 
@@ -410,7 +410,7 @@ void describe('Auth construct', () => {
               verificationEmailSubject: customEmailVerificationSubject,
             },
           },
-        })
+        }),
     );
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -461,7 +461,7 @@ void describe('Auth construct', () => {
       {
         message:
           "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
-      }
+      },
     );
   });
 
@@ -483,7 +483,7 @@ void describe('Auth construct', () => {
             },
             totp: false,
           },
-        })
+        }),
     );
   });
 
@@ -508,7 +508,7 @@ void describe('Auth construct', () => {
       {
         message:
           "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
-      }
+      },
     );
   });
 
@@ -527,7 +527,7 @@ void describe('Auth construct', () => {
       {
         message:
           'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
-      }
+      },
     );
     assert.throws(
       () =>
@@ -543,7 +543,7 @@ void describe('Auth construct', () => {
       {
         message:
           'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
-      }
+      },
     );
   });
 
@@ -675,7 +675,7 @@ void describe('Auth construct', () => {
       {
         message:
           'Both externalId and snsCallerArn are required when providing a custom IAM role. Ensure that your IAM role trust policy have an sts:ExternalId condition and is equal to the externalId value',
-      }
+      },
     );
   });
 
@@ -689,7 +689,7 @@ void describe('Auth construct', () => {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
         runtime: Runtime.NODEJS_18_X,
-      }
+      },
     );
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -726,7 +726,7 @@ void describe('Auth construct', () => {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
         runtime: Runtime.NODEJS_18_X,
-      }
+      },
     );
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -764,7 +764,7 @@ void describe('Auth construct', () => {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
         runtime: Runtime.NODEJS_18_X,
-      }
+      },
     );
     assert.throws(
       () =>
@@ -785,7 +785,7 @@ void describe('Auth construct', () => {
         }),
       {
         message: 'KMS key ARN must be the same for both email and sms senders',
-      }
+      },
     );
   });
 
@@ -799,7 +799,7 @@ void describe('Auth construct', () => {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
         runtime: Runtime.NODEJS_18_X,
-      }
+      },
     );
 
     new AmplifyAuth(stack, 'test', {
@@ -854,7 +854,7 @@ void describe('Auth construct', () => {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
         runtime: Runtime.NODEJS_18_X,
-      }
+      },
     );
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -1056,18 +1056,18 @@ void describe('Auth construct', () => {
       const outputs = template.findOutputs('*');
       assert.equal(
         outputs['allowUnauthenticatedIdentities']['Value'],
-        DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES === true ? 'true' : 'false'
+        DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES === true ? 'true' : 'false',
       );
       assert.equal(outputs['mfaTypes']['Value'], '[]');
 
       assert.equal(outputs['mfaConfiguration']['Value'], 'OFF');
       assert.equal(
         outputs['passwordPolicyMinLength']['Value'],
-        DEFAULTS.PASSWORD_POLICY.minLength.toString()
+        DEFAULTS.PASSWORD_POLICY.minLength.toString(),
       );
       assert.equal(
         outputs['passwordPolicyRequirements']['Value'],
-        defaultPasswordPolicyCharacterRequirements
+        defaultPasswordPolicyCharacterRequirements,
       );
       assert.equal(outputs['signupAttributes']['Value'], '["email"]');
       assert.equal(outputs['usernameAttributes']['Value'], '["email"]');
@@ -1103,7 +1103,7 @@ void describe('Auth construct', () => {
       const outputs = template.findOutputs('*');
       assert.equal(
         outputs['signupAttributes']['Value'],
-        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
+        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]',
       );
     });
 
@@ -1118,11 +1118,11 @@ void describe('Auth construct', () => {
       const outputs = template.findOutputs('*');
       assert.equal(
         outputs['usernameAttributes']['Value'],
-        '["email","phone_number"]'
+        '["email","phone_number"]',
       );
       assert.equal(
         outputs['verificationMechanisms']['Value'],
-        '["email","phone_number"]'
+        '["email","phone_number"]',
       );
     });
 
@@ -1137,7 +1137,7 @@ void describe('Auth construct', () => {
       assert.equal(outputs['usernameAttributes']['Value'], '["phone_number"]');
       assert.equal(
         outputs['verificationMechanisms']['Value'],
-        '["phone_number"]'
+        '["phone_number"]',
       );
     });
 
@@ -1220,7 +1220,7 @@ void describe('Auth construct', () => {
       });
       const template = Template.fromStack(stack);
       const resources = template.findResources(
-        'AWS::Cognito::UserPoolIdentityProvider'
+        'AWS::Cognito::UserPoolIdentityProvider',
       );
       const outputs = template.findOutputs('*');
       let unnamedOidcProviderName = '';
@@ -1237,7 +1237,7 @@ void describe('Auth construct', () => {
       }
       assert.equal(
         outputs['socialProviders']['Value'],
-        `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","provider1","provider2","${unnamedOidcProviderName}"]`
+        `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","provider1","provider2","${unnamedOidcProviderName}"]`,
       );
       // domain name requires us to find the generated UserPoolDomain,
       // and then use that to produce the ref which we will match to the output
@@ -1251,7 +1251,7 @@ void describe('Auth construct', () => {
           Properties: {
             Domain: 'test-prefix',
           },
-        }
+        },
       );
       let userPoolDomainRefValue = '';
       for (const [key] of Object.entries(userPoolDomains)) {
@@ -1274,15 +1274,15 @@ void describe('Auth construct', () => {
       });
       assert.equal(
         outputs['oauthScope']['Value'],
-        '["email","profile","openid"]'
+        '["email","profile","openid"]',
       );
       assert.equal(
         outputs['oauthRedirectSignIn']['Value'],
-        'http://callback.com'
+        'http://callback.com',
       );
       assert.equal(
         outputs['oauthRedirectSignOut']['Value'],
-        'http://logout.com'
+        'http://logout.com',
       );
     });
 
@@ -1311,7 +1311,7 @@ void describe('Auth construct', () => {
           Properties: {
             Domain: 'test-prefix',
           },
-        }
+        },
       );
       let userPoolDomainRefValue = '';
       for (const [key] of Object.entries(userPoolDomains)) {
@@ -1721,7 +1721,7 @@ void describe('Auth construct', () => {
       assert.equal(outputs['passwordPolicyMinLength']['Value'], '10');
       assert.equal(
         outputs['passwordPolicyRequirements']['Value'],
-        '["REQUIRES_SYMBOLS"]'
+        '["REQUIRES_SYMBOLS"]',
       );
     });
     void it('can override user existence errors', () => {
@@ -1754,7 +1754,7 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test');
       const userPoolClientResource =
         auth.resources.userPoolClient.node.findChild(
-          'Resource'
+          'Resource',
         ) as CfnUserPoolClient;
       userPoolClientResource.accessTokenValidity = 1;
       const template = Template.fromStack(stack);
@@ -1777,7 +1777,7 @@ void describe('Auth construct', () => {
             email: ProviderAttribute.GOOGLE_EMAIL,
           },
           scopes: ['profile'],
-        }
+        },
       );
       auth.resources.cfnResources.cfnIdentityPool.supportedLoginProviders[
         'accounts.google.com'
@@ -1785,7 +1785,7 @@ void describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedGoogleIDPProperties
+        ExpectedGoogleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -1850,7 +1850,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedGoogleIDPProperties
+        ExpectedGoogleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -1882,7 +1882,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedGoogleIDPProperties
+        ExpectedGoogleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -1914,7 +1914,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedFacebookIDPProperties
+        ExpectedFacebookIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -1946,7 +1946,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedFacebookIDPProperties
+        ExpectedFacebookIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -1980,7 +1980,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAppleIDPProperties
+        ExpectedAppleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2014,7 +2014,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAppleIDPProperties
+        ExpectedAppleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2046,7 +2046,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAmazonIDPProperties
+        ExpectedAmazonIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2078,7 +2078,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAmazonIDPProperties
+        ExpectedAmazonIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2242,7 +2242,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties
+        ExpectedOidcIDPProperties,
       );
     });
     void it('supports multiple oidc providers', () => {
@@ -2279,11 +2279,11 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties
+        ExpectedOidcIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties2
+        ExpectedOidcIDPProperties2,
       );
     });
     void it('supports saml and email', () => {
@@ -2313,7 +2313,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedSAMLIDPProperties
+        ExpectedSAMLIDPProperties,
       );
     });
     void it('supports saml and phone', () => {
@@ -2343,7 +2343,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedSAMLIDPProperties
+        ExpectedSAMLIDPProperties,
       );
     });
     void it('supports saml via URL and email', () => {
@@ -2373,7 +2373,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedSAMLIDPViaURLProperties
+        ExpectedSAMLIDPViaURLProperties,
       );
     });
 
@@ -2402,7 +2402,7 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedGoogleIDPProperties
+        ExpectedGoogleIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2440,7 +2440,7 @@ void describe('Auth construct', () => {
         {
           message:
             'You must define callbackUrls when configuring external login providers.',
-        }
+        },
       );
     });
 
@@ -2466,7 +2466,7 @@ void describe('Auth construct', () => {
         {
           message:
             'Cognito Domain Prefix is missing when external providers are configured.',
-        }
+        },
       );
     });
 
@@ -2493,7 +2493,7 @@ void describe('Auth construct', () => {
         {
           message:
             'You must define logoutUrls when configuring external login providers.',
-        }
+        },
       );
     });
 
@@ -2551,27 +2551,27 @@ void describe('Auth construct', () => {
       });
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAmazonIDPProperties
+        ExpectedAmazonIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedAppleIDPProperties
+        ExpectedAppleIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedFacebookIDPProperties
+        ExpectedFacebookIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedGoogleIDPProperties
+        ExpectedGoogleIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties
+        ExpectedOidcIDPProperties,
       );
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedSAMLIDPProperties
+        ExpectedSAMLIDPProperties,
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SupportedLoginProviders: {
@@ -2720,7 +2720,7 @@ void describe('Auth construct', () => {
           {
             ...ExpectedAmazonIDPProperties,
             ...mappingThatShouldNotExist,
-          }
+          },
         );
       });
       assert.throws(() => {
@@ -2729,7 +2729,7 @@ void describe('Auth construct', () => {
           {
             ...ExpectedAppleIDPProperties,
             ...mappingThatShouldNotExist,
-          }
+          },
         );
       });
       assert.throws(() => {
@@ -2738,7 +2738,7 @@ void describe('Auth construct', () => {
           {
             ...ExpectedFacebookIDPProperties,
             ...mappingThatShouldNotExist,
-          }
+          },
         );
       });
       assert.throws(() => {
@@ -2747,7 +2747,7 @@ void describe('Auth construct', () => {
           {
             ...ExpectedGoogleIDPProperties,
             ...mappingThatShouldNotExist,
-          }
+          },
         );
       });
       assert.throws(() => {
@@ -2756,7 +2756,7 @@ void describe('Auth construct', () => {
           {
             ...ExpectedOidcIDPProperties,
             ...mappingThatShouldNotExist,
-          }
+          },
         );
       });
     });

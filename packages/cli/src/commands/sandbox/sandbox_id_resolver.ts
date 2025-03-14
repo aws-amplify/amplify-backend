@@ -11,7 +11,7 @@ export class SandboxBackendIdResolver {
    */
   constructor(
     private readonly namespaceResolver: NamespaceResolver,
-    private readonly userInfo = _userInfo
+    private readonly userInfo = _userInfo,
   ) {}
 
   /**

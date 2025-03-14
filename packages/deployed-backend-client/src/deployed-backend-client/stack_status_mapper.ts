@@ -9,7 +9,7 @@ export class StackStatusMapper {
    * Converts CFN stack status to backend metadata status
    */
   translateStackStatus = (
-    status: StackStatus | string | undefined
+    status: StackStatus | string | undefined,
   ): BackendDeploymentStatus => {
     switch (status) {
       case StackStatus.CREATE_COMPLETE:

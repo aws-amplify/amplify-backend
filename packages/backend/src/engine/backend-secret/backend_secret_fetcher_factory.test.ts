@@ -52,7 +52,7 @@ void describe('getOrCreate', () => {
     assert.equal(
       names.filter((name) => name.startsWith(SECRET_RESOURCE_PROVIDER_ID))
         .length,
-      2
+      2,
     );
   });
 

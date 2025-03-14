@@ -1,5 +1,15 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.8
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [2102071]
+  - @aws-amplify/plugin-types@1.8.1
+
 ## 0.3.7
 
 ### Patch Changes

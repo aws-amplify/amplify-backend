@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
  * Root test directory.
  */
 export const rootTestDir = fileURLToPath(
-  new URL('./e2e-tests', import.meta.url)
+  new URL('./e2e-tests', import.meta.url),
 );
 
 /**

@@ -23,7 +23,7 @@ export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;
 
 export type AmplifyIOHost = {
   requestResponse: <T, U>(
-    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
+    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>,
   ) => Promise<U>;
   notify: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 };

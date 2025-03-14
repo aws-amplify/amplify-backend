@@ -37,7 +37,7 @@ void describe('Custom outputs accumulator', () => {
   void it('accumulates client config entries and creates single merged output', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
-      objectAccumulator
+      objectAccumulator,
     );
 
     const configPart1 = { custom: { output1: 'val1' } };
@@ -55,7 +55,7 @@ void describe('Custom outputs accumulator', () => {
   void it('accumulates client config entries for same version and creates single merged output', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
-      objectAccumulator
+      objectAccumulator,
     );
 
     const configPart1: DeepPartialAmplifyGeneratedConfigs<ClientConfig> = {
@@ -79,14 +79,14 @@ void describe('Custom outputs accumulator', () => {
   void it('wraps property already exist error', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
-      objectAccumulator
+      objectAccumulator,
     );
 
     accumulateMock.mock.mockImplementationOnce(() => {
       throw new ObjectAccumulatorPropertyAlreadyExistsError(
         'output1',
         'val0',
-        'val1'
+        'val1',
       );
     });
 
@@ -95,18 +95,18 @@ void describe('Custom outputs accumulator', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Output entry with key output1 already exists'
+          'Output entry with key output1 already exists',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
   void it('wraps version mismatch error', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
-      objectAccumulator
+      objectAccumulator,
     );
 
     accumulateMock.mock.mockImplementationOnce(() => {
@@ -119,18 +119,18 @@ void describe('Custom outputs accumulator', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Conflicting versions of client configuration found.'
+          'Conflicting versions of client configuration found.',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
   void it('does not wrap unexpected errors', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
-      objectAccumulator
+      objectAccumulator,
     );
 
     accumulateMock.mock.mockImplementationOnce(() => {
@@ -142,7 +142,7 @@ void describe('Custom outputs accumulator', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(error.message, 'unexpected error');
         return true;
-      }
+      },
     );
   });
 
@@ -151,7 +151,7 @@ void describe('Custom outputs accumulator', () => {
     const stack = new Stack();
     const accumulator = new CustomOutputsAccumulator(
       new StackMetadataBackendOutputStorageStrategy(stack),
-      new ObjectAccumulator<ClientConfig>({})
+      new ObjectAccumulator<ClientConfig>({}),
     );
 
     accumulator.addOutput({

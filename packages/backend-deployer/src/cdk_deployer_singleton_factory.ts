@@ -45,11 +45,11 @@ export type DeploymentTimes = {
 export type BackendDeployer = {
   deploy: (
     backendId: BackendIdentifier,
-    deployProps?: DeployProps
+    deployProps?: DeployProps,
   ) => Promise<DeployResult>;
   destroy: (
     backendId: BackendIdentifier,
-    destroyProps?: DestroyProps
+    destroyProps?: DestroyProps,
   ) => Promise<DestroyResult>;
 };
 
@@ -66,7 +66,7 @@ export class BackendDeployerFactory {
     private readonly packageManagerController: PackageManagerController,
     private readonly formatter: BackendDeployerOutputFormatter,
     private readonly backendDeployerIOHost: AmplifyIOHost,
-    private readonly sdkProfileResolver: SDKProfileResolver
+    private readonly sdkProfileResolver: SDKProfileResolver,
   ) {}
 
   /**
@@ -86,7 +86,7 @@ export class BackendDeployerFactory {
             profile: this.sdkProfileResolver(),
           },
         }),
-        this.backendDeployerIOHost
+        this.backendDeployerIOHost,
       );
     }
     return BackendDeployerFactory.instance;

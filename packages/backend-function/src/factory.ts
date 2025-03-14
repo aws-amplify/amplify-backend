@@ -74,7 +74,7 @@ export type FunctionLogLevel = Extract<
 export type FunctionLogRetention = LogRetention;
 
 export function defineFunction(
-  props?: FunctionProps
+  props?: FunctionProps,
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
@@ -83,7 +83,7 @@ export function defineFunction(
 >;
 export function defineFunction(
   provider: (scope: Construct) => IFunction,
-  providerProps?: ProvidedFunctionProps
+  providerProps?: ProvidedFunctionProps,
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
@@ -98,7 +98,7 @@ export function defineFunction(
 // eslint-disable-next-line no-restricted-syntax
 export function defineFunction(
   propsOrProvider: FunctionProps | ((scope: Construct) => IFunction) = {},
-  providerProps?: ProvidedFunctionProps
+  providerProps?: ProvidedFunctionProps,
 ): unknown {
   if (propsOrProvider && typeof propsOrProvider === 'function') {
     return new ProvidedFunctionFactory(propsOrProvider, providerProps);
@@ -242,7 +242,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    */
   constructor(
     private readonly props: FunctionProps,
-    private readonly callerStack?: string
+    private readonly callerStack?: string,
   ) {}
 
   /**
@@ -256,14 +256,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
 
   private hydrateDefaults = (
-    resourceNameValidator?: ResourceNameValidator
+    resourceNameValidator?: ResourceNameValidator,
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
@@ -297,7 +297,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     // Otherwise, use the directory name where the function is defined
     return path.basename(
-      new CallerDirectoryExtractor(this.callerStack).extract()
+      new CallerDirectoryExtractor(this.callerStack).extract(),
     );
   };
 
@@ -306,7 +306,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.props.entry) {
       return path.join(
         new CallerDirectoryExtractor(this.callerStack).extract(),
-        'handler.ts'
+        'handler.ts',
       );
     }
 
@@ -318,7 +318,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     // if entry is relative, compute with respect to the caller directory
     return path.join(
       new CallerDirectoryExtractor(this.callerStack).extract(),
-      this.props.entry
+      this.props.entry,
     );
   };
 
@@ -334,7 +334,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       !isWholeNumberBetweenInclusive(
         this.props.timeoutSeconds,
         timeoutMin,
-        timeoutMax
+        timeoutMax,
       )
     ) {
       throw new AmplifyUserError('InvalidTimeoutError', {
@@ -374,7 +374,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       !isWholeNumberBetweenInclusive(
         this.props.ephemeralStorageSizeMB,
         ephemeralStorageSizeMin,
-        ephemeralStorageSizeMax
+        ephemeralStorageSizeMax,
       )
     ) {
       throw new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
@@ -402,7 +402,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (invalidKeys.length > 0) {
       throw new AmplifyUserError('InvalidEnvironmentKeyError', {
         message: `Invalid function environment key(s): ${invalidKeys.join(
-          ', '
+          ', ',
         )}`,
         resolution:
           'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
@@ -424,7 +424,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       throw new AmplifyUserError('InvalidRuntimeError', {
         message: `Invalid function runtime of ${this.props.runtime}`,
         resolution: `runtime must be one of the following: ${Object.keys(
-          nodeVersionMap
+          nodeVersionMap,
         ).join(', ')}`,
       });
     }
@@ -443,7 +443,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       throw new AmplifyUserError('InvalidArchitectureError', {
         message: `Invalid function architecture of ${this.props.architecture}`,
         resolution: `architecture must be one of the following: ${Object.keys(
-          architectureMap
+          architectureMap,
         ).join(', ')}`,
       });
     }
@@ -488,7 +488,7 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
   ) {
     this.resourceGroupName = props.resourceGroupName;
   }
@@ -500,11 +500,11 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     // Move layer resolution here where we have access to scope
     const parser = new FunctionLayerArnParser(
       Stack.of(scope).region,
-      Stack.of(scope).account
+      Stack.of(scope).account,
     );
     const resolvedLayerArns = parser.parseLayers(
       this.props.layers ?? {},
-      this.props.name
+      this.props.name,
     );
 
     // resolve layers to LayerVersion objects for the NodejsFunction constructor
@@ -512,8 +512,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       LayerVersion.fromLayerVersionArn(
         scope,
         `${this.props.name}-${key}-layer`,
-        arn
-      )
+        arn,
+      ),
     );
 
     return new AmplifyFunction(
@@ -521,7 +521,7 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props.name,
       { ...this.props, resolvedLayers },
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
     );
   };
 }
@@ -537,7 +537,7 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
   ) {
     super(scope, id, outputStorageStrategy);
 
@@ -556,7 +556,7 @@ class AmplifyFunction
         : require.resolve('./lambda-shims/resolve_ssm_params');
 
     const invokeSsmResolverFile = require.resolve(
-      './lambda-shims/invoke_ssm_shim'
+      './lambda-shims/invoke_ssm_shim',
     );
 
     /**
@@ -615,14 +615,14 @@ class AmplifyFunction
           resolution:
             'See the underlying error message for more details. Use `--debug` for additional debugging information.',
         },
-        error as Error
+        error as Error,
       );
     }
 
     try {
       const schedules = convertFunctionSchedulesToRuleSchedules(
         functionLambda,
-        props.schedule
+        props.schedule,
       );
       const lambdaTarget = new targets.LambdaFunction(functionLambda);
 
@@ -641,7 +641,7 @@ class AmplifyFunction
           message: 'Failed to instantiate schedule for nodejs function',
           resolution: 'See the underlying error message for more details.',
         },
-        error as Error
+        error as Error,
       );
     }
 
@@ -651,7 +651,7 @@ class AmplifyFunction
       functionLambda,
       props.environment,
       backendSecretResolver,
-      functionEnvironmentTypeGenerator
+      functionEnvironmentTypeGenerator,
     );
 
     this.resources = {
@@ -671,14 +671,14 @@ class AmplifyFunction
   getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
     new FunctionResourceAccessAcceptor(
       this,
-      this.functionEnvironmentTranslator
+      this.functionEnvironmentTranslator,
     );
 }
 
 const isWholeNumberBetweenInclusive = (
   test: number,
   min: number,
-  max: number
+  max: number,
 ) => min <= test && test <= max && test % 1 === 0;
 
 export type NodeVersion = 16 | 18 | 20 | 22;

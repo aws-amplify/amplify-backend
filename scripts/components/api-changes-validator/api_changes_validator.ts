@@ -33,12 +33,12 @@ export class ApiChangesValidator {
     private readonly excludedTypes: Array<string> = [],
     private readonly latestPackageDependencyDeclarationStrategy:
       | 'npmRegistry'
-      | 'npmLocalLink' = 'npmRegistry'
+      | 'npmLocalLink' = 'npmRegistry',
   ) {
     this.latestPackageDirectoryName = path.basename(latestPackagePath);
     this.testProjectPath = path.join(
       workingDirectory,
-      this.latestPackageDirectoryName
+      this.latestPackageDirectoryName,
     );
   }
 
@@ -48,7 +48,7 @@ export class ApiChangesValidator {
     const latestPackageJson = await readPackageJson(this.latestPackagePath);
     if (latestPackageJson.private) {
       console.log(
-        `Skipping ${latestPackageJson.name} because it's private and not published to NPM`
+        `Skipping ${latestPackageJson.name} because it's private and not published to NPM`,
       );
       return;
     }
@@ -62,7 +62,7 @@ export class ApiChangesValidator {
       throw new Error(
         `Validation of ${
           latestPackageJson.name
-        } failed, compiler output:${EOL}${compilationResult.all ?? ''}`
+        } failed, compiler output:${EOL}${compilationResult.all ?? ''}`,
       );
     }
   };
@@ -83,7 +83,7 @@ export class ApiChangesValidator {
     }
     if (latestPackageJson.peerDependencies) {
       for (const dependencyKey of Object.keys(
-        latestPackageJson.peerDependencies
+        latestPackageJson.peerDependencies,
       )) {
         dependencies[dependencyKey] =
           latestPackageJson.peerDependencies[dependencyKey];
@@ -99,13 +99,13 @@ export class ApiChangesValidator {
     await writePackageJson(this.testProjectPath, packageJsonContent);
     const apiReportContent = await fsp.readFile(
       this.baselinePackageApiReportPath,
-      'utf-8'
+      'utf-8',
     );
     const apiReportAST = ApiReportParser.parse(apiReportContent);
     const usage = new ApiUsageGenerator(
       latestPackageJson.name,
       apiReportAST,
-      this.excludedTypes
+      this.excludedTypes,
     ).generate();
     await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
     await execa('npm', ['install'], { cwd: this.testProjectPath });

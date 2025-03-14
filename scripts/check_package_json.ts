@@ -17,7 +17,7 @@ for (const packagePath of packagePaths) {
   }
   if (!main) {
     errors.push(
-      `Expected package ${name} to have field main, but main is missing.`
+      `Expected package ${name} to have field main, but main is missing.`,
     );
   }
 }

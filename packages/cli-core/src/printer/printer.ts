@@ -22,8 +22,8 @@ export class Printer {
     readonly ttyEnabled = process.env.CI
       ? false
       : stdout instanceof WriteStream
-      ? stdout.isTTY
-      : false
+        ? stdout.isTTY
+        : false,
   ) {}
 
   /**
@@ -70,7 +70,7 @@ export class Printer {
   indicateProgress = async (
     message: string,
     callback: () => Promise<void>,
-    successMessage?: string
+    successMessage?: string,
   ) => {
     try {
       this.startSpinner(message, { timeoutSeconds: 3600 });
@@ -86,7 +86,7 @@ export class Printer {
    */
   startSpinner = (
     message: string,
-    options: { timeoutSeconds: number } = { timeoutSeconds: 60 }
+    options: { timeoutSeconds: number } = { timeoutSeconds: 60 },
   ): void => {
     if (!this.ttyEnabled) {
       // Ora prints messages with a preceding `-` in non-tty console. We avoid it
@@ -130,7 +130,7 @@ export class Printer {
     }
     if (successMessage) {
       this.currentSpinner.instance.succeed(
-        this.prefixedMessage(successMessage)
+        this.prefixedMessage(successMessage),
       );
     } else {
       this.currentSpinner.instance.stop();
@@ -200,7 +200,7 @@ export class Printer {
         const prefixColor: ColorName =
           level === LogLevel.ERROR ? 'Red' : 'Yellow';
         return format.bold(
-          format.color(`${prefix} [${LogLevel[level]}]`, prefixColor)
+          format.color(`${prefix} [${LogLevel[level]}]`, prefixColor),
         );
       };
     }

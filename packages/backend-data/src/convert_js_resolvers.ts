@@ -24,19 +24,19 @@ const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
  */
 export const defaultJsResolverCode = (
   amplifyApiId: string,
-  amplifyApiEnvironmentName: string
+  amplifyApiEnvironmentName: string,
 ): string => {
   const resolvedTemplatePath = resolve(
     fileURLToPath(import.meta.url),
     '../../lib',
-    JS_PIPELINE_RESOLVER_HANDLER
+    JS_PIPELINE_RESOLVER_HANDLER,
   );
 
   return readFileSync(resolvedTemplatePath, 'utf-8')
     .replace(new RegExp(/\$\{amplifyApiId\}/, 'g'), amplifyApiId)
     .replace(
       new RegExp(/\$\{amplifyApiEnvironmentName\}/, 'g'),
-      amplifyApiEnvironmentName
+      amplifyApiEnvironmentName,
     );
 };
 
@@ -47,7 +47,7 @@ export const defaultJsResolverCode = (
 export const convertJsResolverDefinition = (
   scope: Construct,
   amplifyApi: AmplifyData,
-  jsResolvers: JsResolver[] | undefined
+  jsResolvers: JsResolver[] | undefined,
 ): void => {
   if (!jsResolvers || jsResolvers.length < 1) {
     return;

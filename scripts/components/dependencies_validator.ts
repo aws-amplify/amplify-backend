@@ -34,7 +34,7 @@ type DependencyDeclaration = {
 };
 
 type DependencyVersionPredicate = (
-  declarations: DependencyDeclaration[]
+  declarations: DependencyDeclaration[],
 ) => true | string;
 
 /**
@@ -63,7 +63,7 @@ export class DependenciesValidator {
     private disallowedDependencies: Record<string, DependencyRule>,
     private linkedDependencies: Array<Array<string>>,
     private knownInconsistentDependencyVersions: Array<DependencyWithKnownVersionConsistencyException>,
-    private execa = _execa
+    private execa = _execa,
   ) {}
 
   /**
@@ -117,7 +117,7 @@ export class DependenciesValidator {
 
     const errors: Array<string> = [];
     for (const [dependencyName, dependencyVersionUsage] of Object.entries(
-      dependencyVersionsUsages
+      dependencyVersionsUsages,
     )) {
       const validationResult = (
         await this.getPackageVersionDeclarationPredicate(dependencyName)
@@ -127,8 +127,8 @@ export class DependenciesValidator {
           `${validationResult}${EOL}${JSON.stringify(
             dependencyVersionUsage.allDeclarations,
             null,
-            2
-          )}`
+            2,
+          )}`,
         );
       }
     }
@@ -137,17 +137,17 @@ export class DependenciesValidator {
       for (const dependencyName of linkedDependencySpec) {
         const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
         dependencyVersionUsage.allDeclarations.forEach(({ version }) =>
-          allLinkedVersions.add(version)
+          allLinkedVersions.add(version),
         );
       }
 
       if (allLinkedVersions.size > 1) {
         errors.push(
           `Dependencies ${linkedDependencySpec.join(
-            ','
+            ',',
           )} should be declared using same version, versions found ${Array.from(
-            allLinkedVersions
-          ).join(',')}`
+            allLinkedVersions,
+          ).join(',')}`,
         );
       }
     }
@@ -164,8 +164,8 @@ export class DependenciesValidator {
     const violations: Array<DependencyViolation> = (
       await Promise.all(
         this.packagePaths.map((packagePath) =>
-          this.checkPackageDependencies(packagePath)
-        )
+          this.checkPackageDependencies(packagePath),
+        ),
       )
     ).flat();
 
@@ -173,7 +173,7 @@ export class DependenciesValidator {
       const errorMessage = violations
         .map(
           (violation) =>
-            `Package ${violation.packageName} must not have ${violation.dependencyName} anywhere in dependency graph`
+            `Package ${violation.packageName} must not have ${violation.dependencyName} anywhere in dependency graph`,
         )
         .join('\n');
       throw new Error(errorMessage);
@@ -185,7 +185,7 @@ export class DependenciesValidator {
    * provided rules.
    */
   private async checkPackageDependencies(
-    packagePath: string
+    packagePath: string,
   ): Promise<Array<DependencyViolation>> {
     const packageName = (await readPackageJson(packagePath)).name;
     console.log(`Checking ${packageName} dependencies.`);
@@ -198,7 +198,7 @@ export class DependenciesValidator {
         await this.execa('npm', ['ls', '--all', '--json'], {
           cwd: packagePath,
         })
-      ).stdout.toString()
+      ).stdout.toString(),
     );
 
     const allDependencies =
@@ -231,7 +231,7 @@ export class DependenciesValidator {
    * Recursively scans output from npm ls to collect all dependency names.
    */
   private collectAllDependenciesRecursively(
-    npmListOutput: NpmListOutputItem
+    npmListOutput: NpmListOutputItem,
   ): Set<string> {
     const dependencies: Set<string> = new Set();
 
@@ -239,7 +239,7 @@ export class DependenciesValidator {
       for (const dependencyName in npmListOutput.dependencies) {
         dependencies.add(dependencyName);
         const nestedDependencies = this.collectAllDependenciesRecursively(
-          npmListOutput.dependencies[dependencyName]
+          npmListOutput.dependencies[dependencyName],
         );
         nestedDependencies.forEach((item) => dependencies.add(item));
       }
@@ -249,20 +249,20 @@ export class DependenciesValidator {
   }
 
   private getPackageVersionDeclarationPredicate = async (
-    packageName: string
+    packageName: string,
   ): Promise<DependencyVersionPredicate> => {
     const inconsistentDependency =
       this.knownInconsistentDependencyVersions.find(
-        (x) => x.dependencyName === packageName
+        (x) => x.dependencyName === packageName,
       );
     if (inconsistentDependency) {
       return (declarations) => {
         const validationResult = declarations.every(
           ({ dependentPackageName, version }) =>
             inconsistentDependency!.exceptions.find(
-              (a) => a.packageName === dependentPackageName
+              (a) => a.packageName === dependentPackageName,
             )?.dependencyVersion ||
-            version === inconsistentDependency!.globalDependencyVersion
+            version === inconsistentDependency!.globalDependencyVersion,
         );
         return (
           validationResult ||
@@ -271,7 +271,7 @@ export class DependenciesValidator {
           } except in the following packages` +
             inconsistentDependency!.exceptions.forEach(
               (exception) =>
-                `, ${exception.packageName} where it must depend on ${exception.dependencyVersion}`
+                `, ${exception.packageName} where it must depend on ${exception.dependencyVersion}`,
             )
         );
       };
@@ -286,7 +286,7 @@ export class DependenciesValidator {
           .version.split('.')
           .at(0)!;
         const validationResult = declarations.every(({ version }) =>
-          version.startsWith(baselineMajorVersion)
+          version.startsWith(baselineMajorVersion),
         );
         return (
           validationResult ||
@@ -307,7 +307,7 @@ export class DependenciesValidator {
   private getRepoPackageJsons = async () => {
     if (!this.repoPackageJsons) {
       this.repoPackageJsons = await Promise.all(
-        this.packagePaths.map((packagePath) => readPackageJson(packagePath))
+        this.packagePaths.map((packagePath) => readPackageJson(packagePath)),
       );
     }
     return this.repoPackageJsons;
@@ -316,7 +316,7 @@ export class DependenciesValidator {
   private getRepoPackageNames = async () => {
     if (!this.repoPackageNames) {
       this.repoPackageNames = (await this.getRepoPackageJsons()).map(
-        (packageJson) => packageJson.name
+        (packageJson) => packageJson.name,
       );
     }
     return this.repoPackageNames;

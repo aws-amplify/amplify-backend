@@ -29,13 +29,13 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     // assert type definition file path
     assert.equal(
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
-      `${process.cwd()}/.amplify/generated/env/testFunction.ts`
+      `${process.cwd()}/.amplify/generated/env/testFunction.ts`,
     );
     // assert content
     assert.ok(
       fsWriteFileSyncMock.mock.calls[0].arguments[1]
         ?.toString()
-        .includes(sampleStaticEnv)
+        .includes(sampleStaticEnv),
     );
 
     mock.restoreAll();
@@ -54,13 +54,13 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     // assert type definition file path
     assert.equal(
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
-      `${process.cwd()}/.amplify/generated/env/testFunction.ts`
+      `${process.cwd()}/.amplify/generated/env/testFunction.ts`,
     );
     // assert content
     assert.ok(
       fsWriteFileSyncMock.mock.calls[0].arguments[1]
         ?.toString()
-        .includes(sampleStaticEnv)
+        .includes(sampleStaticEnv),
     );
 
     mock.restoreAll();
@@ -97,13 +97,13 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     assert.equal(
       (generatedContent.match(/TEST_ENV: string;/g) || []).length,
       1,
-      'TEST_ENV should appear only once'
+      'TEST_ENV should appear only once',
     );
 
     // Check ANOTHER_ENV also appears
     assert.ok(
       generatedContent.includes('ANOTHER_ENV: string;'),
-      'ANOTHER_ENV should be included'
+      'ANOTHER_ENV should be included',
     );
 
     mock.restoreAll();

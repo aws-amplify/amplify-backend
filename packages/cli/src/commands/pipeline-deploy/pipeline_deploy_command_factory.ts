@@ -33,7 +33,7 @@ export const createPipelineDeployCommand = (): CommandModule<
     getCloudFormationClient: () => cloudFormationClient,
   };
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    awsClientProvider
+    awsClientProvider,
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
   const cdkEventsBridgeIoHost =
@@ -43,7 +43,7 @@ export const createPipelineDeployCommand = (): CommandModule<
     packageManagerControllerFactory.getPackageManagerController(),
     format,
     cdkEventsBridgeIoHost,
-    new SDKProfileResolverProvider().resolve
+    new SDKProfileResolverProvider().resolve,
   );
   const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);

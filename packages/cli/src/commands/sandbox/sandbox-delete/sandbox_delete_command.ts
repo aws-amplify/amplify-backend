@@ -32,7 +32,7 @@ export class SandboxDeleteCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SandboxDeleteCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SandboxDeleteCommandOptionsKebabCase>,
   ): Promise<void> => {
     let isConfirmed = args.yes;
     if (!isConfirmed) {

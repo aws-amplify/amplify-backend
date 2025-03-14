@@ -33,7 +33,7 @@ const thermometer = createExecutableTool(
       });
     }
     throw new Error(`Unknown city ${input.city}`);
-  }
+  },
 );
 
 // Parameter-less tool.
@@ -54,7 +54,7 @@ const randomNumberGenerator = createExecutableTool(
       // We use this value in test assertion.
       text: `${expectedRandomNumber}`,
     });
-  }
+  },
 );
 
 /**

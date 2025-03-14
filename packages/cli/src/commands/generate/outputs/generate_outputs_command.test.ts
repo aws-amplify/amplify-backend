@@ -22,7 +22,7 @@ void describe('generate outputs command', () => {
   const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
     'generateClientConfigToFile',
-    () => Promise.resolve()
+    () => Promise.resolve(),
   );
 
   const namespaceResolver = {
@@ -37,15 +37,15 @@ void describe('generate outputs command', () => {
 
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxIdResolver
+    sandboxIdResolver,
   );
 
   const generateOutputsCommand = new GenerateOutputsCommand(
     clientConfigGeneratorAdapter,
-    backendIdResolver
+    backendIdResolver,
   );
   const parser = yargs().command(
-    generateOutputsCommand as unknown as CommandModule
+    generateOutputsCommand as unknown as CommandModule,
   );
   const commandRunner = new TestCommandRunner(parser);
 
@@ -56,7 +56,7 @@ void describe('generate outputs command', () => {
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
     const handlerSpy = mock.method(
       clientConfigGeneratorAdapter,
-      'generateClientConfigToFile'
+      'generateClientConfigToFile',
     );
     await commandRunner.runCommand('outputs');
 
@@ -65,7 +65,7 @@ void describe('generate outputs command', () => {
 
   void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --out-dir /foo/bar'
+      'outputs --stack stack_name --out-dir /foo/bar',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -74,17 +74,17 @@ void describe('generate outputs command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '1.3' // default version
+      '1.3', // default version
     );
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
-      '/foo/bar'
+      '/foo/bar',
     );
   });
 
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'outputs --branch branch_name --app-id app_id --out-dir /foo/bar'
+      'outputs --branch branch_name --app-id app_id --out-dir /foo/bar',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -98,13 +98,13 @@ void describe('generate outputs command', () => {
         '1.3',
         '/foo/bar',
         undefined,
-      ]
+      ],
     );
   });
 
   void it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --out-dir /foo/bar'
+      'outputs --stack stack_name --out-dir /foo/bar',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -116,13 +116,13 @@ void describe('generate outputs command', () => {
         '1.3',
         '/foo/bar',
         undefined,
-      ]
+      ],
     );
   });
 
   void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --out-dir foo/bar'
+      'outputs --stack stack_name --out-dir foo/bar',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -134,13 +134,13 @@ void describe('generate outputs command', () => {
         '1.3',
         'foo/bar',
         undefined,
-      ]
+      ],
     );
   });
 
   void it('can generate outputs in dart format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --out-dir foo/bar --format dart'
+      'outputs --stack stack_name --out-dir foo/bar --format dart',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -152,13 +152,13 @@ void describe('generate outputs command', () => {
         '1.3',
         'foo/bar',
         ClientConfigFormat.DART,
-      ]
+      ],
     );
   });
 
   void it('can generate legacy config in json mobile format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format json-mobile'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format json-mobile',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -170,13 +170,13 @@ void describe('generate outputs command', () => {
         '0',
         'foo/bar',
         ClientConfigFormat.JSON_MOBILE,
-      ]
+      ],
     );
   });
 
   void it('can generate legacy config in ts format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format ts'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format ts',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -188,13 +188,13 @@ void describe('generate outputs command', () => {
         '0',
         'foo/bar',
         ClientConfigFormat.TS,
-      ]
+      ],
     );
   });
 
   void it('can generate legacy config in mjs format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format mjs'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format mjs',
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -206,7 +206,7 @@ void describe('generate outputs command', () => {
         '0',
         'foo/bar',
         ClientConfigFormat.MJS,
-      ]
+      ],
     );
   });
 
@@ -221,7 +221,7 @@ void describe('generate outputs command', () => {
 
   void it('fails if both stack and branch are present', async () => {
     const output = await commandRunner.runCommand(
-      'outputs --stack foo --branch baz'
+      'outputs --stack foo --branch baz',
     );
     assert.match(output, /Arguments .* mutually exclusive/);
   });

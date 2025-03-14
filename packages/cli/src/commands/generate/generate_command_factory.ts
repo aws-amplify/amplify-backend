@@ -37,38 +37,38 @@ export const createGenerateCommand = (): CommandModule => {
   const secretClient = getSecretClientWithAmplifyErrorHandling();
 
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    awsClientProvider
+    awsClientProvider,
   );
 
   const namespaceResolver = new LocalNamespaceResolver(new PackageJsonReader());
 
   const backendIdentifierResolver = new BackendIdentifierResolverWithFallback(
     new AppBackendIdentifierResolver(namespaceResolver),
-    new SandboxBackendIdResolver(namespaceResolver)
+    new SandboxBackendIdResolver(namespaceResolver),
   );
 
   const generateOutputsCommand = new GenerateOutputsCommand(
     clientConfigGenerator,
-    backendIdentifierResolver
+    backendIdentifierResolver,
   );
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
     () => BackendOutputClientFactory.getInstance(awsClientProvider),
-    new FormGenerationHandler({ awsClientProvider })
+    new FormGenerationHandler({ awsClientProvider }),
   );
 
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(awsClientProvider);
 
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     generateApiCodeAdapter,
-    backendIdentifierResolver
+    backendIdentifierResolver,
   );
 
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
     secretClient,
-    new SchemaGenerator()
+    new SchemaGenerator(),
   );
 
   const commandMiddleware = new CommandMiddleware(printer);
@@ -78,6 +78,6 @@ export const createGenerateCommand = (): CommandModule => {
     generateFormsCommand,
     generateGraphqlClientCodeCommand,
     generateSchemaCommand,
-    commandMiddleware
+    commandMiddleware,
   );
 };

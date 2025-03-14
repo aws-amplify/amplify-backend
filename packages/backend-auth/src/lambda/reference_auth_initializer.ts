@@ -47,7 +47,7 @@ export class ReferenceAuthInitializer {
   constructor(
     private cognitoIdentityClient: CognitoIdentityClient,
     private cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private uuidGenerator: () => string
+    private uuidGenerator: () => string,
   ) {}
 
   /**
@@ -89,7 +89,7 @@ export class ReferenceAuthInitializer {
     } = await this.getResourceDetails(
       props.userPoolId,
       props.identityPoolId,
-      props.userPoolClientId
+      props.userPoolClientId,
     );
 
     this.validateResources(
@@ -99,7 +99,7 @@ export class ReferenceAuthInitializer {
       userPoolClient,
       identityPool,
       roles,
-      props
+      props,
     );
 
     const userPoolOutputs = await this.getUserPoolOutputs(
@@ -107,12 +107,11 @@ export class ReferenceAuthInitializer {
       userPoolPasswordPolicy,
       userPoolProviders,
       userPoolMFA,
-      props.region
+      props.region,
     );
     const identityPoolOutputs = await this.getIdentityPoolOutputs(identityPool);
-    const userPoolClientOutputs = await this.getUserPoolClientOutputs(
-      userPoolClient
-    );
+    const userPoolClientOutputs =
+      await this.getUserPoolClientOutputs(userPoolClient);
     const data: Omit<AuthOutput['payload'], 'authRegion'> = {
       userPoolId: props.userPoolId,
       webClientId: props.userPoolClientId,
@@ -136,9 +135,8 @@ export class ReferenceAuthInitializer {
     const userPoolCommand = new DescribeUserPoolCommand({
       UserPoolId: userPoolId,
     });
-    const userPoolResponse = await this.cognitoIdentityProviderClient.send(
-      userPoolCommand
-    );
+    const userPoolResponse =
+      await this.cognitoIdentityProviderClient.send(userPoolCommand);
     if (!userPoolResponse.UserPool) {
       throw new Error('Failed to retrieve the specified UserPool.');
     }
@@ -158,9 +156,8 @@ export class ReferenceAuthInitializer {
     const mfaCommand = new GetUserPoolMfaConfigCommand({
       UserPoolId: userPoolId,
     });
-    const mfaResponse = await this.cognitoIdentityProviderClient.send(
-      mfaCommand
-    );
+    const mfaResponse =
+      await this.cognitoIdentityProviderClient.send(mfaCommand);
     return mfaResponse;
   };
 
@@ -172,11 +169,11 @@ export class ReferenceAuthInitializer {
         new ListGroupsCommand({
           UserPoolId: userPoolId,
           NextToken: nextToken,
-        })
+        }),
       );
       if (!listGroupsResponse.Groups) {
         throw new Error(
-          'An error occurred while retrieving the groups for the user pool.'
+          'An error occurred while retrieving the groups for the user pool.',
         );
       }
       groups.push(...listGroupsResponse.Groups);
@@ -193,11 +190,11 @@ export class ReferenceAuthInitializer {
         new ListIdentityProvidersCommand({
           UserPoolId: userPoolId,
           NextToken: nextToken,
-        })
+        }),
       );
       if (providersResponse.Providers === undefined) {
         throw new Error(
-          'An error occurred while retrieving identity providers for the user pool.'
+          'An error occurred while retrieving identity providers for the user pool.',
         );
       }
       providers.push(...providersResponse.Providers);
@@ -210,11 +207,11 @@ export class ReferenceAuthInitializer {
     const idpResponse = await this.cognitoIdentityClient.send(
       new DescribeIdentityPoolCommand({
         IdentityPoolId: identityPoolId,
-      })
+      }),
     );
     if (!idpResponse.IdentityPoolId) {
       throw new Error(
-        'An error occurred while retrieving the identity pool details.'
+        'An error occurred while retrieving the identity pool details.',
       );
     }
     return idpResponse;
@@ -227,7 +224,7 @@ export class ReferenceAuthInitializer {
     const rolesResponse = await this.cognitoIdentityClient.send(rolesCommand);
     if (!rolesResponse.Roles) {
       throw new Error(
-        'An error occurred while retrieving the roles for the identity pool.'
+        'An error occurred while retrieving the roles for the identity pool.',
       );
     }
     return rolesResponse.Roles;
@@ -235,7 +232,7 @@ export class ReferenceAuthInitializer {
 
   private getUserPoolClient = async (
     userPoolId: string,
-    userPoolClientId: string
+    userPoolClientId: string,
   ) => {
     const userPoolClientCommand = new DescribeUserPoolClientCommand({
       UserPoolId: userPoolId,
@@ -245,7 +242,7 @@ export class ReferenceAuthInitializer {
       await this.cognitoIdentityProviderClient.send(userPoolClientCommand);
     if (!userPoolClientResponse.UserPoolClient) {
       throw new Error(
-        'An error occurred while retrieving the user pool client details.'
+        'An error occurred while retrieving the user pool client details.',
       );
     }
     return userPoolClientResponse.UserPoolClient;
@@ -261,17 +258,16 @@ export class ReferenceAuthInitializer {
   private getResourceDetails = async (
     userPoolId: string,
     identityPoolId: string,
-    userPoolClientId: string
+    userPoolClientId: string,
   ) => {
-    const { userPool, userPoolPasswordPolicy } = await this.getUserPool(
-      userPoolId
-    );
+    const { userPool, userPoolPasswordPolicy } =
+      await this.getUserPool(userPoolId);
     const userPoolMFA = await this.getUserPoolMFASettings(userPoolId);
     const userPoolProviders = await this.getUserPoolProviders(userPoolId);
     const userPoolGroups = await this.getUserPoolGroups(userPoolId);
     const userPoolClient = await this.getUserPoolClient(
       userPoolId,
-      userPoolClientId
+      userPoolClientId,
     );
     const identityPool = await this.getIdentityPool(identityPoolId);
     const roles = await this.getIdentityPoolRoles(identityPoolId);
@@ -307,7 +303,7 @@ export class ReferenceAuthInitializer {
     userPoolClient: UserPoolClientType,
     identityPool: DescribeIdentityPoolCommandOutput,
     identityPoolRoles: Record<string, string>,
-    props: ReferenceAuthInitializerProps
+    props: ReferenceAuthInitializerProps,
   ) => {
     // verify the user pool is a cognito provider for this identity pool
     if (
@@ -315,13 +311,13 @@ export class ReferenceAuthInitializer {
       identityPool.CognitoIdentityProviders.length === 0
     ) {
       throw new Error(
-        'The specified identity pool does not have any cognito identity providers.'
+        'The specified identity pool does not have any cognito identity providers.',
       );
     }
     // check for alias attributes, since we don't support this yet
     if (userPool.AliasAttributes && userPool.AliasAttributes.length > 0) {
       throw new Error(
-        'The specified user pool is configured with alias attributes which are not currently supported.'
+        'The specified user pool is configured with alias attributes which are not currently supported.',
       );
     }
 
@@ -331,7 +327,7 @@ export class ReferenceAuthInitializer {
       const domainSpecified = userPool.Domain || userPool.CustomDomain;
       if (!domainSpecified) {
         throw new Error(
-          'You must configure a domain for your UserPool if external login providers are enabled.'
+          'You must configure a domain for your UserPool if external login providers are enabled.',
         );
       }
 
@@ -342,12 +338,12 @@ export class ReferenceAuthInitializer {
         userPoolClient.CallbackURLs && userPoolClient.CallbackURLs.length > 0;
       if (!hasLogoutUrls) {
         throw new Error(
-          'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+          'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.',
         );
       }
       if (!hasCallbackUrls) {
         throw new Error(
-          'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
+          'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.',
         );
       }
     }
@@ -358,7 +354,7 @@ export class ReferenceAuthInitializer {
       const match = userPoolGroups.find((g) => g.RoleArn === groupRoleARN);
       if (match === undefined) {
         throw new Error(
-          `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`
+          `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`,
         );
       }
     }
@@ -373,7 +369,7 @@ export class ReferenceAuthInitializer {
     });
     if (!matchingProvider) {
       throw new Error(
-        'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+        'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.',
       );
     }
     // verify the auth / unauth roles from the props match the identity pool roles that we retrieved
@@ -381,19 +377,19 @@ export class ReferenceAuthInitializer {
     const unauthRoleArn = identityPoolRoles['unauthenticated'];
     if (authRoleArn !== props.authRoleArn) {
       throw new Error(
-        'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
+        'The provided authRoleArn does not match the authenticated role for the specified identity pool.',
       );
     }
     if (unauthRoleArn !== props.unauthRoleArn) {
       throw new Error(
-        'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
+        'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.',
       );
     }
 
     // make sure the client is a web client here (web clients shouldn't have client secrets)
     if (userPoolClient?.ClientSecret) {
       throw new Error(
-        'The specified user pool client is not configured as a web client.'
+        'The specified user pool client is not configured as a web client.',
       );
     }
   };
@@ -411,7 +407,7 @@ export class ReferenceAuthInitializer {
     userPoolPasswordPolicy: PasswordPolicyType,
     userPoolProviders: ProviderDescription[],
     userPoolMFA: GetUserPoolMfaConfigCommandOutput,
-    region: string
+    region: string,
   ) => {
     // password policy requirements
     const requirements: string[] = [];
@@ -467,16 +463,16 @@ export class ReferenceAuthInitializer {
     const data = {
       signupAttributes: JSON.stringify(
         userPool.SchemaAttributes?.filter(
-          (attribute) => attribute.Required && attribute.Name
-        ).map((attribute) => attribute.Name?.toLowerCase()) || []
+          (attribute) => attribute.Required && attribute.Name,
+        ).map((attribute) => attribute.Name?.toLowerCase()) || [],
       ),
       usernameAttributes: JSON.stringify(
         userPool.UsernameAttributes?.map((attribute) =>
-          attribute.toLowerCase()
-        ) || []
+          attribute.toLowerCase(),
+        ) || [],
       ),
       verificationMechanisms: JSON.stringify(
-        userPool.AutoVerifiedAttributes ?? []
+        userPool.AutoVerifiedAttributes ?? [],
       ),
       passwordPolicyMinLength:
         userPoolPasswordPolicy.MinimumLength === undefined
@@ -497,7 +493,7 @@ export class ReferenceAuthInitializer {
    * @returns formatted outputs
    */
   private getIdentityPoolOutputs = (
-    identityPool: DescribeIdentityPoolCommandOutput
+    identityPool: DescribeIdentityPoolCommandOutput,
   ) => {
     const data = {
       allowUnauthenticatedIdentities:
@@ -533,12 +529,12 @@ export class ReferenceAuthInitializer {
  * Entry point for the lambda-backend custom resource to retrieve auth outputs.
  */
 export const handler = async (
-  event: CloudFormationCustomResourceEvent
+  event: CloudFormationCustomResourceEvent,
 ): Promise<CloudFormationCustomResourceResponse> => {
   const initializer = new ReferenceAuthInitializer(
     new CognitoIdentityClient(),
     new CognitoIdentityProviderClient(),
-    randomUUID
+    randomUUID,
   );
   return initializer.handleEvent(event);
 };

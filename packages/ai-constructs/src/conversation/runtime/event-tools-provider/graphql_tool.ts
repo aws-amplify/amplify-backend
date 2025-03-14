@@ -22,12 +22,12 @@ export class GraphQlTool implements ExecutableTool<JSONSchema, unknown> {
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       graphQlEndpoint,
       accessToken,
-      userAgentProvider
-    )
+      userAgentProvider,
+    ),
   ) {}
 
   execute = async (
-    input: unknown | undefined
+    input: unknown | undefined,
   ): Promise<ToolResultContentBlock> => {
     if (!input) {
       throw Error(`GraphQl tool '${this.name}' requires input to execute.`);

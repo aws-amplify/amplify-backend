@@ -5,7 +5,7 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
  */
 export class FunctionLayerArnParser {
   private arnPattern = new RegExp(
-    'arn:[a-zA-Z0-9-]+:lambda:[a-zA-Z0-9-]+:\\d{12}:layer:[a-zA-Z0-9-_]+:[0-9]+'
+    'arn:[a-zA-Z0-9-]+:lambda:[a-zA-Z0-9-]+:\\d{12}:layer:[a-zA-Z0-9-_]+:[0-9]+',
   );
   private nameVersionPattern = new RegExp('^[a-zA-Z0-9-_]+:[0-9]+$');
 
@@ -16,7 +16,7 @@ export class FunctionLayerArnParser {
    */
   constructor(
     private readonly region: string,
-    private readonly account: string
+    private readonly account: string,
   ) {}
 
   /**
@@ -31,7 +31,7 @@ export class FunctionLayerArnParser {
    */
   parseLayers(
     layers: Record<string, string>,
-    functionName: string
+    functionName: string,
   ): Record<string, string> {
     const validLayers: Record<string, string> = {};
     const uniqueArns = new Set<string>();

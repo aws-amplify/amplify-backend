@@ -11,7 +11,7 @@ const TEST_PROJECT_PREFIX = 'test-project';
  */
 export const createEmptyAmplifyProject = async (
   projectDirName: string,
-  parentDir: string
+  parentDir: string,
 ): Promise<{
   projectName: string;
   projectRoot: string;
@@ -27,7 +27,7 @@ export const createEmptyAmplifyProject = async (
   }
   await fs.writeFile(
     path.join(projectRoot, 'package.json'),
-    JSON.stringify({ name: projectName, type: 'module' }, null, 2)
+    JSON.stringify({ name: projectName, type: 'module' }, null, 2),
   );
 
   const projectAmplifyDir = path.join(projectRoot, 'amplify');

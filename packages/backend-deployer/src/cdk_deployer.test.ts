@@ -81,7 +81,7 @@ void describe('invokeCDKCommand', () => {
     backendLocator,
     packageManagerControllerMock as never,
     cdkToolkit,
-    mockIoHost
+    mockIoHost,
   );
   const executeCommandMock = mock.method(
     invoker,
@@ -91,7 +91,7 @@ void describe('invokeCDKCommand', () => {
         return Promise.reject(new Error());
       }
       return Promise.resolve();
-    }
+    },
   );
 
   beforeEach(() => {
@@ -233,7 +233,7 @@ void describe('invokeCDKCommand', () => {
           throw new Error('some tsc error');
         }
         return Promise.resolve();
-      }
+      },
     );
     await invoker.deploy(branchBackendId, {
       validateAppSources: true,
@@ -243,11 +243,11 @@ void describe('invokeCDKCommand', () => {
     // Call 0 -> tsc showConfig
     assert.equal(
       contextualExecuteCommandMock.mock.calls[0].arguments[0]?.length,
-      4
+      4,
     );
     assert.deepStrictEqual(
       contextualExecuteCommandMock.mock.calls[0].arguments[0],
-      ['tsc', '--showConfig', '--project', 'amplify']
+      ['tsc', '--showConfig', '--project', 'amplify'],
     );
   });
 
@@ -263,7 +263,7 @@ void describe('invokeCDKCommand', () => {
           throw new Error('some tsc error');
         }
         return Promise.resolve();
-      }
+      },
     );
 
     await assert.rejects(
@@ -278,8 +278,8 @@ void describe('invokeCDKCommand', () => {
           resolution:
             'Fix the syntax and type errors in your backend definition.',
         },
-        new Error('some tsc error')
-      )
+        new Error('some tsc error'),
+      ),
     );
     assert.strictEqual(contextualExecuteCommandMock.mock.callCount(), 2);
 
@@ -288,21 +288,21 @@ void describe('invokeCDKCommand', () => {
     // Call 0 -> tsc showConfig (ts checks are still run)
     assert.equal(
       contextualExecuteCommandMock.mock.calls[0].arguments[0]?.length,
-      4
+      4,
     );
     assert.deepStrictEqual(
       contextualExecuteCommandMock.mock.calls[0].arguments[0],
-      ['tsc', '--showConfig', '--project', 'amplify']
+      ['tsc', '--showConfig', '--project', 'amplify'],
     );
 
     // Call 1 -> tsc
     assert.equal(
       contextualExecuteCommandMock.mock.calls[1].arguments[0]?.length,
-      5
+      5,
     );
     assert.deepStrictEqual(
       contextualExecuteCommandMock.mock.calls[1].arguments[0],
-      ['tsc', '--noEmit', '--skipLibCheck', '--project', 'amplify']
+      ['tsc', '--noEmit', '--skipLibCheck', '--project', 'amplify'],
     );
   });
 
@@ -324,8 +324,8 @@ void describe('invokeCDKCommand', () => {
           resolution:
             'Check your backend definition in the `amplify` folder for syntax and type errors.',
         },
-        synthError
-      )
+        synthError,
+      ),
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 2);
 
@@ -380,8 +380,8 @@ void describe('invokeCDKCommand', () => {
           resolution:
             'Check the Caused by error and fix any issues in your backend code',
         },
-        synthError
-      )
+        synthError,
+      ),
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 2);
 
@@ -415,12 +415,12 @@ void describe('invokeCDKCommand', () => {
       (err: AmplifyError<CDKDeploymentError>) => {
         assert.equal(
           err.message,
-          'The deployment role does not have sufficient permissions to perform this deployment.'
+          'The deployment role does not have sufficient permissions to perform this deployment.',
         );
         assert.equal(err.name, 'AccessDeniedError');
         assert.equal(err.cause?.message, 'Access Denied');
         return true;
-      }
+      },
     );
   });
 });

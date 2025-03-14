@@ -51,7 +51,7 @@ void describe('sandbox command', () => {
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
-    () => null
+    () => null,
   );
   const sandboxProfile = 'test-sandbox';
 
@@ -65,7 +65,7 @@ void describe('sandbox command', () => {
         }),
       mockProfileResolver,
       printer,
-      format
+      format,
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -81,7 +81,7 @@ void describe('sandbox command', () => {
         successfulDeployment: [clientConfigGenerationMock],
         successfulDeletion: [clientConfigDeletionMock],
         failedDeployment: [],
-      })
+      }),
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
@@ -114,7 +114,7 @@ void describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].identifier,
-      'user-app-name'
+      'user-app-name',
     );
   });
 
@@ -127,11 +127,11 @@ void describe('sandbox command', () => {
         assert.ok(AmplifyError.isAmplifyError(err.error));
         assert.strictEqual(
           err.error.message,
-          'Invalid --identifier provided: invalid@'
+          'Invalid --identifier provided: invalid@',
         );
         assert.strictEqual(err.error.name, 'InvalidCommandInputError');
         return true;
-      }
+      },
     );
     assert.equal(sandboxStartMock.mock.callCount(), 0);
   });
@@ -157,7 +157,7 @@ void describe('sandbox command', () => {
 
   void it('fails if invalid dir-to-watch is provided', async () => {
     const dirToWatchError = new Error(
-      '--dir-to-watch nonExistentDir does not exist'
+      '--dir-to-watch nonExistentDir does not exist',
     );
     mock.method(fsp, 'stat', () => Promise.reject(dirToWatchError));
     await assert.rejects(
@@ -165,13 +165,13 @@ void describe('sandbox command', () => {
       (err: TestCommandError) => {
         assert.equal(err.error.message, dirToWatchError.message);
         return true;
-      }
+      },
     );
   });
 
   void it('fails if a file is provided in the --dir-to-watch flag', async (contextual) => {
     const dirToWatchError = new Error(
-      '--dir-to-watch existentFile is not a valid directory'
+      '--dir-to-watch existentFile is not a valid directory',
     );
     contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => false,
@@ -181,7 +181,7 @@ void describe('sandbox command', () => {
       (err: TestCommandError) => {
         assert.equal(err.error.message, dirToWatchError.message);
         return true;
-      }
+      },
     );
   });
 
@@ -193,7 +193,7 @@ void describe('sandbox command', () => {
     const sandboxStartMock = contextual.mock.method(
       sandbox,
       'start',
-      async () => Promise.resolve()
+      async () => Promise.resolve(),
     );
 
     const printerMock = contextual.mock.method(printer, 'print', () => {});
@@ -211,8 +211,8 @@ void describe('sandbox command', () => {
     assert.equal(
       printerMock.mock.calls[0].arguments[0],
       `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
-        'sandbox delete'
-      )}`
+        'sandbox delete',
+      )}`,
     );
   });
 
@@ -226,13 +226,13 @@ void describe('sandbox command', () => {
       (err: TestCommandError) => {
         assert.equal(err.error, profileErr);
         return true;
-      }
+      },
     );
     assert.equal(sandboxStartMock.mock.callCount(), 0);
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      sandboxProfile
+      sandboxProfile,
     );
   });
 
@@ -247,7 +247,7 @@ void describe('sandbox command', () => {
         }),
       mockProfileResolver,
       printer,
-      format
+      format,
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
@@ -257,7 +257,7 @@ void describe('sandbox command', () => {
       [],
       clientConfigGeneratorAdapterMock,
       commandMiddleware,
-      undefined
+      undefined,
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
@@ -265,23 +265,23 @@ void describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.strictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].profile,
-      sandboxProfile
+      sandboxProfile,
     );
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      sandboxProfile
+      sandboxProfile,
     );
   });
 
   void it('starts sandbox if a value containing "." is provided for config-out-dir', async () => {
     // this is a valid case to maintain consistency with behaviors of ampx generate graphql-client-code/forms
     await commandRunner.runCommand(
-      'sandbox --outputs-out-dir existentFile.json'
+      'sandbox --outputs-out-dir existentFile.json',
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
-      [path.join(process.cwd(), 'existentFile.json', 'amplify_outputs.json')]
+      [path.join(process.cwd(), 'existentFile.json', 'amplify_outputs.json')],
     );
   });
 
@@ -290,12 +290,12 @@ void describe('sandbox command', () => {
       isDirectory: () => true,
     }));
     await commandRunner.runCommand(
-      'sandbox --outputs-out-dir existentDir --outputs-format dart'
+      'sandbox --outputs-out-dir existentDir --outputs-format dart',
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
-      [path.join(process.cwd(), 'existentDir', 'amplify_outputs.dart')]
+      [path.join(process.cwd(), 'existentDir', 'amplify_outputs.dart')],
     );
   });
 
@@ -308,7 +308,7 @@ void describe('sandbox command', () => {
     assert.deepStrictEqual(writeFileMock.mock.calls[0].arguments[1], '{}');
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
-      path.join(process.cwd(), 'amplifyconfiguration.json')
+      path.join(process.cwd(), 'amplifyconfiguration.json'),
     );
   });
 
@@ -320,11 +320,11 @@ void describe('sandbox command', () => {
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1.3"\n}`
+      `{\n  "version": "1.3"\n}`,
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
-      path.join(process.cwd(), 'amplify_outputs.json')
+      path.join(process.cwd(), 'amplify_outputs.json'),
     );
   });
 
@@ -333,37 +333,37 @@ void describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.strictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].watchForChanges,
-      false
+      false,
     );
   });
 
   void it('--once flag is mutually exclusive with dir-to-watch, exclude and stream-function-logs', async () => {
     assert.match(
       await commandRunner.runCommand(
-        'sandbox --once --dir-to-watch nonExistentDir'
+        'sandbox --once --dir-to-watch nonExistentDir',
       ),
-      /Arguments once and dir-to-watch are mutually exclusive/
+      /Arguments once and dir-to-watch are mutually exclusive/,
     );
     assert.match(
       await commandRunner.runCommand('sandbox --once --exclude test'),
-      /Arguments once and exclude are mutually exclusive/
+      /Arguments once and exclude are mutually exclusive/,
     );
     assert.match(
       await commandRunner.runCommand('sandbox --once --stream-function-logs'),
-      /Arguments once and stream-function-logs are mutually exclusive/
+      /Arguments once and stream-function-logs are mutually exclusive/,
     );
   });
 
   void it('fails if --logs-out-file is provided without enabling --stream-function-logs', async () => {
     assert.match(
       await commandRunner.runCommand('sandbox --logs-out-file someFile'),
-      /Missing dependent arguments.* logs-out-file -> stream-function-logs/s
+      /Missing dependent arguments.* logs-out-file -> stream-function-logs/s,
     );
   });
 
   void it('starts sandbox with log watching options', async () => {
     await commandRunner.runCommand(
-      'sandbox --stream-function-logs --logs-filter func1 --logs-filter func2 --logs-out-file someFile'
+      'sandbox --stream-function-logs --logs-filter func1 --logs-filter func2 --logs-out-file someFile',
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -372,7 +372,7 @@ void describe('sandbox command', () => {
         enabled: true,
         logsFilters: ['func1', 'func2'],
         logsOutFile: 'someFile',
-      } as SandboxFunctionStreamingOptions
+      } as SandboxFunctionStreamingOptions,
     );
   });
 });

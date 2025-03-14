@@ -21,7 +21,7 @@ void describe('listDeployedResources', () => {
   const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
     new StackStatusMapper(),
     arnGeneratorMock,
-    arnParserMock
+    arnParserMock,
   );
   const mockCfnClient = new CloudFormation();
 
@@ -128,10 +128,10 @@ void describe('listDeployedResources', () => {
             throw new Error(
               `Unknown stack name ${
                 listStackResourcesCommand.input.StackName as string
-              }`
+              }`,
             );
         }
-      }
+      },
     );
   });
 
@@ -141,7 +141,7 @@ void describe('listDeployedResources', () => {
         mockCfnClient,
         'testRootStack',
         '0000000',
-        'us-east-1'
+        'us-east-1',
       );
 
     const expectedResources: DeployedBackendResource[] = [

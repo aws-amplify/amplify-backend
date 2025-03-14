@@ -35,7 +35,7 @@ export class ProcessController {
   constructor(
     private readonly command: string,
     private readonly args: string[] = [],
-    private readonly options?: Pick<Options, 'cwd' | 'env'>
+    private readonly options?: Pick<Options, 'cwd' | 'env'>,
   ) {}
 
   do = (interactions: PredicatedActionBuilder) => {
@@ -114,7 +114,7 @@ export class ProcessController {
       throw errorThrownFromActions;
     } else if (result.failed && !expectKilled) {
       throw new Error(
-        `stdout:${EOL}${result.stdout}${EOL}${EOL}stderr:${EOL}${result.stderr}`
+        `stdout:${EOL}${result.stdout}${EOL}${EOL}stderr:${EOL}${result.stderr}`,
       );
     }
   };
@@ -128,7 +128,7 @@ export const ampxCli = (
   dir: string,
   options?: {
     env?: Record<string, string>;
-  }
+  },
 ): ProcessController => {
   // TODO This is a workaround to lookup locally installed binary as seen by npx
   // We're using binary directly because signals (Ctrl+C) don't propagate
@@ -154,7 +154,7 @@ export const cdkCli = (
   dir: string,
   options?: {
     env?: Record<string, string>;
-  }
+  },
 ): ProcessController => {
   // We're using binary directly because cdk init doesn't seem to work.
   // See: https://github.com/aws/aws-cdk/issues/1694 (workaround from there didn't work).
@@ -179,7 +179,7 @@ export const runWithPackageManager = (
   dir: string,
   options?: {
     env?: Record<string, string>;
-  }
+  },
 ): ProcessController => {
   let packageManagerBinary: PackageManagerExecutable;
   switch (packageManager) {
@@ -214,7 +214,7 @@ export const runPackageManager = (
   dir: string,
   options?: {
     env?: Record<string, string>;
-  }
+  },
 ): ProcessController => {
   const packageManagerExecutable = packageManager.startsWith('yarn')
     ? 'yarn'

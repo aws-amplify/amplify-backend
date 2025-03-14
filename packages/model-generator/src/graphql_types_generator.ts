@@ -18,7 +18,9 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
+    private resultBuilder: (
+      fileMap: Record<string, string>,
+    ) => GenerationResult,
   ) {}
 
   generateTypes = async ({
@@ -42,7 +44,7 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
     });
 
     const queries = Object.entries(generatedStatements).map(
-      ([filename, contents]) => new Source(contents, filename)
+      ([filename, contents]) => new Source(contents, filename),
     );
 
     const generatedTypes = await generateTypes({

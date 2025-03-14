@@ -51,7 +51,7 @@ void describe('amplify io events bridge', () => {
     const handler2 =
       mock.fn<<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>>();
     handler2.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error('some error'))
+      Promise.reject(new Error('some error')),
     );
     const bridge = new AmplifyIOEventsBridge({
       notify: [handler1, handler2],

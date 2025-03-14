@@ -6,7 +6,7 @@ import { SparseTestMatrixGenerator } from './components/sparse_test_matrix_gener
 
 if (process.argv.length < 5) {
   console.log(
-    "Usage: npx tsx scripts/generate_sparse_test_matrix.ts '<test-glob-pattern>' '<node-versions-as-json-array>' '<os-as-json-array>' <max-tests-per-job?>"
+    "Usage: npx tsx scripts/generate_sparse_test_matrix.ts '<test-glob-pattern>' '<node-versions-as-json-array>' '<os-as-json-array>' <max-tests-per-job?>",
   );
 }
 
@@ -17,7 +17,7 @@ const maxTestsPerJob = process.argv[5] ? parseInt(process.argv[5]) : 2;
 
 if (!Number.isInteger(maxTestsPerJob)) {
   throw new Error(
-    'Invalid max tests per job. If you are using glob pattern with starts in bash put it in quotes'
+    'Invalid max tests per job. If you are using glob pattern with starts in bash put it in quotes',
   );
 }
 

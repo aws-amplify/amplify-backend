@@ -29,7 +29,7 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
 export const secret = (name: string): BackendSecret => {
   const secretProviderFactory = new BackendSecretFetcherProviderFactory();
   const secretResourceFactory = new BackendSecretFetcherFactory(
-    secretProviderFactory
+    secretProviderFactory,
   );
   return new CfnTokenBackendSecret(name, secretResourceFactory);
 };

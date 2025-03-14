@@ -19,9 +19,9 @@ export class CommandMiddleware {
    * If the input profile is defined, the environment variable AWS_PROFILE will be set accordingly.
    */
   ensureAwsCredentialAndRegion = async <
-    T extends { profile: string | undefined }
+    T extends { profile: string | undefined },
   >(
-    argv: ArgumentsCamelCase<T>
+    argv: ArgumentsCamelCase<T>,
   ) => {
     /**
      * The AWS CDK respects older CLI v1 variable names that are no longer supported in the
@@ -37,7 +37,7 @@ export class CommandMiddleware {
     }
 
     const profileSetupInstruction = `To configure a new Amplify profile, use ${format.normalizeAmpxCommand(
-      'configure profile'
+      'configure profile',
     )}.`;
 
     // Check credentials.
@@ -55,7 +55,7 @@ export class CommandMiddleware {
           message: errorMessage,
           resolution: profileSetupInstruction,
         },
-        err as Error
+        err as Error,
       );
     }
 
@@ -75,7 +75,7 @@ export class CommandMiddleware {
           message: errorMessage,
           resolution: profileSetupInstruction,
         },
-        err as Error
+        err as Error,
       );
     }
     if (!region.trim()) {
@@ -92,19 +92,19 @@ export class CommandMiddleware {
    */
   private mapEnvironmentVariables(
     legacyName: string,
-    preferredName: string
+    preferredName: string,
   ): void {
     if (!process.env[legacyName]) {
       return;
     }
     if (process.env[preferredName]) {
       this.printer.log(
-        `Both the legacy '${legacyName}' and preferred '${preferredName}' environment variables detected. Using '${preferredName}'`
+        `Both the legacy '${legacyName}' and preferred '${preferredName}' environment variables detected. Using '${preferredName}'`,
       );
       return;
     }
     this.printer.log(
-      `Legacy environment variable '${legacyName}' detected. Mapping to '${preferredName}'`
+      `Legacy environment variable '${legacyName}' detected. Mapping to '${preferredName}'`,
     );
     process.env[preferredName] = process.env[legacyName];
   }

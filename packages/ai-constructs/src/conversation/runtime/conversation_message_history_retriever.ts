@@ -108,15 +108,15 @@ export class ConversationMessageHistoryRetriever {
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization,
-      new UserAgentProvider(event)
-    )
+      new UserAgentProvider(event),
+    ),
   ) {}
 
   getMessageHistory = async (): Promise<Array<ConversationMessage>> => {
     const messages = await this.listMessages();
 
     let currentMessage = messages.find(
-      (m) => m.id === this.event.currentMessageId
+      (m) => m.id === this.event.currentMessageId,
     );
 
     // This is a fallback in case current message is not available in the message list.
@@ -136,7 +136,7 @@ export class ConversationMessageHistoryRetriever {
       if (message.role === 'assistant' && message.associatedUserMessageId) {
         assistantMessageByUserMessageId.set(
           message.associatedUserMessageId,
-          message
+          message,
         );
       }
     });
@@ -171,7 +171,7 @@ export class ConversationMessageHistoryRetriever {
 
       // Find and insert corresponding assistant message.
       const correspondingAssistantMessage = assistantMessageByUserMessageId.get(
-        current.id
+        current.id,
       );
       if (correspondingAssistantMessage) {
         acc.push({
@@ -197,7 +197,7 @@ export class ConversationMessageHistoryRetriever {
    */
   private squashNonCurrentTurns = (messages: Array<ConversationMessage>) => {
     const isNonToolBlockPredicate = (
-      contentBlock: ConversationMessageContentBlock
+      contentBlock: ConversationMessageContentBlock,
     ) => !contentBlock.toolUse && !contentBlock.toolResult;
 
     // find where current turn begins. I.e. last user message that is not related to tools
@@ -223,7 +223,7 @@ export class ConversationMessageHistoryRetriever {
       const currentMessage = messages[i];
       const currentMessageRole = currentMessage.role;
       const currentMessageNonToolContent = currentMessage.content.filter(
-        isNonToolBlockPredicate
+        isNonToolBlockPredicate,
       );
       if (currentMessageNonToolContent.length === 0) {
         // Tool only message. Nothing to squash, skip;
@@ -338,7 +338,7 @@ export class ConversationMessageHistoryRetriever {
               // toolResult.content[].json may come as serialized JSON for Client Tools.
               // Parse it in that case.
               toolResultContentBlock.json = JSON.parse(
-                toolResultContentBlock.json
+                toolResultContentBlock.json,
               );
             }
           });

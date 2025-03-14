@@ -31,7 +31,7 @@ void describe('sandbox secret set command', () => {
   const secretSetMock = mock.method(
     secretClient,
     'setSecret',
-    (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier)
+    (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier),
   );
   const printMock = mock.method(printer, 'print');
 
@@ -50,11 +50,11 @@ void describe('sandbox secret set command', () => {
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,
     secretClient,
-    mockReadStream as unknown as ReadStream
+    mockReadStream as unknown as ReadStream,
   );
 
   const parser = yargs().command(
-    sandboxSecretSetCmd as unknown as CommandModule
+    sandboxSecretSetCmd as unknown as CommandModule,
   );
 
   const commandRunner = new TestCommandRunner(parser);
@@ -68,7 +68,7 @@ void describe('sandbox secret set command', () => {
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
-      () => Promise.resolve(testSecretValue)
+      () => Promise.resolve(testSecretValue),
     );
 
     await commandRunner.runCommand(`set ${testSecretName}`);
@@ -86,7 +86,7 @@ void describe('sandbox secret set command', () => {
     ]);
     assert.equal(
       printMock.mock.calls[0].arguments[0],
-      `Successfully created version ${testSecretIdentifier.version} of secret ${testSecretIdentifier.name}`
+      `Successfully created version ${testSecretIdentifier.version} of secret ${testSecretIdentifier.name}`,
     );
   });
 
@@ -94,11 +94,11 @@ void describe('sandbox secret set command', () => {
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
       'secretValue',
-      () => Promise.resolve(testSecretValue)
+      () => Promise.resolve(testSecretValue),
     );
 
     await commandRunner.runCommand(
-      `set ${testSecretName} --identifier anotherName`
+      `set ${testSecretName} --identifier anotherName`,
     );
     assert.equal(mockSecretValue.mock.callCount(), 1);
     assert.equal(secretSetMock.mock.callCount(), 1);
@@ -120,17 +120,17 @@ void describe('sandbox secret set command', () => {
     const sandboxSecretSetCmdWithStream = new SandboxSecretSetCommand(
       sandboxIdResolver,
       secretClient,
-      readStream as unknown as ReadStream
+      readStream as unknown as ReadStream,
     );
 
     const parserWithStream = yargs().command(
-      sandboxSecretSetCmdWithStream as unknown as CommandModule
+      sandboxSecretSetCmdWithStream as unknown as CommandModule,
     );
 
     const commandRunnerWithStream = new TestCommandRunner(parserWithStream);
 
     const setCommandPromise = commandRunnerWithStream.runCommand(
-      `set ${testSecretName}`
+      `set ${testSecretName}`,
     );
     readStream.write(testSecretValue);
     readStream.end();
@@ -157,11 +157,11 @@ void describe('sandbox secret set command', () => {
         assert.ok(AmplifyError.isAmplifyError(err.error));
         assert.strictEqual(
           err.error.message,
-          'Invalid secret name provided: invalid@'
+          'Invalid secret name provided: invalid@',
         );
         assert.strictEqual(err.error.name, 'InvalidCommandInputError');
         return true;
-      }
+      },
     );
     assert.equal(secretSetMock.mock.callCount(), 0);
   });

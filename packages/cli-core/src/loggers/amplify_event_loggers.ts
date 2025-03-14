@@ -56,14 +56,14 @@ export class AmplifyEventLogger {
           (trace: { clientName: string; commandName: string }) => {
             this.printer.log(
               `AWS SDK Call ${trace.clientName}: ${trace.commandName}`,
-              LogLevel.DEBUG
+              LogLevel.DEBUG,
             );
-          }
+          },
         );
       } else {
         this.printer.log(
           `[${msg.action}: ${msg.code}] ${msg.message}`,
-          LogLevel.DEBUG
+          LogLevel.DEBUG,
         );
       }
     } else {
@@ -73,21 +73,21 @@ export class AmplifyEventLogger {
           msg.level === 'error'
             ? 'Red'
             : msg.level === 'warn'
-            ? 'Yellow'
-            : 'Green'
+              ? 'Yellow'
+              : 'Green',
         )}] ${format.note(
-          msg.time.toLocaleTimeString()
+          msg.time.toLocaleTimeString(),
         )} ${msg.message.trim()} ${
           msg.data ? JSON.stringify(msg.data, null, 2) : ''
         }`,
-        LogLevel.DEBUG
+        LogLevel.DEBUG,
       );
     }
     return Promise.resolve();
   };
 
   amplifyNotifications = async <T>(
-    msg: AmplifyIoHostEventMessage<T>
+    msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
     if (msg.action !== 'amplify') {
       return;
@@ -116,13 +116,13 @@ export class AmplifyEventLogger {
       msg.level === 'result'
         ? `${format.success('✔')} ${msg.message}`
         : msg.level === 'error'
-        ? format.error(msg.message)
-        : msg.message
+          ? format.error(msg.message)
+          : msg.message,
     );
   };
 
   cdkDeploymentProgress = async <T>(
-    msg: AmplifyIoHostEventMessage<T>
+    msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
     // TBD: This will be replaced with a proper marker event with a unique code later
     // Asset publishing
@@ -176,7 +176,7 @@ export class AmplifyEventLogger {
         this.printer.log(
           `${format.success('✔')} Deployment completed in ${
             msg.data.duration / 1000
-          } seconds`
+          } seconds`,
         );
         if (
           this.outputs &&
@@ -185,8 +185,8 @@ export class AmplifyEventLogger {
         ) {
           this.printer.log(
             `AppSync API endpoint = ${format.link(
-              this.outputs.awsAppsyncApiEndpoint as string
-            )}`
+              this.outputs.awsAppsyncApiEndpoint as string,
+            )}`,
           );
         }
       }
@@ -198,7 +198,7 @@ export class AmplifyEventLogger {
    * @param msg a CDK event
    */
   fancyCfnDeploymentProgress = async <T>(
-    msg: AmplifyIoHostEventMessage<T>
+    msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
     // Start deployment progress display
     // TBD: This will be replaced with a proper marker event with a unique code later
@@ -208,7 +208,7 @@ export class AmplifyEventLogger {
       !this.cfnDeploymentProgressLogger
     ) {
       this.cfnDeploymentProgressLogger = this.getNewCfnDeploymentProgressLogger(
-        this.printer
+        this.printer,
       );
       this.printer.startSpinner('Deployment in progress...', {
         timeoutSeconds: 300,
@@ -255,7 +255,7 @@ export class AmplifyEventLogger {
    * Non fancy cfn deployment progress for ci/cd or files
    */
   nonTtyCfnDeploymentProgress = async <T>(
-    msg: AmplifyIoHostEventMessage<T>
+    msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
     if (msg.code === 'CDK_TOOLKIT_I5502') {
       // CDKs formatted cfn deployment progress
@@ -273,7 +273,7 @@ export class AmplifyEventLogger {
       rewritableBlock: new RewritableBlock(
         getBlockWidth,
         getBlockHeight,
-        new AmplifyIOEventsBridgeSingletonFactory(printer).getInstance()
+        new AmplifyIOEventsBridgeSingletonFactory(printer).getInstance(),
       ),
     });
   };

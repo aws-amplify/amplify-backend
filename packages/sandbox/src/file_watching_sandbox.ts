@@ -81,7 +81,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly functionsLogStreamer: LambdaFunctionLogStreamer,
     private readonly printer: Printer,
     private readonly open = _open,
-    private readonly subscribe = _subscribe
+    private readonly subscribe = _subscribe,
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
@@ -100,7 +100,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   override on(
     eventName: SandboxEvents,
-    listener: (...args: unknown[]) => void
+    listener: (...args: unknown[]) => void,
   ): this {
     return super.on(eventName, listener);
   }
@@ -127,10 +127,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     if (!bootstrapped) {
       this.printer.log(
         `The region ${format.highlight(
-          region
+          region,
         )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
-          '--profile <profile-name>'
-        )} to specify a profile with the correct region.`
+          '--profile <profile-name>',
+        )} to specify a profile with the correct region.`,
       );
       const bootstrapUrl = getBootstrapUrl(region);
       try {
@@ -189,7 +189,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         latch = 'deploying';
         this.printer.clearConsole();
         this.printer.log(
-          "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
+          "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again",
         );
         await this.deploy(options);
       }
@@ -199,7 +199,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
       await this.functionsLogStreamer.startStreamingLogs(
         await this.backendIdSandboxResolver(options.identifier),
-        options.functionStreamingOptions
+        options.functionStreamingOptions,
       );
     });
 
@@ -215,10 +215,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
               this.printer.log(
                 `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
                   process.cwd(),
-                  filePath
-                )}`
+                  filePath,
+                )}`,
               );
-            })
+            }),
           );
           if (latch === 'open') {
             await deployAndWatch();
@@ -227,15 +227,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             latch = 'queued';
             this.printer.log(
               '[Sandbox] Previous deployment is still in progress. ' +
-                'Will queue for another deployment after this one finishes'
+                'Will queue for another deployment after this one finishes',
             );
           }
         },
         {
           ignore: this.outputFilesExcludedFromWatch.concat(
-            ...(options.exclude ?? [])
+            ...(options.exclude ?? []),
           ),
-        }
+        },
       );
       // Start the first full deployment without waiting for a file change
       await deployAndWatch();
@@ -259,11 +259,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   delete = async (options: SandboxDeleteOptions) => {
     this.printer.log(
-      '[Sandbox] Deleting all the resources in the sandbox environment...'
+      '[Sandbox] Deleting all the resources in the sandbox environment...',
     );
     await this.executor.destroy(
       await this.backendIdSandboxResolver(options.identifier),
-      options.profile
+      options.profile,
     );
     this.emit('successfulDeletion');
     this.printer.log('[Sandbox] Finished deleting.');
@@ -288,7 +288,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources,
-        options.profile
+        options.profile,
       );
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
@@ -331,14 +331,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       return parseGitIgnore
         .parse(gitIgnoreFilePath)
         .patterns.map((pattern: string) =>
-          pattern.startsWith('/') ? pattern.substring(1) : pattern
+          pattern.startsWith('/') ? pattern.substring(1) : pattern,
         )
         .filter((pattern: string) => {
           if (pattern.startsWith('!')) {
             this.printer.log(
               `[Sandbox] Pattern ${pattern} found in .gitignore. "${pattern.substring(
-                1
-              )}" will not be watched if other patterns in .gitignore are excluding it.`
+                1,
+              )}" will not be watched if other patterns in .gitignore are excluding it.`,
             );
             return false;
           }
@@ -358,7 +358,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       const { Parameter: parameter } = await this.ssmClient.send(
         new GetParameterCommand({
           Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
-        })
+        }),
       );
 
       const bootstrapVersion = parameter?.Value;
@@ -391,7 +391,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             resolution:
               'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
           },
-          e
+          e,
         );
       }
 
@@ -401,12 +401,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private handleUnsupportedDestructiveChanges = async (
-    options: SandboxOptions
+    options: SandboxOptions,
   ) => {
     this.printer.print(
       format.error(
-        '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)'
-      )
+        '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)',
+      ),
     );
     // offer to recreate the sandbox with new properties
     const answer = await AmplifyPrompter.yesOrNo({
@@ -422,25 +422,26 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private printSandboxNameInfo = async (sandboxIdentifier?: string) => {
-    const sandboxBackendId = await this.backendIdSandboxResolver(
-      sandboxIdentifier
-    );
+    const sandboxBackendId =
+      await this.backendIdSandboxResolver(sandboxIdentifier);
     const stackName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
+    const region = await this.ssmClient.config.region();
     this.printer.print(
-      format.indent(format.highlight(format.bold('\nAmplify Sandbox\n')))
+      format.indent(format.highlight(format.bold('\nAmplify Sandbox\n'))),
     );
     this.printer.print(
-      format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`)
+      format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`),
     );
     this.printer.print(
-      format.indent(`${format.bold('Stack:')} \t${stackName}`)
+      format.indent(`${format.bold('Stack:')} \t${stackName}`),
     );
+    this.printer.print(format.indent(`${format.bold('Region:')} \t${region}`));
     if (!sandboxIdentifier) {
       this.printer.print(
         `${format.indent(
-          format.dim('\nTo specify a different sandbox identifier, use ')
-        )}${format.bold('--identifier')}`
+          format.dim('\nTo specify a different sandbox identifier, use '),
+        )}${format.bold('--identifier')}`,
       );
     }
   };

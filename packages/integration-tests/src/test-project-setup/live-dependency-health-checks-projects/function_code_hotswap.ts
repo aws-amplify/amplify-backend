@@ -22,11 +22,11 @@ export class FunctionCodeHotswapTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -38,14 +38,14 @@ export class FunctionCodeHotswapTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.amplifyClient
+      this.amplifyClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
 
     // we're not starting from create flow. install latest versions of dependencies.
@@ -65,7 +65,7 @@ export class FunctionCodeHotswapTestProjectCreator
       {
         cwd: projectRoot,
         stdio: 'inherit',
-      }
+      },
     );
 
     return project;
@@ -83,17 +83,17 @@ class FunctionCodeHotswapTestTestProject extends TestProjectBase {
 
   readonly sourceProjectRootURL: URL = new URL(
     this.sourceProjectRootPath,
-    import.meta.url
+    import.meta.url,
   );
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     `${this.sourceProjectRootPath}/amplify`,
-    import.meta.url
+    import.meta.url,
   );
 
   private readonly sourceProjectUpdateDirURL: URL = new URL(
     `${this.sourceProjectRootPath}/hotswap-update-files`,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -104,14 +104,14 @@ class FunctionCodeHotswapTestTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    amplifyClient: AmplifyClient
+    amplifyClient: AmplifyClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
@@ -135,7 +135,7 @@ class FunctionCodeHotswapTestTestProject extends TestProjectBase {
 
   private getSourceProjectUpdatePath = (suffix: string) =>
     pathToFileURL(
-      path.join(fileURLToPath(this.sourceProjectUpdateDirURL), suffix)
+      path.join(fileURLToPath(this.sourceProjectUpdateDirURL), suffix),
     );
 
   private getTestProjectPath = (suffix: string) =>

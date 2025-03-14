@@ -47,7 +47,7 @@ void describe('dependabot version update handler', async () => {
     const shortId = randomUUID().split('-')[0];
     const testNameNormalized = testName.slice(0, 15).replaceAll(/\s/g, '');
     testWorkingDir = await fsp.mkdtemp(
-      path.join(tmpdir(), `${testNameNormalized}-${shortId}`)
+      path.join(tmpdir(), `${testNameNormalized}-${shortId}`),
     );
     console.log(testWorkingDir);
 
@@ -65,12 +65,12 @@ void describe('dependabot version update handler', async () => {
     cantaloupePackagePath = path.join(
       testWorkingDir,
       'packages',
-      cantaloupePackageName
+      cantaloupePackageName,
     );
     platypusPackagePath = path.join(
       testWorkingDir,
       'packages',
-      platypusPackageName
+      platypusPackageName,
     );
 
     await gitClient.init();
@@ -97,7 +97,7 @@ void describe('dependabot version update handler', async () => {
     const labelPullRequestMocked = mock.method(
       githubClient,
       'labelPullRequest',
-      async () => {}
+      async () => {},
     );
     const gitPushMocked = mock.method(gitClient, 'push', async () => {});
     const ghContextMocked = {
@@ -146,7 +146,7 @@ void describe('dependabot version update handler', async () => {
       gitClient,
       githubClient,
       testWorkingDir,
-      ghContextMocked
+      ghContextMocked,
     );
 
     await dependabotVersionUpdateHandler.handleVersionUpdate();
@@ -154,13 +154,13 @@ void describe('dependabot version update handler', async () => {
     const changesetFilePath = path.join(
       testWorkingDir,
       // eslint-disable-next-line spellcheck/spell-checker
-      '.changeset/dependabot-abcd1234.md'
+      '.changeset/dependabot-abcd1234.md',
     );
 
     await assertChangesetFile(
       changesetFilePath,
       [cantaloupePackageName, platypusPackageName],
-      pullRequestBody
+      pullRequestBody,
     );
     assert.deepEqual(labelPullRequestMocked.mock.calls[0].arguments, [
       1,
@@ -180,7 +180,7 @@ const setPackageToPublic = async (packagePath: string) => {
 
 const setPackageDependencies = async (
   packagePath: string,
-  dependencies: Record<string, string>
+  dependencies: Record<string, string>,
 ) => {
   const packageJson = await readPackageJson(packagePath);
   packageJson.dependencies = dependencies;
@@ -190,7 +190,7 @@ const setPackageDependencies = async (
 const assertChangesetFile = async (
   filePath: string,
   packageNames: string[],
-  message: string
+  message: string,
 ) => {
   const changesetFileContent = await fsp.readFile(filePath, 'utf-8');
   const frontmatterContent = packageNames

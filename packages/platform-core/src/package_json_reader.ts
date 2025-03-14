@@ -18,7 +18,7 @@ export class PackageJsonReader {
     try {
       jsonParsedValue = JSON.parse(
         // we have to use sync fs methods here because this is also used during cdk synth
-        fs.readFileSync(absolutePackageJsonPath, 'utf-8')
+        fs.readFileSync(absolutePackageJsonPath, 'utf-8'),
       );
     } catch (err) {
       throw new AmplifyUserError(
@@ -27,7 +27,7 @@ export class PackageJsonReader {
           message: `Could not parse the contents of ${absolutePackageJsonPath}`,
           resolution: `Ensure that ${absolutePackageJsonPath} exists and is a valid JSON file`,
         },
-        err as Error
+        err as Error,
       );
     }
     return packageJsonSchema.parse(jsonParsedValue);

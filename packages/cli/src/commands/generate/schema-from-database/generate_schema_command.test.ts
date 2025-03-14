@@ -24,7 +24,7 @@ void describe('generate graphql-client-code command', () => {
 
   const backendIdentifierResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxIdResolver
+    sandboxIdResolver,
   );
 
   const secretClient = getSecretClientWithAmplifyErrorHandling();
@@ -35,17 +35,17 @@ void describe('generate graphql-client-code command', () => {
     'generate',
     () => {
       return 'TYPESCRIPT_DATA_SCHEMA';
-    }
+    },
   );
 
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
     secretClient,
-    schemaGenerator
+    schemaGenerator,
   );
 
   const parser = yargs().command(
-    generateSchemaCommand as unknown as CommandModule
+    generateSchemaCommand as unknown as CommandModule,
   );
   const commandRunner = new TestCommandRunner(parser);
 
@@ -65,13 +65,13 @@ void describe('generate graphql-client-code command', () => {
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --connection-uri-secret CONN_STRING --out schema.rds.ts'
+      'schema-from-database --connection-uri-secret CONN_STRING --out schema.rds.ts',
     );
 
     assert.equal(
       (secretClientGetSecret.mock.calls[0].arguments[0] as BackendIdentifier)
         .name,
-      fakeSandboxId
+      fakeSandboxId,
     );
 
     assert.equal(schemaGeneratorGenerateMethod.mock.calls.length, 1);
@@ -83,19 +83,19 @@ void describe('generate graphql-client-code command', () => {
           value: 'FAKE_SECRET_VALUE',
         },
         out: 'schema.rds.ts',
-      }
+      },
     );
   });
 
   void it('uses sandbox by default with custom ssl certificate', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --connection-uri-secret CONN_STRING --out schema.rds.ts --ssl-cert-secret SSL_CERT'
+      'schema-from-database --connection-uri-secret CONN_STRING --out schema.rds.ts --ssl-cert-secret SSL_CERT',
     );
 
     assert.equal(
       (secretClientGetSecret.mock.calls[0].arguments[0] as BackendIdentifier)
         .name,
-      fakeSandboxId
+      fakeSandboxId,
     );
 
     assert.equal(schemaGeneratorGenerateMethod.mock.calls.length, 1);
@@ -111,13 +111,13 @@ void describe('generate graphql-client-code command', () => {
           value: 'FAKE_SECRET_VALUE',
         },
         out: 'schema.rds.ts',
-      }
+      },
     );
   });
 
   void it('generates and writes schema for stack', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --stack amplify-reasonableName-userName-sandbox-testHash --connection-uri-secret CONN_STRING --out schema.rds.ts'
+      'schema-from-database --stack amplify-reasonableName-userName-sandbox-testHash --connection-uri-secret CONN_STRING --out schema.rds.ts',
     );
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.deepEqual(secretClientGetSecret.mock.calls[0].arguments[0], {
@@ -138,7 +138,7 @@ void describe('generate graphql-client-code command', () => {
 
   void it('generates and writes schema for branch', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --branch branch_name --appId app_id --connection-uri-secret CONN_STRING --out schema.rds.ts'
+      'schema-from-database --branch branch_name --appId app_id --connection-uri-secret CONN_STRING --out schema.rds.ts',
     );
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
@@ -153,21 +153,21 @@ void describe('generate graphql-client-code command', () => {
 
   void it('requires connection uri secret name', async () => {
     const command = await commandRunner.runCommand(
-      'schema-from-database --branch branch_name --appId app_id'
+      'schema-from-database --branch branch_name --appId app_id',
     );
     assert.match(command, /Missing required argument: connection-uri-secret/);
   });
 
   void it('fails if both stack and branch are present', async () => {
     const output = await commandRunner.runCommand(
-      'schema-from-database --stack foo --branch baz'
+      'schema-from-database --stack foo --branch baz',
     );
     assert.match(output, /Arguments .* are mutually exclusive/);
   });
 
   void it('fails if branch is present but not app id', async () => {
     const output = await commandRunner.runCommand(
-      'schema-from-database --branch baz'
+      'schema-from-database --branch baz',
     );
     assert.match(output, /Missing dependent arguments:/);
     assert.match(output, /branch -> app-id/);
@@ -175,7 +175,7 @@ void describe('generate graphql-client-code command', () => {
 
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand(
-      'schema-from-database --help'
+      'schema-from-database --help',
     );
     assert.match(output, /--stack/);
     assert.match(output, /--app-id/);

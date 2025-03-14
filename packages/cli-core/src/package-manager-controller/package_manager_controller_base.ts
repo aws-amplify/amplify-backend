@@ -34,7 +34,7 @@ export abstract class PackageManagerControllerBase
     protected readonly path = _path,
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
-    protected readonly existsSync = _existsSync
+    protected readonly existsSync = _existsSync,
   ) {
     this.binaryRunner = getPackageManagerRunnerName();
   }
@@ -44,7 +44,7 @@ export abstract class PackageManagerControllerBase
    */
   async installDependencies(
     packageNames: string[],
-    type: 'dev' | 'prod'
+    type: 'dev' | 'prod',
   ): Promise<void> {
     const args = [`${this.installCommand}`].concat(...packageNames);
     if (type === 'dev') {
@@ -55,7 +55,7 @@ export abstract class PackageManagerControllerBase
       this.cwd,
       this.executable,
       args,
-      this.execa
+      this.execa,
     );
   }
 
@@ -70,7 +70,7 @@ export abstract class PackageManagerControllerBase
 
     printer.log(
       `No package.json file found in the current directory. Running \`${this.executable} init\`...`,
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
 
     try {
@@ -78,19 +78,19 @@ export abstract class PackageManagerControllerBase
         this.cwd,
         this.executable,
         this.initDefault,
-        this.execa
+        this.execa,
       );
     } catch (err) {
       throw new Error(
         `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`,
-        { cause: err }
+        { cause: err },
       );
     }
 
     if (!this.packageJsonExists(this.cwd)) {
       // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
-        `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`
+        `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`,
       );
     }
   };
@@ -119,7 +119,7 @@ export abstract class PackageManagerControllerBase
     await this.fsp.writeFile(
       tsConfigPath,
       JSON.stringify(tsConfigTemplate, null, 2),
-      'utf-8'
+      'utf-8',
     );
   }
 
@@ -129,14 +129,14 @@ export abstract class PackageManagerControllerBase
   runWithPackageManager(
     args: string[] = [],
     dir: string,
-    options?: ExecaOptions
+    options?: ExecaOptions,
   ): ExecaChildProcess {
     return this.executeWithDebugLogger(
       dir,
       this.binaryRunner,
       args,
       this.execa,
-      options
+      options,
     );
   }
 

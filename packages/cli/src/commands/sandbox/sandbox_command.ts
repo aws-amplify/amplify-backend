@@ -51,7 +51,7 @@ export type SandboxEventHandlerParams = {
 };
 
 export type SandboxEventHandlerCreator = (
-  params: SandboxEventHandlerParams
+  params: SandboxEventHandlerParams,
 ) => SandboxEventHandlers;
 
 /**
@@ -81,7 +81,7 @@ export class SandboxCommand
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private commandMiddleware: CommandMiddleware,
-    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
   ) {
     this.command = 'sandbox';
     this.describe =
@@ -92,7 +92,7 @@ export class SandboxCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>,
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.sandboxIdentifier = args.identifier;
@@ -103,7 +103,7 @@ export class SandboxCommand
       this.clientConfigGeneratorAdapter,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
-      args.outputsFormat
+      args.outputsFormat,
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxIdentifier: this.sandboxIdentifier,
@@ -116,19 +116,19 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const fileName = getClientConfigFileName(
-      args.outputsVersion as ClientConfigVersion
+      args.outputsVersion as ClientConfigVersion,
     );
     const clientConfigWritePath = await getClientConfigPath(
       fileName,
       args.outputsOutDir,
-      args.outputsFormat
+      args.outputsFormat,
     );
 
     if (!fs.existsSync(clientConfigWritePath)) {
       await generateEmptyClientConfigToFile(
         args.outputsVersion as ClientConfigVersion,
         args.outputsOutDir,
-        args.outputsFormat
+        args.outputsFormat,
       );
     }
 
@@ -277,8 +277,8 @@ export class SandboxCommand
   sigIntHandler = async () => {
     printer.print(
       `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
-        'sandbox delete'
-      )}`
+        'sandbox delete',
+      )}`,
     );
   };
 

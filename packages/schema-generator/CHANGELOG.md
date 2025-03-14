@@ -1,5 +1,15 @@
 # @aws-amplify/schema-generator
 
+## 1.2.8
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+  - @aws-amplify/platform-core@1.6.5
+
 ## 1.2.7
 
 ### Patch Changes

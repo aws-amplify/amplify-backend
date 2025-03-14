@@ -12,7 +12,7 @@ void describe('sdk profile resolver provider', () => {
     const profile = new SDKProfileResolverProvider().resolve();
     assert.ok(
       !profile,
-      `No value should have been returned, rather we got ${profile}`
+      `No value should have been returned, rather we got ${profile}`,
     );
   });
 
@@ -33,7 +33,7 @@ void describe('sdk profile resolver provider', () => {
     const profile = new SDKProfileResolverProvider().resolve();
     assert.ok(
       !profile,
-      `No value should have been returned, rather we got ${profile}`
+      `No value should have been returned, rather we got ${profile}`,
     );
   });
 });

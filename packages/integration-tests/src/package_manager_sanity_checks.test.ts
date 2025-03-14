@@ -71,9 +71,9 @@ void describe('getting started happy path', async () => {
     await cfnClient.send(
       new DeleteStackCommand({
         StackName: BackendIdentifierConversions.toStackName(
-          branchBackendIdentifier
+          branchBackendIdentifier,
         ),
-      })
+      }),
     );
     await fsp.rm(tempDir, { recursive: true });
   });
@@ -94,7 +94,7 @@ void describe('getting started happy path', async () => {
         await runPackageManager(
           packageManager,
           ['create', amplifyAtTag, '--yes', '--', '--debug'],
-          tempDir
+          tempDir,
         ).run();
       }
     }, RetryPredicates.createAmplifyRetryPredicate);
@@ -117,7 +117,7 @@ void describe('getting started happy path', async () => {
 
     assert.deepStrictEqual(
       files.sort(),
-      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix)),
     );
 
     await runWithPackageManager(
@@ -131,11 +131,11 @@ void describe('getting started happy path', async () => {
         branchBackendIdentifier.namespace,
       ],
       tempDir,
-      { env: { CI: 'true' } }
+      { env: { CI: 'true' } },
     ).run();
 
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
+      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir),
     );
 
     assert.ok(clientConfigStats.isFile());
@@ -151,10 +151,10 @@ void describe('getting started happy path', async () => {
           const errorMessage = error instanceof Error ? error.message : '';
           assert.match(
             errorMessage,
-            /Amplify does not support PNPM on Windows./
+            /Amplify does not support PNPM on Windows./,
           );
           return true;
-        }
+        },
       );
     }
   });

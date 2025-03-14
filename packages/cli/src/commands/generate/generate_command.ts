@@ -28,7 +28,7 @@ export class GenerateCommand implements CommandModule {
     private readonly generateFormsCommand: GenerateFormsCommand,
     private readonly generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand,
     private readonly generateSchemaCommand: GenerateSchemaCommand,
-    private readonly commandMiddleware: CommandMiddleware
+    private readonly commandMiddleware: CommandMiddleware,
   ) {
     this.command = 'generate';
     this.describe = 'Generates post deployment artifacts';
@@ -52,7 +52,7 @@ export class GenerateCommand implements CommandModule {
         .command(this.generateOutputsCommand as unknown as CommandModule)
         .command(this.generateFormsCommand as unknown as CommandModule)
         .command(
-          this.generateGraphqlClientCodeCommand as unknown as CommandModule
+          this.generateGraphqlClientCodeCommand as unknown as CommandModule,
         )
         .command(this.generateSchemaCommand as unknown as CommandModule)
         .demandCommand()

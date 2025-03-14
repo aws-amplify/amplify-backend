@@ -18,9 +18,9 @@ export class AmplifySandboxExecutor {
    */
   private invoke = debounce(
     async (
-      callback: () => Promise<DeployResult | DestroyResult>
+      callback: () => Promise<DeployResult | DestroyResult>,
     ): Promise<DeployResult | DestroyResult> => await callback(),
-    100
+    100,
   );
 
   /**
@@ -29,7 +29,7 @@ export class AmplifySandboxExecutor {
   constructor(
     private readonly backendDeployer: BackendDeployer,
     private readonly secretClient: SecretClient,
-    private readonly printer: Printer
+    private readonly printer: Printer,
   ) {}
 
   /**
@@ -41,7 +41,7 @@ export class AmplifySandboxExecutor {
     /**
      *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
      */
-    profile: string | undefined
+    profile: string | undefined,
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
@@ -66,18 +66,18 @@ export class AmplifySandboxExecutor {
     /**
      *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
      */
-    profile: string | undefined
+    profile: string | undefined,
   ): Promise<DestroyResult> => {
     this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);
     return this.invoke(() =>
       this.backendDeployer.destroy(backendId, {
         profile,
-      })
+      }),
     );
   };
 
   private getSecretLastUpdated = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<Date | undefined> => {
     const secrets = await this.secretClient.listSecrets(backendId);
     let latestTimestamp = -1;

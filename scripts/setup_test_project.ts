@@ -13,7 +13,7 @@ if (!projectName) {
 
 const testProjectDir = new URL(
   `../test-projects/${projectName}`,
-  import.meta.url
+  import.meta.url,
 );
 await fsp.mkdir(testProjectDir, { recursive: true });
 
@@ -21,7 +21,7 @@ await fsp.mkdir(testProjectDir, { recursive: true });
 // if it breaks, it will only break this local script, not anything in production
 const createAmplifyTemplateLocation = new URL(
   '../packages/create-amplify/templates/basic-auth-data',
-  import.meta.url
+  import.meta.url,
 );
 
 // copy getting started project template
@@ -51,7 +51,7 @@ const tsConfig = {
 const tsConfigPath = path.join(
   fileURLToPath(testProjectDir),
   'amplify',
-  'tsconfig.json'
+  'tsconfig.json',
 );
 
 await fsp.writeFile(tsConfigPath, JSON.stringify(tsConfig, null, 2));

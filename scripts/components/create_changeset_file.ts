@@ -7,20 +7,20 @@ import { EOL } from 'os';
 export const createChangesetFile = async (
   filePath: string,
   frontMatterContents?: ChangesetFrontMatterContent[],
-  summary?: string
+  summary?: string,
 ) => {
   const frontMatterArray: string[] = [];
   let content = '';
 
   for (const frontMatterLine of frontMatterContents ?? []) {
     frontMatterArray.push(
-      `'${frontMatterLine.packageName}': ${frontMatterLine.bumpType}`
+      `'${frontMatterLine.packageName}': ${frontMatterLine.bumpType}`,
     );
   }
 
   if (summary && frontMatterArray.length > 0) {
     content = `---${EOL}${frontMatterArray.join(
-      EOL
+      EOL,
     )}${EOL}---${EOL}${EOL}${summary}${EOL}`;
   } else {
     content = `---${EOL}---${EOL}`;

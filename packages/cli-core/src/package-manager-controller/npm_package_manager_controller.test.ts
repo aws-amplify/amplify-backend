@@ -10,7 +10,7 @@ import { LockFileReader } from './lock-file-reader/types.js';
 void describe('NpmPackageManagerController', () => {
   const fspMock = {
     readFile: mock.fn(() =>
-      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+      Promise.resolve(JSON.stringify({ compilerOptions: {} })),
     ),
     writeFile: mock.fn(() => Promise.resolve()),
   };
@@ -36,12 +36,12 @@ void describe('NpmPackageManagerController', () => {
       pathMock as unknown as typeof path,
       execaMock as unknown as typeof execa,
       executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-      existsSyncMock
+      existsSyncMock,
     );
     void it('runs npm install with the correct arguments', async () => {
       await npmPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
-        'dev'
+        'dev',
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
       assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
@@ -55,7 +55,7 @@ void describe('NpmPackageManagerController', () => {
     void it('runs npm install with the correct arguments for prod dependencies', async () => {
       await npmPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
-        'prod'
+        'prod',
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
       assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
@@ -80,7 +80,7 @@ void describe('NpmPackageManagerController', () => {
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock
+        existsSyncMock,
       );
 
       await npmPackageManagerController.initializeProject();
@@ -100,7 +100,7 @@ void describe('NpmPackageManagerController', () => {
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock
+        existsSyncMock,
       );
 
       await npmPackageManagerController.initializeProject();
@@ -118,7 +118,7 @@ void describe('NpmPackageManagerController', () => {
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock
+        existsSyncMock,
       );
       await npmPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
@@ -159,7 +159,7 @@ void describe('NpmPackageManagerController', () => {
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock,
-        lockFileReaderMock
+        lockFileReaderMock,
       );
       const dependencyVersions =
         await npmPackageManagerController.tryGetDependencies();

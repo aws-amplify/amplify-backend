@@ -15,7 +15,7 @@ void describe('Dependency validator', () => {
 
   before(async () => {
     const testNpmOutputFilePath = fileURLToPath(
-      new URL('./test-resources/npm_ls_output.json', import.meta.url)
+      new URL('./test-resources/npm_ls_output.json', import.meta.url),
     );
     const testNpmOutput = (
       await fsp.readFile(testNpmOutputFilePath)
@@ -42,13 +42,13 @@ void describe('Dependency validator', () => {
           },
           [],
           [],
-          execaMock as never
+          execaMock as never,
         ).validate(),
       (err: Error) => {
         assert.ok(err.message.includes('@inquirer/prompts'));
         assert.ok(err.message.includes('graphql'));
         return true;
-      }
+      },
     );
   });
 
@@ -67,13 +67,13 @@ void describe('Dependency validator', () => {
           },
           [],
           [],
-          execaMock as never
+          execaMock as never,
         ).validate(),
       (err: Error) => {
         assert.ok(err.message.includes('@inquirer/prompts'));
         assert.ok(err.message.includes('graphql'));
         return true;
-      }
+      },
     );
   });
 
@@ -91,7 +91,7 @@ void describe('Dependency validator', () => {
       },
       [],
       [],
-      execaMock as never
+      execaMock as never,
     ).validate();
   });
 
@@ -110,16 +110,16 @@ void describe('Dependency validator', () => {
           },
           [],
           [],
-          execaMock as never
+          execaMock as never,
         ).validate(),
       (err: Error) => {
         // The 'color-name' must appear only once in the output.
         assert.strictEqual(
           err.message,
-          'Package @aws-amplify/backend-cli must not have color-name anywhere in dependency graph'
+          'Package @aws-amplify/backend-cli must not have color-name anywhere in dependency graph',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -127,21 +127,21 @@ void describe('Dependency validator', () => {
     await assert.rejects(
       async () => {
         const packagePaths = await glob(
-          'scripts/components/test-resources/dependency-version-consistency-test-packages/*'
+          'scripts/components/test-resources/dependency-version-consistency-test-packages/*',
         );
         await new DependenciesValidator(
           packagePaths,
           {},
           [],
           [],
-          execaMock as never
+          execaMock as never,
         ).validate();
       },
       (err: Error) => {
         assert.ok(
           err.message.includes(
-            'dependency declarations must all the on the same semver range'
-          )
+            'dependency declarations must all the on the same semver range',
+          ),
         );
         assert.ok(err.message.includes('glob'));
         assert.ok(err.message.includes('zod'));
@@ -149,13 +149,13 @@ void describe('Dependency validator', () => {
         assert.ok(err.message.includes('package1'));
         assert.ok(err.message.includes('package2'));
         return true;
-      }
+      },
     );
   });
 
   void it('passes if dependency declaration that is known to be inconsistent uses multiple versions', async () => {
     const packagePaths = await glob(
-      'scripts/components/test-resources/dependency-version-inconsistent-test-packages/*'
+      'scripts/components/test-resources/dependency-version-inconsistent-test-packages/*',
     );
     await new DependenciesValidator(
       packagePaths,
@@ -177,13 +177,13 @@ void describe('Dependency validator', () => {
           ],
         },
       ],
-      execaMock as never
+      execaMock as never,
     ).validate();
   });
 
   void it('passes if multiple dependency declarations are known to be inconsistent', async () => {
     const packagePaths = await glob(
-      'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+      'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*',
     );
     await new DependenciesValidator(
       packagePaths,
@@ -211,7 +211,7 @@ void describe('Dependency validator', () => {
           ],
         },
       ],
-      execaMock as never
+      execaMock as never,
     ).validate();
   });
 
@@ -219,7 +219,7 @@ void describe('Dependency validator', () => {
     await assert.rejects(
       async () => {
         const packagePaths = await glob(
-          'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+          'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*',
         );
         await new DependenciesValidator(
           packagePaths,
@@ -237,34 +237,34 @@ void describe('Dependency validator', () => {
               ],
             },
           ],
-          execaMock as never
+          execaMock as never,
         ).validate();
       },
       (err: Error) => {
         assert.ok(
           err.message.includes(
-            'dependency declarations must all the on the same semver range'
-          )
+            'dependency declarations must all the on the same semver range',
+          ),
         );
         assert.ok(err.message.includes('zod'));
         assert.ok(err.message.includes('package1'));
         assert.ok(err.message.includes('package2'));
         assert.ok(err.message.includes('package3'));
         return true;
-      }
+      },
     );
   });
 
   void it('can detect inconsistent major versions of repo packages', async () => {
     const packagePaths = await glob(
-      'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'
+      'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*',
     );
     const validator = new DependenciesValidator(
       packagePaths,
       {},
       [],
       [],
-      execaMock as never
+      execaMock as never,
     );
 
     await assert.rejects(
@@ -272,14 +272,14 @@ void describe('Dependency validator', () => {
       (err: Error) => {
         assert.ok(
           err.message.includes(
-            'dependency declarations must all be on the same major version'
-          )
+            'dependency declarations must all be on the same major version',
+          ),
         );
         assert.ok(err.message.includes('package1'));
         assert.ok(err.message.includes('package2'));
         assert.ok(err.message.includes('package3'));
         return true;
-      }
+      },
     );
   });
 
@@ -287,24 +287,24 @@ void describe('Dependency validator', () => {
     await assert.rejects(
       async () => {
         const packagePaths = await glob(
-          'scripts/components/test-resources/dependency-linked-version-consistency-test-packages/*'
+          'scripts/components/test-resources/dependency-linked-version-consistency-test-packages/*',
         );
         await new DependenciesValidator(
           packagePaths,
           {},
           [['dep-1', 'dep-2']],
           [],
-          execaMock as never
+          execaMock as never,
         ).validate();
       },
       (err: Error) => {
         assert.ok(
-          err.message.includes('should be declared using same version')
+          err.message.includes('should be declared using same version'),
         );
         assert.ok(err.message.includes('dep-1'));
         assert.ok(err.message.includes('dep-2'));
         return true;
-      }
+      },
     );
   });
 });

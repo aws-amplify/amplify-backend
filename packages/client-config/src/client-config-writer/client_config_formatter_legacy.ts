@@ -34,14 +34,14 @@ export class ClientConfigFormatterLegacy implements ClientConfigFormatter {
         return `const amplifyConfig = r'''${JSON.stringify(
           this.configConverter.convertToMobileConfig(legacyConfig),
           null,
-          2
+          2,
         )}''';`;
       }
       case ClientConfigFormat.JSON_MOBILE:
         return JSON.stringify(
           this.configConverter.convertToMobileConfig(legacyConfig),
           null,
-          2
+          2,
         );
       case ClientConfigFormat.JSON:
         return JSON.stringify(legacyConfig, null, 2);

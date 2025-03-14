@@ -13,7 +13,7 @@ void it('if backend identifier resolves without error, the resolved id is return
   const sandboxResolver = new SandboxBackendIdResolver(namespaceResolver);
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxResolver
+    sandboxResolver,
   );
   const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
     appId: 'hello',
@@ -39,14 +39,14 @@ void it('uses the sandbox id if the default identifier resolver fails and there 
     () =>
       ({
         username,
-      } as never)
+      }) as never,
   );
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxResolver
+    sandboxResolver,
   );
   const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier(
-    {}
+    {},
   );
   assert.deepEqual(resolvedId, {
     namespace: appName,
@@ -68,11 +68,11 @@ void it('does not use sandbox id if the default identifier resolver fails and th
     () =>
       ({
         username,
-      } as never)
+      }) as never,
   );
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxResolver
+    sandboxResolver,
   );
   const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
     appId: 'testAppName',
@@ -95,11 +95,11 @@ void it('does not use sandbox id if the default identifier resolver fails and st
     () =>
       ({
         username,
-      } as never)
+      }) as never,
   );
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,
-    sandboxResolver
+    sandboxResolver,
   );
   const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
     stack: '',

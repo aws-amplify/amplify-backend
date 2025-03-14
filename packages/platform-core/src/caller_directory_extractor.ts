@@ -16,7 +16,7 @@ export class CallerDirectoryExtractor {
   extract = () => {
     let stackTrace = this.stackTrace;
     const unresolvedImportLocationError = new Error(
-      'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
+      'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.',
     );
     if (!stackTrace) {
       throw unresolvedImportLocationError;

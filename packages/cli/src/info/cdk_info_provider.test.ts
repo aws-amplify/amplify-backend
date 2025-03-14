@@ -27,7 +27,7 @@ void describe('CDK Info', () => {
 
   void it('gets info', async () => {
     const cdkInfoProvider = new CdkInfoProvider(
-      execaMock as unknown as typeof execa
+      execaMock as unknown as typeof execa,
     );
     const result = await cdkInfoProvider.getCdkInfo();
     const expected = `

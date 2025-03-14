@@ -42,7 +42,7 @@ export const createGraphqlDocumentGenerator = ({
       BackendOutputClientFactory.getInstance(awsClientProvider);
     const output = await getBackendOutputWithErrorHandling(
       backendOutputClient,
-      backendIdentifier
+      backendIdentifier,
     );
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
@@ -51,11 +51,11 @@ export const createGraphqlDocumentGenerator = ({
     }
 
     return new AppSyncIntrospectionSchemaFetcher(new AppSyncClient()).fetch(
-      apiId
+      apiId,
     );
   };
   return new AppSyncGraphqlDocumentGenerator(
     fetchSchema,
-    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap),
   );
 };

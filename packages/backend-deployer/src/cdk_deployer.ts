@@ -37,7 +37,7 @@ import { pathToFileURL } from 'url';
 export class CDKDeployer implements BackendDeployer {
   private readonly absoluteCloudAssemblyLocation = path.resolve(
     process.cwd(),
-    '.amplify/artifacts/cdk.out'
+    '.amplify/artifacts/cdk.out',
   );
 
   /**
@@ -48,7 +48,7 @@ export class CDKDeployer implements BackendDeployer {
     private readonly backendLocator: BackendLocator,
     private readonly packageManagerController: PackageManagerController,
     private readonly cdkToolkit: Toolkit,
-    private readonly ioHost: AmplifyIOHost
+    private readonly ioHost: AmplifyIOHost,
   ) {}
 
   /**
@@ -59,7 +59,7 @@ export class CDKDeployer implements BackendDeployer {
     const cx = await this.getCdkCloudAssembly(
       backendId,
       toolkit,
-      deployProps?.secretLastUpdated?.getTime()
+      deployProps?.secretLastUpdated?.getTime(),
     );
     // Initiate synth for the cloud executable and send a message for display.
     const synthStartTime = Date.now();
@@ -111,7 +111,7 @@ export class CDKDeployer implements BackendDeployer {
         synthError &&
         AmplifyError.isAmplifyError(typeError) &&
         typeError.cause?.message.match(
-          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
+          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/,
         )
       ) {
         // synth has failed and we don't have auto generated function environment definition files. This
@@ -171,7 +171,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   destroy = async (
     backendId: BackendIdentifier,
-    destroyProps?: DestroyProps
+    destroyProps?: DestroyProps,
   ) => {
     const toolkit = this.getCdkToolkit(destroyProps?.profile);
     const deploymentStartTime = Date.now();
@@ -195,7 +195,7 @@ export class CDKDeployer implements BackendDeployer {
     commandArgs: string[],
     options: { redirectStdoutToStderr: boolean } = {
       redirectStdoutToStderr: false,
-    }
+    },
   ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
@@ -218,7 +218,7 @@ export class CDKDeployer implements BackendDeployer {
         // preserve the color being piped to parent process.
         extendEnv: true,
         env: { FORCE_COLOR: '1' },
-      }
+      },
     );
 
     childProcess.stderr?.pipe(aggregatorStderrStream);
@@ -262,7 +262,7 @@ export class CDKDeployer implements BackendDeployer {
   private getCdkCloudAssembly = (
     backendId: BackendIdentifier,
     toolkit: Toolkit,
-    secretLastUpdated?: number
+    secretLastUpdated?: number,
   ) => {
     const contextParams: {
       [key: string]: unknown;
@@ -281,7 +281,7 @@ export class CDKDeployer implements BackendDeployer {
       async () => {
         await tsImport(
           pathToFileURL(this.backendLocator.locate()).toString(),
-          import.meta.url
+          import.meta.url,
         );
         /**
           By not having a child process with toolkit lib, the `process.on('beforeExit')` does not execute
@@ -291,7 +291,7 @@ export class CDKDeployer implements BackendDeployer {
         process.emit('message', 'amplifySynth', undefined);
         return new CloudAssembly(this.absoluteCloudAssemblyLocation);
       },
-      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation }
+      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation },
     );
   };
 
@@ -334,7 +334,7 @@ export class CDKDeployer implements BackendDeployer {
           '--project',
           dirname(this.backendLocator.locate()),
         ],
-        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
+        { redirectStdoutToStderr: true }, // TSC prints errors to stdout by default
       );
     } catch {
       // If we cannot load ts config, turn off type checking
@@ -350,7 +350,7 @@ export class CDKDeployer implements BackendDeployer {
           '--project',
           dirname(this.backendLocator.locate()),
         ],
-        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
+        { redirectStdoutToStderr: true }, // TSC prints errors to stdout by default
       );
     } catch (err) {
       throw new AmplifyUserError<CDKDeploymentError>(
@@ -360,14 +360,14 @@ export class CDKDeployer implements BackendDeployer {
           resolution:
             'Fix the syntax and type errors in your backend definition.',
         },
-        err instanceof Error ? err : undefined
+        err instanceof Error ? err : undefined,
       );
     }
   };
 
   private populateCDKOutputFromStdout = async (
     output: DeployResult | DestroyResult,
-    stdout: stream.Readable
+    stdout: stream.Readable,
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;

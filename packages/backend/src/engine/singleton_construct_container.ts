@@ -33,7 +33,7 @@ export class SingletonConstructContainer implements ConstructContainer {
    * Otherwise, the generator is called and the value is cached and returned
    */
   getOrCompute = (
-    generator: ConstructContainerEntryGenerator
+    generator: ConstructContainerEntryGenerator,
   ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
@@ -42,7 +42,7 @@ export class SingletonConstructContainer implements ConstructContainer {
         new BackendIdScopedSsmEnvironmentEntriesGenerator(scope, backendId);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
-        backendId
+        backendId,
       );
       const stableBackendIdentifiers =
         new BackendIdScopedStableBackendIdentifiers(backendId);
@@ -53,7 +53,7 @@ export class SingletonConstructContainer implements ConstructContainer {
           backendSecretResolver,
           ssmEnvironmentEntriesGenerator,
           stableBackendIdentifiers,
-        })
+        }),
       );
     }
     // safe because we set if it doesn't exist above
@@ -71,7 +71,7 @@ export class SingletonConstructContainer implements ConstructContainer {
    * By convention, tokens should be the name of type T
    */
   getConstructFactory = <T extends ResourceProvider>(
-    token: string
+    token: string,
   ): ConstructFactory<T> | undefined => {
     if (token in this.providerFactoryTokenMap) {
       return this.providerFactoryTokenMap[token] as ConstructFactory<T>;
@@ -85,14 +85,14 @@ export class SingletonConstructContainer implements ConstructContainer {
    */
   registerConstructFactory = (
     token: string,
-    provider: ConstructFactory
+    provider: ConstructFactory,
   ): void => {
     if (
       token in this.providerFactoryTokenMap &&
       this.providerFactoryTokenMap[token] !== provider
     ) {
       throw new Error(
-        `Token ${token} is already registered to a ProviderFactory`
+        `Token ${token} is already registered to a ProviderFactory`,
       );
     }
     this.providerFactoryTokenMap[token] = provider;

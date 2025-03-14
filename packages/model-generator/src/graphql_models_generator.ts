@@ -16,7 +16,9 @@ export class StackMetadataGraphqlModelsGenerator
    */
   constructor(
     private fetchSchema: () => Promise<string>,
-    private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
+    private resultBuilder: (
+      fileMap: Record<string, string>,
+    ) => GenerationResult,
   ) {}
 
   generateModels = async ({

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -29,7 +29,7 @@
     "@types/uuid": "9.0.7"
   },
   "dependencies": {
-    "@aws-amplify/plugin-types": "^1.8.0",
+    "@aws-amplify/plugin-types": "^1.8.1",
     "@aws-sdk/client-sts": "^3.750.0",
     "is-ci": "^4.1.0",
     "lodash.mergewith": "^4.6.2",
@@ -39,7 +39,7 @@
     "zod": "^3.22.2"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.179.0",
+    "aws-cdk-lib": "^2.180.0",
     "constructs": "^10.0.0"
   }
 }

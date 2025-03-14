@@ -16,16 +16,16 @@ export type CDKLoggingOptions = {
  * Converts logging options to CDK.
  */
 export const convertLoggingOptionsToCDK = (
-  loggingOptions: FunctionLoggingOptions
+  loggingOptions: FunctionLoggingOptions,
 ): CDKLoggingOptions => {
   let level: ApplicationLogLevel | undefined = undefined;
   if ('level' in loggingOptions) {
     level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
-      loggingOptions.level
+      loggingOptions.level,
     );
   }
   const retention = new LogRetentionConverter().toCDKRetentionDays(
-    loggingOptions.retention
+    loggingOptions.retention,
   );
   const format = convertFormat(loggingOptions.format);
 

@@ -10,7 +10,7 @@ import { ClientConfig } from '@aws-amplify/client-config';
 export type BackendBase = {
   createStack: (name: string) => Stack;
   addOutput: (
-    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>,
   ) => void;
   stack: Stack;
 };

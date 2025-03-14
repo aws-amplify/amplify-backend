@@ -29,7 +29,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
-    private readonly stackNameResolver: MainStackNameResolver
+    private readonly stackNameResolver: MainStackNameResolver,
   ) {}
 
   /**
@@ -46,13 +46,13 @@ export class StackMetadataBackendOutputRetrievalStrategy
     try {
       // GetTemplateSummary includes the template metadata as a string
       const templateSummary = await this.cfnClient.send(
-        new GetTemplateSummaryCommand({ StackName: stackName })
+        new GetTemplateSummaryCommand({ StackName: stackName }),
       );
 
       if (typeof templateSummary.Metadata !== 'string') {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-          'Stack template metadata is not a string'
+          'Stack template metadata is not a string',
         );
       }
 
@@ -65,7 +65,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
       ) {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_STACK_FOUND,
-          `Stack with id ${stackName} does not exist`
+          `Stack with id ${stackName} does not exist`,
         );
       }
       if (
@@ -74,7 +74,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
       ) {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
-          error.message
+          error.message,
         );
       }
       if (
@@ -83,7 +83,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
       ) {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          error.message
+          error.message,
         );
       }
 
@@ -95,29 +95,29 @@ export class StackMetadataBackendOutputRetrievalStrategy
 
     // parse and validate the metadata object
     const backendOutputMetadata = backendOutputStackMetadataSchema.parse(
-      filteredMetadataObject
+      filteredMetadataObject,
     );
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(
-      new DescribeStacksCommand({ StackName: stackName })
+      new DescribeStacksCommand({ StackName: stackName }),
     );
 
     const outputs = stackDescription?.Stacks?.[0]?.Outputs;
     if (stackDescription.Stacks?.[0].StackStatus?.endsWith('_IN_PROGRESS')) {
       const deploymentType =
         stackDescription.Stacks?.[0].Tags?.find(
-          (tag) => tag.Key === 'amplify:deployment-type'
+          (tag) => tag.Key === 'amplify:deployment-type',
         )?.Value ?? 'sandbox';
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-        `This ${deploymentType} deployment is in progress. Re-run this command once the deployment completes.`
+        `This ${deploymentType} deployment is in progress. Re-run this command once the deployment completes.`,
       );
     }
     if (outputs === undefined) {
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
-        'Stack outputs are undefined'
+        'Stack outputs are undefined',
       );
     }
 
@@ -131,7 +131,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           [outputEntry.OutputKey!]: outputEntry.OutputValue!,
         }),
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
 
     // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
@@ -150,7 +150,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
             [outputName]: stackOutputRecord[outputName],
           };
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       );
       result[outputKeyName] = {
         version: entry.version,
@@ -164,12 +164,12 @@ export class StackMetadataBackendOutputRetrievalStrategy
    * Filter out stack metadata entries that do not pertain to backend outputs
    */
   private filterBackendOutputEntryStackMetadata<
-    T extends Record<string, unknown>
+    T extends Record<string, unknown>,
   >(metadata: T) {
     return Object.fromEntries(
       Object.entries(metadata).filter(([, value]) =>
-        this.isBackendOutputEntryStackMetadata(value)
-      )
+        this.isBackendOutputEntryStackMetadata(value),
+      ),
     );
   }
 
@@ -178,7 +178,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
    * Zod parsing validation will handle stricter type checking
    */
   private isBackendOutputEntryStackMetadata(
-    obj: unknown
+    obj: unknown,
   ): obj is BackendOutputEntryStackMetadata {
     return (
       !!obj &&

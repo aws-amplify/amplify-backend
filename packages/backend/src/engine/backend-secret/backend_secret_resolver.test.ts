@@ -19,12 +19,12 @@ void describe('DefaultBackendSecretResolver', () => {
     const testSecretName = 'testSecretName';
     const testSecret = new CfnTokenBackendSecret(
       testSecretName,
-      {} as BackendSecretFetcherFactory
+      {} as BackendSecretFetcherFactory,
     );
     const mockResolve = mock.method(testSecret, 'resolve', () => true);
     const resolver = new DefaultBackendSecretResolver(
       stack,
-      testBackendIdentifier
+      testBackendIdentifier,
     );
     resolver.resolveSecret(testSecret);
     assert.equal(mockResolve.mock.callCount(), 1);

@@ -22,7 +22,7 @@ const mockedPrinter = {
 };
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG)
+  new Printer(LogLevel.DEBUG),
 );
 
 const formatterStub: BackendDeployerOutputFormatter = {
@@ -39,14 +39,14 @@ const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
   mockIoHost,
-  mockProfileResolver
+  mockProfileResolver,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClientWithAmplifyErrorHandling();
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
   secretClient,
-  mockedPrinter as never
+  mockedPrinter as never,
 );
 
 const newlyUpdatedSecretItem: SecretListItem = {
@@ -64,11 +64,11 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
       name: 'B',
     },
     newlyUpdatedSecretItem,
-  ])
+  ]),
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
-  Promise.resolve()
+  Promise.resolve(),
 );
 
 const validateAppSourcesProvider = mock.fn(() => true);
@@ -89,7 +89,7 @@ void describe('Sandbox executor', () => {
         type: 'sandbox',
       },
       validateAppSourcesProvider,
-      undefined
+      undefined,
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
@@ -99,7 +99,7 @@ void describe('Sandbox executor', () => {
         type: 'sandbox',
       },
       validateAppSourcesProvider,
-      undefined
+      undefined,
     );
 
     await Promise.all([firstDeployPromise, secondDeployPromise]);
@@ -112,7 +112,7 @@ void describe('Sandbox executor', () => {
   [true, false].forEach((shouldValidateSources) => {
     void it(`calls deployer with correct validateSources=${shouldValidateSources.toString()} setting`, async () => {
       validateAppSourcesProvider.mock.mockImplementationOnce(
-        () => shouldValidateSources
+        () => shouldValidateSources,
       );
 
       await sandboxExecutor.deploy(
@@ -122,7 +122,7 @@ void describe('Sandbox executor', () => {
           type: 'sandbox',
         },
         validateAppSourcesProvider,
-        undefined
+        undefined,
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
@@ -140,7 +140,7 @@ void describe('Sandbox executor', () => {
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
           },
-        ]
+        ],
       );
     });
   });
@@ -156,7 +156,7 @@ void describe('Sandbox executor', () => {
           type: 'sandbox',
         },
         validateAppSourcesProvider,
-        profile
+        profile,
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
@@ -174,7 +174,7 @@ void describe('Sandbox executor', () => {
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: true,
           },
-        ]
+        ],
       );
     });
   });

@@ -13,7 +13,7 @@ void describe('arn parser', () => {
 
   void it('finds the account id in a valid arn', async () => {
     const { accountId, region } = arnParser.tryParseArn(
-      'arn:aws:iam:REGION:ACCOUNT_ID:role/roleName'
+      'arn:aws:iam:REGION:ACCOUNT_ID:role/roleName',
     );
     assert.equal(accountId, 'ACCOUNT_ID');
     assert.equal(region, 'REGION');

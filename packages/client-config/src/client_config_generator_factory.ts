@@ -19,13 +19,13 @@ export class ClientConfigGeneratorFactory {
    */
   getInstance = (
     modelSchemaAdapter: ModelIntrospectionSchemaAdapter,
-    version: ClientConfigVersion
+    version: ClientConfigVersion,
   ): ClientConfigGenerator => {
     return new UnifiedClientConfigGenerator(
       this.fetchOutput,
       new ClientConfigContributorFactory(modelSchemaAdapter).getContributors(
-        version
-      )
+        version,
+      ),
     );
   };
 }

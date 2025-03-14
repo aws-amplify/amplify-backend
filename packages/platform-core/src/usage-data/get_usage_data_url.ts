@@ -18,6 +18,6 @@ export const getUrl = (): UrlWithStringQuery => {
 
 const getParsedUrl = (): UrlWithStringQuery => {
   return url.parse(
-    process.env.AMPLIFY_BACKEND_USAGE_TRACKING_ENDPOINT || prodUrl
+    process.env.AMPLIFY_BACKEND_USAGE_TRACKING_ENDPOINT || prodUrl,
   );
 };

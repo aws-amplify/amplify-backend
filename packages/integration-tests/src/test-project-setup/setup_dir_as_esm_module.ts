@@ -8,7 +8,7 @@ export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
   const packageJsonContent = { type: 'module' };
   await fs.writeFile(
     path.resolve(absoluteDirPath, 'package.json'),
-    JSON.stringify(packageJsonContent, null, 2)
+    JSON.stringify(packageJsonContent, null, 2),
   );
 
   const tsConfigTemplate = {
@@ -30,6 +30,6 @@ export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
   await fs.writeFile(
     tsConfigPath,
     JSON.stringify(tsConfigTemplate, null, 2),
-    'utf-8'
+    'utf-8',
   );
 };

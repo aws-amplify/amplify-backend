@@ -30,7 +30,7 @@ export class UserPoolAccessPolicyFactory {
     }
 
     const policyActions = new Set(
-      actions.flatMap((action) => iamActionMap[action])
+      actions.flatMap((action) => iamActionMap[action]),
     );
 
     if (policyActions.size === 0) {
@@ -49,7 +49,7 @@ export class UserPoolAccessPolicyFactory {
             resources: [this.userpool.userPoolArn],
           }),
         ],
-      }
+      },
     );
 
     return policy;

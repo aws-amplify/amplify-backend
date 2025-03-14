@@ -17,7 +17,7 @@ const eventSource = new DynamoEventSource(
   backend.data.resources.tables['Todo'],
   {
     startingPosition: StartingPosition.LATEST,
-  }
+  },
 );
 
 backend.apiFunction.resources.lambda.addEventSource(eventSource);

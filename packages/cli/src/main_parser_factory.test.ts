@@ -41,7 +41,7 @@ void describe('main parser', { concurrency: false }, () => {
         assert.match(err.output, /Commands:/);
         assert.match(err.error.message, /Not enough non-option arguments:/);
         return true;
-      }
+      },
     );
   });
 
@@ -53,10 +53,10 @@ void describe('main parser', { concurrency: false }, () => {
         assert.match(err.output, /Commands:/);
         assert.match(
           err.error.message,
-          /Unknown arguments: non-existing-option/
+          /Unknown arguments: non-existing-option/,
         );
         return true;
-      }
+      },
     );
   });
 });

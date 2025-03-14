@@ -23,7 +23,7 @@ export class Format {
    * Initialize with a package manager runner name. Defaults to attempting to load a value derived from environment variables.
    */
   constructor(
-    private readonly packageManagerRunnerName = getPackageManagerRunnerName()
+    private readonly packageManagerRunnerName = getPackageManagerRunnerName(),
   ) {}
 
   normalizeAmpxCommand = (command: string) => {
@@ -106,7 +106,7 @@ export class Format {
 
   private applyOnAllLines = (
     mapFunction: (line: string) => string,
-    message: string
+    message: string,
   ): string => {
     return message && message.split(os.EOL).map(mapFunction).join(os.EOL);
   };

@@ -41,7 +41,7 @@ void describe('generateCommandFailureHandler', () => {
     // undefined error is encountered with --help option.
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       someMsg,
-      undefined as unknown as Error
+      undefined as unknown as Error,
     );
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
@@ -55,14 +55,14 @@ void describe('generateCommandFailureHandler', () => {
     const errMsg = 'some error msg';
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
-      new Error(errMsg)
+      new Error(errMsg),
     );
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
     assert.equal(mockExit.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0] as string,
-      new RegExp(errMsg)
+      new RegExp(errMsg),
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
     assert.equal(mockEmitSuccess.mock.callCount(), 0);
@@ -71,7 +71,7 @@ void describe('generateCommandFailureHandler', () => {
   void it('handles a prompt force close error', async () => {
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
-      new Error('User force closed the prompt')
+      new Error('User force closed the prompt'),
     );
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 0);
@@ -83,13 +83,13 @@ void describe('generateCommandFailureHandler', () => {
     const errorMessage = 'this is the upstream cause';
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
-      new Error('some error msg', { cause: new Error(errorMessage) })
+      new Error('some error msg', { cause: new Error(errorMessage) }),
     );
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0] as string,
-      new RegExp(errorMessage)
+      new RegExp(errorMessage),
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
     assert.equal(mockEmitSuccess.mock.callCount(), 0);
@@ -102,22 +102,22 @@ void describe('generateCommandFailureHandler', () => {
         message: 'test error message',
         resolution: 'test resolution',
         details: 'test details',
-      })
+      }),
     );
 
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /TestNameError.* test error message/
+      /TestNameError.* test error message/,
     );
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /Resolution.* test resolution/
+      /Resolution.* test resolution/,
     );
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /Details.* test details/
+      /Details.* test details/,
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
     assert.equal(mockEmitSuccess.mock.callCount(), 0);
@@ -132,11 +132,11 @@ void describe('generateCommandFailureHandler', () => {
         resolution: 'test resolution',
         details: 'test details',
       },
-      causeError
+      causeError,
     );
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
-      amplifyError
+      amplifyError,
     );
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockLog.mock.callCount(), 2);
@@ -174,12 +174,12 @@ void describe(
     void it('handles rejected errors', () => {
       process.listeners('unhandledRejection').at(-1)?.(
         new Error('test error'),
-        Promise.resolve()
+        Promise.resolve(),
       );
       assert.ok(
         mockPrint.mock.calls.findIndex((call) =>
-          call.arguments[0].includes('test error')
-        ) >= 0
+          call.arguments[0].includes('test error'),
+        ) >= 0,
       );
       expectProcessExitCode1AndReset();
       assert.equal(mockEmitFailure.mock.callCount(), 1);
@@ -189,12 +189,12 @@ void describe(
     void it('handles rejected strings', () => {
       process.listeners('unhandledRejection').at(-1)?.(
         'test error',
-        Promise.resolve()
+        Promise.resolve(),
       );
       assert.ok(
         mockPrint.mock.calls.findIndex((call) =>
-          call.arguments[0].includes('test error')
-        ) >= 0
+          call.arguments[0].includes('test error'),
+        ) >= 0,
       );
       expectProcessExitCode1AndReset();
       assert.equal(mockEmitFailure.mock.callCount(), 1);
@@ -203,12 +203,12 @@ void describe(
     void it('handles rejected symbols of other types', () => {
       process.listeners('unhandledRejection').at(-1)?.(
         { something: 'weird' },
-        Promise.resolve()
+        Promise.resolve(),
       );
       assert.ok(
         mockPrint.mock.calls.findIndex((call) =>
-          call.arguments[0].includes('Unhandled rejection of type [object]')
-        ) >= 0
+          call.arguments[0].includes('Unhandled rejection of type [object]'),
+        ) >= 0,
       );
       expectProcessExitCode1AndReset();
       assert.equal(mockEmitFailure.mock.callCount(), 1);
@@ -217,12 +217,12 @@ void describe(
     void it('handles uncaught errors', () => {
       process.listeners('uncaughtException').at(-1)?.(
         new Error('test error'),
-        'uncaughtException'
+        'uncaughtException',
       );
       assert.ok(
         mockPrint.mock.calls.findIndex((call) =>
-          call.arguments[0].includes('test error')
-        ) >= 0
+          call.arguments[0].includes('test error'),
+        ) >= 0,
       );
       expectProcessExitCode1AndReset();
       assert.equal(mockEmitFailure.mock.callCount(), 1);
@@ -241,15 +241,15 @@ void describe(
 
       assert.equal(
         process.listenerCount('unhandledRejection'),
-        unhandledRejectionListenerCount
+        unhandledRejectionListenerCount,
       );
       assert.equal(
         process.listenerCount('uncaughtException'),
-        uncaughtExceptionListenerCount
+        uncaughtExceptionListenerCount,
       );
       assert.equal(mockEmitFailure.mock.callCount(), 0);
     });
-  }
+  },
 );
 
 const expectProcessExitCode1AndReset = () => {

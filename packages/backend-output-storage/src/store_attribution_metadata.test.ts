@@ -24,7 +24,7 @@ void describe('storeAttributionMetadata', () => {
     stack.templateOptions.description = originalDescription;
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     assert.equal(stack.templateOptions.description, originalDescription);
   });
@@ -34,10 +34,10 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.equal(metadata.createdBy, 'AmplifyCDK');
   });
@@ -48,10 +48,10 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'branch');
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.equal(metadata.createdBy, 'AmplifyPipelineDeploy');
   });
@@ -62,10 +62,10 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.equal(metadata.createdBy, 'AmplifySandbox');
   });
@@ -76,10 +76,10 @@ void describe('storeAttributionMetadata', () => {
     stack.node.setContext('amplify-backend-type', 'sandbox');
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const metadata: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.equal(metadata.createdWith, '12.13.14');
   });
@@ -89,12 +89,12 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path', {
       some: 'otherData',
     });
     const attribution: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.deepStrictEqual(attribution.metadata, { some: 'otherData' });
   });
@@ -104,10 +104,10 @@ void describe('storeAttributionMetadata', () => {
     const stack = new Stack(app);
     new AttributionMetadataStorage(
       os,
-      packageJsonReader
+      packageJsonReader,
     ).storeAttributionMetadata(stack, 'test', 'some/path');
     const attribution: AttributionMetadata = JSON.parse(
-      stack.templateOptions.description || ''
+      stack.templateOptions.description || '',
     );
     assert.deepStrictEqual(attribution.metadata, {});
   });
@@ -128,10 +128,10 @@ void describe('storeAttributionMetadata', () => {
       const stack = new Stack(app);
       new AttributionMetadataStorage(
         osMock as never,
-        packageJsonReader
+        packageJsonReader,
       ).storeAttributionMetadata(stack, 'test', 'some/path');
       const metadata: AttributionMetadata = JSON.parse(
-        stack.templateOptions.description || ''
+        stack.templateOptions.description || '',
       );
       assert.equal(metadata.createdOn, expectedMetadataPlatform);
     });

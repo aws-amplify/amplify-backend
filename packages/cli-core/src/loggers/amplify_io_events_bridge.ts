@@ -16,7 +16,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
   constructor(
     private readonly eventHandlers: {
       notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-    }
+    },
   ) {}
 
   /**
@@ -27,7 +27,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
       return Promise.resolve();
     }
     const promises: Promise<void>[] = this.eventHandlers.notify?.flatMap(
-      (handler) => handler(msg)
+      (handler) => handler(msg),
     );
     await Promise.all(promises);
   }
@@ -37,7 +37,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
    * Custom event handlers are currently not supported for this event type
    */
   async requestResponse<T, U>(
-    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
+    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>,
   ): Promise<U> {
     return Promise.resolve(msg.defaultResponse);
   }

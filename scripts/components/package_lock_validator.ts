@@ -44,15 +44,15 @@ export class PackageLockValidator {
 
   validate = async (): Promise<void> => {
     const packageLockContent = JSON.parse(
-      await fsp.readFile(this.packageLockPath, 'utf-8')
+      await fsp.readFile(this.packageLockPath, 'utf-8'),
     );
     const validationResults = this.walkTree(packageLockContent, '$root');
     const violations = validationResults.filter(
-      (validationResults) => validationResults.status === 'fail'
+      (validationResults) => validationResults.status === 'fail',
     );
     if (violations.length > 0) {
       throw new Error(
-        violations.map((violation) => violation.failureMessage).join(EOL)
+        violations.map((violation) => violation.failureMessage).join(EOL),
       );
     }
   };
@@ -63,7 +63,7 @@ export class PackageLockValidator {
    */
   private walkTree = (
     node: Record<string, unknown>,
-    keyPrefix: string
+    keyPrefix: string,
   ): Array<ValidationResult> => {
     const validationResults: Array<ValidationResult> = [];
     for (const [key, value] of Object.entries(node)) {
@@ -74,7 +74,7 @@ export class PackageLockValidator {
       }
       if (typeof value === 'object') {
         this.walkTree(value as Record<string, unknown>, jsonPath).forEach(
-          (validationResult) => validationResults.push(validationResult)
+          (validationResult) => validationResults.push(validationResult),
         );
       }
     }

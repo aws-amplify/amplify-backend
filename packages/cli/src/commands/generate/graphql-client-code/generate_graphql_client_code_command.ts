@@ -77,7 +77,7 @@ export class GenerateGraphqlClientCodeCommand
    */
   constructor(
     private readonly generateApiCodeAdapter: GenerateApiCodeAdapter,
-    private readonly backendIdentifierResolver: BackendIdentifierResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver,
   ) {
     this.command = 'graphql-client-code';
     this.describe = 'Generates graphql API code';
@@ -87,11 +87,11 @@ export class GenerateGraphqlClientCodeCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
+    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier =
       await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+        args,
       );
     const out = this.getOutDir(args);
     const format = args.format ?? GenerateApiCodeFormat.GRAPHQL_CODEGEN;
@@ -226,7 +226,7 @@ export class GenerateGraphqlClientCodeCommand
    * @returns the codegen options config
    */
   private getGraphqlCodegenFormatParams = (
-    args: GenerateGraphqlClientCodeCommandOptions
+    args: GenerateGraphqlClientCodeCommandOptions,
   ): GenerateGraphqlCodegenOptions => {
     const statementTarget: GenerateApiCodeStatementTarget =
       args['statement-target'] ?? GenerateApiCodeStatementTarget.TYPESCRIPT;
@@ -255,7 +255,7 @@ export class GenerateGraphqlClientCodeCommand
    * @returns the modelgen options config
    */
   private getModelgenFormatParams = (
-    args: GenerateGraphqlClientCodeCommandOptions
+    args: GenerateGraphqlClientCodeCommandOptions,
   ): GenerateModelsOptions => {
     const modelTarget: GenerateApiCodeModelTarget =
       args['model-target'] ?? GenerateApiCodeModelTarget.TYPESCRIPT;

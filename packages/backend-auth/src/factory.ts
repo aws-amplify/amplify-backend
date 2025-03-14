@@ -102,7 +102,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   constructor(
     private readonly props: AmplifyAuthProps,
     // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-    private readonly importStack = new Error().stack
+    private readonly importStack = new Error().stack,
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
@@ -118,14 +118,14 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    * Get a singleton instance of AmplifyAuth
    */
   getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
   ): BackendAuth => {
     const { constructContainer, importPathVerifier, resourceNameValidator } =
       getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'auth', 'resource'),
-      'Amplify Auth must be defined in amplify/auth/resource.ts'
+      'Amplify Auth must be defined in amplify/auth/resource.ts',
     );
     if (this.props.name) {
       resourceNameValidator?.validate(this.props.name);
@@ -145,7 +145,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly authAccessBuilder = _authAccessBuilder,
-    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
+    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory(),
   ) {
     this.name = props.name ?? 'amplifyAuth';
   }
@@ -160,11 +160,11 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(
         this.props.loginWith,
-        backendSecretResolver
+        backendSecretResolver,
       ),
       senders: translateToAuthConstructSenders(
         this.props.senders,
-        this.getInstanceProps
+        this.getInstanceProps,
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
@@ -183,7 +183,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           message: 'Failed to instantiate auth construct',
           resolution: 'See the underlying error message for more details.',
         },
-        error as Error
+        error as Error,
       );
     }
 
@@ -193,9 +193,9 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(
           UserPoolOperation.of(triggerEvent),
-          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
+          handlerFactory.getInstance(this.getInstanceProps).resources.lambda,
         );
-      }
+      },
     );
 
     const authConstructMixin: BackendAuth = {
@@ -205,7 +205,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
        * @param roleIdentifier Either the auth or unauth role name or the name of a UserPool group
        */
       getResourceAccessAcceptor: (
-        roleIdentifier: AuthRoleName | string
+        roleIdentifier: AuthRoleName | string,
       ): ResourceAccessAcceptor => ({
         identifier: `${roleIdentifier}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
@@ -241,7 +241,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       accessDefinition,
       this.getInstanceProps,
       ssmEnvironmentEntries,
-      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool)
+      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool),
     );
 
     authPolicyArbiter.arbitratePolicies();
@@ -261,7 +261,7 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
  * Provide the settings that will be used for authentication.
  */
 export const defineAuth = (
-  props: AmplifyAuthProps
+  props: AmplifyAuthProps,
 ): ConstructFactory<BackendAuth> =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new AmplifyAuthFactory(props, new Error().stack);

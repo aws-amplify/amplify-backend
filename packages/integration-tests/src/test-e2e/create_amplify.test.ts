@@ -57,7 +57,7 @@ void describe(
         let tempDir: string;
         beforeEach(async () => {
           tempDir = await fs.mkdtemp(
-            path.join(os.tmpdir(), 'test-create-amplify')
+            path.join(os.tmpdir(), 'test-create-amplify'),
           );
         });
 
@@ -77,8 +77,8 @@ void describe(
                   type: initialState,
                 },
                 null,
-                2
-              )
+                2,
+              ),
             );
           }
 
@@ -89,7 +89,7 @@ void describe(
               {
                 cwd: tempDir,
                 stdio: 'inherit',
-              }
+              },
             );
           }, RetryPredicates.createAmplifyRetryPredicate);
 
@@ -105,12 +105,12 @@ void describe(
             {
               cwd: tempDir,
               stdio: 'inherit',
-            }
+            },
           );
 
           const packageJsonPath = path.resolve(tempDir, 'package.json');
           const packageJsonObject = JSON.parse(
-            await fs.readFile(packageJsonPath, 'utf-8')
+            await fs.readFile(packageJsonPath, 'utf-8'),
           );
 
           assert.deepStrictEqual(
@@ -124,21 +124,21 @@ void describe(
               'esbuild',
               'tsx',
               'typescript',
-            ]
+            ],
           );
 
           assert.strictEqual(
             packageJsonObject.devDependencies['aws-cdk'],
-            baselineCdkCliVersion
+            baselineCdkCliVersion,
           );
           assert.strictEqual(
             packageJsonObject.devDependencies['aws-cdk-lib'],
-            baselineCdkLibVersion
+            baselineCdkLibVersion,
           );
 
           assert.deepStrictEqual(
             Object.keys(packageJsonObject.dependencies).sort(),
-            ['aws-amplify']
+            ['aws-amplify'],
           );
 
           const gitIgnorePath = path.resolve(tempDir, '.gitignore');
@@ -165,7 +165,7 @@ void describe(
           assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
           assert.equal(
             tsConfigObject.compilerOptions.moduleResolution,
-            'bundler'
+            'bundler',
           );
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
           assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
@@ -190,7 +190,7 @@ void describe(
 
           assert.deepStrictEqual(
             files.sort(),
-            expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+            expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix)),
           );
 
           // assert that project compiles successfully
@@ -207,7 +207,7 @@ void describe(
             {
               cwd: tempDir,
               stdio: 'inherit',
-            }
+            },
           );
 
           // assert that project synthesizes successfully
@@ -229,7 +229,7 @@ void describe(
             {
               cwd: tempDir,
               stdio: 'inherit',
-            }
+            },
           );
         });
       });
@@ -239,7 +239,7 @@ void describe(
       let tempDir: string;
       beforeEach(async () => {
         tempDir = await fs.mkdtemp(
-          path.join(os.tmpdir(), 'test-create-amplify')
+          path.join(os.tmpdir(), 'test-create-amplify'),
         );
       });
 
@@ -261,10 +261,10 @@ void describe(
           result.stdout
             .toLocaleString()
             .includes(
-              'If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory'
-            )
+              'If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory',
+            ),
         );
       });
     });
-  }
+  },
 );

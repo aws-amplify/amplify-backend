@@ -49,7 +49,7 @@ const subscribeMock = mock.fn<
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG)
+  new Printer(LogLevel.DEBUG),
 );
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -64,7 +64,7 @@ const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
   mockIoHost,
-  mockProfileResolver
+  mockProfileResolver,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 
@@ -84,7 +84,7 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
       name: 'B',
     },
     newlyUpdatedSecretItem,
-  ])
+  ]),
 );
 const printer = {
   log: mock.fn(),
@@ -95,14 +95,14 @@ const printer = {
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
   secretClient,
-  printer as unknown as Printer
+  printer as unknown as Printer,
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
-  Promise.resolve()
+  Promise.resolve(),
 );
 const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
-  Promise.resolve()
+  Promise.resolve(),
 );
 const region = 'test-region';
 const ssmClientMock = new SSMClient({ region });
@@ -112,7 +112,7 @@ const ssmClientSendMock = mock.fn(() =>
       Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
       Value: '18',
     },
-  })
+  }),
 );
 
 mock.method(ssmClientMock, 'send', ssmClientSendMock);
@@ -152,7 +152,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     mock.method(
       fs,
       'existsSync',
-      (p: string) => path.basename(p) !== '.gitignore'
+      (p: string) => path.basename(p) !== '.gitignore',
     );
     sandboxInstance = new FileWatchingSandbox(
       async () => testSandboxBackendId,
@@ -161,7 +161,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       printer as unknown as Printer,
       openMock as never,
-      subscribeMock as never
+      subscribeMock as never,
     );
 
     ssmClientSendMock.mock.resetCalls();
@@ -199,16 +199,16 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
-      getBootstrapUrl(region)
+      getBootstrapUrl(region),
     );
     assert.strictEqual(printer.log.mock.callCount(), 1);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
       `The region ${format.highlight(
-        region
+        region,
       )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
-        '--profile <profile-name>'
-      )} to specify a profile with the correct region.`
+        '--profile <profile-name>',
+      )} to specify a profile with the correct region.`,
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
   });
@@ -222,7 +222,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     });
 
     openMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error('open error'))
+      Promise.reject(new Error('open error')),
     );
 
     await sandboxInstance.start({
@@ -234,26 +234,26 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
-      getBootstrapUrl(region)
+      getBootstrapUrl(region),
     );
     assert.strictEqual(printer.log.mock.callCount(), 3);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
       `The region ${format.highlight(
-        region
+        region,
       )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
-        '--profile <profile-name>'
-      )} to specify a profile with the correct region.`
+        '--profile <profile-name>',
+      )} to specify a profile with the correct region.`,
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
     assert.strictEqual(
       printer.log.mock.calls[1].arguments[0],
-      'Unable to open bootstrap url, open error'
+      'Unable to open bootstrap url, open error',
     );
     assert.strictEqual(printer.log.mock.calls[1].arguments[1], LogLevel.DEBUG);
     assert.strictEqual(
       printer.log.mock.calls[2].arguments[0],
-      `Open ${getBootstrapUrl(region)} in the browser.`
+      `Open ${getBootstrapUrl(region)} in the browser.`,
     );
     assert.strictEqual(printer.log.mock.calls[2].arguments[1], undefined);
   });
@@ -279,8 +279,8 @@ void describe('Sandbox to check if region is bootstrapped', () => {
           resolution:
             'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
         },
-        error
-      )
+        error,
+      ),
     );
   });
 
@@ -291,7 +291,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
           Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
           Value: '5',
         },
-      })
+      }),
     );
 
     await sandboxInstance.start({
@@ -303,7 +303,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
-      getBootstrapUrl(region)
+      getBootstrapUrl(region),
     );
   });
 
@@ -330,7 +330,7 @@ void describe('Sandbox using local project name resolver', () => {
     mock.method(
       fs,
       'existsSync',
-      (p: string) => path.basename(p) !== '.gitignore'
+      (p: string) => path.basename(p) !== '.gitignore',
     );
   });
 
@@ -359,19 +359,38 @@ void describe('Sandbox using local project name resolver', () => {
           functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       undefined,
-      false
+      false,
     ));
-    assert.strictEqual(printer.print.mock.callCount(), 4);
+    assert.strictEqual(printer.print.mock.callCount(), 5);
 
     assert.strictEqual(
       printer.print.mock.calls[1].arguments[0],
-      format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
+      format.indent(`${format.bold('Identifier:')} \ttestSandboxName`),
     );
     assert.strictEqual(
-      printer.print.mock.calls[3].arguments[0],
+      printer.print.mock.calls[4].arguments[0],
       `${format.indent(
-        format.dim('\nTo specify a different sandbox identifier, use ')
-      )}${format.bold('--identifier')}`
+        format.dim('\nTo specify a different sandbox identifier, use '),
+      )}${format.bold('--identifier')}`,
+    );
+  });
+
+  void it('correctly displays the region at the startup', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      undefined,
+      false,
+    ));
+    assert.strictEqual(printer.print.mock.callCount(), 5);
+
+    assert.strictEqual(
+      printer.print.mock.calls[3].arguments[0],
+      format.indent(`${format.bold('Region:')} \ttest-region`),
     );
   });
 
@@ -388,7 +407,7 @@ void describe('Sandbox using local project name resolver', () => {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
       },
-      false
+      false,
     ));
 
     // BackendDeployer should be called once
@@ -420,7 +439,7 @@ void describe('Sandbox using local project name resolver', () => {
         dir: testDir,
         exclude: ['exclude1', 'exclude2'],
       },
-      false
+      false,
     ));
 
     // BackendDeployer should be called once
@@ -448,7 +467,7 @@ void describe('Sandbox using local project name resolver', () => {
       {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
-      }
+      },
     ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -701,7 +720,7 @@ void describe('Sandbox using local project name resolver', () => {
       backendDeployer,
       'deploy',
       () => Promise.reject(new Error('random BackendDeployer error')),
-      { times: 1 }
+      { times: 1 },
     );
 
     // This test validates that the first file change didn't crash the sandbox process and the second
@@ -743,13 +762,13 @@ void describe('Sandbox using local project name resolver', () => {
           new AmplifyUserError('CFNUpdateNotSupportedError', {
             message: 'some error message',
             resolution: 'test resolution',
-          })
+          }),
         ),
-      { times: 1 } //mock implementation once
+      { times: 1 }, //mock implementation once
     );
     // User said yes to reset
     const promptMock = contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
+      Promise.resolve(true),
     );
 
     // Execute a change that fails with UpdateNotSupported
@@ -762,7 +781,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(promptMock.mock.callCount(), 1);
     assert.strictEqual(
       promptMock.mock.calls[0].arguments[0]?.message,
-      'Would you like to recreate your sandbox (deleting all user data)?'
+      'Would you like to recreate your sandbox (deleting all user data)?',
     );
 
     // reset must have been called, first delete and then start
@@ -788,13 +807,13 @@ void describe('Sandbox using local project name resolver', () => {
           new AmplifyUserError('CFNUpdateNotSupportedError', {
             message: 'some error message',
             resolution: 'test resolution',
-          })
+          }),
         ),
-      { times: 1 } //mock implementation once
+      { times: 1 }, //mock implementation once
     );
     // User said no to reset
     const promptMock = contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(false)
+      Promise.resolve(false),
     );
 
     // Execute a change that fails with UpdateNotSupported
@@ -811,7 +830,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(promptMock.mock.callCount(), 1);
     assert.strictEqual(
       promptMock.mock.calls[0].arguments[0]?.message,
-      'Would you like to recreate your sandbox (deleting all user data)?'
+      'Would you like to recreate your sandbox (deleting all user data)?',
     );
 
     // reset must not have been called, i.e. delete shouldn't be called
@@ -833,12 +852,12 @@ void describe('Sandbox using local project name resolver', () => {
       {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
-      }
+      },
     ));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'destroy',
-      () => Promise.reject(new Error('random BackendDeployer error'))
+      () => Promise.reject(new Error('random BackendDeployer error')),
     );
 
     await assert.rejects(() => sandboxInstance.delete({}), {
@@ -857,7 +876,7 @@ void describe('Sandbox using local project name resolver', () => {
         functionsLogStreamer:
           functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
-      { identifier: 'customSandboxName' }
+      { identifier: 'customSandboxName' },
     ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -890,7 +909,7 @@ void describe('Sandbox using local project name resolver', () => {
         functionsLogStreamer:
           functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
-      { identifier: 'customSandboxName' }
+      { identifier: 'customSandboxName' },
     ));
     await sandboxInstance.delete({ identifier: 'customSandboxName' });
 
@@ -930,7 +949,7 @@ void describe('Sandbox using local project name resolver', () => {
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
-      }
+      },
     ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -977,7 +996,7 @@ void describe('Sandbox using local project name resolver', () => {
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
-      }
+      },
     ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -1043,7 +1062,7 @@ void describe('Sandbox using local project name resolver', () => {
         functionsLogStreamer:
           functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
-      { watchForChanges: false }
+      { watchForChanges: false },
     );
 
     assert.strictEqual(subscribeMock.mock.callCount(), 0);
@@ -1058,21 +1077,21 @@ void describe('Sandbox using local project name resolver', () => {
           functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {}, // not enabling lambda function log watcher
-      false
+      false,
     ));
 
     // Lambda function log streamer is expected to turn itself off if enabled
     assert.strictEqual(
       functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      1
+      1,
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      1
+      1,
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
-      undefined
+      undefined,
     );
   });
 
@@ -1091,16 +1110,16 @@ void describe('Sandbox using local project name resolver', () => {
           logsOutFile: 'testFileName',
         }, // enabling lambda function log watcher
       },
-      false
+      false,
     ));
 
     assert.strictEqual(
       functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      1 // We deactivate before making any deployment, even the first one.
+      1, // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      1
+      1,
     );
     assert.deepStrictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[0],
@@ -1108,7 +1127,7 @@ void describe('Sandbox using local project name resolver', () => {
         namespace: 'testSandboxId',
         name: 'testSandboxName',
         type: 'sandbox',
-      }
+      },
     );
     assert.deepStrictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
@@ -1116,7 +1135,7 @@ void describe('Sandbox using local project name resolver', () => {
         enabled: true,
         logsFilters: ['func1', 'func2'],
         logsOutFile: 'testFileName',
-      }
+      },
     );
   });
 
@@ -1134,17 +1153,17 @@ void describe('Sandbox using local project name resolver', () => {
           logsFilters: ['func1', 'func2'],
           logsOutFile: 'testFileName',
         }, // enabling lambda function log watcher
-      }
+      },
     ));
 
     // Initial deployment
     assert.strictEqual(
       functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      1 // We deactivate before making any deployment, even the first one.
+      1, // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      1
+      1,
     );
 
     // Make another deployment
@@ -1154,11 +1173,11 @@ void describe('Sandbox using local project name resolver', () => {
 
     assert.strictEqual(
       functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      2 // We deactivated again before starting this second deployment.
+      2, // We deactivated again before starting this second deployment.
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      2 // We resume watching logs after the second deployment is finished.
+      2, // We resume watching logs after the second deployment is finished.
     );
   });
 });
@@ -1173,7 +1192,7 @@ void describe('Sandbox using local project name resolver', () => {
 const setupAndStartSandbox = async (
   testData: SandboxTestData,
   sandboxOptions: SandboxOptions = {},
-  resetMocksAfterStart = true
+  resetMocksAfterStart = true,
 ) => {
   const sandboxInstance = new FileWatchingSandbox(
     async (customName) => ({
@@ -1186,7 +1205,7 @@ const setupAndStartSandbox = async (
     testData.functionsLogStreamer,
     printer as unknown as Printer,
     testData.open ?? _open,
-    subscribeMock as never
+    subscribeMock as never,
   );
 
   await sandboxInstance.start(sandboxOptions);
@@ -1208,7 +1227,7 @@ const setupAndStartSandbox = async (
       sandboxInstance,
       fileChangeEventCallback: () => {
         throw new Error(
-          'When not watching for changes, file change event callback is not available'
+          'When not watching for changes, file change event callback is not available',
         );
       },
     };
@@ -1225,7 +1244,7 @@ const setupAndStartSandbox = async (
     fileChangeEventCallback = subscribeMock.mock.calls[0].arguments[1];
   } else {
     throw new Error(
-      'fileChangeEventCallback was not available after starting sandbox'
+      'fileChangeEventCallback was not available after starting sandbox',
     );
   }
 

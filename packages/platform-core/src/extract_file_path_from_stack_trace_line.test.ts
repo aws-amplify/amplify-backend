@@ -34,7 +34,7 @@ void describe('extractFilePathFromStackTraceLine regex', () => {
       const result = new FilePathExtractor(line).extract();
       assert.equal(
         result,
-        path.resolve(fileURLToPath(someFileUrl), 'fileName.ts')
+        path.resolve(fileURLToPath(someFileUrl), 'fileName.ts'),
       );
     });
   });
