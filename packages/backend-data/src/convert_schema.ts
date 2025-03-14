@@ -24,6 +24,7 @@ import type {
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
 import { ObjectTypeDefinitionNode, parse, print } from 'graphql';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Determine if the input schema is a derived typed schema object (data-schema), and perform type narrowing.
@@ -332,7 +333,10 @@ const extractImportedModels = (
           (definitionNode) => definitionNode.name.value === modelName,
         )
       ) {
-        throw new Error(`Imported model not found in schema: ${modelName}`);
+        throw new AmplifyUserError('DefineDataConfigurationError', {
+          message: `Imported model not found in schema: ${modelName}`,
+          resolution: `Add ${modelName} to the schema.`,
+        });
       }
     });
 
