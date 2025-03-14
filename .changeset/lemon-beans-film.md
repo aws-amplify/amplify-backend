@@ -21,6 +21,8 @@
 '@aws-amplify/platform-core': minor
 '@aws-amplify/backend-secret': minor
 '@aws-amplify/ai-constructs': minor
+'@aws-amplify/backend-output-schemas': minor
+'@aws-amplify/schema-generator': minor
 ---
 
 integrate with aws cdk toolkit

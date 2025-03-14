@@ -28,7 +28,7 @@
     "@aws-sdk/client-sqs": "^3.750.0",
     "@aws-sdk/client-sts": "^3.750.0",
     "@aws-sdk/credential-providers": "^3.750.0",
-    "@aws-cdk/toolkit-lib": "0.1.4",
+    "@aws-cdk/toolkit-lib": "0.1.5",
     "@smithy/types": "^4.1.0",
     "@smithy/shared-ini-file-loader": "^4.0.1",
     "@types/lodash.ismatch": "^4.4.9",
