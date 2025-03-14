@@ -299,19 +299,17 @@ export const splitSchemasByTableMap = (
 /**
  * Extracts the imported models from non-imported models in a single string schema.
  * @param schema String GraphQL schema
- * @param migratedAmplifyGen1DynamoDbTableMappings Table names for the models that should be extracted.
+ * @param modelNameToTableNameMapping Table names for the models that should be extracted.
  * @returns a schema split into imported models and non-imported models
  */
 const extractImportedModels = (
   schema: string,
-  migratedAmplifyGen1DynamoDbTableMappings: Record<string, string> | undefined,
+  modelNameToTableNameMapping: Record<string, string> | undefined,
 ): {
   importedSchemas: { schema: string; importedTableName: string }[];
   nonImportedSchema: string | undefined;
 } => {
-  const importedModels = Object.keys(
-    migratedAmplifyGen1DynamoDbTableMappings ?? {},
-  );
+  const importedModels = Object.keys(modelNameToTableNameMapping ?? {});
   if (importedModels?.length) {
     const parsedSchema = parse(schema);
     const [importedDefinitionNodes, nonImportedDefinitionNodes] = partition(
@@ -342,12 +340,14 @@ const extractImportedModels = (
 
     const importedSchemas = importedObjectTypeDefinitionNodes.map(
       (definitionNode) => {
-        const importedTableName = (migratedAmplifyGen1DynamoDbTableMappings ??
-          {})[definitionNode.name.value];
+        const importedTableName = (modelNameToTableNameMapping ?? {})[
+          definitionNode.name.value
+        ];
         if (!importedTableName) {
-          throw new Error(
-            `No table found for imported model ${definitionNode.name.value}.`,
-          );
+          throw new AmplifyUserError('DefineDataConfigurationError', {
+            message: `No table found for imported model ${definitionNode.name.value}.`,
+            resolution: `Add a table name for ${definitionNode.name.value} in the modelNameToTableNameMapping.`,
+          });
         }
         return {
           schema: print({
