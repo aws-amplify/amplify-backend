@@ -4,19 +4,16 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { Dependency } from '@aws-amplify/plugin-types';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
-import fsp from 'fs/promises';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { z } from 'zod';
+import z from 'zod';
 
 declare namespace __export__cdk {
     export {
@@ -136,7 +133,7 @@ export class FilePathExtractor {
 }
 
 // @public (undocumented)
-export type LocalConfigurationFileName = 'usage_data_preferences.json' | 'notices.json';
+export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 class LogLevelConverter {
@@ -223,6 +220,21 @@ export enum TagName {
     FRIENDLY_NAME = "amplify:friendly-name"
 }
 
+// @public (undocumented)
+export type TypedConfigurationFile<T> = {
+    read: () => Promise<T>;
+    write: (data: T) => Promise<void>;
+    delete: () => Promise<void>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "TypedConfigurationFileFactory" needs to be exported by the entry point index.internal.d.ts
+//
+// @public (undocumented)
+export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
+
+// @public (undocumented)
+export type TypedConfigurationFileName = 'notices_manifest_cache.json' | 'notices_acknowledgments.json' | 'notices_printing_tracker.json';
+
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
@@ -235,17 +247,6 @@ export type UsageDataEmitter = {
 // @public
 export class UsageDataEmitterFactory {
     getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
-}
-
-// @public
-export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny = z.ZodTypeAny> {
-    constructor(schema: T, fileName: string, _fsp?: typeof fsp);
-    // (undocumented)
-    read: () => Promise<z.infer<T>>;
-    // (undocumented)
-    tryRead: () => Promise<z.infer<T> | undefined>;
-    // (undocumented)
-    write: (data: z.infer<T>) => Promise<void>;
 }
 
 // (No @packageDocumentation comment for this package)
