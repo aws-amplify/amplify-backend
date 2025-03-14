@@ -30,6 +30,7 @@ import {
 import { tsImport } from 'tsx/esm/api';
 import { CloudAssembly } from 'aws-cdk-lib/cx-api';
 import { pathToFileURL } from 'url';
+import { AssetStaging } from 'aws-cdk-lib/core';
 
 /**
  * Invokes CDK command via execa
@@ -55,6 +56,8 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy API
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
+    AssetStaging.clearAssetHashCache(); // Hack ?? Without this
+
     const toolkit = this.getCdkToolkit(deployProps?.profile);
     const cx = await this.getCdkCloudAssembly(
       backendId,

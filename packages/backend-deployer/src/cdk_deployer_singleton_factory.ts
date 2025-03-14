@@ -15,6 +15,7 @@ export type DeployProps = {
   validateAppSources?: boolean;
   /**
    * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
    */
   profile?: string;
 };
@@ -22,6 +23,7 @@ export type DeployProps = {
 export type DestroyProps = {
   /**
    * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
    */
   profile?: string;
 };

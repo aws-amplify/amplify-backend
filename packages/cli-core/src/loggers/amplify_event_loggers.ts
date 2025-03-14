@@ -78,7 +78,7 @@ export class AmplifyEventLogger {
         )}] ${format.note(
           msg.time.toLocaleTimeString(),
         )} ${msg.message.trim()} ${
-          msg.data ? JSON.stringify(msg.data, null, 2) : ''
+          msg.data ? this.safeJsonStringifyForDebug(msg.data) : ''
         }`,
         LogLevel.DEBUG,
       );
@@ -276,5 +276,13 @@ export class AmplifyEventLogger {
         new AmplifyIOEventsBridgeSingletonFactory(printer).getInstance(),
       ),
     });
+  };
+
+  private safeJsonStringifyForDebug = (data: unknown) => {
+    try {
+      return JSON.stringify(data, null, 2);
+    } catch {
+      return 'Failed to deserialize data';
+    }
   };
 }
