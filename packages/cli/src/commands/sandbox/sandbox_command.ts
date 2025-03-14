@@ -221,6 +221,13 @@ export class SandboxCommand
             'Execute a single sandbox deployment without watching for future file changes',
           boolean: true,
           global: false,
+          conflicts: [
+            'exclude',
+            'dir-to-watch',
+            'stream-function-logs',
+            'logs-filter',
+            'logs-out-file',
+          ],
         })
         .option('stream-function-logs', {
           describe:
@@ -264,13 +271,6 @@ export class SandboxCommand
           }
           return true;
         })
-        .conflicts('once', [
-          'exclude',
-          'dir-to-watch',
-          'stream-function-logs',
-          'logs-filter',
-          'logs-out-file',
-        ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };
