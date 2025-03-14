@@ -173,6 +173,7 @@ module.exports = {
     'jsdoc/require-param': 'off',
     'jsdoc/require-yields': 'off',
     'jsdoc/require-returns': 'off',
+    'jsdoc/check-tag-names': ['error', { definedTags: ['experimental'] }],
     'spellcheck/spell-checker': [
       'warn',
       {

@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory, defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyFunction,
   AuthResources,
@@ -44,6 +44,7 @@ import { CfnGraphQLApi, FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const CUSTOM_DDB_CFN_TYPE = 'Custom::AmplifyDynamoDBTable';
+const CUSTOM_IMPORTED_DDB_CFN_TYPE = 'Custom::ImportedAmplifyDynamoDBTable';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -55,6 +56,7 @@ const testSchema = /* GraphQL */ `
 
 const createStackAndSetContext = (settings: {
   isSandboxMode: boolean;
+  amplifyEnvironmentName?: string;
 }): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
@@ -62,6 +64,10 @@ const createStackAndSetContext = (settings: {
   app.node.setContext(
     'amplify-backend-type',
     settings.isSandboxMode ? 'sandbox' : 'branch',
+  );
+  app.node.setContext(
+    'amplifyEnvironmentName',
+    settings.amplifyEnvironmentName,
   );
   const stack = new Stack(app);
   return stack;
@@ -112,9 +118,11 @@ const createConstructContainerWithUserPoolAuthRegistered = (
 
 const createInstancePropsBySetupCDKApp = (settings: {
   isSandboxMode: boolean;
+  amplifyEnvironmentName?: string;
 }): ConstructFactoryGetInstanceProps => {
   const stack: Stack = createStackAndSetContext({
     isSandboxMode: settings.isSandboxMode,
+    amplifyEnvironmentName: settings.amplifyEnvironmentName,
   });
   const constructContainer: ConstructContainer =
     createConstructContainerWithUserPoolAuthRegistered(stack);
@@ -939,6 +947,254 @@ void describe('Logging Options', () => {
           0,
         );
       }
+    });
+  });
+});
+
+void describe('Table Import', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
+
+  void it('split imported models from non-imported models', () => {
+    const schema = /* GraphQL */ `
+      type Blog @model {
+        title: String
+        content: String
+        authors: [String]
+      }
+
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const blogStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['Blog']),
+    );
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+    blogStack.hasResource(CUSTOM_DDB_CFN_TYPE, {});
+  });
+
+  void it('allows only imported models', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+  });
+
+  void it('fails when imported model is missing from the schema', () => {
+    const schema = /* GraphQL */ `
+      type Blog @model {
+        title: String
+        content: String
+        authors: [String]
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
+      message: 'Imported model not found in schema: ImportedModel',
+    });
+  });
+
+  void it('ignores other branches', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+        {
+          branchName: 'prod',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-prod',
+          },
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      tableName: Match.not('ImportedModel-1234-prod'),
+    });
+  });
+
+  void it('uses sandbox key for sandbox mode', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+        {
+          branchName: 'sandbox',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-sandbox',
+          },
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: true,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-sandbox',
+    });
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      tableName: Match.not('ImportedModel-1234-dev'),
+    });
+  });
+
+  void it('ignores undefined branches', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
+        },
+        {
+          branchName: 'prod',
+          modelNameToTableNameMapping: undefined,
+        },
+      ],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel']),
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+  });
+
+  void it('does not allow duplicate branch names', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMappings: [
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev1',
+          },
+        },
+        {
+          branchName: 'testEnvName',
+          modelNameToTableNameMapping: {
+            ImportedModel: 'ImportedModel-1234-dev2',
+          },
+        },
+      ],
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
+      message:
+        'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMappings',
     });
   });
 });
