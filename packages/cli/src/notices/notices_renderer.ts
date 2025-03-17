@@ -1,7 +1,7 @@
 import { NoticesController } from './notices_controller.js';
 import { NoticesPrinter } from './notices_printer.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { printer } from '@aws-amplify/cli-core';
+import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { hideBin } from 'yargs/helpers';
 
 export type NoticesRendererParams = {
@@ -33,14 +33,24 @@ export class NoticesRenderer {
     if (command?.startsWith('notices')) {
       return;
     }
-    const notices = await this.noticesController.getApplicableNotices({
-      includeAcknowledged: false,
-      ...params,
-    });
-    if (notices.length > 0) {
-      this._printer.printNewLine();
-      this.noticesPrinter.print(notices);
-      await this.noticesController.recordPrintingTimes(notices);
+    try {
+      const notices = await this.noticesController.getApplicableNotices({
+        includeAcknowledged: false,
+        ...params,
+      });
+      if (notices.length > 0) {
+        this._printer.printNewLine();
+        this.noticesPrinter.print(notices);
+        await this.noticesController.recordPrintingTimes(notices);
+      }
+    } catch (e) {
+      printer.log(
+        `Unable to render notices on event=${params.event}`,
+        LogLevel.DEBUG,
+      );
+      if (e instanceof Error) {
+        printer.log(e.message, LogLevel.DEBUG);
+      }
     }
   };
 }

@@ -7,7 +7,7 @@ import {
   rootTestDir,
 } from '../setup_test_directory.js';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
-import { execa } from 'execa';
+import { ExecaError, execa } from 'execa';
 import { typedConfigurationFileFactory } from '@aws-amplify/platform-core';
 import { z } from 'zod';
 
@@ -142,7 +142,7 @@ void describe('Notices', { concurrency: false }, () => {
       };
     });
 
-    void it('does not crash commands', async () => {
+    void it('does not crash non-notices commands', async () => {
       // Executes successfully and does not print notices.
       const stdout = (
         await execa('npx', ['ampx', 'info'], execaOptionWithBadEndpoint)
@@ -150,6 +150,20 @@ void describe('Notices', { concurrency: false }, () => {
       assert.ok(
         !stdout.includes('This is a test notice'),
         `${stdout} must not include 'This is a test notice'`,
+      );
+    });
+
+    void it('prints error when listing notices', async () => {
+      await assert.rejects(
+        () =>
+          execa('npx', ['ampx', 'notices', 'list'], execaOptionWithBadEndpoint),
+        (error: ExecaError) => {
+          assert.ok(
+            typeof error.stdout === 'string' &&
+              error.stdout.includes('NoticeManifestFetchFault'),
+          );
+          return true;
+        },
       );
     });
   });

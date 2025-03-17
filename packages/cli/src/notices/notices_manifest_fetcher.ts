@@ -6,6 +6,7 @@ import {
   printer,
 } from '@aws-amplify/cli-core';
 import { fileCacheInstance } from './notices_files.js';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 /**
  * Notices manifest fetcher.
@@ -34,7 +35,7 @@ export class NoticesManifestFetcher {
       await this.tryLoadManifestFromDisk();
     }
     if (this.isStale()) {
-      await this.tryLoadManifestFromWebsiteAndCache();
+      await this.loadManifestFromWebsiteAndCache();
     }
     return this.cachedManifest;
   };
@@ -46,30 +47,24 @@ export class NoticesManifestFetcher {
     return Date.now() - this.refreshedAt > this.cacheTTLMs;
   };
 
-  private tryLoadManifestFromWebsiteAndCache = async (): Promise<void> => {
-    try {
-      const response = await fetch(this.noticesManifestUrl);
-      const noticesManifest = noticesManifestSchema.parse(
-        await response.json(),
-      );
-      await this.noticeManifestValidator.validate(noticesManifest);
-
-      this.cachedManifest = noticesManifest;
-      this.refreshedAt = Date.now();
-
-      await this.fileCache.write({
-        noticesManifest: noticesManifest,
-        refreshedAt: this.refreshedAt,
+  private loadManifestFromWebsiteAndCache = async (): Promise<void> => {
+    const response = await fetch(this.noticesManifestUrl);
+    if (!response.ok) {
+      throw new AmplifyFault('NoticeManifestFetchFault', {
+        message: `Attempt to fetch notices manifest failed, url=${this.noticesManifestUrl}, statusCode=${response.status}`,
       });
-    } catch (e) {
-      printer.log(
-        `Unable to fetch notices manifest from ${this.noticesManifestUrl}`,
-        LogLevel.DEBUG,
-      );
-      if (e instanceof Error) {
-        printer.log(e.message, LogLevel.DEBUG);
-      }
     }
+
+    const noticesManifest = noticesManifestSchema.parse(await response.json());
+    await this.noticeManifestValidator.validate(noticesManifest);
+
+    this.cachedManifest = noticesManifest;
+    this.refreshedAt = Date.now();
+
+    await this.fileCache.write({
+      noticesManifest: noticesManifest,
+      refreshedAt: this.refreshedAt,
+    });
   };
 
   private tryLoadManifestFromDisk = async (): Promise<void> => {
