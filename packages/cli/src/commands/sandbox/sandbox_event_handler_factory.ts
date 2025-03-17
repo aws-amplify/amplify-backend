@@ -1,6 +1,10 @@
 import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { AmplifyError, TelemetryDataEmitter, UsageDataEmitter } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  TelemetryDataEmitter,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
 import { format, printer } from '@aws-amplify/cli-core';
 
@@ -13,7 +17,7 @@ export class SandboxEventHandlerFactory {
    */
   constructor(
     private readonly getBackendIdentifier: (
-      sandboxIdentifier?: string
+      sandboxIdentifier?: string,
     ) => Promise<BackendIdentifier>,
     private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>,
     private readonly getTelemetryDataEmitter: () => Promise<TelemetryDataEmitter>,
@@ -26,25 +30,24 @@ export class SandboxEventHandlerFactory {
     return {
       successfulDeployment: [
         async (...args: unknown[]) => {
-          const backendIdentifier = await this.getBackendIdentifier(
-            sandboxIdentifier
-          );
+          const backendIdentifier =
+            await this.getBackendIdentifier(sandboxIdentifier);
           const usageDataEmitter = await this.getUsageDataEmitter();
           const telemetryDataEmitter = await this.getTelemetryDataEmitter();
           try {
             await clientConfigLifecycleHandler.generateClientConfigFile(
-              backendIdentifier
+              backendIdentifier,
             );
             if (args && args[0]) {
               const deployResult = args[0] as DeployResult;
               if (deployResult && deployResult.deploymentTimes) {
                 await usageDataEmitter.emitSuccess(
                   deployResult.deploymentTimes,
-                  { command: 'Sandbox' }
+                  { command: 'Sandbox' },
                 );
                 await telemetryDataEmitter.emitSuccess(
                   deployResult.deploymentTimes,
-                  { subCommands: 'SandboxEvent'}
+                  { subCommands: 'SandboxEvent' },
                 );
               }
             }
@@ -52,8 +55,8 @@ export class SandboxEventHandlerFactory {
             // Don't crash sandbox if config cannot be generated, but print the error message
             printer.print(
               `${format.error(
-                'Amplify outputs could not be generated.'
-              )} ${format.error(error)}`
+                'Amplify outputs could not be generated.',
+              )} ${format.error(error)}`,
             );
           }
         },
@@ -75,22 +78,20 @@ export class SandboxEventHandlerFactory {
             await usageDataEmitter.emitFailure(deployError, {
               command: 'Sandbox',
             });
-            await telemetryDataEmitter.emitFailure(
-              deployError,
-              undefined,
-              { subCommands: 'SandboxEvent'}
-            );
+            await telemetryDataEmitter.emitFailure(deployError, undefined, {
+              subCommands: 'SandboxEvent',
+            });
           } else {
             await usageDataEmitter.emitFailure(
               AmplifyError.fromError(deployError),
               {
                 command: 'Sandbox',
-              }
+              },
             );
             await telemetryDataEmitter.emitFailure(
               AmplifyError.fromError(deployError),
               undefined,
-              { subCommands: 'SandboxEvent'}
+              { subCommands: 'SandboxEvent' },
             );
           }
         },

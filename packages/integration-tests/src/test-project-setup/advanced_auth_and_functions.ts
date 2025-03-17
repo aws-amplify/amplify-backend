@@ -37,21 +37,21 @@ export class AdvancedAuthAndFunctionsTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly sqsClient: SQSClient = new SQSClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
     private readonly cognitoClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -67,14 +67,14 @@ export class AdvancedAuthAndFunctionsTestProjectCreator
       this.lambdaClient,
       this.sqsClient,
       this.resourceFinder,
-      this.cognitoClient
+      this.cognitoClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
 
     return project;
@@ -90,7 +90,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     `${this.sourceProjectRootPath}/amplify`,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -105,19 +105,19 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     private readonly lambdaClient: LambdaClient,
     private readonly sqsClient: SQSClient,
     private readonly resourceFinder: DeployedResourcesFinder,
-    private readonly cognitoClient: CognitoIdentityProviderClient
+    private readonly cognitoClient: CognitoIdentityProviderClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
 
@@ -127,37 +127,37 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     const funcWithSsm = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('funcWithSsm')
+      (name) => name.includes('funcWithSsm'),
     );
 
     const funcWithAwsSdk = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('funcWithAwsSdk')
+      (name) => name.includes('funcWithAwsSdk'),
     );
 
     const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('funcWithSchedule')
+      (name) => name.includes('funcWithSchedule'),
     );
 
     const funcNoMinify = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('funcNoMinify')
+      (name) => name.includes('funcNoMinify'),
     );
     const funcCustomEmailSender =
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('funcCustomEmailSender')
+        (name) => name.includes('funcCustomEmailSender'),
       );
     const funcCustomSmsSender =
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('funcCustomSmsSender')
+        (name) => name.includes('funcCustomSmsSender'),
       );
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
@@ -182,14 +182,14 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
 
   private checkLambdaResponse = async (
     lambdaName: string,
-    expectedResponse: unknown
+    expectedResponse: unknown,
   ) => {
     // invoke the lambda
     const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: lambdaName })
+      new InvokeCommand({ FunctionName: lambdaName }),
     );
     const responsePayload = JSON.parse(
-      response.Payload?.transformToString() || ''
+      response.Payload?.transformToString() || '',
     );
 
     // check expected response
@@ -198,11 +198,11 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
 
   private checkLambdaCode = async (
     lambdaName: string,
-    expectedCode: string
+    expectedCode: string,
   ) => {
     // get the lambda code
     const response = await this.lambdaClient.send(
-      new GetFunctionCommand({ FunctionName: lambdaName })
+      new GetFunctionCommand({ FunctionName: lambdaName }),
     );
     const codeUrl = response.Code?.Location;
     assert(codeUrl !== undefined);
@@ -216,7 +216,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
   };
 
   private assertScheduleInvokesFunction = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
@@ -225,7 +225,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::SQS::Queue',
-      (name) => name.includes('testFuncQueue')
+      (name) => name.includes('testFuncQueue'),
     );
 
     // wait for schedule to invoke the function one time for it to send a message
@@ -235,7 +235,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
           QueueUrl: queue[0],
           WaitTimeSeconds: 20,
           MaxNumberOfMessages: 10,
-        })
+        }),
       );
 
       if (response.Messages) {
@@ -247,7 +247,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
             new DeleteMessageCommand({
               QueueUrl: queue[0],
               ReceiptHandle: message.ReceiptHandle,
-            })
+            }),
           );
         }
       }
@@ -255,7 +255,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
 
     if (receivedMessageCount === 0) {
       assert.fail(
-        `The scheduled function failed to invoke and send a message to the queue.`
+        `The scheduled function failed to invoke and send a message to the queue.`,
       );
     }
   };
@@ -266,23 +266,23 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     const emailSenderQueue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::SQS::Queue',
-      (name) => name.includes('customEmailSenderQueue')
+      (name) => name.includes('customEmailSenderQueue'),
     );
     const smsSenderQueue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::SQS::Queue',
-      (name) => name.includes('customSmsSenderQueue')
+      (name) => name.includes('customSmsSenderQueue'),
     );
 
     assert.strictEqual(
       emailSenderQueue.length,
       1,
-      'Custom email sender queue not found'
+      'Custom email sender queue not found',
     );
     assert.strictEqual(
       smsSenderQueue.length,
       1,
-      'Custom sms sender queue not found'
+      'Custom sms sender queue not found',
     );
 
     // Trigger an email sending operation
@@ -295,7 +295,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         new ReceiveMessageCommand({
           QueueUrl: emailSenderQueue[0],
           WaitTimeSeconds: 20,
-        })
+        }),
       );
 
       if (response.Messages && response.Messages.length > 0) {
@@ -305,7 +305,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         assert.strictEqual(
           messageBody.message,
           'Custom Sender is working',
-          'Unexpected message content'
+          'Unexpected message content',
         );
 
         // Delete the message
@@ -313,7 +313,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
           new DeleteMessageCommand({
             QueueUrl: emailSenderQueue[0],
             ReceiptHandle: response.Messages[0].ReceiptHandle!,
-          })
+          }),
         );
       }
     }
@@ -321,7 +321,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     assert.strictEqual(
       messageReceived,
       true,
-      'Custom email sender was not triggered within the timeout period'
+      'Custom email sender was not triggered within the timeout period',
     );
 
     // Trigger an sms sending operation
@@ -333,7 +333,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         new ReceiveMessageCommand({
           QueueUrl: smsSenderQueue[0],
           WaitTimeSeconds: 20,
-        })
+        }),
       );
 
       if (response.Messages && response.Messages.length > 0) {
@@ -343,7 +343,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         assert.strictEqual(
           messageBody.message,
           'Custom Sender is working',
-          'Unexpected message content'
+          'Unexpected message content',
         );
 
         // Delete the message
@@ -351,7 +351,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
           new DeleteMessageCommand({
             QueueUrl: smsSenderQueue[0],
             ReceiptHandle: response.Messages[0].ReceiptHandle!,
-          })
+          }),
         );
       }
     }
@@ -359,18 +359,18 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     assert.strictEqual(
       messageReceived,
       true,
-      'Custom sms sender was not triggered within the timeout period'
+      'Custom sms sender was not triggered within the timeout period',
     );
   };
 
   private triggerEmailAndSmsSending = async (
     backendId: BackendIdentifier,
-    userLoginType: 'email' | 'phone'
+    userLoginType: 'email' | 'phone',
   ) => {
     const userPoolId = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Cognito::UserPool',
-      () => true
+      () => true,
     );
 
     assert.strictEqual(userPoolId.length, 1, 'User pool not found');
@@ -388,7 +388,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
             ? { Name: 'email', Value: username }
             : { Name: 'phone_number', Value: phoneNumber },
         ],
-      })
+      }),
     );
     // The creation of a new user should trigger the custom email sender
   };

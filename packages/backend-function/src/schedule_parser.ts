@@ -20,7 +20,7 @@ type CronPart =
  */
 export const convertFunctionSchedulesToRuleSchedules = (
   lambda: NodejsFunction,
-  functionSchedules: FunctionSchedule | FunctionSchedule[]
+  functionSchedules: FunctionSchedule | FunctionSchedule[],
 ) => {
   const errors: string[] = [];
   const ruleSchedules: Schedule[] = [];
@@ -35,7 +35,7 @@ export const convertFunctionSchedulesToRuleSchedules = (
 
       if (value && !isPositiveWholeNumber(value)) {
         errors.push(
-          'Function schedule rate must be set with a positive whole number'
+          'Function schedule rate must be set with a positive whole number',
         );
       } else if (
         value &&
@@ -47,7 +47,7 @@ export const convertFunctionSchedulesToRuleSchedules = (
         errors.push(
           `Function schedule rate must be greater than the function timeout of ${timeout} ${
             timeout > 1 ? 'seconds' : 'second'
-          }`
+          }`,
         );
       }
     } else {
@@ -71,14 +71,14 @@ export const convertFunctionSchedulesToRuleSchedules = (
 };
 
 const isTimeInterval = (
-  schedule: FunctionSchedule
+  schedule: FunctionSchedule,
 ): schedule is TimeInterval => {
   const parts = schedule.split(' ');
 
   return (
     parts[0] === 'every' &&
     ['m', 'h', 'day', 'week', 'month', 'year'].some((a) =>
-      parts[1].endsWith(a)
+      parts[1].endsWith(a),
     ) &&
     parts.length === 2
   );
@@ -122,12 +122,12 @@ const validateCron = (cron: CronSchedule) => {
     ...dayOfMonthValidationErrors,
     ...monthValidationErrors,
     ...dayOfWeekValidationErrors,
-    ...yearValidationErrors
+    ...yearValidationErrors,
   );
 
   if (dayOfMonth !== '?' && dayOfWeek !== '?') {
     errors.push(
-      'Cron expressions cannot have both day-of-month and day-of-week defined, you must use a ? in one of the fields'
+      'Cron expressions cannot have both day-of-month and day-of-week defined, you must use a ? in one of the fields',
     );
   }
 
@@ -138,7 +138,7 @@ const validateCronPart = (
   cronPart: CronPart,
   value: string,
   min: number,
-  max: number
+  max: number,
 ) => {
   const errors: string[] = [];
 
@@ -194,7 +194,7 @@ const validateCronPart = (
     !isWholeNumberBetweenInclusive(Number(value), min, max)
   ) {
     errors.push(
-      `Cron field for ${cronPart} must be a whole number between ${min} and ${max}`
+      `Cron field for ${cronPart} must be a whole number between ${min} and ${max}`,
     );
   }
 
@@ -205,7 +205,7 @@ const validateStepValue = (
   cronPart: CronPart,
   value: string,
   min: number,
-  max: number
+  max: number,
 ) => {
   const originalBase = value.split('/')[0];
   const [base, step] = value.split('/').map(Number);
@@ -230,7 +230,7 @@ const validateRange = (
   cronPart: CronPart,
   value: string,
   min: number,
-  max: number
+  max: number,
 ) => {
   const [start, end] = value.split('-').map(Number);
 
@@ -251,7 +251,7 @@ const validateList = (
   cronPart: CronPart,
   value: string,
   min: number,
-  max: number
+  max: number,
 ) => {
   if (
     !value
@@ -267,7 +267,7 @@ const validateList = (
 const isWholeNumberBetweenInclusive = (
   test: number,
   min: number,
-  max: number
+  max: number,
 ) => min <= test && test <= max && test % 1 === 0;
 
 const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
@@ -295,7 +295,7 @@ const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
       default:
         // This should never happen with strict types
         throw new Error(
-          'Could not determine the schedule rate for the function'
+          'Could not determine the schedule rate for the function',
         );
     }
   } else {

@@ -40,7 +40,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                     (
                       node.body.body[0].declarations[0]
                         .id as TSESTree.Identifier
-                    ).name
+                    ).name,
                   );
                 }
               }
@@ -72,7 +72,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                           (
                             (prop as TSESTree.Property)
                               .value as TSESTree.Identifier
-                          ).name
+                          ).name,
                         )
                       ) {
                         return; // the error was thrown with a cause and the cause was valid
@@ -119,7 +119,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                                 curNode.argument as unknown as TSESTree.NewExpression
                               ).arguments[2] as TSESTree.ConditionalExpression
                             ).consequent as TSESTree.Identifier
-                          ).name
+                          ).name,
                         )
                       ) {
                         context.report({
@@ -148,7 +148,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                                 curNode.argument as unknown as TSESTree.NewExpression
                               ).arguments[2] as TSESTree.TSAsExpression
                             ).expression as TSESTree.Identifier
-                          ).name
+                          ).name,
                         )
                       ) {
                         context.report({
@@ -168,7 +168,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                             (
                               curNode.argument as unknown as TSESTree.NewExpression
                             ).arguments[2] as TSESTree.Identifier
-                          ).name
+                          ).name,
                         )
                       ) {
                         context.report({

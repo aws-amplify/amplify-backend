@@ -39,15 +39,14 @@ export class ConfigureProfileCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<ConfigureProfileCommandOptions>
+    args: ArgumentsCamelCase<ConfigureProfileCommandOptions>,
   ): Promise<void> => {
     const profileName = args.name;
-    const profileExists = await this.profileController.profileExists(
-      profileName
-    );
+    const profileExists =
+      await this.profileController.profileExists(profileName);
     if (profileExists) {
       printer.print(
-        `Profile '${profileName}' already exists!${EOL}${profileSetupInstruction}`
+        `Profile '${profileName}' already exists!${EOL}${profileSetupInstruction}`,
       );
       return;
     }
@@ -65,10 +64,10 @@ export class ConfigureProfileCommand
     }
 
     const accessKeyId = await AmplifyPrompter.secretValue(
-      'Enter Access Key ID:'
+      'Enter Access Key ID:',
     );
     const secretAccessKey = await AmplifyPrompter.secretValue(
-      'Enter Secret Access Key:'
+      'Enter Secret Access Key:',
     );
 
     const region = await AmplifyPrompter.input({

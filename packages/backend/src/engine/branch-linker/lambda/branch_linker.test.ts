@@ -42,7 +42,7 @@ const sampleBranch: Branch = {
 
 const amplifyClientSendMock = mock.method(amplifyClient, 'send');
 const handler = new AmplifyBranchLinkerCustomResourceEventHandler(
-  amplifyClient
+  amplifyClient,
 );
 
 type PartialCloudFormationCustomResourceEvent = Pick<
@@ -108,7 +108,7 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.deepEqual(
         amplifyClientSendMock.mock.calls[1].arguments[0].input,
-        expectedUpdateBranchInput
+        expectedUpdateBranchInput,
       );
     });
 
@@ -144,7 +144,7 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.deepEqual(
         amplifyClientSendMock.mock.calls[1].arguments[0].input,
-        expectedUpdateBranchInput
+        expectedUpdateBranchInput,
       );
     });
 
@@ -165,10 +165,10 @@ void describe('Branch Linker Lambda Handler', () => {
         (error: Error) => {
           assert.strictEqual(
             error.message,
-            'Provided stackId not_valid_id is not in ARN format'
+            'Provided stackId not_valid_id is not in ARN format',
           );
           return true;
-        }
+        },
       );
     });
   });
@@ -225,7 +225,7 @@ void describe('Branch Linker Lambda Handler', () => {
 
       assert.deepEqual(
         amplifyClientSendMock.mock.calls[1].arguments[0].input,
-        expectedUpdateBranchInput
+        expectedUpdateBranchInput,
       );
     });
   });
@@ -273,7 +273,7 @@ void describe('Branch Linker Lambda Handler', () => {
           amplifyClientSendMock.mock.calls[1].arguments[0]
             .input as unknown as UpdateBranchCommandInput
         ).stage,
-        undefined
+        undefined,
       );
     });
   });
@@ -309,10 +309,10 @@ void describe('Branch Linker Lambda Handler', () => {
         (error: Error) => {
           assert.strictEqual(
             error.message,
-            `Unable to get branch ${testBranchName} for app ${testAppId}`
+            `Unable to get branch ${testBranchName} for app ${testAppId}`,
           );
           return true;
-        }
+        },
       );
     });
   });
@@ -326,7 +326,7 @@ void describe('Branch Linker Lambda Handler', () => {
             new NotFoundException({
               $metadata: {},
               message: 'not found',
-            })
+            }),
           );
         }
         return Promise.resolve();
@@ -368,7 +368,7 @@ void describe('Branch Linker Lambda Handler', () => {
         (error: Error) => {
           assert.ok(error instanceof NotFoundException);
           return true;
-        }
+        },
       );
     });
 
@@ -389,7 +389,7 @@ void describe('Branch Linker Lambda Handler', () => {
         (error: Error) => {
           assert.ok(error instanceof NotFoundException);
           return true;
-        }
+        },
       );
     });
   });

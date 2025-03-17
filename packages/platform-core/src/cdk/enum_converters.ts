@@ -8,7 +8,7 @@ import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
  */
 export class LogRetentionConverter {
   toCDKRetentionDays = (
-    retention: LogRetention | undefined
+    retention: LogRetention | undefined,
   ): RetentionDays | undefined => {
     switch (retention) {
       case undefined:
@@ -69,7 +69,7 @@ export class LogRetentionConverter {
  */
 export class LogLevelConverter {
   toCDKLambdaApplicationLogLevel = (
-    logLevel: LogLevel | undefined
+    logLevel: LogLevel | undefined,
   ): ApplicationLogLevel | undefined => {
     switch (logLevel) {
       case undefined: {
@@ -99,7 +99,7 @@ export class LogLevelConverter {
   };
 
   toCDKAppsyncFieldLogLevel = (
-    logLevel: LogLevel | undefined
+    logLevel: LogLevel | undefined,
   ): FieldLogLevel | undefined => {
     switch (logLevel) {
       case undefined:

@@ -104,11 +104,11 @@ export class PredicatedActionBuilder {
             return;
           }
           throw new Error(
-            `Deployment time ${+deploymentTime[1]} seconds is higher than the threshold of ${seconds}`
+            `Deployment time ${+deploymentTime[1]} seconds is higher than the threshold of ${seconds}`,
           );
         } else {
           throw new Error(
-            `Could not determine the deployment time. String was ${strWithDeploymentTime}`
+            `Could not determine the deployment time. String was ${strWithDeploymentTime}`,
           );
         }
       },
@@ -164,7 +164,7 @@ export class PredicatedActionBuilder {
     const lastPredicatedAction = this.predicatedActionQueue.at(-1)!;
     if (typeof lastPredicatedAction.then === 'function') {
       throw new Error(
-        'An action is already registered to the last predicate in the queue. Update the same action.'
+        'An action is already registered to the last predicate in the queue. Update the same action.',
       );
     }
 

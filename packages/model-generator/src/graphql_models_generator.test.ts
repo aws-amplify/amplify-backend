@@ -9,10 +9,10 @@ void describe('models generator', () => {
       () => ({
         writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
-      })
+      }),
     );
     await assert.rejects(() =>
-      generator.generateModels({ target: 'typescript' })
+      generator.generateModels({ target: 'typescript' }),
     );
   });
 });

@@ -1,5 +1,27 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.20
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+
+## 1.1.19
+
+### Patch Changes
+
+- ca9d732: added/updated ValidationError mappings
+- aec5e08: Handle signature mismatch error
+- Updated dependencies [dafb530]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
 ## 1.1.18
 
 ### Patch Changes

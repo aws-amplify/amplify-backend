@@ -17,7 +17,7 @@ export class S3StringObjectFetcher {
     const { bucket, key } = this.parseS3Uri(uri);
     try {
       const getSchemaCommandResult = await this.s3Client.send(
-        new GetObjectCommand({ Bucket: bucket, Key: key })
+        new GetObjectCommand({ Bucket: bucket, Key: key }),
       );
       const schema = await getSchemaCommandResult.Body?.transformToString();
       if (!schema) {
@@ -33,7 +33,7 @@ export class S3StringObjectFetcher {
             message: `${bucket} does not exist. \n
             Try redeploying your changes again, if the error persists, create a bug report here: https://github.com/aws-amplify/amplify-backend/issues/new/choose`,
           },
-          caught
+          caught,
         );
       } else {
         throw caught;

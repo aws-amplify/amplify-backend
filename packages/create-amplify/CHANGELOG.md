@@ -1,5 +1,31 @@
 # create-amplify
 
+## 1.0.12
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+- Updated dependencies [32bcc0b]
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+  - @aws-amplify/cli-core@1.4.1
+
+## 1.0.11
+
+### Patch Changes
+
+- 80f0253: switch to using default_packages.json
+- d4e2f0e: unignore default_packages.json
+- Updated dependencies [dafb530]
+- Updated dependencies [af90a9b]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/cli-core@1.4.0
+
 ## 1.0.10
 
 ### Patch Changes

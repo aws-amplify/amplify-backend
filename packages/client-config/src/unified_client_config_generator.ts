@@ -28,7 +28,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
    */
   constructor(
     private readonly fetchOutput: () => Promise<BackendOutput>,
-    private readonly clientConfigContributors: ClientConfigContributor[]
+    private readonly clientConfigContributors: ClientConfigContributor[],
   ) {}
 
   /**
@@ -49,7 +49,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution:
                   'Re-run this command once the deployment completes.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.NO_STACK_FOUND:
             throw new AmplifyUserError(
@@ -59,7 +59,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution:
                   'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR:
             throw new AmplifyUserError(
@@ -69,7 +69,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution:
                   'Ensure the CloudFormation stack ID references a main stack created with Amplify, then re-run this command.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.NO_OUTPUTS_FOUND:
             throw new AmplifyUserError(
@@ -79,7 +79,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution: `Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists.
         If this is a new sandbox or branch deployment, wait for the deployment to be successfully finished and try again.`,
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.CREDENTIALS_ERROR:
             throw new AmplifyUserError(
@@ -90,7 +90,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution:
                   'Ensure your AWS credentials are correctly set and refreshed.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.ACCESS_DENIED:
             throw new AmplifyUserError(
@@ -101,7 +101,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 resolution:
                   'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
               },
-              error
+              error,
             );
         }
       }
@@ -112,13 +112,12 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
     const accumulator = new ObjectAccumulator<ClientConfig>({});
 
     for (const contributor of this.clientConfigContributors) {
-      const clientConfigContribution = await contributor.contribute(
-        backendOutput
-      );
+      const clientConfigContribution =
+        await contributor.contribute(backendOutput);
       try {
         // Partial to DeepPartialAmplifyGeneratedConfigs is always a safe case since it's up-casting
         accumulator.accumulate(
-          clientConfigContribution as DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+          clientConfigContribution as DeepPartialAmplifyGeneratedConfigs<ClientConfig>,
         );
       } catch (error) {
         if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {
@@ -130,7 +129,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 "Check if 'backend.addOutput' is called multiple times with overlapping inputs or" +
                 " if 'backend.addOutput' is called with values overlapping Amplify managed keys",
             },
-            error
+            error,
           );
         }
         if (error instanceof ObjectAccumulatorVersionMismatchError) {
@@ -142,7 +141,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
                 "Ensure that the version specified in 'backend.addOutput' is consistent" +
                 ' and is same as the one used for generating the client config',
             },
-            error
+            error,
           );
         }
         throw error;

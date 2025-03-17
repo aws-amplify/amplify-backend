@@ -13,3 +13,8 @@ export * from './object_accumulator.js';
 export { TagName } from './tag_name.js';
 export * from './naming_convention_conversions.js';
 export * from './telemetry-data/telemetry_data_emitter_factory.js';
+export {
+  ErrorDetails,
+  TelemetryPayload,
+  telemetryPayloadSchema,
+} from './telemetry-data/telemetry_data.js';

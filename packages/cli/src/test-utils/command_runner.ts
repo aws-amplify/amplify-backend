@@ -1,6 +1,9 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { TelemetryDataEmitter, UsageDataEmitter } from '@aws-amplify/platform-core';
+import {
+  TelemetryDataEmitter,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import { generateCommandFailureHandler } from '../error_handler.js';
 import { extractSubCommands } from '../extract_sub_commands.js';
 
@@ -42,7 +45,10 @@ export class TestCommandError extends Error {
   /**
    * Creates new test command error.
    */
-  constructor(readonly error: Error, readonly output: string) {
+  constructor(
+    readonly error: Error,
+    readonly output: string,
+  ) {
     super();
   }
 }
@@ -76,7 +82,13 @@ export class TestCommandRunner {
       // attach the failure handler
       // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
       // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
-      .fail(generateCommandFailureHandler(parser, this.usageDataEmitter, this.telemetryDataEmitter));
+      .fail(
+        generateCommandFailureHandler(
+          parser,
+          this.usageDataEmitter,
+          this.telemetryDataEmitter,
+        ),
+      );
   }
 
   /**

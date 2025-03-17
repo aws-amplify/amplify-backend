@@ -29,7 +29,7 @@ void describe('UserPoolAccessPolicyFactory', () => {
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);

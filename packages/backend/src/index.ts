@@ -2,7 +2,7 @@ import { isBrowser } from './is_browser.js';
 
 if (isBrowser()) {
   throw new Error(
-    'This package is for backend use only and should not be used in a browser environment.'
+    'This package is for backend use only and should not be used in a browser environment.',
   );
 }
 

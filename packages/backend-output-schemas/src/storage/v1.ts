@@ -16,7 +16,7 @@ const pathSchema = z.record(
     groups: z.array(storageAccessActionEnum).optional(),
     entity: z.array(storageAccessActionEnum).optional(),
     resource: z.array(storageAccessActionEnum).optional(),
-  })
+  }),
 );
 
 const bucketSchema = z.object({

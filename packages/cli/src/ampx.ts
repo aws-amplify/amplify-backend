@@ -20,7 +20,7 @@ import { extractCommandInfo } from './extract_command_info.js';
 const startTime = Date.now();
 
 const packageJson = new PackageJsonReader().read(
-  fileURLToPath(new URL('../package.json', import.meta.url))
+  fileURLToPath(new URL('../package.json', import.meta.url)),
 );
 const libraryVersion = packageJson.version;
 
@@ -37,7 +37,7 @@ const dependencies = await new PackageManagerControllerFactory()
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
-  dependencies
+  dependencies,
 );
 
 const telemetryDataEmitter =
@@ -64,7 +64,7 @@ process.on('beforeExit', async (code) => {
   const totalTime = Date.now() - startTime;
   await telemetryDataEmitter.emitAbortion(
     { totalTime, initTime },
-    extractCommandInfo(parser)
+    extractCommandInfo(parser),
   );
   process.exit(code);
 });
@@ -82,7 +82,7 @@ try {
   await usageDataEmitter.emitSuccess({}, metricDimension);
   await telemetryDataEmitter.emitSuccess(
     { totalTime, initTime },
-    extractCommandInfo(parser)
+    extractCommandInfo(parser),
   );
   telemetryEmitCount++;
 } catch (e) {
@@ -92,7 +92,7 @@ try {
       parser,
       usageDataEmitter,
       telemetryDataEmitter,
-      { totalTime, initTime }
+      { totalTime, initTime },
     );
     await errorHandler(format.error(e), e);
   }

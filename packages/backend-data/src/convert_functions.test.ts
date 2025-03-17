@@ -16,7 +16,7 @@ void describe('convertFunctionNameMapToCDK', () => {
   void it('can be invoked with empty input', () => {
     const convertedOutput = convertFunctionNameMapToCDK(
       getInstancePropsStub,
-      {}
+      {},
     );
 
     assert.equal(Object.keys(convertedOutput).length, 0);
@@ -27,7 +27,7 @@ void describe('convertFunctionNameMapToCDK', () => {
     const echoFn = new Function(stack, 'EchoFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });
@@ -44,7 +44,7 @@ void describe('convertFunctionNameMapToCDK', () => {
     const updateFn = new Function(stack, 'UpdateFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });

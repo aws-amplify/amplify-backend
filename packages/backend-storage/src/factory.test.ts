@@ -47,11 +47,11 @@ void describe('AmplifyStorageFactory', () => {
     const stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
 
     importPathVerifier = new ImportPathVerifierStub();
@@ -76,7 +76,7 @@ void describe('AmplifyStorageFactory', () => {
     const storageConstruct = storageFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(storageConstruct.resources.bucket)
+      Stack.of(storageConstruct.resources.bucket),
     );
 
     template.resourceCountIs('AWS::S3::Bucket', 1);
@@ -96,8 +96,8 @@ void describe('AmplifyStorageFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'defineStorage'
-      )
+        'defineStorage',
+      ),
     );
   });
 
@@ -105,7 +105,7 @@ void describe('AmplifyStorageFactory', () => {
     const resourceNameValidator = {
       validate: () => {
         throw new Error(
-          'Resource name contains invalid characters, found !$87++|'
+          'Resource name contains invalid characters, found !$87++|',
         );
       },
     };
@@ -119,7 +119,7 @@ void describe('AmplifyStorageFactory', () => {
         }),
       {
         message: 'Resource name contains invalid characters, found !$87++|',
-      }
+      },
     );
   });
 });
@@ -130,11 +130,11 @@ void describe('AmplifyStorageFactory', () => {
     stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
 
     importPathVerifier = new ImportPathVerifierStub();
@@ -151,11 +151,11 @@ void describe('AmplifyStorageFactory', () => {
 
   void it('verifies stack property exists and is equal to storage stack', () => {
     const storageConstruct = defineStorage({ name: 'testName' }).getInstance(
-      getInstanceProps
+      getInstanceProps,
     );
     assert.equal(
       storageConstruct.stack,
-      Stack.of(storageConstruct.resources.bucket)
+      Stack.of(storageConstruct.resources.bucket),
     );
   });
 
@@ -171,7 +171,7 @@ void describe('AmplifyStorageFactory', () => {
         message: 'More than one default storage set in the Amplify project.',
         resolution:
           'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
-      })
+      }),
     );
   });
 
@@ -187,7 +187,7 @@ void describe('AmplifyStorageFactory', () => {
         message: 'No default storage set in the Amplify project.',
         resolution:
           'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
-      })
+      }),
     );
   });
 

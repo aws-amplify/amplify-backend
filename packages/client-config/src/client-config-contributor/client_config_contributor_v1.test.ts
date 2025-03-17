@@ -47,7 +47,7 @@ void describe('auth client config contributor v1', () => {
           },
         },
       }),
-      {}
+      {},
     );
   });
 
@@ -74,7 +74,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -99,7 +99,7 @@ void describe('auth client config contributor v1', () => {
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -133,7 +133,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: true,
           },
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -166,7 +166,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: false,
           },
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -261,7 +261,7 @@ void describe('auth client config contributor v1', () => {
             },
           ],
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -350,7 +350,7 @@ void describe('auth client config contributor v1', () => {
             },
           ],
         },
-      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -443,7 +443,7 @@ void describe('auth client config contributor v1', () => {
 
       assert.deepStrictEqual(
         contributor.contribute({ [authOutputKey]: contribution }),
-        expected
+        expected,
       );
     });
 
@@ -455,7 +455,7 @@ void describe('auth client config contributor v1', () => {
 
       assert.deepStrictEqual(
         contributor.contribute({ [authOutputKey]: contribution }),
-        expected
+        expected,
       );
     });
 
@@ -467,7 +467,7 @@ void describe('auth client config contributor v1', () => {
 
       assert.deepStrictEqual(
         contributor.contribute({ [authOutputKey]: contribution }),
-        expected
+        expected,
       );
     });
   });
@@ -476,13 +476,13 @@ void describe('auth client config contributor v1', () => {
 void describe('data client config contributor v1', () => {
   void it('returns an empty object if output has no graphql output', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      stubClientProvider
+      stubClientProvider,
     );
 
     mock.method(
       modelSchemaAdapter,
       'getModelIntrospectionSchemaFromS3Uri',
-      () => undefined
+      () => undefined,
     );
     const contributor = new DataClientConfigContributor(modelSchemaAdapter);
     const contribution = await contributor.contribute({
@@ -502,13 +502,13 @@ void describe('data client config contributor v1', () => {
 
   void it('returns translated config when output has graphql', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      stubClientProvider
+      stubClientProvider,
     );
 
     mock.method(
       modelSchemaAdapter,
       'getModelIntrospectionSchemaFromS3Uri',
-      () => undefined
+      () => undefined,
     );
     const contributor = new DataClientConfigContributor(modelSchemaAdapter);
     const contribution = await contributor.contribute({
@@ -539,7 +539,7 @@ void describe('data client config contributor v1', () => {
 
   void it('returns translated config with model introspection when resolvable', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      stubClientProvider
+      stubClientProvider,
     );
 
     mock.method(
@@ -550,7 +550,7 @@ void describe('data client config contributor v1', () => {
         models: {},
         nonModels: {},
         enums: {},
-      })
+      }),
     );
     const contributor = new DataClientConfigContributor(modelSchemaAdapter);
     const contribution = await contributor.contribute({
@@ -604,7 +604,7 @@ void describe('storage client config contributor v1', () => {
           },
         },
       }),
-      {}
+      {},
     );
   });
 
@@ -652,7 +652,7 @@ void describe('storage client config contributor v1', () => {
             },
           ],
         },
-      }
+      },
     );
   });
 });

@@ -64,7 +64,7 @@ void describe('release lifecycle', async () => {
     const testNameNormalized = testName.slice(0, 15).replaceAll(/\s/g, '');
     const testWorkingDir = path.join(
       tmpdir(),
-      `${testNameNormalized}-${shortId}`
+      `${testNameNormalized}-${shortId}`,
     );
     await mkdir(testWorkingDir);
     console.log(testWorkingDir);
@@ -89,12 +89,12 @@ void describe('release lifecycle', async () => {
 
     await npmClient.initWorkspacePackage(cantaloupePackageName);
     await setPackageToPublic(
-      path.join(testWorkingDir, 'packages', cantaloupePackageName)
+      path.join(testWorkingDir, 'packages', cantaloupePackageName),
     );
 
     await npmClient.initWorkspacePackage(platypusPackageName);
     await setPackageToPublic(
-      path.join(testWorkingDir, 'packages', platypusPackageName)
+      path.join(testWorkingDir, 'packages', platypusPackageName),
     );
 
     await npmClient.install(['@changesets/cli']);
@@ -107,7 +107,7 @@ void describe('release lifecycle', async () => {
       testWorkingDir,
       gitClient,
       [cantaloupePackageName, platypusPackageName],
-      'minor'
+      'minor',
     );
     await runVersionInTestDir();
     await gitClient.commitAllChanges('Version Packages (first release)');
@@ -117,7 +117,7 @@ void describe('release lifecycle', async () => {
       testWorkingDir,
       gitClient,
       [platypusPackageName],
-      'minor'
+      'minor',
     );
     await runVersionInTestDir();
     await gitClient.commitAllChanges('Version Packages (second release)');
@@ -127,7 +127,7 @@ void describe('release lifecycle', async () => {
       testWorkingDir,
       gitClient,
       [cantaloupePackageName],
-      'minor'
+      'minor',
     );
     await runVersionInTestDir();
     await gitClient.commitAllChanges('Version Packages (third release)');
@@ -138,13 +138,13 @@ void describe('release lifecycle', async () => {
       npmClient,
       cantaloupePackageName,
       '1.2.0',
-      'latest'
+      'latest',
     );
     await expectDistTagAtVersion(
       npmClient,
       platypusPackageName,
       '1.2.0',
-      'latest'
+      'latest',
     );
   });
 
@@ -161,7 +161,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
     await releaseDeprecator1.deprecateRelease();
 
@@ -170,13 +170,13 @@ void describe('release lifecycle', async () => {
       npmClient,
       cantaloupePackageName,
       '1.2.0',
-      'the cantaloupe is rotten'
+      'the cantaloupe is rotten',
     );
     await expectDistTagAtVersion(
       npmClient,
       cantaloupePackageName,
       '1.1.0',
-      'latest'
+      'latest',
     );
 
     // now deprecate the platypus release
@@ -188,7 +188,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
 
     await releaseDeprecator2.deprecateRelease();
@@ -198,13 +198,13 @@ void describe('release lifecycle', async () => {
       npmClient,
       platypusPackageName,
       '1.2.0',
-      'RIP platypus'
+      'RIP platypus',
     );
     await expectDistTagAtVersion(
       npmClient,
       platypusPackageName,
       '1.1.0',
-      'latest'
+      'latest',
     );
 
     // now deprecate the 1.1.0 release of both packages
@@ -216,7 +216,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
 
     await releaseDeprecator3.deprecateRelease();
@@ -226,25 +226,25 @@ void describe('release lifecycle', async () => {
       npmClient,
       platypusPackageName,
       '1.1.0',
-      'real big mess'
+      'real big mess',
     );
     await expectDistTagAtVersion(
       npmClient,
       platypusPackageName,
       '1.0.0',
-      'latest'
+      'latest',
     );
     await expectDeprecated(
       npmClient,
       cantaloupePackageName,
       '1.1.0',
-      'real big mess'
+      'real big mess',
     );
     await expectDistTagAtVersion(
       npmClient,
       cantaloupePackageName,
       '1.0.0',
-      'latest'
+      'latest',
     );
 
     /* To validate the restore scenarios, we now "undo" the rollbacks */
@@ -255,7 +255,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
 
     await releaseRestorer1.restoreRelease();
@@ -266,14 +266,14 @@ void describe('release lifecycle', async () => {
       npmClient,
       platypusPackageName,
       '1.1.0',
-      'latest'
+      'latest',
     );
     await expectNotDeprecated(npmClient, cantaloupePackageName, '1.1.0');
     await expectDistTagAtVersion(
       npmClient,
       cantaloupePackageName,
       '1.1.0',
-      'latest'
+      'latest',
     );
 
     await gitClient.switchToBranch('main');
@@ -282,7 +282,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
 
     await releaseRestorer2.restoreRelease();
@@ -293,7 +293,7 @@ void describe('release lifecycle', async () => {
       npmClient,
       platypusPackageName,
       '1.2.0',
-      'latest'
+      'latest',
     );
 
     await gitClient.switchToBranch('main');
@@ -302,7 +302,7 @@ void describe('release lifecycle', async () => {
       githubClient,
       gitClient,
       npmClient,
-      distTagMover
+      distTagMover,
     );
 
     await releaseRestorer3.restoreRelease();
@@ -313,7 +313,7 @@ void describe('release lifecycle', async () => {
       npmClient,
       cantaloupePackageName,
       '1.2.0',
-      'latest'
+      'latest',
     );
 
     // We are now back to the original state having deprecated and then restored 3 releases
@@ -324,10 +324,10 @@ const expectDeprecated = async (
   npmClient: NpmClient,
   packageName: string,
   version: string,
-  deprecationMessage: string
+  deprecationMessage: string,
 ) => {
   const { deprecated } = await npmClient.getPackageInfo(
-    `${packageName}@${version}`
+    `${packageName}@${version}`,
   );
   assert.equal(deprecated, deprecationMessage);
 };
@@ -335,10 +335,10 @@ const expectDeprecated = async (
 const expectNotDeprecated = async (
   npmClient: NpmClient,
   packageName: string,
-  version: string
+  version: string,
 ) => {
   const { deprecated } = await npmClient.getPackageInfo(
-    `${packageName}@${version}`
+    `${packageName}@${version}`,
   );
   assert.equal(deprecated, undefined);
 };
@@ -347,7 +347,7 @@ const expectDistTagAtVersion = async (
   npmClient: NpmClient,
   packageName: string,
   version: string,
-  distTag: string
+  distTag: string,
 ) => {
   const { 'dist-tags': distTags } = await npmClient.getPackageInfo(packageName);
   assert.equal(distTags[distTag], version);
@@ -365,12 +365,12 @@ const commitVersionBumpChangeset = async (
   projectPath: string,
   gitClient: GitClient,
   packageNames: string[],
-  bump: VersionBump
+  bump: VersionBump,
 ) => {
   const message = `${bump} bump for ${packageNames.join(', ')}`;
   await writeFile(
     path.join(projectPath, '.changeset', `${randomUUID()}.md`),
-    getChangesetContent(packageNames, bump, message)
+    getChangesetContent(packageNames, bump, message),
   );
   await gitClient.commitAllChanges(message);
 };
@@ -378,7 +378,7 @@ const commitVersionBumpChangeset = async (
 const getChangesetContent = (
   packageNames: string[],
   bump: VersionBump,
-  message: string
+  message: string,
 ) => {
   const packageBumpsString = packageNames
     .map((packageName) => `'${packageName}': ${bump}`)

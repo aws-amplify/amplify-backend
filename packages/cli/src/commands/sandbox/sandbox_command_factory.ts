@@ -34,13 +34,13 @@ export const createSandboxCommand = (): CommandModule<
   SandboxCommandOptionsKebabCase
 > => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new PackageJsonReader())
+    new LocalNamespaceResolver(new PackageJsonReader()),
   );
 
   const sandboxFactory = new SandboxSingletonFactory(
     sandboxBackendIdPartsResolver.resolve,
     printer,
-    format
+    format,
   );
   const s3Client = new S3Client();
   const amplifyClient = new AmplifyClient();
@@ -52,12 +52,12 @@ export const createSandboxCommand = (): CommandModule<
     getCloudFormationClient: () => cloudFormationClient,
   };
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    awsClientProvider
+    awsClientProvider,
   );
 
   const libraryVersion =
     new PackageJsonReader().read(
-      fileURLToPath(new URL('../../../package.json', import.meta.url))
+      fileURLToPath(new URL('../../../package.json', import.meta.url)),
     ).version ?? '';
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
@@ -68,17 +68,15 @@ export const createSandboxCommand = (): CommandModule<
         .tryGetDependencies();
       return await new UsageDataEmitterFactory().getInstance(
         libraryVersion,
-        dependencies
+        dependencies,
       );
     },
     async () => {
       const dependencies = await new PackageManagerControllerFactory()
         .getPackageManagerController()
         .tryGetDependencies();
-      return await new TelemetryDataEmitterFactory().getInstance(
-        dependencies
-      );
-    }
+      return await new TelemetryDataEmitterFactory().getInstance(dependencies);
+    },
   );
 
   const commandMiddleWare = new CommandMiddleware(printer);
@@ -87,6 +85,6 @@ export const createSandboxCommand = (): CommandModule<
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
-    eventHandlerFactory.getSandboxEventHandlers
+    eventHandlerFactory.getSandboxEventHandlers,
   );
 };

@@ -25,13 +25,13 @@ const printMock = mock.method(printer, 'print');
 
 void describe('sandbox secret list command', () => {
   const listSecretsResponseMock = mock.fn<() => Promise<SecretListItem[]>>(
-    async () => testSecrets
+    async () => testSecrets,
   );
   const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secretListMock = mock.method(
     secretClient,
     'listSecrets',
-    listSecretsResponseMock
+    listSecretsResponseMock,
   );
   const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: (identifier?: string) =>
@@ -44,7 +44,7 @@ void describe('sandbox secret list command', () => {
 
   const sandboxSecretListCmd = new SandboxSecretListCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
 
   const parser = yargs().command(sandboxSecretListCmd);
@@ -68,7 +68,7 @@ void describe('sandbox secret list command', () => {
     assert.equal(printMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      format.list(testSecrets.map((s) => s.name))
+      format.list(testSecrets.map((s) => s.name)),
     );
   });
 
@@ -85,7 +85,7 @@ void describe('sandbox secret list command', () => {
     assert.equal(printMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      format.list(testSecrets.map((s) => s.name))
+      format.list(testSecrets.map((s) => s.name)),
     );
   });
 
@@ -104,8 +104,8 @@ void describe('sandbox secret list command', () => {
     assert.equal(
       printMock.mock.calls[0].arguments[0],
       `No sandbox secrets found. To create a secret use ${format.normalizeAmpxCommand(
-        'sandbox secret set <secret-name>'
-      )}.`
+        'sandbox secret set <secret-name>',
+      )}.`,
     );
   });
 

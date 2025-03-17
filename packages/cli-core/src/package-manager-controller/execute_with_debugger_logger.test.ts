@@ -14,7 +14,7 @@ void describe(() => {
       '/testProjectRoot',
       'testCommand',
       undefined,
-      execaMock as never
+      execaMock as never,
     );
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'testCommand',
@@ -28,7 +28,7 @@ void describe(() => {
       '/testProjectRoot',
       'testCommand',
       ['arg1', 'arg2'],
-      execaMock as never
+      execaMock as never,
     );
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments, [
       'testCommand',
@@ -48,11 +48,11 @@ void describe(() => {
           '/testProjectRoot',
           'testCommand',
           ['arg1', 'arg2'],
-          execaMock as never
+          execaMock as never,
         ),
       {
         message: `\`testCommand arg1 arg2\` did not exit successfully. Rerun with --debug for more information.`,
-      }
+      },
     );
   });
 });

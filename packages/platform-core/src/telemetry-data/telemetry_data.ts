@@ -1,51 +1,55 @@
-import { Dependency } from '@aws-amplify/plugin-types';
+import z from 'zod';
 
-// Core Identifiers
-export type CoreIdentifiersDetails = {
-  payloadVersion: string;
-  sessionUuid: string;
-  eventId: string;
-  timestamp: string;
-  localProjectId: string;
-  accountId?: string;
-  awsRegion?: string;
-};
+const identifiersSchema = z.object({
+  payloadVersion: z.string(),
+  sessionUuid: z.string(),
+  eventId: z.string(),
+  timestamp: z.string(),
+  localProjectId: z.string(),
+  accountId: z.string().optional(),
+  awsRegion: z.string().optional(),
+});
 
-export enum TelemetryEventState {
-  ABORTED = 'ABORTED',
-  FAILED = 'FAILED',
-  SUCCEEDED = 'SUCCEEDED',
-};
+const eventSchema = z.object({
+  state: z.enum(['ABORTED', 'FAILED', 'SUCCEEDED']),
+  command: z.object({
+    path: z.array(z.string()),
+    parameters: z.array(z.string()),
+  }),
+});
 
-export type EventDetails = {
-  state: TelemetryEventState;
-  command: {
-    path: string[];
-    parameters: string[];
-  };
-};
+const environmentSchema = z.object({
+  os: z.object({
+    platform: z.string(),
+    release: z.string(),
+  }),
+  shell: z.string(),
+  npmUserAgent: z.string(),
+  ci: z.boolean(),
+  memory: z.object({
+    total: z.number(),
+    free: z.number(),
+  }),
+});
 
-export type EnvironmentDetails = {
-  os: {
-    platform: string;
-    release: string;
-  };
-  shell: string;
-  npmUserAgent: string;
-  ci: boolean;
-  memory: {
-    total: number;
-    free: number;
-  };
-};
+const projectSchema = z.object({
+  dependencies: z
+    .array(
+      z.object({
+        name: z.string(),
+        version: z.string(),
+      }),
+    )
+    .optional(),
+});
 
-export type LatencyDetails = {
-  total: number;
-  init?: number;
-  synthesis?: number;
-  deployment?: number;
-  hotSwap?: number;
-};
+const latencySchema = z.object({
+  total: z.number(),
+  init: z.number().optional(),
+  synthesis: z.number().optional(),
+  deployment: z.number().optional(),
+  hotSwap: z.number().optional(),
+});
 
 export type ErrorDetails = {
   name: string;
@@ -54,15 +58,22 @@ export type ErrorDetails = {
   cause?: ErrorDetails;
 };
 
-export type ProjectDetails = {
-  dependencies?: Array<Dependency>;
-};
+const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
+  z.object({
+    name: z.string(),
+    message: z.string(),
+    stack: z.string(),
+    cause: z.optional(errorSchema), // Recursive reference
+  }),
+);
 
-export type TelemetryData = {
-  identifiers: CoreIdentifiersDetails;
-  event: EventDetails;
-  environment: EnvironmentDetails;
-  project: ProjectDetails;
-  latency: LatencyDetails;
-  error?: ErrorDetails;
-};
+export const telemetryPayloadSchema = z.object({
+  identifiers: identifiersSchema,
+  event: eventSchema,
+  environment: environmentSchema,
+  project: projectSchema,
+  latency: latencySchema,
+  error: z.optional(errorSchema),
+});
+
+export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;

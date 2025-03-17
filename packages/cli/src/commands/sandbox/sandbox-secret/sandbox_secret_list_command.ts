@@ -27,7 +27,7 @@ export class SandboxSecretListCommand
    */
   constructor(
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
   ) {
     this.command = 'list';
     this.describe = 'List all sandbox secrets';
@@ -37,13 +37,13 @@ export class SandboxSecretListCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SandboxCommandGlobalOptions>
+    args: ArgumentsCamelCase<SandboxCommandGlobalOptions>,
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.identifier
+      args.identifier,
     );
     const secrets = await this.secretClient.listSecrets(
-      sandboxBackendIdentifier
+      sandboxBackendIdentifier,
     );
 
     if (secrets.length > 0) {
@@ -51,8 +51,8 @@ export class SandboxSecretListCommand
     } else {
       printer.print(
         `No sandbox secrets found. To create a secret use ${format.normalizeAmpxCommand(
-          'sandbox secret set <secret-name>'
-        )}.`
+          'sandbox secret set <secret-name>',
+        )}.`,
       );
     }
     printer.printNewLine();

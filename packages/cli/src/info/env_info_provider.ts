@@ -46,7 +46,7 @@ export class EnvironmentInfoProvider {
           'aws-amplify',
         ],
       },
-      { json: true, showNotFound: true, fullTree: true }
+      { json: true, showNotFound: true, fullTree: true },
     );
     return this.formatEnvInfo(JSON.parse(info));
   }

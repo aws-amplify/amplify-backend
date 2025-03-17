@@ -239,7 +239,7 @@ void describe('Object accumulator', () => {
         assert.strictEqual(error.existingValue, 'b1');
         assert.strictEqual(error.incomingValue, 'b2');
         return true;
-      }
+      },
     );
   });
 
@@ -263,12 +263,12 @@ void describe('Object accumulator', () => {
       (error: ObjectAccumulatorVersionMismatchError) => {
         assert.strictEqual(
           error.message,
-          'Version mismatch: Cannot accumulate new objects with version 2 with existing accumulated object with version 1'
+          'Version mismatch: Cannot accumulate new objects with version 2 with existing accumulated object with version 1',
         );
         assert.strictEqual(error.existingVersion, '1');
         assert.strictEqual(error.newVersion, '2');
         return true;
-      }
+      },
     );
   });
 });

@@ -24,13 +24,13 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
     Object.entries(files).forEach(([fileName, content]) => {
       const resolvedName = path.resolve(path.join(directory, fileName));
       const writeFileCall = writeFileMock.mock.calls.find(
-        ({ arguments: [f] }) => resolvedName === f
+        ({ arguments: [f] }) => resolvedName === f,
       );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
       assert(
         filesWritten.includes(
-          `${path.relative('.', path.resolve(path.join(directory, fileName)))}`
-        )
+          `${path.relative('.', path.resolve(path.join(directory, fileName)))}`,
+        ),
       );
     });
   });

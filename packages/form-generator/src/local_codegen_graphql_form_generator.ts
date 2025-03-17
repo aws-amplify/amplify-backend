@@ -32,7 +32,7 @@ export type RenderOptions = {
 };
 
 export type ResultBuilder = (
-  fileMap: Record<string, string>
+  fileMap: Record<string, string>,
 ) => GraphqlGenerationResult;
 
 export type SchemaFetcher = () => Promise<GenericDataSchema>;
@@ -53,7 +53,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   constructor(
     private schemaFetcher: SchemaFetcher,
     private renderOptions: RenderOptions,
-    private resultBuilder: ResultBuilder
+    private resultBuilder: ResultBuilder,
   ) {}
 
   /**
@@ -83,7 +83,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
 
   generateIndexFile = (schemas: { name: string }[]) => {
     const { componentText, fileName } = this.createIndexFile(
-      schemas as StudioSchema[]
+      schemas as StudioSchema[],
     );
     return {
       schemaName: 'AmplifyStudioIndexFile',
@@ -95,7 +95,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   };
 
   generateForms = async (
-    options?: FormGenerationOptions
+    options?: FormGenerationOptions,
   ): Promise<GraphqlGenerationResult> => {
     const dataSchema = await this.schemaFetcher();
     const filteredModels = this.getFilteredModels(dataSchema, options?.models);
@@ -105,7 +105,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     const indexFile = this.generateIndexFile(
       baseForms.map(({ name }) => ({
         name,
-      }))
+      })),
     );
 
     dataSchema.models = Object.entries(dataSchema.models).reduce<
@@ -124,7 +124,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         });
         return prev;
       },
-      {}
+      {},
     );
     forms[utilFile.fileName] = utilFile.componentText;
     forms[indexFile.fileName] = indexFile.componentText;
@@ -142,13 +142,13 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         }
         return prev;
       },
-      {}
+      {},
     );
   };
 
   private getSchema = (
     name: string,
-    type: 'create' | 'update'
+    type: 'create' | 'update',
   ): StudioForm => ({
     name: `${name}${type === 'create' ? 'CreateForm' : 'UpdateForm'}`,
     formActionType: type,
@@ -170,7 +170,12 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   };
 
   private renderGraphqlPath = (
-    submodule: 'fragments' | 'mutations' | 'queries' | 'types' | 'subscriptions'
+    submodule:
+      | 'fragments'
+      | 'mutations'
+      | 'queries'
+      | 'types'
+      | 'subscriptions',
   ) => {
     const graphqlPath = `${this.renderOptions.graphqlDir}/${submodule}`;
     // if the path does not start with a leading ./ or ../, assume that the graphql folder is in the same directory relative to the ui, and prepend a `./`
@@ -183,13 +188,13 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   private createUiBuilderForm = (
     schema: StudioForm,
     dataSchema?: GenericDataSchema,
-    formFeatureFlags?: FormFeatureFlags
+    formFeatureFlags?: FormFeatureFlags,
   ) => {
     const renderer = new AmplifyFormRenderer(
       schema,
       dataSchema,
       this.config,
-      formFeatureFlags
+      formFeatureFlags,
     );
     const { componentText, declaration } = renderer.renderComponentInternal();
     const files = [
@@ -209,17 +214,17 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   };
   private filterModelsByName = (
     filteredModelNames: string[],
-    schemaModel: ModelRecord
+    schemaModel: ModelRecord,
   ) => {
     const lowerCaseModelKeys = new Set(
-      Object.keys(schemaModel).map((k) => k.toLowerCase())
+      Object.keys(schemaModel).map((k) => k.toLowerCase()),
     );
     const modelEntries = Object.entries(schemaModel);
     return filteredModelNames.reduce<Array<[string, FormDef]>>(
       (prev, model) => {
         if (lowerCaseModelKeys?.has(model.toLowerCase())) {
           const entry = modelEntries.find(
-            ([key]) => key.toLowerCase() === model.toLowerCase()
+            ([key]) => key.toLowerCase() === model.toLowerCase(),
           );
           if (!entry) {
             // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
@@ -231,19 +236,19 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
         // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
         throw new Error(`Could not find specified model ${model}`);
       },
-      []
+      [],
     );
   };
   private codegenForm = (
     dataSchema: GenericDataSchema,
-    formSchema: StudioForm
+    formSchema: StudioForm,
   ) => {
     return this.createUiBuilderForm(formSchema, dataSchema, {});
   };
 
   private getFilteredModels = (
     dataSchema: GenericDataSchema,
-    filteredModelNames?: string[]
+    filteredModelNames?: string[],
   ) => {
     const modelMap = this.getModelMapForDataSchema(dataSchema);
     const filteredModels: Array<[string, FormDef]> = [];
@@ -251,7 +256,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
       filteredModels.push(...Object.entries(modelMap));
     } else {
       filteredModels.push(
-        ...this.filterModelsByName(filteredModelNames, modelMap)
+        ...this.filterModelsByName(filteredModelNames, modelMap),
       );
     }
     return filteredModels;
@@ -259,7 +264,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   private transformModelListToMap = (models: Array<[string, FormDef]>) => {
     return models.reduce(
       (prev, [key, value]) => ({ ...prev, [key]: value }),
-      {}
+      {},
     );
   };
 
@@ -295,7 +300,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   private createIndexFile = (schemas: StudioSchema[]) => {
     const renderer = new ReactIndexStudioTemplateRenderer(
       schemas,
-      LocalGraphqlFormGenerator.defaultConfig
+      LocalGraphqlFormGenerator.defaultConfig,
     );
     const { componentText } = renderer.renderComponentInternal();
     return {

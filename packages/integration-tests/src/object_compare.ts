@@ -12,7 +12,7 @@ export type ObjectPath = (string | number)[];
 export const assertCustomMatch = (
   actual: unknown,
   expected: unknown,
-  customMatchers: Map<ObjectPath, Predicate>
+  customMatchers: Map<ObjectPath, Predicate>,
 ): void => {
   customMatchers.forEach((predicate, objectPath) => {
     const actualValue = removeValueFromObject(actual, objectPath);
@@ -24,7 +24,7 @@ export const assertCustomMatch = (
       predicate(actualValue, expectedValue),
       `expected value ${expectedValue as string} and actual value ${
         actualValue as string
-      } at [${objectPath.toLocaleString()}] path did not match based on the custom predicate`
+      } at [${objectPath.toLocaleString()}] path did not match based on the custom predicate`,
     );
   });
 
@@ -40,7 +40,7 @@ export const assertCustomMatch = (
  */
 const removeValueFromObject = (
   obj: unknown,
-  objectPath: ObjectPath
+  objectPath: ObjectPath,
 ): unknown | undefined => {
   if (objectPath.length === 0) {
     return;
@@ -53,7 +53,7 @@ const removeValueFromObject = (
   const last = pathCopy.pop()!;
   const subObj = pathCopy.reduce(
     (obj, key) => (obj as never)?.[key],
-    obj
+    obj,
   ) as Record<string, unknown>;
   const val = subObj?.[last];
   delete subObj?.[last];

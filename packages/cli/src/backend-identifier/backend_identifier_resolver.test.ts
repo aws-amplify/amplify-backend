@@ -15,7 +15,7 @@ void describe('BackendIdentifierResolver', () => {
         {
           appName: 'testAppName',
           branchName: 'test',
-        }
+        },
       );
     });
     void it('returns a App Id identifier', async () => {
@@ -42,7 +42,7 @@ void describe('BackendIdentifierResolver', () => {
         }),
         {
           stackName: 'my-stack',
-        }
+        },
       );
     });
   });
@@ -61,7 +61,7 @@ void describe('BackendIdentifierResolver', () => {
           namespace: 'testAppName',
           name: 'test',
           type: 'branch',
-        }
+        },
       );
     });
     void it('returns backend identifier from Stack identifier', async () => {
@@ -77,7 +77,7 @@ void describe('BackendIdentifierResolver', () => {
           name: 'userName',
           type: 'branch',
           hash: 'testHash',
-        }
+        },
       );
     });
   });

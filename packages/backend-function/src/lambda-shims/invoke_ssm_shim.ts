@@ -23,5 +23,5 @@ setInterval(
       }
     }
   },
-  SSM_PARAMETER_REFRESH_MS
+  SSM_PARAMETER_REFRESH_MS,
 );

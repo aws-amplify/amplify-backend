@@ -55,11 +55,11 @@ void describe('AmplifyAuthFactory', () => {
     stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
 
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
 
     importPathVerifier = new ImportPathVerifierStub();
@@ -136,8 +136,8 @@ void describe('AmplifyAuthFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'defineAuth'
-      )
+        'defineAuth',
+      ),
     );
   });
 
@@ -155,7 +155,7 @@ void describe('AmplifyAuthFactory', () => {
         message:
           'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
         resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
-      })
+      }),
     );
   });
 
@@ -185,7 +185,7 @@ void describe('AmplifyAuthFactory', () => {
 
     assert.equal(mockAcceptResourceAccess.mock.callCount(), 2);
     assert.ok(
-      mockAcceptResourceAccess.mock.calls[0].arguments[0] instanceof Policy
+      mockAcceptResourceAccess.mock.calls[0].arguments[0] instanceof Policy,
     );
     assert.deepStrictEqual(
       mockAcceptResourceAccess.mock.calls[0].arguments[0].document.toJSON(),
@@ -201,10 +201,10 @@ void describe('AmplifyAuthFactory', () => {
           },
         ],
         Version: '2012-10-17',
-      }
+      },
     );
     assert.ok(
-      mockAcceptResourceAccess.mock.calls[1].arguments[0] instanceof Policy
+      mockAcceptResourceAccess.mock.calls[1].arguments[0] instanceof Policy,
     );
     assert.deepStrictEqual(
       mockAcceptResourceAccess.mock.calls[1].arguments[0].document.toJSON(),
@@ -217,7 +217,7 @@ void describe('AmplifyAuthFactory', () => {
           },
         ],
         Version: '2012-10-17',
-      }
+      },
     );
   });
 
@@ -274,12 +274,12 @@ void describe('AmplifyAuthFactory', () => {
         ],
       });
       const resourceAccessAcceptor = backendAuth.getResourceAccessAcceptor(
-        'authenticatedUserIamRole'
+        'authenticatedUserIamRole',
       );
 
       assert.equal(
         resourceAccessAcceptor.identifier,
-        'authenticatedUserIamRoleResourceAccessAcceptor'
+        'authenticatedUserIamRoleResourceAccessAcceptor',
       );
 
       resourceAccessAcceptor.acceptResourceAccess(testPolicy, [
@@ -321,12 +321,12 @@ void describe('AmplifyAuthFactory', () => {
         ],
       });
       const resourceAccessAcceptor = backendAuth.getResourceAccessAcceptor(
-        'unauthenticatedUserIamRole'
+        'unauthenticatedUserIamRole',
       );
 
       assert.equal(
         resourceAccessAcceptor.identifier,
-        'unauthenticatedUserIamRoleResourceAccessAcceptor'
+        'unauthenticatedUserIamRoleResourceAccessAcceptor',
       );
 
       resourceAccessAcceptor.acceptResourceAccess(testPolicy, [

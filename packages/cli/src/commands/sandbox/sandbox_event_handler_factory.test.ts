@@ -26,7 +26,7 @@ void describe('sandbox_event_handler_factory', () => {
     clientConfigGeneratorAdapterMock,
     '1.3',
     'test-out',
-    ClientConfigFormat.JSON
+    ClientConfigFormat.JSON,
   );
 
   // Usage data emitter mocks
@@ -73,8 +73,8 @@ void describe('sandbox_event_handler_factory', () => {
           clientConfigLifecycleHandler,
         })
         .successfulDeployment.map((e) =>
-          e({ deploymentTimes: { synthesisTime: 2, totalTime: 10 } })
-        )
+          e({ deploymentTimes: { synthesisTime: 2, totalTime: 10 } }),
+        ),
     );
 
     assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
@@ -110,7 +110,7 @@ void describe('sandbox_event_handler_factory', () => {
           sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
-        .failedDeployment.map((e) => e(testError))
+        .failedDeployment.map((e) => e(testError)),
     );
 
     assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
@@ -118,7 +118,7 @@ void describe('sandbox_event_handler_factory', () => {
     assert.strictEqual(emitFailureMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0],
-      testError
+      testError,
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'Sandbox',
@@ -133,7 +133,7 @@ void describe('sandbox_event_handler_factory', () => {
           sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
-        .failedDeployment.map((e) => e(testError))
+        .failedDeployment.map((e) => e(testError)),
     );
 
     assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
@@ -145,23 +145,23 @@ void describe('sandbox_event_handler_factory', () => {
       {
         message: 'Error: Some generic error',
       },
-      testError
+      testError,
     );
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0].name,
-      expectedError.name
+      expectedError.name,
     );
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0].message,
-      expectedError.message
+      expectedError.message,
     );
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0].classification,
-      expectedError.classification
+      expectedError.classification,
     );
     assert.deepStrictEqual(
       emitFailureMock.mock.calls[0].arguments[0].cause.message,
-      expectedError.cause?.message
+      expectedError.cause?.message,
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'Sandbox',
@@ -179,14 +179,14 @@ void describe('sandbox_event_handler_factory', () => {
           sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
-        .successfulDeployment.map((e) => e())
+        .successfulDeployment.map((e) => e()),
     );
 
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
       `${format.error(
-        'Amplify outputs could not be generated.'
-      )} ${format.error(new Error('test error message'))}`
+        'Amplify outputs could not be generated.',
+      )} ${format.error(new Error('test error message'))}`,
     );
 
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
@@ -218,13 +218,13 @@ void describe('sandbox_event_handler_factory', () => {
           sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
-        .successfulDeletion.map((e) => e())
+        .successfulDeletion.map((e) => e()),
     );
 
     assert.strictEqual(fspMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       fspMock.mock.calls[0].arguments[0],
-      path.join(process.cwd(), 'test-out', 'amplify_outputs.json')
+      path.join(process.cwd(), 'test-out', 'amplify_outputs.json'),
     );
 
     // No metrics emitted as of now

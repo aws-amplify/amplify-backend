@@ -1,5 +1,37 @@
 # @aws-amplify/backend
 
+## 1.14.3
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+- Updated dependencies [cf79696]
+  - @aws-amplify/backend-output-schemas@1.4.1
+  - @aws-amplify/backend-output-storage@1.1.5
+  - @aws-amplify/backend-function@1.12.3
+  - @aws-amplify/backend-storage@1.2.6
+  - @aws-amplify/backend-secret@1.2.0
+  - @aws-amplify/client-config@1.5.8
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/backend-auth@1.5.1
+  - @aws-amplify/backend-data@1.4.1
+  - @aws-amplify/plugin-types@1.8.1
+
+## 1.14.2
+
+### Patch Changes
+
+- 3298c3a: update naming of storage access policies to also use stack
+- Updated dependencies [dafb530]
+- Updated dependencies [3298c3a]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/backend-storage@1.2.5
+
 ## 1.14.1
 
 ### Patch Changes

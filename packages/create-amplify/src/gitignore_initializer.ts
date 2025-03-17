@@ -15,7 +15,7 @@ export class GitIgnoreInitializer {
   constructor(
     private readonly projectRoot: string,
     private readonly existsSync = _existsSync,
-    private readonly fs = _fs
+    private readonly fs = _fs,
   ) {
     this.gitIgnorePath = path.resolve(this.projectRoot, '.gitignore');
   }
@@ -36,7 +36,7 @@ export class GitIgnoreInitializer {
     // If .gitignore exists, append ignorePatterns that do not exist in contents
     if (gitIgnoreContent && gitIgnoreContent.length > 0) {
       const filteredIgnorePatterns = ignorePatterns.filter(
-        (pattern) => !gitIgnoreContent.includes(pattern)
+        (pattern) => !gitIgnoreContent.includes(pattern),
       );
 
       // Add os.EOL if last line of .gitignore does not have EOL
@@ -53,7 +53,7 @@ export class GitIgnoreInitializer {
 
     printer.log(
       'No .gitignore file found in the working directory. Creating .gitignore...',
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
 
     await this.addIgnorePatterns(ignorePatterns);

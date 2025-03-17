@@ -42,12 +42,12 @@ void describe('client config formatter', () => {
 
   const clientConfigConverter = new ClientConfigMobileConverter(
     undefined as never,
-    undefined as never
+    undefined as never,
   );
   const clientConfigConverterMock = mock.method(
     clientConfigConverter,
     'convertToMobileConfig',
-    () => clientConfigMobile
+    () => clientConfigMobile,
   );
   const clientConfigFormatter: ClientConfigFormatterLegacy =
     new ClientConfigFormatterLegacy(clientConfigConverter);
@@ -59,7 +59,7 @@ void describe('client config formatter', () => {
   void it('formats config as json', () => {
     const formattedConfig = clientConfigFormatter.format(
       clientConfig,
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
 
     assert.deepEqual(JSON.parse(formattedConfig), expectedLegacyConfig);
@@ -81,7 +81,7 @@ void describe('client config formatter', () => {
         void it(`formats config as ${format}`, async () => {
           const formattedConfig = clientConfigFormatter.format(
             clientConfig,
-            format
+            format,
           );
 
           // write to file and check if dynamic import can read it
@@ -93,38 +93,38 @@ void describe('client config formatter', () => {
           );
           assert.deepEqual(actualConfig, expectedLegacyConfig);
         });
-      }
+      },
     );
   });
 
   void it('formats config as dart', () => {
     const formattedConfig = clientConfigFormatter.format(
       clientConfig,
-      ClientConfigFormat.DART
+      ClientConfigFormat.DART,
     );
 
     assert.strictEqual(clientConfigConverterMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       clientConfigConverterMock.mock.calls[0].arguments[0]?.aws_user_pools_id,
-      expectedLegacyConfig.aws_user_pools_id
+      expectedLegacyConfig.aws_user_pools_id,
     );
 
     assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
-      formattedConfig.includes(JSON.stringify(clientConfigMobile, null, 2))
+      formattedConfig.includes(JSON.stringify(clientConfigMobile, null, 2)),
     );
   });
 
   void it('formats config as json-mobile', () => {
     const formattedConfig = clientConfigFormatter.format(
       clientConfig,
-      ClientConfigFormat.JSON_MOBILE
+      ClientConfigFormat.JSON_MOBILE,
     );
 
     assert.strictEqual(clientConfigConverterMock.mock.callCount(), 1);
     assert.strictEqual(
       clientConfigConverterMock.mock.calls[0].arguments[0]?.aws_user_pools_id,
-      expectedLegacyConfig.aws_user_pools_id
+      expectedLegacyConfig.aws_user_pools_id,
     );
 
     assert.deepEqual(JSON.parse(formattedConfig), clientConfigMobile);

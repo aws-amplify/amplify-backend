@@ -37,15 +37,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-          'Stack template metadata is not a string'
-        )
+          'Stack template metadata is not a string',
+        ),
       );
     });
 
@@ -80,15 +80,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
-          'Stack outputs are undefined'
-        )
+          'Stack outputs are undefined',
+        ),
       );
     });
 
@@ -134,15 +134,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-          'This sandbox deployment is in progress. Re-run this command once the deployment completes.'
-        )
+          'This sandbox deployment is in progress. Re-run this command once the deployment completes.',
+        ),
       );
     });
 
@@ -188,15 +188,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-          'This branch deployment is in progress. Re-run this command once the deployment completes.'
-        )
+          'This branch deployment is in progress. Re-run this command once the deployment completes.',
+        ),
       );
     });
 
@@ -232,7 +232,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
@@ -264,7 +264,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
@@ -274,7 +274,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
             return true;
           }
           return false;
-        }
+        },
       );
     });
 
@@ -312,15 +312,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.NO_STACK_FOUND,
-          'Stack with id stackThatDoesNotExist does not exist'
-        )
+          'Stack with id stackThatDoesNotExist does not exist',
+        ),
       );
     });
 
@@ -358,15 +358,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
-          'The security token included in the request is expired'
-        )
+          'The security token included in the request is expired',
+        ),
       );
     });
 
@@ -405,15 +405,15 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          'role is not authorized to perform: randomAction on resource: resource-arn because no identity-based policy allows the randomAction action'
-        )
+          'role is not authorized to perform: randomAction on resource: resource-arn because no identity-based policy allows the randomAction action',
+        ),
       );
     });
 
@@ -453,7 +453,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       await assert.doesNotReject(retrievalStrategy.fetchBackendOutput());
@@ -511,7 +511,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       const output = await retrievalStrategy.fetchBackendOutput();
@@ -591,7 +591,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
         cfnClientMock,
-        stackNameResolverMock
+        stackNameResolverMock,
       );
 
       const output = await retrievalStrategy.fetchBackendOutput();

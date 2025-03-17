@@ -13,13 +13,13 @@ void describe('BackendIdentifierMainStackNameResolver', () => {
 
     void it('returns value of getMainStackName', async () => {
       const stackNameResolver = new BackendIdentifierMainStackNameResolver(
-        backendId
+        backendId,
       );
 
       const result = await stackNameResolver.resolveMainStackName();
       assert.equal(
         result,
-        'amplify-testBackendId-testBranchName-branch-e482a1c36f'
+        'amplify-testBackendId-testBranchName-branch-e482a1c36f',
       );
     });
   });

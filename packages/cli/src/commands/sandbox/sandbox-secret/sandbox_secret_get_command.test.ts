@@ -30,7 +30,7 @@ void describe('sandbox secret get command', () => {
   const secretGetMock = mock.method(
     secretClient,
     'getSecret',
-    (): Promise<Secret | undefined> => Promise.resolve(testSecret)
+    (): Promise<Secret | undefined> => Promise.resolve(testSecret),
   );
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
@@ -44,11 +44,11 @@ void describe('sandbox secret get command', () => {
 
   const sandboxSecretGetCmd = new SandboxSecretGetCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
 
   const parser = yargs().command(
-    sandboxSecretGetCmd as unknown as CommandModule
+    sandboxSecretGetCmd as unknown as CommandModule,
   );
 
   const commandRunner = new TestCommandRunner(parser);
@@ -74,13 +74,13 @@ void describe('sandbox secret get command', () => {
     assert.equal(printMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      format.record(testSecret)
+      format.record(testSecret),
     );
   });
 
   void it('gets secret for named sandbox', async () => {
     await commandRunner.runCommand(
-      `get ${testSecretName} --identifier anotherName`
+      `get ${testSecretName} --identifier anotherName`,
     );
 
     assert.equal(secretGetMock.mock.callCount(), 1);
@@ -96,7 +96,7 @@ void describe('sandbox secret get command', () => {
     assert.equal(printMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      format.record(testSecret)
+      format.record(testSecret),
     );
   });
 

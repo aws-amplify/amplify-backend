@@ -16,7 +16,7 @@ export class NpmLockFileReader implements LockFileReader {
     const dependencies: Array<Dependency> = [];
     const packageLockJsonPath = path.resolve(
       process.cwd(),
-      'package-lock.json'
+      'package-lock.json',
     );
     let packageLockJson;
     try {
@@ -27,7 +27,7 @@ export class NpmLockFileReader implements LockFileReader {
     } catch {
       printer.log(
         `Failed to get lock file contents because ${packageLockJsonPath} does not exist or is not parse-able`,
-        LogLevel.DEBUG
+        LogLevel.DEBUG,
       );
       return;
     }
@@ -60,7 +60,7 @@ const packageLockJsonSchema = z.object({
       z.string(),
       z.object({
         version: z.string().optional(),
-      })
+      }),
     )
     .optional(),
 });

@@ -6,9 +6,8 @@ import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtim
 // @ts-ignore
 import { env } from '$amplify/env/todo-count.js';
 
-const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(
-  env
-);
+const { resourceConfig, libraryOptions } =
+  await getAmplifyDataClientConfig(env);
 
 Amplify.configure(resourceConfig, libraryOptions);
 

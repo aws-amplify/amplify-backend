@@ -36,19 +36,19 @@ void describe('Conversation turn executor', () => {
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
-      () => Promise.resolve(bedrockResponse)
+      () => Promise.resolve(bedrockResponse),
     );
     const responseSender = new ConversationTurnResponseSender(event);
     const responseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponse',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const streamResponseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponseChunk',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -65,31 +65,31 @@ void describe('Conversation turn executor', () => {
       [],
       new Lazy(() => responseSender),
       new Lazy(() => bedrockConverseAdapter),
-      consoleMock
+      consoleMock,
     ).execute();
 
     assert.strictEqual(
       bedrockConverseAdapterAskBedrockMock.mock.calls.length,
-      1
+      1,
     );
     assert.strictEqual(
       streamResponseSenderSendResponseMock.mock.calls.length,
-      0
+      0,
     );
     assert.strictEqual(responseSenderSendResponseMock.mock.calls.length, 1);
     assert.deepStrictEqual(
       responseSenderSendResponseMock.mock.calls[0].arguments[0],
-      bedrockResponse
+      bedrockResponse,
     );
 
     assert.strictEqual(consoleLogMock.mock.calls.length, 2);
     assert.strictEqual(
       consoleLogMock.mock.calls[0].arguments[0],
-      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
     assert.strictEqual(
       consoleLogMock.mock.calls[1].arguments[0],
-      'Conversation turn event handled successfully, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Conversation turn event handled successfully, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
 
     assert.strictEqual(consoleErrorMock.mock.calls.length, 0);
@@ -102,7 +102,7 @@ void describe('Conversation turn executor', () => {
     };
     const bedrockConverseAdapter = new BedrockConverseAdapter(
       streamingEvent,
-      []
+      [],
     );
     const chunks: Array<StreamingResponseChunk> = [
       {
@@ -130,19 +130,19 @@ void describe('Conversation turn executor', () => {
           for (const chunk of chunks) {
             yield chunk;
           }
-        })()
+        })(),
     );
     const responseSender = new ConversationTurnResponseSender(streamingEvent);
     const responseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponse',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const streamResponseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponseChunk',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -159,24 +159,24 @@ void describe('Conversation turn executor', () => {
       [],
       new Lazy(() => responseSender),
       new Lazy(() => bedrockConverseAdapter),
-      consoleMock
+      consoleMock,
     ).execute();
 
     assert.strictEqual(
       bedrockConverseAdapterAskBedrockMock.mock.calls.length,
-      1
+      1,
     );
     assert.strictEqual(
       streamResponseSenderSendResponseMock.mock.calls.length,
-      2
+      2,
     );
     assert.deepStrictEqual(
       streamResponseSenderSendResponseMock.mock.calls[0].arguments[0],
-      chunks[0]
+      chunks[0],
     );
     assert.deepStrictEqual(
       streamResponseSenderSendResponseMock.mock.calls[1].arguments[0],
-      chunks[1]
+      chunks[1],
     );
 
     assert.strictEqual(responseSenderSendResponseMock.mock.calls.length, 0);
@@ -184,11 +184,11 @@ void describe('Conversation turn executor', () => {
     assert.strictEqual(consoleLogMock.mock.calls.length, 2);
     assert.strictEqual(
       consoleLogMock.mock.calls[0].arguments[0],
-      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
     assert.strictEqual(
       consoleLogMock.mock.calls[1].arguments[0],
-      'Conversation turn event handled successfully, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Conversation turn event handled successfully, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
 
     assert.strictEqual(consoleErrorMock.mock.calls.length, 0);
@@ -200,25 +200,25 @@ void describe('Conversation turn executor', () => {
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
-      () => Promise.reject(bedrockError)
+      () => Promise.reject(bedrockError),
     );
     const responseSender = new ConversationTurnResponseSender(event);
     const responseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponse',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const streamResponseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponseChunk',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const responseSenderSendErrorsMock = mock.method(
       responseSender,
       'sendErrors',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -239,38 +239,38 @@ void describe('Conversation turn executor', () => {
           [],
           new Lazy(() => responseSender),
           new Lazy(() => bedrockConverseAdapter),
-          consoleMock
+          consoleMock,
         ).execute(),
       (error: Error) => {
         assert.strictEqual(error, bedrockError);
         return true;
-      }
+      },
     );
 
     assert.strictEqual(
       bedrockConverseAdapterAskBedrockMock.mock.calls.length,
-      1
+      1,
     );
     assert.strictEqual(
       streamResponseSenderSendResponseMock.mock.calls.length,
-      0
+      0,
     );
     assert.strictEqual(responseSenderSendResponseMock.mock.calls.length, 0);
 
     assert.strictEqual(consoleLogMock.mock.calls.length, 1);
     assert.strictEqual(
       consoleLogMock.mock.calls[0].arguments[0],
-      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
 
     assert.strictEqual(consoleErrorMock.mock.calls.length, 1);
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[0],
-      'Failed to handle conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Failed to handle conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[1],
-      bedrockError
+      bedrockError,
     );
     assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
     assert.deepStrictEqual(
@@ -280,7 +280,7 @@ void describe('Conversation turn executor', () => {
           errorType: 'Error',
           message: 'Bedrock failed',
         },
-      ]
+      ],
     );
   });
 
@@ -293,26 +293,26 @@ void describe('Conversation turn executor', () => {
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
-      () => Promise.resolve(bedrockResponse)
+      () => Promise.resolve(bedrockResponse),
     );
     const responseSenderError = new Error('Failed to send response');
     const responseSender = new ConversationTurnResponseSender(event);
     const responseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponse',
-      () => Promise.reject(responseSenderError)
+      () => Promise.reject(responseSenderError),
     );
 
     const streamResponseSenderSendResponseMock = mock.method(
       responseSender,
       'sendResponseChunk',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const responseSenderSendErrorsMock = mock.method(
       responseSender,
       'sendErrors',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -333,38 +333,38 @@ void describe('Conversation turn executor', () => {
           [],
           new Lazy(() => responseSender),
           new Lazy(() => bedrockConverseAdapter),
-          consoleMock
+          consoleMock,
         ).execute(),
       (error: Error) => {
         assert.strictEqual(error, responseSenderError);
         return true;
-      }
+      },
     );
 
     assert.strictEqual(
       bedrockConverseAdapterAskBedrockMock.mock.calls.length,
-      1
+      1,
     );
     assert.strictEqual(
       streamResponseSenderSendResponseMock.mock.calls.length,
-      0
+      0,
     );
     assert.strictEqual(responseSenderSendResponseMock.mock.calls.length, 1);
 
     assert.strictEqual(consoleLogMock.mock.calls.length, 1);
     assert.strictEqual(
       consoleLogMock.mock.calls[0].arguments[0],
-      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
 
     assert.strictEqual(consoleErrorMock.mock.calls.length, 1);
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[0],
-      'Failed to handle conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+      'Failed to handle conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId',
     );
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[1],
-      responseSenderError
+      responseSenderError,
     );
     assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
     assert.deepStrictEqual(
@@ -374,7 +374,7 @@ void describe('Conversation turn executor', () => {
           errorType: 'Error',
           message: 'Failed to send response',
         },
-      ]
+      ],
     );
   });
 
@@ -382,7 +382,7 @@ void describe('Conversation turn executor', () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
     const originalError = new Error('original error');
     mock.method(bedrockConverseAdapter, 'askBedrock', () =>
-      Promise.reject(originalError)
+      Promise.reject(originalError),
     );
     const responseSender = new ConversationTurnResponseSender(event);
     mock.method(responseSender, 'sendResponse', () => Promise.resolve());
@@ -392,7 +392,7 @@ void describe('Conversation turn executor', () => {
     const responseSenderSendErrorsMock = mock.method(
       responseSender,
       'sendErrors',
-      () => Promise.reject(new Error('sender error'))
+      () => Promise.reject(new Error('sender error')),
     );
 
     const consoleErrorMock = mock.fn();
@@ -413,12 +413,12 @@ void describe('Conversation turn executor', () => {
           [],
           new Lazy(() => responseSender),
           new Lazy(() => bedrockConverseAdapter),
-          consoleMock
+          consoleMock,
         ).execute(),
       (error: Error) => {
         assert.strictEqual(error, originalError);
         return true;
-      }
+      },
     );
 
     assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
@@ -429,7 +429,7 @@ void describe('Conversation turn executor', () => {
           errorType: 'Error',
           message: 'original error',
         },
-      ]
+      ],
     );
   });
 
@@ -437,7 +437,7 @@ void describe('Conversation turn executor', () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
     const unknownError = { some: 'shape' };
     mock.method(bedrockConverseAdapter, 'askBedrock', () =>
-      Promise.reject(unknownError)
+      Promise.reject(unknownError),
     );
     const responseSender = new ConversationTurnResponseSender(event);
     mock.method(responseSender, 'sendResponse', () => Promise.resolve());
@@ -447,7 +447,7 @@ void describe('Conversation turn executor', () => {
     const responseSenderSendErrorsMock = mock.method(
       responseSender,
       'sendErrors',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -468,12 +468,12 @@ void describe('Conversation turn executor', () => {
           [],
           new Lazy(() => responseSender),
           new Lazy(() => bedrockConverseAdapter),
-          consoleMock
+          consoleMock,
         ).execute(),
       (error: Error) => {
         assert.strictEqual(error, unknownError);
         return true;
-      }
+      },
     );
 
     assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
@@ -484,7 +484,7 @@ void describe('Conversation turn executor', () => {
           errorType: 'UnknownError',
           message: '{"some":"shape"}',
         },
-      ]
+      ],
     );
   });
 
@@ -499,7 +499,7 @@ void describe('Conversation turn executor', () => {
     const responseSenderSendErrorsMock = mock.method(
       responseSender,
       'sendErrors',
-      () => Promise.resolve()
+      () => Promise.resolve(),
     );
 
     const consoleErrorMock = mock.fn();
@@ -523,12 +523,12 @@ void describe('Conversation turn executor', () => {
           new Lazy(() => {
             throw initializationError;
           }),
-          consoleMock
+          consoleMock,
         ).execute(),
       (error: Error) => {
         assert.strictEqual(error, initializationError);
         return true;
-      }
+      },
     );
 
     assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
@@ -539,7 +539,7 @@ void describe('Conversation turn executor', () => {
           errorType: 'Error',
           message: 'initialization error',
         },
-      ]
+      ],
     );
   });
 });

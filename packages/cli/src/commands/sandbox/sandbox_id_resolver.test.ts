@@ -8,7 +8,7 @@ void describe('SandboxIdResolver', () => {
       {
         resolve: () => Promise.resolve('testAppName'),
       },
-      () => ({ username: 'testUsername' } as never)
+      () => ({ username: 'testUsername' }) as never,
     );
     const resolverRef = resolver.resolve;
     const result = await resolverRef();
@@ -22,7 +22,7 @@ void describe('SandboxIdResolver', () => {
       {
         resolve: () => Promise.resolve('testAppName'),
       },
-      userInfoMock
+      userInfoMock,
     );
     const result = await resolver.resolve('differentName');
     assert.equal(result.namespace, 'testAppName');

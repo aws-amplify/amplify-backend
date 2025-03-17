@@ -1,5 +1,25 @@
 # @aws-amplify/sandbox
 
+## 1.2.12
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- 8ed3cc2: shows region on sandbox start
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+- Updated dependencies [cf79696]
+- Updated dependencies [32bcc0b]
+  - @aws-amplify/deployed-backend-client@1.5.2
+  - @aws-amplify/backend-deployer@1.1.20
+  - @aws-amplify/backend-secret@1.2.0
+  - @aws-amplify/client-config@1.5.8
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+  - @aws-amplify/cli-core@1.4.1
+
 ## 1.2.11
 
 ### Patch Changes

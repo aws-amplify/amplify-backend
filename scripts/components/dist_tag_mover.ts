@@ -28,7 +28,7 @@ export class DistTagMover {
    */
   moveDistTags = async (
     sourceReleaseTags: string[],
-    destReleaseTags: string[]
+    destReleaseTags: string[],
   ) => {
     const moveActions: DistTagMoveAction[] = [];
 
@@ -36,21 +36,20 @@ export class DistTagMover {
       const { packageName, version: sourceVersion } =
         releaseTagToNameAndVersion(sourceReleaseTag);
 
-      const { 'dist-tags': distTags } = await this.npmClient.getPackageInfo(
-        sourceReleaseTag
-      );
+      const { 'dist-tags': distTags } =
+        await this.npmClient.getPackageInfo(sourceReleaseTag);
 
       Object.entries(distTags).forEach(([tagName, versionAtTag]) => {
         if (versionAtTag !== sourceVersion) {
           return;
         }
         const destReleaseTag = destReleaseTags.find((releaseTag) =>
-          releaseTag.includes(packageName)
+          releaseTag.includes(packageName),
         );
         if (!destReleaseTag) {
           // this should never happen because of the upstream logic that resolves the corresponding versions
           throw new Error(
-            `No corresponding destination release tag found for ${sourceReleaseTag}`
+            `No corresponding destination release tag found for ${sourceReleaseTag}`,
           );
         }
         moveActions.push({

@@ -26,7 +26,7 @@ type HandleErrorProps = {
  */
 export const attachUnhandledExceptionListeners = (
   usageDataEmitter: UsageDataEmitter,
-  telemetryDataEmitter: TelemetryDataEmitter
+  telemetryDataEmitter: TelemetryDataEmitter,
 ): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
@@ -75,7 +75,7 @@ export const generateCommandFailureHandler = (
   parser: Argv,
   usageDataEmitter?: UsageDataEmitter,
   telemetryDataEmitter?: TelemetryDataEmitter,
-  metrics?: Record<string, number>
+  metrics?: Record<string, number>,
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
@@ -171,18 +171,18 @@ const handleError = async ({
       AmplifyError.isAmplifyError(error)
         ? error
         : AmplifyError.fromError(
-            error && error instanceof Error ? error : new Error(message)
+            error && error instanceof Error ? error : new Error(message),
           ),
-      { command: command ?? 'UnknownCommand' }
+      { command: command ?? 'UnknownCommand' },
     ),
     telemetryDataEmitter?.emitFailure(
       AmplifyError.isAmplifyError(error)
         ? error
         : AmplifyError.fromError(
-            error && error instanceof Error ? error : new Error(message)
+            error && error instanceof Error ? error : new Error(message),
           ),
       metrics,
-      commandInfo
+      commandInfo,
     ),
   ]);
 };
@@ -192,7 +192,7 @@ const isUserForceClosePromptError = (err?: Error): boolean => {
 };
 
 const errorHasCauseStackTrace = (
-  error?: Error
+  error?: Error,
 ): error is Error & { cause: { stack: string } } => {
   return (
     typeof error?.cause === 'object' &&
@@ -203,7 +203,7 @@ const errorHasCauseStackTrace = (
 };
 
 const errorHasCauseMessage = (
-  error?: Error
+  error?: Error,
 ): error is Error & { cause: { message: string } } => {
   return (
     typeof error?.cause === 'object' &&

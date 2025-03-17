@@ -11,7 +11,7 @@ import { LockFileReader } from './lock-file-reader/types.js';
 void describe('YarnModernPackageManagerController', () => {
   const fspMock = {
     readFile: mock.fn(() =>
-      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+      Promise.resolve(JSON.stringify({ compilerOptions: {} })),
     ),
     writeFile: mock.fn(() => Promise.resolve()),
   };
@@ -40,12 +40,12 @@ void describe('YarnModernPackageManagerController', () => {
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock
+        existsSyncMock,
       );
     void it('runs yarn add with the correct arguments', async () => {
       await yarnModernPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
-        'dev'
+        'dev',
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
@@ -53,7 +53,7 @@ void describe('YarnModernPackageManagerController', () => {
     void it('runs yarn add with the correct arguments for prod dependencies', async () => {
       await yarnModernPackageManagerController.installDependencies(
         ['testPackage1', 'testPackage2'],
-        'prod'
+        'prod',
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
@@ -74,7 +74,7 @@ void describe('YarnModernPackageManagerController', () => {
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-          existsSyncMock
+          existsSyncMock,
         );
 
       await yarnModernPackageManagerController.initializeProject();
@@ -96,7 +96,7 @@ void describe('YarnModernPackageManagerController', () => {
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-          existsSyncMock
+          existsSyncMock,
         );
 
       await yarnModernPackageManagerController.initializeProject();
@@ -116,7 +116,7 @@ void describe('YarnModernPackageManagerController', () => {
           pathMock as unknown as typeof path,
           execaMock as unknown as typeof execa,
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-          existsSyncMock
+          existsSyncMock,
         );
 
       await yarnModernPackageManagerController.initializeTsConfig('./amplify');
@@ -160,7 +160,7 @@ void describe('YarnModernPackageManagerController', () => {
           execaMock as unknown as typeof execa,
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock,
-          lockFileReaderMock
+          lockFileReaderMock,
         );
       const dependencyVersions =
         await yarnModernPackageManagerController.tryGetDependencies();

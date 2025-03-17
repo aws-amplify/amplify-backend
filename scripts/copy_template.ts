@@ -19,19 +19,19 @@ const { values } = util.parseArgs({
 
 if (!values?.name || !values?.template) {
   throw new Error(
-    'Specify a package template using --template=<string> and a new package name using --name=<string>. Valid template names are the directory names under ./templates'
+    'Specify a package template using --template=<string> and a new package name using --name=<string>. Valid template names are the directory names under ./templates',
   );
 }
 
 const sourcePath = path.resolve(
   new URL('.', import.meta.url).host,
   'templates',
-  values.template as string
+  values.template as string,
 );
 const destPath = path.resolve(
   new URL('.', import.meta.url).host,
   'packages',
-  values.name as string
+  values.name as string,
 );
 
 await fs.copy(sourcePath, destPath);
@@ -41,6 +41,6 @@ const packageJsonPath = path.resolve(destPath, 'package.json');
 const tokenizedPackageJson = await readFile(packageJsonPath, 'utf-8');
 const newPackageJson = tokenizedPackageJson.replaceAll(
   '{{libName}}',
-  values.name as string
+  values.name as string,
 );
 await writeFile(packageJsonPath, newPackageJson);

@@ -7,14 +7,14 @@ import assert from 'node:assert';
 void describe('LibraryVersionFetcher', () => {
   mock.method(fs, 'existsSync', () => true);
   mock.method(fs, 'readFile', () =>
-    Promise.resolve(JSON.stringify({ name: 'testAppName' }))
+    Promise.resolve(JSON.stringify({ name: 'testAppName' })),
   );
 
   void it('returns a valid UUID', () => {
     const installationUuid = getInstallationUuid();
     assert.ok(
       validate(installationUuid),
-      `${installationUuid} is not a valid UUID string`
+      `${installationUuid} is not a valid UUID string`,
     );
   });
 

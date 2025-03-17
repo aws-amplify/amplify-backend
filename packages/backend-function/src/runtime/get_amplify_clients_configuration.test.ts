@@ -58,8 +58,8 @@ void describe('getAmplifyDataClientConfig', () => {
         await assert.rejects(
           async () => await getAmplifyDataClientConfig(validEnv, mockS3Client),
           new Error(
-            'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.'
-          )
+            'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.',
+          ),
         );
       });
 
@@ -77,8 +77,8 @@ void describe('getAmplifyDataClientConfig', () => {
         await assert.rejects(
           async () => await getAmplifyDataClientConfig(validEnv, mockS3Client),
           new Error(
-            'Error retrieving the schema from S3. You may need to grant this function authorization on the schema. TEST_ERROR: TEST_MESSAGE.'
-          )
+            'Error retrieving the schema from S3. You may need to grant this function authorization on the schema. TEST_ERROR: TEST_MESSAGE.',
+          ),
         );
       });
 
@@ -90,7 +90,7 @@ void describe('getAmplifyDataClientConfig', () => {
 
         await assert.rejects(
           async () => await getAmplifyDataClientConfig(validEnv, mockS3Client),
-          new Error('Test Error')
+          new Error('Test Error'),
         );
       });
 
@@ -116,11 +116,11 @@ void describe('getAmplifyDataClientConfig', () => {
               secretAccessKey: 'TEST_VALUE for AWS_SECRET_ACCESS_KEY',
               sessionToken: 'TEST_VALUE for AWS_SESSION_TOKEN',
             },
-          }
+          },
         );
         assert.deepEqual(
           await libraryOptions.Auth.credentialsProvider.clearCredentialsAndIdentityId?.(),
-          undefined
+          undefined,
         );
 
         assert.deepEqual(resourceConfig, {

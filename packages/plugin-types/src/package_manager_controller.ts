@@ -30,12 +30,12 @@ export type PackageManagerController = {
   initializeTsConfig: (targetDir: string) => Promise<void>;
   installDependencies: (
     packageNames: string[],
-    type: 'dev' | 'prod'
+    type: 'dev' | 'prod',
   ) => Promise<void>;
   runWithPackageManager: (
     args: string[] | undefined,
     dir: string,
-    options?: ExecaOptions
+    options?: ExecaOptions,
   ) => ExecaChildProcess;
   getCommand: (args: string[]) => string;
   allowsSignalPropagation: () => boolean;

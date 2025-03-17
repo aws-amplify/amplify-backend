@@ -7,11 +7,11 @@ import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
  */
 export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const backendNamespace = scope.node.getContext(
-    CDKContextKey.BACKEND_NAMESPACE
+    CDKContextKey.BACKEND_NAMESPACE,
   );
   if (typeof backendNamespace !== 'string') {
     throw new Error(
-      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`,
     );
   }
 
@@ -19,12 +19,12 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
 
   if (typeof backendName !== 'string') {
     throw new Error(
-      `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`
+      `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`,
     );
   }
 
   const deploymentType: DeploymentType = scope.node.getContext(
-    CDKContextKey.DEPLOYMENT_TYPE
+    CDKContextKey.DEPLOYMENT_TYPE,
   );
   const expectedDeploymentTypeValues = ['sandbox', 'branch'];
 
@@ -33,8 +33,8 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
       `${
         CDKContextKey.DEPLOYMENT_TYPE
       } CDK context value is not in (${expectedDeploymentTypeValues.join(
-        ', '
-      )})`
+        ', ',
+      )})`,
     );
   }
 

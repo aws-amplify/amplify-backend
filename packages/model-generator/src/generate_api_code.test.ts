@@ -54,7 +54,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         graphqlDocumentGenerator,
         graphqlTypesGenerator,
-        noopGraphqlModelsGenerator
+        noopGraphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
@@ -68,7 +68,7 @@ void describe('generateAPICode', () => {
           targetFormat: 'typescript',
           maxDepth: undefined,
           typenameIntrospection: undefined,
-        }
+        },
       );
       assert.equal(generateTypes.mock.callCount(), 0);
 
@@ -99,7 +99,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         graphqlDocumentGenerator,
         graphqlTypesGenerator,
-        noopGraphqlModelsGenerator
+        noopGraphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
@@ -115,7 +115,7 @@ void describe('generateAPICode', () => {
           targetFormat: 'typescript',
           maxDepth: 3,
           typenameIntrospection: false,
-        }
+        },
       );
       assert.equal(generateTypes.mock.callCount(), 0);
 
@@ -146,7 +146,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         graphqlDocumentGenerator,
         graphqlTypesGenerator,
-        noopGraphqlModelsGenerator
+        noopGraphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
@@ -162,7 +162,7 @@ void describe('generateAPICode', () => {
           maxDepth: undefined,
           relativeTypesPath: './API',
           typenameIntrospection: undefined,
-        }
+        },
       );
       assert.equal(generateTypes.mock.callCount(), 1);
       assert.deepEqual(
@@ -172,7 +172,7 @@ void describe('generateAPICode', () => {
           multipleSwiftFiles: undefined,
           maxDepth: undefined,
           typenameIntrospection: undefined,
-        }
+        },
       );
 
       const receivedResults = await results.getResults();
@@ -196,7 +196,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         noopGraphqlDocumentGenerator,
         graphqlTypesGenerator,
-        noopGraphqlModelsGenerator
+        noopGraphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
         statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
@@ -214,7 +214,7 @@ void describe('generateAPICode', () => {
           multipleSwiftFiles: undefined,
           maxDepth: 5,
           typenameIntrospection: true,
-        }
+        },
       );
 
       const receivedResults = await results.getResults();
@@ -240,7 +240,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         noopGraphqlDocumentGenerator,
         noopGraphqlTypesGenerator,
-        graphqlModelsGenerator
+        graphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.MODELGEN,
         modelTarget: GenerateApiCodeModelTarget.TYPESCRIPT,
@@ -259,7 +259,7 @@ void describe('generateAPICode', () => {
           respectPrimaryKeyAttributesOnConnectionField: undefined,
           transformerVersion: undefined,
           useExperimentalPipelinedTransformer: undefined,
-        }
+        },
       );
 
       const receivedResults = await results.getResults();
@@ -279,7 +279,7 @@ void describe('generateAPICode', () => {
       await new ApiCodeGenerator(
         noopGraphqlDocumentGenerator,
         noopGraphqlTypesGenerator,
-        graphqlModelsGenerator
+        graphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.MODELGEN,
         modelTarget: GenerateApiCodeModelTarget.DART,
@@ -300,7 +300,7 @@ void describe('generateAPICode', () => {
           respectPrimaryKeyAttributesOnConnectionField: true,
           transformerVersion: undefined,
           useExperimentalPipelinedTransformer: undefined,
-        }
+        },
       );
     });
   });
@@ -321,7 +321,7 @@ void describe('generateAPICode', () => {
       const results = await new ApiCodeGenerator(
         noopGraphqlDocumentGenerator,
         noopGraphqlTypesGenerator,
-        graphqlModelsGenerator
+        graphqlModelsGenerator,
       ).generate({
         format: GenerateApiCodeFormat.INTROSPECTION,
       });
@@ -331,7 +331,7 @@ void describe('generateAPICode', () => {
         (generateModels.mock.calls[0].arguments as unknown[])[0],
         {
           target: 'introspection',
-        }
+        },
       );
 
       const receivedResults = await results.getResults();
@@ -343,7 +343,7 @@ void describe('generateAPICode', () => {
     const generator = new ApiCodeGenerator(
       noopGraphqlDocumentGenerator,
       noopGraphqlTypesGenerator,
-      noopGraphqlModelsGenerator
+      noopGraphqlModelsGenerator,
     );
     const props = {
       format: 'unsupported',

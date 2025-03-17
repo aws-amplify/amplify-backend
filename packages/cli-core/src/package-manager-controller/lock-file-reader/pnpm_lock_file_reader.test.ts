@@ -55,7 +55,7 @@ packages:
 
   'some_other_dep@12.13.14':
     resolution: {integrity: some-other-sha}
-    engines: {node: '>=8'}`
+    engines: {node: '>=8'}`,
   );
   const pnpmLockFileReader = new PnpmLockFileReader();
 
@@ -81,14 +81,14 @@ packages:
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
       fspReadFileMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), 'pnpm-lock.yaml')
+      path.resolve(process.cwd(), 'pnpm-lock.yaml'),
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
   void it('returns empty lock file contents when pnpm-lock.yaml is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
+      Promise.reject(new Error()),
     );
     const lockFileContents =
       await pnpmLockFileReader.getLockFileContentsFromCwd();
@@ -136,7 +136,7 @@ packages:
           version: 4.19.2
         typescript:
           specifier: ^5.7.2
-          version: 5.7.2`
+          version: 5.7.2`,
     );
     const lockFileContents =
       await pnpmLockFileReader.getLockFileContentsFromCwd();

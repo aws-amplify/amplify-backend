@@ -35,11 +35,11 @@ void describe('AmplifyFunctionFactory - Layers', () => {
     rootStack = createStackAndSetContext();
 
     const constructContainer = new ConstructContainerStub(
-      new StackResolverStub(rootStack)
+      new StackResolverStub(rootStack),
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      rootStack
+      rootStack,
     );
 
     resourceNameValidator = new ResourceNameValidatorStub();
@@ -116,11 +116,11 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          `Invalid format for layer: ${invalidLayerArn}`
+          `Invalid format for layer: ${invalidLayerArn}`,
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -138,7 +138,7 @@ void describe('AmplifyFunctionFactory - Layers', () => {
         acc[`layer${index + 1}`] = arn;
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, string>,
     );
 
     const functionFactory = defineFunction({
@@ -152,11 +152,11 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          `A maximum of 5 unique layers can be attached to a function.`
+          `A maximum of 5 unique layers can be attached to a function.`,
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -231,11 +231,11 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          `Invalid format for layer: ${invalidFormat}`
+          `Invalid format for layer: ${invalidFormat}`,
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 

@@ -38,7 +38,7 @@ Amplify.configure(
         },
       },
     },
-  }
+  },
 );
 
 /**
@@ -67,7 +67,7 @@ const s3RoundTrip = async (): Promise<string> => {
         options: {
           accessLevel: 'guest',
         },
-      }).result
+      }).result,
   );
 
   const downloadResult = await retry(
@@ -75,7 +75,7 @@ const s3RoundTrip = async (): Promise<string> => {
       downloadData({
         key: filename,
         options: { accessLevel: 'guest' },
-      }).result
+      }).result,
   );
   return downloadResult.body.text() as Promise<string>;
 };

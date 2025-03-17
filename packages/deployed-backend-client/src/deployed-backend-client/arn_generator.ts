@@ -17,7 +17,7 @@ export class ArnGenerator {
       'PhysicalResourceId' | 'ResourceType'
     >,
     region?: string,
-    accountId?: string
+    accountId?: string,
   ): string | undefined => {
     if (!stackResourceSummary.PhysicalResourceId) {
       return undefined;

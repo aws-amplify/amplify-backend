@@ -43,14 +43,14 @@ export class BedrockConverseAdapter {
     private readonly event: ConversationTurnEvent,
     additionalTools: Array<ExecutableTool>,
     private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
-      { region: event.modelConfiguration.region }
+      { region: event.modelConfiguration.region },
     ),
     eventToolsProvider = new ConversationTurnEventToolsProvider(event),
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
-      event
+      event,
     ),
     userAgentProvider = new UserAgentProvider(event),
-    private readonly logger = console
+    private readonly logger = console,
   ) {
     this.bedrockClient.middlewareStack.add(
       (next) => (args) => {
@@ -63,7 +63,7 @@ export class BedrockConverseAdapter {
       {
         step: 'build',
         name: 'amplify-user-agent-injector',
-      }
+      },
     );
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
@@ -91,7 +91,7 @@ export class BedrockConverseAdapter {
       throw new ValidationError(
         `Tools must have unique names. Duplicate tools: ${[
           ...duplicateTools,
-        ].join(', ')}.`
+        ].join(', ')}.`,
       );
     }
   }
@@ -116,11 +116,11 @@ export class BedrockConverseAdapter {
       this.logger.info('Sending Bedrock Converse request');
       this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
-        new ConverseCommand(converseCommandInput)
+        new ConverseCommand(converseCommandInput),
       );
       this.logger.info(
         `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`,
-        bedrockResponse.usage
+        bedrockResponse.usage,
       );
       this.logger.debug('Bedrock Converse response:', bedrockResponse);
       if (bedrockResponse.output?.message) {
@@ -130,12 +130,12 @@ export class BedrockConverseAdapter {
         const responseContentBlocks =
           bedrockResponse.output?.message?.content ?? [];
         const toolUseBlocks = responseContentBlocks.filter(
-          (block) => 'toolUse' in block
+          (block) => 'toolUse' in block,
         ) as Array<ContentBlock.ToolUseMember>;
         const clientToolUseBlocks = responseContentBlocks.filter(
           (block) =>
             block.toolUse?.name &&
-            this.clientToolByName.has(block.toolUse?.name)
+            this.clientToolByName.has(block.toolUse?.name),
         );
         if (clientToolUseBlocks.length > 0) {
           // For now if any of client tools is used we ignore executable tools
@@ -190,13 +190,13 @@ export class BedrockConverseAdapter {
       this.logger.info('Sending Bedrock Converse Stream request');
       this.logger.debug(
         'Bedrock Converse Stream request:',
-        converseCommandInput
+        converseCommandInput,
       );
       bedrockResponse = await this.bedrockClient.send(
-        new ConverseStreamCommand(converseCommandInput)
+        new ConverseStreamCommand(converseCommandInput),
       );
       this.logger.info(
-        `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+        `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
       );
       if (!bedrockResponse.stream) {
         throw new Error('Bedrock response is missing stream');
@@ -308,18 +308,18 @@ export class BedrockConverseAdapter {
           processedBedrockChunks++;
           if (processedBedrockChunks % 1000 === 0) {
             this.logger.info(
-              `Processed ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+              `Processed ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
             );
           }
         }
       } finally {
         this.logger.info(
-          `Completed processing ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+          `Completed processing ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
         );
       }
       this.logger.debug(
         'Accumulated Bedrock Converse Stream response:',
-        accumulatedAssistantMessage
+        accumulatedAssistantMessage,
       );
       if (clientToolsRequested) {
         // For now if any of client tools is used we ignore executable tools
@@ -337,7 +337,7 @@ export class BedrockConverseAdapter {
       if (stopReason === 'tool_use') {
         const responseContentBlocks = accumulatedAssistantMessage.content ?? [];
         const toolUseBlocks = responseContentBlocks.filter(
-          (block) => 'toolUse' in block
+          (block) => 'toolUse' in block,
         ) as Array<ContentBlock.ToolUseMember>;
         const toolResponseContentBlocks: Array<ContentBlock> = [];
         for (const responseContentBlock of toolUseBlocks) {
@@ -385,6 +385,18 @@ export class BedrockConverseAdapter {
               },
             },
           });
+        } else if (typeof contentElement.document?.source?.bytes === 'string') {
+          messageContent.push({
+            document: {
+              ...contentElement.document,
+              source: {
+                bytes: Buffer.from(
+                  contentElement.document.source.bytes,
+                  'base64',
+                ),
+              },
+            },
+          });
         } else {
           // Otherwise type conforms to Bedrock's type and it's safe to cast.
           messageContent.push(contentElement as ContentBlock);
@@ -419,7 +431,7 @@ export class BedrockConverseAdapter {
   };
 
   private executeTool = async (
-    toolUseBlock: ContentBlock.ToolUseMember
+    toolUseBlock: ContentBlock.ToolUseMember,
   ): Promise<ContentBlock> => {
     if (!toolUseBlock.toolUse.name) {
       throw Error('Bedrock tool use response is missing a tool name');
@@ -427,7 +439,7 @@ export class BedrockConverseAdapter {
     const tool = this.executableToolByName.get(toolUseBlock.toolUse.name);
     if (!tool) {
       throw Error(
-        `Bedrock tool use response contains unknown tool '${toolUseBlock.toolUse.name}'`
+        `Bedrock tool use response contains unknown tool '${toolUseBlock.toolUse.name}'`,
       );
     }
     try {

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.4.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+
 ## 1.4.0
 
 ### Minor Changes

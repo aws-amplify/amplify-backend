@@ -192,7 +192,7 @@ export type AuthLoginWithFactoryProps = Omit<
 
 export type AuthAccessBuilder = {
   resource: (
-    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
+    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>,
   ) => AuthActionBuilder;
 };
 
@@ -201,12 +201,12 @@ export type AuthActionBuilder = {
 };
 
 export type AuthAccessGenerator = (
-  allow: AuthAccessBuilder
+  allow: AuthAccessBuilder,
 ) => AuthAccessDefinition[];
 
 export type AuthAccessDefinition = {
   getResourceAccessAcceptor: (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
   ) => ResourceAccessAcceptor;
 
   // list of auth actions you can perform on the resource

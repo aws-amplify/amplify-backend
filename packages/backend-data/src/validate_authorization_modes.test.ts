@@ -19,23 +19,23 @@ void describe('validateAuthorizationModes', () => {
           authenticatedUserRole: Role.fromRoleName(
             stack,
             'AuthUserRole',
-            'MyAuthUserRole'
+            'MyAuthUserRole',
           ),
           unauthenticatedUserRole: Role.fromRoleName(
             stack,
             'UnauthUserRole',
-            'MyUnauthUserRole'
+            'MyUnauthUserRole',
           ),
           allowListedRoles: ['MyAdminRole'],
         },
-      })
+      }),
     );
   });
 
   void it('throws if no auth mode is configured', () => {
     assert.throws(
       () => validateAuthorizationModes(undefined, {}),
-      /At least one authorization mode is required on the API. Either add Auth to the project to get IAM and UserPool authorization, or specify apiKeyConfig, lambdaConfig, or oidcConfig via authorization modes./
+      /At least one authorization mode is required on the API. Either add Auth to the project to get IAM and UserPool authorization, or specify apiKeyConfig, lambdaConfig, or oidcConfig via authorization modes./,
     );
   });
 });

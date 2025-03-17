@@ -58,7 +58,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         };
       }
       throw request;
-    }
+    },
   );
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn((input) => {
@@ -77,7 +77,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
   });
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,
-    new AmplifyClient()
+    new AmplifyClient(),
   );
   const returnedDeleteFailedStacks = [
     {
@@ -100,7 +100,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       new ArnGenerator(),
-      new ArnParser()
+      new ArnParser(),
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
     deployedBackendClient = new DefaultDeployedBackendClient(
@@ -109,7 +109,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper(),
-      new ArnParser()
+      new ArnParser(),
     );
   });
 
@@ -139,12 +139,12 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     assert.deepEqual(
       (await failedStacks.getBackendSummaryByPage().next()).value,
-      returnedDeleteFailedStacks
+      returnedDeleteFailedStacks,
     );
 
     assert.deepEqual(
       (await failedStacks.getBackendSummaryByPage().next()).done,
-      true
+      true,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);

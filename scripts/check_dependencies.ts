@@ -16,11 +16,12 @@ await new DependenciesValidator(
     '@aws-amplify/cli-core': {
       allowList: [
         '@aws-amplify/backend-cli',
+        '@aws-amplify/integration-tests',
         '@aws-amplify/sandbox',
         'create-amplify',
       ],
     },
   },
   [], // Add a list of dependencies here that should be versioned together
-  []
+  [],
 ).validate();

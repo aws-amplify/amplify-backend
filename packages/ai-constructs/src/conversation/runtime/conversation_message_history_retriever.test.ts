@@ -706,13 +706,13 @@ void describe('Conversation message history retriever', () => {
   for (const testCase of testCases) {
     void it(testCase.name, async () => {
       const userAgentProvider = new UserAgentProvider(
-        {} as unknown as ConversationTurnEvent
+        {} as unknown as ConversationTurnEvent,
       );
       mock.method(userAgentProvider, 'getUserAgent', () => '');
       const graphqlRequestExecutor = new GraphqlRequestExecutor(
         '',
         '',
-        userAgentProvider
+        userAgentProvider,
       );
       const executeGraphqlMock = mock.method(
         graphqlRequestExecutor,
@@ -742,18 +742,18 @@ void describe('Conversation message history retriever', () => {
             return Promise.resolve(mockGetResponse);
           }
           throw new Error('The query is not mocked');
-        }
+        },
       );
 
       const retriever = new ConversationMessageHistoryRetriever(
         event,
-        graphqlRequestExecutor
+        graphqlRequestExecutor,
       );
       const messages = await retriever.getMessageHistory();
 
       assert.strictEqual(
         executeGraphqlMock.mock.calls.length,
-        testCase.mockGetCurrentMessage ? 2 : 1
+        testCase.mockGetCurrentMessage ? 2 : 1,
       );
       const listRequest = executeGraphqlMock.mock.calls[0]
         .arguments[0] as GraphqlRequest<MutationResponseInput>;

@@ -46,7 +46,7 @@ export class PipelineDeployCommand
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendDeployer: BackendDeployer,
-    private readonly isCiEnvironment: typeof _isCI = _isCI
+    private readonly isCiEnvironment: typeof _isCI = _isCI,
   ) {
     this.command = 'pipeline-deploy';
     this.describe =
@@ -57,14 +57,14 @@ export class PipelineDeployCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<PipelineDeployCommandOptions>
+    args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
       throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
         message:
           'It looks like this command is being run outside of a CI/CD workflow.',
         resolution: `To deploy locally use ${format.normalizeAmpxCommand(
-          'sandbox'
+          'sandbox',
         )} instead.`,
       });
     }
@@ -81,7 +81,7 @@ export class PipelineDeployCommand
       backendId,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
-      args.outputsFormat
+      args.outputsFormat,
     );
   };
 

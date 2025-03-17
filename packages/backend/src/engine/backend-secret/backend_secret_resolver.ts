@@ -16,7 +16,7 @@ export class DefaultBackendSecretResolver implements BackendSecretResolver {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly backendId: BackendIdentifier
+    private readonly backendId: BackendIdentifier,
   ) {}
 
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {

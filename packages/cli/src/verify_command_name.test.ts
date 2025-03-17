@@ -19,7 +19,7 @@ void describe('verifyCommandName', () => {
       () => verifyCommandName(),
       (error: Error) =>
         error.name === 'InvalidCommandError' &&
-        error.message.startsWith('The Amplify Gen 2 CLI has been renamed')
+        error.message.startsWith('The Amplify Gen 2 CLI has been renamed'),
     );
   });
 });

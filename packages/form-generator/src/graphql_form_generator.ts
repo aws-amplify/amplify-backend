@@ -1,6 +1,6 @@
 export type GraphqlGenerationResult = {
   writeToDirectory: (
-    directoryPath: string
+    directoryPath: string,
   ) => Promise<GenerateGraphqlToFileResult>;
 };
 export type FormGenerationOptions = {
@@ -8,7 +8,7 @@ export type FormGenerationOptions = {
 };
 export type GraphqlFormGenerator = {
   generateForms: (
-    options?: FormGenerationOptions
+    options?: FormGenerationOptions,
   ) => Promise<GraphqlGenerationResult>;
 };
 export type GenerateGraphqlToFileResult = {

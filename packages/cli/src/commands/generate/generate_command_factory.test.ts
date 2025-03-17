@@ -21,11 +21,11 @@ void describe('top level generate command', () => {
     assert.match(output, /Commands:/);
     assert.match(
       output,
-      /generate outputs\W*Generates Amplify backend outputs/
+      /generate outputs\W*Generates Amplify backend outputs/,
     );
     assert.match(
       output,
-      /generate graphql-client-code\W*Generates graphql API code/
+      /generate graphql-client-code\W*Generates graphql API code/,
     );
   });
 
@@ -41,10 +41,10 @@ void describe('top level generate command', () => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
         assert.strictEqual(
           error.error.message,
-          'Invalid --stack name provided: 3-Invalid'
+          'Invalid --stack name provided: 3-Invalid',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -54,10 +54,10 @@ void describe('top level generate command', () => {
       (err: Error) => {
         assert.equal(
           err.message,
-          'Top level generate handler should never be called'
+          'Top level generate handler should never be called',
         );
         return true;
-      }
+      },
     );
   });
 });

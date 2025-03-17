@@ -41,7 +41,7 @@ export class GenerateSchemaCommand
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
     private readonly secretClient: SecretClient,
-    private readonly schemaGenerator: SchemaGenerator
+    private readonly schemaGenerator: SchemaGenerator,
   ) {
     this.command = 'schema-from-database';
     this.describe = 'Generates typescript data schema from a SQL database';
@@ -51,7 +51,7 @@ export class GenerateSchemaCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateSchemaCommandOptions>
+    args: ArgumentsCamelCase<GenerateSchemaCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier =
       await this.backendIdentifierResolver.resolveBackendIdentifier(args);
@@ -71,7 +71,7 @@ export class GenerateSchemaCommand
       backendIdentifier,
       {
         name: connectionUriSecretName,
-      }
+      },
     );
 
     const sslCertSecretName = args.sslCertSecret as string;

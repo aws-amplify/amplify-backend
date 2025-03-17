@@ -1,5 +1,47 @@
 # @aws-amplify/backend-cli
 
+## 1.5.0
+
+### Minor Changes
+
+- cf79696: feat: add --all flag to remove all secrets in sandbox
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- Updated dependencies [99f5d0b]
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+- Updated dependencies [cf79696]
+- Updated dependencies [32bcc0b]
+- Updated dependencies [8ed3cc2]
+  - @aws-amplify/deployed-backend-client@1.5.2
+  - @aws-amplify/backend-output-schemas@1.4.1
+  - @aws-amplify/backend-deployer@1.1.20
+  - @aws-amplify/schema-generator@1.2.8
+  - @aws-amplify/model-generator@1.0.13
+  - @aws-amplify/backend-secret@1.2.0
+  - @aws-amplify/form-generator@1.0.5
+  - @aws-amplify/client-config@1.5.8
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+  - @aws-amplify/cli-core@1.4.1
+  - @aws-amplify/sandbox@1.2.12
+
+## 1.4.12
+
+### Patch Changes
+
+- dafb530: Bumps [is-ci](https://github.com/watson/is-ci) from 3.0.1 to 4.1.0.
+- Updated dependencies [dafb530]
+- Updated dependencies [ca9d732]
+- Updated dependencies [af90a9b]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/backend-deployer@1.1.19
+  - @aws-amplify/cli-core@1.4.0
+
 ## 1.4.11
 
 ### Patch Changes

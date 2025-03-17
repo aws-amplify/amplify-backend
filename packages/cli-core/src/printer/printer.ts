@@ -23,7 +23,7 @@ export class Printer {
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 500,
-    private readonly enableTTY = process.env.CI ? false : true
+    private readonly enableTTY = process.env.CI ? false : true,
   ) {}
 
   /**
@@ -72,7 +72,7 @@ export class Printer {
   indicateProgress = async (
     message: string,
     callback: () => Promise<void>,
-    successMessage?: string
+    successMessage?: string,
   ) => {
     await oraPromise(callback, {
       text: message,
@@ -95,7 +95,7 @@ export class Printer {
   startSpinner = (
     id: string,
     message: string,
-    options: { timeoutSeconds: number } = { timeoutSeconds: 60 }
+    options: { timeoutSeconds: number } = { timeoutSeconds: 60 },
   ): string => {
     this.currentSpinners[id] = {
       instance: ora({
@@ -134,12 +134,12 @@ export class Printer {
    */
   updateSpinner = (
     id: string,
-    options: { message?: string; prefixText?: string }
+    options: { message?: string; prefixText?: string },
   ): void => {
     if (this.currentSpinners[id] === undefined) {
       this.log(
         `Spinner with id ${id} not found or already stopped`,
-        LogLevel.ERROR
+        LogLevel.ERROR,
       );
       return;
     }

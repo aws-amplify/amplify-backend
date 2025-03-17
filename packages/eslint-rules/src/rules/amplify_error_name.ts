@@ -12,7 +12,7 @@ export const amplifyErrorNameRule = ESLintUtils.RuleCreator.withoutDocs({
         const checkNode = (
           errorTypeName: string,
           expectedNameSuffix: string,
-          messageId: 'properAmplifyErrorSuffix' | 'properAmplifyFaultSuffix'
+          messageId: 'properAmplifyErrorSuffix' | 'properAmplifyFaultSuffix',
         ) => {
           if (
             node.callee.type === 'Identifier' &&

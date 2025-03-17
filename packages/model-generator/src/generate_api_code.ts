@@ -93,7 +93,7 @@ export type GenerateApiCodeProps = GenerateOptions &
  * Generate api code using Api Code Generator with default generators.
  */
 export const generateApiCode = async (
-  props: GenerateApiCodeProps
+  props: GenerateApiCodeProps,
 ): Promise<GenerationResult> => {
   const backendIdentifier = props;
   return new ApiCodeGenerator(
@@ -108,7 +108,7 @@ export const generateApiCode = async (
     createGraphqlModelsGenerator({
       backendIdentifier,
       awsClientProvider: props.awsClientProvider,
-    })
+    }),
   ).generate(props);
 };
 
@@ -125,7 +125,7 @@ export class ApiCodeGenerator {
   constructor(
     private readonly graphqlDocumentGenerator: GraphqlDocumentGenerator,
     private readonly graphqlTypesGenerator: GraphqlTypesGenerator,
-    private readonly graphqlModelsGenerator: GraphqlModelsGenerator
+    private readonly graphqlModelsGenerator: GraphqlModelsGenerator,
   ) {}
 
   /**
@@ -149,7 +149,7 @@ export class ApiCodeGenerator {
         throw new Error(
           `${
             (props as GenerateApiCodeProps).format as string
-          } is not a supported format.`
+          } is not a supported format.`,
         );
     }
   }
@@ -158,7 +158,7 @@ export class ApiCodeGenerator {
    * Execute document, and optionally type generation with relevant targets, wiring through types into statements if possible.
    */
   private async generateGraphqlCodegenApiCode(
-    props: GenerateGraphqlCodegenOptions
+    props: GenerateGraphqlCodegenOptions,
   ): Promise<GenerationResult> {
     const generateModelsParams: DocumentGenerationParameters = {
       targetFormat: props.statementTarget,
@@ -173,16 +173,15 @@ export class ApiCodeGenerator {
       // value, and we want to rely on that behavior.
       const typeOutputFilepath = getOutputFileName(
         null as unknown as string,
-        props.typeTarget
+        props.typeTarget,
       );
       const fileName = path.parse(typeOutputFilepath).name;
       // This is an node import path, so we don't want to use path.join, since that'll produce invalid paths on windows platforms
       // Hard-coding since this method explicitly writes to the same directory if types are enabled.
       generateModelsParams.relativeTypesPath = `./${fileName}`;
     }
-    const documents = await this.graphqlDocumentGenerator.generateModels(
-      generateModelsParams
-    );
+    const documents =
+      await this.graphqlDocumentGenerator.generateModels(generateModelsParams);
 
     if (props.typeTarget) {
       const types = await this.graphqlTypesGenerator.generateTypes({
@@ -194,7 +193,7 @@ export class ApiCodeGenerator {
 
       return {
         writeToDirectory: async (
-          directoryPath: string
+          directoryPath: string,
         ): Promise<GenerateGraphqlCodegenToFileResult> => {
           const filesWritten: string[] = [];
           const { filesWritten: documentsFilesWritten } =
@@ -221,7 +220,7 @@ export class ApiCodeGenerator {
    * Execute model generation with model target.
    */
   private async generateModelgenApiCode(
-    props: GenerateModelsOptions
+    props: GenerateModelsOptions,
   ): Promise<GenerationResult> {
     return this.graphqlModelsGenerator.generateModels({
       target: props.modelTarget,
