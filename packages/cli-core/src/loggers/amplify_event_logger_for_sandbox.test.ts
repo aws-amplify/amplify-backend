@@ -1151,7 +1151,7 @@ void describe('amplify sandbox event logging', () => {
                 format.bold('∟ UserPool'),
                 'Red',
               )}${EOL}${cll()}${format.color(
-                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:504152962427:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
+                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:123456789012:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
                 'Red',
               )}${EOL}`,
             );
@@ -1184,7 +1184,7 @@ void describe('amplify sandbox event logging', () => {
                 format.bold('∟ UserPool'),
                 'Red',
               )}${EOL}${cll()}${format.color(
-                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:504152962427:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
+                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:123456789012:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
                 'Red',
               )}${EOL}`,
             );
@@ -1205,7 +1205,7 @@ void describe('amplify sandbox event logging', () => {
                 format.bold('∟ UserPool'),
                 'Red',
               )}${EOL}${cll()}${format.color(
-                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:504152962427:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
+                'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:123456789012:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
                 'Red',
               )}${EOL}${cll()}${EOL}${cll()}${EOL}`,
             );
