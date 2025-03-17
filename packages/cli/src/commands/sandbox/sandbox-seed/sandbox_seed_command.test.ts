@@ -107,6 +107,10 @@ void describe('sandbox seed command', () => {
       const output = await commandRunner.runCommand('sandbox seed');
 
       assert.ok(output !== undefined);
+      assert.strictEqual(
+        output.trimEnd(),
+        '✅ seed has successfully completed'
+      );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
   });
