@@ -23,6 +23,10 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { amplifyAtTag } from '../constants.js';
 import { FunctionCodeHotswapTestProjectCreator } from '../test-project-setup/live-dependency-health-checks-projects/function_code_hotswap.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  NoticesManifestValidator,
+  noticesManifestSchema,
+} from '@aws-amplify/cli-core';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -179,6 +183,16 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
       // Clean up
       await testProject.tearDown(sandboxBackendIdentifier);
+    });
+  });
+
+  void describe('notices website', () => {
+    void it('returns valid notice manifest', async () => {
+      const response = await fetch(
+        'https://notices.cli.amplify.aws/notices.json',
+      );
+      const manifest = noticesManifestSchema.parse(await response.json());
+      assert.ok(new NoticesManifestValidator().validate(manifest));
     });
   });
 });
