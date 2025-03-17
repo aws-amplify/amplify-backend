@@ -12,11 +12,8 @@ import { EOL } from 'os';
  * that are currently being updated, in addition to a progress bar which
  * shows how far along the deployment is.
  *
- * Resources that have failed will always be shown, and will be recapitulated
- * along with their stack trace when the monitoring ends.
- *
- * Resources that failed deployment because they have been canceled are
- * not included.
+ * Resources that have failed will always be shown, resources that failed deployment because
+ * they have been canceled are not included.
  */
 export class CfnDeploymentProgressLogger {
   // Keeps a cache/mapping of LogicalResourceId <-> Friendly resource name along with hierarchy
@@ -29,8 +26,6 @@ export class CfnDeploymentProgressLogger {
    * A list of resource IDs which are currently being processed
    */
   private resourcesInProgress: Record<string, StackEvent> = {};
-
-  private resourceTypeColumnWidth = 25;
 
   /**
    * Previous completion state observed by logical ID
@@ -55,9 +50,11 @@ export class CfnDeploymentProgressLogger {
 
   private readonly failures = new Array<StackEvent>();
 
+  // Display formatting related properties
   private block;
-  private rootStackDisplay = 'Root stack';
+  private rootStackDisplay = 'root stack';
   private timeStampWidth = 12;
+  private resourceTypeColumnWidth = 25;
   private statusWidth = 20;
   private resourceNameIndentation = 0;
   private readonly getBlockWidth: () => number;
@@ -65,7 +62,7 @@ export class CfnDeploymentProgressLogger {
   /**
    * Instantiate the CFN deployment progress builder
    */
-  constructor(private readonly props: PrinterProps) {
+  constructor(props: PrinterProps) {
     // +1 because the stack also emits a "COMPLETE" event at the end, and that wasn't
     // counted yet. This makes it line up with the amount of events we expect.
     this.resourcesTotal = props.resourcesTotal
@@ -85,6 +82,7 @@ export class CfnDeploymentProgressLogger {
     const event = cfnEvent.event;
     const status = event.ResourceStatus;
 
+    // CDK Metadata resources are not relevant
     if (
       !status ||
       !event.LogicalResourceId ||
@@ -105,7 +103,7 @@ export class CfnDeploymentProgressLogger {
     if (metadata && metadata.constructPath) {
       if (!(event.LogicalResourceId in this.resourceNameCache)) {
         this.resourceNameCache[event.LogicalResourceId] =
-          this.normalizeConstructPath(metadata.constructPath);
+          this.normalizeCDKConstructPath(metadata.constructPath);
       }
     }
     // Hydrate friendly name resource cache
@@ -159,15 +157,16 @@ export class CfnDeploymentProgressLogger {
   }
 
   /**
-   * Formats the current progress and pass it to a rewritable block for display
+   * Formats the current progress accumulated and pass it to a rewritable block for display
    */
   public async print(): Promise<void> {
+    // Used for creating resource hierarchies
     this.resourceNameIndentation = 0;
+
     const lines = [];
 
     // Add a progress bar at the top if available
     const progress = this.progressBar();
-
     if (progress) {
       lines.push('  ' + progress, '');
     }
@@ -235,7 +234,7 @@ export class CfnDeploymentProgressLogger {
   /**
    * Extract nested stack names
    */
-  private normalizeConstructPath = (constructPath: string): string => {
+  private normalizeCDKConstructPath = (constructPath: string): string => {
     // Don't run regex on long strings, they are most likely not valid and could cause DOS attach. See CodeQL's js/polynomial-redos
     if (constructPath.length > 1000) return constructPath;
     const nestedStackRegex =
@@ -378,7 +377,7 @@ export class CfnDeploymentProgressLogger {
     const paths = constructPath.split('/');
     const resourceName = paths.pop();
     if (resourceName === undefined || paths.length === 0) {
-      // If there is no hierarchy we just display as-is with no padding
+      // If there is no hierarchy we just display as-is with no padding and resets padding for next resource
       resourceNameDisplay = constructPath;
       this.resourceNameIndentation = 0;
     } else {
@@ -395,7 +394,7 @@ export class CfnDeploymentProgressLogger {
   };
 
   /**
-   * For a typical nested stack, CFN generate events as follows
+   * For a typical nested stack, CFN generate update events as follows
    *
    * When querying for Root Stack
    * RootStack events (*)
@@ -487,6 +486,9 @@ type PrinterProps = {
    */
   readonly resourcesTotal?: number;
 
+  /**
+   * Rewritable block in which to render the CFN progress.
+   */
   readonly rewritableBlock: RewritableBlock;
 
   /**

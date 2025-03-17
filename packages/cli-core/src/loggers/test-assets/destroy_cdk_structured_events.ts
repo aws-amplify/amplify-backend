@@ -8,7 +8,7 @@ export const data = [
     message: '  Synthesis time: 0s',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I7100',
     message:
       'amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889: destroying... [1/1]',
   },

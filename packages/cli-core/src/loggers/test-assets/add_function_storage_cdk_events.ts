@@ -69,7 +69,7 @@ export const data = [
       '⚠️ The --hotswap and --hotswap-fallback flags deliberately introduce CloudFormation drift to speed up deployments\n⚠️ They should only be used for development - never use them for your production Stacks!',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5210',
     message: 'Checking for previously published assets',
   },
   {
@@ -1107,7 +1107,7 @@ export const data = [
     message: '50 total assets, 0 still need to be published',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5100',
     message:
       'amplify-sampleprojectapp-user-sandbox-0e1752a889: deploying... [1/1]',
   },

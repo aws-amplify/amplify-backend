@@ -1,5 +1,5 @@
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
-import { data } from './test-assets/update_amplify_outputs_structured_cdk_events.js';
+import { data } from './test-assets/destroy_cdk_structured_events.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 
 const classUnderTest =
@@ -13,7 +13,7 @@ for (const event of data) {
     event.message.includes('has an ongoing operation in progress')
   ) {
     // set time out of 500 ms
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   } else {
     // set time out of 500 ms
     // await new Promise((resolve) => setTimeout(resolve, 500));

@@ -74,14 +74,14 @@ void describe('amplify sandbox event logging', () => {
           'UPDATE_IN_PROGRESS  ',
           'Green',
         )} | CloudFormation:Stack      | ${format.color(
-          format.bold('Root stack'),
+          format.bold('root stack'),
           'Green',
         )}${EOL}`,
         `${cll()}3:26:02 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
           'Green',
         )} | CloudFormation:Stack      | ${format.color(
-          format.bold('Root stack'),
+          format.bold('root stack'),
           'Green',
         )}${EOL}${cll()}3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
@@ -100,7 +100,7 @@ void describe('amplify sandbox event logging', () => {
           'UPDATE_IN_PROGRESS  ',
           'Green',
         )} | CloudFormation:Stack      | ${format.color(
-          format.bold('Root stack'),
+          format.bold('root stack'),
           'Green',
         )}${EOL}${cll()}3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
@@ -131,7 +131,7 @@ void describe('amplify sandbox event logging', () => {
           'UPDATE_IN_PROGRESS  ',
           'Green',
         )} | CloudFormation:Stack      | ${format.color(
-          format.bold('Root stack'),
+          format.bold('root stack'),
           'Green',
         )}${EOL}${cll()}3:26:07 AM | ${format.color(
           'UPDATE_IN_PROGRESS  ',
@@ -162,7 +162,7 @@ void describe('amplify sandbox event logging', () => {
           'UPDATE_COMPLETE_CLEA',
           'Green',
         )} | CloudFormation:Stack      | ${format.color(
-          format.bold('Root stack'),
+          format.bold('root stack'),
           'Green',
         )}${EOL}${cll()}3:26:16 AM | ${format.color(
           'UPDATE_COMPLETE_CLEA',
@@ -264,7 +264,7 @@ void describe('amplify sandbox event logging', () => {
                 'CREATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:09:44 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
@@ -288,7 +288,7 @@ void describe('amplify sandbox event logging', () => {
                 'CREATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
@@ -372,7 +372,7 @@ void describe('amplify sandbox event logging', () => {
                 'CREATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
@@ -414,7 +414,7 @@ void describe('amplify sandbox event logging', () => {
                 'CREATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
@@ -480,7 +480,7 @@ void describe('amplify sandbox event logging', () => {
                 'CREATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:10:20 AM | ${format.color(
                 'CREATE_IN_PROGRESS  ',
@@ -546,7 +546,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}`,
             );
@@ -558,7 +558,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}4:01:08 PM | ${format.color(
                 'UPDATE_IN_PROGRESS  ',
@@ -594,7 +594,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
@@ -624,7 +624,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
@@ -656,7 +656,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}4:01:18 PM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
@@ -728,7 +728,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}`,
             );
@@ -740,7 +740,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:20:45 AM | ${format.color(
                 'UPDATE_COMPLETE_CLEA',
@@ -758,7 +758,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_COMPLETE_CLEA',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:20:48 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -796,7 +796,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_COMPLETE_CLEA',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:21:10 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -827,7 +827,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_COMPLETE_CLEA',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:21:10 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -880,7 +880,7 @@ void describe('amplify sandbox event logging', () => {
                 'DELETE_IN_PROGRESS  ',
                 'Yellow',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Yellow',
               )}${EOL}`,
             );
@@ -892,7 +892,7 @@ void describe('amplify sandbox event logging', () => {
                 'DELETE_IN_PROGRESS  ',
                 'Yellow',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Yellow',
               )}${EOL}${cll()}3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -984,7 +984,7 @@ void describe('amplify sandbox event logging', () => {
                 'DELETE_IN_PROGRESS  ',
                 'Yellow',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Yellow',
               )}${EOL}${cll()}3:05:32 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -1038,7 +1038,7 @@ void describe('amplify sandbox event logging', () => {
                 'DELETE_IN_PROGRESS  ',
                 'Yellow',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Yellow',
               )}${EOL}${cll()}3:05:31 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -1056,7 +1056,7 @@ void describe('amplify sandbox event logging', () => {
                 'DELETE_IN_PROGRESS  ',
                 'Yellow',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Yellow',
               )}${EOL}${cll()}3:07:25 AM | ${format.color(
                 'DELETE_IN_PROGRESS  ',
@@ -1118,7 +1118,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}`,
             );
@@ -1130,7 +1130,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_IN_PROGRESS  ',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:31:17 AM | ${format.color(
                 'UPDATE_ROLLBACK_IN_P',
@@ -1163,7 +1163,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_ROLLBACK_IN_P',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:31:33 AM | ${format.color(
                 'UPDATE_ROLLBACK_COMP',
@@ -1196,7 +1196,7 @@ void describe('amplify sandbox event logging', () => {
                 'UPDATE_ROLLBACK_COMP',
                 'Green',
               )} | CloudFormation:Stack      | ${format.color(
-                format.bold('Root stack'),
+                format.bold('root stack'),
                 'Green',
               )}${EOL}${cll()}3:31:17 AM | ${format.color(
                 'UPDATE_FAILED       ',

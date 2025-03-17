@@ -1072,7 +1072,7 @@ export const data = [
       '[sdk info] SSM.GetParameter({"Name":"/cdk-bootstrap/hnb659fds/version"}) -> OK',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5210',
     message:
       'amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889: start: Building b86dbe77b357b94e90f0bae93cb24b942b5cb6e7ead1899cc5b5c9e7a9f0578c',
   },
@@ -1140,12 +1140,12 @@ export const data = [
       '[sdk info] S3.PutObject({"Bucket":"cdk-hnb659fds-assets-504152962427-us-west-2","Key":"b86dbe77b357b94e90f0bae93cb24b942b5cb6e7ead1899cc5b5c9e7a9f0578c.json","Body":"<Buffer: 14 KiB>","ContentType":"application/json","ChecksumAlgorithm":"SHA256","ServerSideEncryption":"aws:kms"}) -> OK',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5221',
     message:
       'amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889: success: Published b86dbe77b357b94e90f0bae93cb24b942b5cb6e7ead1899cc5b5c9e7a9f0578c:current_account-current_region',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5100',
     message:
       'amplify-samplesamsaraapp-pravgupt-sandbox-0e1752a889: deploying... [1/1]',
   },

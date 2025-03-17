@@ -1064,7 +1064,7 @@ export const data = [
       '[sdk info] SSM.GetParameter({"Name":"/cdk-bootstrap/hnb659fds/version"}) -> OK',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5210',
     message:
       'amplify-sampleprojectapp-user-sandbox-0e1752a889: start: Building e1beb14132c9a02797667cfecbe86315e0c25f051290acd8d3f29333d8e01af0',
   },
@@ -1132,12 +1132,12 @@ export const data = [
       '[sdk info] S3.PutObject({"Bucket":"cdk-hnb659fds-assets-123456789012-us-west-2","Key":"e1beb14132c9a02797667cfecbe86315e0c25f051290acd8d3f29333d8e01af0.json","Body":"<Buffer: 14 KiB>","ContentType":"application/json","ChecksumAlgorithm":"SHA256","ServerSideEncryption":"aws:kms"}) -> OK',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5221',
     message:
       'amplify-sampleprojectapp-user-sandbox-0e1752a889: success: Published e1beb14132c9a02797667cfecbe86315e0c25f051290acd8d3f29333d8e01af0:current_account-current_region',
   },
   {
-    code: 'CDK_TOOLKIT_I0000',
+    code: 'CDK_TOOLKIT_I5100',
     message:
       'amplify-sampleprojectapp-user-sandbox-0e1752a889: deploying... [1/1]',
   },

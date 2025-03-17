@@ -211,18 +211,16 @@ export class CloudWatchLogEventMonitor {
 
     if (this.enableColors) {
       this.printer.print(
-        `[${format.color(
+        `${format.note(event.timestamp.toLocaleTimeString())} [${format.color(
           cloudWatchEventDisplay.friendlyName,
           cloudWatchEventDisplay.color,
-        )}] ${format.note(
-          event.timestamp.toLocaleTimeString(),
-        )} ${event.message.trim()}`,
+        )}] ${event.message.trim()}`,
       );
     } else {
       this.printer.print(
-        `[${
+        `${event.timestamp.toLocaleTimeString()} [${
           cloudWatchEventDisplay.friendlyName
-        }] ${event.timestamp.toLocaleTimeString()} ${event.message.trim()}`,
+        }] ${event.message.trim()}`,
       );
     }
   };

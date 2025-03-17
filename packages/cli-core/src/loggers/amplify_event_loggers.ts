@@ -124,13 +124,13 @@ export class AmplifyEventLogger {
   cdkDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
-    // TBD: This will be replaced with a proper marker event with a unique code later
-    // Asset publishing
-    if (msg.message.includes('Checking for previously published assets')) {
+    // Asset publishing if any. CDK_TOOLKIT_I5210 is when CDK starts building an asset
+    if (msg.code === 'CDK_TOOLKIT_I5210') {
       this.printer.startSpinner('Building and publishing assets...');
       return Promise.resolve();
     } else if (
-      msg.message.includes('success: Published') ||
+      // CDK_TOOLKIT_I5221 when assets are published or when no publishing is required
+      msg.code === 'CDK_TOOLKIT_I5221' ||
       msg.message.includes('0 still need to be published')
     ) {
       this.printer.stopSpinner();
@@ -164,7 +164,7 @@ export class AmplifyEventLogger {
       }
     }
 
-    // Successful deployment or destruction.
+    // Successful deployment or destruction with timing
     if (msg.code === 'CDK_TOOLKIT_I5000' || msg.code === 'CDK_TOOLKIT_I7000') {
       if (
         msg.data &&
@@ -201,10 +201,9 @@ export class AmplifyEventLogger {
     msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
     // Start deployment progress display
-    // TBD: This will be replaced with a proper marker event with a unique code later
+    // 5100 -> Deployment starts 7100 -> Destroy starts
     if (
-      (msg.message.includes('deploying...') ||
-        msg.message.includes('destroying..')) &&
+      (msg.code === 'CDK_TOOLKIT_I5100' || msg.code === 'CDK_TOOLKIT_I7100') &&
       !this.cfnDeploymentProgressLogger
     ) {
       this.cfnDeploymentProgressLogger = this.getNewCfnDeploymentProgressLogger(
@@ -216,13 +215,16 @@ export class AmplifyEventLogger {
     }
 
     // Stop deployment progress display
+    // 5000 includes deployment time
+    // 5503 is when the deployment is completed (not emitted for some updates but emitted for destroy and fails)
+    // 5900 includes the stack outputs
+    // 7900 is when the stack is destroyed
     if (
-      msg.code === 'CDK_TOOLKIT_I5503' ||
       msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.code === 'CDK_TOOLKIT_I5503' ||
       msg.code === 'CDK_TOOLKIT_I5900' ||
-      msg.message.includes('Failed resources')
+      msg.code === 'CDK_TOOLKIT_I7900'
     ) {
-      // TBD: This will be replaced with a proper marker event with a unique code later for failed resources
       if (this.cfnDeploymentProgressLogger) {
         this.printer.stopSpinner();
         this.cfnDeploymentProgressLogger = undefined;
