@@ -222,6 +222,13 @@ export class SandboxCommand
             'Execute a single sandbox deployment without watching for future file changes',
           boolean: true,
           global: false,
+          conflicts: [
+            'exclude',
+            'dir-to-watch',
+            'stream-function-logs',
+            'logs-filter',
+            'logs-out-file',
+          ],
         })
         .option('stream-function-logs', {
           describe:
@@ -233,6 +240,7 @@ export class SandboxCommand
         .option('logs-filter', {
           describe: `Regex pattern to filter logs from only matched functions. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth' Default: Stream all logs`,
           array: true,
+          global: false,
           type: 'string',
           group: 'Logs streaming',
           implies: ['stream-function-logs'],
@@ -242,6 +250,7 @@ export class SandboxCommand
           describe:
             'File to append the streaming logs. The file is created if it does not exist. Default: stdout',
           array: false,
+          global: false,
           type: 'string',
           group: 'Logs streaming',
           implies: ['stream-function-logs'],
@@ -263,13 +272,6 @@ export class SandboxCommand
           }
           return true;
         })
-        .conflicts('once', [
-          'exclude',
-          'dir-to-watch',
-          'stream-function-logs',
-          'logs-filter',
-          'logs-out-file',
-        ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };

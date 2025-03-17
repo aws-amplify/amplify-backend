@@ -26,6 +26,7 @@ import {
   convertSchemaToCDK,
   isCombinedSchema,
   isDataSchema,
+  splitSchemasByTableMap,
 } from './convert_schema.js';
 import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
@@ -41,7 +42,13 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
+import {
+  Annotations,
+  Aspects,
+  IAspect,
+  RemovalPolicy,
+  Tags,
+} from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -149,7 +156,43 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      schemas.forEach((schema) => {
+      const isSandboxDeployment =
+        scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+
+      // get the branch name and use the imported table map for that key
+      // use the sandbox key when in sandbox deployment
+      const amplifyBranchName = isSandboxDeployment
+        ? 'sandbox'
+        : scope.node.tryGetContext(CDKContextKey.BACKEND_NAME);
+      // ensure all branch names are unique
+      if (this.props.migratedAmplifyGen1DynamoDbTableMappings) {
+        // Remove this warning for GA
+        Annotations.of(scope).addInfo(
+          'migratedAmplifyGen1DynamoDbTableMappings is experimental and is not recommended for production use. This functionality may be changed or removed without warning.',
+        );
+        const branchNames = new Set<string>();
+        for (const tableMap of this.props
+          .migratedAmplifyGen1DynamoDbTableMappings) {
+          if (branchNames.has(tableMap.branchName)) {
+            throw new AmplifyUserError('DefineDataConfigurationError', {
+              message:
+                'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMappings',
+              resolution: 'Ensure all branch names are unique',
+            });
+          }
+          branchNames.add(tableMap.branchName);
+        }
+      }
+
+      const tableMapForCurrentBranch = (
+        this.props.migratedAmplifyGen1DynamoDbTableMappings ?? []
+      ).find((tableMap) => tableMap.branchName === amplifyBranchName);
+      const splitSchemas = splitSchemasByTableMap(
+        schemas,
+        tableMapForCurrentBranch,
+      );
+
+      splitSchemas.forEach(({ schema, importedTableName }) => {
         if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -166,6 +209,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             schema,
             backendSecretResolver,
             stableBackendIdentifiers,
+            importedTableName,
           ),
         );
       });
