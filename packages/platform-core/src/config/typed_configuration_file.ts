@@ -20,7 +20,7 @@ export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
   constructor(
     private readonly schema: T,
     fileName: string,
-    private readonly valueIfDoesNotExists: z.infer<T>,
+    private readonly defaultValue: z.infer<T>,
     private readonly _fsp = fsp,
     private readonly _existsSync = existsSync,
   ) {
@@ -31,10 +31,15 @@ export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
     if (!this.data) {
       if (existsSync(this.filePath)) {
         const fileContent = await this._fsp.readFile(this.filePath, 'utf-8');
-        const jsonParsedContent = JSON.parse(fileContent);
-        this.data = this.schema.parse(jsonParsedContent);
+        try {
+          const jsonParsedContent = JSON.parse(fileContent);
+          this.data = this.schema.parse(jsonParsedContent);
+        } catch {
+          // TODO print
+          this.data = this.schema.parse(this.defaultValue);
+        }
       } else {
-        this.data = this.schema.parse(this.valueIfDoesNotExists);
+        this.data = this.schema.parse(this.defaultValue);
       }
     }
     // return deep clone.

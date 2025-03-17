@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 const betaEndpoint = 'https://beta.notices.cli.amplify.aws/notices.json';
 
-void describe('Notices', () => {
+void describe('Notices', { concurrency: false }, () => {
   const projectCreator = new MinimalWithTypescriptIdiomTestProjectCreator();
   let testProject: TestProjectBase;
   const manifestCache = typedConfigurationFileFactory.getInstance(
@@ -27,9 +27,13 @@ void describe('Notices', () => {
     '',
   );
 
+  const printingTracker = typedConfigurationFileFactory.getInstance(
+    'notices_printing_tracker.json',
+    z.string(),
+    '',
+  );
+
   before(async () => {
-    await manifestCache.delete();
-    await acknowledgementFile.delete();
     await createTestDirectory(rootTestDir);
     testProject = await projectCreator.createProject(rootTestDir);
   });
@@ -37,7 +41,7 @@ void describe('Notices', () => {
     await deleteTestDirectory(rootTestDir);
   });
 
-  void it('displays, lists and acknowledges notice', async () => {
+  const displaysListsAndAcknowledgesNotice = async () => {
     const execaOptions = {
       cwd: testProject.projectDirPath,
       env: {
@@ -97,5 +101,56 @@ void describe('Notices', () => {
       !stdout.includes('This is a test notice'),
       `${stdout} must not include 'This is a test notice'`,
     );
+  };
+
+  void describe('starting from clean state', () => {
+    before(async () => {
+      await manifestCache.delete();
+      await acknowledgementFile.delete();
+      await printingTracker.delete();
+    });
+    void it(
+      'displays, lists and acknowledges notice',
+      displaysListsAndAcknowledgesNotice,
+    );
+  });
+
+  void describe('starting from broken local files', () => {
+    before(async () => {
+      await manifestCache.write('broken manifest cache');
+      await acknowledgementFile.write('broken acknowledgement file');
+      await printingTracker.write('broken printing tracker file');
+    });
+    void it(
+      'displays, lists and acknowledges notice',
+      displaysListsAndAcknowledgesNotice,
+    );
+  });
+
+  void describe('when notices website is broken', () => {
+    let execaOptionWithBadEndpoint = {};
+    before(async () => {
+      await manifestCache.delete();
+      await acknowledgementFile.delete();
+      await printingTracker.delete();
+      execaOptionWithBadEndpoint = {
+        cwd: testProject.projectDirPath,
+        env: {
+          AMPLIFY_BACKEND_NOTICES_ENDPOINT:
+            'https://beta.notices.cli.amplify.aws/does_not_exist.json',
+        },
+      };
+    });
+
+    void it('does not crash commands', async () => {
+      // Executes successfully and does not print notices.
+      const stdout = (
+        await execa('npx', ['ampx', 'info'], execaOptionWithBadEndpoint)
+      ).stdout;
+      assert.ok(
+        !stdout.includes('This is a test notice'),
+        `${stdout} must not include 'This is a test notice'`,
+      );
+    });
   });
 });

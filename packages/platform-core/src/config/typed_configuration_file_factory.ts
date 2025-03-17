@@ -30,7 +30,7 @@ export class TypedConfigurationFileFactory {
   getInstance = <T extends z.ZodTypeAny>(
     fileName: TypedConfigurationFileName,
     schema: T,
-    valueIfDoesNotExists: z.infer<T>,
+    defaultValue: z.infer<T>,
   ): TypedConfigurationFile<z.infer<T>> => {
     if (this.files[fileName]) {
       return this.files[fileName];
@@ -39,7 +39,7 @@ export class TypedConfigurationFileFactory {
     this.files[fileName] = new ZodSchemaTypedConfigurationFile(
       schema,
       fileName,
-      valueIfDoesNotExists,
+      defaultValue,
     );
     return this.files[fileName];
   };
