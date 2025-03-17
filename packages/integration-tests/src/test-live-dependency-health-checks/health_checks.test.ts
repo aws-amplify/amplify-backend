@@ -187,7 +187,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
   });
 
   void describe('notices website', () => {
-    void it('returns valid notice manifest', async () => {
+    void it('returns valid notices manifest', async () => {
       const response = await fetch(
         'https://notices.cli.amplify.aws/notices.json',
       );
