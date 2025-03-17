@@ -29,13 +29,12 @@ export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
 
   read = async (): Promise<z.infer<T>> => {
     if (!this.data) {
-      if (existsSync(this.filePath)) {
+      if (this._existsSync(this.filePath)) {
         const fileContent = await this._fsp.readFile(this.filePath, 'utf-8');
         try {
           const jsonParsedContent = JSON.parse(fileContent);
           this.data = this.schema.parse(jsonParsedContent);
         } catch {
-          // TODO print
           this.data = this.schema.parse(this.defaultValue);
         }
       } else {
