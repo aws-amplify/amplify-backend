@@ -7,9 +7,8 @@ import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtim
 import { env } from '$amplify/env/customer-s3-import.js';
 import { S3Client } from '@aws-sdk/client-s3';
 
-const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(
-  env
-);
+const { resourceConfig, libraryOptions } =
+  await getAmplifyDataClientConfig(env);
 
 Amplify.configure(resourceConfig, libraryOptions);
 

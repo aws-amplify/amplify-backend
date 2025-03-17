@@ -19,18 +19,18 @@ export class ConversationTurnExecutor {
     additionalTools: Array<ExecutableTool>,
     // We're deferring dependency initialization here so that we can capture all validation errors.
     private readonly responseSender = new Lazy(
-      () => new ConversationTurnResponseSender(event)
+      () => new ConversationTurnResponseSender(event),
     ),
     private readonly bedrockConverseAdapter = new Lazy(
-      () => new BedrockConverseAdapter(event, additionalTools)
+      () => new BedrockConverseAdapter(event, additionalTools),
     ),
-    private readonly logger = console
+    private readonly logger = console,
   ) {}
 
   execute = async (): Promise<void> => {
     try {
       this.logger.log(
-        `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
+        `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,
       );
       this.logger.debug('Event received:', this.event);
 
@@ -46,12 +46,12 @@ export class ConversationTurnExecutor {
       }
 
       this.logger.log(
-        `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
+        `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,
       );
     } catch (e) {
       this.logger.error(
         `Failed to handle conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,
-        e
+        e,
       );
       await this.tryForwardError(e);
       // Propagate error to mark lambda execution as failed in metrics.
@@ -86,7 +86,7 @@ export const handleConversationTurnEvent = async (
   // This is by design, so that tools with different input types can be added
   // to single arrays. Downstream code doesn't use these types.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  props?: { tools?: Array<ExecutableTool<JSONSchema, any>> }
+  props?: { tools?: Array<ExecutableTool<JSONSchema, any>> },
 ): Promise<void> => {
   await new ConversationTurnExecutor(event, props?.tools ?? []).execute();
 };

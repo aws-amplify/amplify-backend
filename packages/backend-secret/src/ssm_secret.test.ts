@@ -64,7 +64,7 @@ void describe('SSMSecret', () => {
           Version: testSecretVersion,
           LastModifiedDate: testSecretLastUpdated,
         },
-      } as GetParameterCommandOutput)
+      } as GetParameterCommandOutput),
     );
 
     beforeEach(() => {
@@ -74,7 +74,7 @@ void describe('SSMSecret', () => {
     void it('gets branch secret value', async () => {
       const resp = await ssmSecretClient.getSecret(
         testBackendIdentifier,
-        testSecretId
+        testSecretId,
       );
 
       assert.deepEqual(resp, testSecret);
@@ -87,7 +87,7 @@ void describe('SSMSecret', () => {
     void it('gets branch secret value with a specific version', async () => {
       const resp = await ssmSecretClient.getSecret(
         testBackendIdentifier,
-        testSecretIdWithVersion
+        testSecretIdWithVersion,
       );
 
       assert.deepEqual(resp, testSecret);
@@ -114,14 +114,14 @@ void describe('SSMSecret', () => {
             Name: testBranchSecretFullNamePath,
             Version: testSecretVersion,
           },
-        })
+        }),
       );
       const expectedErr = new SecretError(
-        `The value of secret '${testSecretName}' is undefined`
+        `The value of secret '${testSecretName}' is undefined`,
       );
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: testSecretName }),
-        expectedErr
+        expectedErr,
       );
     });
 
@@ -132,12 +132,12 @@ void describe('SSMSecret', () => {
       });
 
       mock.method(ssmClient, 'getParameter', () =>
-        Promise.reject(ssmNotFoundException)
+        Promise.reject(ssmNotFoundException),
       );
       const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.getSecret('', { name: '' }),
-        expectedErr
+        expectedErr,
       );
     });
   });
@@ -149,7 +149,7 @@ void describe('SSMSecret', () => {
       Promise.resolve({
         $metadata: {},
         Version: testSecretVersion,
-      })
+      }),
     );
 
     beforeEach(() => {
@@ -160,7 +160,7 @@ void describe('SSMSecret', () => {
       const resp = await ssmSecretClient.setSecret(
         testBackendIdentifier,
         testSecretName,
-        testSecretValue
+        testSecretValue,
       );
 
       assert.deepEqual(resp, testSecretIdWithVersion);
@@ -178,13 +178,13 @@ void describe('SSMSecret', () => {
         Promise.resolve({
           $metadata: {},
           Version: testSecretVersion,
-        })
+        }),
       );
 
       const resp = await ssmSecretClient.setSecret(
         testBackendId,
         testSecretName,
-        testSecretValue
+        testSecretValue,
       );
 
       assert.deepEqual(resp, testSecretIdWithVersion);
@@ -204,13 +204,13 @@ void describe('SSMSecret', () => {
       });
 
       mock.method(ssmClient, 'putParameter', () =>
-        Promise.reject(ssmNotFoundException)
+        Promise.reject(ssmNotFoundException),
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.setSecret('', '', ''),
-        expectedErr
+        expectedErr,
       );
     });
   });
@@ -223,7 +223,7 @@ void describe('SSMSecret', () => {
       const mockDeleteParameter = mock.method(
         ssmClient,
         'deleteParameter',
-        () => Promise.resolve()
+        () => Promise.resolve(),
       );
 
       await ssmSecretClient.removeSecret(testBackendIdentifier, testSecretName);
@@ -236,7 +236,7 @@ void describe('SSMSecret', () => {
       const mockDeleteParameter = mock.method(
         ssmClient,
         'deleteParameter',
-        () => Promise.resolve()
+        () => Promise.resolve(),
       );
       await ssmSecretClient.removeSecret(testBackendId, testSecretName);
       assert.deepStrictEqual(mockDeleteParameter.mock.calls[0].arguments[0], {
@@ -251,13 +251,13 @@ void describe('SSMSecret', () => {
       });
 
       mock.method(ssmClient, 'deleteParameter', () =>
-        Promise.reject(ssmNotFoundException)
+        Promise.reject(ssmNotFoundException),
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.createInstance(ssmNotFoundException);
       await assert.rejects(
         () => ssmSecretClient.removeSecret('', ''),
-        expectedErr
+        expectedErr,
       );
     });
   });
@@ -279,7 +279,7 @@ void describe('SSMSecret', () => {
               testBranchSecretFullNamePath,
               testSecretFullNamePath2,
             ],
-          })
+          }),
       );
 
       await ssmSecretClient.removeSecrets(testBackendIdentifier, [
@@ -301,7 +301,7 @@ void describe('SSMSecret', () => {
               testBranchSecretFullNamePath,
               testSecretFullNamePath2,
             ],
-          })
+          }),
       );
 
       await ssmSecretClient.removeSecrets(testBackendId, [
@@ -321,7 +321,7 @@ void describe('SSMSecret', () => {
           Promise.resolve({
             DeletedParameters: [testBranchSecretFullNamePath],
             InvalidParameters: [testSecretFullNamePath2],
-          })
+          }),
       );
 
       await assert.rejects(
@@ -330,7 +330,7 @@ void describe('SSMSecret', () => {
             testSecretName,
             testSecretName2,
           ]),
-        new SecretError(`Failed to remove secrets: ${testSecretFullNamePath2}`)
+        new SecretError(`Failed to remove secrets: ${testSecretFullNamePath2}`),
       );
       assert.deepStrictEqual(mockDeleteParameters.mock.calls[0].arguments[0], {
         Names: [testBranchSecretFullNamePath, testSecretFullNamePath2],
@@ -376,7 +376,7 @@ void describe('SSMSecret', () => {
                 Name: 'noValueSecret',
               },
             ],
-          } as GetParametersByPathCommandOutput)
+          } as GetParametersByPathCommandOutput),
       );
 
       const secrets = await ssmSecretClient.listSecrets(testBackendIdentifier);
@@ -386,7 +386,7 @@ void describe('SSMSecret', () => {
           NextToken: undefined,
           Path: testBranchPath,
           WithDecryption: true,
-        }
+        },
       );
       assert.deepEqual(secrets, [
         testSecretListItem,
@@ -408,7 +408,7 @@ void describe('SSMSecret', () => {
                 LastModifiedDate: testSecretLastUpdated,
               },
             ],
-          } as GetParametersByPathCommandOutput)
+          } as GetParametersByPathCommandOutput),
       );
 
       const secrets = await ssmSecretClient.listSecrets(testBackendId);
@@ -418,7 +418,7 @@ void describe('SSMSecret', () => {
           NextToken: undefined,
           Path: testSharedPath,
           WithDecryption: true,
-        }
+        },
       );
       assert.deepEqual(secrets, [testSecretListItem]);
     });
@@ -441,7 +441,7 @@ void describe('SSMSecret', () => {
             Parameters: [
               {
                 Name: testSharedSecretFullNamePath.concat(
-                  input.NextToken ?? ''
+                  input.NextToken ?? '',
                 ),
                 Value: testSecretValue,
                 Version: testSecretVersion,
@@ -449,7 +449,7 @@ void describe('SSMSecret', () => {
               },
             ],
           } as GetParametersByPathCommandOutput);
-        }
+        },
       );
 
       const secrets = await ssmSecretClient.listSecrets(testBackendId);
@@ -460,7 +460,7 @@ void describe('SSMSecret', () => {
           NextToken: undefined,
           Path: testSharedPath,
           WithDecryption: true,
-        }
+        },
       );
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[1].arguments[0],
@@ -468,7 +468,7 @@ void describe('SSMSecret', () => {
           NextToken: '1',
           Path: testSharedPath,
           WithDecryption: true,
-        }
+        },
       );
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[2].arguments[0],
@@ -476,7 +476,7 @@ void describe('SSMSecret', () => {
           NextToken: '2',
           Path: testSharedPath,
           WithDecryption: true,
-        }
+        },
       );
       assert.deepEqual(secrets, [
         { ...testSecretListItem, name: testSecretName },
@@ -489,7 +489,7 @@ void describe('SSMSecret', () => {
       const mockGetParametersByPath = mock.method(
         ssmClient,
         'getParametersByPath',
-        () => Promise.resolve({} as GetParametersByPathCommandOutput)
+        () => Promise.resolve({} as GetParametersByPathCommandOutput),
       );
 
       const secrets = await ssmSecretClient.listSecrets({
@@ -503,7 +503,7 @@ void describe('SSMSecret', () => {
           NextToken: undefined,
           Path: testBranchPath,
           WithDecryption: true,
-        }
+        },
       );
 
       assert.deepEqual(secrets, []);
@@ -516,7 +516,7 @@ void describe('SSMSecret', () => {
       });
 
       mock.method(ssmClient, 'getParametersByPath', () =>
-        Promise.reject(ssmInternalServerError)
+        Promise.reject(ssmInternalServerError),
       );
       const ssmSecretClient = new SSMSecretClient(ssmClient);
       const expectedErr = SecretError.createInstance(ssmInternalServerError);

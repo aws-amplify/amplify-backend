@@ -11,7 +11,7 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
   const amplifyClientSendMock = mock.fn(() =>
     Promise.resolve({
       apps: [{}],
-    })
+    }),
   );
   mock.method(amplifyClientMock, 'send', amplifyClientSendMock);
 
@@ -26,7 +26,7 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
   void it('fails if no apps have specified name', async () => {
     const resolver = new AppNameAndBranchMainStackNameResolver(
       amplifyClientMock,
-      appNameAndBranch
+      appNameAndBranch,
     );
     await assert.rejects(() => resolver.resolveMainStackName(), {
       message: 'No apps found with name testAppName in region test-region',
@@ -36,11 +36,11 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
     amplifyClientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName' }, { name: 'testAppName' }],
-      })
+      }),
     );
     const resolver = new AppNameAndBranchMainStackNameResolver(
       amplifyClientMock,
-      appNameAndBranch
+      appNameAndBranch,
     );
     await assert.rejects(() => resolver.resolveMainStackName(), {
       message:
@@ -54,11 +54,11 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
           { name: 'testAppName' },
           { name: 'otherAppName', appId: 'otherAppId' },
         ],
-      })
+      }),
     );
     const resolver = new AppNameAndBranchMainStackNameResolver(
       amplifyClientMock,
-      appNameAndBranch
+      appNameAndBranch,
     );
     await assert.rejects(() => resolver.resolveMainStackName(), {
       message:
@@ -69,11 +69,11 @@ void describe('AppNameAndBranchMainStackNameResolver', () => {
     amplifyClientSendMock.mock.mockImplementation(() =>
       Promise.resolve({
         apps: [{ name: 'testAppName', appId: 'testBackendId' }],
-      })
+      }),
     );
     const resolver = new AppNameAndBranchMainStackNameResolver(
       amplifyClientMock,
-      appNameAndBranch
+      appNameAndBranch,
     );
     const result = await resolver.resolveMainStackName();
     // eslint-disable-next-line spellcheck/spell-checker

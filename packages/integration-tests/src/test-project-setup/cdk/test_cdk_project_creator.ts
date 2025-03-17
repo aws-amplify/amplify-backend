@@ -9,7 +9,7 @@ export const testCdkProjectsSourceRoot = path.resolve(
   '..',
   '..',
   'src',
-  'test-cdk-projects'
+  'test-cdk-projects',
 );
 
 export type TestCdkProjectCreator = {

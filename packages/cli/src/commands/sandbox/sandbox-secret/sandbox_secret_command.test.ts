@@ -19,7 +19,7 @@ void describe('sandbox secret command', () => {
   const sandboxSecretCmd = new SandboxSecretCommand([
     new SandboxSecretGetCommand(
       sandboxIdResolver,
-      secretClient
+      secretClient,
     ) as unknown as CommandModule,
   ]);
 
@@ -31,7 +31,7 @@ void describe('sandbox secret command', () => {
     assert.match(output, /Manage sandbox secret/);
     ['secret get'].forEach((cmd) => assert.match(output, new RegExp(cmd)));
     ['secret set', 'secret list', 'secret remove'].forEach((cmd) =>
-      assert.doesNotMatch(output, new RegExp(cmd))
+      assert.doesNotMatch(output, new RegExp(cmd)),
     );
   });
 

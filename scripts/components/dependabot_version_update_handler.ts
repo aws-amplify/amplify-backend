@@ -23,7 +23,7 @@ export class DependabotVersionUpdateHandler {
     private readonly gitClient: GitClient,
     private readonly ghClient: GithubClient,
     private readonly _rootDir: string = process.cwd(),
-    private readonly _ghContext: Context = ghContext
+    private readonly _ghContext: Context = ghContext,
   ) {}
 
   /**
@@ -61,18 +61,18 @@ export class DependabotVersionUpdateHandler {
     const packageJsonFiles = changedFiles.filter(
       (changedFile) =>
         changedFile.startsWith('packages/') &&
-        changedFile.endsWith('package.json')
+        changedFile.endsWith('package.json'),
     );
     packageJsonFiles.forEach((changedPackageFile) => {
       modifiedPackageDirs.add(
-        changedPackageFile.split('/').slice(0, 2).join('/')
+        changedPackageFile.split('/').slice(0, 2).join('/'),
       );
     });
 
     const packageNames = [];
     for (const modifiedPackageDir of modifiedPackageDirs) {
       const packageJson = await readPackageJson(
-        path.join(this._rootDir, modifiedPackageDir)
+        path.join(this._rootDir, modifiedPackageDir),
       );
       if (!packageJson.private) {
         packageNames.push(packageJson.name);
@@ -82,11 +82,11 @@ export class DependabotVersionUpdateHandler {
     // Create and commit the changeset file
     const fileName = path.join(
       this._rootDir,
-      `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
+      `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`,
     );
     const frontMatterContents: ChangesetFrontMatterContent[] = [];
     packageNames.forEach((name) =>
-      frontMatterContents.push({ packageName: name, bumpType: BumpType.PATCH })
+      frontMatterContents.push({ packageName: name, bumpType: BumpType.PATCH }),
     );
     const summary = (await this.getVersionUpdates()).join(EOL);
     await createChangesetFile(fileName, frontMatterContents, summary);
@@ -96,7 +96,7 @@ export class DependabotVersionUpdateHandler {
     // add the 'run-e2e' label and force push to the PR
     await this.ghClient.labelPullRequest(
       this._ghContext.payload.pull_request.number,
-      ['run-e2e']
+      ['run-e2e'],
     );
     await this.gitClient.push({ force: true });
   };
@@ -109,7 +109,7 @@ export class DependabotVersionUpdateHandler {
     // Updates `<dependency>` from <old-version> to <new-version>
     // Bumps [<dependency>](<dependency-link>) from <old-version> to <new-version>.
     const matches = prBody?.match(
-      /(Updates|Bumps) (.*) from [0-9.]+ to [0-9.]+/g
+      /(Updates|Bumps) (.*) from [0-9.]+ to [0-9.]+/g,
     );
 
     for (const match of matches ?? []) {

@@ -40,7 +40,7 @@ export class CDKDeployer implements BackendDeployer {
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
-    private readonly packageManagerController: PackageManagerController
+    private readonly packageManagerController: PackageManagerController,
   ) {}
   /**
    * Invokes cdk deploy command
@@ -53,7 +53,7 @@ export class CDKDeployer implements BackendDeployer {
       if (deployProps?.secretLastUpdated) {
         cdkCommandArgs.push(
           '--context',
-          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
+          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`,
         );
       }
     }
@@ -72,7 +72,7 @@ export class CDKDeployer implements BackendDeployer {
         InvokableCommand.SYNTH,
         backendId,
         this.getAppCommand(),
-        cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
+        cdkCommandArgs.concat('--quiet'), // don't print the CFN template to stdout
       );
     } catch (e) {
       synthError = e;
@@ -88,7 +88,7 @@ export class CDKDeployer implements BackendDeployer {
         synthError &&
         AmplifyError.isAmplifyError(typeError) &&
         typeError.cause?.message.match(
-          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
+          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/,
         )
       ) {
         // synth has failed and we don't have auto generated function environment definition files. This
@@ -109,7 +109,7 @@ export class CDKDeployer implements BackendDeployer {
       InvokableCommand.DEPLOY,
       backendId,
       this.relativeCloudAssemblyLocation,
-      cdkCommandArgs
+      cdkCommandArgs,
     );
 
     return {
@@ -126,7 +126,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   destroy = async (
     backendId: BackendIdentifier,
-    destroyProps?: DestroyProps
+    destroyProps?: DestroyProps,
   ) => {
     const cdkCommandArgs: string[] = ['--force'];
     if (destroyProps?.profile) {
@@ -136,7 +136,7 @@ export class CDKDeployer implements BackendDeployer {
       InvokableCommand.DESTROY,
       backendId,
       this.getAppCommand(),
-      cdkCommandArgs
+      cdkCommandArgs,
     );
   };
 
@@ -148,7 +148,7 @@ export class CDKDeployer implements BackendDeployer {
     commandArgs: string[],
     options: { redirectStdoutToStderr: boolean } = {
       redirectStdoutToStderr: false,
-    }
+    },
   ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
@@ -171,7 +171,7 @@ export class CDKDeployer implements BackendDeployer {
         // preserve the color being piped to parent process.
         extendEnv: true,
         env: { FORCE_COLOR: '1' },
-      }
+      },
     );
 
     childProcess.stderr?.pipe(aggregatorStderrStream);
@@ -236,7 +236,7 @@ export class CDKDeployer implements BackendDeployer {
           '--project',
           dirname(this.backendLocator.locate()),
         ],
-        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
+        { redirectStdoutToStderr: true }, // TSC prints errors to stdout by default
       );
     } catch {
       // If we cannot load ts config, turn off type checking
@@ -252,7 +252,7 @@ export class CDKDeployer implements BackendDeployer {
           '--project',
           dirname(this.backendLocator.locate()),
         ],
-        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
+        { redirectStdoutToStderr: true }, // TSC prints errors to stdout by default
       );
     } catch (err) {
       throw new AmplifyUserError<CDKDeploymentError>(
@@ -262,7 +262,7 @@ export class CDKDeployer implements BackendDeployer {
           resolution:
             'Fix the syntax and type errors in your backend definition.',
         },
-        err instanceof Error ? err : undefined
+        err instanceof Error ? err : undefined,
       );
     }
   };
@@ -274,14 +274,14 @@ export class CDKDeployer implements BackendDeployer {
     invokableCommand: InvokableCommand,
     backendId: BackendIdentifier,
     appArgument: string,
-    additionalArguments?: string[]
+    additionalArguments?: string[],
   ): Promise<DeployResult | DestroyResult> => {
     try {
       return await this.invokeCdk(
         invokableCommand,
         backendId,
         appArgument,
-        additionalArguments
+        additionalArguments,
       );
     } catch (err) {
       throw this.cdkErrorMapper.getAmplifyError(err as Error);
@@ -295,7 +295,7 @@ export class CDKDeployer implements BackendDeployer {
     invokableCommand: InvokableCommand,
     backendId: BackendIdentifier,
     appArgument: string,
-    additionalArguments?: string[]
+    additionalArguments?: string[],
   ): Promise<DeployResult | DestroyResult> => {
     // Basic args
     const cdkCommandArgs = [
@@ -316,7 +316,7 @@ export class CDKDeployer implements BackendDeployer {
       '--context',
       `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
       '--context',
-      `${CDKContextKey.BACKEND_NAME}=${backendId.name}`
+      `${CDKContextKey.BACKEND_NAME}=${backendId.name}`,
     );
 
     if (backendId.type !== 'sandbox') {
@@ -325,7 +325,7 @@ export class CDKDeployer implements BackendDeployer {
 
     cdkCommandArgs.push(
       '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=${backendId.type}`
+      `${CDKContextKey.DEPLOYMENT_TYPE}=${backendId.type}`,
     );
 
     if (additionalArguments) {
@@ -337,7 +337,7 @@ export class CDKDeployer implements BackendDeployer {
 
   private populateCDKOutputFromStdout = async (
     output: DeployResult | DestroyResult,
-    stdout: stream.Readable
+    stdout: stream.Readable,
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;

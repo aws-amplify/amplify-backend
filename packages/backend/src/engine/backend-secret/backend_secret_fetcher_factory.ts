@@ -16,7 +16,7 @@ class SecretFetcherCustomResource extends CustomResource {
     scope: Construct,
     id: string,
     props: CustomResourceProps,
-    secrets: Set<string>
+    secrets: Set<string>,
   ) {
     super(scope, id, {
       ...props,
@@ -42,7 +42,7 @@ export class BackendSecretFetcherFactory {
    * Creates a backend secret-fetcher resource factory.
    */
   constructor(
-    private readonly secretProviderFactory: BackendSecretFetcherProviderFactory
+    private readonly secretProviderFactory: BackendSecretFetcherProviderFactory,
   ) {}
 
   /**
@@ -52,11 +52,11 @@ export class BackendSecretFetcherFactory {
   getOrCreate = (
     scope: Construct,
     secretName: string,
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: BackendIdentifier,
   ): SecretFetcherCustomResource => {
     const secretResourceId = `AmplifySecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
-      secretResourceId
+      secretResourceId,
     ) as SecretFetcherCustomResource;
 
     if (existingResource) {
@@ -69,7 +69,7 @@ export class BackendSecretFetcherFactory {
     const provider = this.secretProviderFactory.getOrCreateInstance(
       scope,
       SECRET_RESOURCE_PROVIDER_ID,
-      backendIdentifier
+      backendIdentifier,
     );
 
     // Sandbox deployment passes down the secret's last updated timestamp to
@@ -100,7 +100,7 @@ export class BackendSecretFetcherFactory {
         },
         resourceType: SECRET_RESOURCE_TYPE,
       },
-      secrets
+      secrets,
     );
   };
 }

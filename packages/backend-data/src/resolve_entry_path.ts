@@ -19,7 +19,7 @@ export const resolveEntryPath = (entry: JsResolverEntry): string => {
         'Could not determine import path to construct absolute code path from relative path: ' +
         JSON.stringify(entry),
       resolution: 'Consider using an absolute path instead.',
-    }
+    },
   );
 
   if (typeof entry === 'string') {

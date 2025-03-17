@@ -30,7 +30,7 @@ export class StackMetadataBackendOutputStorageStrategy
    */
   addBackendOutputEntry = (
     keyName: string,
-    backendOutputEntry: BackendOutputEntry
+    backendOutputEntry: BackendOutputEntry,
   ): void => {
     // add all the data values as stack outputs
     Object.entries(backendOutputEntry.payload).forEach(([key, value]) => {
@@ -43,7 +43,7 @@ export class StackMetadataBackendOutputStorageStrategy
     this.addOrUpdateMetadata(
       existingMetadataEntry,
       keyName,
-      backendOutputEntry
+      backendOutputEntry,
     );
   };
 
@@ -52,7 +52,7 @@ export class StackMetadataBackendOutputStorageStrategy
    */
   appendToBackendOutputList = (
     keyName: string,
-    backendOutputEntry: DeepPartial<BackendOutputEntry>
+    backendOutputEntry: DeepPartial<BackendOutputEntry>,
   ): void => {
     const version = backendOutputEntry.version;
     let listsMap = this.lazyListValueMap.get(keyName);
@@ -63,7 +63,7 @@ export class StackMetadataBackendOutputStorageStrategy
     if (existingMetadataEntry) {
       if (existingMetadataEntry.version !== version) {
         throw new Error(
-          `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`
+          `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`,
         );
       }
     }
@@ -71,7 +71,7 @@ export class StackMetadataBackendOutputStorageStrategy
     this.addOrUpdateMetadata(
       existingMetadataEntry,
       keyName,
-      backendOutputEntry as BackendOutputEntry
+      backendOutputEntry as BackendOutputEntry,
     );
 
     Object.entries(backendOutputEntry.payload ?? []).forEach(
@@ -95,7 +95,7 @@ export class StackMetadataBackendOutputStorageStrategy
             value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
           });
         }
-      }
+      },
     );
   };
 
@@ -110,7 +110,7 @@ export class StackMetadataBackendOutputStorageStrategy
       | { version: string; stackOutputs: string[] }
       | undefined,
     keyName: string,
-    backendOutputEntry: BackendOutputEntry
+    backendOutputEntry: BackendOutputEntry,
   ) {
     if (existingMetadataEntry) {
       this.stack.addMetadata(keyName, {

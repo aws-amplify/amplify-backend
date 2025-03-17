@@ -14,12 +14,12 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
    */
   constructor(
     private cloudFormationClient: CloudFormationClient,
-    private amplifyClient: AmplifyClient
+    private amplifyClient: AmplifyClient,
   ) {}
   getOutput = async (backendIdentifier: DeployedBackendIdentifier) => {
     const outputFetcher = new BackendOutputFetcherFactory(
       this.cloudFormationClient,
-      this.amplifyClient
+      this.amplifyClient,
     ).getStrategy(backendIdentifier);
 
     const output = await outputFetcher.fetchBackendOutput();

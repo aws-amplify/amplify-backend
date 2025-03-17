@@ -40,7 +40,7 @@ export class ProvidedFunctionFactory
    */
   constructor(
     private readonly functionProvider: (scope: Construct) => IFunction,
-    private readonly props?: ProvidedFunctionProps
+    private readonly props?: ProvidedFunctionProps,
   ) {}
 
   /**
@@ -51,11 +51,11 @@ export class ProvidedFunctionFactory
       this.generator = new ProvidedFunctionGenerator(
         this.functionProvider,
         props.outputStorageStrategy,
-        this.props
+        this.props,
       );
     }
     return props.constructContainer.getOrCompute(
-      this.generator
+      this.generator,
     ) as AmplifyFunction;
   }
 }
@@ -66,7 +66,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly functionProvider: (scope: Construct) => IFunction,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    props?: ProvidedFunctionProps
+    props?: ProvidedFunctionProps,
   ) {
     this.resourceGroupName = props?.resourceGroupName ?? 'function';
   }
@@ -88,7 +88,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
             resolution:
               'See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details about current limitations and troubleshooting steps.',
           },
-          e
+          e,
         );
       } else {
         throw new AmplifyUserError(
@@ -98,7 +98,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
             resolution:
               'Check the definition of your custom function provided in `defineFunction` and refer to the logs for more information. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.',
           },
-          e instanceof Error ? e : undefined
+          e instanceof Error ? e : undefined,
         );
       }
     }
@@ -106,7 +106,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
       scope,
       `${providedFunction.node.id}-provided`,
       this.outputStorageStrategy,
-      providedFunction
+      providedFunction,
     );
   };
 }
@@ -117,12 +117,12 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
     scope: Construct,
     id: string,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    providedFunction: IFunction
+    providedFunction: IFunction,
   ) {
     super(scope, id, outputStorageStrategy);
 
     const cfnFunction = providedFunction.node.findChild(
-      'Resource'
+      'Resource',
     ) as CfnFunction;
 
     Tags.of(cfnFunction).add(TagName.FRIENDLY_NAME, providedFunction.node.id);

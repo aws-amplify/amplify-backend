@@ -29,7 +29,7 @@ export class AmplifyPrompter {
    * A secret prompt.
    */
   static secretValue = async (
-    promptMessage = 'Enter secret value'
+    promptMessage = 'Enter secret value',
   ): Promise<string> => {
     return await password({
       message: promptMessage,
@@ -57,7 +57,7 @@ export class AmplifyPrompter {
           message: string;
           required: true;
           defaultValue?: never;
-        }
+        },
   ): Promise<string> => {
     if (options.required) {
       return input({

@@ -15,25 +15,25 @@ import { LocalNamespaceResolver } from '../../../backend-identifier/local_namesp
  */
 export const createSandboxSecretCommand = (): CommandModule => {
   const sandboxIdResolver = new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new PackageJsonReader())
+    new LocalNamespaceResolver(new PackageJsonReader()),
   );
 
   const secretClient = getSecretClientWithAmplifyErrorHandling();
   const setCommand = new SandboxSecretSetCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
   const removeCommand = new SandboxSecretRemoveCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
   const getCommand = new SandboxSecretGetCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
   const listCommand = new SandboxSecretListCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
 
   return new SandboxSecretCommand([

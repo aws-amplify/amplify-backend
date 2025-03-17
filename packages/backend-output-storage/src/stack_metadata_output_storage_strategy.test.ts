@@ -11,7 +11,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '1',
@@ -37,7 +37,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '44',
@@ -58,7 +58,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
@@ -85,7 +85,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
@@ -136,7 +136,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '1',
@@ -186,7 +186,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       );
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
@@ -207,7 +207,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
         {
           message:
             'Metadata entry for TestStorageOutput at version 1 already exists. Cannot add another entry for the same key at version 2.',
-        }
+        },
       );
     });
   });

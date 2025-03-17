@@ -167,7 +167,7 @@ void describe('Deployed Backend Client', () => {
   const mockS3Client = new S3();
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,
-    new AmplifyClient()
+    new AmplifyClient(),
   );
   const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   let deployedBackendClient: DefaultDeployedBackendClient;
@@ -176,7 +176,7 @@ void describe('Deployed Backend Client', () => {
       request:
         | DescribeStacksCommand
         | DeleteStackCommand
-        | ListStackResourcesCommand
+        | ListStackResourcesCommand,
     ) => {
       if (request instanceof DescribeStacksCommand) {
         const matchingStack = stackSummaries.find((stack) => {
@@ -191,7 +191,7 @@ void describe('Deployed Backend Client', () => {
       if (request instanceof ListStackResourcesCommand)
         return listStackResourcesMock;
       throw request;
-    }
+    },
   );
 
   beforeEach(() => {
@@ -205,13 +205,13 @@ void describe('Deployed Backend Client', () => {
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       new ArnGenerator(),
-      new ArnParser()
+      new ArnParser(),
     );
 
     mock.method(
       deployedResourcesEnumerator,
       'listDeployedResources',
-      () => deployedResources
+      () => deployedResources,
     );
 
     deployedBackendClient = new DefaultDeployedBackendClient(
@@ -220,7 +220,7 @@ void describe('Deployed Backend Client', () => {
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper(),
-      new ArnParser()
+      new ArnParser(),
     );
   });
 

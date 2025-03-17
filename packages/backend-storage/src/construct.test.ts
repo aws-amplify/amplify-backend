@@ -32,7 +32,7 @@ void describe('AmplifyStorage', () => {
     const template = Template.fromStack(stack);
     assert.equal(
       JSON.parse(template.toJSON().Description).stackType,
-      'storage-S3'
+      'storage-S3',
     );
   });
 
@@ -97,7 +97,7 @@ void describe('AmplifyStorage', () => {
 
     assert.match(
       JSON.stringify(policyCapture.asObject()),
-      /"aws:SecureTransport":"false"/
+      /"aws:SecureTransport":"false"/,
     );
   });
 

@@ -23,20 +23,20 @@ export class AuthTestCdkProjectCreator implements TestCdkProjectCreator {
    * Constructor.
    */
   constructor(
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {}
 
   createProject = async (
-    e2eProjectDir: string
+    e2eProjectDir: string,
   ): Promise<TestCdkProjectBase> => {
     const { projectName, projectRoot } = await createEmptyCdkProject(
       this.name,
-      e2eProjectDir
+      e2eProjectDir,
     );
 
     const sourceProjectDirPath = path.resolve(
       testCdkProjectsSourceRoot,
-      this.name
+      this.name,
     );
     await fs.cp(sourceProjectDirPath, path.join(projectRoot, 'lib'), {
       recursive: true,
@@ -45,7 +45,7 @@ export class AuthTestCdkProjectCreator implements TestCdkProjectCreator {
     return new AuthTestCdkProject(
       projectName,
       projectRoot,
-      this.resourceFinder
+      this.resourceFinder,
     );
   };
 }
@@ -54,7 +54,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
   constructor(
     readonly name: string,
     readonly projectDirPath: string,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(name, projectDirPath);
   }
@@ -62,7 +62,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
     // assert has some of expected resources
     const userPools = await this.resourceFinder.findNamesByStackName(
       this.stackName,
-      'AWS::Cognito::UserPool'
+      'AWS::Cognito::UserPool',
     );
     assert.equal(userPools.length, 1);
 
@@ -81,12 +81,12 @@ class AuthTestCdkProject extends TestCdkProjectBase {
         stackName: this.stackName,
       },
       '1.3', //version of the config
-      awsClientProvider
+      awsClientProvider,
     );
 
     assert.ok(
       clientConfig.auth?.user_pool_id,
-      'client config should include user pool'
+      'client config should include user pool',
     );
   };
 }

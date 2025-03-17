@@ -19,7 +19,7 @@ export class PackageManagerControllerFactory {
   constructor(
     private readonly cwd = process.cwd(),
     private readonly printer: Printer = _printer,
-    private readonly platform = process.platform
+    private readonly platform = process.platform,
   ) {}
 
   /**

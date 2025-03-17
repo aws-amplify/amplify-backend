@@ -15,13 +15,13 @@ export class BackendIdentifierResolverWithFallback
    */
   constructor(
     private defaultResolver: BackendIdentifierResolver,
-    private fallbackResolver: SandboxBackendIdResolver
+    private fallbackResolver: SandboxBackendIdResolver,
   ) {}
   /**
    * resolves to deployed backend id, falling back to the sandbox id if stack or appId and branch inputs are not provided
    */
   resolveDeployedBackendIdentifier = async (
-    args: BackendIdentifierParameters
+    args: BackendIdentifierParameters,
   ) => {
     if (
       args.stack !== undefined ||

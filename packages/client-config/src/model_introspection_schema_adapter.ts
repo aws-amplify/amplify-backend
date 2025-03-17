@@ -17,14 +17,14 @@ export class ModelIntrospectionSchemaAdapter {
       getS3Client: S3Client;
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
-    }>
+    }>,
   ) {}
 
   /**
    * Generates the client configuration for a given backend
    */
   getModelIntrospectionSchemaFromS3Uri = async (
-    modelSchemaS3Uri: string | undefined
+    modelSchemaS3Uri: string | undefined,
   ): Promise<unknown | undefined> => {
     if (!modelSchemaS3Uri) {
       return;
@@ -51,7 +51,7 @@ export class ModelIntrospectionSchemaAdapter {
           message:
             'Caught exception while converting introspection schema to JSON representation',
         },
-        e as Error
+        e as Error,
       );
     }
   };

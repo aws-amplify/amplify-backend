@@ -50,7 +50,7 @@ export type SandboxEventHandlerParams = {
 };
 
 export type SandboxEventHandlerCreator = (
-  params: SandboxEventHandlerParams
+  params: SandboxEventHandlerParams,
 ) => SandboxEventHandlers;
 
 /**
@@ -80,7 +80,7 @@ export class SandboxCommand
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private commandMiddleware: CommandMiddleware,
-    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
+    private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator,
   ) {
     this.command = 'sandbox';
     this.describe =
@@ -91,7 +91,7 @@ export class SandboxCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>,
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.sandboxIdentifier = args.identifier;
@@ -102,7 +102,7 @@ export class SandboxCommand
       this.clientConfigGeneratorAdapter,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
-      args.outputsFormat
+      args.outputsFormat,
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxIdentifier: this.sandboxIdentifier,
@@ -115,19 +115,19 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const fileName = getClientConfigFileName(
-      args.outputsVersion as ClientConfigVersion
+      args.outputsVersion as ClientConfigVersion,
     );
     const clientConfigWritePath = await getClientConfigPath(
       fileName,
       args.outputsOutDir,
-      args.outputsFormat
+      args.outputsFormat,
     );
 
     if (!fs.existsSync(clientConfigWritePath)) {
       await generateEmptyClientConfigToFile(
         args.outputsVersion as ClientConfigVersion,
         args.outputsOutDir,
-        args.outputsFormat
+        args.outputsFormat,
       );
     }
 
@@ -221,6 +221,13 @@ export class SandboxCommand
             'Execute a single sandbox deployment without watching for future file changes',
           boolean: true,
           global: false,
+          conflicts: [
+            'exclude',
+            'dir-to-watch',
+            'stream-function-logs',
+            'logs-filter',
+            'logs-out-file',
+          ],
         })
         .option('stream-function-logs', {
           describe:
@@ -232,6 +239,7 @@ export class SandboxCommand
         .option('logs-filter', {
           describe: `Regex pattern to filter logs from only matched functions. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth' Default: Stream all logs`,
           array: true,
+          global: false,
           type: 'string',
           group: 'Logs streaming',
           implies: ['stream-function-logs'],
@@ -241,6 +249,7 @@ export class SandboxCommand
           describe:
             'File to append the streaming logs. The file is created if it does not exist. Default: stdout',
           array: false,
+          global: false,
           type: 'string',
           group: 'Logs streaming',
           implies: ['stream-function-logs'],
@@ -262,13 +271,6 @@ export class SandboxCommand
           }
           return true;
         })
-        .conflicts('once', [
-          'exclude',
-          'dir-to-watch',
-          'stream-function-logs',
-          'logs-filter',
-          'logs-out-file',
-        ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };
@@ -276,8 +278,8 @@ export class SandboxCommand
   sigIntHandler = async () => {
     printer.print(
       `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
-        'sandbox delete'
-      )}`
+        'sandbox delete',
+      )}`,
     );
   };
 

@@ -104,7 +104,7 @@ export type ConversationTurnEvent = {
 
 export type ExecutableTool<
   TJSONSchema extends JSONSchema = JSONSchema,
-  TToolInput = FromJSONSchema<TJSONSchema>
+  TToolInput = FromJSONSchema<TJSONSchema>,
 > = ToolDefinition<TJSONSchema> & {
   execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };

@@ -12,7 +12,7 @@ export class AttributionMetadataStorage {
    */
   constructor(
     private readonly os: typeof _os = _os,
-    private readonly packageJsonReader = new PackageJsonReader()
+    private readonly packageJsonReader = new PackageJsonReader(),
   ) {}
 
   /**
@@ -23,7 +23,7 @@ export class AttributionMetadataStorage {
     stack: Stack,
     stackType: string,
     libraryPackageJsonAbsolutePath: string,
-    additionalMetadata: Record<string, string> = {}
+    additionalMetadata: Record<string, string> = {},
   ): void => {
     if (
       typeof stack.templateOptions.description === 'string' &&
@@ -37,8 +37,8 @@ export class AttributionMetadataStorage {
         stack,
         stackType,
         libraryPackageJsonAbsolutePath,
-        additionalMetadata
-      )
+        additionalMetadata,
+      ),
     );
   };
 
@@ -46,7 +46,7 @@ export class AttributionMetadataStorage {
     stack: Stack,
     stackType: string,
     libraryPackageJsonAbsolutePath: string,
-    additionalMetadata: Record<string, string>
+    additionalMetadata: Record<string, string>,
   ): AttributionMetadata => ({
     createdOn: this.getPlatform(),
     createdBy: this.getDeploymentEngineType(stack),
@@ -58,7 +58,7 @@ export class AttributionMetadataStorage {
 
   private getDeploymentEngineType = (stack: Stack): DeploymentEngineType => {
     const deploymentType: DeploymentType | undefined = stack.node.tryGetContext(
-      CDKContextKey.DEPLOYMENT_TYPE
+      CDKContextKey.DEPLOYMENT_TYPE,
     );
 
     if (deploymentType === undefined) {
@@ -75,7 +75,7 @@ export class AttributionMetadataStorage {
         throw new Error(
           `Unknown ${CDKContextKey.DEPLOYMENT_TYPE} CDK context value "${
             deploymentType as string
-          }"`
+          }"`,
         );
     }
   };

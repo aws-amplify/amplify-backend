@@ -19,7 +19,7 @@ export class YarnModernLockFileReader implements LockFileReader {
     try {
       const yarnLockContents = await fsp.readFile(yarnLockPath, 'utf-8');
       const yarnLockContentsArray = yarnLockContents.split(
-        new RegExp(`${eolRegex}${eolRegex}`)
+        new RegExp(`${eolRegex}${eolRegex}`),
       );
 
       if (yarnLockContentsArray.length === 3) {
@@ -47,7 +47,7 @@ export class YarnModernLockFileReader implements LockFileReader {
     } catch {
       printer.log(
         `Failed to get lock file contents because ${yarnLockPath} does not exist or is not parse-able`,
-        LogLevel.DEBUG
+        LogLevel.DEBUG,
       );
       return;
     }

@@ -93,20 +93,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
@@ -214,20 +214,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.2');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
@@ -323,20 +323,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
@@ -433,20 +433,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
@@ -530,20 +530,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3'); //Generate with new configuration format
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
@@ -601,32 +601,32 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       mock.method(
         modelSchemaAdapter,
         'getModelIntrospectionSchemaFromS3Uri',
-        () => undefined
+        () => undefined,
       );
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       await assert.rejects(
         () => clientConfigGenerator.generateClientConfig(),
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Duplicated entry with key user_pool_id detected in deployment outputs'
+            'Duplicated entry with key user_pool_id detected in deployment outputs',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -634,31 +634,31 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-          'deployment in progress'
+          'deployment in progress',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
       await assert.rejects(
         () => clientConfigGenerator.generateClientConfig(),
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Deployment is currently in progress.'
+            'Deployment is currently in progress.',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -666,20 +666,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_STACK_FOUND,
-          'stack does not exist'
+          'stack does not exist',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
 
       await assert.rejects(
@@ -688,7 +688,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           assert.strictEqual(error.message, 'Stack does not exist.');
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -696,20 +696,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
-          'stack outputs are undefined'
+          'stack outputs are undefined',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
 
       await assert.rejects(
@@ -717,11 +717,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Amplify outputs not found in stack metadata'
+            'Amplify outputs not found in stack metadata',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -729,20 +729,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-          'Stack template metadata is not a string'
+          'Stack template metadata is not a string',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
 
       await assert.rejects(
@@ -750,11 +750,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Stack was not created with Amplify.'
+            'Stack was not created with Amplify.',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -762,20 +762,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
-          'token is expired'
+          'token is expired',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
 
       await assert.rejects(
@@ -783,11 +783,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs due to invalid credentials.'
+            'Unable to get backend outputs due to invalid credentials.',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -795,20 +795,20 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          'access is denied'
+          'access is denied',
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
+        stubClientProvider,
       );
 
       const configContributors = new ClientConfigContributorFactory(
-        modelSchemaAdapter
+        modelSchemaAdapter,
       ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
-        configContributors
+        configContributors,
       );
 
       await assert.rejects(
@@ -816,11 +816,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs due to insufficient permissions.'
+            'Unable to get backend outputs due to insufficient permissions.',
           );
           assert.ok(error.resolution);
           return true;
-        }
+        },
       );
     });
   });

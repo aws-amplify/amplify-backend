@@ -31,7 +31,7 @@ for (const packagePath of packagePaths) {
   const expectedMajorVersion = getExpectedMajorVersion(name);
   if (!version.startsWith(expectedMajorVersion)) {
     throw new Error(
-      `Expected package ${name} version to start with "${expectedMajorVersion}" but found version ${version}.`
+      `Expected package ${name} version to start with "${expectedMajorVersion}" but found version ${version}.`,
     );
   }
 }

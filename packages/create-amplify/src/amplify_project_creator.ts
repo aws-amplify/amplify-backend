@@ -12,7 +12,7 @@ const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
 
 const defaultPackagesContent = await fsp.readFile(
   fileURLToPath(new URL('./default_packages.json', import.meta.url)),
-  'utf-8'
+  'utf-8',
 );
 const parsedDefaultPackagesFile = JSON.parse(defaultPackagesContent);
 
@@ -31,7 +31,7 @@ export class AmplifyProjectCreator {
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly initialProjectFileGenerator: InitialProjectFileGenerator
+    private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
   ) {
     this.defaultDevPackages = parsedDefaultPackagesFile.defaultDevPackages;
     this.defaultProdPackages = parsedDefaultPackagesFile.defaultProdPackages;
@@ -43,7 +43,7 @@ export class AmplifyProjectCreator {
   create = async (): Promise<void> => {
     printer.log(
       `Validating current state of target directory...`,
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
     await this.projectRootValidator.validate();
 
@@ -63,18 +63,18 @@ export class AmplifyProjectCreator {
       () =>
         this.packageManagerController.installDependencies(
           this.defaultDevPackages,
-          'dev'
+          'dev',
         ),
-      'DevDependencies installed'
+      'DevDependencies installed',
     );
     await printer.indicateProgress(
       'Installing dependencies',
       () =>
         this.packageManagerController.installDependencies(
           this.defaultProdPackages,
-          'prod'
+          'prod',
         ),
-      'Dependencies installed'
+      'Dependencies installed',
     );
     await printer.indicateProgress(
       'Creating template files',
@@ -82,7 +82,7 @@ export class AmplifyProjectCreator {
         await this.gitIgnoreInitializer.ensureInitialized();
         await this.initialProjectFileGenerator.generateInitialProjectFiles();
       },
-      'Template files created'
+      'Template files created',
     );
 
     printer.log(format.success('Successfully created a new project!'));
@@ -92,7 +92,7 @@ export class AmplifyProjectCreator {
       process.cwd() === this.projectRoot
         ? null
         : `Navigate to your project directory using ${format.command(
-            `cd .${this.projectRoot.replace(process.cwd(), '')}`
+            `cd .${this.projectRoot.replace(process.cwd(), '')}`,
           )} and then:`;
 
     printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));
@@ -100,7 +100,7 @@ export class AmplifyProjectCreator {
     const welcomeMessage = format.list([
       `Get started by running ${format.normalizeAmpxCommand('sandbox')}.`,
       `Run ${format.normalizeAmpxCommand(
-        'help'
+        'help',
       )} for a list of available commands.`,
     ]);
 
@@ -114,11 +114,11 @@ export class AmplifyProjectCreator {
     printer.log(
       format.note(
         `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.normalizeAmpxCommand(
-          'configure telemetry disable'
+          'configure telemetry disable',
         )}. To learn more about telemetry, visit ${format.link(
-          LEARN_MORE_USAGE_DATA_TRACKING_LINK
-        )}`
-      )
+          LEARN_MORE_USAGE_DATA_TRACKING_LINK,
+        )}`,
+      ),
     );
     printer.printNewLine();
   };

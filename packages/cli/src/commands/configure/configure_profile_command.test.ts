@@ -14,10 +14,10 @@ const testProfile = 'testProfile';
 const testRegion = 'testRegion';
 
 const emitFailureMock = mock.fn<UsageDataEmitter['emitFailure']>(() =>
-  Promise.resolve()
+  Promise.resolve(),
 );
 const emitSuccessMock = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
-  Promise.resolve()
+  Promise.resolve(),
 );
 
 void describe('configure command', () => {
@@ -26,7 +26,7 @@ void describe('configure command', () => {
   const mockAppendAWSFiles = mock.method(
     profileController,
     'createOrAppendAWSFiles',
-    () => Promise.resolve()
+    () => Promise.resolve(),
   );
 
   const configureCommand = new ConfigureProfileCommand(profileController);
@@ -46,7 +46,7 @@ void describe('configure command', () => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
-      () => Promise.resolve(true)
+      () => Promise.resolve(true),
     );
     const mockPrint = contextual.mock.method(printer, 'print');
 
@@ -56,7 +56,7 @@ void describe('configure command', () => {
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0] as string,
-      /already exists!/
+      /already exists!/,
     );
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
@@ -69,7 +69,7 @@ void describe('configure command', () => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
-      () => Promise.resolve(false)
+      () => Promise.resolve(false),
     );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
@@ -81,7 +81,7 @@ void describe('configure command', () => {
           return Promise.resolve(testSecretAccessKey);
         }
         assert.fail(`Do not expect prompt message: '${promptMsg}'`);
-      }
+      },
     );
 
     const mockRequiredInput = contextual.mock.method(
@@ -92,13 +92,13 @@ void describe('configure command', () => {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
-      }
+      },
     );
 
     const mockHasIAMUser = contextual.mock.method(
       AmplifyPrompter,
       'yesOrNo',
-      () => Promise.resolve(true)
+      () => Promise.resolve(true),
     );
 
     await commandRunner.runCommand(`profile --name ${testProfile}`);
@@ -125,7 +125,7 @@ void describe('configure command', () => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
-      () => Promise.resolve(false)
+      () => Promise.resolve(false),
     );
     const mockSecretValue = contextual.mock.method(
       AmplifyPrompter,
@@ -137,7 +137,7 @@ void describe('configure command', () => {
           return Promise.resolve(testSecretAccessKey);
         }
         assert.fail(`Do not expect prompt message: '${promptMsg}'`);
-      }
+      },
     );
 
     const mockInput = contextual.mock.method(
@@ -150,17 +150,17 @@ void describe('configure command', () => {
           return Promise.resolve(testRegion);
         }
         assert.fail(`Do not expect prompt message: '${options.message}'`);
-      }
+      },
     );
 
     const mockOpen = contextual.mock.method(Open, 'open', () =>
-      Promise.resolve()
+      Promise.resolve(),
     );
 
     const mockHasIAMUser = contextual.mock.method(
       AmplifyPrompter,
       'yesOrNo',
-      () => Promise.resolve(false)
+      () => Promise.resolve(false),
     );
 
     await commandRunner.runCommand(`profile --name ${testProfile}`);
@@ -172,7 +172,7 @@ void describe('configure command', () => {
     assert.equal(mockOpen.mock.callCount(), 1);
     assert.equal(
       mockOpen.mock.calls[0].arguments[0],
-      'https://docs.amplify.aws/gen2/start/account-setup/'
+      'https://docs.amplify.aws/gen2/start/account-setup/',
     );
     assert.equal(mockAppendAWSFiles.mock.callCount(), 1);
     assert.deepStrictEqual(mockAppendAWSFiles.mock.calls[0].arguments[0], {

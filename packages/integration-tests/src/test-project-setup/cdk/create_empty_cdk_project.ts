@@ -10,7 +10,7 @@ const TEST_PROJECT_PREFIX = 'test-cdk-project';
  */
 export const createEmptyCdkProject = async (
   projectTemplateName: string,
-  parentDir: string
+  parentDir: string,
 ): Promise<{
   projectName: string;
   projectRoot: string;

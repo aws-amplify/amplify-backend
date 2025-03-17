@@ -23,7 +23,7 @@ export class LambdaFunctionLogStreamer {
     private readonly lambda: LambdaClient,
     private readonly logsMonitor: CloudWatchLogEventMonitor,
     private readonly backendOutputClient: BackendOutputClient,
-    private readonly printer: Printer
+    private readonly printer: Printer,
   ) {}
 
   /**
@@ -33,7 +33,7 @@ export class LambdaFunctionLogStreamer {
    */
   startStreamingLogs = async (
     sandboxBackendId: BackendIdentifier,
-    streamingOptions?: SandboxFunctionStreamingOptions
+    streamingOptions?: SandboxFunctionStreamingOptions,
   ) => {
     if (streamingOptions?.enabled) {
       this.enabled = true;
@@ -43,9 +43,8 @@ export class LambdaFunctionLogStreamer {
 
     let backendOutput: BackendOutput = {};
     try {
-      backendOutput = await this.backendOutputClient.getOutput(
-        sandboxBackendId
-      );
+      backendOutput =
+        await this.backendOutputClient.getOutput(sandboxBackendId);
     } catch (error) {
       // If stack does not exist or hasn't deployed successfully, we do not want to go further to start streaming logs
       if (
@@ -71,21 +70,21 @@ export class LambdaFunctionLogStreamer {
     deployedFunctionNames.push(
       ...(definedConversationHandlersPayload
         ? (JSON.parse(definedConversationHandlersPayload) as string[])
-        : [])
+        : []),
     );
 
     for (const functionName of deployedFunctionNames) {
       const getFunctionResponse = await this.lambda.send(
         new GetFunctionCommand({
           FunctionName: functionName,
-        })
+        }),
       );
       const logGroupName =
         getFunctionResponse.Configuration?.LoggingConfig?.LogGroup;
       if (!logGroupName) {
         this.printer.log(
           `[Sandbox] Could not find logGroup for lambda function ${functionName}. Logs will not be streamed for this function.`,
-          LogLevel.DEBUG
+          LogLevel.DEBUG,
         );
         continue;
       }
@@ -94,7 +93,7 @@ export class LambdaFunctionLogStreamer {
       if (!friendlyFunctionName) {
         this.printer.log(
           `[Sandbox] Could not find user defined name for lambda function ${functionName}. Logs will not be streamed for this function.`,
-          LogLevel.DEBUG
+          LogLevel.DEBUG,
         );
         continue;
       }
@@ -107,7 +106,7 @@ export class LambdaFunctionLogStreamer {
             shouldStreamLogs = true;
             this.printer.log(
               `[Sandbox] Logs for function ${friendlyFunctionName} will be streamed as it matched filter '${filter}'`,
-              LogLevel.DEBUG
+              LogLevel.DEBUG,
             );
             break;
           }
@@ -116,7 +115,7 @@ export class LambdaFunctionLogStreamer {
         // No logs filter, means we stream all logs
         this.printer.log(
           `[Sandbox] Logs for function ${friendlyFunctionName} will be streamed.`,
-          LogLevel.DEBUG
+          LogLevel.DEBUG,
         );
         shouldStreamLogs = true;
       }
@@ -126,7 +125,7 @@ export class LambdaFunctionLogStreamer {
       } else {
         this.printer.log(
           `[Sandbox] Skipping logs streaming for function ${friendlyFunctionName} since it did not match any filters. To stream logs for this function, ensure at least one of your logs-filters match this function name.`,
-          LogLevel.DEBUG
+          LogLevel.DEBUG,
         );
       }
     }
@@ -141,7 +140,7 @@ export class LambdaFunctionLogStreamer {
     }
     this.printer.log(
       `[Sandbox] Streaming function logs will be paused during the deployment and will be resumed after the deployment is completed.`,
-      LogLevel.DEBUG
+      LogLevel.DEBUG,
     );
     this.logsMonitor?.pause();
   };

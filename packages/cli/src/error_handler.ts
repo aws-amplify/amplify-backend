@@ -17,7 +17,7 @@ type HandleErrorProps = {
  * Attaches process listeners to handle unhandled exceptions and rejections
  */
 export const attachUnhandledExceptionListeners = (
-  usageDataEmitter: UsageDataEmitter
+  usageDataEmitter: UsageDataEmitter,
 ): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
@@ -55,7 +55,7 @@ export const attachUnhandledExceptionListeners = (
  */
 export const generateCommandFailureHandler = (
   parser: Argv,
-  usageDataEmitter?: UsageDataEmitter
+  usageDataEmitter?: UsageDataEmitter,
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
@@ -144,9 +144,9 @@ const handleError = async ({
     AmplifyError.isAmplifyError(error)
       ? error
       : AmplifyError.fromError(
-          error && error instanceof Error ? error : new Error(message)
+          error && error instanceof Error ? error : new Error(message),
         ),
-    { command: command ?? 'UnknownCommand' }
+    { command: command ?? 'UnknownCommand' },
   );
 };
 
@@ -155,7 +155,7 @@ const isUserForceClosePromptError = (err?: Error): boolean => {
 };
 
 const errorHasCauseStackTrace = (
-  error?: Error
+  error?: Error,
 ): error is Error & { cause: { stack: string } } => {
   return (
     typeof error?.cause === 'object' &&
@@ -166,7 +166,7 @@ const errorHasCauseStackTrace = (
 };
 
 const errorHasCauseMessage = (
-  error?: Error
+  error?: Error,
 ): error is Error & { cause: { message: string } } => {
   return (
     typeof error?.cause === 'object' &&

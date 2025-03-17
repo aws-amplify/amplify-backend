@@ -16,20 +16,20 @@ try {
   if (process.platform === 'win32') {
     const netStatResult = await execaCommand(
       `netstat -n -a -o | grep LISTENING | grep ${VERDACCIO_PORT}`,
-      { shell: 'bash' }
+      { shell: 'bash' },
     );
     pid = Number.parseInt(
-      netStatResult.stdout.toString().split(/(\s)/).slice(-1)[0]
+      netStatResult.stdout.toString().split(/(\s)/).slice(-1)[0],
     );
   } else {
     const lsofResult = await execaCommand(
-      `lsof -n -t -iTCP:${VERDACCIO_PORT} -sTCP:LISTEN`
+      `lsof -n -t -iTCP:${VERDACCIO_PORT} -sTCP:LISTEN`,
     );
     pid = Number.parseInt(lsofResult.stdout.toString());
   }
 } catch {
   console.warn(
-    'Could not determine npm proxy process id. Most likely the process has already been stopped.'
+    'Could not determine npm proxy process id. Most likely the process has already been stopped.',
   );
   process.exit(0);
 }

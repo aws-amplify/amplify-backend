@@ -8,7 +8,7 @@ export type BackendSecret = {
    */
   resolve: (
     scope: Construct,
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: BackendIdentifier,
   ) => SecretValue;
 
   /**

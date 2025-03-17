@@ -61,7 +61,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
         resources: [
           `arn:aws:amplify:*:*:apps/${backendIdentifier.namespace}/branches/${backendIdentifier.name}`,
         ],
-      })
+      }),
     );
 
     const customResourceProvider = new Provider(
@@ -69,7 +69,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
       'CustomResourceProvider',
       {
         onEventHandler: linkerLambda,
-      }
+      },
     );
 
     const customResourceProps: AmplifyBranchLinkerCustomResourceProps = {

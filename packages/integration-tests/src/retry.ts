@@ -9,7 +9,7 @@ export type RetryPredicate = (error: Error) => boolean;
 export const runWithRetry = async <T>(
   callable: (attempt: number) => Promise<T>,
   retryPredicate: RetryPredicate,
-  maxAttempts = 3
+  maxAttempts = 3,
 ): Promise<T> => {
   const collectedErrors: Error[] = [];
 
@@ -33,7 +33,7 @@ export const runWithRetry = async <T>(
 
   throw new AggregateError(
     collectedErrors,
-    `All ${maxAttempts} attempts failed`
+    `All ${maxAttempts} attempts failed`,
   );
 };
 
@@ -42,7 +42,7 @@ export const runWithRetry = async <T>(
  */
 export class RetryPredicates {
   static createAmplifyRetryPredicate: RetryPredicate = (
-    error: Error
+    error: Error,
   ): boolean => {
     const message = error.message.toLowerCase();
     // Note: we can't assert on whole stdout or stderr because

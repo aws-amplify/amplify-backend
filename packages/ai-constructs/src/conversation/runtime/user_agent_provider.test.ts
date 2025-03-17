@@ -10,8 +10,8 @@ void describe('User Agent provider', () => {
   const packageVersion = JSON.parse(
     fs.readFileSync(
       path.resolve(__dirname, '..', '..', '..', 'package.json'),
-      'utf-8'
-    )
+      'utf-8',
+    ),
   ).version;
 
   void it('adds package information as metadata when user agent is present in the event', () => {
@@ -27,7 +27,7 @@ void describe('User Agent provider', () => {
 
     assert.strictEqual(
       userAgent,
-      `lib/foo#1.2.3 md/amplify-ai-constructs#${packageVersion}`
+      `lib/foo#1.2.3 md/amplify-ai-constructs#${packageVersion}`,
     );
   });
 
@@ -42,7 +42,7 @@ void describe('User Agent provider', () => {
 
     assert.strictEqual(
       userAgent,
-      `lib/amplify-ai-constructs#${packageVersion}`
+      `lib/amplify-ai-constructs#${packageVersion}`,
     );
   });
 
@@ -59,7 +59,7 @@ void describe('User Agent provider', () => {
 
     assert.strictEqual(
       userAgent,
-      `lib/amplify-ai-constructs#${packageVersion} md/turn-response-type#streaming`
+      `lib/amplify-ai-constructs#${packageVersion} md/turn-response-type#streaming`,
     );
   });
 });

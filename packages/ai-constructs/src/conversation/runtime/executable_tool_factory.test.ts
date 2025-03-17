@@ -16,13 +16,13 @@ const compileInMemory = (rootDir: string, text: string) => {
   const textAst = ts.createSourceFile(
     inMemoryFilePath,
     text,
-    options.target || ts.ScriptTarget.Latest
+    options.target || ts.ScriptTarget.Latest,
   );
   const host = ts.createCompilerHost(options, true);
 
   const overrideIfInMemoryFile = (
     methodName: 'getSourceFile' | 'readFile' | 'fileExists',
-    inMemoryValue: unknown
+    inMemoryValue: unknown,
   ) => {
     // This is intentional, we don't care about function signature, we just
     // want to intercept it.
@@ -73,7 +73,7 @@ void describe('Executable Tool Factory', () => {
         return {
           text: inputText,
         } satisfies ToolResultContentBlock;
-      }
+      },
     );
     assert.strictEqual(tool.name, toolName);
     assert.strictEqual(tool.description, toolDescription);
@@ -122,7 +122,7 @@ void describe('Executable Tool Factory', () => {
     // Properties not in schema are 'unknown'.
     assert.strictEqual(
       diagnostics[0].messageText,
-      "Type 'unknown' is not assignable to type 'string'."
+      "Type 'unknown' is not assignable to type 'string'.",
     );
   });
 

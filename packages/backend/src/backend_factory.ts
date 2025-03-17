@@ -39,7 +39,7 @@ const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT =
  * Factory that collects and instantiates all the Amplify backend constructs
  */
 export class BackendFactory<
-  T extends Record<string, ConstructFactory<ResourceProvider>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>,
 > {
   /**
    * These are the resolved CDK constructs that are created by the inputs to the constructor
@@ -61,24 +61,24 @@ export class BackendFactory<
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,
-      fileURLToPath(new URL('../package.json', import.meta.url))
+      fileURLToPath(new URL('../package.json', import.meta.url)),
     );
     this.stackResolver = new NestedStackResolver(
       stack,
-      new AttributionMetadataStorage()
+      new AttributionMetadataStorage(),
     );
 
     const constructContainer = new SingletonConstructContainer(
-      this.stackResolver
+      this.stackResolver,
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
 
     this.customOutputsAccumulator = new CustomOutputsAccumulator(
       outputStorageStrategy,
-      new ObjectAccumulator<ClientConfig>({})
+      new ObjectAccumulator<ClientConfig>({}),
     );
 
     const backendId = getBackendIdentifier(stack);
@@ -120,10 +120,10 @@ export class BackendFactory<
             outputStorageStrategy,
             importPathVerifier,
             resourceNameValidator,
-          }
+          },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;
-      }
+      },
     );
   }
 
@@ -136,7 +136,7 @@ export class BackendFactory<
   };
 
   addOutput = (
-    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>,
   ) => {
     const { version } = clientConfigPart;
     if (!version) {
@@ -152,7 +152,7 @@ export class BackendFactory<
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
 export const defineBackend = <T extends DefineBackendProps>(
-  constructFactories: T
+  constructFactories: T,
 ): Backend<T> => {
   const backend = new BackendFactory(constructFactories);
   return {

@@ -25,7 +25,7 @@ void describe('info command run', () => {
     const output = await commandRunner.runCommand(['info', '--help']);
     assert.match(
       output,
-      /info\W*Generates information for Amplify troubleshooting/
+      /info\W*Generates information for Amplify troubleshooting/,
     );
   });
 
@@ -61,20 +61,20 @@ void describe('info command run', () => {
     const infoMock = mock.method(
       environmentInfoProviderMock,
       'getEnvInfo',
-      async () => environmentInfoMockValue
+      async () => environmentInfoMockValue,
     );
 
     const cdkInfoMock = mock.method(
       cdkInfoProviderMock,
       'getCdkInfo',
-      async () => cdkMockValue
+      async () => cdkMockValue,
     );
 
     const mockPrinter = mock.method(printer, 'print', () => ({}));
 
     const command = new InfoCommand(
       environmentInfoProviderMock,
-      cdkInfoProviderMock
+      cdkInfoProviderMock,
     );
     const parser = yargs().command(command);
     const commandRunner = new TestCommandRunner(parser);
@@ -85,7 +85,7 @@ void describe('info command run', () => {
     assert.equal(mockPrinter.mock.callCount(), 1);
     assert.strictEqual(
       mockPrinter.mock.calls[0].arguments[0],
-      `${environmentInfoMockValue}${os.EOL}${cdkMockValue}`
+      `${environmentInfoMockValue}${os.EOL}${cdkMockValue}`,
     );
   });
 });

@@ -11,17 +11,17 @@ import * as bedrock from '@aws-sdk/client-bedrock-runtime';
  */
 export const createExecutableTool: <
   TJSONSchema extends JSONSchema = JSONSchema,
-  TToolInput = FromJSONSchema<TJSONSchema>
+  TToolInput = FromJSONSchema<TJSONSchema>,
 >(
   name: string,
   description: string,
   inputSchema: ToolInputSchema<TJSONSchema>,
-  handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>
+  handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>,
 ) => ExecutableTool<TJSONSchema, TToolInput> = (
   name,
   description,
   inputSchema,
-  handler
+  handler,
 ) => {
   return {
     name,

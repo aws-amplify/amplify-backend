@@ -27,7 +27,7 @@ export class SandboxSecretRemoveCommand
    */
   constructor(
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
   ) {
     this.command = 'remove [secret-name]';
     this.describe = 'Remove a sandbox secret';
@@ -37,20 +37,20 @@ export class SandboxSecretRemoveCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SecretRemoveCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SecretRemoveCommandOptionsKebabCase>,
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.identifier
+      args.identifier,
     );
     if (args.secretName) {
       await this.secretClient.removeSecret(
         sandboxBackendIdentifier,
-        args.secretName
+        args.secretName,
       );
       printer.print(`Successfully removed secret ${args.secretName}`);
     } else if (args.all) {
       const secrets = await this.secretClient.listSecrets(
-        sandboxBackendIdentifier
+        sandboxBackendIdentifier,
       );
       const names = secrets.map((secret) => secret.name);
       await this.secretClient.removeSecrets(sandboxBackendIdentifier, names);

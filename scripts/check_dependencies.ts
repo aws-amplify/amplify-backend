@@ -24,5 +24,5 @@ await new DependenciesValidator(
     },
   },
   [], // Add a list of dependencies here that should be versioned together
-  []
+  [],
 ).validate();

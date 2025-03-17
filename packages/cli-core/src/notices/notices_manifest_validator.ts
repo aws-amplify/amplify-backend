@@ -15,7 +15,7 @@ export class NoticesManifestValidator {
    */
   constructor(
     private readonly props?: NoticesManifestValidatorProps,
-    private readonly _fetch = fetch
+    private readonly _fetch = fetch,
   ) {}
 
   validate = async (noticesManifest: NoticesManifest): Promise<void> => {
@@ -50,7 +50,7 @@ export class NoticesManifestValidator {
       if (this.props?.checkLinksWithGitHubApi) {
         const issueNumber = matched.groups.issueNumber;
         const response = await this._fetch(
-          `https://api.github.com/repos/aws-amplify/amplify-backend/issues/${issueNumber}`
+          `https://api.github.com/repos/aws-amplify/amplify-backend/issues/${issueNumber}`,
         );
         if (!response.ok) {
           throw new AmplifyFault('InvalidNoticeManifestFault', {

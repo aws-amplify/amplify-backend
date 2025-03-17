@@ -8,7 +8,7 @@ void describe('AsyncLock', () => {
   };
   const doSomeWork = async (
     lock: AsyncLock,
-    timeoutMs = randomInteger(1, 100)
+    timeoutMs = randomInteger(1, 100),
   ) => {
     await lock.acquire();
     try {

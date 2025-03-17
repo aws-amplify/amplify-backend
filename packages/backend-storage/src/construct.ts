@@ -134,7 +134,7 @@ export class AmplifyStorage
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       storageStackType,
-      fileURLToPath(new URL('../package.json', import.meta.url))
+      fileURLToPath(new URL('../package.json', import.meta.url)),
     );
   }
 
@@ -145,7 +145,7 @@ export class AmplifyStorage
    */
   addTrigger = (events: EventType[], handler: IFunction): void => {
     handler.addEventSource(
-      new S3EventSourceV2(this.resources.bucket, { events })
+      new S3EventSourceV2(this.resources.bucket, { events }),
     );
   };
 

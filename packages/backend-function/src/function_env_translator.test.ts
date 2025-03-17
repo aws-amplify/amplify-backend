@@ -44,11 +44,11 @@ class TestBackendSecret implements BackendSecret {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
-        this.secretName
+        this.secretName,
       ),
       sharedSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier.namespace,
-        this.secretName
+        this.secretName,
       ),
     };
   };
@@ -77,7 +77,7 @@ void describe('FunctionEnvironmentTranslator', () => {
       testLambda,
       functionEnvProp,
       backendResolver,
-      new FunctionEnvironmentTypeGenerator(testLambdaName)
+      new FunctionEnvironmentTypeGenerator(testLambdaName),
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -104,7 +104,7 @@ void describe('FunctionEnvironmentTranslator', () => {
       testLambda,
       functionEnvProp,
       backendResolver,
-      new FunctionEnvironmentTypeGenerator(testLambdaName)
+      new FunctionEnvironmentTypeGenerator(testLambdaName),
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -141,12 +141,12 @@ void describe('FunctionEnvironmentTranslator', () => {
           testLambda,
           functionEnvProp,
           backendResolver,
-          new FunctionEnvironmentTypeGenerator(testLambdaName)
+          new FunctionEnvironmentTypeGenerator(testLambdaName),
         );
       },
       {
         name: 'InvalidFunctionConfigurationError',
-      }
+      },
     );
   });
 
@@ -161,8 +161,8 @@ void describe('FunctionEnvironmentTranslator', () => {
           getTestLambda(),
           functionEnvProp,
           backendResolver,
-          new FunctionEnvironmentTypeGenerator(testLambdaName)
-        )
+          new FunctionEnvironmentTypeGenerator(testLambdaName),
+        ),
     );
   });
 
@@ -177,7 +177,7 @@ void describe('FunctionEnvironmentTranslator', () => {
       testLambda,
       functionEnvProp,
       backendResolver,
-      new FunctionEnvironmentTypeGenerator(testLambdaName)
+      new FunctionEnvironmentTypeGenerator(testLambdaName),
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -196,7 +196,7 @@ void describe('FunctionEnvironmentTranslator', () => {
       testLambda,
       functionEnvProp,
       backendResolver,
-      new FunctionEnvironmentTypeGenerator(testLambdaName)
+      new FunctionEnvironmentTypeGenerator(testLambdaName),
     );
 
     const template = Template.fromStack(Stack.of(testLambda));

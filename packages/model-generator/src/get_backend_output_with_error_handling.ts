@@ -11,7 +11,7 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
  */
 export const getBackendOutputWithErrorHandling = async (
   backendOutputClient: BackendOutputClient,
-  backendIdentifier: DeployedBackendIdentifier
+  backendIdentifier: DeployedBackendIdentifier,
 ) => {
   try {
     return await backendOutputClient.getOutput(backendIdentifier);
@@ -25,7 +25,7 @@ export const getBackendOutputWithErrorHandling = async (
               message: 'Deployment is currently in progress.',
               resolution: 'Re-run this command once the deployment completes.',
             },
-            error
+            error,
           );
         case BackendOutputClientErrorType.NO_STACK_FOUND:
           throw new AmplifyUserError(
@@ -35,7 +35,7 @@ export const getBackendOutputWithErrorHandling = async (
               resolution:
                 'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
             },
-            error
+            error,
           );
         case BackendOutputClientErrorType.NO_OUTPUTS_FOUND:
           throw new AmplifyUserError(
@@ -45,7 +45,7 @@ export const getBackendOutputWithErrorHandling = async (
               resolution: `Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists.
       If this is a new sandbox or branch deployment, wait for the deployment to be successfully finished and try again.`,
             },
-            error
+            error,
           );
         case BackendOutputClientErrorType.CREDENTIALS_ERROR:
           throw new AmplifyUserError(
@@ -56,7 +56,7 @@ export const getBackendOutputWithErrorHandling = async (
               resolution:
                 'Ensure your AWS credentials are correctly set and refreshed.',
             },
-            error
+            error,
           );
         case BackendOutputClientErrorType.ACCESS_DENIED:
           throw new AmplifyUserError(
@@ -67,7 +67,7 @@ export const getBackendOutputWithErrorHandling = async (
               resolution:
                 'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
             },
-            error
+            error,
           );
         default:
           throw error;

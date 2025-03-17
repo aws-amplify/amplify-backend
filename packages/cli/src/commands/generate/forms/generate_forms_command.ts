@@ -45,7 +45,7 @@ export class GenerateFormsCommand
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
     private readonly backendOutputClientBuilder: () => BackendOutputClient,
-    private readonly formGenerationHandler: FormGenerationHandler
+    private readonly formGenerationHandler: FormGenerationHandler,
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -53,7 +53,7 @@ export class GenerateFormsCommand
 
   getBackendIdentifier = async (args: GenerateFormsCommandOptions) => {
     return await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-      args
+      args,
     );
   };
 
@@ -61,11 +61,11 @@ export class GenerateFormsCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier =
       await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+        args,
       );
 
     if (!backendIdentifier) {
@@ -92,7 +92,7 @@ export class GenerateFormsCommand
                 resolution:
                   'Re-run this command once the deployment completes.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.NO_STACK_FOUND:
             throw new AmplifyUserError(
@@ -102,7 +102,7 @@ export class GenerateFormsCommand
                 resolution:
                   'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.NO_OUTPUTS_FOUND:
             throw new AmplifyUserError(
@@ -112,7 +112,7 @@ export class GenerateFormsCommand
                 resolution: `Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists.
         If this is a new sandbox or branch deployment, wait for the deployment to be successfully finished and try again.`,
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.CREDENTIALS_ERROR:
             throw new AmplifyUserError(
@@ -123,7 +123,7 @@ export class GenerateFormsCommand
                 resolution:
                   'Ensure your AWS credentials are correctly set and refreshed.',
               },
-              error
+              error,
             );
           case BackendOutputClientErrorType.ACCESS_DENIED:
             throw new AmplifyUserError(
@@ -134,7 +134,7 @@ export class GenerateFormsCommand
                 resolution:
                   'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
               },
-              error
+              error,
             );
           default:
             throw error;

@@ -9,7 +9,7 @@ import { SSMSecretClientWithAmplifyErrorHandling } from './ssm_secret_with_ampli
 void describe('getSecretClientWithAmplifyErrorHandling', () => {
   const rawSecretClient = getSecretClient();
   const classUnderTest = new SSMSecretClientWithAmplifyErrorHandling(
-    rawSecretClient
+    rawSecretClient,
   );
   void it('throws AmplifyUserError if listSecrets fails due to ExpiredTokenException', async (context) => {
     const ssmError = new SSMServiceException({
@@ -35,7 +35,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
           'Failed to list secrets. ExpiredTokenException: tokens expired',
         resolution:
           'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
-      })
+      }),
     );
   });
 
@@ -58,13 +58,13 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
           'Failed to list secrets. CredentialsProviderError: credentials error',
         resolution:
           'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
-      })
+      }),
     );
   });
 
   void it('throws AmplifyUserError if listSecrets fails due to insufficient memory error', async (context) => {
     const credentialsError = new Error(
-      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)'
+      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
     );
     const secretsError = SecretError.createInstance(credentialsError);
     context.mock.method(rawSecretClient, 'listSecrets', () => {
@@ -82,7 +82,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
           'Failed to list secrets. Error: connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
         resolution:
           'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
-      })
+      }),
     );
   });
 
@@ -104,12 +104,12 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
           },
           {
             name: secretName,
-          }
+          },
         ),
       new AmplifyUserError('SSMParameterNotFoundError', {
         message: `Failed to get ${secretName} secret. ParameterNotFound: Parameter not found error`,
         resolution: `Make sure that ${secretName} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
-      })
+      }),
     );
   });
 
@@ -129,12 +129,12 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
             name: 'testSandboxName',
             type: 'sandbox',
           },
-          secretName
+          secretName,
         ),
       new AmplifyUserError('SSMParameterNotFoundError', {
         message: `Failed to remove ${secretName} secret. ParameterNotFound: Parameter not found error`,
         resolution: `Make sure that ${secretName} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
-      })
+      }),
     );
   });
 
@@ -156,8 +156,8 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
         {
           message: 'Failed to list secrets. Error: some secret error',
         },
-        underlyingError // If it's not an SSM exception, we use the original error instead of secrets error
-      )
+        underlyingError, // If it's not an SSM exception, we use the original error instead of secrets error
+      ),
     );
   });
 
@@ -180,15 +180,15 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
             name: 'testSandboxName',
             type: 'sandbox',
           },
-          { name: 'testSecret' }
+          { name: 'testSecret' },
         ),
       new AmplifyFault(
         'GetSecretsFailedFault',
         {
           message: 'Failed to get secrets. SomeException: some error',
         },
-        secretsError // If it's an SSM exception, we use the wrapper secret error
-      )
+        secretsError, // If it's an SSM exception, we use the wrapper secret error
+      ),
     );
   });
 });

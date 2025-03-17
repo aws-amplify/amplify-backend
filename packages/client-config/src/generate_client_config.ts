@@ -30,7 +30,7 @@ export const generateClientConfig = async <T extends ClientConfigVersion>(
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
-  }>
+  }>,
 ): Promise<ClientConfigVersionTemplateType<T>> => {
   if (!awsClientProvider) {
     const s3Client = new S3Client();
@@ -46,10 +46,10 @@ export const generateClientConfig = async <T extends ClientConfigVersion>(
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
   const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-    awsClientProvider
+    awsClientProvider,
   );
   return new ClientConfigGeneratorFactory(() =>
-    backendOutputClient.getOutput(backendIdentifier)
+    backendOutputClient.getOutput(backendIdentifier),
   )
     .getInstance(modelSchemaAdapter, version)
     .generateClientConfig() as Promise<ClientConfigVersionTemplateType<T>>;

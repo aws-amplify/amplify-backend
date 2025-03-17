@@ -14,7 +14,7 @@ void describe('allowAccessBuilder', () => {
   const getResourceAccessAcceptorMock = mock.fn(
     // allows us to get proper typing on the mock args
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (_: string) => resourceAccessAcceptorMock
+    (_: string) => resourceAccessAcceptorMock,
   );
 
   const getConstructFactoryMock = mock.fn(
@@ -24,8 +24,8 @@ void describe('allowAccessBuilder', () => {
       getInstance: () =>
         ({
           getResourceAccessAcceptor: getResourceAccessAcceptorMock,
-        } as unknown as T),
-    })
+        }) as unknown as T,
+    }),
   );
 
   const stubGetInstanceProps = {
@@ -40,7 +40,7 @@ void describe('allowAccessBuilder', () => {
         getInstance: () =>
           ({
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
-          } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
+          }) as unknown as ResourceProvider & ResourceAccessAcceptorFactory,
       })
       .to(['createUser', 'deleteUser', 'setUserPassword']);
 
@@ -51,7 +51,7 @@ void describe('allowAccessBuilder', () => {
     ]);
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      resourceAccessAcceptorMock
+      resourceAccessAcceptorMock,
     );
   });
 });

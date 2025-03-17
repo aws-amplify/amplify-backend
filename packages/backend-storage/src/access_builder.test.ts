@@ -31,8 +31,8 @@ void describe('storageAccessBuilder', () => {
       getInstance: () =>
         ({
           getResourceAccessAcceptor: getResourceAccessAcceptorMock,
-        } as unknown as T),
-    })
+        }) as unknown as T,
+    }),
   );
   const stubGetInstanceProps: ConstructFactoryGetInstanceProps = {
     constructContainer: {
@@ -61,17 +61,17 @@ void describe('storageAccessBuilder', () => {
     assert.deepStrictEqual(
       accessDefinition.getResourceAccessAcceptors.map(
         (getResourceAccessAcceptor) =>
-          getResourceAccessAcceptor(stubGetInstanceProps)
+          getResourceAccessAcceptor(stubGetInstanceProps),
       ),
-      [resourceAccessAcceptorMock]
+      [resourceAccessAcceptorMock],
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
-      'AuthResources'
+      'AuthResources',
     );
     assert.equal(
       getResourceAccessAcceptorMock.mock.calls[0].arguments[0],
-      'authenticatedUserIamRole'
+      'authenticatedUserIamRole',
     );
   });
   void it('builds storage access definition for guest role', () => {
@@ -89,17 +89,17 @@ void describe('storageAccessBuilder', () => {
     assert.deepStrictEqual(
       accessDefinition.getResourceAccessAcceptors.map(
         (getResourceAccessAcceptor) =>
-          getResourceAccessAcceptor(stubGetInstanceProps)
+          getResourceAccessAcceptor(stubGetInstanceProps),
       ),
-      [resourceAccessAcceptorMock]
+      [resourceAccessAcceptorMock],
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
-      'AuthResources'
+      'AuthResources',
     );
     assert.equal(
       getResourceAccessAcceptorMock.mock.calls[0].arguments[0],
-      'unauthenticatedUserIamRole'
+      'unauthenticatedUserIamRole',
     );
   });
   void it('builds storage access definition for IdP identity', () => {
@@ -113,22 +113,22 @@ void describe('storageAccessBuilder', () => {
     ]);
     assert.equal(
       accessDefinition.idSubstitution,
-      '${cognito-identity.amazonaws.com:sub}'
+      '${cognito-identity.amazonaws.com:sub}',
     );
     assert.deepStrictEqual(
       accessDefinition.getResourceAccessAcceptors.map(
         (getResourceAccessAcceptor) =>
-          getResourceAccessAcceptor(stubGetInstanceProps)
+          getResourceAccessAcceptor(stubGetInstanceProps),
       ),
-      [resourceAccessAcceptorMock]
+      [resourceAccessAcceptorMock],
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
-      'AuthResources'
+      'AuthResources',
     );
     assert.equal(
       getResourceAccessAcceptorMock.mock.calls[0].arguments[0],
-      'authenticatedUserIamRole'
+      'authenticatedUserIamRole',
     );
   });
 
@@ -138,7 +138,7 @@ void describe('storageAccessBuilder', () => {
         getInstance: () =>
           ({
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
-          } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
+          }) as unknown as ResourceProvider & ResourceAccessAcceptorFactory,
       })
       .to(['read', 'write', 'delete']);
 
@@ -151,9 +151,9 @@ void describe('storageAccessBuilder', () => {
     assert.deepStrictEqual(
       accessDefinition.getResourceAccessAcceptors.map(
         (getResourceAccessAcceptor) =>
-          getResourceAccessAcceptor(stubGetInstanceProps)
+          getResourceAccessAcceptor(stubGetInstanceProps),
       ),
-      [resourceAccessAcceptorMock]
+      [resourceAccessAcceptorMock],
     );
   });
 
@@ -167,9 +167,9 @@ void describe('storageAccessBuilder', () => {
     assert.deepStrictEqual(
       accessDefinition.getResourceAccessAcceptors.map(
         (getResourceAccessAcceptor) =>
-          getResourceAccessAcceptor(stubGetInstanceProps)
+          getResourceAccessAcceptor(stubGetInstanceProps),
       ),
-      [group1AccessAcceptorMock, group2AccessAcceptorMock]
+      [group1AccessAcceptorMock, group2AccessAcceptorMock],
     );
   });
 });

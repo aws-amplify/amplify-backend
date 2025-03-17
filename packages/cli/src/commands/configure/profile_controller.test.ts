@@ -92,13 +92,13 @@ void describe('profile controller', () => {
 
       const configText = await fs.readFile(
         process.env.AWS_CONFIG_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(configText, expectedConfigText);
 
       const credentialText = await fs.readFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(credentialText, expectedCredentialText);
 
@@ -141,24 +141,24 @@ void describe('profile controller', () => {
 
       const configText = await fs.readFile(
         process.env.AWS_CONFIG_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(configText, `${expectedConfigText}${expectedConfigText2}`);
 
       const credentialText = await fs.readFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(
         credentialText,
-        `${expectedCredentialText}${expectedCredentialText2}`
+        `${expectedCredentialText}${expectedCredentialText2}`,
       );
     });
 
     void it('appends to files which does not end with EOL', async () => {
       await removeLastEOLCharFromFile(process.env.AWS_CONFIG_FILE as string);
       await removeLastEOLCharFromFile(
-        process.env.AWS_SHARED_CREDENTIALS_FILE as string
+        process.env.AWS_SHARED_CREDENTIALS_FILE as string,
       );
 
       await profileController.createOrAppendAWSFiles({
@@ -202,20 +202,20 @@ void describe('profile controller', () => {
 
       const configText = await fs.readFile(
         process.env.AWS_CONFIG_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(
         configText,
-        `${expectedConfigText}${expectedConfigText2}${expectedConfigText3}`
+        `${expectedConfigText}${expectedConfigText2}${expectedConfigText3}`,
       );
 
       const credentialText = await fs.readFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(
         credentialText,
-        `${expectedCredentialText}${expectedCredentialText2}${expectedCredentialText3}`
+        `${expectedCredentialText}${expectedCredentialText2}${expectedCredentialText3}`,
       );
     });
 
@@ -253,12 +253,12 @@ void describe('profile controller', () => {
       await fs.writeFile(
         process.env.AWS_CONFIG_FILE as string,
         expectedConfigText2,
-        'utf-8'
+        'utf-8',
       );
       await fs.writeFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
         expectedCredentialText2,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(await profileController.profileExists(testProfile), false);
     });
@@ -267,7 +267,7 @@ void describe('profile controller', () => {
       await fs.writeFile(
         process.env.AWS_CONFIG_FILE as string,
         expectedConfigText,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
@@ -276,7 +276,7 @@ void describe('profile controller', () => {
       await fs.writeFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
         expectedCredentialText,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
@@ -285,12 +285,12 @@ void describe('profile controller', () => {
       await fs.writeFile(
         process.env.AWS_CONFIG_FILE as string,
         `${expectedConfigText}${expectedConfigText2}`,
-        'utf-8'
+        'utf-8',
       );
       await fs.writeFile(
         process.env.AWS_SHARED_CREDENTIALS_FILE as string,
         `${expectedCredentialText}${expectedCredentialText2}`,
-        'utf-8'
+        'utf-8',
       );
       assert.equal(await profileController.profileExists(testProfile), true);
     });
@@ -309,7 +309,7 @@ void describe('profile controller', () => {
     };
 
     const profileController = new ProfileController(
-      fsMock as unknown as typeof fs
+      fsMock as unknown as typeof fs,
     );
 
     before(async () => {
@@ -337,7 +337,7 @@ void describe('profile controller', () => {
       });
 
       fsMock.readFile.mock.mockImplementationOnce(() =>
-        Promise.reject(new Error('EACCES: Permission denied'))
+        Promise.reject(new Error('EACCES: Permission denied')),
       );
 
       await assert.rejects(
@@ -353,7 +353,7 @@ void describe('profile controller', () => {
           assert.strictEqual(error.message, expectedErr.message);
           assert.strictEqual(error.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -364,10 +364,10 @@ void describe('profile controller', () => {
       });
 
       fsMock.readFile.mock.mockImplementationOnce(
-        (path: string, encoding: BufferEncoding) => fs.readFile(path, encoding)
+        (path: string, encoding: BufferEncoding) => fs.readFile(path, encoding),
       );
       fsMock.appendFile.mock.mockImplementationOnce(() =>
-        Promise.reject(new Error('EACCES: Permission denied'))
+        Promise.reject(new Error('EACCES: Permission denied')),
       );
 
       await assert.rejects(
@@ -383,7 +383,7 @@ void describe('profile controller', () => {
           assert.strictEqual(error.message, expectedErr.message);
           assert.strictEqual(error.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
   });
@@ -400,6 +400,6 @@ const assertFilePermissionsAreOwnerReadWriteOnly = async (filePath: string) => {
     // bit-wise mask that tests for owner RW of the file
     // unfortunately there does not appear to be a better way to test this using node built-ins
     credentialFileStats.mode ===
-      (fs.constants.S_IFREG | fs.constants.S_IRUSR | fs.constants.S_IWUSR)
+      (fs.constants.S_IFREG | fs.constants.S_IRUSR | fs.constants.S_IWUSR),
   );
 };

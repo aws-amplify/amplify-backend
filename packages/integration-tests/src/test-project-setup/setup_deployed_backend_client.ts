@@ -3,14 +3,14 @@ import fsp from 'fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const packageLockPath = fileURLToPath(
-  new URL('../../../../package-lock.json', import.meta.url)
+  new URL('../../../../package-lock.json', import.meta.url),
 );
 
 /**
  * Configures package.json for testing the specified project directory with the version of deployed-backend-client on npm
  */
 export const setupDeployedBackendClient = async (
-  projectRootDirPath: string
+  projectRootDirPath: string,
 ) => {
   await execa('npm', ['install', '@aws-amplify/deployed-backend-client'], {
     cwd: projectRootDirPath,

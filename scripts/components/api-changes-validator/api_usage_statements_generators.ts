@@ -23,7 +23,7 @@ export class GenericTypeParameterDeclarationUsageStatementsGenerator
   constructor(
     private readonly typeParameters:
       | ts.NodeArray<ts.TypeParameterDeclaration>
-      | undefined
+      | undefined,
   ) {}
 
   /**
@@ -63,7 +63,7 @@ export class GenericTypeParameterUsageStatementsGenerator
   constructor(
     private readonly typeParameters:
       | ts.NodeArray<ts.TypeParameterDeclaration>
-      | undefined
+      | undefined,
   ) {}
 
   /**
@@ -123,7 +123,7 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
   constructor(
     private readonly typeAliasDeclaration: ts.TypeAliasDeclaration,
     private readonly packageName: string,
-    private readonly excludedTypes: Array<string>
+    private readonly excludedTypes: Array<string>,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const typeName = this.typeAliasDeclaration.name.getText();
@@ -133,11 +133,11 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     const constName = toLowerCamelCase(typeName);
     const genericTypeParametersDeclaration =
       new GenericTypeParameterDeclarationUsageStatementsGenerator(
-        this.typeAliasDeclaration.typeParameters
+        this.typeAliasDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
     const genericTypeParameters =
       new GenericTypeParameterUsageStatementsGenerator(
-        this.typeAliasDeclaration.typeParameters
+        this.typeAliasDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
     const baselineTypeName = `${typeName}Baseline`;
     const functionParameterName = `${constName}FunctionParameter`;
@@ -146,7 +146,7 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     // add statement that checks if old type can be assigned to new type.
     const assignmentStatement = `const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};`;
     usageStatement += `const ${toLowerCamelCase(
-      typeName
+      typeName,
     )}UsageFunction = ${genericTypeParametersDeclaration}(${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
     usageStatement += `${indent(assignmentStatement)}${EOL}`;
     usageStatement += `}${EOL}`;
@@ -176,7 +176,7 @@ export class EnumUsageStatementsGenerator implements UsageStatementsGenerator {
    */
   constructor(
     private readonly enumDeclaration: ts.EnumDeclaration,
-    private readonly packageName: string
+    private readonly packageName: string,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const enumName = this.enumDeclaration.name.getText();
@@ -207,7 +207,7 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
    */
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
-    private readonly packageName: string
+    private readonly packageName: string,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const className = this.classDeclaration.name?.getText();
@@ -222,19 +222,19 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
           usageStatement +=
             new ClassPropertyUsageStatementsGenerator(
               this.classDeclaration,
-              classMember as ts.PropertyDeclaration
+              classMember as ts.PropertyDeclaration,
             ).generate().usageStatement ?? '';
           break;
         case ts.SyntaxKind.Constructor:
           usageStatement +=
             new ClassConstructorUsageStatementsGenerator(
               this.classDeclaration,
-              classMember as ts.ConstructorDeclaration
+              classMember as ts.ConstructorDeclaration,
             ).generate().usageStatement ?? '';
           break;
         default:
           console.log(
-            `Warning: class usage generator encountered unrecognized member kind ${classMember.kind}`
+            `Warning: class usage generator encountered unrecognized member kind ${classMember.kind}`,
           );
       }
     }
@@ -243,7 +243,7 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
       usageStatement +=
         new ClassInheritanceUsageStatementsGenerator(
           this.classDeclaration,
-          this.classDeclaration.heritageClauses
+          this.classDeclaration.heritageClauses,
         ).generate().usageStatement ?? '';
     }
 
@@ -275,7 +275,7 @@ class ClassPropertyUsageStatementsGenerator
 {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
-    private readonly propertyDeclaration: ts.PropertyDeclaration
+    private readonly propertyDeclaration: ts.PropertyDeclaration,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const className = this.classDeclaration.name?.getText();
@@ -284,19 +284,19 @@ class ClassPropertyUsageStatementsGenerator
     }
     const memberName = this.propertyDeclaration.name.getText();
     const isStatic = this.propertyDeclaration.modifiers?.find(
-      (modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword
+      (modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword,
     );
     const outerUsageFunctionName = toLowerCamelCase(
-      `${className}${toPascalCase(memberName)}UsageOuterFunction`
+      `${className}${toPascalCase(memberName)}UsageOuterFunction`,
     );
     const outerUsageFunctionParameterName = `${outerUsageFunctionName}Parameter`;
     const genericTypeParametersDeclaration =
       new GenericTypeParameterDeclarationUsageStatementsGenerator(
-        this.classDeclaration.typeParameters
+        this.classDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
     const genericTypeParameters =
       new GenericTypeParameterUsageStatementsGenerator(
-        this.classDeclaration.typeParameters
+        this.classDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
 
     let innerUsageStatement = '';
@@ -308,7 +308,7 @@ class ClassPropertyUsageStatementsGenerator
         new CallableUsageStatementsGenerator(
           this.propertyDeclaration.type as ts.FunctionTypeNode,
           callableSymbol,
-          `${className}${toPascalCase(memberName)}UsageInnerFunction`
+          `${className}${toPascalCase(memberName)}UsageInnerFunction`,
         ).generate().usageStatement ?? '';
     } else {
       let propertyType = `${this.propertyDeclaration.type?.getText() ?? ''}`;
@@ -335,12 +335,12 @@ class ClassConstructorUsageStatementsGenerator
 {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
-    private readonly constructorDeclaration: ts.ConstructorDeclaration
+    private readonly constructorDeclaration: ts.ConstructorDeclaration,
   ) {}
 
   generate = (): UsageStatementsGeneratorOutput => {
     const isAbstract = this.classDeclaration.modifiers?.find(
-      (modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
+      (modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword,
     );
     if (isAbstract) {
       return this.generateAbstractClassConstructorUsage();
@@ -360,29 +360,29 @@ class ClassConstructorUsageStatementsGenerator
         throw new Error('Class name is missing');
       }
       const usageFunctionName = toLowerCamelCase(
-        `${className}ConstructorUsageFunction`
+        `${className}ConstructorUsageFunction`,
       );
       const usageFunctionParameterDeclaration =
         new CallableParameterDeclarationUsageStatementsGenerator(
-          this.constructorDeclaration.parameters
+          this.constructorDeclaration.parameters,
         ).generate().usageStatement ?? '';
       const usageFunctionGenericParametersDeclaration =
         new GenericTypeParameterDeclarationUsageStatementsGenerator(
-          this.classDeclaration.typeParameters
+          this.classDeclaration.typeParameters,
         ).generate().usageStatement ?? '';
       const minParameterUsage =
         new CallableParameterUsageStatementsGenerator(
           this.constructorDeclaration.parameters,
-          'min'
+          'min',
         ).generate().usageStatement ?? '';
       const maxParameterUsage =
         new CallableParameterUsageStatementsGenerator(
           this.constructorDeclaration.parameters,
-          'max'
+          'max',
         ).generate().usageStatement ?? '';
       const genericTypeParameters =
         new GenericTypeParameterUsageStatementsGenerator(
-          this.classDeclaration.typeParameters
+          this.classDeclaration.typeParameters,
         ).generate().usageStatement ?? '';
       const callableSymbol = `new ${className}${genericTypeParameters}`;
       const minParameterCallWithReturnValue = `${callableSymbol}(${minParameterUsage});`;
@@ -411,15 +411,15 @@ class ClassConstructorUsageStatementsGenerator
           this.constructorDeclaration.parameters,
           // exploring just max is fine as abstract and derived class ctor
           // signatures match
-          'max'
+          'max',
         ).generate().usageStatement ?? '';
       const derivedClassGenericParametersDeclaration =
         new GenericTypeParameterDeclarationUsageStatementsGenerator(
-          this.classDeclaration.typeParameters
+          this.classDeclaration.typeParameters,
         ).generate().usageStatement ?? '';
       const genericTypeParameters =
         new GenericTypeParameterUsageStatementsGenerator(
-          this.classDeclaration.typeParameters
+          this.classDeclaration.typeParameters,
         ).generate().usageStatement ?? '';
       const derivedClassName = `${className}DerivedUsageClass`;
       const constructorDeclaration = this.constructorDeclaration
@@ -446,7 +446,7 @@ class ClassInheritanceUsageStatementsGenerator
 {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
-    private readonly heritageClauses: ts.NodeArray<ts.HeritageClause>
+    private readonly heritageClauses: ts.NodeArray<ts.HeritageClause>,
   ) {}
 
   generate = (): UsageStatementsGeneratorOutput => {
@@ -455,16 +455,16 @@ class ClassInheritanceUsageStatementsGenerator
       throw new Error('Class name is missing');
     }
     const usageFunctionName = toLowerCamelCase(
-      `${className}InheritanceUsageFunction`
+      `${className}InheritanceUsageFunction`,
     );
     const usageFunctionParameterName = `${usageFunctionName}Parameter`;
     const genericTypeParametersDeclaration =
       new GenericTypeParameterDeclarationUsageStatementsGenerator(
-        this.classDeclaration.typeParameters
+        this.classDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
     const genericTypeParameters =
       new GenericTypeParameterUsageStatementsGenerator(
-        this.classDeclaration.typeParameters
+        this.classDeclaration.typeParameters,
       ).generate().usageStatement ?? '';
 
     const superTypeUsageStatements = this.heritageClauses
@@ -497,7 +497,7 @@ export class VariableUsageStatementsGenerator
    */
   constructor(
     private readonly variableStatement: ts.VariableStatement,
-    private readonly packageName: string
+    private readonly packageName: string,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     if (this.variableStatement.declarationList.declarations.length != 1) {
@@ -511,7 +511,7 @@ export class VariableUsageStatementsGenerator
       usageStatement = new CallableUsageStatementsGenerator(
         variableDeclaration.type as ts.FunctionTypeNode,
         variableName,
-        `${variableName}UsageFunction`
+        `${variableName}UsageFunction`,
       ).generate().usageStatement;
     }
 
@@ -553,16 +553,16 @@ export class CallableUsageStatementsGenerator
   constructor(
     private readonly functionType: ts.FunctionTypeNode,
     private readonly callableSymbol: string,
-    private readonly usageFunctionName: string
+    private readonly usageFunctionName: string,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const usageFunctionParameterDeclaration =
       new CallableParameterDeclarationUsageStatementsGenerator(
-        this.functionType.parameters
+        this.functionType.parameters,
       ).generate().usageStatement ?? '';
     const usageFunctionGenericParametersDeclaration =
       new GenericTypeParameterDeclarationUsageStatementsGenerator(
-        this.functionType.typeParameters
+        this.functionType.typeParameters,
       ).generate().usageStatement ?? '';
     let returnValueAssignmentTarget = '';
     if (this.functionType.type.kind !== ts.SyntaxKind.VoidKeyword) {
@@ -582,12 +582,12 @@ export class CallableUsageStatementsGenerator
     const minParameterUsage =
       new CallableParameterUsageStatementsGenerator(
         this.functionType.parameters,
-        'min'
+        'min',
       ).generate().usageStatement ?? '';
     const maxParameterUsage =
       new CallableParameterUsageStatementsGenerator(
         this.functionType.parameters,
-        'max'
+        'max',
       ).generate().usageStatement ?? '';
     const minParameterCallWithReturnValue = `${returnValueAssignmentTarget}${this.callableSymbol}(${minParameterUsage});`;
     const maxParameterCall = `${this.callableSymbol}(${maxParameterUsage});`;
@@ -612,7 +612,7 @@ export class CallableParameterDeclarationUsageStatementsGenerator
    * @inheritDoc
    */
   constructor(
-    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>
+    private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>,
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const usageStatement = this.parameters
@@ -641,7 +641,7 @@ export class CallableParameterUsageStatementsGenerator
    */
   constructor(
     private readonly parameters: ts.NodeArray<ts.ParameterDeclaration>,
-    private readonly strategy: 'min' | 'max'
+    private readonly strategy: 'min' | 'max',
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const usageStatement = this.parameters

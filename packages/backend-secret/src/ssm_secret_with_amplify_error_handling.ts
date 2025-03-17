@@ -21,12 +21,12 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
 
   getSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretIdentifier: SecretIdentifier
+    secretIdentifier: SecretIdentifier,
   ): Promise<Secret> => {
     try {
       return await this.secretClient.getSecret(
         backendIdentifier,
-        secretIdentifier
+        secretIdentifier,
       );
     } catch (e) {
       throw this.translateToAmplifyError(e, 'Get', secretIdentifier);
@@ -34,7 +34,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
   };
 
   listSecrets = async (
-    backendIdentifier: BackendIdentifier | AppId
+    backendIdentifier: BackendIdentifier | AppId,
   ): Promise<SecretListItem[]> => {
     try {
       return await this.secretClient.listSecrets(backendIdentifier);
@@ -46,13 +46,13 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
   setSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string,
-    secretValue: string
+    secretValue: string,
   ): Promise<SecretIdentifier> => {
     try {
       return await this.secretClient.setSecret(
         backendIdentifier,
         secretName,
-        secretValue
+        secretValue,
       );
     } catch (e) {
       throw this.translateToAmplifyError(e, 'Set');
@@ -61,12 +61,12 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
 
   removeSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretName: string
+    secretName: string,
   ): Promise<void> => {
     try {
       return await this.secretClient.removeSecret(
         backendIdentifier,
-        secretName
+        secretName,
       );
     } catch (e) {
       throw this.translateToAmplifyError(e, 'Remove', { name: secretName });
@@ -78,12 +78,12 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
    */
   public removeSecrets = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretNames: string[]
+    secretNames: string[],
   ) => {
     try {
       return await this.secretClient.removeSecrets(
         backendIdentifier,
-        secretNames
+        secretNames,
       );
     } catch (e) {
       throw this.translateToAmplifyError(e, 'Remove');
@@ -93,7 +93,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
   private translateToAmplifyError = (
     error: unknown,
     apiName: string,
-    secretIdentifier?: SecretIdentifier
+    secretIdentifier?: SecretIdentifier,
   ) => {
     if (error instanceof SecretError && error.cause) {
       if (
@@ -151,7 +151,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
             error.cause.name
           }: ${error.cause?.message}`,
         },
-        downstreamException
+        downstreamException,
       );
     }
     return error;

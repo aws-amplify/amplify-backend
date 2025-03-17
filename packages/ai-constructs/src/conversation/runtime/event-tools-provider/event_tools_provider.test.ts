@@ -95,7 +95,7 @@ void describe('events tool provider', () => {
     });
     const eventTools = new ConversationTurnEventToolsProvider(
       event,
-      queryFactory
+      queryFactory,
     ).getEventTools();
 
     assert.strictEqual(eventTools.length, 2);
@@ -103,23 +103,23 @@ void describe('events tool provider', () => {
     assert.strictEqual(eventTools[0].description, toolDefinition1.description);
     assert.deepStrictEqual(
       eventTools[0].inputSchema,
-      toolDefinition1.inputSchema
+      toolDefinition1.inputSchema,
     );
     assert.strictEqual(eventTools[1].name, toolDefinition2.name);
     assert.strictEqual(eventTools[1].description, toolDefinition2.description);
     assert.deepStrictEqual(
       eventTools[1].inputSchema,
-      toolDefinition2.inputSchema
+      toolDefinition2.inputSchema,
     );
 
     assert.strictEqual(createQueryMock.mock.calls.length, 2);
     assert.deepStrictEqual(
       createQueryMock.mock.calls[0].arguments[0],
-      toolDefinition1
+      toolDefinition1,
     );
     assert.deepStrictEqual(
       createQueryMock.mock.calls[1].arguments[0],
-      toolDefinition2
+      toolDefinition2,
     );
   });
 });

@@ -20,12 +20,14 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('returns policy with read actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map([['get', { allow: new Set(['some/prefix/*']), deny: new Set() }]])
+      new Map([
+        ['get', { allow: new Set(['some/prefix/*']), deny: new Set() }],
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -57,12 +59,12 @@ void describe('StorageAccessPolicyFactory', () => {
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
         ['write', { allow: new Set(['some/prefix/*']), deny: new Set() }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -95,12 +97,12 @@ void describe('StorageAccessPolicyFactory', () => {
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
         ['delete', { allow: new Set(['some/prefix/*']), deny: new Set() }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -139,12 +141,12 @@ void describe('StorageAccessPolicyFactory', () => {
             deny: new Set(),
           },
         ],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -191,12 +193,12 @@ void describe('StorageAccessPolicyFactory', () => {
       new Map([
         ['get', { allow: new Set(['some/prefix/*']), deny: new Set() }],
         ['write', { allow: new Set(['another/path/*']), deny: new Set() }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -245,12 +247,12 @@ void describe('StorageAccessPolicyFactory', () => {
         ['get', { allow: new Set(['some/prefix/*']), deny: new Set() }],
         ['write', { allow: new Set(['some/prefix/*']), deny: new Set() }],
         ['delete', { allow: new Set(['some/prefix/*']), deny: new Set() }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -312,12 +314,12 @@ void describe('StorageAccessPolicyFactory', () => {
       new Map([
         ['get', { allow: new Set(['foo/*', 'foo/bar/*']), deny: new Set() }],
         ['write', { allow: new Set(['foo/*']), deny: new Set(['foo/bar/*']) }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -399,12 +401,12 @@ void describe('StorageAccessPolicyFactory', () => {
           },
         ],
         ['write', { allow: new Set(['foo/*']), deny: new Set(['foo/bar/*']) }],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -487,12 +489,12 @@ void describe('StorageAccessPolicyFactory', () => {
             deny: new Set(['foo/bar/*', 'other/path/*', 'something/else/*']),
           },
         ],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -570,12 +572,12 @@ void describe('StorageAccessPolicyFactory', () => {
             deny: new Set(['some/prefix/subpath/*']),
           },
         ],
-      ])
+      ]),
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);

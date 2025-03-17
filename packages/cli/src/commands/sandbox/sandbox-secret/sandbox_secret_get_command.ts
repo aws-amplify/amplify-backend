@@ -26,7 +26,7 @@ export class SandboxSecretGetCommand
    */
   constructor(
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
   ) {
     this.command = 'get <secret-name>';
     this.describe = 'Get a sandbox secret';
@@ -36,10 +36,10 @@ export class SandboxSecretGetCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<SecretGetCommandOptionsKebabCase>
+    args: ArgumentsCamelCase<SecretGetCommandOptionsKebabCase>,
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.identifier
+      args.identifier,
     );
     const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
       name: args.secretName,

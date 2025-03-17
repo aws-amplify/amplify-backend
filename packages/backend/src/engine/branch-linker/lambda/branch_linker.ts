@@ -23,7 +23,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
   constructor(private readonly amplifyClient: AmplifyClient) {}
 
   handleCustomResourceEvent = async (
-    event: CloudFormationCustomResourceEvent
+    event: CloudFormationCustomResourceEvent,
   ): Promise<CloudFormationCustomResourceSuccessResponse> => {
     console.info(`Received '${event.RequestType}' event`);
 
@@ -37,28 +37,28 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
       case 'Create':
       case 'Update':
         console.info(
-          `Setting stack reference for appId=${props.appId},branchName=${props.branchName} to ${event.StackId}`
+          `Setting stack reference for appId=${props.appId},branchName=${props.branchName} to ${event.StackId}`,
         );
         await this.updateOrUnsetStackReference(
           props.appId,
           props.branchName,
-          event.StackId
+          event.StackId,
         );
         break;
       case 'Delete':
         console.info(
-          `Un-setting stack reference for appId=${props.appId},branchName=${props.branchName}`
+          `Un-setting stack reference for appId=${props.appId},branchName=${props.branchName}`,
         );
         try {
           await this.updateOrUnsetStackReference(
             props.appId,
             props.branchName,
-            undefined
+            undefined,
           );
         } catch (e) {
           if (e instanceof NotFoundException) {
             console.info(
-              `Branch branchName=${props.branchName} of appId=${props.appId} was not found while handling delete event`
+              `Branch branchName=${props.branchName} of appId=${props.appId} was not found while handling delete event`,
             );
           } else {
             throw e;
@@ -79,7 +79,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
   private updateOrUnsetStackReference = async (
     appId: string,
     branchName: string,
-    stackId: string | undefined
+    stackId: string | undefined,
   ): Promise<void> => {
     // Stack id is in ARN format.
     if (stackId && !stackId?.startsWith('arn:')) {
@@ -88,7 +88,7 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
 
     const branch: Branch = await this.getBranch(appId, branchName);
     console.info(
-      `Received details of branchName=${branchName} of appId=${appId}`
+      `Received details of branchName=${branchName} of appId=${appId}`,
     );
     // Populate update command input with existing values, so we don't lose them.
     const updateBranchCommandInput: UpdateBranchCommandInput = {
@@ -116,16 +116,16 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
     }
 
     console.info(
-      `Sending update of branchName=${branchName} of appId=${appId}`
+      `Sending update of branchName=${branchName} of appId=${appId}`,
     );
     await this.amplifyClient.send(
-      new UpdateBranchCommand(updateBranchCommandInput)
+      new UpdateBranchCommand(updateBranchCommandInput),
     );
   };
 
   private getBranch = async (
     appId: string,
-    branchName: string
+    branchName: string,
   ): Promise<Branch> => {
     const branch: Branch | undefined = (
       await this.amplifyClient.send(new GetBranchCommand({ appId, branchName }))
@@ -144,7 +144,7 @@ const customResourceEventHandler =
  * Entry point for the lambda-backend custom resource to link deployment to branch.
  */
 export const handler = (
-  event: CloudFormationCustomResourceEvent
+  event: CloudFormationCustomResourceEvent,
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
   return customResourceEventHandler.handleCustomResourceEvent(event);
 };

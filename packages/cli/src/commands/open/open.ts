@@ -8,7 +8,7 @@ import { printer } from '@aws-amplify/cli-core';
 export class Open {
   static open = async (
     target: string,
-    options: Options
+    options: Options,
   ): Promise<ChildProcess | void> => {
     let childProcess: ChildProcess;
     try {

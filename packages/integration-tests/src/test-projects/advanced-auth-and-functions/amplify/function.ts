@@ -34,7 +34,7 @@ export const funcProvided = defineFunction((scope) => {
       fileURLToPath(import.meta.url),
       '..',
       'func-src',
-      'handler_provider.ts'
+      'handler_provider.ts',
     ),
     runtime: Runtime.NODEJS_18_X,
   });

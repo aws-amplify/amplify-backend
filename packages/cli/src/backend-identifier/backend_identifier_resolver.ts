@@ -11,10 +11,10 @@ export type BackendIdentifierParameters = {
 
 export type BackendIdentifierResolver = {
   resolveDeployedBackendIdentifier: (
-    args: BackendIdentifierParameters
+    args: BackendIdentifierParameters,
   ) => Promise<DeployedBackendIdentifier | undefined>;
   resolveBackendIdentifier: (
-    args: BackendIdentifierParameters
+    args: BackendIdentifierParameters,
   ) => Promise<BackendIdentifier | undefined>;
 };
 
@@ -28,7 +28,7 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
    */
   constructor(private readonly namespaceResolver: NamespaceResolver) {}
   resolveDeployedBackendIdentifier = async (
-    args: BackendIdentifierParameters
+    args: BackendIdentifierParameters,
   ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
       return { stackName: args.stack };
@@ -47,7 +47,7 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
     return undefined;
   };
   resolveBackendIdentifier = async (
-    args: BackendIdentifierParameters
+    args: BackendIdentifierParameters,
   ): Promise<BackendIdentifier | undefined> => {
     if (args.stack) {
       return BackendIdentifierConversions.fromStackName(args.stack);

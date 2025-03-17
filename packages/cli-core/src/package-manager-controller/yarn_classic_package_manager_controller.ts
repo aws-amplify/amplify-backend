@@ -20,7 +20,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
     protected readonly existsSync = _existsSync,
-    protected readonly lockFileReader = new YarnClassicLockFileReader()
+    protected readonly lockFileReader = new YarnClassicLockFileReader(),
   ) {
     super(
       cwd,
@@ -32,7 +32,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
       path,
       execa,
       executeWithDebugLogger,
-      existsSync
+      existsSync,
     );
   }
 
@@ -46,7 +46,7 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
       targetDir,
       'yarn',
       ['add', 'typescript@^5'],
-      this.execa
+      this.execa,
     );
   };
 }

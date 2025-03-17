@@ -81,7 +81,7 @@ void describe('handleCreateUpdateEvent', () => {
 
   void it('gets a backend secret from a branch', async () => {
     const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
-      Promise.resolve(testSecret)
+      Promise.resolve(testSecret),
     );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
     assert.equal(val[testSecretName], testSecretValue);
@@ -95,10 +95,10 @@ void describe('handleCreateUpdateEvent', () => {
 
   void it('throws if receiving server error when getting a branch secret', async () => {
     const mockGetSecret = mock.method(secretHandler, 'getSecret', () =>
-      Promise.reject(serverErr)
+      Promise.reject(serverErr),
     );
     await assert.rejects(() =>
-      handleCreateUpdateEvent(secretHandler, createCfnEvent)
+      handleCreateUpdateEvent(secretHandler, createCfnEvent),
     );
     assert.equal(mockGetSecret.mock.callCount(), 1);
     assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
@@ -116,7 +116,7 @@ void describe('handleCreateUpdateEvent', () => {
           return Promise.reject(clientErr);
         }
         return Promise.resolve(testSecret);
-      }
+      },
     );
 
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
@@ -142,7 +142,7 @@ void describe('handleCreateUpdateEvent', () => {
           return Promise.resolve(undefined);
         }
         return Promise.resolve(testSecret);
-      }
+      },
     );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
     assert.equal(val[testSecretName], testSecretValue);
@@ -167,10 +167,10 @@ void describe('handleCreateUpdateEvent', () => {
           return Promise.reject(clientErr);
         }
         return Promise.reject(serverErr);
-      }
+      },
     );
     await assert.rejects(() =>
-      handleCreateUpdateEvent(secretHandler, createCfnEvent)
+      handleCreateUpdateEvent(secretHandler, createCfnEvent),
     );
 
     assert.equal(mockGetSecret.mock.callCount(), 2);

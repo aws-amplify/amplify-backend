@@ -47,12 +47,12 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory,
         () => {
           throw new Error('test validation error');
-        }
+        },
       );
 
       assert.throws(
         () => storageAccessOrchestrator.orchestrateStorageAccess(),
-        { message: 'test validation error' }
+        { message: 'test validation error' },
       );
     });
 
@@ -75,7 +75,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -97,11 +97,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'test/prefix/*': {
@@ -135,7 +135,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -165,11 +165,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'test/prefix/*': {
@@ -216,7 +216,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -243,7 +243,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
       assert.deepStrictEqual(
@@ -265,15 +265,15 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock2.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'test/prefix/*': {
@@ -308,7 +308,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -330,11 +330,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         [`test/${entityIdSubstitution}/*`]: {
@@ -375,7 +375,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -407,11 +407,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
 
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
@@ -426,7 +426,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/*': {
@@ -465,7 +465,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -492,11 +492,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/*': {
@@ -572,7 +572,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -610,11 +610,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
 
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
@@ -642,7 +642,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/*': {
@@ -687,12 +687,12 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       assert.throws(
         () => storageAccessOrchestrator.orchestrateStorageAccess(),
-        { message: 'test duplicate id message for auth identifier' }
+        { message: 'test duplicate id message for auth identifier' },
       );
     });
 
@@ -722,7 +722,7 @@ void describe('StorageAccessOrchestrator', () => {
         }),
         {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
-        storageAccessPolicyFactory
+        storageAccessPolicyFactory,
       );
 
       const storageAccessDefinitionOutput =
@@ -757,11 +757,11 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
           Version: '2012-10-17',
-        }
+        },
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+        ssmEnvironmentEntriesStub,
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/bar/*': {
@@ -785,7 +785,7 @@ const createStackAndSetContext = (): Stack => {
 };
 
 const accessDefinitionTestDefaults = (
-  id: string
+  id: string,
 ): Pick<
   StorageAccessDefinition,
   'idSubstitution' | 'uniqueDefinitionIdValidations'

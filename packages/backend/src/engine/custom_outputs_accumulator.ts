@@ -26,11 +26,11 @@ export class CustomOutputsAccumulator {
    */
   constructor(
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<CustomOutput>,
-    private readonly clientConfigAccumulator: ObjectAccumulator<ClientConfig>
+    private readonly clientConfigAccumulator: ObjectAccumulator<ClientConfig>,
   ) {}
 
   addOutput = (
-    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>,
   ) => {
     try {
       this.clientConfigAccumulator.accumulate(clientConfigPart);
@@ -43,7 +43,7 @@ export class CustomOutputsAccumulator {
             resolution:
               "Check if 'backend.addOutput' is called multiple times with overlapping inputs",
           },
-          error
+          error,
         );
       }
       if (error instanceof ObjectAccumulatorVersionMismatchError) {
@@ -55,7 +55,7 @@ export class CustomOutputsAccumulator {
               "Ensure that the version specified in 'backend.addOutput' is consistent" +
               ' and is same as the one used for generating the client config',
           },
-          error
+          error,
         );
       }
       throw error;
@@ -73,7 +73,7 @@ export class CustomOutputsAccumulator {
         customOutputs: Lazy.string({
           produce: () => {
             return JSON.stringify(
-              this.clientConfigAccumulator.getAccumulatedObject()
+              this.clientConfigAccumulator.getAccumulatedObject(),
             );
           },
         }),

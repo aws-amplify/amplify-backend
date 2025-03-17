@@ -35,13 +35,13 @@ export const createSandboxCommand = (): CommandModule<
   SandboxCommandOptionsKebabCase
 > => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new PackageJsonReader())
+    new LocalNamespaceResolver(new PackageJsonReader()),
   );
 
   const sandboxFactory = new SandboxSingletonFactory(
     sandboxBackendIdPartsResolver.resolve,
     printer,
-    format
+    format,
   );
   const s3Client = new S3Client();
   const amplifyClient = new AmplifyClient();
@@ -53,12 +53,12 @@ export const createSandboxCommand = (): CommandModule<
     getCloudFormationClient: () => cloudFormationClient,
   };
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    awsClientProvider
+    awsClientProvider,
   );
 
   const libraryVersion =
     new PackageJsonReader().read(
-      fileURLToPath(new URL('../../../package.json', import.meta.url))
+      fileURLToPath(new URL('../../../package.json', import.meta.url)),
     ).version ?? '';
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
@@ -69,9 +69,9 @@ export const createSandboxCommand = (): CommandModule<
         .tryGetDependencies();
       return await new UsageDataEmitterFactory().getInstance(
         libraryVersion,
-        dependencies
+        dependencies,
       );
-    }
+    },
   );
 
   const commandMiddleWare = new CommandMiddleware(printer);
@@ -86,6 +86,6 @@ export const createSandboxCommand = (): CommandModule<
     ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
-    eventHandlerFactory.getSandboxEventHandlers
+    eventHandlerFactory.getSandboxEventHandlers,
   );
 };

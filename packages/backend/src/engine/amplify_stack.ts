@@ -37,7 +37,7 @@ export class AmplifyStack extends Stack {
     // This rewrites the nested stack logical ID to <name><hash>
     const defaultId = super.allocateLogicalId(element);
     const match = /(?<name>.*)NestedStack.+NestedStackResource(?<hash>.*)/.exec(
-      defaultId
+      defaultId,
     );
     if (match && match.groups && Object.keys(match.groups || {}).length === 2) {
       return `${match.groups.name}${match.groups.hash}`;
@@ -57,7 +57,7 @@ class CognitoRoleTrustPolicyValidator implements IAspect {
     }
 
     assumeRolePolicyDocument.Statement.forEach(
-      this.cognitoTrustPolicyStatementValidator
+      this.cognitoTrustPolicyStatementValidator,
     );
   };
 

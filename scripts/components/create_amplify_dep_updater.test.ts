@@ -17,7 +17,7 @@ void describe('createAmplifyDepUpdater', () => {
         'esbuild',
       ],
       defaultProdPackages: ['aws-amplify', 'test-prod-package@1.0.0'],
-    })
+    }),
   );
   const mockedFsWriteFile = mock.method(fsp, 'writeFile', mock.fn());
 
@@ -47,15 +47,15 @@ void describe('createAmplifyDepUpdater', () => {
           defaultProdPackages: ['aws-amplify', 'test-prod-package@1.0.0'],
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   });
 
   void it('successfully pins new prod version', async () => {
     await createAmplifyDepUpdater(
       [{ name: 'test-prod-package', version: '1.1.0' }],
-      ['test-prod-package']
+      ['test-prod-package'],
     );
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
@@ -79,8 +79,8 @@ void describe('createAmplifyDepUpdater', () => {
           ],
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   });
 
@@ -90,7 +90,7 @@ void describe('createAmplifyDepUpdater', () => {
         { name: 'aws-cdk', version: '2.1.0' },
         { name: 'test-prod-package', version: '1.1.0' },
       ],
-      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package']
+      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package'],
     );
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
@@ -114,8 +114,8 @@ void describe('createAmplifyDepUpdater', () => {
           ],
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   });
 
@@ -137,7 +137,7 @@ void describe('createAmplifyDepUpdater', () => {
         { name: 'aws-cdk', version: '2.0.0' },
         { name: 'aws-cdk-lib', version: '2.0.0' },
       ],
-      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package']
+      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package'],
     );
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 0);

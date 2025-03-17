@@ -75,12 +75,12 @@ export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion =
 export type ClientConfigVersionTemplateType<T> = T extends '1.3'
   ? clientConfigTypesV1_3.AWSAmplifyBackendOutputs
   : T extends '1.2'
-  ? clientConfigTypesV1_2.AWSAmplifyBackendOutputs
-  : T extends '1.1'
-  ? clientConfigTypesV1_1.AWSAmplifyBackendOutputs
-  : T extends '1'
-  ? clientConfigTypesV1.AWSAmplifyBackendOutputs
-  : never;
+    ? clientConfigTypesV1_2.AWSAmplifyBackendOutputs
+    : T extends '1.1'
+      ? clientConfigTypesV1_1.AWSAmplifyBackendOutputs
+      : T extends '1'
+        ? clientConfigTypesV1.AWSAmplifyBackendOutputs
+        : never;
 
 export enum ClientConfigFormat {
   MJS = 'mjs',

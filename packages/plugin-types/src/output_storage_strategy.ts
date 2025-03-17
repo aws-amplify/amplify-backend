@@ -8,6 +8,6 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
   addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
   appendToBackendOutputList: (
     keyName: string,
-    backendOutputEntry: DeepPartial<T>
+    backendOutputEntry: DeepPartial<T>,
   ) => void;
 };

@@ -50,7 +50,7 @@ void describe('UsageDataEmitter', () => {
   // For getInstallationUuid which retrieves it from PackageJsonReader
   mock.method(fs, 'existsSync', () => true);
   mock.method(fs, 'readFile', () =>
-    Promise.resolve(JSON.stringify({ name: 'testAppName' }))
+    Promise.resolve(JSON.stringify({ name: 'testAppName' })),
   );
 
   // For AccountIdFetcher
@@ -82,7 +82,7 @@ void describe('UsageDataEmitter', () => {
     });
 
     const usageDataSent: UsageData = JSON.parse(
-      onReqWriteMock.mock.calls[0].arguments[0]
+      onReqWriteMock.mock.calls[0].arguments[0],
     );
 
     assert.deepStrictEqual(usageDataSent.accountId, '123456789012');
@@ -103,7 +103,7 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
     assert.deepStrictEqual(
       usageDataSent.projectSetting.editor,
-      testNpmUserAgent
+      testNpmUserAgent,
     );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
@@ -120,7 +120,7 @@ void describe('UsageDataEmitter', () => {
           name: 'aws-cdk-lib',
           version: '12.13.14',
         },
-      ])
+      ]),
     );
   });
 
@@ -131,12 +131,12 @@ void describe('UsageDataEmitter', () => {
         message: 'some error message',
         resolution: 'test resolution',
       },
-      new Error('some downstream exception')
+      new Error('some downstream exception'),
     );
     await setupAndInvokeUsageEmitter({ isSuccess: false, error });
 
     const usageDataSent: UsageData = JSON.parse(
-      onReqWriteMock.mock.calls[0].arguments[0]
+      onReqWriteMock.mock.calls[0].arguments[0],
     );
 
     assert.deepStrictEqual(usageDataSent.accountId, '123456789012');
@@ -153,13 +153,13 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
     assert.deepStrictEqual(
       usageDataSent.projectSetting.editor,
-      testNpmUserAgent
+      testNpmUserAgent,
     );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.strictEqual(usageDataSent.error?.message, 'some error message');
     assert.ok(
-      usageDataSent.downstreamException?.message == 'some downstream exception'
+      usageDataSent.downstreamException?.message == 'some downstream exception',
     );
   });
 
@@ -189,7 +189,7 @@ void describe('UsageDataEmitter', () => {
       testDependencies,
       v4(),
       testURL,
-      accountIdFetcherMock
+      accountIdFetcherMock,
     );
 
     let usageDataEmitterPromise;

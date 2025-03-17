@@ -14,7 +14,7 @@ void describe('sandbox secret command factory', () => {
     const output = await commandRunner.runCommand('secret --help');
     assert.match(output, /Manage sandbox secret/);
     ['secret set', 'secret remove', 'secret get ', 'secret list'].forEach(
-      (cmd) => assert.match(output, new RegExp(cmd))
+      (cmd) => assert.match(output, new RegExp(cmd)),
     );
   });
 

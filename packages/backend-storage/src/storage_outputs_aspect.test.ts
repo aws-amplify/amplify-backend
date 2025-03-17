@@ -76,16 +76,16 @@ void describe('StorageOutputsAspect', () => {
 
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
           .storageRegion,
-        Stack.of(node).region
+        Stack.of(node).region,
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
@@ -94,7 +94,7 @@ void describe('StorageOutputsAspect', () => {
           name: node.name,
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
-        })
+        }),
       );
     });
 
@@ -105,20 +105,20 @@ void describe('StorageOutputsAspect', () => {
 
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
           .storageRegion,
-        Stack.of(node).region
+        Stack.of(node).region,
       );
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.bucketName,
-        node.resources.bucket.bucketName
+        node.resources.bucket.bucketName,
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
@@ -127,7 +127,7 @@ void describe('StorageOutputsAspect', () => {
           name: node.name,
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
-        })
+        }),
       );
     });
 
@@ -140,27 +140,27 @@ void describe('StorageOutputsAspect', () => {
       };
       const node = new AmplifyStorage(stack, 'test', { name: 'testName' });
       node.addAccessDefinition(
-        accessDefinition as StorageAccessDefinitionOutput
+        accessDefinition as StorageAccessDefinitionOutput,
       );
       aspect = new StorageOutputsAspect(outputStorageStrategy);
       aspect.visit(node);
 
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
           .storageRegion,
-        Stack.of(node).region
+        Stack.of(node).region,
       );
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.bucketName,
-        node.resources.bucket.bucketName
+        node.resources.bucket.bucketName,
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Storage'
+        'AWS::Amplify::Storage',
       );
       assert.equal(
         appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
@@ -170,7 +170,7 @@ void describe('StorageOutputsAspect', () => {
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
           paths: accessDefinition,
-        })
+        }),
       );
     });
   });
@@ -189,10 +189,10 @@ void describe('StorageOutputsAspect', () => {
           assert.equal(err.name, 'NoDefaultStorageError');
           assert.equal(
             err.message,
-            'No default storage set in the Amplify project.'
+            'No default storage set in the Amplify project.',
           );
           return true;
-        }
+        },
       );
     });
 
@@ -215,10 +215,10 @@ void describe('StorageOutputsAspect', () => {
           assert.equal(err.name, 'MultipleDefaultStorageError');
           assert.equal(
             err.message,
-            'More than one default storage set in the Amplify project.'
+            'More than one default storage set in the Amplify project.',
           );
           return true;
-        }
+        },
       );
     });
   });

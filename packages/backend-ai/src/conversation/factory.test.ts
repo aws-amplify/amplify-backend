@@ -36,11 +36,11 @@ void describe('ConversationHandlerFactory', () => {
     rootStack = createStackAndSetContext();
 
     const constructContainer = new ConstructContainerStub(
-      new StackResolverStub(rootStack)
+      new StackResolverStub(rootStack),
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      rootStack
+      rootStack,
     );
 
     resourceNameValidator = new ResourceNameValidatorStub();
@@ -63,7 +63,7 @@ void describe('ConversationHandlerFactory', () => {
     const factory = defaultEntryHandler;
     assert.strictEqual(
       factory.eventVersion,
-      ConversationHandlerFunction.eventVersion
+      ConversationHandlerFunction.eventVersion,
     );
   });
 
@@ -104,13 +104,13 @@ void describe('ConversationHandlerFactory', () => {
     const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
     assert.ok(
       policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelId'
-      )
+        'testModelId',
+      ),
     );
     assert.ok(
       policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelRegion'
-      )
+        'testModelRegion',
+      ),
     );
   });
 
@@ -134,13 +134,13 @@ void describe('ConversationHandlerFactory', () => {
     const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
     assert.ok(
       policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelId'
-      )
+        'testModelId',
+      ),
     );
     assert.ok(
       policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelRegion'
-      )
+        'testModelRegion',
+      ),
     );
   });
 
@@ -218,7 +218,7 @@ void describe('ConversationHandlerFactory', () => {
         assert.ok(AmplifyError.isAmplifyError(error));
         assert.strictEqual(error.name, 'InvalidMemoryMBError');
         return true;
-      }
+      },
     );
   });
 
@@ -250,7 +250,7 @@ void describe('ConversationHandlerFactory', () => {
         assert.ok(AmplifyError.isAmplifyError(error));
         assert.strictEqual(error.name, 'InvalidTimeoutError');
         return true;
-      }
+      },
     );
   });
 

@@ -67,7 +67,7 @@ export class BackendIdentifierConversions {
 
     const namespace = sanitizeChars(backendId.namespace).slice(
       0,
-      namespaceMaxLength - 1
+      namespaceMaxLength - 1,
     );
 
     return ['amplify', namespace, name, backendId.type, hash].join('-');

@@ -147,7 +147,7 @@ export class AmplifyAuth
   constructor(
     scope: Construct,
     id: string,
-    props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
+    props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED,
   ) {
     super(scope, id);
     this.name = props.name ?? '';
@@ -158,7 +158,7 @@ export class AmplifyAuth
     this.userPool = new cognito.UserPool(
       this,
       `${this.name}UserPool`,
-      this.computedUserPoolProps
+      this.computedUserPoolProps,
     );
     /**
      * Configure custom email sender for Cognito User Pool
@@ -174,7 +174,7 @@ export class AmplifyAuth
       this.customSenderKMSkey.grantEncrypt(props.senders.email.handler);
       this.userPool.addTrigger(
         UserPoolOperation.of('customEmailSender'),
-        props.senders.email.handler
+        props.senders.email.handler,
       );
     }
 
@@ -192,14 +192,14 @@ export class AmplifyAuth
       this.customSenderKMSkey.grantEncrypt(props.senders.sms.handler);
       this.userPool.addTrigger(
         UserPoolOperation.of('customSmsSender'),
-        props.senders.sms.handler
+        props.senders.sms.handler,
       );
     }
 
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
-      props.loginWith
+      props.loginWith,
     );
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
@@ -210,7 +210,7 @@ export class AmplifyAuth
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
         oAuth: this.providerSetupResult.oAuthSettings,
-      }
+      },
     );
 
     // Identity Pool
@@ -221,7 +221,7 @@ export class AmplifyAuth
     } = this.setupIdentityPool(
       this.userPool,
       userPoolClient,
-      this.providerSetupResult
+      this.providerSetupResult,
     );
 
     // Setup UserPool groups
@@ -232,7 +232,7 @@ export class AmplifyAuth
       throw Error('Could not find CfnUserPool resource in stack.');
     }
     const cfnUserPoolClient = userPoolClient.node.findChild(
-      'Resource'
+      'Resource',
     ) as CfnUserPoolClient;
     if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
       throw Error('Could not find CfnUserPoolClient resource in stack.');
@@ -257,7 +257,7 @@ export class AmplifyAuth
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
-      path.resolve(__dirname, '..', 'package.json')
+      path.resolve(__dirname, '..', 'package.json'),
     );
   }
 
@@ -278,7 +278,7 @@ export class AmplifyAuth
               'cognito-identity.amazonaws.com:amr': 'authenticated',
             },
           },
-          'sts:AssumeRoleWithWebIdentity'
+          'sts:AssumeRoleWithWebIdentity',
         ),
       }),
       unAuth: new Role(this, `${this.name}unauthenticatedUserRole`, {
@@ -292,7 +292,7 @@ export class AmplifyAuth
               'cognito-identity.amazonaws.com:amr': 'unauthenticated',
             },
           },
-          'sts:AssumeRoleWithWebIdentity'
+          'sts:AssumeRoleWithWebIdentity',
         ),
       }),
     };
@@ -304,7 +304,7 @@ export class AmplifyAuth
    */
   private setupUserPoolGroups = (
     groups: string[] | undefined,
-    identityPool: CfnIdentityPool
+    identityPool: CfnIdentityPool,
   ) => {
     (groups || []).forEach((groupName, index) => {
       const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
@@ -318,7 +318,7 @@ export class AmplifyAuth
               'cognito-identity.amazonaws.com:amr': 'authenticated',
             },
           },
-          'sts:AssumeRoleWithWebIdentity'
+          'sts:AssumeRoleWithWebIdentity',
         ),
       });
       const currentGroup = new CfnUserPoolGroup(
@@ -329,7 +329,7 @@ export class AmplifyAuth
           groupName: groupName,
           roleArn: groupRole.roleArn,
           precedence: index,
-        }
+        },
       );
       this.groups[groupName] = {
         cfnUserGroup: currentGroup,
@@ -344,7 +344,7 @@ export class AmplifyAuth
   private setupIdentityPool = (
     userPool: UserPool,
     userPoolClient: UserPoolClient,
-    providerSetupResult: IdentityProviderSetupResult
+    providerSetupResult: IdentityProviderSetupResult,
   ) => {
     // setup identity pool
     const region = Stack.of(this).region;
@@ -354,7 +354,7 @@ export class AmplifyAuth
       {
         allowUnauthenticatedIdentities:
           DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES,
-      }
+      },
     );
     const roles = this.setupAuthAndUnAuthRoles(identityPool.ref);
     const identityPoolRoleAttachment =
@@ -374,7 +374,7 @@ export class AmplifyAuth
               identityProvider: `cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}:${userPoolClient.userPoolClientId}`,
             },
           },
-        }
+        },
       );
     identityPoolRoleAttachment.addDependency(identityPool);
     identityPoolRoleAttachment.node.addDependency(userPoolClient);
@@ -399,7 +399,7 @@ export class AmplifyAuth
    */
   private bindCustomAttribute = (
     key: string,
-    attribute: CustomAttribute
+    attribute: CustomAttribute,
   ): CustomAttributeConfig & ICustomAttribute => {
     const baseConfig: CustomAttributeConfig = {
       dataType: attribute.dataType,
@@ -458,7 +458,7 @@ export class AmplifyAuth
       userVerificationSettings = {
         emailBody: emailBody,
         emailStyle: this.getEmailVerificationStyle(
-          emailSettings.verificationEmailStyle
+          emailSettings.verificationEmailStyle,
         ),
         emailSubject: emailSettings.verificationEmailSubject,
       };
@@ -473,11 +473,11 @@ export class AmplifyAuth
       ) {
         // validate sms message structure
         smsMessage = phoneSettings.verificationMessage(
-          () => VERIFICATION_SMS_PLACEHOLDERS.CODE
+          () => VERIFICATION_SMS_PLACEHOLDERS.CODE,
         );
         if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
           throw Error(
-            "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+            "Invalid phone settings. Property 'verificationMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
           );
         }
       }
@@ -492,12 +492,12 @@ export class AmplifyAuth
     // If phone login is enabled along with MFA, cognito requires that mfa SMS type to be enabled.
     if (phoneEnabled && mfaMode && mfaMode !== 'OFF' && !mfaType?.sms) {
       throw Error(
-        'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled'
+        'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
       );
     }
 
     const { standardAttributes, customAttributes } = Object.entries(
-      props.userAttributes ?? {}
+      props.userAttributes ?? {},
     ).reduce(
       (
         acc: {
@@ -506,20 +506,20 @@ export class AmplifyAuth
             [key: string]: CustomAttributeConfig & ICustomAttribute;
           };
         },
-        [key, value]
+        [key, value],
       ) => {
         if (key.startsWith('custom:')) {
           const attributeKey = key.replace(/^custom:/i, '');
           acc.customAttributes[attributeKey] = this.bindCustomAttribute(
             attributeKey,
-            value
+            value,
           );
         } else {
           acc.standardAttributes[key] = value;
         }
         return acc;
       },
-      { standardAttributes: {}, customAttributes: {} }
+      { standardAttributes: {}, customAttributes: {} },
     );
     /**
      * Handle KMS key for custom email and sms senders
@@ -546,7 +546,7 @@ export class AmplifyAuth
         customSmsSender.kmsKeyArn !== customEmailSender.kmsKeyArn
       ) {
         throw new Error(
-          'KMS key ARN must be the same for both email and sms senders'
+          'KMS key ARN must be the same for both email and sms senders',
         );
       } else if (
         (customSmsSender && customSmsSender.kmsKeyArn) ||
@@ -558,7 +558,7 @@ export class AmplifyAuth
         this.customSenderKMSkey = Key.fromKeyArn(
           this,
           `${this.name}CustomSenderKey`,
-          kmsKeyArn! // In if condition we ensure that at lest one of the key is available
+          kmsKeyArn!, // In if condition we ensure that at lest one of the key is available
         );
       } else if (customSmsSender || customEmailSender) {
         {
@@ -570,7 +570,7 @@ export class AmplifyAuth
             `${this.name}CustomSenderKey`,
             {
               enableKeyRotation: true,
-            }
+            },
           );
         }
       }
@@ -620,13 +620,13 @@ export class AmplifyAuth
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
         phoneEnabled,
-        props.accountRecovery
+        props.accountRecovery,
       ),
       removalPolicy: RemovalPolicy.DESTROY,
       userInvitation:
         typeof props.loginWith.email !== 'boolean'
           ? this.getUserInvitationSettings(
-              props.loginWith.email?.userInvitation
+              props.loginWith.email?.userInvitation,
             )
           : undefined,
       customSenderKmsKey: this.customSenderKMSkey,
@@ -638,7 +638,7 @@ export class AmplifyAuth
    * Sanitize customer input and return Cognito User pool compatible Sms configurations
    */
   private getSmsConfiguration(
-    props: UserPoolSnsOptions | CustomSmsSender | undefined
+    props: UserPoolSnsOptions | CustomSmsSender | undefined,
   ) {
     if (!props || 'handler' in props) {
       // Either no configuration or custom sender is configured
@@ -649,7 +649,7 @@ export class AmplifyAuth
       (!props.snsCallerArn && props.externalId)
     ) {
       throw new Error(
-        'Both externalId and snsCallerArn are required when providing a custom IAM role. Ensure that your IAM role trust policy have an sts:ExternalId condition and is equal to the externalId value'
+        'Both externalId and snsCallerArn are required when providing a custom IAM role. Ensure that your IAM role trust policy have an sts:ExternalId condition and is equal to the externalId value',
       );
     }
     return {
@@ -659,7 +659,7 @@ export class AmplifyAuth
           ? Role.fromRoleArn(
               this,
               `${this.name}SmsSenderRole`,
-              props.snsCallerArn
+              props.snsCallerArn,
             )
           : undefined,
       snsRegion: props.snsRegion,
@@ -673,7 +673,7 @@ export class AmplifyAuth
    * @returns cognito.UserInvitationConfig | undefined
    */
   private getUserInvitationSettings(
-    settings: EmailLoginSettings['userInvitation']
+    settings: EmailLoginSettings['userInvitation'],
   ): cognito.UserInvitationConfig | undefined {
     if (!settings) {
       return undefined;
@@ -683,13 +683,13 @@ export class AmplifyAuth
       emailBody: settings.emailBody
         ? settings.emailBody(
             () => INVITATION_PLACEHOLDERS.USERNAME,
-            () => INVITATION_PLACEHOLDERS.CODE
+            () => INVITATION_PLACEHOLDERS.CODE,
           )
         : undefined,
       smsMessage: settings.smsMessage
         ? settings.smsMessage(
             () => INVITATION_PLACEHOLDERS.USERNAME,
-            () => INVITATION_PLACEHOLDERS.CODE
+            () => INVITATION_PLACEHOLDERS.CODE,
           )
         : undefined,
     };
@@ -702,7 +702,7 @@ export class AmplifyAuth
    * @returns emailBody
    */
   private verifyEmailBody(
-    emailSettings: EmailLoginSettings
+    emailSettings: EmailLoginSettings,
   ): string | undefined {
     let emailBody: string | undefined;
     if (
@@ -710,11 +710,11 @@ export class AmplifyAuth
       emailSettings.verificationEmailStyle !== 'LINK'
     ) {
       emailBody = emailSettings.verificationEmailBody(
-        () => VERIFICATION_EMAIL_PLACEHOLDERS.CODE
+        () => VERIFICATION_EMAIL_PLACEHOLDERS.CODE,
       );
       if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.CODE)) {
         throw Error(
-          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
         );
       }
     }
@@ -731,7 +731,7 @@ export class AmplifyAuth
       });
       if (linkText === '' || !emailBody.includes(linkText)) {
         throw Error(
-          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link."
+          "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link.",
         );
       }
     }
@@ -744,7 +744,7 @@ export class AmplifyAuth
    * @returns verificationEmailStyle - enum value
    */
   private getEmailVerificationStyle = (
-    verificationEmailStyle: 'CODE' | 'LINK' | undefined
+    verificationEmailStyle: 'CODE' | 'LINK' | undefined,
   ): cognito.VerificationEmailStyle | undefined => {
     if (verificationEmailStyle === 'CODE') {
       return cognito.VerificationEmailStyle.CODE;
@@ -764,10 +764,10 @@ export class AmplifyAuth
   private getAccountRecoverySetting = (
     emailEnabled: boolean,
     phoneEnabled: boolean,
-    accountRecoveryMethodAsString: AuthProps['accountRecovery']
+    accountRecoveryMethodAsString: AuthProps['accountRecovery'],
   ): cognito.AccountRecovery | undefined => {
     const accountRecovery = this.convertAccountRecoveryStringToEnum(
-      accountRecoveryMethodAsString
+      accountRecoveryMethodAsString,
     );
     if (accountRecovery !== undefined) {
       return accountRecovery;
@@ -812,7 +812,7 @@ export class AmplifyAuth
    * @returns cognito MFA type (sms or totp)
    */
   private getMFAType = (
-    mfa: AuthProps['multifactor']
+    mfa: AuthProps['multifactor'],
   ): MfaSecondFactor | undefined => {
     return typeof mfa === 'object' && mfa.mode !== 'OFF'
       ? {
@@ -829,7 +829,7 @@ export class AmplifyAuth
    * @returns cognito.AccountRecovery enum value
    */
   private convertAccountRecoveryStringToEnum = (
-    method: AuthProps['accountRecovery']
+    method: AuthProps['accountRecovery'],
   ): cognito.AccountRecovery | undefined => {
     if (method !== undefined) {
       return cognito.AccountRecovery[method];
@@ -843,13 +843,13 @@ export class AmplifyAuth
    * @returns mfa message
    */
   private getMFAMessage = (
-    mfa: AuthProps['multifactor']
+    mfa: AuthProps['multifactor'],
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
       const message = mfa.sms.smsMessage(() => MFA_SMS_PLACEHOLDERS.CODE);
       if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(
-          "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+          "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code.",
         );
       }
       return message;
@@ -863,7 +863,7 @@ export class AmplifyAuth
    */
   private setupExternalProviders = (
     userPool: UserPool,
-    loginOptions: AuthProps['loginWith']
+    loginOptions: AuthProps['loginWith'],
   ): IdentityProviderSetupResult => {
     /**
      * If email is enabled, and is the only required attribute, we are able to
@@ -884,12 +884,12 @@ export class AmplifyAuth
     // make sure logout/callback urls are not empty
     if (external.logoutUrls && external.logoutUrls.length === 0) {
       throw Error(
-        'You must define logoutUrls when configuring external login providers.'
+        'You must define logoutUrls when configuring external login providers.',
       );
     }
     if (external.callbackUrls && external.callbackUrls.length === 0) {
       throw Error(
-        'You must define callbackUrls when configuring external login providers.'
+        'You must define callbackUrls when configuring external login providers.',
       );
     }
     if (external.google) {
@@ -908,11 +908,11 @@ export class AmplifyAuth
                 }
               : undefined),
             ...this.convertToCognitoAttributeMapping(
-              googleProps.attributeMapping
+              googleProps.attributeMapping,
             ),
           },
           scopes: googleProps.scopes,
-        }
+        },
       );
       result.oAuthMappings[oauthProviderToProviderDomainMap.google] =
         external.google.clientId;
@@ -931,10 +931,10 @@ export class AmplifyAuth
                 }
               : undefined),
             ...this.convertToCognitoAttributeMapping(
-              external.facebook.attributeMapping
+              external.facebook.attributeMapping,
             ),
           },
-        }
+        },
       );
       result.oAuthMappings[oauthProviderToProviderDomainMap.facebook] =
         external.facebook.clientId;
@@ -953,10 +953,10 @@ export class AmplifyAuth
                 }
               : undefined),
             ...this.convertToCognitoAttributeMapping(
-              external.loginWithAmazon.attributeMapping
+              external.loginWithAmazon.attributeMapping,
             ),
           },
-        }
+        },
       );
       result.oAuthMappings[oauthProviderToProviderDomainMap.amazon] =
         external.loginWithAmazon.clientId;
@@ -975,10 +975,10 @@ export class AmplifyAuth
                 }
               : undefined),
             ...this.convertToCognitoAttributeMapping(
-              external.signInWithApple.attributeMapping
+              external.signInWithApple.attributeMapping,
             ),
           },
-        }
+        },
       );
       result.oAuthMappings[oauthProviderToProviderDomainMap.apple] =
         external.signInWithApple.clientId;
@@ -1015,10 +1015,10 @@ export class AmplifyAuth
                   }
                 : undefined),
               ...this.convertToCognitoAttributeMapping(
-                provider.attributeMapping
+                provider.attributeMapping,
               ),
             },
-          }
+          },
         );
         result.oidc?.push(generatedProvider);
       });
@@ -1031,7 +1031,7 @@ export class AmplifyAuth
         {
           userPool,
           attributeMapping: this.convertToCognitoAttributeMapping(
-            saml.attributeMapping
+            saml.attributeMapping,
           ),
           identifiers: saml.identifiers,
           idpSignout: saml.idpSignout,
@@ -1043,7 +1043,7 @@ export class AmplifyAuth
                 : UserPoolIdentityProviderSamlMetadataType.URL,
           },
           name: saml.name,
-        }
+        },
       );
     }
 
@@ -1054,7 +1054,7 @@ export class AmplifyAuth
       });
     } else {
       throw new Error(
-        'Cognito Domain Prefix is missing when external providers are configured.'
+        'Cognito Domain Prefix is missing when external providers are configured.',
       );
     }
 
@@ -1077,7 +1077,7 @@ export class AmplifyAuth
    * @returns cognito.AttributeMapping
    */
   private convertToCognitoAttributeMapping = (
-    mapping?: AttributeMapping
+    mapping?: AttributeMapping,
   ): cognito.AttributeMapping | undefined => {
     if (!mapping) {
       return undefined;
@@ -1114,7 +1114,7 @@ export class AmplifyAuth
    * @returns cognito OAuthScopes
    */
   private getOAuthScopes = (
-    scopes: ExternalProviderOptions['scopes']
+    scopes: ExternalProviderOptions['scopes'],
   ): cognito.OAuthScope[] => {
     if (scopes === undefined) {
       return [];
@@ -1131,8 +1131,8 @@ export class AmplifyAuth
    */
   private storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    )
+      Stack.of(this),
+    ),
   ): void => {
     const cfnUserPool = this.resources.cfnResources.cfnUserPool;
     const cfnUserPoolClient = this.resources.cfnResources.cfnUserPoolClient;
@@ -1162,7 +1162,7 @@ export class AmplifyAuth
         return JSON.stringify(
           (cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[])
             .filter((attribute) => attribute.required && attribute.name)
-            .map((attribute) => attribute.name?.toLowerCase())
+            .map((attribute) => attribute.name?.toLowerCase()),
         );
       },
     });
@@ -1172,7 +1172,7 @@ export class AmplifyAuth
       produce: () => {
         return JSON.stringify(
           cfnUserPool.usernameAttributes?.map((attr) => attr.toLowerCase()) ||
-            []
+            [],
         );
       },
     });
@@ -1244,11 +1244,11 @@ export class AmplifyAuth
         }
         for (const provider of userPoolProviders) {
           const providerResource = provider.node.findChild(
-            'Resource'
+            'Resource',
           ) as CfnUserPoolIdentityProvider;
           if (!(providerResource instanceof CfnUserPoolIdentityProvider)) {
             throw Error(
-              'Could not find the CfnUserPoolIdentityProvider resource in the stack.'
+              'Could not find the CfnUserPoolIdentityProvider resource in the stack.',
             );
           }
           const providerType = providerResource.providerType;
@@ -1279,7 +1279,7 @@ export class AmplifyAuth
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
         const userPoolDomain = this.resources.userPool.node.tryFindChild(
-          `${this.name}UserPoolDomain`
+          `${this.name}UserPoolDomain`,
         );
         if (!userPoolDomain) {
           return '';
@@ -1337,15 +1337,18 @@ export class AmplifyAuth
             precedence?: number;
           };
         }[] = [];
-        Object.keys(this.resources.groups).forEach((groupName) => {
-          const precedence =
-            this.resources.groups[groupName].cfnUserGroup.precedence;
-          groupsArray.push({
-            [groupName]: {
-              precedence,
-            },
-          });
-        }, {} as Record<string, { precedence?: number }>);
+        Object.keys(this.resources.groups).forEach(
+          (groupName) => {
+            const precedence =
+              this.resources.groups[groupName].cfnUserGroup.precedence;
+            groupsArray.push({
+              [groupName]: {
+                precedence,
+              },
+            });
+          },
+          {} as Record<string, { precedence?: number }>,
+        );
 
         return JSON.stringify(groupsArray);
       },

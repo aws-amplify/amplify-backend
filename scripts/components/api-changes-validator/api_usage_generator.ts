@@ -26,7 +26,7 @@ export class ApiUsageGenerator {
   constructor(
     private readonly packageName: string,
     private readonly apiReportAST: ts.SourceFile,
-    private readonly excludedTypes: Array<string>
+    private readonly excludedTypes: Array<string>,
   ) {
     this.namespaceDefinitions = this.getNamespaceDefinitions();
   }
@@ -45,48 +45,48 @@ export class ApiUsageGenerator {
     const importStatements = new ImportStatementsRenderer(
       generatorOutputs,
       this.namespaceDefinitions,
-      this.packageName
+      this.packageName,
     ).render();
     const usageStatements = new UsageStatementsRenderer(
       generatorOutputs,
-      this.namespaceDefinitions
+      this.namespaceDefinitions,
     ).render();
 
     return `${importStatements}${EOL}${EOL}${usageStatements}${EOL}`;
   };
 
   private generateStatementsForNode = (
-    node: ts.Node
+    node: ts.Node,
   ): UsageStatementsGeneratorOutput | undefined => {
     switch (node.kind) {
       case ts.SyntaxKind.ImportDeclaration:
         return new ImportUsageStatementsGenerator(
-          node as ts.ImportDeclaration
+          node as ts.ImportDeclaration,
         ).generate();
       case ts.SyntaxKind.TypeAliasDeclaration:
         return new TypeUsageStatementsGenerator(
           node as ts.TypeAliasDeclaration,
           this.packageName,
-          this.excludedTypes
+          this.excludedTypes,
         ).generate();
       case ts.SyntaxKind.EnumDeclaration:
         return new EnumUsageStatementsGenerator(
           node as ts.EnumDeclaration,
-          this.packageName
+          this.packageName,
         ).generate();
       case ts.SyntaxKind.ClassDeclaration:
         return new ClassUsageStatementsGenerator(
           node as ts.ClassDeclaration,
-          this.packageName
+          this.packageName,
         ).generate();
       case ts.SyntaxKind.VariableStatement:
         return new VariableUsageStatementsGenerator(
           node as ts.VariableStatement,
-          this.packageName
+          this.packageName,
         ).generate();
       default:
         console.log(
-          `Warning: usage generator encountered unrecognized syntax kind ${node.kind}`
+          `Warning: usage generator encountered unrecognized syntax kind ${node.kind}`,
         );
 
         return undefined;
@@ -130,14 +130,14 @@ export class ApiUsageGenerator {
                     const exportedSymbolName = namedExport.name.getText();
                     namespaceDefinitions.aliasedSymbols.set(
                       symbolNameInApiView,
-                      exportedSymbolName
+                      exportedSymbolName,
                     );
                   } else {
                     symbolNameInApiView = namedExport.name.getText();
                   }
                   namespaceDefinitions.namespaceBySymbol.set(
                     symbolNameInApiView,
-                    namespaceName
+                    namespaceName,
                   );
                 }
               }
