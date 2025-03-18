@@ -464,6 +464,25 @@ export const telemetryPayloadSchema: z.ZodObject<{
     error?: ErrorDetails | undefined;
 }>;
 
+// @public (undocumented)
+export type TypedConfigurationFile<T> = {
+    read: () => Promise<T>;
+    write: (data: T) => Promise<void>;
+    delete: () => Promise<void>;
+};
+
+// @public
+export class TypedConfigurationFileFactory {
+    constructor();
+    getInstance: <T extends z.ZodTypeAny>(fileName: TypedConfigurationFileName, schema: T, defaultValue: z.TypeOf<T>) => TypedConfigurationFile<z.TypeOf<T>>;
+}
+
+// @public (undocumented)
+export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
+
+// @public (undocumented)
+export type TypedConfigurationFileName = 'notices_manifest_cache.json' | 'notices_acknowledgments.json' | 'notices_printing_tracker.json';
+
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
