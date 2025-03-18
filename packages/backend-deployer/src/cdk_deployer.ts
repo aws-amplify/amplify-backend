@@ -104,6 +104,16 @@ export class CDKDeployer implements BackendDeployer {
       throw synthError;
     }
 
+    // If this is a dry run, don't proceed with deployment
+    if (deployProps?.dryRun) {
+      return {
+        deploymentTimes: {
+          synthesisTime: synthTimeSeconds,
+          totalTime: synthTimeSeconds,
+        },
+      };
+    }
+
     // then deploy with the cloud assembly that was generated during synth
     const deployResult = await this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
