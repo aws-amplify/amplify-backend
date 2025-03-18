@@ -24,7 +24,7 @@ export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
     private readonly _fsp = fsp,
     private readonly _existsSync = existsSync,
   ) {
-    this.filePath = path.join(getConfigDirPath('amplify'), fileName);
+    this.filePath = path.join(getConfigDirPath(), fileName);
   }
 
   read = async (): Promise<z.infer<T>> => {

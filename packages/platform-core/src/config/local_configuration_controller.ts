@@ -14,11 +14,8 @@ export class LocalConfigurationController implements ConfigurationController {
   /**
    * Initializes paths to project config dir & config file.
    */
-  constructor(
-    private readonly projectName = 'amplify',
-    private readonly configFileName = 'config.json',
-  ) {
-    this.dirPath = getConfigDirPath(this.projectName);
+  constructor(private readonly configFileName = 'config.json') {
+    this.dirPath = getConfigDirPath();
     this.configFilePath = path.join(this.dirPath, this.configFileName);
   }
 

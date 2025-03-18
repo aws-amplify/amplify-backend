@@ -4,21 +4,23 @@ import path from 'path';
 /**
  * Returns the path to config directory depending on OS
  */
-export const getConfigDirPath = (name: string): string => {
+export const getConfigDirPath = (): string => {
+  const amplifyConfigDirName = 'amplify';
   const homedir = os.homedir();
 
-  const macos = () => path.join(homedir, 'Library', 'Preferences', name);
+  const macos = () =>
+    path.join(homedir, 'Library', 'Preferences', amplifyConfigDirName);
   const windows = () => {
     return path.join(
       process.env.APPDATA || path.join(homedir, 'AppData', 'Roaming'),
-      name,
+      amplifyConfigDirName,
       'Config',
     );
   };
   const linux = () => {
     return path.join(
       process.env.XDG_STATE_HOME || path.join(homedir, '.local', 'state'),
-      name,
+      amplifyConfigDirName,
     );
   };
 
