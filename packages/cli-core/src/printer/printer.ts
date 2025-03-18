@@ -33,6 +33,12 @@ export class Printer {
   print = (message: string) => {
     message = this.stringify(message);
     if (this.isSpinnerRunning()) {
+      if (this.currentSpinner.instance?.prefixText) {
+        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
+        this.currentSpinner.instance.prefixText =
+          message + EOL + spinnerPrefixMessage;
+        return;
+      }
       this.printNewLine();
     }
     if (!this.ttyEnabled) {
