@@ -3,6 +3,9 @@ import {
   AmplifyIoHostEventMessage,
   AmplifyIoHostEventRequestMessageIoRequest,
 } from '@aws-amplify/plugin-types';
+import { LogLevel, Printer } from '../printer/printer.js';
+import { format } from '../format/format.js';
+import { printer as globalPrinter } from '../printer.js';
 
 /**
  * Implements IIoHost interface of AmplifyIOHost
@@ -17,6 +20,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
     private readonly eventHandlers: {
       notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
     },
+    private readonly printer: Printer = globalPrinter,
   ) {}
 
   /**
@@ -29,7 +33,17 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
     const promises: Promise<void>[] = this.eventHandlers.notify?.flatMap(
       (handler) => handler(msg),
     );
-    await Promise.all(promises);
+    (await Promise.allSettled(promises))
+      .filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected',
+      )
+      .forEach((result) => {
+        this.printer.log(
+          `Failed to notify message '${msg.message}' with error ${format.error(result.reason)}`,
+          LogLevel.WARN,
+        );
+      });
   }
 
   /**
