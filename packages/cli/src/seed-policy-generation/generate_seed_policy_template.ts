@@ -15,7 +15,7 @@ import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 export const generateSeedPolicyTemplate = async (
   backendId: BackendIdentifier,
   generateClientConfiguration = generateClientConfig,
-  stsClient = new STSClient()
+  stsClient = new STSClient(),
 ): Promise<PolicyDocument> => {
   const seedPolicy = new PolicyDocument();
   const clientConfig = await generateClientConfiguration(backendId, '1.3');
@@ -40,7 +40,7 @@ export const generateSeedPolicyTemplate = async (
   const backendParamPrefix =
     ParameterPathConversions.toParameterPrefix(backendId);
   const sharedParamPrefix = ParameterPathConversions.toParameterPrefix(
-    backendId.namespace
+    backendId.namespace,
   );
 
   const secretsGrant = new PolicyStatement({

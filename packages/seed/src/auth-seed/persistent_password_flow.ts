@@ -26,7 +26,7 @@ export class PersistentPasswordFlow {
 
     assert.strictEqual(
       signInResult.nextStep.signInStep,
-      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
     );
 
     const confirmResult = await this.authApi.confirmSignIn({
@@ -79,7 +79,7 @@ export class PersistentPasswordFlow {
             message: `${user.username} does not exist`,
             resolution: `Create a user called ${user.username}`,
           },
-          error
+          error,
         );
       } else {
         throw err;

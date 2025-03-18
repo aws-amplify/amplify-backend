@@ -35,14 +35,14 @@ export type MfaSignUpFlow = {
   emailSignUpChallenge?: () => Promise<ChallengeResponse>;
   smsSignUpChallenge?: () => Promise<ChallengeResponse>;
   totpSignUpChallenge?: (
-    totpSetup: auth.SetUpTOTPOutput
+    totpSetup: auth.SetUpTOTPOutput,
   ) => Promise<ChallengeResponse>;
 };
 
 export type MfaWithTotpSignUpFlow = {
   mfaPreference?: 'TOTP';
   totpSignUpChallenge: (
-    totpSetup: auth.SetUpTOTPOutput
+    totpSetup: auth.SetUpTOTPOutput,
   ) => Promise<ChallengeResponse>;
 } & MfaSignUpFlow;
 

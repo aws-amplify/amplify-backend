@@ -39,20 +39,20 @@ void describe('generate inline policy for seed', () => {
         user_pool_id: testUserpoolId,
         user_pool_client_id: testUserpoolClient,
       },
-    } as AWSAmplifyBackendOutputs)
+    } as AWSAmplifyBackendOutputs),
   );
 
   const mockStsClient = {
     send: mock.fn<
       (
-        input: GetCallerIdentityCommandInput
+        input: GetCallerIdentityCommandInput,
       ) => Promise<GetCallerIdentityCommandOutput>
     >(async () =>
       Promise.resolve({
         Account: '123456789012',
         Arn: '',
         UserId: '',
-      } as GetCallerIdentityCommandOutput)
+      } as GetCallerIdentityCommandOutput),
     ),
   };
 
@@ -68,13 +68,13 @@ void describe('generate inline policy for seed', () => {
     const policyDoc = await generateSeedPolicyTemplate(
       testBackendIdentifier,
       mockConfigGenerator as unknown as typeof generateClientConfig,
-      mockStsClient as unknown as STSClient
+      mockStsClient as unknown as STSClient,
     );
 
     const policy = new Policy(stack, 'testSeedPolicy', { document: policyDoc });
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
-      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
     );
 
     assert.ok(policy instanceof Policy);
@@ -111,7 +111,7 @@ void describe('generate inline policy for seed', () => {
           aws_region: testRegion,
           bucket_name: 'my-cool-bucket',
         },
-      } as AWSAmplifyBackendOutputs)
+      } as AWSAmplifyBackendOutputs),
     );
 
     const expectedErr = new AmplifyUserError('MissingAuthError', {
@@ -124,14 +124,14 @@ void describe('generate inline policy for seed', () => {
       async () =>
         generateSeedPolicyTemplate(
           testBackendIdentifier,
-          mockConfigGenerator as unknown as typeof generateClientConfig
+          mockConfigGenerator as unknown as typeof generateClientConfig,
         ),
       (err: AmplifyUserError) => {
         assert.strictEqual(err.name, expectedErr.name);
         assert.strictEqual(err.message, expectedErr.message);
         assert.strictEqual(err.resolution, expectedErr.resolution);
         return true;
-      }
+      },
     );
   });
 });

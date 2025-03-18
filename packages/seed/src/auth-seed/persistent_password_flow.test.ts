@@ -18,7 +18,7 @@ void describe('persistent password flow test', () => {
           nextStep: {
             signInStep: 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
           },
-        } as auth.SignInOutput)
+        } as auth.SignInOutput),
     ),
     confirmSignIn: mock.fn<
       (input: auth.ConfirmSignInInput) => Promise<auth.ConfirmSignInOutput>
@@ -26,11 +26,11 @@ void describe('persistent password flow test', () => {
       Promise.resolve({
         isSignedIn: true,
         nextStep: { signInStep: 'DONE' },
-      } as auth.SignInOutput)
+      } as auth.SignInOutput),
     ),
   };
   const passwordFlow = new PersistentPasswordFlow(
-    mockAuthAPIs as unknown as typeof auth
+    mockAuthAPIs as unknown as typeof auth,
   );
 
   void beforeEach(() => {
@@ -46,7 +46,7 @@ void describe('persistent password flow test', () => {
         signInAfterCreation: true,
         signInFlow: 'Password',
       },
-      testTempPassword
+      testTempPassword,
     );
 
     assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 1);
@@ -64,8 +64,8 @@ void describe('persistent password flow test', () => {
         new UserNotFoundException({
           $metadata: {},
           message: `${testUsername} does not exist`,
-        })
-      )
+        }),
+      ),
     );
 
     await assert.rejects(
@@ -80,7 +80,7 @@ void describe('persistent password flow test', () => {
         assert.strictEqual(err.message, expectedErr.message);
         assert.strictEqual(err.resolution, expectedErr.resolution);
         return true;
-      }
+      },
     );
   });
 });

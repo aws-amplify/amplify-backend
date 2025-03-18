@@ -26,7 +26,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
    */
   constructor(
     private readonly backendIDResolver: SandboxBackendIdResolver,
-    private readonly seedSubCommands: CommandModule[]
+    private readonly seedSubCommands: CommandModule[],
   ) {
     this.command = 'seed';
     this.describe = 'Seeds sandbox environment';

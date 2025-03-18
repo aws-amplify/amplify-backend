@@ -17,7 +17,7 @@ const authClient = new AuthClient(new ConfigReader());
  * @returns - Username and Sign up flow used by the new user
  */
 export const createAndSignUpUser = async (
-  newUser: AuthSignUp
+  newUser: AuthSignUp,
 ): Promise<AuthOutputs> => {
   return await authClient.createAndSignUpUser(newUser);
 };
@@ -30,7 +30,7 @@ export const createAndSignUpUser = async (
  */
 export const addToUserGroup = async (
   user: AuthUserGroupInput,
-  group: string
+  group: string,
 ): Promise<void> => {
   return await authClient.addToUserGroup(user, group);
 };

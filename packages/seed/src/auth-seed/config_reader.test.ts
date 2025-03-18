@@ -31,16 +31,16 @@ void describe('reading client configuration', () => {
           aws_region: testRegion,
           bucket_name: 'my-cool-bucket',
         },
-      } as AWSAmplifyBackendOutputs)
+      } as AWSAmplifyBackendOutputs),
     );
 
     const configReader = new ConfigReader(
-      mockConfigGenerator as unknown as typeof generateClientConfig
+      mockConfigGenerator as unknown as typeof generateClientConfig,
     );
 
     beforeEach(() => {
       process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(
-        testBackendIdentifier
+        testBackendIdentifier,
       );
       mockConfigGenerator.mock.resetCalls();
     });
@@ -61,7 +61,7 @@ void describe('reading client configuration', () => {
             mfa_configuration: testMfaConfig,
             groups: [{ ADMIN: { precedence: 1 } }],
           },
-        } as AWSAmplifyBackendOutputs)
+        } as AWSAmplifyBackendOutputs),
       );
 
       const output = await configReader.getAuthConfig();
@@ -82,7 +82,7 @@ void describe('reading client configuration', () => {
 
       await assert.rejects(
         async () => await configReader.getAuthConfig(),
-        expectedErr
+        expectedErr,
       );
     });
   });
@@ -94,13 +94,13 @@ void describe('reading client configuration', () => {
           message: 'Sandbox Identifier is undefined',
           resolution:
             'Run ampx sandbox before re-running ampx sandbox seed. If you are running the seed script directly through tsx seed.ts, try running it with ampx sandbox seed instead',
-        }
+        },
       );
       const configReader = new ConfigReader();
 
       await assert.rejects(
         async () => await configReader.getAuthConfig(),
-        expectedErr
+        expectedErr,
       );
     });
   });

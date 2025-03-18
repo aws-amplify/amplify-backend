@@ -29,11 +29,11 @@ void describe('secrets APIs for seed', () => {
           message: 'Sandbox Identifier is undefined',
           resolution:
             'Run npx ampx sandbox before re-running npx ampx sandbox seed',
-        }
+        },
       );
       await assert.rejects(
         async () => await getSecret(testSecretName),
-        expectedErr
+        expectedErr,
       );
     });
 
@@ -44,11 +44,11 @@ void describe('secrets APIs for seed', () => {
           message: 'Sandbox Identifier is undefined',
           resolution:
             'Run npx ampx sandbox before re-running npx ampx sandbox seed',
-        }
+        },
       );
       await assert.rejects(
         async () => await setSecret(testSecretName, testSecretValue),
-        expectedErr
+        expectedErr,
       );
     });
   });
@@ -58,36 +58,36 @@ void describe('secrets APIs for seed', () => {
       getSecret: mock.fn<
         (
           backendID: BackendIdentifier,
-          secretId: SecretIdentifier
+          secretId: SecretIdentifier,
         ) => Promise<Secret>
       >(() =>
         Promise.resolve({
           name: testSecretName,
           value: testSecretValue,
-        } as Secret)
+        } as Secret),
       ),
       setSecret: mock.fn<
         (
           secretName: string,
           secretValue: string,
-          backendID: BackendIdentifier
+          backendID: BackendIdentifier,
         ) => Promise<SecretIdentifier>
       >(() =>
         Promise.resolve({
           name: testSecretName,
-        } as SecretIdentifier)
+        } as SecretIdentifier),
       ),
     };
 
     const seedSecretClient = new SeedSecretClient(
-      secretClientMock as unknown as SecretClient
+      secretClientMock as unknown as SecretClient,
     );
 
     beforeEach(() => {
       secretClientMock.getSecret.mock.resetCalls();
       secretClientMock.setSecret.mock.resetCalls();
       process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(
-        testBackendIdentifier
+        testBackendIdentifier,
       );
     });
 
@@ -105,7 +105,7 @@ void describe('secrets APIs for seed', () => {
     void it('setSecret properly calls setSecret from secretClientWithAmplifyErrorHandling', async () => {
       const secretName = await seedSecretClient.setSecret(
         testSecretName,
-        testSecretValue
+        testSecretValue,
       );
 
       assert.strictEqual(secretClientMock.setSecret.mock.callCount(), 1);

@@ -30,7 +30,7 @@ export class AuthClient {
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(),
     private readonly authApi = auth,
     private readonly persistentPasswordFlow = new PersistentPasswordFlow(),
-    private readonly mfaFlow = new MfaFlow()
+    private readonly mfaFlow = new MfaFlow(),
   ) {
     this.authOutputs = configOutputs.getAuthConfig();
   }
@@ -49,7 +49,7 @@ export class AuthClient {
             TemporaryPassword: tempPassword,
             UserPoolId: authConfig.userPoolId,
             MessageAction: 'SUPPRESS',
-          })
+          }),
         );
       } catch (err) {
         const error = err as Error;
@@ -60,7 +60,7 @@ export class AuthClient {
               message: `A user called ${newUser.username} already exists.`,
               resolution: 'Give this user a different name',
             },
-            error
+            error,
           );
         } else if (error.name === 'NotAuthorizedException') {
           throw new AmplifyUserError(
@@ -70,7 +70,7 @@ export class AuthClient {
               resolution:
                 'Run npx ampx sandbox seed generate-policy and attach the outputted policy to yourself',
             },
-            error
+            error,
           );
         } else {
           throw err;
@@ -81,7 +81,7 @@ export class AuthClient {
         case 'Password': {
           await this.persistentPasswordFlow.persistentPasswordSignUp(
             newUser,
-            tempPassword
+            tempPassword,
           );
           break;
         }
@@ -114,7 +114,7 @@ export class AuthClient {
 
   addToUserGroup = async (
     user: AuthUserGroupInput,
-    group: string
+    group: string,
   ): Promise<void> => {
     const authConfig = await this.authOutputs;
     if (!authConfig.groups) {
@@ -130,7 +130,7 @@ export class AuthClient {
               UserPoolId: authConfig.userPoolId,
               Username: user.username,
               GroupName: group,
-            })
+            }),
           );
         } catch (err) {
           const error = err as Error;
@@ -141,7 +141,7 @@ export class AuthClient {
                 message: `The user, ${user.username}, does not exist`,
                 resolution: `Create a user called ${user.username} or try again with a different user`,
               },
-              error
+              error,
             );
           } else {
             throw error;

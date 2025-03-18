@@ -14,7 +14,7 @@ export class MfaFlow {
    */
   constructor(
     private readonly authApi = auth,
-    private readonly prompter = AmplifyPrompter
+    private readonly prompter = AmplifyPrompter,
   ) {}
 
   /**
@@ -28,7 +28,7 @@ export class MfaFlow {
     const passwordFlow = new PersistentPasswordFlow(this.authApi);
     let passwordSignIn = await passwordFlow.persistentPasswordSignUp(
       user,
-      tempPassword
+      tempPassword,
     );
 
     if (
@@ -67,7 +67,7 @@ export class MfaFlow {
         });
       }
       const challengeOutput = await user.totpSignUpChallenge(
-        passwordSignIn.nextStep.totpSetupDetails
+        passwordSignIn.nextStep.totpSetupDetails,
       );
       const challengeResponse = challengeOutput.challengeResponse;
       const totpSignIn = await this.authApi.confirmSignIn({
@@ -82,7 +82,7 @@ export class MfaFlow {
       let challengeResponse: string;
       if (!user.smsSignUpChallenge) {
         challengeResponse = await this.prompter.secretValue(
-          `Please input the SMS one-time password for ${user.username}:`
+          `Please input the SMS one-time password for ${user.username}:`,
         );
       } else {
         const challengeOutput = await user.smsSignUpChallenge();
@@ -100,7 +100,7 @@ export class MfaFlow {
       let challengeResponse: string;
       if (!user.emailSignUpChallenge) {
         challengeResponse = await this.prompter.secretValue(
-          `Please input one-time password from EMAIL for ${user.username}:`
+          `Please input one-time password from EMAIL for ${user.username}:`,
         );
       } else {
         const challengeOutput = await user.emailSignUpChallenge();
@@ -138,7 +138,7 @@ export class MfaFlow {
             message: `${user.username} does not exist`,
             resolution: `Create a user called ${user.username}`,
           },
-          error
+          error,
         );
       } else {
         throw err;
@@ -149,7 +149,7 @@ export class MfaFlow {
       let challengeResponse: string;
       if (!user.signInChallenge) {
         challengeResponse = await this.prompter.secretValue(
-          `Please input the one-time password from your TOTP App for ${user.username}:`
+          `Please input the one-time password from your TOTP App for ${user.username}:`,
         );
       } else {
         const challengeOutput = await user.signInChallenge();
@@ -165,7 +165,7 @@ export class MfaFlow {
       let challengeResponse: string;
       if (!user.signInChallenge) {
         challengeResponse = await this.prompter.secretValue(
-          `Please input one-time password from SMS for ${user.username}:`
+          `Please input one-time password from SMS for ${user.username}:`,
         );
       } else {
         const challengeOutput = await user.signInChallenge();
@@ -181,7 +181,7 @@ export class MfaFlow {
       let challengeResponse: string;
       if (!user.signInChallenge) {
         challengeResponse = await this.prompter.secretValue(
-          `Please input one-time password from EMAIL for ${user.username}:`
+          `Please input one-time password from EMAIL for ${user.username}:`,
         );
       } else {
         const challengeOutput = await user.signInChallenge();

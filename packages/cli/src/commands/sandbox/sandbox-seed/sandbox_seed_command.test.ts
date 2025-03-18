@@ -44,7 +44,7 @@ void describe('sandbox seed command', () => {
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
-    () => null
+    () => null,
   );
 
   let amplifySeedDir: string;
@@ -58,7 +58,7 @@ void describe('sandbox seed command', () => {
     const sandboxFactory = new SandboxSingletonFactory(
       () => Promise.resolve(testBackendId),
       printer,
-      format
+      format,
     );
 
     const sandboxSeedCommand = new SandboxSeedCommand(sandboxIdResolver, [
@@ -78,7 +78,7 @@ void describe('sandbox seed command', () => {
         successfulDeployment: [clientConfigGenerationMock],
         successfulDeletion: [clientConfigDeletionMock],
         failedDeployment: [],
-      })
+      }),
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
@@ -110,7 +110,7 @@ void describe('sandbox seed command', () => {
       assert.strictEqual(
         // removes line endings and any output from the spinner from output
         output.trimEnd().split('\n')[1].trimStart(),
-        `${format.success('✔')} seed has successfully completed`
+        `${format.success('✔')} seed has successfully completed`,
       );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
@@ -140,10 +140,10 @@ void describe('sandbox seed command', () => {
           assert.match(err.output, /There is no file that corresponds to/);
           assert.match(
             err.output,
-            /Please make a file that corresponds to (.*) and put your seed logic in it/
+            /Please make a file that corresponds to (.*) and put your seed logic in it/,
           );
           return true;
-        }
+        },
       );
     });
   });

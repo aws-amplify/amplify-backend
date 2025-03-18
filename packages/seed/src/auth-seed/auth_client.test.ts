@@ -31,12 +31,12 @@ void describe('seeding auth APIs', () => {
         getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>
           Promise.resolve({
             userPoolId: testUserpoolId,
-          })
+          }),
         ),
       };
 
       const authClient = new AuthClient(
-        mockConfigReader as unknown as ConfigReader
+        mockConfigReader as unknown as ConfigReader,
       );
 
       void it('throws error if no groups exist', async () => {
@@ -49,9 +49,9 @@ void describe('seeding auth APIs', () => {
           async () =>
             await authClient.addToUserGroup(
               { username: testUsername },
-              testGroup0
+              testGroup0,
             ),
-          expectedErr
+          expectedErr,
         );
       });
     });
@@ -62,19 +62,19 @@ void describe('seeding auth APIs', () => {
           Promise.resolve({
             userPoolId: testUserpoolId,
             groups: [testGroup0],
-          })
+          }),
         ),
       };
 
       const mockCognitoIdProviderClient = {
         send: mock.fn<(input: AdminAddUserToGroupCommand) => Promise<void>>(
-          async () => Promise.resolve()
+          async () => Promise.resolve(),
         ),
       };
 
       const authClient = new AuthClient(
         mockConfigReader as unknown as ConfigReader,
-        mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient
+        mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       );
 
       beforeEach(() => {
@@ -87,11 +87,11 @@ void describe('seeding auth APIs', () => {
 
         assert.strictEqual(
           mockCognitoIdProviderClient.send.mock.callCount(),
-          1
+          1,
         );
         assert.strictEqual(
           mockCognitoIdProviderClient.send.mock.calls[0].error,
-          undefined
+          undefined,
         );
       });
 
@@ -106,22 +106,22 @@ void describe('seeding auth APIs', () => {
             new UserNotFoundException({
               $metadata: {},
               message: 'could not find user',
-            })
-          )
+            }),
+          ),
         );
 
         await assert.rejects(
           async () =>
             await authClient.addToUserGroup(
               { username: testUsername },
-              testGroup0
+              testGroup0,
             ),
           (error: AmplifyUserError) => {
             assert.strictEqual(error.name, expectedErr.name);
             assert.strictEqual(error.message, expectedErr.message);
             assert.strictEqual(error.resolution, expectedErr.resolution);
             return true;
-          }
+          },
         );
       });
 
@@ -135,9 +135,9 @@ void describe('seeding auth APIs', () => {
           async () =>
             await authClient.addToUserGroup(
               { username: testUsername },
-              testGroup1
+              testGroup1,
             ),
-          expectedErr
+          expectedErr,
         );
       });
     });
@@ -149,7 +149,7 @@ void describe('seeding auth APIs', () => {
       getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>
         Promise.resolve({
           userPoolId: testUserpoolId,
-        })
+        }),
       ),
     };
 
@@ -161,7 +161,7 @@ void describe('seeding auth APIs', () => {
           User: {
             Username: testUsername,
           },
-        })
+        }),
       ),
     };
 
@@ -174,7 +174,7 @@ void describe('seeding auth APIs', () => {
         (input: AuthSignUp) => Promise<boolean>
       >(async () => Promise.resolve(true)),
       persistentPasswordSignIn: mock.fn<(input: AuthUser) => Promise<boolean>>(
-        async () => Promise.resolve(true)
+        async () => Promise.resolve(true),
       ),
     };
 
@@ -182,7 +182,7 @@ void describe('seeding auth APIs', () => {
       mockConfigReader as unknown as ConfigReader,
       mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       mockAuthAPIs as unknown as typeof auth,
-      mockPasswordFlow as unknown as PersistentPasswordFlow
+      mockPasswordFlow as unknown as PersistentPasswordFlow,
     );
 
     beforeEach(() => {
@@ -203,7 +203,7 @@ void describe('seeding auth APIs', () => {
 
       assert.strictEqual(
         mockPasswordFlow.persistentPasswordSignUp.mock.callCount(),
-        1
+        1,
       );
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
     });
@@ -234,7 +234,7 @@ void describe('seeding auth APIs', () => {
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -265,7 +265,7 @@ void describe('seeding auth APIs', () => {
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -288,7 +288,7 @@ void describe('seeding auth APIs', () => {
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -301,7 +301,7 @@ void describe('seeding auth APIs', () => {
 
       assert.strictEqual(
         mockPasswordFlow.persistentPasswordSignIn.mock.callCount(),
-        1
+        1,
       );
       assert.strictEqual(output, true);
     });
@@ -316,7 +316,7 @@ void describe('seeding auth APIs', () => {
           userPoolId: testUserpoolId,
           mfaMethods: ['SMS', 'TOTP'],
           mfaConfig: 'REQUIRED',
-        })
+        }),
       ),
     };
 
@@ -328,7 +328,7 @@ void describe('seeding auth APIs', () => {
           User: {
             Username: testUsername,
           },
-        })
+        }),
       ),
     };
 
@@ -341,7 +341,7 @@ void describe('seeding auth APIs', () => {
         (user: AuthSignUp, tempPassword: string) => Promise<boolean>
       >(async () => Promise.resolve(true)),
       mfaSignIn: mock.fn<(user: AuthUser) => Promise<boolean>>(async () =>
-        Promise.resolve(true)
+        Promise.resolve(true),
       ),
     };
 
@@ -350,7 +350,7 @@ void describe('seeding auth APIs', () => {
       mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       mockAuthAPIs as unknown as typeof auth,
       undefined,
-      mockMfaFlow as unknown as MfaFlow
+      mockMfaFlow as unknown as MfaFlow,
     );
 
     beforeEach(() => {

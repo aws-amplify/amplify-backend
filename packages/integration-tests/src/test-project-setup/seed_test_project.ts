@@ -46,17 +46,17 @@ export class SeedTestProjectCreator implements TestProjectCreator {
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly stsClient: STSClient = new STSClient(
-      e2eToolingClientConfig
-    )
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -70,14 +70,14 @@ export class SeedTestProjectCreator implements TestProjectCreator {
       this.cfnClient,
       this.amplifyClient,
       this.cognitoIdentityProviderClient,
-      this.stsClient
+      this.stsClient,
     );
     await fsp.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -90,7 +90,7 @@ class SeedTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   constructor(
@@ -100,20 +100,20 @@ class SeedTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly stsClient: STSClient
+    private readonly stsClient: STSClient,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   override async deploy(
     backendIdentifier: BackendIdentifier,
-    environment?: Record<string, string>
+    environment?: Record<string, string>,
   ) {
     await super.deploy(backendIdentifier, environment);
 
@@ -126,7 +126,7 @@ class SeedTestProject extends TestProjectBase {
       {
         cwd: this.projectDirPath,
         env: environment,
-      }
+      },
     );
 
     const startingInd = seedPolicyProcess.stdout.indexOf('{');
@@ -148,7 +148,7 @@ class SeedTestProject extends TestProjectBase {
             arn: 'arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess',
           },
         ],
-      })
+      }),
     );
 
     assert.ok(seedCredentials.Credentials);
@@ -167,7 +167,7 @@ class SeedTestProject extends TestProjectBase {
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
     const testUsername = 'testUser@testing.com';
@@ -184,7 +184,7 @@ class SeedTestProject extends TestProjectBase {
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
-        clientConfig.auth
+        clientConfig.auth,
       ).getNewAuthenticatedUserCredentials();
 
     const httpLink = new HttpLink({ uri: clientConfig.data.url });
@@ -220,7 +220,7 @@ class SeedTestProject extends TestProjectBase {
 
     assert.strictEqual(
       content.data.listTodos.items[0].content,
-      `Todo list item for ${testUsername}`
+      `Todo list item for ${testUsername}`,
     );
   }
 }

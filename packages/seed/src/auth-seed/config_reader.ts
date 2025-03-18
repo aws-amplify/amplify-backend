@@ -16,7 +16,7 @@ export class ConfigReader {
    * Constructor
    */
   constructor(
-    private readonly generateClientConfiguration = generateClientConfig
+    private readonly generateClientConfiguration = generateClientConfig,
   ) {}
 
   getAuthConfig = async () => {

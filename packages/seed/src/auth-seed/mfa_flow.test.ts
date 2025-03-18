@@ -20,7 +20,7 @@ void describe('mfa flow tests', () => {
           nextStep: {
             signInStep: 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
           },
-        } as auth.SignInOutput)
+        } as auth.SignInOutput),
     ),
     confirmSignIn: mock.fn<
       (input: auth.ConfirmSignInInput) => Promise<auth.ConfirmSignInOutput>
@@ -28,7 +28,7 @@ void describe('mfa flow tests', () => {
       Promise.resolve({
         isSignedIn: true,
         nextStep: { signInStep: 'DONE' },
-      } as auth.SignInOutput)
+      } as auth.SignInOutput),
     ),
     updateMFAPreference: mock.fn<
       (input: auth.UpdateMFAPreferenceInput) => Promise<void>
@@ -37,13 +37,13 @@ void describe('mfa flow tests', () => {
 
   const mockPrompter = {
     secretValue: mock.fn<(message: string) => Promise<string>>(async () =>
-      Promise.resolve(challengeResponse)
+      Promise.resolve(challengeResponse),
     ),
   };
 
   const mfaFlow = new MfaFlow(
     mockAuthAPIs as unknown as typeof auth,
-    mockPrompter as unknown as typeof AmplifyPrompter
+    mockPrompter as unknown as typeof AmplifyPrompter,
   );
 
   beforeEach(() => {
@@ -70,7 +70,7 @@ void describe('mfa flow tests', () => {
               signInStep: 'CONFIRM_SIGN_IN_WITH_SMS_CODE',
             },
           } as auth.ConfirmSignInOutput);
-        }
+        },
       );
 
       await mfaFlow.mfaSignUp(
@@ -80,7 +80,7 @@ void describe('mfa flow tests', () => {
           signInAfterCreation: true,
           signInFlow: 'MFA',
         },
-        testTempPassword
+        testTempPassword,
       );
 
       assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 1);
@@ -105,7 +105,7 @@ void describe('mfa flow tests', () => {
               signInStep: 'CONFIRM_SIGN_IN_WITH_SMS_CODE',
             },
           } as auth.ConfirmSignInOutput);
-        }
+        },
       );
 
       await mfaFlow.mfaSignUp(
@@ -118,7 +118,7 @@ void describe('mfa flow tests', () => {
           smsSignUpChallenge: async () =>
             Promise.resolve({ challengeResponse: challengeResponse }),
         },
-        testTempPassword
+        testTempPassword,
       );
 
       assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 0);
@@ -143,7 +143,7 @@ void describe('mfa flow tests', () => {
               signInStep: 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP',
             },
           } as auth.ConfirmSignInOutput);
-        }
+        },
       );
 
       await mfaFlow.mfaSignUp(
@@ -155,7 +155,7 @@ void describe('mfa flow tests', () => {
           totpSignUpChallenge: async () =>
             Promise.resolve({ challengeResponse: challengeResponse }),
         },
-        testTempPassword
+        testTempPassword,
       );
 
       assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 0);
@@ -171,7 +171,7 @@ void describe('mfa flow tests', () => {
             signInStep: 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION',
             allowedMFATypes: ['EMAIL', 'TOTP'],
           },
-        } as auth.ConfirmSignInOutput)
+        } as auth.ConfirmSignInOutput),
       );
 
       const mfaPreference = 'SMS';
@@ -180,7 +180,7 @@ void describe('mfa flow tests', () => {
         {
           message: `${mfaPreference} is not available for this userpool`,
           resolution: `Activate ${mfaPreference} for this userpool or sign in ${testUsername} with a different form of MFA`,
-        }
+        },
       );
 
       await assert.rejects(
@@ -193,14 +193,14 @@ void describe('mfa flow tests', () => {
               signInFlow: 'MFA',
               mfaPreference: mfaPreference,
             },
-            testTempPassword
+            testTempPassword,
           ),
         (err: AmplifyUserError) => {
           assert.strictEqual(err.name, expectedErr.name);
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -212,7 +212,7 @@ void describe('mfa flow tests', () => {
             signInStep: 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION',
             allowedMFATypes: ['EMAIL', 'TOTP'],
           },
-        } as auth.ConfirmSignInOutput)
+        } as auth.ConfirmSignInOutput),
       );
 
       const expectedErr = new AmplifyUserError(
@@ -220,7 +220,7 @@ void describe('mfa flow tests', () => {
         {
           message: `If multiple forms of MFA are enabled for a userpool, you must specify which form you intend to use for ${testUsername}`,
           resolution: `Specify a form of MFA for the user, ${testUsername}, to use with the mfaPreference property`,
-        }
+        },
       );
 
       await assert.rejects(
@@ -232,14 +232,14 @@ void describe('mfa flow tests', () => {
               signInAfterCreation: true,
               signInFlow: 'MFA',
             },
-            testTempPassword
+            testTempPassword,
           ),
         (err: AmplifyUserError) => {
           assert.strictEqual(err.name, expectedErr.name);
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
   });
@@ -252,7 +252,7 @@ void describe('mfa flow tests', () => {
           nextStep: {
             signInStep: 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE',
           },
-        } as auth.SignInOutput)
+        } as auth.SignInOutput),
       );
 
       await mfaFlow.mfaSignIn({
@@ -273,7 +273,7 @@ void describe('mfa flow tests', () => {
           nextStep: {
             signInStep: 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE',
           },
-        } as auth.SignInOutput)
+        } as auth.SignInOutput),
       );
 
       await mfaFlow.mfaSignIn({
@@ -307,7 +307,7 @@ void describe('mfa flow tests', () => {
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
 
@@ -322,8 +322,8 @@ void describe('mfa flow tests', () => {
           new UserNotFoundException({
             $metadata: {},
             message: `${testUsername} does not exist`,
-          })
-        )
+          }),
+        ),
       );
 
       await assert.rejects(
@@ -338,7 +338,7 @@ void describe('mfa flow tests', () => {
           assert.strictEqual(err.message, expectedErr.message);
           assert.strictEqual(err.resolution, expectedErr.resolution);
           return true;
-        }
+        },
       );
     });
   });

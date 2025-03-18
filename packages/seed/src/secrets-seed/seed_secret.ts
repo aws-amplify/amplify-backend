@@ -13,7 +13,7 @@ export class SeedSecretClient {
    * constructor
    */
   constructor(
-    private readonly getSecretClient: SecretClient = getSecretClientWithAmplifyErrorHandling()
+    private readonly getSecretClient: SecretClient = getSecretClientWithAmplifyErrorHandling(),
   ) {}
 
   getSecret = async (secretName: string): Promise<string> => {
@@ -26,7 +26,7 @@ export class SeedSecretClient {
     }
 
     const backendId: BackendIdentifier = JSON.parse(
-      process.env.AMPLIFY_BACKEND_IDENTIFIER
+      process.env.AMPLIFY_BACKEND_IDENTIFIER,
     );
 
     const secretClient = this.getSecretClient;
@@ -38,7 +38,7 @@ export class SeedSecretClient {
 
   setSecret = async (
     secretName: string,
-    secretValue: string
+    secretValue: string,
   ): Promise<string> => {
     if (!process.env.AMPLIFY_BACKEND_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
@@ -49,14 +49,14 @@ export class SeedSecretClient {
     }
 
     const backendId: BackendIdentifier = JSON.parse(
-      process.env.AMPLIFY_BACKEND_IDENTIFIER
+      process.env.AMPLIFY_BACKEND_IDENTIFIER,
     );
 
     const secretClient = this.getSecretClient;
     const secret = await secretClient.setSecret(
       backendId,
       secretName,
-      secretValue
+      secretValue,
     );
     return secret.name;
   };
@@ -79,7 +79,7 @@ export const getSecret = async (secretName: string): Promise<string> => {
  */
 export const setSecret = async (
   secretName: string,
-  secretValue: string
+  secretValue: string,
 ): Promise<string> => {
   return await new SeedSecretClient().setSecret(secretName, secretValue);
 };
