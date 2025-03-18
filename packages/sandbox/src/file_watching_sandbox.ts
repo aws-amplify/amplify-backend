@@ -263,7 +263,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     await this.executor.destroy(
       await this.backendIdSandboxResolver(options.identifier),
-      options.profile,
     );
     this.emit('successfulDeletion');
     this.printer.log('[Sandbox] Finished deleting.');
@@ -288,7 +287,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources,
-        options.profile,
       );
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);

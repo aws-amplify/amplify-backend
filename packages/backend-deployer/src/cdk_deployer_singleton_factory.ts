@@ -13,19 +13,6 @@ import { Toolkit } from '@aws-cdk/toolkit-lib';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
-  /**
-   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
-   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
-   */
-  profile?: string;
-};
-
-export type DestroyProps = {
-  /**
-   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
-   * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
-   */
-  profile?: string;
 };
 
 export type DeployResult = {
@@ -49,10 +36,7 @@ export type BackendDeployer = {
     backendId: BackendIdentifier,
     deployProps?: DeployProps,
   ) => Promise<DeployResult>;
-  destroy: (
-    backendId: BackendIdentifier,
-    destroyProps?: DestroyProps,
-  ) => Promise<DestroyResult>;
+  destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
 };
 
 /**

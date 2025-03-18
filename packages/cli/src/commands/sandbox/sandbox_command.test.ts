@@ -277,10 +277,6 @@ void describe('sandbox command', () => {
     commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.strictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].profile,
-      sandboxProfile,
-    );
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
       sandboxProfile,

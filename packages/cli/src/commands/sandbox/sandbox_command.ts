@@ -153,7 +153,6 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: watchExclusions,
       identifier: args.identifier,
-      profile: args.profile,
       watchForChanges: !args.once,
       functionStreamingOptions,
     });

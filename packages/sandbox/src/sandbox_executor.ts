@@ -38,11 +38,6 @@ export class AmplifySandboxExecutor {
   deploy = async (
     backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean,
-    /**
-     *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
-     * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
-     */
-    profile: string | undefined,
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
@@ -54,7 +49,6 @@ export class AmplifySandboxExecutor {
       return this.backendDeployer.deploy(backendId, {
         secretLastUpdated,
         validateAppSources,
-        profile,
       });
     });
   };
@@ -62,20 +56,9 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (
-    backendId: BackendIdentifier,
-    /**
-     * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
-     * Use `sdkProfileResolver` in `BackendDeployerFactory` instead to set the profile
-     */
-    profile: string | undefined,
-  ): Promise<DestroyResult> => {
+  destroy = (backendId: BackendIdentifier): Promise<DestroyResult> => {
     this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);
-    return this.invoke(() =>
-      this.backendDeployer.destroy(backendId, {
-        profile,
-      }),
-    );
+    return this.invoke(() => this.backendDeployer.destroy(backendId));
   };
 
   private getSecretLastUpdated = async (
