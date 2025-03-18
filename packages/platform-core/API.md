@@ -239,6 +239,8 @@ export type TelemetryDataEmitter = {
 export class TelemetryDataEmitterFactory {
     getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryDataEmitter>;
 }
+
+// @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
 
 // @public (undocumented)

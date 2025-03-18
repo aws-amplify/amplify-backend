@@ -3,7 +3,7 @@ import url, { UrlWithStringQuery } from 'node:url';
 
 let cachedUrl: UrlWithStringQuery;
 
-const prodUrl = `https://localhost:8080/`;
+const prodUrl = ``;
 
 /**
  *  Telemetry data tracking service URL
