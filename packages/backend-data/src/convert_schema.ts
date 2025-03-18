@@ -3,6 +3,7 @@ import type {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema as DerivedDataSchema,
+  DerivedModelSchema,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
@@ -11,13 +12,19 @@ import {
   type SslCertSsmPathConfig,
   type VpcConfig,
 } from '@aws-amplify/data-construct';
-import type { DataSchema, DataSchemaInput } from './types.js';
+import type {
+  AmplifyGen1DynamoDbTableMapping,
+  DataSchema,
+  DataSchemaInput,
+} from './types.js';
 import type {
   BackendSecretResolver,
   StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
+import { ObjectTypeDefinitionNode, parse, print } from 'graphql';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Determine if the input schema is a derived typed schema object (data-schema), and perform type narrowing.
@@ -58,6 +65,13 @@ const DYNAMO_DATA_SOURCE_STRATEGY = {
   provisionStrategy: 'AMPLIFY_TABLE',
 } as const;
 
+// DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
+// Conforms to this interface: https://github.com/aws-amplify/amplify-category-api/blob/274d1176d96e265d02817a975848c767d6d43c31/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L35-L41
+const IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY = {
+  dbType: 'DYNAMODB',
+  provisionStrategy: 'IMPORTED_AMPLIFY_TABLE',
+} as const;
+
 // Translate the external engine types to the config values
 // Reference: https://github.com/aws-amplify/amplify-category-api/blob/fd7f6fbc17c199331c4b04debaff69ea0424cd74/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L25
 const SQL_DB_TYPES = {
@@ -70,12 +84,14 @@ const SQL_DB_TYPES = {
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
  * @param stableBackendIdentifiers backend identifiers
+ * @param importedTableName table name to use for imported models. If not defined the model is not imported.
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
   stableBackendIdentifiers: StableBackendIdentifiers,
+  importedTableName?: string,
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -99,6 +115,7 @@ export const convertSchemaToCDK = (
       customSqlDataSourceStrategies,
       backendSecretResolver,
       provisionStrategyName,
+      importedTableName,
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
@@ -128,6 +145,12 @@ export const convertSchemaToCDK = (
     };
   }
 
+  if (importedTableName) {
+    return AmplifyDataDefinition.fromString(schema, {
+      ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+      tableName: importedTableName,
+    });
+  }
   return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
 };
 
@@ -152,8 +175,15 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
   provisionStrategyName: string,
+  importedTableName?: string,
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
+    if (importedTableName) {
+      return {
+        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        tableName: importedTableName,
+      };
+    }
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
@@ -224,4 +254,137 @@ const customSqlStatementsFromStrategies = (
     );
 
   return customSqlStatements;
+};
+
+/**
+ * Split the schema into multiple schemas based on the table map.
+ * If the model corresponds to an imported table then move that model to a separate schema and include the table name
+ * @param schemas GraphQL schemas
+ * @param amplifyGen1DynamoDbTableMapping Table names for the models that should be imported.
+ * @returns an array of split schemas with the imported table name if applicable
+ */
+export const splitSchemasByTableMap = (
+  schemas: (string | DerivedModelSchema)[],
+  amplifyGen1DynamoDbTableMapping: AmplifyGen1DynamoDbTableMapping | undefined,
+): {
+  schema: string | DerivedModelSchema;
+  importedTableName?: string;
+}[] => {
+  const splitSchemas: {
+    schema: string | DerivedModelSchema;
+    importedTableName?: string;
+  }[] = schemas.flatMap((schema) => {
+    // data schema not supported for import
+    if (!isDataSchema(schema)) {
+      const { importedSchemas, nonImportedSchema } = extractImportedModels(
+        schema,
+        amplifyGen1DynamoDbTableMapping?.modelNameToTableNameMapping,
+      );
+      if (importedSchemas.length > 0) {
+        return [
+          ...importedSchemas.map(({ schema, importedTableName }) => ({
+            schema,
+            importedTableName,
+          })),
+          ...(nonImportedSchema ? [{ schema: nonImportedSchema }] : []),
+        ];
+      }
+    }
+    return [{ schema }];
+  });
+
+  return splitSchemas;
+};
+
+/**
+ * Extracts the imported models from non-imported models in a single string schema.
+ * @param schema String GraphQL schema
+ * @param modelNameToTableNameMapping Table names for the models that should be extracted.
+ * @returns a schema split into imported models and non-imported models
+ */
+const extractImportedModels = (
+  schema: string,
+  modelNameToTableNameMapping: Record<string, string> | undefined,
+): {
+  importedSchemas: { schema: string; importedTableName: string }[];
+  nonImportedSchema: string | undefined;
+} => {
+  const importedModels = Object.keys(modelNameToTableNameMapping ?? {});
+  if (importedModels?.length) {
+    const parsedSchema = parse(schema);
+    const [importedDefinitionNodes, nonImportedDefinitionNodes] = partition(
+      parsedSchema.definitions,
+      (definitionNode) => {
+        return (
+          definitionNode.kind === 'ObjectTypeDefinition' &&
+          importedModels.includes(definitionNode.name.value)
+        );
+      },
+    );
+    // ok to cast as ObjectTypeDefinitionNode because the type was checked in the partition function
+    const importedObjectTypeDefinitionNodes =
+      importedDefinitionNodes as ObjectTypeDefinitionNode[];
+
+    importedModels.forEach((modelName) => {
+      if (
+        !importedObjectTypeDefinitionNodes.some(
+          (definitionNode) => definitionNode.name.value === modelName,
+        )
+      ) {
+        throw new AmplifyUserError('DefineDataConfigurationError', {
+          message: `Imported model not found in schema: ${modelName}`,
+          resolution: `Add ${modelName} to the schema.`,
+        });
+      }
+    });
+
+    const importedSchemas = importedObjectTypeDefinitionNodes.map(
+      (definitionNode) => {
+        const importedTableName = (modelNameToTableNameMapping ?? {})[
+          definitionNode.name.value
+        ];
+        if (!importedTableName) {
+          throw new AmplifyUserError('DefineDataConfigurationError', {
+            message: `No table found for imported model ${definitionNode.name.value}.`,
+            resolution: `Add a table name for ${definitionNode.name.value} in the modelNameToTableNameMapping.`,
+          });
+        }
+        return {
+          schema: print({
+            definitions: [definitionNode],
+            kind: 'Document' as const,
+          }),
+          importedTableName,
+        };
+      },
+    );
+
+    const nonImportedSchema = nonImportedDefinitionNodes.length
+      ? print({
+          definitions: nonImportedDefinitionNodes,
+          kind: 'Document' as const,
+        })
+      : undefined;
+    return {
+      importedSchemas,
+      nonImportedSchema,
+    };
+  }
+  return {
+    importedSchemas: [],
+    nonImportedSchema: schema,
+  };
+};
+
+/* partition a list based on a predicate. If isLeft is true, the item goes in the left list, otherwise it goes in the right list */
+const partition = <I>(
+  array: readonly I[],
+  isLeft: (item: I) => boolean,
+): [I[], I[]] => {
+  return array.reduce(
+    ([left, right], item) => {
+      return isLeft(item) ? [[...left, item], right] : [left, [...right, item]];
+    },
+    [[], []] as [I[], I[]],
+  );
 };

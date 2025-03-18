@@ -10,4 +10,5 @@ export {
   DataLogConfig,
   DataLoggingOptions,
   DataLogLevel,
+  AmplifyGen1DynamoDbTableMapping,
 } from './types.js';
