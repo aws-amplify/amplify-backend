@@ -12,7 +12,7 @@ import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 // @public
 export type BackendDeployer = {
     deploy: (backendId: BackendIdentifier, deployProps?: DeployProps) => Promise<DeployResult>;
-    destroy: (backendId: BackendIdentifier, destroyProps?: DestroyProps) => Promise<DestroyResult>;
+    destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
 };
 
 // @public
@@ -36,17 +36,11 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
-    profile?: string;
 };
 
 // @public (undocumented)
 export type DeployResult = {
     deploymentTimes: DeploymentTimes;
-};
-
-// @public (undocumented)
-export type DestroyProps = {
-    profile?: string;
 };
 
 // @public (undocumented)

@@ -26,7 +26,6 @@ export type Sandbox = {
 // @public (undocumented)
 export type SandboxDeleteOptions = {
     identifier?: string;
-    profile?: string;
 };
 
 // @public (undocumented)
@@ -45,7 +44,6 @@ export type SandboxOptions = {
     exclude?: string[];
     identifier?: string;
     format?: ClientConfigFormat;
-    profile?: string;
     watchForChanges?: boolean;
     functionStreamingOptions?: SandboxFunctionStreamingOptions;
 };
