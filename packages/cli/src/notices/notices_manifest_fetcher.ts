@@ -28,6 +28,7 @@ export class NoticesManifestFetcher {
       .AMPLIFY_BACKEND_NOTICES_ENDPOINT ||
       'https://notices.cli.amplify.aws/notices.json',
     private readonly cacheTTLMs = 60 * 60 * 1000, // one hour
+    private readonly _fetch = fetch,
   ) {}
 
   fetchNoticesManifest = async (): Promise<NoticesManifest> => {
@@ -48,7 +49,7 @@ export class NoticesManifestFetcher {
   };
 
   private loadManifestFromWebsiteAndCache = async (): Promise<void> => {
-    const response = await fetch(this.noticesManifestUrl);
+    const response = await this._fetch(this.noticesManifestUrl);
     if (!response.ok) {
       throw new AmplifyFault('NoticeManifestFetchFault', {
         message: `Attempt to fetch notices manifest failed, url=${this.noticesManifestUrl}, statusCode=${response.status}`,

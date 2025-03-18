@@ -44,12 +44,12 @@ export class NoticesRenderer {
         await this.noticesController.recordPrintingTimes(notices);
       }
     } catch (e) {
-      printer.log(
+      this._printer.log(
         `Unable to render notices on event=${params.event}`,
         LogLevel.DEBUG,
       );
       if (e instanceof Error) {
-        printer.log(e.message, LogLevel.DEBUG);
+        this._printer.log(e.message, LogLevel.DEBUG);
       }
     }
   };
