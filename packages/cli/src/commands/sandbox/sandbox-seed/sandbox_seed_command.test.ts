@@ -108,8 +108,9 @@ void describe('sandbox seed command', () => {
 
       assert.ok(output !== undefined);
       assert.strictEqual(
-        output.trimEnd(),
-        '✅ seed has successfully completed'
+        // removes line endings and any output from the spinner from output
+        output.trimEnd().split('\n')[1].trimStart(),
+        `${format.success('✔')} seed has successfully completed`
       );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
