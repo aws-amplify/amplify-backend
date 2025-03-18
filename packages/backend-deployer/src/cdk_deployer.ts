@@ -56,7 +56,10 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy API
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
-    AssetStaging.clearAssetHashCache(); // Hack ?? Without this
+    // Hack?? CDK uses global asset cache that is not cleared if assets are
+    // changing within the same process (which now happens with CDK Toolkit APIs)
+    // See https://github.com/aws/aws-cdk-cli/issues/236
+    AssetStaging.clearAssetHashCache();
 
     const toolkit = this.getCdkToolkit(deployProps?.profile);
     const cx = await this.getCdkCloudAssembly(
