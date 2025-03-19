@@ -69,7 +69,7 @@ void describe('NoticePredicatesEvaluator', () => {
         predicates: [],
       },
       opts: {
-        event: 'listing',
+        event: 'listNoticesCommand',
       },
       expectedOutput: true,
     },
@@ -444,7 +444,7 @@ void describe('NoticePredicatesEvaluator', () => {
         ],
       },
       opts: {
-        event: 'listing',
+        event: 'listNoticesCommand',
       },
       expectedOutput: true,
     },
@@ -492,7 +492,7 @@ void describe('NoticePredicatesEvaluator', () => {
         ],
       },
       opts: {
-        event: 'listing',
+        event: 'listNoticesCommand',
       },
       expectedOutput: true,
     },

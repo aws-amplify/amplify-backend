@@ -5,7 +5,7 @@ import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { hideBin } from 'yargs/helpers';
 
 export type NoticesRendererParams = {
-  event: 'postCommand' | 'postDeployment' | 'listing';
+  event: 'postCommand' | 'postDeployment' | 'listNoticesCommand';
   error?: Error;
 };
 

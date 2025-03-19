@@ -42,7 +42,7 @@ export class NoticesListCommand
    */
   handler = async (args: NoticesListCommandOptionsKebabCase): Promise<void> => {
     const notices = await this.noticesController.getApplicableNotices({
-      event: 'listing',
+      event: 'listNoticesCommand',
       includeAcknowledged: args.all,
     });
     this.noticesPrinter.print(notices);

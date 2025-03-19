@@ -98,9 +98,9 @@ export class NoticePredicatesEvaluator {
     const projectName = await this.namespaceResolver.resolve();
     const tracker = await this.noticesPrintingTrackerFile.read();
     if (expectedFrequency === 'command') {
-      return event === 'postCommand' || event === 'listing';
+      return event === 'postCommand' || event === 'listNoticesCommand';
     } else if (expectedFrequency === 'deployment') {
-      return event === 'postDeployment' || event === 'listing';
+      return event === 'postDeployment' || event === 'listNoticesCommand';
     } else if (expectedFrequency === 'once') {
       return (
         tracker.printTimes.find((item) => {
