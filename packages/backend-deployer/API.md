@@ -4,18 +4,20 @@
 
 ```ts
 
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 
 // @public
 export type BackendDeployer = {
     deploy: (backendId: BackendIdentifier, deployProps?: DeployProps) => Promise<DeployResult>;
-    destroy: (backendId: BackendIdentifier, destroyProps?: DestroyProps) => Promise<DestroyResult>;
+    destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
 };
 
 // @public
 export class BackendDeployerFactory {
-    constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter);
+    constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter, backendDeployerIOHost: AmplifyIOHost, sdkProfileResolver: SDKProfileResolver);
     getInstance(): BackendDeployer;
 }
 
@@ -34,17 +36,11 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
-    profile?: string;
 };
 
 // @public (undocumented)
 export type DeployResult = {
     deploymentTimes: DeploymentTimes;
-};
-
-// @public (undocumented)
-export type DestroyProps = {
-    profile?: string;
 };
 
 // @public (undocumented)

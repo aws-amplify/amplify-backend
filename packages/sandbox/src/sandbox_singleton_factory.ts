@@ -1,4 +1,5 @@
 import {
+  AmplifyIOEventsBridgeSingletonFactory,
   Format,
   PackageManagerControllerFactory,
   Printer,
@@ -14,17 +15,19 @@ import { LambdaClient } from '@aws-sdk/client-lambda';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
+import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 
 /**
  * Factory to create a new sandbox
  */
 export class SandboxSingletonFactory {
-  private instance: Sandbox | undefined;
+  private static instance: Sandbox | undefined;
   /**
    * sandboxIdResolver allows sandbox to lazily load the sandbox backend id on demand
    */
   constructor(
     private readonly sandboxIdResolver: BackendIdSandboxResolver,
+    private readonly sdkProfileResolver: SDKProfileResolver,
     private readonly printer: Printer,
     private readonly format: Format,
   ) {}
@@ -33,14 +36,20 @@ export class SandboxSingletonFactory {
    * Returns a singleton instance of a Sandbox
    */
   getInstance = async (): Promise<Sandbox> => {
-    if (!this.instance) {
+    if (!SandboxSingletonFactory.instance) {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
+      const cdkEventsBridgeIoHost = new AmplifyIOEventsBridgeSingletonFactory(
+        this.printer,
+      ).getInstance();
+
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController(),
         this.format,
+        cdkEventsBridgeIoHost,
+        this.sdkProfileResolver,
       );
-      this.instance = new FileWatchingSandbox(
+      SandboxSingletonFactory.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
           backendDeployerFactory.getInstance(),
@@ -57,6 +66,6 @@ export class SandboxSingletonFactory {
         this.printer,
       );
     }
-    return this.instance;
+    return SandboxSingletonFactory.instance;
   };
 }

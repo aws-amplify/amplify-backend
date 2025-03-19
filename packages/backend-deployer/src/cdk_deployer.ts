@@ -1,14 +1,15 @@
 import stream from 'stream';
 import readline from 'readline';
+import process from 'node:process';
 import {
   BackendDeployer,
   DeployProps,
   DeployResult,
-  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
+  AmplifyIOHost,
   BackendIdentifier,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
@@ -18,22 +19,27 @@ import {
   BackendLocator,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
-import { dirname } from 'path';
-
-/**
- * Commands that can be invoked
- */
-enum InvokableCommand {
-  DEPLOY = 'deploy',
-  DESTROY = 'destroy',
-  SYNTH = 'synth',
-}
+import path, { dirname } from 'path';
+import {
+  HotswapMode,
+  RequireApproval,
+  StackSelectionStrategy,
+  Toolkit,
+} from '@aws-cdk/toolkit-lib';
+import { tsImport } from 'tsx/esm/api';
+import { CloudAssembly } from 'aws-cdk-lib/cx-api';
+import { pathToFileURL } from 'url';
+import { AssetStaging } from 'aws-cdk-lib/core';
 
 /**
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  private readonly relativeCloudAssemblyLocation = '.amplify/artifacts/cdk.out';
+  private readonly absoluteCloudAssemblyLocation = path.resolve(
+    process.cwd(),
+    '.amplify/artifacts/cdk.out',
+  );
+
   /**
    * Instantiates instance of CDKDeployer
    */
@@ -41,49 +47,72 @@ export class CDKDeployer implements BackendDeployer {
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
     private readonly packageManagerController: PackageManagerController,
+    private readonly cdkToolkit: Toolkit,
+    private readonly ioHost: AmplifyIOHost,
   ) {}
+
   /**
-   * Invokes cdk deploy command
+   * Invokes cdk deploy API
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
-    const cdkCommandArgs: string[] = [];
-    if (backendId.type === 'sandbox') {
-      cdkCommandArgs.push('--hotswap-fallback');
-      cdkCommandArgs.push('--method=direct');
-      if (deployProps?.secretLastUpdated) {
-        cdkCommandArgs.push(
-          '--context',
-          `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`,
-        );
-      }
-    }
+    // Hack?? CDK uses global asset cache that is not cleared if assets are
+    // changing within the same process (which now happens with CDK Toolkit APIs)
+    // See https://github.com/aws/aws-cdk-cli/issues/236
+    AssetStaging.clearAssetHashCache();
 
-    if (deployProps?.profile) {
-      cdkCommandArgs.push('--profile', deployProps.profile);
-    }
+    const cx = await this.getCdkCloudAssembly(
+      backendId,
+      deployProps?.secretLastUpdated?.getTime(),
+    );
+    // Initiate synth for the cloud executable and send a message for display.
+    const synthStartTime = Date.now();
+    let synthAssembly,
+      synthError: Error | undefined = undefined;
+    await this.ioHost.notify({
+      message: `Backend synthesis started`,
+      code: 'SYNTH_STARTED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
+      data: undefined,
+    });
 
-    // first synth with the backend definition but suppress any errors.
-    // We want to show errors from the TS compiler rather than the ESBuild as
-    // TS errors are more relevant (Library validations are type reliant).
-    const startTime = Date.now();
-    let synthError = undefined;
     try {
-      await this.tryInvokeCdk(
-        InvokableCommand.SYNTH,
-        backendId,
-        this.getAppCommand(),
-        cdkCommandArgs.concat('--quiet'), // don't print the CFN template to stdout
-      );
-    } catch (e) {
-      synthError = e;
+      synthAssembly = await this.cdkToolkit.synth(cx, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+      });
+    } catch (error) {
+      synthError = error as Error;
     }
-    // CDK prints synth time in seconds rounded to 2 decimal places. Here we duplicate that behavior.
-    const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
 
-    // then run type checks
+    const synthTimeSeconds =
+      Math.floor((Date.now() - synthStartTime) / 10) / 100;
+
+    await this.ioHost.notify({
+      message: `Backend synthesized in ${synthTimeSeconds} seconds`,
+      code: 'SYNTH_FINISHED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'result',
+      data: undefined,
+    });
+
+    // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
+    const typeCheckStartTime = Date.now();
+    await this.ioHost.notify({
+      message: `Backend type checks started`,
+      code: 'TS_STARTED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
+      data: undefined,
+    });
+
     try {
       await this.invokeTsc(deployProps);
-    } catch (typeError: unknown) {
+    } catch (typeError) {
       if (
         synthError &&
         AmplifyError.isAmplifyError(typeError) &&
@@ -94,50 +123,71 @@ export class CDKDeployer implements BackendDeployer {
         // synth has failed and we don't have auto generated function environment definition files. This
         // resulted in the exception caught here, which is not very useful for the customers.
         // We instead throw the synth error for customers to fix what caused the synth to fail.
-        throw synthError;
+        throw this.cdkErrorMapper.getAmplifyError(synthError);
       }
       throw typeError;
+    } finally {
+      const typeCheckTimeSeconds =
+        Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
+      await this.ioHost.notify({
+        message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
+        code: 'TS_FINISHED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'result',
+        data: undefined,
+      });
     }
 
-    // If somehow TSC was successful but synth wasn't, we now throw to surface the synth error
+    // If typescript compilation was successful but synth had failed, we throw synth error
     if (synthError) {
-      throw synthError;
+      throw this.cdkErrorMapper.getAmplifyError(synthError);
     }
 
-    // then deploy with the cloud assembly that was generated during synth
-    const deployResult = await this.tryInvokeCdk(
-      InvokableCommand.DEPLOY,
-      backendId,
-      this.relativeCloudAssemblyLocation,
-      cdkCommandArgs,
-    );
+    // Perform actual deployment. CFN or hotswap
+    const deployStartTime = Date.now();
+    try {
+      await this.cdkToolkit.deploy(synthAssembly!, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+        hotswap:
+          backendId.type === 'sandbox'
+            ? HotswapMode.FALL_BACK
+            : HotswapMode.FULL_DEPLOYMENT,
+        ci: backendId.type !== 'sandbox',
+        requireApproval:
+          backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
+      });
+    } catch (error) {
+      throw this.cdkErrorMapper.getAmplifyError(error as Error);
+    }
 
     return {
       deploymentTimes: {
         synthesisTime: synthTimeSeconds,
         totalTime:
-          synthTimeSeconds + (deployResult?.deploymentTimes?.totalTime || 0),
+          synthTimeSeconds +
+          Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
     };
   };
 
   /**
-   * Invokes cdk destroy command
+   * Invokes cdk destroy API
    */
-  destroy = async (
-    backendId: BackendIdentifier,
-    destroyProps?: DestroyProps,
-  ) => {
-    const cdkCommandArgs: string[] = ['--force'];
-    if (destroyProps?.profile) {
-      cdkCommandArgs.push('--profile', destroyProps.profile);
-    }
-    return this.tryInvokeCdk(
-      InvokableCommand.DESTROY,
-      backendId,
-      this.getAppCommand(),
-      cdkCommandArgs,
-    );
+  destroy = async (backendId: BackendIdentifier) => {
+    const deploymentStartTime = Date.now();
+    await this.cdkToolkit.destroy(await this.getCdkCloudAssembly(backendId), {
+      stacks: {
+        strategy: StackSelectionStrategy.ALL_STACKS,
+      },
+    });
+    return {
+      deploymentTimes: {
+        totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
+      },
+    };
   };
 
   /**
@@ -209,6 +259,44 @@ export class CDKDeployer implements BackendDeployer {
     }
   };
 
+  /**
+   * Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
+   */
+  private getCdkCloudAssembly = (
+    backendId: BackendIdentifier,
+    secretLastUpdated?: number,
+  ) => {
+    const contextParams: {
+      [key: string]: unknown;
+    } = {};
+
+    if (backendId.type === 'sandbox') {
+      if (secretLastUpdated) {
+        contextParams['secretLastUpdated'] = secretLastUpdated;
+      }
+    }
+
+    contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
+    contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
+    contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
+    return this.cdkToolkit.fromAssemblyBuilder(
+      async () => {
+        await tsImport(
+          pathToFileURL(this.backendLocator.locate()).toString(),
+          import.meta.url,
+        );
+        /**
+          By not having a child process with toolkit lib, the `process.on('beforeExit')` does not execute
+          on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
+          to the same process and catch it in backend package where App is initialized to explicitly perform synth
+         */
+        process.emit('message', 'amplifySynth', undefined);
+        return new CloudAssembly(this.absoluteCloudAssemblyLocation);
+      },
+      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation },
+    );
+  };
+
   private truncateString = (str: string, size: number) => {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
@@ -217,12 +305,6 @@ export class CDKDeployer implements BackendDeployer {
       ? '...truncated...' + decoder.decode(encoded.slice(-size))
       : str;
   };
-
-  private getAppCommand = () =>
-    this.packageManagerController.getCommand([
-      'tsx',
-      this.backendLocator.locate(),
-    ]);
 
   private invokeTsc = async (deployProps?: DeployProps) => {
     if (!deployProps?.validateAppSources) {
@@ -265,74 +347,6 @@ export class CDKDeployer implements BackendDeployer {
         err instanceof Error ? err : undefined,
       );
     }
-  };
-
-  /**
-   * calls invokeCDK and wrap it in a try catch
-   */
-  private tryInvokeCdk = async (
-    invokableCommand: InvokableCommand,
-    backendId: BackendIdentifier,
-    appArgument: string,
-    additionalArguments?: string[],
-  ): Promise<DeployResult | DestroyResult> => {
-    try {
-      return await this.invokeCdk(
-        invokableCommand,
-        backendId,
-        appArgument,
-        additionalArguments,
-      );
-    } catch (err) {
-      throw this.cdkErrorMapper.getAmplifyError(err as Error);
-    }
-  };
-
-  /**
-   * Executes a CDK command
-   */
-  private invokeCdk = async (
-    invokableCommand: InvokableCommand,
-    backendId: BackendIdentifier,
-    appArgument: string,
-    additionalArguments?: string[],
-  ): Promise<DeployResult | DestroyResult> => {
-    // Basic args
-    const cdkCommandArgs = [
-      'cdk',
-      invokableCommand.toString(),
-      // This is unfortunate. CDK writes everything to stderr without `--ci` flag and we need to differentiate between the two.
-      // See https://github.com/aws/aws-cdk/issues/7717 for more details.
-      '--ci',
-      '--app',
-      appArgument,
-      '--all',
-      '--output',
-      this.relativeCloudAssemblyLocation,
-    ];
-
-    // Add context information if available
-    cdkCommandArgs.push(
-      '--context',
-      `${CDKContextKey.BACKEND_NAMESPACE}=${backendId.namespace}`,
-      '--context',
-      `${CDKContextKey.BACKEND_NAME}=${backendId.name}`,
-    );
-
-    if (backendId.type !== 'sandbox') {
-      cdkCommandArgs.push('--require-approval', 'never');
-    }
-
-    cdkCommandArgs.push(
-      '--context',
-      `${CDKContextKey.DEPLOYMENT_TYPE}=${backendId.type}`,
-    );
-
-    if (additionalArguments) {
-      cdkCommandArgs.push(...additionalArguments);
-    }
-
-    return await this.executeCommand(cdkCommandArgs);
   };
 
   private populateCDKOutputFromStdout = async (
