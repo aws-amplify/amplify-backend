@@ -29,6 +29,7 @@ export class NoticesManifestFetcher {
       'https://notices.cli.amplify.aws/notices.json',
     private readonly cacheTTLMs = 60 * 60 * 1000, // one hour
     private readonly _fetch = fetch,
+    private readonly _printer = printer,
   ) {}
 
   fetchNoticesManifest = async (): Promise<NoticesManifest> => {
@@ -77,9 +78,12 @@ export class NoticesManifestFetcher {
       this.cachedManifest = cachedContent.noticesManifest;
       this.refreshedAt = cachedContent.refreshedAt;
     } catch (e) {
-      printer.log('Unable to read cached notices manifest', LogLevel.DEBUG);
+      this._printer.log(
+        'Unable to read cached notices manifest',
+        LogLevel.DEBUG,
+      );
       if (e instanceof Error) {
-        printer.log(e.message, LogLevel.DEBUG);
+        this._printer.log(e.message, LogLevel.DEBUG);
       }
     }
   };
