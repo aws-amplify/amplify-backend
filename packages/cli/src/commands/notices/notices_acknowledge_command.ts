@@ -28,7 +28,9 @@ export class NoticesAcknowledgeCommand
    */
   constructor(private readonly noticesController: NoticesController) {
     this.command = 'acknowledge <notice-id>';
-    this.describe = 'Acknowledges a notice';
+    this.describe =
+      'Mark a specific notice as acknowledged. ' +
+      "Use this command with a notice ID to indicate you've reviewed and understood the notification.";
   }
 
   /**

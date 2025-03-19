@@ -49,9 +49,16 @@ void describe('NoticesPrinter', () => {
     assert.deepEqual(mockPrinter.print.mock.calls[3].arguments, [
       '\tMore information at: https://test.link',
     ]);
-    assert.deepEqual(mockPrinter.print.mock.calls[4].arguments, [
-      'If you don\'t want to see a notice anymore, use "ampx notices acknowledge <notice-id>".',
-    ]);
+    assert.ok(
+      mockPrinter.print.mock.calls[4].arguments[0].includes(
+        "If you don't want to see a notice anymore, use",
+      ),
+    );
+    assert.ok(
+      mockPrinter.print.mock.calls[4].arguments[0].includes(
+        'ampx notices acknowledge <notice-id>',
+      ),
+    );
   });
 
   void it('should print notice without link', () => {
@@ -73,9 +80,16 @@ void describe('NoticesPrinter', () => {
     assert.deepEqual(mockPrinter.print.mock.calls[2].arguments, [
       '\tTest notice details',
     ]);
-    assert.deepEqual(mockPrinter.print.mock.calls[3].arguments, [
-      'If you don\'t want to see a notice anymore, use "ampx notices acknowledge <notice-id>".',
-    ]);
+    assert.ok(
+      mockPrinter.print.mock.calls[3].arguments[0].includes(
+        "If you don't want to see a notice anymore, use",
+      ),
+    );
+    assert.ok(
+      mockPrinter.print.mock.calls[3].arguments[0].includes(
+        'ampx notices acknowledge <notice-id>',
+      ),
+    );
   });
 
   void it('should wrap text at 80 characters', () => {
@@ -103,8 +117,15 @@ void describe('NoticesPrinter', () => {
     assert.deepEqual(mockPrinter.print.mock.calls[3].arguments, [
       '\tensure proper formatting',
     ]);
-    assert.deepEqual(mockPrinter.print.mock.calls[4].arguments, [
-      'If you don\'t want to see a notice anymore, use "ampx notices acknowledge <notice-id>".',
-    ]);
+    assert.ok(
+      mockPrinter.print.mock.calls[4].arguments[0].includes(
+        "If you don't want to see a notice anymore, use",
+      ),
+    );
+    assert.ok(
+      mockPrinter.print.mock.calls[4].arguments[0].includes(
+        'ampx notices acknowledge <notice-id>',
+      ),
+    );
   });
 });

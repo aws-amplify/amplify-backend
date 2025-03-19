@@ -34,16 +34,6 @@ export class NoticePredicatesEvaluator {
             return false;
           }
           break;
-        case 'packageVersion':
-          if (
-            !(await this.evaluatePackageVersion(
-              predicate.packageName,
-              predicate.versionRange,
-            ))
-          ) {
-            return false;
-          }
-          break;
         case 'osFamily':
           if (!this.evaluateOsFamily(predicate.osFamily)) {
             return false;
@@ -81,6 +71,16 @@ export class NoticePredicatesEvaluator {
           break;
         case 'validityPeriod':
           if (!this.evaluateValidityPeriod(predicate.from, predicate.to)) {
+            return false;
+          }
+          break;
+        case 'packageVersion':
+          if (
+            !(await this.evaluatePackageVersion(
+              predicate.packageName,
+              predicate.versionRange,
+            ))
+          ) {
             return false;
           }
           break;

@@ -1,4 +1,4 @@
-import { Notice, printer } from '@aws-amplify/cli-core';
+import { Notice, format, printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 /**
@@ -23,9 +23,15 @@ export class NoticesPrinter {
       this._printer.printNewLine();
     }
     this._printer.print(
-      `If you don't want to see a notice anymore, use "${this.packageManagerController.getCommand(
-        ['ampx', 'notices', 'acknowledge', '<notice-id>'],
-      )}".`,
+      `${format.dim("If you don't want to see a notice anymore, use ")}${format.color(
+        this.packageManagerController.getCommand([
+          'ampx',
+          'notices',
+          'acknowledge',
+          '<notice-id>',
+        ]),
+        'Cyan',
+      )}`,
     );
   };
 

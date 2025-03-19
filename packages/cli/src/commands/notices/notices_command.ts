@@ -24,7 +24,11 @@ export class NoticesCommand implements CommandModule<object> {
     private readonly noticesAcknowledgeCommand: NoticesAcknowledgeCommand,
   ) {
     this.command = 'notices';
-    this.describe = 'Notices';
+    this.describe =
+      'Manage and interact with Amplify backend tooling notices. ' +
+      'View and acknowledge important notifications about your Amplify environment, ' +
+      'including package compatibility issues, version updates, and ' +
+      'potential issues that may affect your development workflow.';
   }
 
   /**
