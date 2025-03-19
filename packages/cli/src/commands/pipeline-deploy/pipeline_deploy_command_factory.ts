@@ -1,6 +1,10 @@
 import { CommandModule } from 'yargs';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import {
+  AmplifyIOEventsBridgeSingletonFactory,
+  PackageManagerControllerFactory,
+  format,
+} from '@aws-amplify/cli-core';
 
 import {
   PipelineDeployCommand,
@@ -10,6 +14,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { SDKProfileResolverProvider } from '../../sdk_profile_resolver_provider.js';
 
 /**
  * Creates pipeline deploy command
@@ -31,9 +36,14 @@ export const createPipelineDeployCommand = (): CommandModule<
     awsClientProvider,
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
+  const cdkEventsBridgeIoHost =
+    new AmplifyIOEventsBridgeSingletonFactory().getInstance();
+
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController(),
     format,
+    cdkEventsBridgeIoHost,
+    new SDKProfileResolverProvider().resolve,
   );
   const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);

@@ -21,6 +21,7 @@ import { CommandMiddleware } from '../../command_middleware.js';
 import { SandboxCommandGlobalOptions } from './option_types.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { EOL } from 'os';
 
 export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
   {
@@ -152,7 +153,6 @@ export class SandboxCommand
       dir: args.dirToWatch,
       exclude: watchExclusions,
       identifier: args.identifier,
-      profile: args.profile,
       watchForChanges: !args.once,
       functionStreamingOptions,
     });
@@ -277,7 +277,7 @@ export class SandboxCommand
 
   sigIntHandler = async () => {
     printer.print(
-      `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+      `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
         'sandbox delete',
       )}`,
     );

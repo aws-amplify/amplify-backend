@@ -22,6 +22,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { CommandMiddleware } from '../../command_middleware.js';
 import { AmplifyError } from '@aws-amplify/platform-core';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
+import { EOL } from 'node:os';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -43,6 +44,7 @@ void describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
+  const mockProfileResolver = mock.fn();
 
   const clientConfigGenerationMock = mock.fn<EventHandler>();
   const clientConfigDeletionMock = mock.fn<EventHandler>();
@@ -67,6 +69,7 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format,
     );
@@ -227,7 +230,7 @@ void describe('sandbox command', () => {
     assert.equal(printerMock.mock.callCount(), 1);
     assert.equal(
       printerMock.mock.calls[0].arguments[0],
-      `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+      `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
         'sandbox delete',
       )}`,
     );
@@ -262,6 +265,7 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format,
     );
@@ -279,10 +283,6 @@ void describe('sandbox command', () => {
     commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.strictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].profile,
-      sandboxProfile,
-    );
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
       sandboxProfile,
@@ -373,7 +373,7 @@ void describe('sandbox command', () => {
   void it('fails if --logs-out-file is provided without enabling --stream-function-logs', async () => {
     assert.match(
       await commandRunner.runCommand('sandbox --logs-out-file someFile'),
-      /Missing dependent arguments:\n logs-out-file -> stream-function-logs/,
+      /Missing dependent arguments.* logs-out-file -> stream-function-logs/s,
     );
   });
 

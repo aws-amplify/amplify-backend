@@ -460,7 +460,11 @@ class ConversationHandlerTestProject extends TestProjectBase {
       defaultConversationHandlerFunction,
       apolloClient,
     );
-    assert.match(response.content, /3\.14/);
+    assert.match(
+      response.content,
+      /3\.14/,
+      `Response was ${JSON.stringify(response, null, 2)}`,
+    );
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithImage = async (

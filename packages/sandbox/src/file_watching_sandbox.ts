@@ -187,6 +187,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // TypeScript doesn't realize latch can change between 'awaits' ¯\_(ツ)_/¯,
         // and thinks the above 'while' condition is always 'false' without the cast
         latch = 'deploying';
+        this.printer.clearConsole();
         this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again",
         );
@@ -208,10 +209,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         async (_, events) => {
           // Log and track file changes.
           await Promise.all(
-            events.map(({ type: eventName, path }) => {
-              this.filesChangesTracker.trackFileChange(path);
+            events.map(({ type: eventName, path: filePath }) => {
+              this.filesChangesTracker.trackFileChange(filePath);
+              latch === 'open' && this.printer.clearConsole();
               this.printer.log(
-                `[Sandbox] Triggered due to a file ${eventName} event: ${path}`,
+                `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
+                  process.cwd(),
+                  filePath,
+                )}`,
               );
             }),
           );
@@ -258,7 +263,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     await this.executor.destroy(
       await this.backendIdSandboxResolver(options.identifier),
-      options.profile,
     );
     this.emit('successfulDeletion');
     this.printer.log('[Sandbox] Finished deleting.');
@@ -283,13 +287,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources,
-        options.profile,
       );
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      this.printer.print(format.error(this.getErrorMessage(error)));
+      this.printer.log(format.error(error), LogLevel.ERROR);
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -395,26 +398,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     }
   };
 
-  /**
-   * Generates a printable error message from the thrown error
-   */
-  private getErrorMessage = (error: unknown) => {
-    let message;
-    if (error instanceof Error) {
-      message = error.message;
-
-      // Add the downstream exception
-      if (error.cause && error.cause instanceof Error && error.cause.message) {
-        message = `${message}\nCaused By: ${error.cause.message}\n`;
-      }
-
-      if (AmplifyError.isAmplifyError(error) && error.resolution) {
-        message = `${message}\nResolution: ${error.resolution}\n`;
-      }
-    } else message = String(error);
-    return message;
-  };
-
   private handleUnsupportedDestructiveChanges = async (
     options: SandboxOptions,
   ) => {
@@ -442,16 +425,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const stackName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
     const region = await this.ssmClient.config.region();
-    this.printer.log(
+    this.printer.print(
       format.indent(format.highlight(format.bold('\nAmplify Sandbox\n'))),
     );
-    this.printer.log(
+    this.printer.print(
       format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`),
     );
-    this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
-    this.printer.log(format.indent(`${format.bold('Region:')} \t${region}`));
+    this.printer.print(
+      format.indent(`${format.bold('Stack:')} \t${stackName}`),
+    );
+    this.printer.print(format.indent(`${format.bold('Region:')} \t${region}`));
     if (!sandboxIdentifier) {
-      this.printer.log(
+      this.printer.print(
         `${format.indent(
           format.dim('\nTo specify a different sandbox identifier, use '),
         )}${format.bold('--identifier')}`,

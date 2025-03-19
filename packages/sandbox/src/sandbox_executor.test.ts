@@ -14,6 +14,7 @@ import {
   SecretListItem,
   getSecretClientWithAmplifyErrorHandling,
 } from '@aws-amplify/backend-secret';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -28,9 +29,17 @@ const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
 
+const mockIoHost: AmplifyIOHost = {
+  notify: mock.fn(),
+  requestResponse: mock.fn(),
+};
+const mockProfileResolver = mock.fn();
+
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
+  mockIoHost,
+  mockProfileResolver,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClientWithAmplifyErrorHandling();
@@ -80,7 +89,6 @@ void describe('Sandbox executor', () => {
         type: 'sandbox',
       },
       validateAppSourcesProvider,
-      undefined,
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
@@ -90,7 +98,6 @@ void describe('Sandbox executor', () => {
         type: 'sandbox',
       },
       validateAppSourcesProvider,
-      undefined,
     );
 
     await Promise.all([firstDeployPromise, secondDeployPromise]);
@@ -113,7 +120,6 @@ void describe('Sandbox executor', () => {
           type: 'sandbox',
         },
         validateAppSourcesProvider,
-        undefined,
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
@@ -127,43 +133,8 @@ void describe('Sandbox executor', () => {
             type: 'sandbox',
           },
           {
-            profile: undefined,
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
-          },
-        ],
-      );
-    });
-  });
-
-  ['test_profile', undefined].forEach((profile) => {
-    void it(`calls deployer with correct profile=${
-      profile ?? 'undefined'
-    } setting`, async () => {
-      await sandboxExecutor.deploy(
-        {
-          namespace: 'testSandboxId',
-          name: 'testSandboxName',
-          type: 'sandbox',
-        },
-        validateAppSourcesProvider,
-        profile,
-      );
-
-      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
-      // BackendDeployer should be called with the right params
-      assert.deepStrictEqual(
-        backendDeployerDeployMock.mock.calls[0].arguments,
-        [
-          {
-            name: 'testSandboxName',
-            namespace: 'testSandboxId',
-            type: 'sandbox',
-          },
-          {
-            profile: profile,
-            secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
-            validateAppSources: true,
           },
         ],
       );
