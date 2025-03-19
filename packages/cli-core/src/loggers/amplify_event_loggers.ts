@@ -124,17 +124,22 @@ export class AmplifyEventLogger {
   cdkDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
-    // Asset publishing if any. CDK_TOOLKIT_I5210 is when CDK starts building an asset
-    if (msg.code === 'CDK_TOOLKIT_I5210') {
-      this.printer.startSpinner('Building and publishing assets...');
+    // Asset publishing if any.
+    if (msg.message.includes('Checking for previously published assets')) {
+      if (!this.printer.isSpinnerRunning()) {
+        this.printer.startSpinner('Building and publishing assets...');
+      }
       return Promise.resolve();
     } else if (
       // CDK_TOOLKIT_I5221 when assets are published or when no publishing is required
       msg.code === 'CDK_TOOLKIT_I5221' ||
       msg.message.includes('0 still need to be published')
     ) {
-      this.printer.stopSpinner();
-      this.printer.log(`${format.success('✔')} Built and published assets`);
+      // We only want to display the success message once or if tty is not available
+      if (this.printer.isSpinnerRunning() || !this.printer.ttyEnabled) {
+        this.printer.stopSpinner();
+        this.printer.log(`${format.success('✔')} Built and published assets`);
+      }
       return Promise.resolve();
     }
 
