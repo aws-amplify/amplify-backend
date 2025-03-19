@@ -68,7 +68,7 @@ export class AuthClient {
             {
               message: 'You are not authorized to create a user',
               resolution:
-                'Run npx ampx sandbox seed generate-policy and attach the outputted policy to yourself',
+                'Run npx ampx sandbox seed generate-policy, attach the outputted policy template to a role with AmplifyBackendDeployFullAccess, assume that role to run seed',
             },
             error,
           );

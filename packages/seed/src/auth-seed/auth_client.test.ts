@@ -13,7 +13,7 @@ import {
   UsernameExistsException,
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as auth from 'aws-amplify/auth';
-import { AuthSignUp, AuthUser } from '../types.js';
+import { AuthOutputs, AuthSignUp, AuthUser } from '../types.js';
 import { MfaFlow } from './mfa_flow.js';
 import { PersistentPasswordFlow } from './persistent_password_flow.js';
 
@@ -194,7 +194,7 @@ void describe('seeding auth APIs', () => {
     });
 
     void it('creates and signs up user', async () => {
-      await authClient.createAndSignUpUser({
+      const output = await authClient.createAndSignUpUser({
         username: testUsername,
         password: testPassword,
         signInAfterCreation: true,
@@ -206,6 +206,10 @@ void describe('seeding auth APIs', () => {
         1,
       );
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
+      assert.deepStrictEqual(output, {
+        signInFlow: 'Password',
+        username: testUsername,
+      } as AuthOutputs);
     });
 
     void it('throws error if attempting to create user that already exists', async () => {
@@ -242,7 +246,7 @@ void describe('seeding auth APIs', () => {
       const expectedErr = new AmplifyUserError('NotAuthorizedError', {
         message: 'You are not authorized to create a user',
         resolution:
-          'Run npx ampx sandbox seed generate-policy and attach the outputted policy to yourself',
+          'Run npx ampx sandbox seed generate-policy, attach the outputted policy template to a role with AmplifyBackendDeployFullAccess, assume that role to run seed',
       });
 
       mockCognitoIdProviderClient.send.mock.mockImplementationOnce(() => {
@@ -362,7 +366,7 @@ void describe('seeding auth APIs', () => {
     });
 
     void it('creates a user with MFA', async () => {
-      await authClient.createAndSignUpUser({
+      const output = await authClient.createAndSignUpUser({
         username: testUsername,
         password: testPassword,
         signInAfterCreation: true,
@@ -374,16 +378,21 @@ void describe('seeding auth APIs', () => {
 
       assert.strictEqual(mockMfaFlow.mfaSignUp.mock.callCount(), 1);
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
+      assert.deepStrictEqual(output, {
+        signInFlow: 'MFA',
+        username: testUsername,
+      } as AuthOutputs);
     });
 
     void it('signs in a user with MFA', async () => {
-      await authClient.signInUser({
+      const output = await authClient.signInUser({
         username: testUsername,
         password: testPassword,
         signInFlow: 'MFA',
       });
 
       assert.strictEqual(mockMfaFlow.mfaSignIn.mock.callCount(), 1);
+      assert.strictEqual(output, true);
     });
   });
 });
