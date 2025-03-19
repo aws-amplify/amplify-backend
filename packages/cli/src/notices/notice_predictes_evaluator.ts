@@ -100,7 +100,7 @@ export class NoticePredicatesEvaluator {
     if (expectedFrequency === 'command') {
       return event === 'postCommand' || event === 'listing';
     } else if (expectedFrequency === 'deployment') {
-      return event === 'postDeployment';
+      return event === 'postDeployment' || event === 'listing';
     } else if (expectedFrequency === 'once') {
       return (
         tracker.printTimes.find((item) => {
@@ -112,7 +112,7 @@ export class NoticePredicatesEvaluator {
         return item.noticeId === noticeId && item.projectName === projectName;
       });
       if (!trackerItem) {
-        return false;
+        return true;
       }
       const shownAt = new Date(trackerItem.shownAt);
       const now = new Date();
@@ -172,12 +172,12 @@ export class NoticePredicatesEvaluator {
     const dependencies =
       await this.packageManagerController.tryGetDependencies();
     if (dependencies) {
-      return (
-        dependencies.find((dependency) => {
+      const matchingPackage = dependencies.find(
+        (dependency) =>
           dependency.name === packageName &&
-            semver.satisfies(dependency.version, versionRange);
-        }) !== undefined
+          semver.satisfies(dependency.version, versionRange),
       );
+      return matchingPackage !== undefined;
     }
     return false;
   };
