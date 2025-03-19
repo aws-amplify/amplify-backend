@@ -5,7 +5,7 @@ import { Notice } from '@aws-amplify/cli-core';
 import { NoticesRendererParams } from './notices_renderer.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NamespaceResolver } from '../backend-identifier/local_namespace_resolver.js';
-import { noticesPrintingTrackerFileInstance } from './notices_files.js';
+import { noticesMetadataFileInstance } from './notices_files.js';
 
 type TestCase = {
   title: string;
@@ -13,8 +13,8 @@ type TestCase = {
   opts?: NoticesRendererParams;
   mockProcess?: Partial<typeof process>;
   printTimes?: Awaited<
-    ReturnType<(typeof noticesPrintingTrackerFileInstance)['read']>
-  >;
+    ReturnType<(typeof noticesMetadataFileInstance)['read']>
+  >['printTimes'];
   dependencies?: Awaited<
     ReturnType<PackageManagerController['tryGetDependencies']>
   >;
@@ -33,11 +33,13 @@ void describe('NoticePredicatesEvaluator', () => {
   };
 
   const mockNoticesPrintingTrackerFile = {
-    read: mock.fn<(typeof noticesPrintingTrackerFileInstance)['read']>(
-      async () => ({
-        printTimes: [],
-      }),
-    ),
+    read: mock.fn<(typeof noticesMetadataFileInstance)['read']>(async () => ({
+      printTimes: [],
+      manifestCache: {
+        noticesManifest: { notices: [] },
+        refreshedAt: 0,
+      },
+    })),
   };
 
   const defaultMockProcess: Partial<typeof process> = {
@@ -536,15 +538,13 @@ void describe('NoticePredicatesEvaluator', () => {
           },
         ],
       },
-      printTimes: {
-        printTimes: [
-          {
-            projectName: testProjectName,
-            noticeId: commonNoticeProperties.id,
-            shownAt: Date.now(),
-          },
-        ],
-      },
+      printTimes: [
+        {
+          projectName: testProjectName,
+          noticeId: commonNoticeProperties.id,
+          shownAt: Date.now(),
+        },
+      ],
       expectedOutput: false,
     },
     {
@@ -571,15 +571,13 @@ void describe('NoticePredicatesEvaluator', () => {
           },
         ],
       },
-      printTimes: {
-        printTimes: [
-          {
-            projectName: testProjectName,
-            noticeId: commonNoticeProperties.id,
-            shownAt: Date.now() - 24 * 60 * 60 * 1000, // yesterday
-          },
-        ],
-      },
+      printTimes: [
+        {
+          projectName: testProjectName,
+          noticeId: commonNoticeProperties.id,
+          shownAt: Date.now() - 24 * 60 * 60 * 1000, // yesterday
+        },
+      ],
       expectedOutput: true,
     },
     {
@@ -593,15 +591,13 @@ void describe('NoticePredicatesEvaluator', () => {
           },
         ],
       },
-      printTimes: {
-        printTimes: [
-          {
-            projectName: testProjectName,
-            noticeId: commonNoticeProperties.id,
-            shownAt: Date.now() - 1, // millisecond ago
-          },
-        ],
-      },
+      printTimes: [
+        {
+          projectName: testProjectName,
+          noticeId: commonNoticeProperties.id,
+          shownAt: Date.now() - 1, // millisecond ago
+        },
+      ],
       expectedOutput: false,
     },
     {
@@ -687,7 +683,13 @@ void describe('NoticePredicatesEvaluator', () => {
       if (testCase.printTimes) {
         const printTimes = testCase.printTimes;
         mockNoticesPrintingTrackerFile.read.mock.mockImplementationOnce(
-          async () => printTimes,
+          async () => ({
+            printTimes,
+            manifestCache: {
+              noticesManifest: { notices: [] },
+              refreshedAt: 0,
+            },
+          }),
         );
       }
 
@@ -701,7 +703,7 @@ void describe('NoticePredicatesEvaluator', () => {
       const evaluator = new NoticePredicatesEvaluator(
         mockPackageManagerController as unknown as PackageManagerController,
         mockNamespaceResolver as unknown as NamespaceResolver,
-        mockNoticesPrintingTrackerFile as unknown as typeof noticesPrintingTrackerFileInstance,
+        mockNoticesPrintingTrackerFile as unknown as typeof noticesMetadataFileInstance,
         mockProcess as unknown as typeof process,
       );
 

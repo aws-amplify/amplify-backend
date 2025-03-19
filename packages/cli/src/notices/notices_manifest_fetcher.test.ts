@@ -7,15 +7,14 @@ import {
   NoticesManifestValidator,
   Printer,
 } from '@aws-amplify/cli-core';
-import { TypedConfigurationFile } from '@aws-amplify/platform-core';
-import { fileCacheInstance } from './notices_files.js';
+import { noticesMetadataFileInstance } from './notices_files.js';
 
 void describe('NoticesManifestFetcher', () => {
   // Mock dependencies
   const mockFetch = mock.fn<typeof fetch>();
-  const mockFileCache = {
-    read: mock.fn<TypedConfigurationFile<unknown>['read']>(),
-    write: mock.fn<TypedConfigurationFile<unknown>['write']>(),
+  const mockMetadataFile = {
+    read: mock.fn<(typeof noticesMetadataFileInstance)['read']>(),
+    write: mock.fn<(typeof noticesMetadataFileInstance)['write']>(),
   };
   const mockValidator = {
     validate: mock.fn<NoticesManifestValidator['validate']>(),
@@ -26,8 +25,8 @@ void describe('NoticesManifestFetcher', () => {
 
   beforeEach(() => {
     mockFetch.mock.resetCalls();
-    mockFileCache.read.mock.resetCalls();
-    mockFileCache.write.mock.resetCalls();
+    mockMetadataFile.read.mock.resetCalls();
+    mockMetadataFile.write.mock.resetCalls();
     mockValidator.validate.mock.resetCalls();
     mockPrinter.log.mock.resetCalls();
   });
@@ -42,10 +41,17 @@ void describe('NoticesManifestFetcher', () => {
 
     mockFetch.mock.mockImplementation(() => Promise.resolve(fetchResponse));
     mockValidator.validate.mock.mockImplementation(() => Promise.resolve());
-    mockFileCache.write.mock.mockImplementation(() => Promise.resolve());
+    const manifestCache = {
+      noticesManifest: { notices: [] },
+      refreshedAt: 0,
+    };
+    mockMetadataFile.read.mock.mockImplementation(async () => ({
+      printTimes: [],
+      manifestCache,
+    }));
 
     const fetcher = new NoticesManifestFetcher(
-      mockFileCache as unknown as typeof fileCacheInstance,
+      mockMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockValidator as unknown as NoticesManifestValidator,
       'https://test-url',
       1000, // 1 second TTL
@@ -57,24 +63,27 @@ void describe('NoticesManifestFetcher', () => {
 
     assert.deepStrictEqual(result, testManifest);
     assert.strictEqual(mockFetch.mock.calls.length, 1);
-    assert.strictEqual(mockFileCache.write.mock.calls.length, 1);
-    assert.strictEqual(mockValidator.validate.mock.calls.length, 1);
+    assert.strictEqual(mockMetadataFile.write.mock.calls.length, 1);
+    assert.strictEqual(mockValidator.validate.mock.calls.length, 2);
   });
 
   void it('loads manifest from cache when not stale', async () => {
     const testManifest: NoticesManifest = { notices: [] };
-    const cachedContent = {
+    const manifestCache = {
       noticesManifest: testManifest,
       refreshedAt: Date.now(),
     };
 
-    mockFileCache.read.mock.mockImplementation(() =>
-      Promise.resolve(cachedContent),
+    mockMetadataFile.read.mock.mockImplementation(() =>
+      Promise.resolve({
+        printTimes: [],
+        manifestCache,
+      }),
     );
     mockValidator.validate.mock.mockImplementation(() => Promise.resolve());
 
     const fetcher = new NoticesManifestFetcher(
-      mockFileCache as unknown as typeof fileCacheInstance,
+      mockMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockValidator as unknown as NoticesManifestValidator,
       'https://test-url',
       1000, // 1 second TTL
@@ -95,12 +104,12 @@ void describe('NoticesManifestFetcher', () => {
     } as Response;
 
     mockFetch.mock.mockImplementation(() => Promise.resolve(fetchResponse));
-    mockFileCache.read.mock.mockImplementation(() =>
+    mockMetadataFile.read.mock.mockImplementation(() =>
       Promise.reject(new Error('Cache miss')),
     );
 
     const fetcher = new NoticesManifestFetcher(
-      mockFileCache as unknown as typeof fileCacheInstance,
+      mockMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockValidator as unknown as NoticesManifestValidator,
       'https://test-url',
       1000, // 1 second TTL
@@ -145,14 +154,14 @@ void describe('NoticesManifestFetcher', () => {
       json: async () => testManifest,
     } as Response;
 
-    mockFileCache.read.mock.mockImplementation(() =>
-      Promise.resolve(staleCache),
+    mockMetadataFile.read.mock.mockImplementation(() =>
+      Promise.resolve({ printTimes: [], manifestCache: staleCache }),
     );
     mockFetch.mock.mockImplementation(() => Promise.resolve(fetchResponse));
     mockValidator.validate.mock.mockImplementation(() => Promise.resolve());
 
     const fetcher = new NoticesManifestFetcher(
-      mockFileCache as unknown as typeof fileCacheInstance,
+      mockMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockValidator as unknown as NoticesManifestValidator,
       'https://test-url',
       1000, // 1 second TTL
@@ -174,14 +183,14 @@ void describe('NoticesManifestFetcher', () => {
       json: async () => testManifest,
     } as Response;
 
-    mockFileCache.read.mock.mockImplementation(() =>
+    mockMetadataFile.read.mock.mockImplementationOnce(() =>
       Promise.reject(new Error('Cache error')),
     );
     mockFetch.mock.mockImplementation(() => Promise.resolve(fetchResponse));
     mockValidator.validate.mock.mockImplementation(() => Promise.resolve());
 
     const fetcher = new NoticesManifestFetcher(
-      mockFileCache as unknown as typeof fileCacheInstance,
+      mockMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockValidator as unknown as NoticesManifestValidator,
       'https://test-url',
       1000, // 1 second TTL

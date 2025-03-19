@@ -12,7 +12,7 @@ const acknowledgementFileSchema = z.object({
   ),
 });
 
-export const acknowledgementFileInstance =
+export const noticesAcknowledgementFileInstance =
   typedConfigurationFileFactory.getInstance(
     'notices_acknowledgments.json',
     acknowledgementFileSchema,
@@ -21,22 +21,7 @@ export const acknowledgementFileInstance =
     },
   );
 
-const noticesManifestCacheSchema = z.object({
-  noticesManifest: noticesManifestSchema,
-  refreshedAt: z.number(),
-});
-
-export const fileCacheInstance = typedConfigurationFileFactory.getInstance(
-  'notices_manifest_cache.json',
-  noticesManifestCacheSchema,
-  {
-    noticesManifest: { notices: [] },
-    // stale
-    refreshedAt: 0,
-  },
-);
-
-const noticesPrintingTrackerSchema = z.object({
+const noticesMetadataSchema = z.object({
   printTimes: z.array(
     z.object({
       projectName: z.string(),
@@ -44,13 +29,22 @@ const noticesPrintingTrackerSchema = z.object({
       shownAt: z.number(),
     }),
   ),
+  manifestCache: z.object({
+    noticesManifest: noticesManifestSchema,
+    refreshedAt: z.number(),
+  }),
 });
 
-export const noticesPrintingTrackerFileInstance =
+export const noticesMetadataFileInstance =
   typedConfigurationFileFactory.getInstance(
-    'notices_printing_tracker.json',
-    noticesPrintingTrackerSchema,
+    'notices_metadata.json',
+    noticesMetadataSchema,
     {
       printTimes: [],
+      manifestCache: {
+        noticesManifest: { notices: [] },
+        // stale
+        refreshedAt: 0,
+      },
     },
   );

@@ -60,7 +60,7 @@ void describe('notices list command', () => {
       mockNoticesController.getApplicableNotices.mock.calls[0].arguments,
       [
         {
-          event: 'listing',
+          event: 'listNoticesCommand',
           includeAcknowledged: undefined,
         },
       ],
@@ -81,7 +81,7 @@ void describe('notices list command', () => {
       mockNoticesController.getApplicableNotices.mock.calls[0].arguments,
       [
         {
-          event: 'listing',
+          event: 'listNoticesCommand',
           includeAcknowledged: true,
         },
       ],

@@ -3,7 +3,7 @@ import semver from 'semver';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { hideBin } from 'yargs/helpers';
 import { NoticesRendererParams } from './notices_renderer.js';
-import { noticesPrintingTrackerFileInstance } from './notices_files.js';
+import { noticesMetadataFileInstance } from './notices_files.js';
 import { NamespaceResolver } from '../backend-identifier/local_namespace_resolver.js';
 
 /**
@@ -16,7 +16,7 @@ export class NoticePredicatesEvaluator {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly namespaceResolver: NamespaceResolver,
-    private readonly noticesPrintingTrackerFile = noticesPrintingTrackerFileInstance,
+    private readonly noticesMetadataFile = noticesMetadataFileInstance,
     private readonly _process = process,
   ) {}
 
@@ -96,7 +96,7 @@ export class NoticePredicatesEvaluator {
     noticeId: string,
   ): Promise<boolean> => {
     const projectName = await this.namespaceResolver.resolve();
-    const tracker = await this.noticesPrintingTrackerFile.read();
+    const tracker = await this.noticesMetadataFile.read();
     if (expectedFrequency === 'command') {
       return event === 'postCommand' || event === 'listNoticesCommand';
     } else if (expectedFrequency === 'deployment') {

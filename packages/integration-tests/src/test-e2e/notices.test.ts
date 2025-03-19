@@ -17,18 +17,12 @@ void describe('Notices', { concurrency: false }, () => {
   const projectCreator = new MinimalWithTypescriptIdiomTestProjectCreator();
   let testProject: TestProjectBase;
   const manifestCache = typedConfigurationFileFactory.getInstance(
-    'notices_manifest_cache.json',
+    'notices_metadata.json',
     z.string(),
     '',
   );
-  const acknowledgementFile = typedConfigurationFileFactory.getInstance(
+  const metadataFile = typedConfigurationFileFactory.getInstance(
     'notices_acknowledgments.json',
-    z.string(),
-    '',
-  );
-
-  const printingTracker = typedConfigurationFileFactory.getInstance(
-    'notices_printing_tracker.json',
     z.string(),
     '',
   );
@@ -106,8 +100,7 @@ void describe('Notices', { concurrency: false }, () => {
   void describe('starting from clean state', () => {
     before(async () => {
       await manifestCache.delete();
-      await acknowledgementFile.delete();
-      await printingTracker.delete();
+      await metadataFile.delete();
     });
     void it(
       'displays, lists and acknowledges notice',
@@ -118,8 +111,7 @@ void describe('Notices', { concurrency: false }, () => {
   void describe('starting from broken local files', () => {
     before(async () => {
       await manifestCache.write('broken manifest cache');
-      await acknowledgementFile.write('broken acknowledgement file');
-      await printingTracker.write('broken printing tracker file');
+      await metadataFile.write('broken acknowledgement file');
     });
     void it(
       'displays, lists and acknowledges notice',
@@ -131,8 +123,7 @@ void describe('Notices', { concurrency: false }, () => {
     let execaOptionWithBadEndpoint = {};
     before(async () => {
       await manifestCache.delete();
-      await acknowledgementFile.delete();
-      await printingTracker.delete();
+      await metadataFile.delete();
       execaOptionWithBadEndpoint = {
         cwd: testProject.projectDirPath,
         env: {

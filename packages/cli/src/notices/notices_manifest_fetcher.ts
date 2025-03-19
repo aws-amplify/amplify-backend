@@ -5,7 +5,7 @@ import {
   noticesManifestSchema,
   printer,
 } from '@aws-amplify/cli-core';
-import { fileCacheInstance } from './notices_files.js';
+import { noticesMetadataFileInstance } from './notices_files.js';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 
 /**
@@ -20,7 +20,7 @@ export class NoticesManifestFetcher {
    * Creates new notices manifest fetcher.
    */
   constructor(
-    private readonly fileCache = fileCacheInstance,
+    private readonly noticesMetadataFile = noticesMetadataFileInstance,
     private readonly noticeManifestValidator = new NoticesManifestValidator({
       checkLinksWithGitHubApi: false,
     }),
@@ -63,20 +63,22 @@ export class NoticesManifestFetcher {
     this.cachedManifest = noticesManifest;
     this.refreshedAt = Date.now();
 
-    await this.fileCache.write({
+    const metadata = await this.noticesMetadataFile.read();
+    metadata.manifestCache = {
       noticesManifest: noticesManifest,
       refreshedAt: this.refreshedAt,
-    });
+    };
+    await this.noticesMetadataFile.write(metadata);
   };
 
   private tryLoadManifestFromDisk = async (): Promise<void> => {
     try {
-      const cachedContent = await this.fileCache.read();
+      const metadata = await this.noticesMetadataFile.read();
       await this.noticeManifestValidator.validate(
-        cachedContent.noticesManifest,
+        metadata.manifestCache.noticesManifest,
       );
-      this.cachedManifest = cachedContent.noticesManifest;
-      this.refreshedAt = cachedContent.refreshedAt;
+      this.cachedManifest = metadata.manifestCache.noticesManifest;
+      this.refreshedAt = metadata.manifestCache.refreshedAt;
     } catch (e) {
       this._printer.log(
         'Unable to read cached notices manifest',

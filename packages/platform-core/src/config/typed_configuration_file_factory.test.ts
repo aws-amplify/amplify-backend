@@ -12,12 +12,12 @@ void describe('TypedConfigurationFileFactory', () => {
     const defaultValue = { value: 'test' };
 
     const instance1 = factory.getInstance(
-      'notices_manifest_cache.json',
+      'notices_metadata.json',
       schema,
       defaultValue,
     );
     const instance2 = factory.getInstance(
-      'notices_manifest_cache.json',
+      'notices_metadata.json',
       schema,
       defaultValue,
     );
@@ -37,7 +37,7 @@ void describe('TypedConfigurationFileFactory', () => {
     const defaultValue = { value: 'test' };
 
     const instance1 = factory.getInstance(
-      'notices_manifest_cache.json',
+      'notices_metadata.json',
       schema,
       defaultValue,
     );

@@ -9,8 +9,8 @@ import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesRendererParams } from './notices_renderer.js';
 import {
-  acknowledgementFileInstance,
-  noticesPrintingTrackerFileInstance,
+  noticesAcknowledgementFileInstance,
+  noticesMetadataFileInstance,
 } from './notices_files.js';
 
 /**
@@ -22,8 +22,8 @@ export class NoticesController {
    */
   constructor(
     packageManagerController: PackageManagerController,
-    private readonly acknowledgementFile = acknowledgementFileInstance,
-    private readonly noticesPrintingTrackerFile = noticesPrintingTrackerFileInstance,
+    private readonly noticesAcknowledgementFile = noticesAcknowledgementFileInstance,
+    private readonly noticesMetadataFile = noticesMetadataFileInstance,
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
       new PackageJsonReader(),
     ),
@@ -49,18 +49,19 @@ export class NoticesController {
   };
 
   acknowledge = async (noticeId: string) => {
-    const acknowledgementFileContent = await this.acknowledgementFile.read();
+    const acknowledgementFileContent =
+      await this.noticesAcknowledgementFile.read();
     acknowledgementFileContent.projectAcknowledgements.push({
       projectName: await this.namespaceResolver.resolve(),
       noticeId,
       acknowledgedAt: Date.now(),
     });
-    await this.acknowledgementFile.write(acknowledgementFileContent);
+    await this.noticesAcknowledgementFile.write(acknowledgementFileContent);
   };
 
   recordPrintingTimes = async (notices: Array<Notice>) => {
-    const trackerFileContent = await this.noticesPrintingTrackerFile.read();
     const projectName = await this.namespaceResolver.resolve();
+    const trackerFileContent = await this.noticesMetadataFile.read();
     for (const notice of notices) {
       const trackerItem = trackerFileContent.printTimes.find((item) => {
         return item.noticeId === notice.id && item.projectName === projectName;
@@ -75,14 +76,15 @@ export class NoticesController {
         });
       }
     }
-    await this.noticesPrintingTrackerFile.write(trackerFileContent);
+    await this.noticesMetadataFile.write(trackerFileContent);
   };
 
   private filterAcknowledgedNotices = async (
     notices: Array<Notice>,
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
-    const acknowledgementFileContent = await this.acknowledgementFile.read();
+    const acknowledgementFileContent =
+      await this.noticesAcknowledgementFile.read();
     const projectName = await this.namespaceResolver.resolve();
     for (const notice of notices) {
       const isAcknowledged: boolean =

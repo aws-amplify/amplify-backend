@@ -481,7 +481,7 @@ export class TypedConfigurationFileFactory {
 export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
 
 // @public (undocumented)
-export type TypedConfigurationFileName = 'notices_manifest_cache.json' | 'notices_acknowledgments.json' | 'notices_printing_tracker.json';
+export type TypedConfigurationFileName = 'notices_metadata.json' | 'notices_acknowledgments.json';
 
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";

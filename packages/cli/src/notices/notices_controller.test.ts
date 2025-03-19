@@ -5,8 +5,8 @@ import { Notice } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NamespaceResolver } from '../backend-identifier/local_namespace_resolver.js';
 import {
-  acknowledgementFileInstance,
-  noticesPrintingTrackerFileInstance,
+  noticesAcknowledgementFileInstance,
+  noticesMetadataFileInstance,
 } from './notices_files.js';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
 import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
@@ -17,13 +17,13 @@ void describe('NoticesController', () => {
     {} as unknown as PackageManagerController;
 
   const mockAcknowledgementFile = {
-    read: mock.fn<(typeof acknowledgementFileInstance)['read']>(),
-    write: mock.fn<(typeof acknowledgementFileInstance)['write']>(),
+    read: mock.fn<(typeof noticesAcknowledgementFileInstance)['read']>(),
+    write: mock.fn<(typeof noticesAcknowledgementFileInstance)['write']>(),
   };
 
-  const mockNoticesPrintingTrackerFile = {
-    read: mock.fn<(typeof noticesPrintingTrackerFileInstance)['read']>(),
-    write: mock.fn<(typeof noticesPrintingTrackerFileInstance)['write']>(),
+  const mockNoticesMetadataFile = {
+    read: mock.fn<(typeof noticesMetadataFileInstance)['read']>(),
+    write: mock.fn<(typeof noticesMetadataFileInstance)['write']>(),
   };
 
   const testProjectName = 'test-project-name';
@@ -43,8 +43,8 @@ void describe('NoticesController', () => {
   const createController = () => {
     return new NoticesController(
       mockPackageManagerController,
-      mockAcknowledgementFile as unknown as typeof acknowledgementFileInstance,
-      mockNoticesPrintingTrackerFile as unknown as typeof noticesPrintingTrackerFileInstance,
+      mockAcknowledgementFile as unknown as typeof noticesAcknowledgementFileInstance,
+      mockNoticesMetadataFile as unknown as typeof noticesMetadataFileInstance,
       mockNamespaceResolver,
       mockNoticesManifestFetcher as unknown as NoticesManifestFetcher,
       mockNoticePredicatesEvaluator as unknown as NoticePredicatesEvaluator,
@@ -54,8 +54,8 @@ void describe('NoticesController', () => {
   beforeEach(() => {
     mockAcknowledgementFile.read.mock.resetCalls();
     mockAcknowledgementFile.write.mock.resetCalls();
-    mockNoticesPrintingTrackerFile.read.mock.resetCalls();
-    mockNoticesPrintingTrackerFile.write.mock.resetCalls();
+    mockNoticesMetadataFile.read.mock.resetCalls();
+    mockNoticesMetadataFile.write.mock.resetCalls();
     mockNamespaceResolver.resolve.mock.resetCalls();
     mockNoticesManifestFetcher.fetchNoticesManifest.mock.resetCalls();
     mockNoticePredicatesEvaluator.evaluate.mock.resetCalls();
@@ -96,8 +96,12 @@ void describe('NoticesController', () => {
     }));
 
     // Mock printing tracker to return empty array
-    mockNoticesPrintingTrackerFile.read.mock.mockImplementation(async () => ({
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => ({
       printTimes: [],
+      manifestCache: {
+        noticesManifest: { notices: [] },
+        refreshedAt: 0,
+      },
     }));
 
     const controller = createController();
@@ -156,9 +160,13 @@ void describe('NoticesController', () => {
         ],
       };
     });
-    mockNoticesPrintingTrackerFile.read.mock.mockImplementation(async () => {
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => {
       return {
         printTimes: [],
+        manifestCache: {
+          noticesManifest: { notices: [] },
+          refreshedAt: 0,
+        },
       };
     });
 
@@ -210,9 +218,13 @@ void describe('NoticesController', () => {
         ],
       };
     });
-    mockNoticesPrintingTrackerFile.read.mock.mockImplementation(async () => {
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => {
       return {
         printTimes: [],
+        manifestCache: {
+          noticesManifest: { notices: [] },
+          refreshedAt: 0,
+        },
       };
     });
 
@@ -298,7 +310,7 @@ void describe('NoticesController', () => {
       predicates: [],
     };
     const previousShowTime = Date.now() - 60000;
-    mockNoticesPrintingTrackerFile.read.mock.mockImplementation(async () => {
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => {
       return {
         printTimes: [
           {
@@ -307,21 +319,20 @@ void describe('NoticesController', () => {
             shownAt: previousShowTime,
           },
         ],
+        manifestCache: {
+          noticesManifest: { notices: [] },
+          refreshedAt: 0,
+        },
       };
     });
-    mockNoticesPrintingTrackerFile.write.mock.mockImplementation(
-      async () => {},
-    );
+    mockNoticesMetadataFile.write.mock.mockImplementation(async () => {});
 
     const controller = createController();
     await controller.recordPrintingTimes([testNotice1, testNotice2]);
 
-    assert.strictEqual(
-      mockNoticesPrintingTrackerFile.write.mock.calls.length,
-      1,
-    );
+    assert.strictEqual(mockNoticesMetadataFile.write.mock.calls.length, 1);
     const writtenTrackerContent =
-      mockNoticesPrintingTrackerFile.write.mock.calls[0].arguments[0];
+      mockNoticesMetadataFile.write.mock.calls[0].arguments[0];
     const printTimes = writtenTrackerContent.printTimes;
     assert.strictEqual(printTimes.length, 2);
     assert.strictEqual(printTimes[0].noticeId, testNotice1.id);
