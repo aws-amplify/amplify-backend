@@ -40,8 +40,5 @@
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",
     "@types/parse-gitignore": "^1.0.0"
-  },
-  "peerDependencies": {
-    "aws-cdk": "^2.1001.0"
   }
 }

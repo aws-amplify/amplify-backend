@@ -30,7 +30,6 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: FROM_PACKAGE_LOCK
-          cdk-cli-version: FROM_PACKAGE_LOCK
   restore_release:
     needs:
       - install
@@ -54,6 +53,5 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: FROM_PACKAGE_LOCK
-          cdk-cli-version: FROM_PACKAGE_LOCK
       - name: Restore release versions
         run: npx tsx scripts/restore_release.ts
