@@ -181,9 +181,12 @@ export class Printer {
    * Clears the console
    */
   clearConsole = () => {
-    if (this.ttyEnabled) {
-      this.stdout.write('\n'.repeat(process.stdout.rows));
+    if (!this.ttyEnabled) {
+      return;
     }
+    const lines = process.stdout.rows;
+    this.stdout.write('\n'.repeat(process.stdout.rows));
+    process.stdout.moveCursor(0, -lines);
   };
 
   private stringify = (msg: unknown): string => {
