@@ -9,7 +9,7 @@ import {
   noticesPrintingTrackerFileInstance,
 } from './notices_files.js';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
-import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
+import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
 
 void describe('NoticesController', () => {
   // Mock dependencies

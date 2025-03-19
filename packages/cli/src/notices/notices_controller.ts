@@ -5,7 +5,7 @@ import {
   LocalNamespaceResolver,
   NamespaceResolver,
 } from '../backend-identifier/local_namespace_resolver.js';
-import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
+import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesRendererParams } from './notices_renderer.js';
 import {

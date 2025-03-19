@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
+import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
 import { Notice } from '@aws-amplify/cli-core';
 import { NoticesRendererParams } from './notices_renderer.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
