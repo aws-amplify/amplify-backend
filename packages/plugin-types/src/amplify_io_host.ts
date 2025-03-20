@@ -8,11 +8,10 @@ import { IoMessage, IoRequest, ToolkitAction } from '@aws-cdk/toolkit-lib';
 // See https://stackoverflow.com/a/56346446
 export type SimpleSpread<L, R> = R & Pick<L, Exclude<keyof L, keyof R>>;
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface AmplifyEventMessage {
+export type AmplifyEventMessage = {
   code: string;
   action: ToolkitAction | 'amplify';
-}
+};
 
 export type AmplifyIoHostEventMessage<T> = {} & SimpleSpread<
   IoMessage<T>,

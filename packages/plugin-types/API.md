@@ -28,12 +28,10 @@ import { Stack } from 'aws-cdk-lib';
 import { ToolkitAction } from '@aws-cdk/toolkit-lib';
 
 // @public (undocumented)
-export interface AmplifyEventMessage {
-    // (undocumented)
-    action: ToolkitAction | 'amplify';
-    // (undocumented)
+export type AmplifyEventMessage = {
     code: string;
-}
+    action: ToolkitAction | 'amplify';
+};
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
