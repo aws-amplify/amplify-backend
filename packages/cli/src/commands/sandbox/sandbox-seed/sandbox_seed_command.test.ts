@@ -108,11 +108,12 @@ void describe('sandbox seed command', () => {
     void it('runs seed if seed script is found', async () => {
       const output = await commandRunner.runCommand('sandbox seed');
 
+      const cleanedOutput = output.trimEnd().trimStart();
+
       assert.ok(output !== undefined);
-      assert.strictEqual(
-        // removes line endings and any output from the spinner from output
-        output.trimEnd().split('\n')[1].trimStart(),
-        `${format.success('✔')} seed has successfully completed`,
+      assert.deepStrictEqual(
+        cleanedOutput,
+        '✔ seed has successfully completed',
       );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
