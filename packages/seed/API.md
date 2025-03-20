@@ -54,7 +54,7 @@ export type MfaSignInFlow = {
 export type MfaSignUpFlow = {
     signInFlow: 'MFA';
     password: string;
-    mfaPreference?: 'EMAIL' | 'SMS';
+    mfaPreference?: 'EMAIL' | 'SMS' | 'TOTP';
     emailSignUpChallenge?: () => Promise<ChallengeResponse>;
     smsSignUpChallenge?: () => Promise<ChallengeResponse>;
     totpSignUpChallenge?: (totpSetup: auth.SetUpTOTPOutput) => Promise<ChallengeResponse>;
