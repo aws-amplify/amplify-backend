@@ -159,28 +159,10 @@ export const noticeSchema: z.ZodObject<{
     }, {
         type: "errorMessage";
         errorMessage: string;
-    }>, z.ZodObject<{
-        type: z.ZodLiteral<"frequency">;
-        frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
-    }, "strip", z.ZodTypeAny, {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    }, {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    }>, z.ZodObject<{
-        type: z.ZodLiteral<"validityPeriod">;
-        from: z.ZodOptional<z.ZodNumber>;
-        to: z.ZodOptional<z.ZodNumber>;
-    }, "strip", z.ZodTypeAny, {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
-    }, {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     }>]>, "many">;
+    frequency: z.ZodOptional<z.ZodEnum<["command", "deployment", "once", "daily"]>>;
+    validFrom: z.ZodOptional<z.ZodNumber>;
+    validTo: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     details: string;
     id: string;
@@ -204,15 +186,11 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "errorMessage";
         errorMessage: string;
-    } | {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    } | {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     })[];
     link?: string | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+    validFrom?: number | undefined;
+    validTo?: number | undefined;
 }, {
     details: string;
     id: string;
@@ -236,15 +214,11 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "errorMessage";
         errorMessage: string;
-    } | {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    } | {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     })[];
     link?: string | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+    validFrom?: number | undefined;
+    validTo?: number | undefined;
 }>;
 
 // @public (undocumented)
@@ -314,28 +288,10 @@ export const noticesManifestSchema: z.ZodObject<{
         }, {
             type: "errorMessage";
             errorMessage: string;
-        }>, z.ZodObject<{
-            type: z.ZodLiteral<"frequency">;
-            frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
-        }, "strip", z.ZodTypeAny, {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        }, {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        }>, z.ZodObject<{
-            type: z.ZodLiteral<"validityPeriod">;
-            from: z.ZodOptional<z.ZodNumber>;
-            to: z.ZodOptional<z.ZodNumber>;
-        }, "strip", z.ZodTypeAny, {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
-        }, {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         }>]>, "many">;
+        frequency: z.ZodOptional<z.ZodEnum<["command", "deployment", "once", "daily"]>>;
+        validFrom: z.ZodOptional<z.ZodNumber>;
+        validTo: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         details: string;
         id: string;
@@ -359,15 +315,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }, {
         details: string;
         id: string;
@@ -391,15 +343,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     notices: {
@@ -425,15 +373,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }[];
 }, {
     notices: {
@@ -459,15 +403,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }[];
 }>;
 

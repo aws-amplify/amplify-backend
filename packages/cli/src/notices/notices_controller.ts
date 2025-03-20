@@ -33,7 +33,6 @@ export class NoticesController {
     private readonly noticesManifestFetcher = new NoticesManifestFetcher(),
     private readonly noticePredicatesEvaluator = new NoticePredicatesEvaluator(
       packageManagerController,
-      namespaceResolver,
     ),
   ) {}
   getApplicableNotices = async (
@@ -47,6 +46,8 @@ export class NoticesController {
     if (!params.includeAcknowledged) {
       notices = await this.filterAcknowledgedNotices(notices);
     }
+    notices = this.applyValidityPeriod(notices);
+    notices = await this.applyFrequency(notices, params);
     notices = await this.applyPredicates(notices, params);
     return notices;
   };
@@ -129,6 +130,79 @@ export class NoticesController {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
       if (await this.noticePredicatesEvaluator.evaluate(notice, opts)) {
+        filteredNotices.push(notice);
+      }
+    }
+    return filteredNotices;
+  };
+
+  private applyFrequency = async (
+    notices: Array<Notice>,
+    opts: NoticesRendererParams,
+  ): Promise<Array<Notice>> => {
+    if (opts.event === 'listNoticesCommand') {
+      // always show for listing command.
+      return notices;
+    }
+    const projectName = await this.namespaceResolver.resolve();
+    const metadata = await this.noticesMetadataFile.read();
+
+    const shouldIncludeNotice = (notice: Notice): boolean => {
+      const desiredFrequency = notice.frequency ?? 'command';
+      if (opts.event === 'postDeployment') {
+        return desiredFrequency === 'deployment';
+      } else if (
+        desiredFrequency === 'command' ||
+        desiredFrequency === 'deployment'
+      ) {
+        return opts.event === 'postCommand';
+      } else if (desiredFrequency === 'once') {
+        return (
+          metadata.printTimes.find((item) => {
+            return (
+              item.noticeId === notice.id && item.projectName === projectName
+            );
+          }) === undefined
+        );
+      } else if (desiredFrequency === 'daily') {
+        const trackerItem = metadata.printTimes.find((item) => {
+          return (
+            item.noticeId === notice.id && item.projectName === projectName
+          );
+        });
+        if (!trackerItem) {
+          return true;
+        }
+        const shownAt = new Date(trackerItem.shownAt);
+        const now = new Date();
+        return (
+          shownAt.getFullYear() !== now.getFullYear() ||
+          shownAt.getMonth() !== now.getMonth() ||
+          shownAt.getDate() !== now.getDate()
+        );
+      }
+      return false;
+    };
+    const filteredNotices: Array<Notice> = [];
+    for (const notice of notices) {
+      if (shouldIncludeNotice(notice)) {
+        filteredNotices.push(notice);
+      }
+    }
+    return filteredNotices;
+  };
+
+  private applyValidityPeriod = (notices: Array<Notice>): Array<Notice> => {
+    const shouldIncludeNotice = (notice: Notice): boolean => {
+      const now = Date.now();
+      return (
+        (notice.validFrom ? now >= notice.validFrom : true) &&
+        (notice.validTo ? now <= notice.validTo : true)
+      );
+    };
+    const filteredNotices: Array<Notice> = [];
+    for (const notice of notices) {
+      if (shouldIncludeNotice(notice)) {
         filteredNotices.push(notice);
       }
     }

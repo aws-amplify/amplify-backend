@@ -111,7 +111,7 @@ void describe('NoticesController', () => {
     const controller = createController();
     const result = await controller.getApplicableNotices({
       includeAcknowledged: false,
-      event: 'postDeployment',
+      event: 'postCommand',
     });
 
     assert.strictEqual(result.length, 1);
@@ -177,7 +177,7 @@ void describe('NoticesController', () => {
     const controller = createController();
     const result = await controller.getApplicableNotices({
       includeAcknowledged: false,
-      event: 'postDeployment',
+      event: 'postCommand',
     });
 
     assert.strictEqual(result.length, 1);
@@ -235,12 +235,235 @@ void describe('NoticesController', () => {
     const controller = createController();
     const result = await controller.getApplicableNotices({
       includeAcknowledged: true,
-      event: 'postDeployment',
+      event: 'postCommand',
     });
 
     assert.strictEqual(result.length, 2);
     assert.deepStrictEqual(result[0], testNotices[0]);
     assert.deepStrictEqual(result[1], testNotices[1]);
+  });
+
+  void it('getApplicableNotices filters by frequency', async () => {
+    const testNotices: Notice[] = [
+      {
+        id: '1',
+        title: 'Test title 1',
+        details: 'Test details 1',
+        predicates: [],
+        // default frequency is command
+      },
+      {
+        id: '2',
+        title: 'Test title 2',
+        details: 'Test details 2',
+        predicates: [],
+        frequency: 'command',
+      },
+      {
+        id: '3',
+        title: 'Test title 3',
+        details: 'Test details 3',
+        predicates: [],
+        frequency: 'deployment',
+      },
+      {
+        id: '4',
+        title: 'Test title 4 - not shown yet',
+        details: 'Test details 4',
+        predicates: [],
+        frequency: 'once',
+      },
+      {
+        id: '5',
+        title: 'Test title 5 - already shown',
+        details: 'Test details 5',
+        predicates: [],
+        frequency: 'once',
+      },
+      {
+        id: '6',
+        title: 'Test title 6 - not shown yet',
+        details: 'Test details 6',
+        predicates: [],
+        frequency: 'daily',
+      },
+      {
+        id: '7',
+        title: 'Test title 7 - already shown today',
+        details: 'Test details 7',
+        predicates: [],
+        frequency: 'daily',
+      },
+      {
+        id: '8',
+        title: 'Test title 7 - already shown yesterday',
+        details: 'Test details 7',
+        predicates: [],
+        frequency: 'daily',
+      },
+    ];
+
+    mockNoticesManifestFetcher.fetchNoticesManifest.mock.mockImplementation(
+      async () => ({
+        notices: testNotices,
+      }),
+    );
+
+    mockNoticePredicatesEvaluator.evaluate.mock.mockImplementation(
+      async () => true,
+    );
+
+    // Mock acknowledged notices
+    mockAcknowledgementFile.read.mock.mockImplementation(async () => {
+      return {
+        projectAcknowledgements: [],
+      };
+    });
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => {
+      return {
+        printTimes: [
+          {
+            noticeId: '5',
+            projectName: testProjectName,
+            shownAt: Date.now() - 2 * 24 * 60 * 60 * 1000, // two days ago
+          },
+          {
+            noticeId: '7',
+            projectName: testProjectName,
+            shownAt: Date.now() - 1, // today
+          },
+          {
+            noticeId: '8',
+            projectName: testProjectName,
+            shownAt: Date.now() - 2 * 24 * 60 * 60 * 1000, // more than one day ago
+          },
+        ],
+        manifestCache: {
+          noticesManifest: { notices: [] },
+          refreshedAt: 0,
+        },
+      };
+    });
+
+    const controller = createController();
+
+    const listResult = await controller.getApplicableNotices({
+      event: 'listNoticesCommand',
+    });
+    // list command shows all
+    assert.strictEqual(listResult.length, 8);
+    const listResultIds = listResult.map((item) => item.id);
+    assert.deepStrictEqual(listResultIds, [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+    ]);
+
+    const deploymentResult = await controller.getApplicableNotices({
+      event: 'postDeployment',
+    });
+    // post deployment shows only deployment notices
+    assert.strictEqual(deploymentResult.length, 1);
+    const deploymentResultIds = deploymentResult.map((item) => item.id);
+    assert.deepStrictEqual(deploymentResultIds, ['3']);
+
+    const commandResult = await controller.getApplicableNotices({
+      event: 'postCommand',
+    });
+    assert.strictEqual(commandResult.length, 6);
+    const commandResultIds = commandResult.map((item) => item.id);
+    assert.deepStrictEqual(commandResultIds, ['1', '2', '3', '4', '6', '8']);
+  });
+
+  void it('getApplicableNotices filters by validity period', async () => {
+    const testNotices: Notice[] = [
+      {
+        id: '1',
+        title: 'Test title 1',
+        details: 'Test details 1',
+        predicates: [],
+      },
+      {
+        id: '2',
+        title: 'Test title 2',
+        details: 'Test details 2',
+        predicates: [],
+        validTo: Date.now() - 10000,
+      },
+      {
+        id: '3',
+        title: 'Test title 3',
+        details: 'Test details 3',
+        predicates: [],
+        validTo: Date.now() - 10000,
+        validFrom: Date.now() - 20000,
+      },
+      {
+        id: '4',
+        title: 'Test title 4',
+        details: 'Test details 4',
+        predicates: [],
+        frequency: 'once',
+        validTo: Date.now() + 20000,
+        validFrom: Date.now() + 10000,
+      },
+      {
+        id: '5',
+        title: 'Test title 5',
+        details: 'Test details 5',
+        predicates: [],
+        validTo: Date.now() + 10000,
+        validFrom: Date.now() - 10000,
+      },
+      {
+        id: '6',
+        title: 'Test title 6',
+        details: 'Test details 6',
+        predicates: [],
+        validFrom: Date.now() + 10000,
+      },
+    ];
+
+    mockNoticesManifestFetcher.fetchNoticesManifest.mock.mockImplementation(
+      async () => ({
+        notices: testNotices,
+      }),
+    );
+
+    mockNoticePredicatesEvaluator.evaluate.mock.mockImplementation(
+      async () => true,
+    );
+
+    // Mock acknowledged notices
+    mockAcknowledgementFile.read.mock.mockImplementation(async () => {
+      return {
+        projectAcknowledgements: [],
+      };
+    });
+    mockNoticesMetadataFile.read.mock.mockImplementation(async () => {
+      return {
+        printTimes: [],
+        manifestCache: {
+          noticesManifest: { notices: [] },
+          refreshedAt: 0,
+        },
+      };
+    });
+
+    const controller = createController();
+
+    const listResult = await controller.getApplicableNotices({
+      event: 'listNoticesCommand',
+    });
+    // only two notices are in validity period now.
+    assert.strictEqual(listResult.length, 2);
+    const listResultIds = listResult.map((item) => item.id);
+    assert.deepStrictEqual(listResultIds, ['1', '5']);
   });
 
   void it('getApplicableNotices handles manifest fetch errors', async () => {

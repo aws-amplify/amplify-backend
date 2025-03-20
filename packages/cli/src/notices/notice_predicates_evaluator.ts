@@ -3,8 +3,6 @@ import semver from 'semver';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { hideBin } from 'yargs/helpers';
 import { NoticesRendererParams } from './notices_renderer.js';
-import { noticesMetadataFileInstance } from './notices_files.js';
-import { NamespaceResolver } from '../backend-identifier/local_namespace_resolver.js';
 
 /**
  * Evaluates notice predicates.
@@ -15,8 +13,6 @@ export class NoticePredicatesEvaluator {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly namespaceResolver: NamespaceResolver,
-    private readonly noticesMetadataFile = noticesMetadataFileInstance,
     private readonly _process = process,
   ) {}
 
@@ -24,9 +20,6 @@ export class NoticePredicatesEvaluator {
     notice: Notice,
     opts: NoticesRendererParams,
   ): Promise<boolean> => {
-    // If it's post deployment suppress notice by default. So that we show
-    // only notices that are allow listed for deployment.
-    let result = opts.event !== 'postDeployment';
     for (const predicate of notice.predicates) {
       switch (predicate.type) {
         case 'nodeVersion':
@@ -57,23 +50,6 @@ export class NoticePredicatesEvaluator {
             return false;
           }
           break;
-        case 'frequency':
-          if (
-            !(await this.evaluateFrequency(
-              predicate.frequency,
-              opts.event,
-              notice.id,
-            ))
-          ) {
-            return false;
-          }
-          result = true;
-          break;
-        case 'validityPeriod':
-          if (!this.evaluateValidityPeriod(predicate.from, predicate.to)) {
-            return false;
-          }
-          break;
         case 'packageVersion':
           if (
             !(await this.evaluatePackageVersion(
@@ -87,50 +63,7 @@ export class NoticePredicatesEvaluator {
       }
     }
 
-    return result;
-  };
-
-  private evaluateFrequency = async (
-    expectedFrequency: 'command' | 'deployment' | 'once' | 'daily',
-    event: NoticesRendererParams['event'],
-    noticeId: string,
-  ): Promise<boolean> => {
-    const projectName = await this.namespaceResolver.resolve();
-    const tracker = await this.noticesMetadataFile.read();
-    if (expectedFrequency === 'command') {
-      return event === 'postCommand' || event === 'listNoticesCommand';
-    } else if (expectedFrequency === 'deployment') {
-      return event === 'postDeployment' || event === 'listNoticesCommand';
-    } else if (expectedFrequency === 'once') {
-      return (
-        tracker.printTimes.find((item) => {
-          return item.noticeId === noticeId && item.projectName === projectName;
-        }) === undefined
-      );
-    } else if (expectedFrequency === 'daily') {
-      const trackerItem = tracker.printTimes.find((item) => {
-        return item.noticeId === noticeId && item.projectName === projectName;
-      });
-      if (!trackerItem) {
-        return true;
-      }
-      const shownAt = new Date(trackerItem.shownAt);
-      const now = new Date();
-      return (
-        shownAt.getFullYear() !== now.getFullYear() ||
-        shownAt.getMonth() !== now.getMonth() ||
-        shownAt.getDate() !== now.getDate()
-      );
-    }
-    return false;
-  };
-
-  private evaluateValidityPeriod = (
-    from: number | undefined,
-    to: number | undefined,
-  ): boolean => {
-    const now = Date.now();
-    return (from ? now >= from : true) && (to ? now <= to : true);
+    return true;
   };
 
   private evaluateCommand = (expectedCommand: string): boolean => {

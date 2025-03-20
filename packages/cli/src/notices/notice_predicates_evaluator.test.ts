@@ -4,17 +4,12 @@ import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
 import { Notice } from '@aws-amplify/cli-core';
 import { NoticesRendererParams } from './notices_renderer.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { NamespaceResolver } from '../backend-identifier/local_namespace_resolver.js';
-import { noticesMetadataFileInstance } from './notices_files.js';
 
 type TestCase = {
   title: string;
   notice: Notice;
   opts?: NoticesRendererParams;
   mockProcess?: Partial<typeof process>;
-  printTimes?: Awaited<
-    ReturnType<(typeof noticesMetadataFileInstance)['read']>
-  >['printTimes'];
   dependencies?: Awaited<
     ReturnType<PackageManagerController['tryGetDependencies']>
   >;
@@ -25,21 +20,6 @@ void describe('NoticePredicatesEvaluator', () => {
   const mockPackageManagerController = {
     tryGetDependencies:
       mock.fn<PackageManagerController['tryGetDependencies']>(),
-  };
-
-  const testProjectName = 'test-project-name';
-  const mockNamespaceResolver = {
-    resolve: mock.fn<NamespaceResolver['resolve']>(async () => testProjectName),
-  };
-
-  const mockNoticesPrintingTrackerFile = {
-    read: mock.fn<(typeof noticesMetadataFileInstance)['read']>(async () => ({
-      printTimes: [],
-      manifestCache: {
-        noticesManifest: { notices: [] },
-        refreshedAt: 0,
-      },
-    })),
   };
 
   const defaultMockProcess: Partial<typeof process> = {
@@ -74,17 +54,6 @@ void describe('NoticePredicatesEvaluator', () => {
         event: 'listNoticesCommand',
       },
       expectedOutput: true,
-    },
-    {
-      title: 'empty predicates negative case - post deployment is opt in event',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [],
-      },
-      opts: {
-        event: 'postDeployment',
-      },
-      expectedOutput: false,
     },
     {
       title: 'command happy case',
@@ -239,84 +208,6 @@ void describe('NoticePredicatesEvaluator', () => {
       expectedOutput: false,
     },
     {
-      title: 'validity period happy case 1',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'validity period happy case 2',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-            from: Date.now() - 10000,
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'validity period happy case 3',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-            to: Date.now() + 10000,
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'validity period happy case 4',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-            from: Date.now() - 10000,
-            to: Date.now() + 10000,
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'validity period negative case 1',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-            from: Date.now() + 10000,
-          },
-        ],
-      },
-      expectedOutput: false,
-    },
-    {
-      title: 'validity period negative case 2',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'validityPeriod',
-            to: Date.now() - 10000,
-          },
-        ],
-      },
-      expectedOutput: false,
-    },
-    {
       title: 'osFamily happy case 1',
       notice: {
         ...commonNoticeProperties,
@@ -418,188 +309,7 @@ void describe('NoticePredicatesEvaluator', () => {
       },
       expectedOutput: false,
     },
-    {
-      title: 'frequency command happy case 1',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'command',
-          },
-        ],
-      },
-      opts: {
-        event: 'postCommand',
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency command happy case 2',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'command',
-          },
-        ],
-      },
-      opts: {
-        event: 'listNoticesCommand',
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency negative case',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'command',
-          },
-        ],
-      },
-      opts: {
-        event: 'postDeployment',
-      },
-      expectedOutput: false,
-    },
-    {
-      title: 'frequency deployment happy case 1',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'deployment',
-          },
-        ],
-      },
-      opts: {
-        event: 'postDeployment',
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency deployment happy case 2',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'deployment',
-          },
-        ],
-      },
-      opts: {
-        event: 'listNoticesCommand',
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency deployment negative case',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'deployment',
-          },
-        ],
-      },
-      opts: {
-        event: 'postCommand',
-      },
-      expectedOutput: false,
-    },
-    {
-      title: 'frequency once happy case',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'once',
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency once negative case',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'once',
-          },
-        ],
-      },
-      printTimes: [
-        {
-          projectName: testProjectName,
-          noticeId: commonNoticeProperties.id,
-          shownAt: Date.now(),
-        },
-      ],
-      expectedOutput: false,
-    },
-    {
-      title: 'frequency daily happy case 1',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'daily',
-          },
-        ],
-      },
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency daily happy case 2',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'daily',
-          },
-        ],
-      },
-      printTimes: [
-        {
-          projectName: testProjectName,
-          noticeId: commonNoticeProperties.id,
-          shownAt: Date.now() - 24 * 60 * 60 * 1000, // yesterday
-        },
-      ],
-      expectedOutput: true,
-    },
-    {
-      title: 'frequency daily negative case',
-      notice: {
-        ...commonNoticeProperties,
-        predicates: [
-          {
-            type: 'frequency',
-            frequency: 'daily',
-          },
-        ],
-      },
-      printTimes: [
-        {
-          projectName: testProjectName,
-          noticeId: commonNoticeProperties.id,
-          shownAt: Date.now() - 1, // millisecond ago
-        },
-      ],
-      expectedOutput: false,
-    },
+
     {
       title: 'package version happy case',
       notice: {
@@ -680,19 +390,6 @@ void describe('NoticePredicatesEvaluator', () => {
     void it(`${index}: ${testCase.title}`, async () => {
       const mockProcess = testCase.mockProcess ?? defaultMockProcess;
 
-      if (testCase.printTimes) {
-        const printTimes = testCase.printTimes;
-        mockNoticesPrintingTrackerFile.read.mock.mockImplementationOnce(
-          async () => ({
-            printTimes,
-            manifestCache: {
-              noticesManifest: { notices: [] },
-              refreshedAt: 0,
-            },
-          }),
-        );
-      }
-
       if (testCase.dependencies) {
         const dependencies = testCase.dependencies;
         mockPackageManagerController.tryGetDependencies.mock.mockImplementationOnce(
@@ -702,8 +399,6 @@ void describe('NoticePredicatesEvaluator', () => {
 
       const evaluator = new NoticePredicatesEvaluator(
         mockPackageManagerController as unknown as PackageManagerController,
-        mockNamespaceResolver as unknown as NamespaceResolver,
-        mockNoticesPrintingTrackerFile as unknown as typeof noticesMetadataFileInstance,
         mockProcess as unknown as typeof process,
       );
 
