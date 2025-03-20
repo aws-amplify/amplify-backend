@@ -91,6 +91,7 @@ export function defineFunction(
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
+    AddEnvironmentFactory &
     StackProvider
 >;
 /**
