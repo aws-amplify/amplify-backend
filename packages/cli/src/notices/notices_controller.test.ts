@@ -14,8 +14,11 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('NoticesController', () => {
   // Mock dependencies
-  const mockPackageManagerController =
-    {} as unknown as PackageManagerController;
+  const mockPackageManagerController = {
+    getCommand: mock.fn<PackageManagerController['getCommand']>((args) =>
+      args.join(' '),
+    ),
+  } as unknown as PackageManagerController;
 
   const mockAcknowledgementFile = {
     read: mock.fn<(typeof noticesAcknowledgementFileInstance)['read']>(),
@@ -378,6 +381,12 @@ void describe('NoticesController', () => {
       () => controller.acknowledge(noticeId),
       (error: AmplifyUserError) => {
         assert.strictEqual(error.name, 'NoticeNotFoundError');
+        assert.ok(
+          error.resolution?.includes(
+            'Ensure that notice being acknowledged exists.',
+          ),
+        );
+        assert.ok(error.resolution?.includes('ampx notices list'));
         return true;
       },
     );

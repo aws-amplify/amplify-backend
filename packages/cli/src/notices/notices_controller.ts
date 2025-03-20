@@ -24,7 +24,7 @@ export class NoticesController {
    * Creates notices controller.
    */
   constructor(
-    packageManagerController: PackageManagerController,
+    private readonly packageManagerController: PackageManagerController,
     private readonly noticesAcknowledgementFile = noticesAcknowledgementFileInstance,
     private readonly noticesMetadataFile = noticesMetadataFileInstance,
     private readonly namespaceResolver: NamespaceResolver = new LocalNamespaceResolver(
@@ -59,7 +59,9 @@ export class NoticesController {
     if (!notice) {
       throw new AmplifyUserError('NoticeNotFoundError', {
         message: `Notice with id=${noticeId} does not exist.`,
-        resolution: 'Ensure that notice being acknowledged exists.',
+        resolution: `Ensure that notice being acknowledged exists. Run '${this.packageManagerController.getCommand(
+          ['ampx', 'notices', 'list'],
+        )}' to find available notices`,
       });
     }
     const acknowledgementFileContent =
