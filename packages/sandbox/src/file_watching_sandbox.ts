@@ -449,17 +449,22 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Hack to suppress certain stderr messages until aws-cdk constructs
    * can use the toolkit's IoHost to deliver messages.
    * See tracking items https://github.com/aws/aws-cdk-cli/issues/158
+   *
+   * Rest of the stderr messages are rerouted to our printer so that they
+   * don't get intermingled with spinners.
    */
   private interceptStderr = () => {
-    const originalStderrWrite = process.stderr.write.bind(process.stderr);
     process.stderr.write = (chunk) => {
       if (
         typeof chunk !== 'string' ||
-        !['/index.mjs', '/index.mjs.map', 'Bundling asset', '⚡ Done in '].some(
-          (prohibitedStrings) => chunk.includes(prohibitedStrings),
+        !['Bundling asset'].some((prohibitedStrings) =>
+          chunk.includes(prohibitedStrings),
         )
-      )
-        return originalStderrWrite(chunk);
+      ) {
+        this.printer.log(
+          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
+        );
+      }
       return true;
     };
   };

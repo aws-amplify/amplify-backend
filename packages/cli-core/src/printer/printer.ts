@@ -33,13 +33,8 @@ export class Printer {
   print = (message: string) => {
     message = this.stringify(message);
     if (this.isSpinnerRunning()) {
-      if (this.currentSpinner.instance?.prefixText) {
-        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
-        this.currentSpinner.instance.prefixText =
-          message + EOL + spinnerPrefixMessage;
-        return;
-      }
-      this.printNewLine();
+      this.printWhileSpinnerRunning(message);
+      return;
     }
     if (!this.ttyEnabled) {
       message = stripANSI(message);
@@ -187,6 +182,21 @@ export class Printer {
     const lines = process.stdout.rows;
     this.stdout.write('\n'.repeat(process.stdout.rows));
     process.stdout.moveCursor(0, -lines);
+  };
+
+  private printWhileSpinnerRunning = (message: string) => {
+    if (this.isSpinnerRunning()) {
+      if (this.currentSpinner.instance?.prefixText) {
+        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
+        this.currentSpinner.instance.prefixText =
+          message + EOL + spinnerPrefixMessage;
+      } else {
+        const spinnerMessage = this.currentSpinner.instance?.text;
+        this.currentSpinner.instance?.clear();
+        this.stdout.write(message);
+        this.currentSpinner.instance?.start(spinnerMessage);
+      }
+    }
   };
 
   private stringify = (msg: unknown): string => {
