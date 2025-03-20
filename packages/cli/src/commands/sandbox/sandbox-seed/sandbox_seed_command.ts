@@ -36,7 +36,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    printer.startSpinner('runSeedSpinner', '');
+    printer.startSpinner('');
     const backendID = await this.backendIDResolver.resolve();
     const seedPath = path.join('amplify', 'seed', 'seed.ts');
     try {
@@ -48,10 +48,10 @@ export class SandboxSeedCommand implements CommandModule<object> {
         },
       });
     } catch (err) {
-      printer.stopSpinner('runSeedSpinner');
+      printer.stopSpinner();
       throw err;
     }
-    printer.stopSpinner('runSeedSpinner');
+    printer.stopSpinner();
     printer.printNewLine();
     printer.print(`${format.success('✔')} seed has successfully completed`);
   };
@@ -63,7 +63,6 @@ export class SandboxSeedCommand implements CommandModule<object> {
     return yargs.command(this.seedSubCommands).check(() => {
       const seedPath = path.join(process.cwd(), 'amplify', 'seed', 'seed.ts');
       if (!existsSync(seedPath)) {
-        // this only gets sent to outputs
         throw new AmplifyUserError('SeedScriptNotFoundError', {
           message: `There is no file that corresponds to ${seedPath}`,
           resolution: `Please make a file that corresponds to ${seedPath} and put your seed logic in it`,

@@ -143,7 +143,7 @@ void describe('seeding auth APIs', () => {
     });
   });
 
-  // this is also where the tests that apply to all createAndSignUp user flows go
+  // encompasses tests that apply to all createAndSignUpUser flows
   void describe('userpool configured without MFA', () => {
     const mockConfigReader = {
       getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>

@@ -47,6 +47,8 @@ void describe('sandbox seed command', () => {
     () => null,
   );
 
+  const mockProfileResolver = mock.fn();
+
   let amplifySeedDir: string;
   let fullPath: string;
 
@@ -57,6 +59,7 @@ void describe('sandbox seed command', () => {
   before(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
       () => Promise.resolve(testBackendId),
+      mockProfileResolver,
       printer,
       format,
     );
@@ -102,7 +105,6 @@ void describe('sandbox seed command', () => {
       }
     });
 
-    // this is deceptively hard to test because mocking open/read did not work on Linux/Mac
     void it('runs seed if seed script is found', async () => {
       const output = await commandRunner.runCommand('sandbox seed');
 
@@ -135,7 +137,6 @@ void describe('sandbox seed command', () => {
       await assert.rejects(
         () => commandRunner.runCommand('sandbox seed'),
         (err: TestCommandError) => {
-          // file differences between Unix and Windows makes it tricky to add the path
           assert.match(err.output, /SeedScriptNotFoundError/);
           assert.match(err.output, /There is no file that corresponds to/);
           assert.match(
