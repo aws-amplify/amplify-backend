@@ -100,7 +100,8 @@ export class Printer {
     }
     this.currentSpinner = {
       instance: ora({
-        text: this.prefixedMessage(message),
+        text: message,
+        prefixText: this.getLogPrefix(),
         color: 'white',
         stream: this.stdout,
         spinner: 'dots',
@@ -164,7 +165,8 @@ export class Printer {
       return;
     }
     if (options.prefixText) {
-      this.currentSpinner.instance.prefixText = options.prefixText;
+      this.currentSpinner.instance.prefixText =
+        options.prefixText + this.getLogPrefix();
     } else if (options.message) {
       this.currentSpinner.instance.text = options.message;
     }
@@ -185,18 +187,14 @@ export class Printer {
   };
 
   private printWhileSpinnerRunning = (message: string) => {
-    if (this.isSpinnerRunning()) {
-      if (this.currentSpinner.instance?.prefixText) {
-        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
-        this.currentSpinner.instance.prefixText =
-          message + EOL + spinnerPrefixMessage;
-      } else {
-        const spinnerMessage = this.currentSpinner.instance?.text;
-        this.currentSpinner.instance?.clear();
-        this.stdout.write(message);
-        this.currentSpinner.instance?.start(spinnerMessage);
-      }
+    if (!this.isSpinnerRunning()) {
+      return;
     }
+    const spinnerMessage = this.currentSpinner.instance?.text;
+    this.currentSpinner.instance?.clear();
+    this.stdout.write(message);
+    this.printNewLine();
+    this.currentSpinner.instance?.start(spinnerMessage);
   };
 
   private stringify = (msg: unknown): string => {
