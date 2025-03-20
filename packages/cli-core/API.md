@@ -6,9 +6,17 @@
 
 /// <reference types="node" />
 
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { Printer as Printer_2 } from '../index.js';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
+
+// @public
+export class AmplifyIOEventsBridgeSingletonFactory {
+    constructor(printer?: Printer_2);
+    getInstance: () => AmplifyIOHost;
+}
 
 // @public
 export class AmplifyPrompter {
@@ -32,7 +40,7 @@ export class AmplifyPrompter {
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
-export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
 
 // @public
 export class Format {
@@ -73,12 +81,17 @@ export const format: Format;
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 2,
+    DEBUG = 3,
     // (undocumented)
     ERROR = 0,
     // (undocumented)
-    INFO = 1
+    INFO = 2,
+    // (undocumented)
+    WARN = 1
 }
+
+// @public (undocumented)
+export const minimumLogLevel: LogLevel;
 
 // @public (undocumented)
 export type Notice = z.infer<typeof noticeSchema>;
@@ -478,18 +491,25 @@ export class PackageManagerControllerFactory {
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
+    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, ttyEnabled?: boolean);
+    clearConsole: () => void;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
-    isSpinnerRunning: (id: string) => boolean;
+    isSpinnerRunning: () => boolean;
     log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner: (id: string, message: string, options?: {
+    startSpinner: (message: string, options?: {
         timeoutSeconds: number;
-    }) => string;
-    stopSpinner: (id: string) => void;
-    updateSpinner: (id: string, options: {
+    }) => void;
+    // (undocumented)
+    readonly stderr: WriteStream | NodeJS.WritableStream;
+    // (undocumented)
+    readonly stdout: WriteStream | NodeJS.WritableStream;
+    stopSpinner: (successMessage?: string) => void;
+    // (undocumented)
+    readonly ttyEnabled: boolean;
+    updateSpinner: (options: {
         message?: string;
         prefixText?: string;
     }) => void;

@@ -7,6 +7,7 @@ import {
   type PackageManager,
   type PackageManagerExecutable,
 } from '../setup_package_manager.js';
+import { EOL } from 'os';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -49,6 +50,7 @@ export class ProcessController {
     const interactionQueue = this.interactions.getPredicatedActionQueue();
     const execaProcess = execa(this.command, this.args, {
       reject: false,
+      all: true,
       ...this.options,
     });
     let errorThrownFromActions = undefined;
@@ -68,7 +70,8 @@ export class ProcessController {
     if (!execaProcess.stdout) {
       throw new Error('Child process does not have stdout stream');
     }
-    const reader = readline.createInterface(execaProcess.stdout);
+
+    const reader = readline.createInterface(execaProcess.all);
 
     for await (const line of reader) {
       const currentInteraction = interactionQueue[0];
@@ -110,7 +113,9 @@ export class ProcessController {
     if (errorThrownFromActions) {
       throw errorThrownFromActions;
     } else if (result.failed && !expectKilled) {
-      throw new Error(result.stdout);
+      throw new Error(
+        `stdout:${EOL}${result.stdout}${EOL}${EOL}stderr:${EOL}${result.stderr}`,
+      );
     }
   };
 }

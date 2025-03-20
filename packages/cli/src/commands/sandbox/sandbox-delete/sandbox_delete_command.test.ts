@@ -20,6 +20,7 @@ void describe('sandbox delete command', () => {
     'ensureAwsCredentialAndRegion',
     () => null,
   );
+  const mockProfileResolver = mock.fn();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
@@ -29,6 +30,7 @@ void describe('sandbox delete command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format,
     );
@@ -62,7 +64,6 @@ void describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       identifier: undefined,
-      profile: undefined,
     });
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
@@ -80,7 +81,6 @@ void describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       identifier: undefined,
-      profile: 'test_profile',
     });
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
@@ -98,7 +98,6 @@ void describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       identifier: 'test-App-Name',
-      profile: undefined,
     });
   });
 

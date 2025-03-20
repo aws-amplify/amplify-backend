@@ -1,6 +1,8 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
-import ora, { Ora, oraPromise } from 'ora';
+import ora, { Ora } from 'ora';
+import { ColorName, format } from '../format/format.js';
+import stripANSI from 'strip-ansi';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -8,28 +10,40 @@ export type RecordValue = string | number | string[] | Date;
  * The class that pretty prints to the output stream.
  */
 export class Printer {
-  private currentSpinners: {
-    [id: string]: { instance: Ora; timeout: NodeJS.Timeout };
-  } = {};
+  private currentSpinner: { instance?: Ora; timeout?: NodeJS.Timeout } = {};
   /**
    * Sets default configs
    */
   constructor(
     private readonly minimumLogLevel: LogLevel,
-    private readonly stdout:
-      | WriteStream
-      | NodeJS.WritableStream = process.stdout,
-    private readonly stderr:
-      | WriteStream
-      | NodeJS.WritableStream = process.stderr,
-    private readonly refreshRate: number = 500,
-    private readonly enableTTY = process.env.CI ? false : true,
+    readonly stdout: WriteStream | NodeJS.WritableStream = process.stdout,
+    readonly stderr: WriteStream | NodeJS.WritableStream = process.stderr,
+    private readonly refreshRate: number = 100,
+    readonly ttyEnabled = process.env.CI
+      ? false
+      : stdout instanceof WriteStream
+        ? stdout.isTTY
+        : false,
   ) {}
 
   /**
    * Prints a given message to output stream followed by a newline.
+   * If a spinner is running, honor it and keep the spinner at the cursor running
    */
   print = (message: string) => {
+    message = this.stringify(message);
+    if (this.isSpinnerRunning()) {
+      if (this.currentSpinner.instance?.prefixText) {
+        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
+        this.currentSpinner.instance.prefixText =
+          message + EOL + spinnerPrefixMessage;
+        return;
+      }
+      this.printNewLine();
+    }
+    if (!this.ttyEnabled) {
+      message = stripANSI(message);
+    }
     this.stdout.write(message);
     this.printNewLine();
   };
@@ -45,24 +59,14 @@ export class Printer {
    * Logs a message to the output stream at the given log level followed by a newline
    */
   log = (message: string, level: LogLevel = LogLevel.INFO) => {
+    message = this.stringify(message);
     const doLogMessage = level <= this.minimumLogLevel;
 
     if (!doLogMessage) {
       return;
     }
 
-    const logMessage =
-      this.minimumLogLevel === LogLevel.DEBUG
-        ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
-        : message;
-
-    if (level === LogLevel.ERROR) {
-      this.stderr.write(logMessage);
-    } else {
-      this.stdout.write(logMessage);
-    }
-
-    this.printNewLine();
+    this.print(this.prefixedMessage(message, level));
   };
 
   /**
@@ -74,87 +78,158 @@ export class Printer {
     callback: () => Promise<void>,
     successMessage?: string,
   ) => {
-    await oraPromise(callback, {
-      text: message,
-      color: 'white',
-      stream: this.stdout,
-      discardStdin: false,
-      hideCursor: false,
-      interval: this.refreshRate,
-      spinner: 'dots',
-      successText: successMessage,
-      isEnabled: this.enableTTY,
-    });
+    try {
+      this.startSpinner(message, { timeoutSeconds: 3600 });
+      await callback();
+    } finally {
+      this.stopSpinner(successMessage);
+    }
   };
 
   /**
    * Start a spinner for the given message.
    * If stdout is not a TTY, the message is logged at the info level without a spinner
-   * @returns the id of the spinner
    */
   startSpinner = (
-    id: string,
     message: string,
     options: { timeoutSeconds: number } = { timeoutSeconds: 60 },
-  ): string => {
-    this.currentSpinners[id] = {
+  ): void => {
+    if (!this.ttyEnabled) {
+      // Ora prints messages with a preceding `-` in non-tty console. We avoid it
+      this.log(message);
+      return;
+    }
+    // Can only run one spinner at a time.
+    if (this.isSpinnerRunning()) {
+      this.stopSpinner();
+    }
+    this.currentSpinner = {
       instance: ora({
-        text: message,
+        text: this.prefixedMessage(message),
         color: 'white',
         stream: this.stdout,
         spinner: 'dots',
         interval: this.refreshRate,
         discardStdin: false,
         hideCursor: false,
-        isEnabled: this.enableTTY,
+        isEnabled: this.ttyEnabled,
       }).start(),
       timeout: setTimeout(() => {
-        this.stopSpinner(id);
+        this.stopSpinner();
       }, options.timeoutSeconds * 1000),
     };
-    return id;
   };
 
-  isSpinnerRunning = (id: string): boolean => {
-    return this.currentSpinners[id] !== undefined;
-  };
-
-  /**
-   * Stop a spinner for the given id.
-   */
-  stopSpinner = (id: string): void => {
-    if (this.currentSpinners[id] === undefined) return;
-    this.currentSpinners[id].instance.stop();
-    clearTimeout(this.currentSpinners[id].timeout);
-    delete this.currentSpinners[id];
+  isSpinnerRunning = (): boolean => {
+    return this.currentSpinner.instance !== undefined;
   };
 
   /**
-   * Update the spinner options for a given id, e.g. message or prefixText
+   * Stop the current running spinner
    */
-  updateSpinner = (
-    id: string,
-    options: { message?: string; prefixText?: string },
-  ): void => {
-    if (this.currentSpinners[id] === undefined) {
-      this.log(
-        `Spinner with id ${id} not found or already stopped`,
-        LogLevel.ERROR,
+  stopSpinner = (successMessage?: string): void => {
+    if (this.currentSpinner.instance === undefined) {
+      if (!this.ttyEnabled && successMessage) {
+        this.print(`${format.success('✔')} ${successMessage}`);
+      }
+      return;
+    }
+    if (successMessage) {
+      this.currentSpinner.instance.succeed(
+        this.prefixedMessage(successMessage),
       );
+    } else {
+      this.currentSpinner.instance.stop();
+    }
+    clearTimeout(this.currentSpinner.timeout);
+    this.currentSpinner = {};
+  };
+
+  /**
+   * Update the current running spinner options, e.g. message or prefixText
+   */
+  updateSpinner = (options: {
+    message?: string;
+    prefixText?: string;
+  }): void => {
+    if (!this.ttyEnabled) {
+      // prefix texts are not displayed in non-tty console by Ora and regular messages have a preceding `-`
+      options.prefixText && this.log(options.prefixText);
+      options.message && this.log(options.message);
+      return;
+    }
+
+    if (this.currentSpinner.instance === undefined) {
+      this.log(`No running spinner found.`, LogLevel.WARN);
+      // // Maybe timed out? If the message was available, we start a new one
+      if (options.message) {
+        this.startSpinner(options.message);
+        this.updateSpinner({ prefixText: options.prefixText });
+      }
       return;
     }
     if (options.prefixText) {
-      this.currentSpinners[id].instance.prefixText = options.prefixText;
+      this.currentSpinner.instance.prefixText = options.prefixText;
     } else if (options.message) {
-      this.currentSpinners[id].instance.text = options.message;
+      this.currentSpinner.instance.text = options.message;
     }
     // Refresh the timer
-    this.currentSpinners[id].timeout.refresh();
+    this.currentSpinner.timeout?.refresh();
+  };
+
+  /**
+   * Clears the console
+   */
+  clearConsole = () => {
+    if (!this.ttyEnabled) {
+      return;
+    }
+    const lines = process.stdout.rows;
+    this.stdout.write('\n'.repeat(process.stdout.rows));
+    process.stdout.moveCursor(0, -lines);
+  };
+
+  private stringify = (msg: unknown): string => {
+    if (typeof msg === 'string') {
+      return msg;
+    } else if (msg instanceof Error) {
+      return msg.message;
+    }
+    try {
+      return JSON.stringify(msg, null, 2);
+    } catch {
+      return String(msg);
+    }
+  };
+
+  private getLogPrefix = (level = LogLevel.INFO) => {
+    let logPrefixFormatFn = format.dim;
+    if (level <= LogLevel.WARN) {
+      logPrefixFormatFn = (prefix: string) => {
+        const prefixColor: ColorName =
+          level === LogLevel.ERROR ? 'Red' : 'Yellow';
+        return format.bold(
+          format.color(`${prefix} [${LogLevel[level]}]`, prefixColor),
+        );
+      };
+    }
+    return logPrefixFormatFn(new Date().toLocaleTimeString());
+  };
+
+  private prefixedMessage = (message: string, level = LogLevel.INFO) => {
+    return (
+      message &&
+      message
+        .split(EOL)
+        .map((line) => `${this.getLogPrefix(level)} ${line}`)
+        .join(EOL)
+    );
   };
 }
 
 export enum LogLevel {
   ERROR = 0,
-  INFO = 1,
-  DEBUG = 2,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3,
 }
