@@ -1,6 +1,9 @@
 import { Notice } from '@aws-amplify/cli-core';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  PackageJsonReader,
+} from '@aws-amplify/platform-core';
 import {
   LocalNamespaceResolver,
   NamespaceResolver,
@@ -49,13 +52,32 @@ export class NoticesController {
   };
 
   acknowledge = async (noticeId: string) => {
+    const projectName = await this.namespaceResolver.resolve();
+    const noticesManifest =
+      await this.noticesManifestFetcher.fetchNoticesManifest();
+    const notice = noticesManifest.notices.find((item) => item.id === noticeId);
+    if (!notice) {
+      throw new AmplifyUserError('NoticeNotFoundError', {
+        message: `Notice with id=${noticeId} does not exist.`,
+        resolution: 'Ensure that notice being acknowledged exists.',
+      });
+    }
     const acknowledgementFileContent =
       await this.noticesAcknowledgementFile.read();
-    acknowledgementFileContent.projectAcknowledgements.push({
-      projectName: await this.namespaceResolver.resolve(),
-      noticeId,
-      acknowledgedAt: Date.now(),
-    });
+    const existingAcknowledgement =
+      acknowledgementFileContent.projectAcknowledgements.find(
+        (item) =>
+          item.projectName === projectName && item.noticeId === noticeId,
+      );
+    if (existingAcknowledgement) {
+      existingAcknowledgement.acknowledgedAt = Date.now();
+    } else {
+      acknowledgementFileContent.projectAcknowledgements.push({
+        projectName,
+        noticeId,
+        acknowledgedAt: Date.now(),
+      });
+    }
     await this.noticesAcknowledgementFile.write(acknowledgementFileContent);
   };
 

@@ -10,6 +10,7 @@ import {
 } from './notices_files.js';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
 import { NoticePredicatesEvaluator } from './notice_predicates_evaluator.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('NoticesController', () => {
   // Mock dependencies
@@ -282,6 +283,18 @@ void describe('NoticesController', () => {
       };
     });
     mockAcknowledgementFile.write.mock.mockImplementation(async () => {});
+    mockNoticesManifestFetcher.fetchNoticesManifest.mock.mockImplementationOnce(
+      async () => ({
+        notices: [
+          {
+            id: noticeId,
+            title: 'test title',
+            details: 'test details',
+            predicates: [],
+          },
+        ],
+      }),
+    );
 
     const controller = createController();
     await controller.acknowledge(noticeId);
@@ -294,6 +307,80 @@ void describe('NoticesController', () => {
     assert.strictEqual(projectAcknowledgements[0].noticeId, noticeId);
     assert.strictEqual(projectAcknowledgements[0].projectName, testProjectName);
     assert.ok(projectAcknowledgements[0].acknowledgedAt > 0);
+  });
+
+  void it('acknowledge updates existing acknowledgement', async () => {
+    const noticeId = 'test-notice';
+    const existingAcknowledgement = {
+      projectName: testProjectName,
+      noticeId,
+      acknowledgedAt: Date.now() - 6000,
+    };
+    mockAcknowledgementFile.read.mock.mockImplementation(async () => {
+      return {
+        projectAcknowledgements: [{ ...existingAcknowledgement }],
+      };
+    });
+    mockAcknowledgementFile.write.mock.mockImplementation(async () => {});
+    mockNoticesManifestFetcher.fetchNoticesManifest.mock.mockImplementationOnce(
+      async () => ({
+        notices: [
+          {
+            id: noticeId,
+            title: 'test title',
+            details: 'test details',
+            predicates: [],
+          },
+        ],
+      }),
+    );
+
+    const controller = createController();
+    await controller.acknowledge(noticeId);
+
+    assert.strictEqual(mockAcknowledgementFile.write.mock.calls.length, 1);
+    const writtenContent =
+      mockAcknowledgementFile.write.mock.calls[0].arguments[0];
+    const projectAcknowledgements = writtenContent.projectAcknowledgements;
+    assert.strictEqual(projectAcknowledgements.length, 1);
+    assert.strictEqual(projectAcknowledgements[0].noticeId, noticeId);
+    assert.strictEqual(projectAcknowledgements[0].projectName, testProjectName);
+    assert.ok(projectAcknowledgements[0].acknowledgedAt > 0);
+    assert.ok(
+      projectAcknowledgements[0].acknowledgedAt !==
+        existingAcknowledgement.acknowledgedAt,
+    );
+  });
+
+  void it('throws when notice does not exist', async () => {
+    const noticeId = 'non-existent';
+    mockAcknowledgementFile.read.mock.mockImplementation(async () => {
+      return {
+        projectAcknowledgements: [],
+      };
+    });
+    mockAcknowledgementFile.write.mock.mockImplementation(async () => {});
+    mockNoticesManifestFetcher.fetchNoticesManifest.mock.mockImplementationOnce(
+      async () => ({
+        notices: [
+          {
+            id: '1',
+            title: 'test title',
+            details: 'test details',
+            predicates: [],
+          },
+        ],
+      }),
+    );
+
+    const controller = createController();
+    await assert.rejects(
+      () => controller.acknowledge(noticeId),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(error.name, 'NoticeNotFoundError');
+        return true;
+      },
+    );
   });
 
   void it('recordPrintingTimes updates printing tracker file', async () => {
