@@ -130,7 +130,7 @@ void describe('ProvidedFunctionFactory', () => {
         entry: path.resolve(
           fileURLToPath(import.meta.url),
           '..',
-          'test-assets/provided-node-lambda/handler.ts',
+          'test-assets/provided-node-lambda/handler.js',
         ),
         environment: {
           EXISTING_KEY: 'existing value',

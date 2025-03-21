@@ -5,6 +5,6 @@ import { fileURLToPath } from 'url';
 
 export const providedNodeLambda = defineFunction((scope) => {
   return new NodejsFunction(scope, 'providedNodeLambda', {
-    entry: path.resolve(fileURLToPath(import.meta.url), '..', 'handler.ts'),
+    entry: path.resolve(fileURLToPath(import.meta.url), '..', 'handler.js'),
   });
 });
