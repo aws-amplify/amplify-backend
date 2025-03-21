@@ -473,12 +473,15 @@ export class DataClientConfigContributor implements ClientConfigContributor {
 }
 
 /**
- * Translator for the Storage portion of ClientConfig in V1.2
+ * Translator for the Storage portion of ClientConfig in V1.4
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class StorageClientConfigContributorV1_4
   implements ClientConfigContributor
 {
+  /**
+   * Given some BackendOutput, contribute the Storage portion of the client config
+   */
   contribute = ({
     [storageOutputKey]: storageOutput,
   }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
