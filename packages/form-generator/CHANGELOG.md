@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.1.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
 ## 1.0.5
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.7.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
 ## 0.6.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.5.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
 ## 1.4.1
 
 ### Patch Changes
