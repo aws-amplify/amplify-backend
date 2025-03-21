@@ -1,5 +1,20 @@
 # @aws-amplify/backend-function
 
+## 1.13.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- f9f31c7: fix pretty sandbox qa bugs
+- Updated dependencies [8f59d16]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/backend-output-storage@1.2.0
+  - @aws-amplify/backend-output-schemas@1.5.0
+
 ## 1.12.3
 
 ### Patch Changes

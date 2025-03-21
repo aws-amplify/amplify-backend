@@ -1,5 +1,20 @@
 # @aws-amplify/backend-data
 
+## 1.5.0
+
+### Minor Changes
+
+- d854912: Add imported tables to data.
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/backend-output-storage@1.2.0
+  - @aws-amplify/backend-output-schemas@1.5.0
+
 ## 1.4.1
 
 ### Patch Changes
