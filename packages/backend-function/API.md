@@ -55,7 +55,7 @@ type DataClientEnv = {
 export function defineFunction(props?: FunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
-export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & StackProvider>;
+export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
 export type FunctionArchitecture = 'x86_64' | 'arm64';

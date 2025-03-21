@@ -2,6 +2,7 @@ import {
   AmplifyFunction,
   AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
+  BackendSecret,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -113,6 +114,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
 
 class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   readonly resources: FunctionResources;
+  private readonly cfnFunction: CfnFunction;
   constructor(
     scope: Construct,
     id: string,
@@ -121,21 +123,43 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   ) {
     super(scope, id, outputStorageStrategy);
 
-    const cfnFunction = providedFunction.node.findChild(
+    this.cfnFunction = providedFunction.node.findChild(
       'Resource',
     ) as CfnFunction;
 
-    Tags.of(cfnFunction).add(TagName.FRIENDLY_NAME, providedFunction.node.id);
+    Tags.of(this.cfnFunction).add(
+      TagName.FRIENDLY_NAME,
+      providedFunction.node.id,
+    );
 
     this.resources = {
       lambda: providedFunction,
       cfnResources: {
-        cfnFunction,
+        cfnFunction: this.cfnFunction,
       },
     };
 
     this.storeOutput();
   }
+
+  addEnvironment = (key: string, value: string | BackendSecret) => {
+    const currentEnvVars = this.cfnFunction.environment;
+    const newValue =
+      typeof value === 'string'
+        ? value
+        : '<value will be resolved during runtime>';
+    let combinedEnvVars;
+    if (currentEnvVars && 'variables' in currentEnvVars) {
+      combinedEnvVars = {
+        ...(currentEnvVars.variables || {}),
+        [key]: newValue,
+      };
+    }
+    this.cfnFunction.addPropertyOverride(
+      'Environment.Variables',
+      combinedEnvVars ?? { [key]: newValue },
+    );
+  };
 
   getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
     new FunctionResourceAccessAcceptor(this);
