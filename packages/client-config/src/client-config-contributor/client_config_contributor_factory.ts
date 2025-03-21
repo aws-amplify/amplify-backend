@@ -7,6 +7,7 @@ import {
   StorageClientConfigContributorV1 as Storage1,
   StorageClientConfigContributorV1_1 as Storage1_1,
   StorageClientConfigContributor as Storage1_2,
+  StorageClientConfigContributorV1_4 as Storage1_4,
   VersionContributor as VersionContributor1_3,
   VersionContributorV1,
   VersionContributorV1_1,
@@ -35,6 +36,14 @@ export class ClientConfigContributorFactory {
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter,
   ) {
     this.versionedClientConfigContributors = {
+      [ClientConfigVersionOption.V1_4]: [
+        new Auth1_3(),
+        new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Storage1_4(),
+        new VersionContributor1_3(),
+        new Custom1_1(),
+      ],
+
       [ClientConfigVersionOption.V1_3]: [
         new Auth1_3(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
