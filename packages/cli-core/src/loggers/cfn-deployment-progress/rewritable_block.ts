@@ -7,7 +7,6 @@ import { EOL } from 'os';
  */
 export class RewritableBlock {
   private lastHeight = 0;
-  private trailingEmptyLines = 0;
 
   /**
    * Constructor for RewritableBlock
@@ -23,7 +22,7 @@ export class RewritableBlock {
 
   /**
    * Display the given lines in this rewritable block. It expands to make room for more lines
-   * and keep the size of the block constant until finished.
+   * and compress when not needed. It also takes care of not overflowing the block.
    */
   async displayLines(lines: string[]) {
     lines = this.terminalWrap(this.getBlockWidth(), this.expandNewlines(lines));
@@ -35,13 +34,6 @@ export class RewritableBlock {
     const progressUpdate: string[] = [];
     for (const line of lines) {
       progressUpdate.push(this.cll() + line + EOL);
-    }
-
-    this.trailingEmptyLines = Math.max(0, this.lastHeight - lines.length);
-
-    // Clear remainder of unwritten lines
-    for (let i = 0; i < this.trailingEmptyLines; i++) {
-      progressUpdate.push(this.cll() + EOL);
     }
 
     await this.ioHost.notify({

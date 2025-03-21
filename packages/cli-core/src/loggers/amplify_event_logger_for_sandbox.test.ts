@@ -170,7 +170,7 @@ void describe('amplify sandbox event logging', () => {
         )} | CloudFormation:Stack      | ${format.color(
           format.bold('∟ data stack'),
           'Green',
-        )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+        )}${EOL}`,
       ],
     );
 
@@ -404,7 +404,7 @@ void describe('amplify sandbox event logging', () => {
               )} | S3BucketNotifications     | ${format.color(
                 format.bold('∟ Notifications'),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 29:
@@ -470,7 +470,7 @@ void describe('amplify sandbox event logging', () => {
               )} | AmplifyDynamoDBTable      | ${format.color(
                 format.bold('  ∟ Default'),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 41:
@@ -488,7 +488,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           default:
@@ -614,7 +614,7 @@ void describe('amplify sandbox event logging', () => {
               )} | IAM:Policy                | ${format.color(
                 format.bold('∟ DefaultPolicy'),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 19:
@@ -646,7 +646,7 @@ void describe('amplify sandbox event logging', () => {
                   '∟ BucketNotificationsHandler050a0587b7544547bf325f094a3db834',
                 ),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 23:
@@ -670,7 +670,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('storage'),
                 'Green',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           default:
@@ -748,7 +748,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('∟ data stack'),
                 'Green',
-              )}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 7:
@@ -816,7 +816,7 @@ void describe('amplify sandbox event logging', () => {
               )} | IAM:Role                  | ${format.color(
                 format.bold('sayhellolambdaServiceRole4BCAA6E2'),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
 
@@ -835,7 +835,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('function1351588B'),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           default:
@@ -974,7 +974,7 @@ void describe('amplify sandbox event logging', () => {
                   '∟ BucketNotificationsHandler050a0587b7544547bf325f094a3db834',
                 ),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 9:
@@ -1028,7 +1028,7 @@ void describe('amplify sandbox event logging', () => {
               )} | SNS:Topic                 | ${format.color(
                 format.bold('∟ CustomTopics'),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 19:
@@ -1046,7 +1046,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('data'),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           case 25:
@@ -1070,7 +1070,7 @@ void describe('amplify sandbox event logging', () => {
               )} | CloudFormation:Stack      | ${format.color(
                 format.bold('auth'),
                 'Yellow',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           default:
@@ -1207,7 +1207,7 @@ void describe('amplify sandbox event logging', () => {
               )}${EOL}${cll()}${format.color(
                 'Resource handler returned message: "Cognito received the following error from Amazon SES when attempting to send email: Email address is not verified. The following identities failed the check in region US-WEST-2: arn:aws:ses:us-west-2:123456789012:identity/blah@blah.com (Service: CognitoIdentityProvider, Status Code: 400, Request ID: 3bf35a6e-9667-4baf-8eab-19676643ac8d)" (RequestToken: 8c4cec48-3f40-7c73-a8b6-3afc0314b029, HandlerErrorCode: InvalidRequest)',
                 'Red',
-              )}${EOL}${cll()}${EOL}${cll()}${EOL}`,
+              )}${EOL}`,
             );
             break;
           default:
