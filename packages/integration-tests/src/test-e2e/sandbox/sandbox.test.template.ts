@@ -13,6 +13,7 @@ import {
   interruptSandbox,
   replaceFiles,
   waitForConfigUpdateAfterDeployment,
+  waitForSandboxToBecomeIdle,
   waitForSandboxToBeginHotswappingResources,
 } from '../../process-controller/predicated_action_macros.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -103,7 +104,8 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
                 for (const update of updates) {
                   processController
                     .do(replaceFiles(update.replacements))
-                    .do(waitForSandboxToBeginHotswappingResources());
+                    .do(waitForSandboxToBeginHotswappingResources())
+                    .do(waitForSandboxToBecomeIdle());
                   if (update.deployThresholdSec) {
                     processController.do(
                       ensureDeploymentTimeLessThan(update.deployThresholdSec),
