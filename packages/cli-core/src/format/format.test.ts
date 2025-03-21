@@ -127,9 +127,8 @@ void describe('format.error', async () => {
     const expectedOutput =
       red(bold('[Error]')) +
       ' something went wrong' +
-      format.indent(
-        os.EOL + 'Caused by: ' + red(bold('[Error]')) + ' nested error',
-      );
+      os.EOL +
+      format.indent('∟ Caused by: ' + red(bold('[Error]')) + ' nested error');
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });

@@ -55,7 +55,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.addLogGroups('logFriendlyName2', 'logGroupName2');
     classUnderTest.activate();
     // wait just a bit to let the logs streamer run before deactivating it
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 1100));
     classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 4);
@@ -137,8 +137,9 @@ void describe('LambdaFunctionLogStreamer', () => {
 
     classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
     classUnderTest.activate();
-    // wait for just over two seconds to let the logs streamer get both the events before deactivating it
-    await new Promise((resolve) => setTimeout(resolve, 2100));
+    // wait for just 1 second to make the API calls and just over two seconds
+    // to let the logs streamer get both the events before deactivating it
+    await new Promise((resolve) => setTimeout(resolve, 3100));
     classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
@@ -204,7 +205,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
     classUnderTest.activate();
     // wait just a bit to let the logs streamer run before deactivating it
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 1100));
     classUnderTest.pause();
 
     // 100 events + 1 informational for the user that 100 messages limit is hit
@@ -258,7 +259,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
     // activate it again and it should fetch the second event now
     classUnderTest.activate();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 600));
     classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
