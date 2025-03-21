@@ -364,7 +364,7 @@ export class CfnDeploymentProgressLogger {
           color,
         )
       : format.bold(this.shorten(100, formattedResourceName));
-    return `${timeStamp} | ${status} | ${resourceType} | ${resourceNameToDisplay}${this.failureReasonOnNextLine(
+    return `${format.dim(timeStamp)} | ${status} | ${resourceType} | ${resourceNameToDisplay}${this.failureReasonOnNextLine(
       event,
     )}`;
   };

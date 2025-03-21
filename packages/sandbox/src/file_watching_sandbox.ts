@@ -86,6 +86,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
     super();
+    this.interceptStderr();
   }
 
   /**
@@ -442,5 +443,29 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         )}${format.bold('--identifier')}`,
       );
     }
+  };
+
+  /**
+   * Hack to suppress certain stderr messages until aws-cdk constructs
+   * can use the toolkit's IoHost to deliver messages.
+   * See tracking items https://github.com/aws/aws-cdk-cli/issues/158
+   *
+   * Rest of the stderr messages are rerouted to our printer so that they
+   * don't get intermingled with spinners.
+   */
+  private interceptStderr = () => {
+    process.stderr.write = (chunk) => {
+      if (
+        typeof chunk !== 'string' ||
+        !['Bundling asset'].some((prohibitedStrings) =>
+          chunk.includes(prohibitedStrings),
+        )
+      ) {
+        this.printer.log(
+          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
+        );
+      }
+      return true;
+    };
   };
 }
