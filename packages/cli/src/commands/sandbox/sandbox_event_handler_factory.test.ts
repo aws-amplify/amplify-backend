@@ -13,6 +13,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
 import { format, printer } from '@aws-amplify/cli-core';
+import { NoticesRenderer } from '../../notices/notices_renderer.js';
 
 void describe('sandbox_event_handler_factory', () => {
   // client config mocks
@@ -38,6 +39,11 @@ void describe('sandbox_event_handler_factory', () => {
 
   const printMock = mock.method(printer, 'print');
 
+  const tryFindAndPrintApplicableNoticesMock = mock.fn();
+  const noticesRenderer = {
+    tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,
+  } as unknown as NoticesRenderer;
+
   // Class under test
   const eventFactory = new SandboxEventHandlerFactory(
     async () => ({
@@ -46,6 +52,7 @@ void describe('sandbox_event_handler_factory', () => {
       type: 'sandbox',
     }),
     async () => usageDataEmitterMock,
+    noticesRenderer,
   );
 
   afterEach(() => {

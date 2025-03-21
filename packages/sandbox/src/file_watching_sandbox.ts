@@ -86,6 +86,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
     super();
+    this.interceptStderr();
   }
 
   /**
@@ -156,6 +157,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
+    this.printer.clearConsole();
     await this.printSandboxNameInfo(options.identifier);
 
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
@@ -188,6 +190,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // and thinks the above 'while' condition is always 'false' without the cast
         latch = 'deploying';
         this.printer.clearConsole();
+        await this.printSandboxNameInfo(options.identifier);
         this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again",
         );
@@ -209,9 +212,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         async (_, events) => {
           // Log and track file changes.
           await Promise.all(
-            events.map(({ type: eventName, path: filePath }) => {
+            events.map(async ({ type: eventName, path: filePath }) => {
               this.filesChangesTracker.trackFileChange(filePath);
-              latch === 'open' && this.printer.clearConsole();
+              if (latch === 'open') {
+                this.printer.clearConsole();
+                await this.printSandboxNameInfo();
+              }
               this.printer.log(
                 `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
                   process.cwd(),
@@ -442,5 +448,30 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         )}${format.bold('--identifier')}`,
       );
     }
+    this.printer.printNewLine();
+  };
+
+  /**
+   * Hack to suppress certain stderr messages until aws-cdk constructs
+   * can use the toolkit's IoHost to deliver messages.
+   * See tracking items https://github.com/aws/aws-cdk-cli/issues/158
+   *
+   * Rest of the stderr messages are rerouted to our printer so that they
+   * don't get intermingled with spinners.
+   */
+  private interceptStderr = () => {
+    process.stderr.write = (chunk) => {
+      if (
+        typeof chunk !== 'string' ||
+        !['Bundling asset'].some((prohibitedStrings) =>
+          chunk.includes(prohibitedStrings),
+        )
+      ) {
+        this.printer.log(
+          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
+        );
+      }
+      return true;
+    };
   };
 }

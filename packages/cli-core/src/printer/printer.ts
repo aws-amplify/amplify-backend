@@ -33,13 +33,8 @@ export class Printer {
   print = (message: string) => {
     message = this.stringify(message);
     if (this.isSpinnerRunning()) {
-      if (this.currentSpinner.instance?.prefixText) {
-        const spinnerPrefixMessage = this.currentSpinner.instance?.prefixText;
-        this.currentSpinner.instance.prefixText =
-          message + EOL + spinnerPrefixMessage;
-        return;
-      }
-      this.printNewLine();
+      this.printWhileSpinnerRunning(message);
+      return;
     }
     if (!this.ttyEnabled) {
       message = stripANSI(message);
@@ -105,7 +100,8 @@ export class Printer {
     }
     this.currentSpinner = {
       instance: ora({
-        text: this.prefixedMessage(message),
+        text: message,
+        prefixText: this.getLogPrefix(),
         color: 'white',
         stream: this.stdout,
         spinner: 'dots',
@@ -169,7 +165,8 @@ export class Printer {
       return;
     }
     if (options.prefixText) {
-      this.currentSpinner.instance.prefixText = options.prefixText;
+      this.currentSpinner.instance.prefixText =
+        options.prefixText + this.getLogPrefix();
     } else if (options.message) {
       this.currentSpinner.instance.text = options.message;
     }
@@ -181,9 +178,23 @@ export class Printer {
    * Clears the console
    */
   clearConsole = () => {
-    if (this.ttyEnabled) {
-      this.stdout.write('\n'.repeat(process.stdout.rows));
+    if (!this.ttyEnabled) {
+      return;
     }
+    const lines = process.stdout.rows;
+    this.stdout.write('\n'.repeat(process.stdout.rows));
+    process.stdout.moveCursor(0, -lines);
+  };
+
+  private printWhileSpinnerRunning = (message: string) => {
+    if (!this.isSpinnerRunning()) {
+      return;
+    }
+    const spinnerMessage = this.currentSpinner.instance?.text;
+    this.currentSpinner.instance?.clear();
+    this.stdout.write(message);
+    this.printNewLine();
+    this.currentSpinner.instance?.start(spinnerMessage);
   };
 
   private stringify = (msg: unknown): string => {
