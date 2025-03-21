@@ -47,11 +47,9 @@ export class SandboxSeedCommand implements CommandModule<object> {
           AMPLIFY_BACKEND_IDENTIFIER: JSON.stringify(backendID),
         },
       });
-    } catch (err) {
+    } finally {
       printer.stopSpinner();
-      throw err;
     }
-    printer.stopSpinner();
     printer.printNewLine();
     printer.print(`${format.success('✔')} seed has successfully completed`);
   };

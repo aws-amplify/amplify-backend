@@ -120,7 +120,7 @@ class SeedTestProject extends TestProjectBase {
     const command = execaSync('npx', ['which', 'ampx'], {
       cwd: this.projectDirPath,
     }).stdout.trim();
-    const seedPolicyProcess = await execa(
+    const seedPolicyProcessResult = await execa(
       command,
       ['sandbox', 'seed', 'generate-policy'],
       {
@@ -129,8 +129,9 @@ class SeedTestProject extends TestProjectBase {
       },
     );
 
-    const startingInd = seedPolicyProcess.stdout.indexOf('{');
-    const cleanedPolicyString = seedPolicyProcess.stdout.slice(startingInd);
+    const startingInd = seedPolicyProcessResult.stdout.indexOf('{');
+    const cleanedPolicyString =
+      seedPolicyProcessResult.stdout.slice(startingInd);
 
     const clientConfig = await generateClientConfig(backendIdentifier, '1.3');
     if (!clientConfig.custom) {
@@ -212,6 +213,7 @@ class SeedTestProject extends TestProjectBase {
             items {
               id
               content
+              owner
             }
           }
         }
@@ -222,5 +224,6 @@ class SeedTestProject extends TestProjectBase {
       content.data.listTodos.items[0].content,
       `Todo list item for ${testUsername}`,
     );
+    assert.ok(content.data.listTodos.items[0].owner);
   }
 }

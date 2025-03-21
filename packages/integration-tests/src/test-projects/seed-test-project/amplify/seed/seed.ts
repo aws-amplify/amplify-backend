@@ -2,11 +2,14 @@ import { createAndSignUpUser, signInUser } from '@aws-amplify/seed';
 import * as auth from 'aws-amplify/auth';
 import type { Schema } from './../data/resource.js';
 import { Amplify } from 'aws-amplify';
-// @ts-ignore typescript does not like this import
-import outputs from '../../amplify_outputs.json';
 import { generateClient } from 'aws-amplify/api';
 import { SemVer } from 'semver';
 import crypto from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+
+const outputFile = JSON.parse(
+  await readFile('../../amplify_outputs.json', { encoding: 'utf8' }),
+);
 
 // TODO: this is a work around - in theory this should be fixed
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -19,12 +22,12 @@ if (process.versions.node) {
   }
 }
 
-Amplify.configure(outputs);
+Amplify.configure(outputFile);
 
 const dataClient = generateClient<Schema>();
 
-const username1 = 'testUser@testing.com';
-const password1 = 'T3st_Passw0rd*';
+const username1 = 'testUser@amazon.com';
+const password1 = `T3st_Passw0rd*${Math.random()}`;
 
 const user1 = await createAndSignUpUser({
   username: username1,
