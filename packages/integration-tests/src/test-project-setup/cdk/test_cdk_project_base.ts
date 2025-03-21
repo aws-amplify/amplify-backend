@@ -19,10 +19,10 @@ export abstract class TestCdkProjectBase {
   }
 
   deploy = async () => {
-    const toolkit = new Toolkit({});
-    const cx = toolkit.
-    await toolkit.deploy({
-    })
+    // const toolkit = new Toolkit({});
+    // const cx = toolkit.
+    // await toolkit.deploy({
+    // })
     await cdkCli(
       [
         'deploy',
