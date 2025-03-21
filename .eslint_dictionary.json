@@ -1,6 +1,8 @@
 [
   "acceptor",
   "acceptors",
+  "acknowledgement",
+  "acknowledgements",
   "aggregator",
   "amazonaws",
   "amazoncognito",
@@ -63,6 +65,7 @@
   "esbuild",
   "esnext",
   "execa",
+  "evaluator",
   "facebook",
   "filepath",
   "filesystem",

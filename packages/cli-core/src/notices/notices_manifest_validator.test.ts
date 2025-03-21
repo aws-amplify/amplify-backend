@@ -29,12 +29,15 @@ void describe('Notices manifest validator', () => {
           title: 'test notice 2',
           details: 'test details 2',
           predicates: [],
+          frequency: 'once',
         },
         {
           id: '3',
           link: 'https://github.com/aws-amplify/amplify-backend/issues/3',
           title: 'test notice 3',
           details: 'test details 3',
+          validFrom: Date.now() - 1000,
+          validTo: Date.now() + 1000,
           predicates: [
             {
               type: 'packageVersion',
@@ -50,10 +53,6 @@ void describe('Notices manifest validator', () => {
               command: 'sandbox',
             },
             {
-              type: 'frequency',
-              frequency: 'once',
-            },
-            {
               type: 'errorMessage',
               errorMessage: 'Some error message',
             },
@@ -64,11 +63,6 @@ void describe('Notices manifest validator', () => {
             {
               type: 'osFamily',
               osFamily: 'linux',
-            },
-            {
-              type: 'validityPeriod',
-              from: Date.now() - 10,
-              to: Date.now(),
             },
           ],
         },

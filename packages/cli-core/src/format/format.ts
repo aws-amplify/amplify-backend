@@ -42,9 +42,7 @@ export class Format {
       }`;
 
       if (typeof error?.cause === 'object' && !!error.cause) {
-        message =
-          message +
-          this.indent(os.EOL + `Caused by: ${this.error(error.cause)}`);
+        message = `${message}${os.EOL}${format.indent(`∟ Caused by: ${this.error(error.cause)}`)}`;
       }
 
       if (AmplifyError.isAmplifyError(error) && error.resolution) {
