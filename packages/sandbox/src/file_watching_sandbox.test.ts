@@ -90,6 +90,7 @@ const printer = {
   log: mock.fn(),
   print: mock.fn(),
   clearConsole: mock.fn(),
+  printNewLine: mock.fn(),
 };
 
 const sandboxExecutor = new AmplifySandboxExecutor(

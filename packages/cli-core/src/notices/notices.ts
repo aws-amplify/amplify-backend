@@ -26,15 +26,6 @@ const noticePredicateSchema = z.discriminatedUnion('type', [
     type: z.literal('errorMessage'),
     errorMessage: z.string(),
   }),
-  z.object({
-    type: z.literal('frequency'),
-    frequency: z.enum(['command', 'deployment', 'once', 'daily']),
-  }),
-  z.object({
-    type: z.literal('validityPeriod'),
-    from: z.number().optional(),
-    to: z.number().optional(),
-  }),
 ]);
 
 export const noticeSchema = z.object({
@@ -43,6 +34,9 @@ export const noticeSchema = z.object({
   details: z.string(),
   link: z.string().optional(),
   predicates: z.array(noticePredicateSchema),
+  frequency: z.enum(['command', 'deployment', 'once', 'daily']).optional(),
+  validFrom: z.number().optional(),
+  validTo: z.number().optional(),
 });
 
 export type Notice = z.infer<typeof noticeSchema>;
