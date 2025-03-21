@@ -286,8 +286,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       defaultNodeLambdaTypedShimPath,
       'utf8',
     );
-    assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
-    assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
+    assert.ok(
+      fileContent.includes('newKey: string;'),
+      `'${fileContent}' must include 'newKey: string;'`,
+    ); // Env var added via addEnvironment
+    assert.ok(
+      fileContent.includes('TEST_SECRET: string;'),
+      `'${fileContent}' must include 'TEST_SECRET: string;'`,
+    ); // Env var added via defineFunction
 
     // assert specific config are correct in the outputs file
     const outputsObject = JSON.parse(
