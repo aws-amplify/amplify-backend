@@ -27,7 +27,8 @@ Amplify.configure(outputFile);
 const dataClient = generateClient<Schema>();
 
 const username1 = 'testUser@amazon.com';
-const password1 = `T3st_Passw0rd*${crypto.randomInt(1, 100)}`;
+const randomSuffix = crypto.randomBytes(4).toString('hex');
+const password1 = `T3st_Passw0rd*${randomSuffix}`;
 
 const user1 = await createAndSignUpUser({
   username: username1,
