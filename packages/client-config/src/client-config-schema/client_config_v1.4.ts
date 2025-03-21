@@ -58,10 +58,6 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
-   * JSON schema
-   */
-  $schema?: string;
-  /**
    * Version of this schema
    */
   version: '1.4';
@@ -214,7 +210,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: [string, ...string[]];
+      items: string[];
       default: string;
     };
   };
