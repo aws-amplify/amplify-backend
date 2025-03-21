@@ -13,6 +13,7 @@ import {
   clientConfigTypesV1_1,
   clientConfigTypesV1_2,
   clientConfigTypesV1_3,
+  clientConfigTypesV1_4,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
@@ -20,6 +21,19 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
+
+/**
+ * Translator for the version number of ClientConfig of V1.2
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_4 implements ClientConfigContributor {
+  /**
+   * Return the version of the schema types that this contributor uses
+   */
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_4 };
+  };
+}
 
 /**
  * Translator for the version number of ClientConfig of V1.3
@@ -453,6 +467,52 @@ export class DataClientConfigContributor implements ClientConfigContributor {
         [k: string]: unknown;
       };
     }
+
+    return config;
+  };
+}
+
+/**
+ * Translator for the Storage portion of ClientConfig in V1.2
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class StorageClientConfigContributorV1_4
+  implements ClientConfigContributor
+{
+  contribute = ({
+    [storageOutputKey]: storageOutput,
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
+    if (storageOutput === undefined) {
+      return {};
+    }
+    const config: Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs> = {};
+    const bucketsStringArray = JSON.parse(
+      storageOutput.payload.buckets ?? '[]',
+    );
+    config.storage = {
+      aws_region: storageOutput.payload.storageRegion,
+      bucket_name: storageOutput.payload.bucketName,
+      buckets: bucketsStringArray
+        .map((b: string) => JSON.parse(b))
+        .map(
+          ({
+            name,
+            bucketName,
+            storageRegion,
+            paths,
+          }: {
+            name: string;
+            bucketName: string;
+            storageRegion: string;
+            paths: Record<string, AmplifyStorageAccessRule>;
+          }) => ({
+            name,
+            bucket_name: bucketName,
+            aws_region: storageRegion,
+            paths,
+          }),
+        ),
+    };
 
     return config;
   };
