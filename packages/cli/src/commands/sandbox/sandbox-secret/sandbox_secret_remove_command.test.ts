@@ -120,8 +120,8 @@ void describe('sandbox secret remove command', () => {
   void it('throws error if no secret name argument and all flag', async () => {
     const output = await commandRunner.runCommand(`remove`);
     [
-      /InvalidCommandInputError: Either secret-name or all flag must be provided/,
-      /Resolution: Provide either secret-name or all flag/,
+      /Either secret-name or all flag must be provided/,
+      /Provide either secret-name or all flag/,
     ].forEach((cmd) => assert.match(output, new RegExp(cmd)));
   });
 

@@ -1,7 +1,7 @@
-import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import { ConfigurationController } from './local_configuration_controller_factory';
+import { getConfigDirPath } from './get_config_dir_path';
 
 /**
  * Used to interact with config file based on OS.
@@ -14,11 +14,8 @@ export class LocalConfigurationController implements ConfigurationController {
   /**
    * Initializes paths to project config dir & config file.
    */
-  constructor(
-    private readonly projectName = 'amplify',
-    private readonly configFileName = 'config.json',
-  ) {
-    this.dirPath = this.getConfigDirPath(this.projectName);
+  constructor(private readonly configFileName = 'config.json') {
+    this.dirPath = getConfigDirPath();
     this.configFilePath = path.join(this.dirPath, this.configFileName);
   }
 
@@ -106,36 +103,5 @@ export class LocalConfigurationController implements ConfigurationController {
    */
   private mkConfigDir() {
     return fs.mkdir(this.dirPath, { recursive: true });
-  }
-
-  /**
-   * Returns the path to config directory depending on OS
-   */
-  private getConfigDirPath(name: string): string {
-    const homedir = os.homedir();
-
-    const macos = () => path.join(homedir, 'Library', 'Preferences', name);
-    const windows = () => {
-      return path.join(
-        process.env.APPDATA || path.join(homedir, 'AppData', 'Roaming'),
-        name,
-        'Config',
-      );
-    };
-    const linux = () => {
-      return path.join(
-        process.env.XDG_STATE_HOME || path.join(homedir, '.local', 'state'),
-        name,
-      );
-    };
-
-    switch (process.platform) {
-      case 'darwin':
-        return macos();
-      case 'win32':
-        return windows();
-      default:
-        return linux();
-    }
   }
 }

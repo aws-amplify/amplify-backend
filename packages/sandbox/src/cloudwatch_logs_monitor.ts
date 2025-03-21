@@ -192,11 +192,14 @@ export class CloudWatchLogEventMonitor {
    * Reads all new log events from a set of CloudWatch Log Groups in parallel
    */
   private readNewEvents = async (): Promise<Array<CloudWatchLogEvent>> => {
-    const promises: Array<Promise<Array<CloudWatchLogEvent>>> = [];
+    const results: Array<Array<CloudWatchLogEvent>> = [];
     for (const logGroup of this.allLogGroups) {
-      promises.push(this.readEventsFromLogGroup(logGroup));
+      results.push(await this.readEventsFromLogGroup(logGroup));
+      // There is a hard limit on TPS for `FilterLogEvents` API that is Account wide.
+      // We don't want to get throttled is customers are filtering for a lot of functions.
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    return (await Promise.all(promises)).flat();
+    return results.flat();
   };
 
   /**
@@ -211,18 +214,16 @@ export class CloudWatchLogEventMonitor {
 
     if (this.enableColors) {
       this.printer.print(
-        `[${format.color(
+        `${format.note(event.timestamp.toLocaleTimeString())} [${format.color(
           cloudWatchEventDisplay.friendlyName,
           cloudWatchEventDisplay.color,
-        )}] ${format.note(
-          event.timestamp.toLocaleTimeString(),
-        )} ${event.message.trim()}`,
+        )}] ${event.message.trim()}`,
       );
     } else {
       this.printer.print(
-        `[${
+        `${event.timestamp.toLocaleTimeString()} [${
           cloudWatchEventDisplay.friendlyName
-        }] ${event.timestamp.toLocaleTimeString()} ${event.message.trim()}`,
+        }] ${event.message.trim()}`,
       );
     }
   };

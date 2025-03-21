@@ -9,10 +9,10 @@ import { CopyDefinition } from './types.js';
  */
 
 /**
- * Reusable predicates: Wait for sandbox to finish and emit "✨  Total time: xx.xxs"
+ * Reusable predicates: Wait for sandbox to finish and emit "✔ Deployment completed in 193.76 seconds"
  */
 export const waitForSandboxDeploymentToPrintTotalTime = () =>
-  new PredicatedActionBuilder().waitForLineIncludes('Total time');
+  new PredicatedActionBuilder().waitForLineIncludes('Deployment completed in');
 
 /**
  * Reusable predicates: Wait for sandbox to finish and emit "File written: amplify_outputs.json"
@@ -31,10 +31,10 @@ export const waitForSandboxToBecomeIdle = () =>
   );
 
 /**
- * Reusable predicates: Wait for sandbox to indicate that it's executing hotswap deployment, i.e. "hotswapping resources:"
+ * Reusable predicates: Wait for sandbox to indicate that it's executing hotswap deployment, i.e. " Lambda Function 'function arn' hotswapped!"
  */
 export const waitForSandboxToBeginHotswappingResources = () =>
-  new PredicatedActionBuilder().waitForLineIncludes('hotswapping resources:');
+  new PredicatedActionBuilder().waitForLineIncludes('hotswapped');
 
 /**
  * Reusable predicated action: Wait for sandbox delete to prompt to delete all the resource and respond with yes
@@ -51,7 +51,7 @@ export const confirmDeleteSandbox = () =>
  * then perform the specified file replacements in the backend code which will trigger sandbox again
  */
 export const replaceFiles = (replacements: CopyDefinition[]) => {
-  return waitForSandboxToBecomeIdle().replaceFiles(replacements);
+  return waitForConfigUpdateAfterDeployment().replaceFiles(replacements);
 };
 
 /**

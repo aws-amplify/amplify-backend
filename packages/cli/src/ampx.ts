@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
 
 const startTime = Date.now();
@@ -31,9 +32,9 @@ if (libraryVersion == undefined) {
   });
 }
 
-const dependencies = await new PackageManagerControllerFactory()
-  .getPackageManagerController()
-  .tryGetDependencies();
+const packageManagerController =
+  new PackageManagerControllerFactory().getPackageManagerController();
+const dependencies = await packageManagerController.tryGetDependencies();
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
@@ -47,7 +48,8 @@ attachUnhandledExceptionListeners(usageDataEmitter, telemetryDataEmitter);
 
 verifyCommandName();
 
-const parser = createMainParser(libraryVersion);
+const noticesRenderer = new NoticesRenderer(packageManagerController);
+const parser = createMainParser(libraryVersion, noticesRenderer);
 
 const initTime = Date.now() - startTime;
 
@@ -79,6 +81,9 @@ try {
     metricDimension.command = subCommands;
   }
 
+  await noticesRenderer.tryFindAndPrintApplicableNotices({
+    event: 'postCommand',
+  });
   await usageDataEmitter.emitSuccess({}, metricDimension);
   await telemetryDataEmitter.emitSuccess(
     { totalTime, initTime },
@@ -94,6 +99,10 @@ try {
       telemetryDataEmitter,
       { totalTime, initTime },
     );
+    await noticesRenderer.tryFindAndPrintApplicableNotices({
+      event: 'postCommand',
+      error: e,
+    });
     await errorHandler(format.error(e), e);
   }
 }

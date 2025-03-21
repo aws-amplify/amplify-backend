@@ -137,33 +137,16 @@ const handleError = async ({
 
   printMessagePreamble?.();
 
-  if (AmplifyError.isAmplifyError(error)) {
-    printer.print(format.error(`${error.name}: ${error.message}`));
-
-    if (error.resolution) {
-      printer.print(`Resolution: ${error.resolution}`);
-    }
-    if (error.details) {
-      printer.print(`Details: ${error.details}`);
-    }
-    if (errorHasCauseMessage(error)) {
-      printer.print(`Cause: ${error.cause.message}`);
-    }
-  } else {
-    // non-Amplify Error object
-    printer.print(format.error(message || String(error)));
-
-    if (errorHasCauseMessage(error)) {
-      printer.print(`Cause: ${error.cause.message}`);
-    }
-  }
+  printer.print(format.error(error || message));
 
   // additional debug logging for the stack traces
   if (error?.stack) {
-    printer.log(error.stack, LogLevel.DEBUG);
+    printer.printNewLine();
+    printer.log(format.dim(error.stack), LogLevel.DEBUG);
   }
   if (errorHasCauseStackTrace(error)) {
-    printer.log(error.cause.stack, LogLevel.DEBUG);
+    printer.printNewLine();
+    printer.log(format.dim(error.cause.stack), LogLevel.DEBUG);
   }
 
   await Promise.all([
@@ -199,16 +182,5 @@ const errorHasCauseStackTrace = (
     !!error.cause &&
     'stack' in error.cause &&
     typeof error.cause.stack === 'string'
-  );
-};
-
-const errorHasCauseMessage = (
-  error?: Error,
-): error is Error & { cause: { message: string } } => {
-  return (
-    typeof error?.cause === 'object' &&
-    !!error.cause &&
-    'message' in error.cause &&
-    typeof error.cause.message === 'string'
   );
 };

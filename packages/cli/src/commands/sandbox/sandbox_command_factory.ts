@@ -25,20 +25,22 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { NoticesRenderer } from '../../notices/notices_renderer.js';
+import { SDKProfileResolverProvider } from '../../sdk_profile_resolver_provider.js';
 
 /**
  * Creates wired sandbox command.
  */
-export const createSandboxCommand = (): CommandModule<
-  object,
-  SandboxCommandOptionsKebabCase
-> => {
+export const createSandboxCommand = (
+  noticesRenderer: NoticesRenderer,
+): CommandModule<object, SandboxCommandOptionsKebabCase> => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
   );
 
   const sandboxFactory = new SandboxSingletonFactory(
     sandboxBackendIdPartsResolver.resolve,
+    new SDKProfileResolverProvider().resolve,
     printer,
     format,
   );
@@ -77,6 +79,7 @@ export const createSandboxCommand = (): CommandModule<
         .tryGetDependencies();
       return await new TelemetryDataEmitterFactory().getInstance(dependencies);
     },
+    noticesRenderer,
   );
 
   const commandMiddleWare = new CommandMiddleware(printer);

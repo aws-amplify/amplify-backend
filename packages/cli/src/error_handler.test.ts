@@ -4,7 +4,7 @@ import {
   generateCommandFailureHandler,
 } from './error_handler.js';
 import { Argv } from 'yargs';
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import {
   AmplifyUserError,
@@ -116,9 +116,9 @@ void describe('generateCommandFailureHandler', () => {
       telemetryDataEmitter,
     )('', new Error('some error msg', { cause: new Error(errorMessage) }));
     assert.equal(mockExit.mock.callCount(), 1);
-    assert.equal(mockPrint.mock.callCount(), 2);
+    assert.equal(mockPrint.mock.callCount(), 1);
     assert.match(
-      mockPrint.mock.calls[1].arguments[0] as string,
+      mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errorMessage),
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
@@ -143,16 +143,19 @@ void describe('generateCommandFailureHandler', () => {
     );
 
     assert.equal(mockExit.mock.callCount(), 1);
-    assert.equal(mockPrint.mock.callCount(), 3);
+    assert.equal(mockPrint.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /TestNameError: test error message/,
+      /TestNameError.* test error message/,
     );
-    assert.equal(
-      mockPrint.mock.calls[1].arguments[0],
-      'Resolution: test resolution',
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0],
+      /Resolution.* test resolution/,
     );
-    assert.equal(mockPrint.mock.calls[2].arguments[0], 'Details: test details');
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0],
+      /Details.* test details/,
+    );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
     assert.equal(mockEmitSuccess.mock.callCount(), 0);
     assert.equal(mockTelemetryEmitFailure.mock.callCount(), 1);
@@ -184,11 +187,11 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockTelemetryEmitSuccess.mock.callCount(), 0);
     assert.equal(mockTelemetryEmitAbortion.mock.callCount(), 0);
     assert.deepStrictEqual(mockLog.mock.calls[0].arguments, [
-      amplifyError.stack,
+      format.dim(amplifyError.stack ?? ''),
       LogLevel.DEBUG,
     ]);
     assert.deepStrictEqual(mockLog.mock.calls[1].arguments, [
-      causeError.stack,
+      format.dim(causeError.stack ?? ''),
       LogLevel.DEBUG,
     ]);
   });
@@ -257,9 +260,7 @@ void describe(
       );
       assert.ok(
         mockPrint.mock.calls.findIndex((call) =>
-          call.arguments[0].includes(
-            'Error: Unhandled rejection of type [object]',
-          ),
+          call.arguments[0].includes('Unhandled rejection of type [object]'),
         ) >= 0,
       );
       expectProcessExitCode1AndReset();

@@ -86,6 +86,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
     super();
+    this.interceptStderr();
   }
 
   /**
@@ -156,6 +157,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
+    this.printer.clearConsole();
     await this.printSandboxNameInfo(options.identifier);
 
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
@@ -187,6 +189,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // TypeScript doesn't realize latch can change between 'awaits' ¯\_(ツ)_/¯,
         // and thinks the above 'while' condition is always 'false' without the cast
         latch = 'deploying';
+        this.printer.clearConsole();
+        await this.printSandboxNameInfo(options.identifier);
         this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again",
         );
@@ -208,10 +212,17 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         async (_, events) => {
           // Log and track file changes.
           await Promise.all(
-            events.map(({ type: eventName, path }) => {
-              this.filesChangesTracker.trackFileChange(path);
+            events.map(async ({ type: eventName, path: filePath }) => {
+              this.filesChangesTracker.trackFileChange(filePath);
+              if (latch === 'open') {
+                this.printer.clearConsole();
+                await this.printSandboxNameInfo();
+              }
               this.printer.log(
-                `[Sandbox] Triggered due to a file ${eventName} event: ${path}`,
+                `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
+                  process.cwd(),
+                  filePath,
+                )}`,
               );
             }),
           );
@@ -258,7 +269,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     await this.executor.destroy(
       await this.backendIdSandboxResolver(options.identifier),
-      options.profile,
     );
     this.emit('successfulDeletion');
     this.printer.log('[Sandbox] Finished deleting.');
@@ -283,13 +293,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources,
-        options.profile,
       );
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      this.printer.print(format.error(this.getErrorMessage(error)));
+      this.printer.log(format.error(error), LogLevel.ERROR);
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -395,26 +404,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     }
   };
 
-  /**
-   * Generates a printable error message from the thrown error
-   */
-  private getErrorMessage = (error: unknown) => {
-    let message;
-    if (error instanceof Error) {
-      message = error.message;
-
-      // Add the downstream exception
-      if (error.cause && error.cause instanceof Error && error.cause.message) {
-        message = `${message}\nCaused By: ${error.cause.message}\n`;
-      }
-
-      if (AmplifyError.isAmplifyError(error) && error.resolution) {
-        message = `${message}\nResolution: ${error.resolution}\n`;
-      }
-    } else message = String(error);
-    return message;
-  };
-
   private handleUnsupportedDestructiveChanges = async (
     options: SandboxOptions,
   ) => {
@@ -442,20 +431,47 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const stackName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
     const region = await this.ssmClient.config.region();
-    this.printer.log(
+    this.printer.print(
       format.indent(format.highlight(format.bold('\nAmplify Sandbox\n'))),
     );
-    this.printer.log(
+    this.printer.print(
       format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`),
     );
-    this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
-    this.printer.log(format.indent(`${format.bold('Region:')} \t${region}`));
+    this.printer.print(
+      format.indent(`${format.bold('Stack:')} \t${stackName}`),
+    );
+    this.printer.print(format.indent(`${format.bold('Region:')} \t${region}`));
     if (!sandboxIdentifier) {
-      this.printer.log(
+      this.printer.print(
         `${format.indent(
           format.dim('\nTo specify a different sandbox identifier, use '),
         )}${format.bold('--identifier')}`,
       );
     }
+    this.printer.printNewLine();
+  };
+
+  /**
+   * Hack to suppress certain stderr messages until aws-cdk constructs
+   * can use the toolkit's IoHost to deliver messages.
+   * See tracking items https://github.com/aws/aws-cdk-cli/issues/158
+   *
+   * Rest of the stderr messages are rerouted to our printer so that they
+   * don't get intermingled with spinners.
+   */
+  private interceptStderr = () => {
+    process.stderr.write = (chunk) => {
+      if (
+        typeof chunk !== 'string' ||
+        !['Bundling asset'].some((prohibitedStrings) =>
+          chunk.includes(prohibitedStrings),
+        )
+      ) {
+        this.printer.log(
+          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
+        );
+      }
+      return true;
+    };
   };
 }

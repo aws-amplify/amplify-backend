@@ -33,7 +33,11 @@ import {
   LayerVersion,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  LogLevel as EsBuildLogLevel,
+  NodejsFunction,
+  OutputFormat,
+} from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
 import { createRequire } from 'module';
@@ -592,6 +596,7 @@ class AmplifyFunction
           banner: bannerCode,
           inject: shims,
           externalModules: Object.keys(props.layers),
+          logLevel: EsBuildLogLevel.ERROR,
         },
         logRetention: cdkLoggingOptions.retention,
         applicationLogLevelV2: cdkLoggingOptions.level,

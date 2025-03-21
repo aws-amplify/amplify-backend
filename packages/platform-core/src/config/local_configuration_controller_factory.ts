@@ -13,7 +13,7 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
  * Instantiates LocalConfigurationController
  */
 export class ConfigurationControllerFactory {
-  private controllers: Record<string, ConfigurationController>;
+  private readonly controllers: Record<string, ConfigurationController>;
 
   /**
    * initialized empty map of ConfigurationController;
@@ -32,7 +32,6 @@ export class ConfigurationControllerFactory {
     }
 
     this.controllers[configFileName] = new LocalConfigurationController(
-      'amplify',
       configFileName,
     );
     return this.controllers[configFileName];

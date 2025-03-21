@@ -6,9 +6,16 @@
 
 /// <reference types="node" />
 
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
+
+// @public
+export class AmplifyIOEventsBridgeSingletonFactory {
+    constructor(printer?: Printer);
+    getInstance: () => AmplifyIOHost;
+}
 
 // @public
 export class AmplifyPrompter {
@@ -32,7 +39,7 @@ export class AmplifyPrompter {
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
-export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
 
 // @public
 export class Format {
@@ -73,12 +80,17 @@ export const format: Format;
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 2,
+    DEBUG = 3,
     // (undocumented)
     ERROR = 0,
     // (undocumented)
-    INFO = 1
+    INFO = 2,
+    // (undocumented)
+    WARN = 1
 }
+
+// @public (undocumented)
+export const minimumLogLevel: LogLevel;
 
 // @public (undocumented)
 export type Notice = z.infer<typeof noticeSchema>;
@@ -146,28 +158,10 @@ export const noticeSchema: z.ZodObject<{
     }, {
         type: "errorMessage";
         errorMessage: string;
-    }>, z.ZodObject<{
-        type: z.ZodLiteral<"frequency">;
-        frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
-    }, "strip", z.ZodTypeAny, {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    }, {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    }>, z.ZodObject<{
-        type: z.ZodLiteral<"validityPeriod">;
-        from: z.ZodOptional<z.ZodNumber>;
-        to: z.ZodOptional<z.ZodNumber>;
-    }, "strip", z.ZodTypeAny, {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
-    }, {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     }>]>, "many">;
+    frequency: z.ZodOptional<z.ZodEnum<["command", "deployment", "once", "daily"]>>;
+    validFrom: z.ZodOptional<z.ZodNumber>;
+    validTo: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     details: string;
     id: string;
@@ -191,15 +185,11 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "errorMessage";
         errorMessage: string;
-    } | {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    } | {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     })[];
     link?: string | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+    validFrom?: number | undefined;
+    validTo?: number | undefined;
 }, {
     details: string;
     id: string;
@@ -223,15 +213,11 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "errorMessage";
         errorMessage: string;
-    } | {
-        type: "frequency";
-        frequency: "once" | "command" | "deployment" | "daily";
-    } | {
-        type: "validityPeriod";
-        from?: number | undefined;
-        to?: number | undefined;
     })[];
     link?: string | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+    validFrom?: number | undefined;
+    validTo?: number | undefined;
 }>;
 
 // @public (undocumented)
@@ -301,28 +287,10 @@ export const noticesManifestSchema: z.ZodObject<{
         }, {
             type: "errorMessage";
             errorMessage: string;
-        }>, z.ZodObject<{
-            type: z.ZodLiteral<"frequency">;
-            frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
-        }, "strip", z.ZodTypeAny, {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        }, {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        }>, z.ZodObject<{
-            type: z.ZodLiteral<"validityPeriod">;
-            from: z.ZodOptional<z.ZodNumber>;
-            to: z.ZodOptional<z.ZodNumber>;
-        }, "strip", z.ZodTypeAny, {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
-        }, {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         }>]>, "many">;
+        frequency: z.ZodOptional<z.ZodEnum<["command", "deployment", "once", "daily"]>>;
+        validFrom: z.ZodOptional<z.ZodNumber>;
+        validTo: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         details: string;
         id: string;
@@ -346,15 +314,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }, {
         details: string;
         id: string;
@@ -378,15 +342,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     notices: {
@@ -412,15 +372,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }[];
 }, {
     notices: {
@@ -446,15 +402,11 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "errorMessage";
             errorMessage: string;
-        } | {
-            type: "frequency";
-            frequency: "once" | "command" | "deployment" | "daily";
-        } | {
-            type: "validityPeriod";
-            from?: number | undefined;
-            to?: number | undefined;
         })[];
         link?: string | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
+        validFrom?: number | undefined;
+        validTo?: number | undefined;
     }[];
 }>;
 
@@ -478,18 +430,25 @@ export class PackageManagerControllerFactory {
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
+    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, ttyEnabled?: boolean);
+    clearConsole: () => void;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
-    isSpinnerRunning: (id: string) => boolean;
+    isSpinnerRunning: () => boolean;
     log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner: (id: string, message: string, options?: {
+    startSpinner: (message: string, options?: {
         timeoutSeconds: number;
-    }) => string;
-    stopSpinner: (id: string) => void;
-    updateSpinner: (id: string, options: {
+    }) => void;
+    // (undocumented)
+    readonly stderr: WriteStream | NodeJS.WritableStream;
+    // (undocumented)
+    readonly stdout: WriteStream | NodeJS.WritableStream;
+    stopSpinner: (successMessage?: string) => void;
+    // (undocumented)
+    readonly ttyEnabled: boolean;
+    updateSpinner: (options: {
         message?: string;
         prefixText?: string;
     }) => void;

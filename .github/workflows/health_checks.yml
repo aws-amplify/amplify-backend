@@ -532,6 +532,37 @@ jobs:
           cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           link_cli: true
           run: npm run test:dir ${{ matrix.testPaths }}
+  e2e_notices:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    name: e2e_notices ${{ matrix.os }}
+    timeout-minutes: 5
+    needs:
+      - do_include_e2e
+      - build
+      - resolve_inputs
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
+      - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
+      - run: cd packages/cli && npm link
+      - name: Run e2e notices tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -841,6 +872,7 @@ jobs:
       - e2e_package_manager
       - e2e_deployment
       - e2e_sandbox
+      - e2e_notices
       - e2e_create_amplify
       - resolve_inputs
     runs-on: ubuntu-latest
