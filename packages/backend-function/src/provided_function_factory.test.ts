@@ -18,8 +18,6 @@ import assert from 'assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineFunction } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const testBackendIdentifier: BackendIdentifier = {
@@ -127,11 +125,8 @@ void describe('ProvidedFunctionFactory', () => {
   void it('adding environment variables after defining the function does not override existing environment variables', () => {
     const functionFactory = defineFunction((scope) => {
       return new NodejsFunction(scope, 'testNodeProvidedFunction', {
-        entry: path.resolve(
-          fileURLToPath(import.meta.url),
-          '..',
-          'test-assets/provided-node-lambda/handler.js',
-        ),
+        entry:
+          './packages/backend-function/src/test-assets/provided-node-lambda/handler.ts',
         environment: {
           EXISTING_KEY: 'existing value',
         },
