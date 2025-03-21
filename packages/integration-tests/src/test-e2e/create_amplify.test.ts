@@ -15,7 +15,6 @@ void describe(
   'create-amplify script',
   { concurrency: testConcurrencyLevel },
   () => {
-    let baselineCdkCliVersion: string;
     let baselineCdkLibVersion: string;
     const npmProxyController = new NpmProxyController();
 
@@ -27,7 +26,6 @@ void describe(
       // ambiguity.
       // Testing with latest CDK is covered in canary checks.
       const baselineCdkVersions = await findBaselineCdkVersion();
-      baselineCdkCliVersion = `~${baselineCdkVersions.cdkCli}`;
       baselineCdkLibVersion = `~${baselineCdkVersions.cdkLib}`;
     });
 
@@ -96,12 +94,7 @@ void describe(
           // Override CDK installation with baseline version
           await execa(
             'npm',
-            [
-              'install',
-              '--save-dev',
-              `aws-cdk@${baselineCdkCliVersion}`,
-              `aws-cdk-lib@${baselineCdkLibVersion}`,
-            ],
+            ['install', '--save-dev', `aws-cdk-lib@${baselineCdkLibVersion}`],
             {
               cwd: tempDir,
               stdio: 'inherit',
@@ -118,7 +111,6 @@ void describe(
             [
               '@aws-amplify/backend',
               '@aws-amplify/backend-cli',
-              'aws-cdk',
               'aws-cdk-lib',
               'constructs',
               'esbuild',
@@ -127,10 +119,6 @@ void describe(
             ],
           );
 
-          assert.strictEqual(
-            packageJsonObject.devDependencies['aws-cdk'],
-            baselineCdkCliVersion,
-          );
           assert.strictEqual(
             packageJsonObject.devDependencies['aws-cdk-lib'],
             baselineCdkLibVersion,

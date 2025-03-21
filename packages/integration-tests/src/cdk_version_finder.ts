@@ -10,7 +10,6 @@ import semver from 'semver';
  * and therefore is looking up CDK version from arbitrary package.
  */
 export const findBaselineCdkVersion = async (): Promise<{
-  cdkCli: string;
   cdkLib: string;
 }> => {
   const deployerPackageJsonPath = fileURLToPath(
@@ -20,11 +19,6 @@ export const findBaselineCdkVersion = async (): Promise<{
   const deployerPackageJson = JSON.parse(
     await fsp.readFile(deployerPackageJsonPath, 'utf-8'),
   );
-  const cdkCliVersion = deployerPackageJson['peerDependencies']['aws-cdk'];
-  const minCdkCliVersion = semver.minVersion(cdkCliVersion)?.version;
-  if (!minCdkCliVersion) {
-    throw new Error('Unable to find min CDK CLI version');
-  }
 
   const platformCorePackageJsonPath = fileURLToPath(
     new URL('../../platform-core/package.json', import.meta.url),
@@ -41,7 +35,6 @@ export const findBaselineCdkVersion = async (): Promise<{
   }
 
   return {
-    cdkCli: minCdkCliVersion,
     cdkLib: minCdkLibVersion,
   };
 };

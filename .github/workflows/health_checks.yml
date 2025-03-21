@@ -532,7 +532,6 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
