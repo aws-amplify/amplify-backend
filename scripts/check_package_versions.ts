@@ -12,8 +12,6 @@ const getExpectedMajorVersion = (packageName: string) => {
   switch (packageName) {
     case 'ampx':
       return '0.';
-    case '@aws-amplify/seed':
-      return '0.';
     case '@aws-amplify/cli-core':
     case '@aws-amplify/backend-deployer':
     case '@aws-amplify/sandbox':

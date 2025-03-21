@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/seed': minor
+'@aws-amplify/seed': major
 '@aws-amplify/backend-cli': minor
 ---
 
