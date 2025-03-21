@@ -104,13 +104,13 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
                 for (const update of updates) {
                   processController
                     .do(replaceFiles(update.replacements))
-                    .do(waitForSandboxToBeginHotswappingResources())
-                    .do(waitForSandboxToBecomeIdle());
+                    .do(waitForSandboxToBeginHotswappingResources());
                   if (update.deployThresholdSec) {
                     processController.do(
                       ensureDeploymentTimeLessThan(update.deployThresholdSec),
                     );
                   }
+                  processController.do(waitForSandboxToBecomeIdle());
                 }
 
                 // Execute the process.

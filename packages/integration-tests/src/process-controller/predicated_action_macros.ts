@@ -51,7 +51,7 @@ export const confirmDeleteSandbox = () =>
  * then perform the specified file replacements in the backend code which will trigger sandbox again
  */
 export const replaceFiles = (replacements: CopyDefinition[]) => {
-  return new PredicatedActionBuilder().replaceFiles(replacements);
+  return waitForConfigUpdateAfterDeployment().replaceFiles(replacements);
 };
 
 /**
