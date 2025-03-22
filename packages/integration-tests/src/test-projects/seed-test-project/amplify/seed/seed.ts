@@ -3,13 +3,10 @@ import * as auth from 'aws-amplify/auth';
 import type { Schema } from './../data/resource.js';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
+// @ts-expect-error this file will not exist until sandbox is created
+import outputs from '../../amplify_outputs.json';
 import { SemVer } from 'semver';
 import crypto from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-
-const outputFile = JSON.parse(
-  await readFile('../../amplify_outputs.json', { encoding: 'utf8' }),
-);
 
 // TODO: this is a work around - in theory this should be fixed
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -22,7 +19,7 @@ if (process.versions.node) {
   }
 }
 
-Amplify.configure(outputFile);
+Amplify.configure(outputs);
 
 const dataClient = generateClient<Schema>();
 
