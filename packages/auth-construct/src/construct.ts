@@ -155,11 +155,10 @@ export class AmplifyAuth
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
-    this.userPool = new cognito.UserPool(
-      this,
-      `${this.name}UserPool`,
-      this.computedUserPoolProps,
-    );
+    this.userPool = new cognito.UserPool(this, `${this.name}UserPool`, {
+      ...this.computedUserPoolProps,
+      userPoolName: this.name,
+    });
     /**
      * Configure custom email sender for Cognito User Pool
      * Grant necessary permissions for Lambda function to decrypt emails
