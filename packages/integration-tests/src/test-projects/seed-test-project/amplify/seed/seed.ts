@@ -3,10 +3,13 @@ import * as auth from 'aws-amplify/auth';
 import type { Schema } from './../data/resource.js';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
-// @ts-expect-error this file will not exist until sandbox is created
-import outputs from '../../amplify_outputs.json';
+// @ts-ignore this file will not exist until sandbox is created
+// import outputs from '../../amplify_outputs.json';
 import { SemVer } from 'semver';
 import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 
 // TODO: this is a work around - in theory this should be fixed
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -18,6 +21,14 @@ if (process.versions.node) {
     globalThis.crypto = crypto;
   }
 }
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const outputFile = path.normalize(
+  path.join(dirname, '..', '..', 'amplify_outputs.json'),
+);
+
+const outputs = JSON.parse(await readFile(outputFile, { encoding: 'utf8' }));
 
 Amplify.configure(outputs);
 

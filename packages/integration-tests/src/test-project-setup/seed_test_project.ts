@@ -171,7 +171,7 @@ class SeedTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
-    const testUsername = 'testUser@testing.com';
+    const testUsername = 'testUser@amazon.com';
     const clientConfig = await generateClientConfig(backendId, '1.3');
 
     if (!clientConfig.auth) {
