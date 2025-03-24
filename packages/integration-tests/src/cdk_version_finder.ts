@@ -12,14 +12,6 @@ import semver from 'semver';
 export const findBaselineCdkVersion = async (): Promise<{
   cdkLib: string;
 }> => {
-  const deployerPackageJsonPath = fileURLToPath(
-    new URL('../../backend-deployer/package.json', import.meta.url),
-  );
-
-  const deployerPackageJson = JSON.parse(
-    await fsp.readFile(deployerPackageJsonPath, 'utf-8'),
-  );
-
   const platformCorePackageJsonPath = fileURLToPath(
     new URL('../../platform-core/package.json', import.meta.url),
   );
