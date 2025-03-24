@@ -24,7 +24,7 @@
     "execa": "^9.5.1",
     "tsx": "^4.6.1",
     "strip-ansi": "^7.1.0",
-    "@aws-cdk/toolkit-lib": "0.1.5"
+    "@aws-cdk/toolkit-lib": "0.1.6"
   },
   "peerDependencies": {
     "aws-cdk": "^2.1001.0",
