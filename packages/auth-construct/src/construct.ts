@@ -630,6 +630,7 @@ export class AmplifyAuth
             )
           : undefined,
       customSenderKmsKey: this.customSenderKMSkey,
+      userPoolName: props.name || undefined,
     };
     return userPoolProps;
   };
