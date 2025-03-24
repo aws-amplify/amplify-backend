@@ -570,7 +570,7 @@ jobs:
           - os: macos-14
             node-version: 20
           - os: windows-latest
-            node-version: 20
+            node-version: 18
           - os: macos-14
             node-version: 22
           - os: windows-latest
