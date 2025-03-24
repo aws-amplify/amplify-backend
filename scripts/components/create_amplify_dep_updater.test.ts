@@ -9,7 +9,6 @@ void describe('createAmplifyDepUpdater', () => {
       defaultDevPackages: [
         '@aws-amplify/backend',
         '@aws-amplify/backend-cli',
-        'aws-cdk@2.0.0',
         'aws-cdk-lib@2.0.0',
         'constructs@^10.0.0',
         'typescript@^5.0.0',
@@ -27,7 +26,7 @@ void describe('createAmplifyDepUpdater', () => {
   });
 
   void it('successfully pins new dev version', async () => {
-    await createAmplifyDepUpdater([{ name: 'aws-cdk', version: '2.1.0' }]);
+    await createAmplifyDepUpdater([{ name: 'aws-cdk-lib', version: '2.1.0' }]);
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -37,8 +36,7 @@ void describe('createAmplifyDepUpdater', () => {
           defaultDevPackages: [
             '@aws-amplify/backend',
             '@aws-amplify/backend-cli',
-            'aws-cdk@2.1.0', // updated
-            'aws-cdk-lib@2.0.0',
+            'aws-cdk-lib@2.1.0', // updated
             'constructs@^10.0.0',
             'typescript@^5.0.0',
             'tsx',
@@ -66,7 +64,6 @@ void describe('createAmplifyDepUpdater', () => {
           defaultDevPackages: [
             '@aws-amplify/backend',
             '@aws-amplify/backend-cli',
-            'aws-cdk@2.0.0',
             'aws-cdk-lib@2.0.0',
             'constructs@^10.0.0',
             'typescript@^5.0.0',
@@ -87,7 +84,7 @@ void describe('createAmplifyDepUpdater', () => {
   void it('successfully pins multiple new versions', async () => {
     await createAmplifyDepUpdater(
       [
-        { name: 'aws-cdk', version: '2.1.0' },
+        { name: 'aws-cdk-lib', version: '2.1.0' },
         { name: 'test-prod-package', version: '1.1.0' },
       ],
       ['aws-cdk', 'aws-cdk-lib', 'test-prod-package'],
@@ -101,8 +98,7 @@ void describe('createAmplifyDepUpdater', () => {
           defaultDevPackages: [
             '@aws-amplify/backend',
             '@aws-amplify/backend-cli',
-            'aws-cdk@2.1.0', // updated
-            'aws-cdk-lib@2.0.0',
+            'aws-cdk-lib@2.1.0', // updated
             'constructs@^10.0.0',
             'typescript@^5.0.0',
             'tsx',

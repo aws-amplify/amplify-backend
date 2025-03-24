@@ -1,4 +1,3 @@
-import { Toolkit } from '@aws-cdk/toolkit-lib';
 import { cdkCli } from '../../process-controller/process_controller.js';
 import { shortUuid } from '../../short_uuid.js';
 
@@ -19,10 +18,6 @@ export abstract class TestCdkProjectBase {
   }
 
   deploy = async () => {
-    // const toolkit = new Toolkit({});
-    // const cx = toolkit.
-    // await toolkit.deploy({
-    // })
     await cdkCli(
       [
         'deploy',

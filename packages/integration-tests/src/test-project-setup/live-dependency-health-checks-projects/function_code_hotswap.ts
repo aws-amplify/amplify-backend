@@ -55,7 +55,6 @@ export class FunctionCodeHotswapTestProjectCreator
         'install',
         '@aws-amplify/backend',
         '@aws-amplify/backend-cli',
-        'aws-cdk@^2',
         'aws-cdk-lib@^2',
         'constructs@^10.0.0',
         'typescript@^5.0.0',
