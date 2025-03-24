@@ -36,7 +36,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    printer.startSpinner('');
+    printer.startSpinner('Running seed...');
     const backendID = await this.backendIDResolver.resolve();
     const seedPath = path.join('amplify', 'seed', 'seed.ts');
     try {
