@@ -155,10 +155,11 @@ export class AmplifyAuth
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
-    this.userPool = new cognito.UserPool(this, `${this.name}UserPool`, {
-      ...this.computedUserPoolProps,
-      ...(this.name ? { userPoolName: this.name } : {}),
-    });
+    this.userPool = new cognito.UserPool(
+      this,
+      `${this.name}UserPool`,
+      this.computedUserPoolProps,
+    );
     /**
      * Configure custom email sender for Cognito User Pool
      * Grant necessary permissions for Lambda function to decrypt emails
@@ -629,6 +630,7 @@ export class AmplifyAuth
             )
           : undefined,
       customSenderKmsKey: this.customSenderKMSkey,
+      userPoolName: props.name || undefined,
     };
     return userPoolProps;
   };
