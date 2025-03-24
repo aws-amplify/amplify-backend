@@ -3062,4 +3062,30 @@ void describe('Auth construct', () => {
       assert.equal(name.startsWith(expectedPrefix), true);
     });
   });
+
+  void it('sets the correct userPoolName when name is provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customAuthName = 'CustomAuthName';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      name: customAuthName,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolName: customAuthName,
+    });
+  });
+
+  void it('uses empty string as userPoolName when name is not provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolName: '',
+    });
+  });
 });
