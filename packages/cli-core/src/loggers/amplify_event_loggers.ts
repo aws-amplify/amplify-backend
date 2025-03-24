@@ -21,7 +21,10 @@ export class AmplifyEventLogger {
   /**
    * a logger instance to be used for CDK events
    */
-  constructor(private readonly printer: Printer = globalPrinter) {}
+  constructor(
+    private readonly printer: Printer = globalPrinter,
+    private readonly amplifyIOEventsBridgeSingletonFactory: AmplifyIOEventsBridgeSingletonFactory,
+  ) {}
 
   getEventLoggers = () => {
     if (minimumLogLevel === LogLevel.DEBUG) {
@@ -105,6 +108,9 @@ export class AmplifyEventLogger {
       case 'SYNTH_FINISHED':
         this.printer.stopSpinner();
         break;
+      case 'DEPLOY_STARTED':
+        this.printer.stopSpinner();
+        break;
       case 'AMPLIFY_CFN_PROGRESS_UPDATE':
         if (!this.printer.isSpinnerRunning()) {
           this.printer.startSpinner('Deployment in progress...');
@@ -128,17 +134,6 @@ export class AmplifyEventLogger {
     if (msg.message.includes('Checking for previously published assets')) {
       if (!this.printer.isSpinnerRunning()) {
         this.printer.startSpinner('Building and publishing assets...');
-      }
-      return Promise.resolve();
-    } else if (
-      // CDK_TOOLKIT_I5221 when assets are published or when no publishing is required
-      msg.code === 'CDK_TOOLKIT_I5221' ||
-      msg.message.includes('0 still need to be published')
-    ) {
-      // We only want to display the success message once or if tty is not available
-      if (this.printer.isSpinnerRunning() || !this.printer.ttyEnabled) {
-        this.printer.stopSpinner();
-        this.printer.log(`${format.success('✔')} Built and published assets`);
       }
       return Promise.resolve();
     }
@@ -205,12 +200,24 @@ export class AmplifyEventLogger {
   fancyCfnDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
-    // Start deployment progress display
     // 5100 -> Deployment starts 7100 -> Destroy starts
     if (
       (msg.code === 'CDK_TOOLKIT_I5100' || msg.code === 'CDK_TOOLKIT_I7100') &&
       !this.cfnDeploymentProgressLogger
     ) {
+      if (msg.code === 'CDK_TOOLKIT_I5100') {
+        // Mark assets published. We use "deploy started" as a cue to mark that all assets have been published
+        await this.amplifyIOEventsBridgeSingletonFactory.getInstance().notify({
+          message: `Built and published assets`,
+          code: 'DEPLOY_STARTED',
+          action: 'amplify',
+          time: new Date(),
+          level: 'result',
+          data: undefined,
+        });
+      }
+
+      // Start deployment progress display
       this.cfnDeploymentProgressLogger = this.getNewCfnDeploymentProgressLogger(
         this.printer,
       );
@@ -264,6 +271,16 @@ export class AmplifyEventLogger {
   nonTtyCfnDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>,
   ): Promise<void> => {
+    if (msg.code === 'CDK_TOOLKIT_I5100') {
+      await this.amplifyIOEventsBridgeSingletonFactory.getInstance().notify({
+        message: `Built and published assets`,
+        code: 'DEPLOY_STARTED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'result',
+        data: undefined,
+      });
+    }
     if (msg.code === 'CDK_TOOLKIT_I5502') {
       // CDKs formatted cfn deployment progress
       this.printer.print(msg.message);
@@ -280,7 +297,7 @@ export class AmplifyEventLogger {
       rewritableBlock: new RewritableBlock(
         getBlockWidth,
         getBlockHeight,
-        new AmplifyIOEventsBridgeSingletonFactory(printer).getInstance(),
+        this.amplifyIOEventsBridgeSingletonFactory.getInstance(),
       ),
     });
   };
