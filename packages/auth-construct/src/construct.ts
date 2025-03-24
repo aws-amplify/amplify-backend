@@ -157,7 +157,7 @@ export class AmplifyAuth
 
     this.userPool = new cognito.UserPool(this, `${this.name}UserPool`, {
       ...this.computedUserPoolProps,
-      userPoolName: this.name,
+      ...(this.name ? { userPoolName: this.name } : {}),
     });
     /**
      * Configure custom email sender for Cognito User Pool

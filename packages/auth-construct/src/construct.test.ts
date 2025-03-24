@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack, aws_cognito } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -3085,7 +3085,7 @@ void describe('Auth construct', () => {
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
-      UserPoolName: '',
+      UserPoolName: Match.absent(),
     });
   });
 });
