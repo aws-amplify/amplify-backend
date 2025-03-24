@@ -3,8 +3,6 @@ import * as auth from 'aws-amplify/auth';
 import type { Schema } from './../data/resource.js';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
-// @ts-ignore this file will not exist until sandbox is created
-// import outputs from '../../amplify_outputs.json';
 import { SemVer } from 'semver';
 import crypto from 'node:crypto';
 import path from 'node:path';
