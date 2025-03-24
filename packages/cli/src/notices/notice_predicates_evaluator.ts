@@ -1,6 +1,9 @@
 import { Notice } from '@aws-amplify/cli-core';
 import semver from 'semver';
-import { PackageManagerController } from '@aws-amplify/plugin-types';
+import {
+  Dependency,
+  PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import { hideBin } from 'yargs/helpers';
 import { NoticesRendererParams } from './notices_renderer.js';
 
@@ -8,6 +11,8 @@ import { NoticesRendererParams } from './notices_renderer.js';
  * Evaluates notice predicates.
  */
 export class NoticePredicatesEvaluator {
+  private dependencies: Array<Dependency> | undefined;
+
   /**
    * Creates notice predicates evaluator.
    */
@@ -102,8 +107,7 @@ export class NoticePredicatesEvaluator {
     packageName: string,
     versionRange: string,
   ): Promise<boolean> => {
-    const dependencies =
-      await this.packageManagerController.tryGetDependencies();
+    const dependencies = await this.tryGetDependencies();
     if (dependencies) {
       const matchingPackage = dependencies.find(
         (dependency) =>
@@ -113,5 +117,13 @@ export class NoticePredicatesEvaluator {
       return matchingPackage !== undefined;
     }
     return false;
+  };
+
+  private tryGetDependencies = async () => {
+    if (!this.dependencies) {
+      this.dependencies =
+        await this.packageManagerController.tryGetDependencies();
+    }
+    return this.dependencies;
   };
 }
