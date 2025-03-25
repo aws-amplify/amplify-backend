@@ -13,7 +13,7 @@ const pathSchema = z.record(
   z.object({
     guest: z.array(storageAccessActionEnum).optional(),
     authenticated: z.array(storageAccessActionEnum).optional(),
-    groups: z.array(storageAccessActionEnum).optional(),
+    groups: z.record(z.string(), z.array(storageAccessActionEnum).optional()),
     entity: z.array(storageAccessActionEnum).optional(),
     resource: z.array(storageAccessActionEnum).optional(),
   }),
