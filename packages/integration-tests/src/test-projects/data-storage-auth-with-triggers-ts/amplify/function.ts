@@ -1,5 +1,8 @@
 import { defineFunction, secret } from '@aws-amplify/backend';
 import { amplifySharedSecretNameKey } from '../../../shared_secret.js';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export const defaultNodeFunc = defineFunction({
   name: 'defaultNodeFunction',
@@ -34,3 +37,22 @@ export const onUpload = defineFunction({
   name: 'onUpload',
   entry: './func-src/handler.ts',
 });
+
+export const customAPIFunction = defineFunction(
+  (scope) => {
+    return new NodejsFunction(scope, 'customAPIFunction', {
+      entry: path.resolve(
+        fileURLToPath(import.meta.url),
+        '..',
+        'func-src',
+        'handler_customAPIFunction.ts',
+      ),
+      environment: {
+        TEST_ENV: 'test env value',
+      },
+    });
+  },
+  {
+    resourceGroupName: 'data',
+  },
+);
