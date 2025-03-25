@@ -256,7 +256,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(customAPIFunction[0], {
-      graphqlEndpoint: this.secretClient.getSecret(backendId, {
+      graphqlEndpoint: await this.secretClient.getSecret(backendId, {
         name: dataUrl,
       }),
       testSecret: 'amazonSecret-e2eTestValue',
