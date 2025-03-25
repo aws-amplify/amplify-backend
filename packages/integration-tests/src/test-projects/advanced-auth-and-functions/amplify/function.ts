@@ -28,6 +28,16 @@ export const funcNoMinify = defineFunction({
   },
 });
 
+console.log(
+  'rotp' +
+    path.resolve(
+      fileURLToPath(import.meta.url),
+      '..',
+      'func-src',
+      'handler_provider.ts',
+    ),
+);
+
 export const funcProvided = defineFunction((scope) => {
   return new NodejsFunction(scope, 'funcProvided', {
     entry: path.resolve(
