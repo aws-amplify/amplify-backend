@@ -4,6 +4,7 @@
 '@aws-amplify/platform-core': patch
 '@aws-amplify/sandbox': patch
 '@aws-amplify/backend-cli': patch
+'create-amplify': patch
 ---
 
 remove cdk cli dependency
