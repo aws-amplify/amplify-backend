@@ -3,6 +3,7 @@ import {
   AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   BackendSecret,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -13,10 +14,12 @@ import {
 import { Construct } from 'constructs';
 import { CfnFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
-import { Tags } from 'aws-cdk-lib';
+import { Lazy, Tags } from 'aws-cdk-lib';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyFunctionBase } from './function_construct_base.js';
 import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
+import { SsmEnvVars } from './function_env_translator.js';
+import { amplifySsmEnvConfigKey } from './constants.js';
 
 export type ProvidedFunctionProps = {
   /**
@@ -72,7 +75,10 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
     this.resourceGroupName = props?.resourceGroupName ?? 'function';
   }
 
-  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     let providedFunction: IFunction;
     try {
       providedFunction = this.functionProvider(scope);
@@ -108,6 +114,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
       `${providedFunction.node.id}-provided`,
       this.outputStorageStrategy,
       providedFunction,
+      backendSecretResolver,
     );
   };
 }
@@ -115,11 +122,14 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
 class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   readonly resources: FunctionResources;
   private readonly cfnFunction: CfnFunction;
+  private readonly envVars: Record<string, string> = {};
+  private readonly ssmEnvVars: SsmEnvVars = {};
   constructor(
     scope: Construct,
     id: string,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
     providedFunction: IFunction,
+    private readonly backendSecretResolver: BackendSecretResolver,
   ) {
     super(scope, id, outputStorageStrategy);
 
@@ -130,6 +140,31 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
     Tags.of(this.cfnFunction).add(
       TagName.FRIENDLY_NAME,
       providedFunction.node.id,
+    );
+
+    const currentEnvVars = this.cfnFunction.environment;
+
+    this.cfnFunction.addPropertyOverride(
+      'Environment.Variables',
+      Lazy.any({
+        produce: () => {
+          if (
+            currentEnvVars &&
+            'variables' in currentEnvVars &&
+            isStringRecord(currentEnvVars.variables)
+          ) {
+            return {
+              ...currentEnvVars.variables,
+              ...this.envVars,
+              [amplifySsmEnvConfigKey]: JSON.stringify(this.ssmEnvVars),
+            };
+          }
+          return {
+            ...this.envVars,
+            [amplifySsmEnvConfigKey]: JSON.stringify(this.ssmEnvVars),
+          };
+        },
+      }),
     );
 
     this.resources = {
@@ -143,24 +178,34 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   }
 
   addEnvironment = (key: string, value: string | BackendSecret) => {
-    const currentEnvVars = this.cfnFunction.environment;
-    const newValue =
-      typeof value === 'string'
-        ? value
-        : '<value will be resolved during runtime>';
-    let combinedEnvVars;
-    if (currentEnvVars && 'variables' in currentEnvVars) {
-      combinedEnvVars = {
-        ...(currentEnvVars.variables || {}),
-        [key]: newValue,
+    if (key === amplifySsmEnvConfigKey) {
+      throw new Error(
+        `${amplifySsmEnvConfigKey} is a reserved environment variable name`,
+      );
+    }
+    if (typeof value === 'string') {
+      this.envVars[key] = value;
+    } else {
+      this.envVars[key] = '<value will be resolved during runtime>';
+      const { branchSecretPath, sharedSecretPath } =
+        this.backendSecretResolver.resolvePath(value);
+      this.ssmEnvVars[key] = {
+        path: branchSecretPath,
+        sharedPath: sharedSecretPath,
       };
     }
-    this.cfnFunction.addPropertyOverride(
-      'Environment.Variables',
-      combinedEnvVars ?? { [key]: newValue },
-    );
   };
 
   getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
     new FunctionResourceAccessAcceptor(this);
 }
+
+const isStringRecord = (value: unknown): value is Record<string, string> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.keys(value).every(
+      (key) => typeof (value as Record<string, unknown>)[key] === 'string',
+    )
+  );
+};

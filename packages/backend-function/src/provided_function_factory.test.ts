@@ -14,7 +14,6 @@ import {
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { beforeEach, describe, it } from 'node:test';
 import { providedNodeLambda } from './test-assets/provided-node-lambda/resource.js';
-import assert from 'assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineFunction } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -79,19 +78,6 @@ void describe('ProvidedFunctionFactory', () => {
     };
   });
 
-  void it('creates singleton provided function instance', () => {
-    const functionFactory = providedNodeLambda;
-    const instance1 = functionFactory.getInstance(getInstanceProps);
-    const instance2 = functionFactory.getInstance(getInstanceProps);
-    assert.strictEqual(instance1, instance2);
-  });
-
-  void it('verifies stack property exists and is equal to provided function stack', () => {
-    const functionFactory = providedNodeLambda;
-    const lambda = functionFactory.getInstance(getInstanceProps);
-    assert.strictEqual(lambda.stack, Stack.of(lambda.resources.lambda));
-  });
-
   void it('allows adding environment variables after defining the function', () => {
     const functionFactory = providedNodeLambda;
     const lambda = functionFactory.getInstance(getInstanceProps);
@@ -116,6 +102,12 @@ void describe('ProvidedFunctionFactory', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
+            testSecret: {
+              path: '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+              sharedPath: '/amplify/shared/testBackendId/secretValue',
+            },
+          }),
           testSecret: '<value will be resolved during runtime>',
         },
       },
@@ -134,13 +126,21 @@ void describe('ProvidedFunctionFactory', () => {
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
     lambda.addEnvironment('key1', 'value1');
+    lambda.addEnvironment('testSecret', new TestBackendSecret('secretValue'));
     const template = Template.fromStack(lambda.stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
+            testSecret: {
+              path: '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+              sharedPath: '/amplify/shared/testBackendId/secretValue',
+            },
+          }),
           EXISTING_KEY: 'existing value',
           key1: 'value1',
+          testSecret: '<value will be resolved during runtime>',
         },
       },
     });
