@@ -92,7 +92,12 @@ export const internalAmplifyFunctionResolveSsmParams = async (
   const response = await resolveSecrets(paths);
 
   const sharedPaths = (response?.InvalidParameters || [])
-    .map((invalidParam) => envPathObject[invalidParam].sharedPath)
+    .map(
+      (invalidParam) =>
+        Object.values(envPathObject).find(
+          (paths) => paths.path === invalidParam,
+        )?.sharedPath,
+    )
     .filter((sharedParam) => !!sharedParam) as string[]; // this assertion is safe because we are filtering out undefined
 
   if (sharedPaths.length > 0) {
