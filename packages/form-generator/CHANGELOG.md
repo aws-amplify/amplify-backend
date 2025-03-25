@@ -1,5 +1,15 @@
 # @aws-amplify/form-generator
 
+## 1.1.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 29a6167: Bumps [@graphql-codegen/typescript](https://github.com/dotansimha/graphql-code-generator/tree/HEAD/packages/plugins/typescript/typescript) from 2.8.8 to 4.1.5.
+
 ## 1.0.5
 
 ### Patch Changes

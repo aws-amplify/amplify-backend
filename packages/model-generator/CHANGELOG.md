@@ -1,5 +1,22 @@
 # @aws-amplify/model-generator
 
+## 1.1.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [0cc2de3]
+- Updated dependencies [b2f9042]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/deployed-backend-client@1.6.0
+  - @aws-amplify/platform-core@1.7.0
+  - @aws-amplify/backend-output-schemas@1.5.0
+
 ## 1.0.13
 
 ### Patch Changes

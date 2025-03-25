@@ -1,5 +1,21 @@
 # @aws-amplify/backend-auth
 
+## 1.6.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [abb4cb7]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/auth-construct@1.7.0
+  - @aws-amplify/backend-output-storage@1.2.0
+  - @aws-amplify/backend-output-schemas@1.5.0
+
 ## 1.5.1
 
 ### Patch Changes
