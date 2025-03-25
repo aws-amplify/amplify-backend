@@ -1,5 +1,24 @@
 # @aws-amplify/cli-core
 
+## 2.0.0
+
+### Major Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- f9f31c7: fix pretty sandbox qa bugs
+- f0d501e: reroute stderr through printer and ensure printing is done around spinners
+- f62a1fd: After clearing console, move the cursor to the top of terminal
+- e4383ec: Use deployment started as a marker for assets published
+- 1d2b36f: Move the spinner between timestamp and spinner text
+- 1d2b36f: Updates to pretty sandbox display
+- Updated dependencies [8f59d16]
+- Updated dependencies [0cc2de3]
+- Updated dependencies [b2f9042]
+  - @aws-amplify/platform-core@1.7.0
+
 ## 1.4.1
 
 ### Patch Changes
