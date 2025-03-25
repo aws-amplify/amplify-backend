@@ -24,7 +24,6 @@ import {
 } from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import isMatch from 'lodash.ismatch';
-import { generateClientConfig } from '@aws-amplify/client-config';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -213,14 +212,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
-    const clientConfig = await generateClientConfig(backendId, '1.1');
-    if (!clientConfig.data?.url) {
-      throw new Error(
-        'Data storage auth with triggers project must include data',
-      );
-    }
-    const dataUrl = clientConfig.data?.url;
-
     // Check that deployed lambda is working correctly
 
     // find lambda function
@@ -236,15 +227,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('node16Function'),
     );
 
-    const customAPIFunction = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes('customAPIFunction'),
-    );
-
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
-    assert.equal(customAPIFunction.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -255,12 +239,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
-    await this.checkLambdaResponse(customAPIFunction[0], {
-      graphqlEndpoint: await this.secretClient.getSecret(backendId, {
-        name: dataUrl,
-      }),
-      testSecret: 'amazonSecret-e2eTestValue',
-    });
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,

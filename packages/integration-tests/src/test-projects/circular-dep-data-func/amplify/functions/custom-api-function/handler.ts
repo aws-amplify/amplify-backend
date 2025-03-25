@@ -81,8 +81,10 @@ const resolveSsmParams = async (client?: SSM) => {
   }
 };
 
+const ssmClient = new SSM();
+
 export const handler = async () => {
-  await resolveSsmParams();
+  await resolveSsmParams(ssmClient);
   return {
     graphqlEndpoint: process.env.GRAPHQL_ENDPOINT,
     testSecret: process.env.TEST_SECRET,

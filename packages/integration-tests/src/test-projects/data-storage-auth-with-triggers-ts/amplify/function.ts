@@ -37,32 +37,3 @@ export const onUpload = defineFunction({
   name: 'onUpload',
   entry: './func-src/handler.ts',
 });
-
-console.log(
-  'rotp' +
-    path.resolve(
-      fileURLToPath(import.meta.url),
-      '..',
-      'func-src',
-      'handler_provider.ts',
-    ),
-);
-
-export const customAPIFunction = defineFunction(
-  (scope) => {
-    return new NodejsFunction(scope, 'customAPIFunction', {
-      entry: path.resolve(
-        fileURLToPath(import.meta.url),
-        '..',
-        'func-src',
-        'handler_provided.ts',
-      ),
-      environment: {
-        TEST_ENV: 'test env value',
-      },
-    });
-  },
-  {
-    resourceGroupName: 'data',
-  },
-);
