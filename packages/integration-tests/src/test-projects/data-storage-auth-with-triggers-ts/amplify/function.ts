@@ -1,8 +1,5 @@
 import { defineFunction, secret } from '@aws-amplify/backend';
 import { amplifySharedSecretNameKey } from '../../../shared_secret.js';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 export const defaultNodeFunc = defineFunction({
   name: 'defaultNodeFunction',
