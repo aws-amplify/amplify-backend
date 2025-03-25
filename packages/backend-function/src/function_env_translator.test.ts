@@ -114,11 +114,10 @@ void describe('FunctionEnvironmentTranslator', () => {
       Environment: {
         Variables: {
           AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
-            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
-              {
-                name: 'TEST_SECRET',
-                sharedPath: '/amplify/shared/testBackendId/secretValue',
-              },
+            TEST_SECRET: {
+              path: '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+              sharedPath: '/amplify/shared/testBackendId/secretValue',
+            },
           }),
           TEST_SECRET: '<value will be resolved during runtime>',
           TEST_VAR: 'testValue',

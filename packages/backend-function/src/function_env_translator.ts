@@ -8,6 +8,10 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  amplifySsmEnvConfigKey,
+  ssmValuePlaceholderText,
+} from './constants.js';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
@@ -16,10 +20,6 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 export class FunctionEnvironmentTranslator {
   private readonly ssmPaths: string[] = [];
   private readonly ssmEnvVars: SsmEnvVars = {};
-
-  private readonly amplifySsmEnvConfigKey = 'AMPLIFY_SSM_ENV_CONFIG';
-  private readonly ssmValuePlaceholderText =
-    '<value will be resolved during runtime>';
 
   // List of environment variable names for typed shim generation
   private readonly amplifyBackendEnvVarNames: string[] = [];
@@ -39,7 +39,7 @@ export class FunctionEnvironmentTranslator {
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
     this.lambda.addEnvironment(
-      this.amplifySsmEnvConfigKey,
+      amplifySsmEnvConfigKey,
       Lazy.string({
         produce: () => JSON.stringify(this.ssmEnvVars),
       }),
@@ -88,31 +88,29 @@ export class FunctionEnvironmentTranslator {
    * @param value envVar value that can be a plain text or a secret
    */
   addEnvironmentEntry = (key: string, value: string | BackendSecret) => {
-    {
-      if (key === this.amplifySsmEnvConfigKey) {
-        throw new Error(
-          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`,
-        );
-      }
-      if (typeof value === 'undefined') {
-        throw new AmplifyUserError('InvalidFunctionConfigurationError', {
-          message: `The value of environment variable ${key} is undefined.`,
-          resolution: `Ensure that all defineFunction environment variables are defined.`,
-        });
-      } else if (typeof value === 'string') {
-        this.lambda.addEnvironment(key, value);
-      } else {
-        const { branchSecretPath, sharedSecretPath } =
-          this.backendSecretResolver.resolvePath(value);
-        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
-        this.ssmEnvVars[branchSecretPath] = {
-          name: key,
-          sharedPath: sharedSecretPath,
-        };
-        this.ssmPaths.push(branchSecretPath, sharedSecretPath);
-      }
-      this.amplifyBackendEnvVarNames.push(key);
+    if (key === amplifySsmEnvConfigKey) {
+      throw new Error(
+        `${amplifySsmEnvConfigKey} is a reserved environment variable name`,
+      );
     }
+    if (typeof value === 'undefined') {
+      throw new AmplifyUserError('InvalidFunctionConfigurationError', {
+        message: `The value of environment variable ${key} is undefined.`,
+        resolution: `Ensure that all defineFunction environment variables are defined.`,
+      });
+    } else if (typeof value === 'string') {
+      this.lambda.addEnvironment(key, value);
+    } else {
+      const { branchSecretPath, sharedSecretPath } =
+        this.backendSecretResolver.resolvePath(value);
+      this.lambda.addEnvironment(key, ssmValuePlaceholderText);
+      this.ssmEnvVars[key] = {
+        path: branchSecretPath,
+        sharedPath: sharedSecretPath,
+      };
+      this.ssmPaths.push(branchSecretPath, sharedSecretPath);
+    }
+    this.amplifyBackendEnvVarNames.push(key);
   };
 
   /**
@@ -121,9 +119,9 @@ export class FunctionEnvironmentTranslator {
    * @param ssmPath The SSM path where the value is stored
    */
   addSsmEnvironmentEntry = (name: string, ssmPath: string) => {
-    this.lambda.addEnvironment(name, this.ssmValuePlaceholderText);
+    this.lambda.addEnvironment(name, ssmValuePlaceholderText);
     this.ssmPaths.push(ssmPath);
-    this.ssmEnvVars[ssmPath] = { name };
+    this.ssmEnvVars[name] = { path: ssmPath };
     this.amplifyBackendEnvVarNames.push(name);
   };
 }
@@ -133,13 +131,13 @@ export class FunctionEnvironmentTranslator {
  */
 export type SsmEnvVars = {
   /**
-   * The record key names are the branch-specific SSM paths to fetch the value from
+   * The environment variable name to place the resolved value in
    */
-  [branchPath: string]: {
+  [name: string]: {
     /**
-     * The environment variable name to place the resolved value in
+     * The record key names are the branch/sandbox specific SSM paths to fetch the value from
      */
-    name: string;
+    path: string;
     /**
      * An optional "fallback" SSM path where the value will be looked up if not found at the branch-specific path
      */

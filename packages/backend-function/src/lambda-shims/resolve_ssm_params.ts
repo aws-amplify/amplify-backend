@@ -13,7 +13,7 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
   const envPathObject: SsmEnvVars = JSON.parse(
     process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}',
   );
-  const paths = Object.keys(envPathObject);
+  const paths = Object.values(envPathObject).map((paths) => paths.path);
 
   if (paths.length === 0) {
     return;
@@ -62,12 +62,13 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
       for (const parameter of response.Parameters) {
         if (parameter.Name) {
           const envKey = Object.keys(envPathObject).find(
-            (key) => envPathObject[key].sharedPath === parameter.Name,
+            (key) =>
+              envPathObject[key].sharedPath === parameter.Name ||
+              envPathObject[key].path === parameter.Name,
           );
-          const envName = envKey
-            ? envPathObject[envKey].name
-            : envPathObject[parameter.Name]?.name;
-          process.env[envName] = parameter.Value;
+          if (envKey) {
+            process.env[envKey] = parameter.Value;
+          }
         }
       }
     }
