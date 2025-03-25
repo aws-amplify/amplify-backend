@@ -1,6 +1,8 @@
 import { defineFunction, secret } from '@aws-amplify/backend';
 import { amplifySharedSecretNameKey } from '../../../shared_secret.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const defaultNodeFunc = defineFunction({
   name: 'defaultNodeFunction',
@@ -39,8 +41,12 @@ export const onUpload = defineFunction({
 export const customAPIFunction = defineFunction(
   (scope) => {
     return new NodejsFunction(scope, 'customAPIFunction', {
-      entry:
-        './packages/integration-tests/src/test-projects/data-storage-auth-with-triggers-ts/amplify/func-src/handler_customAPIFunction.ts',
+      entry: path.resolve(
+        fileURLToPath(import.meta.url),
+        '..',
+        'func-src',
+        'handler_provided.ts',
+      ),
       environment: {
         TEST_ENV: 'test env value',
       },
