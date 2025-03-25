@@ -104,10 +104,18 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
 
   override async deploy(
     backendIdentifier: BackendIdentifier,
-    environment: Record<string, string> = {},
+    environment?: Record<string, string>,
   ): Promise<void> {
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, environment);
+  }
+
+  override async tearDown(
+    backendIdentifier: BackendIdentifier,
+    waitForStackDeletion?: boolean,
+  ): Promise<void> {
+    await super.tearDown(backendIdentifier, waitForStackDeletion);
+    await this.clearDeployEnvironment(backendIdentifier);
   }
 
   override async assertPostDeployment(
@@ -132,9 +140,7 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
     assert.equal(customAPIFunction.length, 1);
 
     await this.checkLambdaResponse(customAPIFunction[0], {
-      graphqlEndpoint: await this.secretClient.getSecret(backendId, {
-        name: dataUrl,
-      }),
+      graphqlEndpoint: dataUrl,
       testSecret: 'amazonSecret-e2eTestValue',
     });
   }
@@ -145,6 +151,15 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
     for (const secretName of this.testSecretNames) {
       const secretValue = `${secretName}-e2eTestValue`;
       await this.secretClient.setSecret(backendId, secretName, secretValue);
+    }
+  };
+
+  private clearDeployEnvironment = async (
+    backendId: BackendIdentifier,
+  ): Promise<void> => {
+    // clear secrets
+    for (const secretName of this.testSecretNames) {
+      await this.secretClient.removeSecret(backendId, secretName);
     }
   };
 
