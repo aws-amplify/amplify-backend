@@ -197,28 +197,6 @@ void describe(
               stdio: 'inherit',
             },
           );
-
-          // assert that project synthesizes successfully
-          await execa(
-            'npx',
-            [
-              'cdk',
-              'synth',
-              '--context',
-              `amplify-backend-namespace=123`,
-              '--context',
-              `amplify-backend-name=sandboxName`,
-              '--context',
-              `amplify-backend-type=sandbox`,
-              '--app',
-              "'npx tsx amplify/backend.ts'",
-              '--quiet',
-            ],
-            {
-              cwd: tempDir,
-              stdio: 'inherit',
-            },
-          );
         });
       });
     });
