@@ -22,7 +22,7 @@ export class AmplifyIOEventsBridgeSingletonFactory {
    */
   getInstance = (): AmplifyIOHost => {
     if (!AmplifyIOEventsBridgeSingletonFactory.instance) {
-      const cdkEventLogger = new AmplifyEventLogger(this.printer);
+      const cdkEventLogger = new AmplifyEventLogger(this.printer, this);
       AmplifyIOEventsBridgeSingletonFactory.instance =
         new AmplifyIOEventsBridge(
           cdkEventLogger.getEventLoggers(),
