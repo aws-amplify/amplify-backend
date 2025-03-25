@@ -108,11 +108,11 @@ void describe('sandbox seed command', () => {
     void it('runs seed if seed script is found', async () => {
       const output = await commandRunner.runCommand('sandbox seed');
 
-      const cleanedOutput = output.trimEnd().trimStart();
+      const successMessage = output.trimEnd().split('\n')[2].trimStart();
 
       assert.ok(output !== undefined);
       assert.deepStrictEqual(
-        cleanedOutput,
+        successMessage,
         '✔ seed has successfully completed',
       );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
