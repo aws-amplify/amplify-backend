@@ -26,7 +26,7 @@ const stubClientProvider = {
 };
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
-    void it('transforms backend output into client config for V1.3', async () => {
+    void it('transforms backend output into client config for V1.4', async () => {
       const groups = [
         {
           ADMINS: {
@@ -103,7 +103,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors,
@@ -154,7 +154,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           output1: 'val1',
           output2: 'val2',
         },
-        version: '1.3',
+        version: '1.4',
       };
 
       assert.deepStrictEqual(result, expectedClientConfig);
@@ -540,7 +540,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3'); //Generate with new configuration format
+      ).getContributors('1.4'); //Generate with new configuration format
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors,
@@ -572,7 +572,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           output1: 'val1',
           output2: 'val2',
         },
-        version: '1.3', // The max version prevails
+        version: '1.4', // The max version prevails
       };
 
       assert.deepStrictEqual(result, expectedClientConfig);
@@ -611,7 +611,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -643,7 +643,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -675,7 +675,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -705,7 +705,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -771,7 +771,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -804,7 +804,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter,
-      ).getContributors('1.3');
+      ).getContributors('1.4');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,

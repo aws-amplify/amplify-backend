@@ -77,7 +77,7 @@ export class ClientConfigContributorFactory {
         new Custom1_1(),
       ],
 
-      // Legacy config is derived from V1.3 (latest) of unified default config
+      // Legacy config is derived from V1.4 (latest) of unified default config
       [ClientConfigVersionOption.V0]: [
         new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),

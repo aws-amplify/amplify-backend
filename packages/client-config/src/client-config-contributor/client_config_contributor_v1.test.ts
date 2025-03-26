@@ -706,6 +706,6 @@ void describe('Custom client config contributor v1', () => {
 
 void describe('Custom client config contributor v1', () => {
   void it('contributes the version correctly', () => {
-    assert.deepEqual(new VersionContributor().contribute(), { version: '1.3' });
+    assert.deepEqual(new VersionContributor().contribute(), { version: '1.4' });
   });
 });
