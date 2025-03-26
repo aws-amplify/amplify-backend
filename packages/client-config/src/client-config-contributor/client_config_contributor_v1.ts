@@ -25,8 +25,7 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 /**
  * Translator for the version number of ClientConfig of V1.4
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export class VersionContributorV1_4 implements ClientConfigContributor {
+export class VersionContributor implements ClientConfigContributor {
   /**
    * Return the version of the schema types that this contributor uses
    */
@@ -38,7 +37,8 @@ export class VersionContributorV1_4 implements ClientConfigContributor {
 /**
  * Translator for the version number of ClientConfig of V1.3
  */
-export class VersionContributor implements ClientConfigContributor {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_3 implements ClientConfigContributor {
   /**
    * Return the version of the schema types that this contributor uses
    */
@@ -476,9 +476,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
  * Translator for the Storage portion of ClientConfig in V1.4
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class StorageClientConfigContributorV1_4
-  implements ClientConfigContributor
-{
+export class StorageClientConfigContributor implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */
@@ -525,7 +523,9 @@ export class StorageClientConfigContributorV1_4
  * Translator for the Storage portion of ClientConfig in V1.2
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class StorageClientConfigContributor implements ClientConfigContributor {
+export class StorageClientConfigContributorV1_2
+  implements ClientConfigContributor
+{
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */
