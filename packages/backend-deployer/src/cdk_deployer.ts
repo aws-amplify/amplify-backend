@@ -12,7 +12,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyError,
-  AmplifyUserError,
+  AmplifyFault,
   BackendLocator,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -148,18 +148,18 @@ export class CDKDeployer implements BackendDeployer {
     // Perform actual deployment. CFN or hotswap
     const deployStartTime = Date.now();
     try {
-      // await this.cdkToolkit.deploy(synthAssembly!, {
-      //   stacks: {
-      //     strategy: StackSelectionStrategy.ALL_STACKS,
-      //   },
-      //   hotswap:
-      //     backendId.type === 'sandbox'
-      //       ? HotswapMode.FALL_BACK
-      //       : HotswapMode.FULL_DEPLOYMENT,
-      //   ci: backendId.type !== 'sandbox',
-      //   requireApproval:
-      //     backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
-      // });
+      await this.cdkToolkit.deploy(synthAssembly!, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+        hotswap:
+          backendId.type === 'sandbox'
+            ? HotswapMode.FALL_BACK
+            : HotswapMode.FULL_DEPLOYMENT,
+        ci: backendId.type !== 'sandbox',
+        requireApproval:
+          backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
+      });
     } catch (error) {
       throw this.cdkErrorMapper.getAmplifyError(error as Error);
     }
@@ -189,6 +189,28 @@ export class CDKDeployer implements BackendDeployer {
         totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
       },
     };
+  };
+
+  compileProject = (projectDirectory: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(new URL('ts_compiler.js', import.meta.url), {
+        workerData: { projectDirectory },
+      });
+      worker.on('message', () => {
+        // do nothing
+      });
+      worker.on('error', reject);
+      worker.on('exit', (code) => {
+        if (code !== 0) {
+          reject(
+            new AmplifyFault('TSCompilerWorkerFault', {
+              message: `Worker stopped with exit code ${code}`,
+            }),
+          );
+        }
+        resolve();
+      });
+    });
   };
 
   /**
@@ -227,23 +249,5 @@ export class CDKDeployer implements BackendDeployer {
       },
       { context: contextParams, outdir: this.absoluteCloudAssemblyLocation },
     );
-  };
-
-  private compileProject = (projectDirectory: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const worker = new Worker(new URL('ts_compiler.js', import.meta.url), {
-        workerData: { projectDirectory },
-      });
-      worker.on('message', () => {
-        // do nothing
-      });
-      worker.on('error', reject);
-      worker.on('exit', (code) => {
-        if (code !== 0) {
-          reject(new Error(`Worker stopped with exit code ${code}`));
-        }
-        resolve();
-      });
-    });
   };
 }

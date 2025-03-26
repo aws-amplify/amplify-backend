@@ -1,12 +1,13 @@
 import ts from 'typescript';
-import * as fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { workerData } from 'worker_threads';
-const { projectDirectory } = workerData;
 
-// Function to compile TypeScript project using Compiler API
-const compileProject = () => {
+/**
+ * Function to compile TypeScript project using Compiler API
+ */
+export const compileProject = (projectDirectory: string) => {
   // Resolve the path to the tsconfig.json
   const configPath = path.resolve(projectDirectory, 'tsconfig.json');
   if (!fs.existsSync(configPath)) {
@@ -14,10 +15,7 @@ const compileProject = () => {
   }
 
   // Read and parse tsconfig.json
-  const configFile = ts.readConfigFile(
-    configPath,
-    ts.sys.readFile,
-  );
+  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
   if (configFile.error) {
     throw new AmplifyUserError('SyntaxError', {
       message: 'Failed to parse tsconfig.json.',
@@ -36,8 +34,8 @@ const compileProject = () => {
   const tsBuildInfoFile = path.resolve(
     projectDirectory,
     '..',
-    //'.amplify',
-    '.tsbuildinfo',
+    '.amplify',
+    'tsconfig.tsbuildinfo',
   );
   // Modify compiler options to match the command line options
   parsedCommandLine.options.skipLibCheck = true;
@@ -67,7 +65,7 @@ const compileProject = () => {
 
   // Have to call emit to generate the tsBuildInfo, it won't generate .js or .d.ts since noEmit is true
   tsProgram.emit();
-  let diagnostics = ts.getPreEmitDiagnostics(tsProgram.getProgram());
+  const diagnostics = ts.getPreEmitDiagnostics(tsProgram.getProgram());
 
   // Report any errors
   if (diagnostics.length > 0) {
@@ -82,4 +80,8 @@ const compileProject = () => {
     });
   }
 };
-compileProject();
+
+// If the request comes from a parent, execute it right away
+if (workerData?.projectDirectory) {
+  compileProject(workerData.projectDirectory);
+}

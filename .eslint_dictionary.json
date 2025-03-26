@@ -191,6 +191,7 @@
   "tokenized",
   "totp",
   "tsbuildinfo",
+  "tsc",
   "tsconfig",
   "tsdoc",
   "tslint",
