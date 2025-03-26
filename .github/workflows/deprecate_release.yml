@@ -24,7 +24,7 @@ on:
       packagesToSkip:
         required: false
         type: string
-        default: []
+        default: '[]'
         description: |
           JSON array with packages to skip. Empty by default.
 
