@@ -17,7 +17,7 @@ if (existsSync(LOG_FILE)) {
   await unlink(LOG_FILE);
 }
 // start the server in a detached process
-await execaCommand(`verdaccio -c verdaccio.config.yaml &>${LOG_FILE} &`, {
+await execaCommand(`npx verdaccio -c verdaccio.config.yaml &>${LOG_FILE} &`, {
   shell: 'bash',
 });
 
