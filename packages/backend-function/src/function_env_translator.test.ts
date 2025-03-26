@@ -163,7 +163,7 @@ void describe('FunctionEnvironmentTranslator', () => {
           new FunctionEnvironmentTypeGenerator(testLambdaName),
         ),
       {
-        name: 'ReservedFunctionEnvironmentVariableError',
+        name: 'FunctionReservedEnvironmentVariableError',
       },
     );
   });

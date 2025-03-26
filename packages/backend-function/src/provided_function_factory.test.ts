@@ -223,7 +223,7 @@ void describe('ProvidedFunctionFactory', () => {
     const lambda = functionFactory.getInstance(getInstanceProps);
 
     assert.throws(() => lambda.addEnvironment(amplifySsmEnvConfigKey, 'test'), {
-      name: 'ReservedFunctionEnvironmentVariableError',
+      name: 'CustomFunctionProviderReservedEnvironmentVariableError',
     });
   });
 });
