@@ -1,6 +1,5 @@
 import process from 'node:process';
-import ts from 'typescript';
-import * as fs from 'fs';
+
 import {
   BackendDeployer,
   DeployProps,
@@ -28,6 +27,7 @@ import { tsImport } from 'tsx/esm/api';
 import { CloudAssembly } from 'aws-cdk-lib/cx-api';
 import { pathToFileURL } from 'url';
 import { AssetStaging } from 'aws-cdk-lib/core';
+import { Worker } from 'node:worker_threads';
 
 /**
  * Invokes CDK command via execa
@@ -110,7 +110,7 @@ export class CDKDeployer implements BackendDeployer {
 
     if (deployProps?.validateAppSources) {
       try {
-        this.compileProject(path.dirname(this.backendLocator.locate()));
+        await this.compileProject(path.dirname(this.backendLocator.locate()));
       } catch (typeError) {
         if (
           synthError &&
@@ -229,59 +229,21 @@ export class CDKDeployer implements BackendDeployer {
     );
   };
 
-  // Function to compile TypeScript project using Compiler API
-  private compileProject = async (projectDirectory: string) => {
-    return new Promise<void>((resolve, reject) => {
-      // Resolve the path to the tsconfig.json
-      const configPath = path.resolve(projectDirectory, 'tsconfig.json');
-      if (!fs.existsSync(configPath)) {
-        // Not a typescript project, turn off TS compilation
-        resolve();
-      }
-      // Read and parse tsconfig.json
-      const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
-      if (configFile.error) {
-        reject(
-          new AmplifyUserError('SyntaxError', {
-            message: 'Failed to parse tsconfig.json.',
-            resolution:
-              'Fix the syntax and type errors in your tsconfig.json file.',
-            details: JSON.stringify(configFile.error),
-          }),
-        );
-      }
-      // Parse JSON config into a TypeScript compiler options object
-      const parsedCommandLine = ts.parseJsonConfigFileContent(
-        configFile.config,
-        ts.sys,
-        projectDirectory,
-      );
-      // Modify compiler options to match the command line options
-      parsedCommandLine.options.skipLibCheck = true;
-      parsedCommandLine.options.noEmit = true;
-      // Create a program using the parsed configuration
-      const program = ts.createProgram({
-        rootNames: parsedCommandLine.fileNames,
-        options: parsedCommandLine.options,
+  private compileProject = (projectDirectory: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(new URL('ts_compiler.js', import.meta.url), {
+        workerData: { projectDirectory },
       });
-      // Perform type checking
-      const diagnostics = ts.getPreEmitDiagnostics(program);
-      // Report any errors
-      if (diagnostics.length > 0) {
-        reject(
-          new AmplifyUserError('SyntaxError', {
-            message: 'TypeScript validation check failed.',
-            resolution:
-              'Fix the syntax and type errors in your backend definition.',
-            details: ts.formatDiagnosticsWithColorAndContext(diagnostics, {
-              getCanonicalFileName: (path) => path,
-              getCurrentDirectory: ts.sys.getCurrentDirectory,
-              getNewLine: () => ts.sys.newLine,
-            }),
-          }),
-        );
-      }
-      resolve();
+      worker.on('message', () => {
+        // do nothing
+      });
+      worker.on('error', reject);
+      worker.on('exit', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Worker stopped with exit code ${code}`));
+        }
+        resolve();
+      });
     });
   };
 }
