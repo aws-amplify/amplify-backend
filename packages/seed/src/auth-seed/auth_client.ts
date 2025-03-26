@@ -87,15 +87,16 @@ export class AuthClient {
         }
         case 'MFA': {
           if (
-            !authConfig.mfaConfig ||
-            (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE')
+            newUser.mfaPreference &&
+            newUser.mfaPreference !== 'EMAIL' &&
+            (!authConfig.mfaConfig ||
+              (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE'))
           ) {
             throw new AmplifyUserError('MFANotConfiguredError', {
               message: `MFA is not configured for this userpool, you cannot create ${newUser.username} with MFA.`,
               resolution: `Enable MFA for this userpool or create ${newUser.username} with a different sign up flow.`,
             });
           }
-
           await this.mfaFlow.mfaSignUp(newUser, tempPassword);
           break;
         }
