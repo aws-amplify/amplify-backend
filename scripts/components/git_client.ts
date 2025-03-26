@@ -170,7 +170,8 @@ export class GitClient {
         .map((nameAndVersion) => nameAndVersion.packageName),
     );
 
-    // temporarily filter out seed (it was never released)
+    // TODO this is temporary fix
+    // filter out seed (it was never released)
     packageNamesRemaining.delete('@aws-amplify/seed');
 
     let releaseCommitCursor = releaseCommitHash;
