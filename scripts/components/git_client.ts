@@ -129,7 +129,7 @@ export class GitClient {
     let tags = tagsString.split(EOL).filter((line) => line.trim().length > 0);
     if (packagesToSkip) {
       tags = tags.filter(
-        (tag) => !packagesToSkip.has(tag.substring(0, tag.indexOf('@'))),
+        (tag) => !packagesToSkip.has(tag.substring(0, tag.lastIndexOf('@'))),
       );
     }
     return tags;
