@@ -162,6 +162,9 @@ void describe('FunctionEnvironmentTranslator', () => {
           backendResolver,
           new FunctionEnvironmentTypeGenerator(testLambdaName),
         ),
+      {
+        name: 'ReservedFunctionEnvironmentVariableError',
+      },
     );
   });
 

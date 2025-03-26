@@ -89,9 +89,10 @@ export class FunctionEnvironmentTranslator {
    */
   addEnvironmentEntry = (key: string, value: string | BackendSecret) => {
     if (key === amplifySsmEnvConfigKey) {
-      throw new Error(
-        `${amplifySsmEnvConfigKey} is a reserved environment variable name`,
-      );
+      throw new AmplifyUserError('FunctionReservedEnvironmentVariableError', {
+        message: `${amplifySsmEnvConfigKey} is a reserved environment variable name`,
+        resolution: 'Please use a non-reserved environment variable name.',
+      });
     }
     if (typeof value === 'undefined') {
       throw new AmplifyUserError('InvalidFunctionConfigurationError', {

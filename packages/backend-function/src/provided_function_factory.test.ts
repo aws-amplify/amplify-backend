@@ -18,6 +18,8 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { defineFunction } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
+import assert from 'node:assert';
+import { amplifySsmEnvConfigKey } from './constants.js';
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
@@ -213,6 +215,15 @@ void describe('ProvidedFunctionFactory', () => {
           },
         ],
       },
+    });
+  });
+
+  void it('throws if adding an environment variable using a reserved name', () => {
+    const functionFactory = providedNodeLambda;
+    const lambda = functionFactory.getInstance(getInstanceProps);
+
+    assert.throws(() => lambda.addEnvironment(amplifySsmEnvConfigKey, 'test'), {
+      name: 'ReservedFunctionEnvironmentVariableError',
     });
   });
 });
