@@ -14,12 +14,13 @@ import {
 import { Construct } from 'constructs';
 import { CfnFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
-import { Lazy, Tags } from 'aws-cdk-lib';
+import { Arn, Lazy, Stack, Tags } from 'aws-cdk-lib';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyFunctionBase } from './function_construct_base.js';
 import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
 import { SsmEnvVars } from './function_env_translator.js';
 import { amplifySsmEnvConfigKey } from './constants.js';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 export type ProvidedFunctionProps = {
   /**
@@ -124,6 +125,7 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   private readonly cfnFunction: CfnFunction;
   private readonly envVars: Record<string, string> = {};
   private readonly ssmEnvVars: SsmEnvVars = {};
+  private readonly ssmPaths: string[] = [];
   constructor(
     scope: Construct,
     id: string,
@@ -167,6 +169,32 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
       }),
     );
 
+    providedFunction.node.addValidation({
+      validate: () => {
+        // only add the ssm access policy if there are ssm paths
+        if (this.ssmPaths.length > 0) {
+          const ssmAccessPolicy = new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['ssm:GetParameters'],
+            resources: this.ssmPaths
+              .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
+              .map((path) =>
+                Arn.format(
+                  {
+                    service: 'ssm',
+                    resource: 'parameter',
+                    resourceName: path,
+                  },
+                  Stack.of(providedFunction),
+                ),
+              ),
+          });
+          providedFunction.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+        }
+        return [];
+      },
+    });
+
     this.resources = {
       lambda: providedFunction,
       cfnResources: {
@@ -193,6 +221,7 @@ class ProvidedAmplifyFunction extends AmplifyFunctionBase {
         path: branchSecretPath,
         sharedPath: sharedSecretPath,
       };
+      this.ssmPaths.push(branchSecretPath, sharedSecretPath);
     }
   };
 
