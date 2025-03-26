@@ -18,3 +18,4 @@ export {
   TelemetryPayload,
   telemetryPayloadSchema,
 } from './telemetry-data/telemetry_data.js';
+export * from './telemetry-data/telemetry_data_emitter_factory.js';
