@@ -39,11 +39,11 @@ export class ReleaseDeprecator {
         this.gitRefToStartReleaseSearchFrom,
       );
 
-    let releaseTagsToDeprecate = await this.gitClient.getTagsAtCommit(
+    const releaseTagsToDeprecate = await this.gitClient.getTagsAtCommit(
       releaseCommitHashToDeprecate,
     );
 
-    let previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
+    const previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
       releaseCommitHashToDeprecate,
     );
 
@@ -75,15 +75,6 @@ export class ReleaseDeprecator {
 
     // if anything fails before this point, we haven't actually modified anything on NPM yet.
     // now we actually update the npm dist tags and mark the packages as deprecated
-
-    // TODO this is temporary fix
-    // filter out seed (it was never released)
-    releaseTagsToDeprecate = releaseTagsToDeprecate.filter(
-      (tag) => !tag.includes('seed'),
-    );
-    previousReleaseTags = previousReleaseTags.filter(
-      (tag) => !tag.includes('seed'),
-    );
 
     await this.distTagMover.moveDistTags(
       releaseTagsToDeprecate,
