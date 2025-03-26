@@ -7,7 +7,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=18.16.0"
+    "node": "^18.19.0 || ^20.6.0 || >=22"
   },
   "bin": {
     "create-amplify": "./lib/create_amplify.js"
