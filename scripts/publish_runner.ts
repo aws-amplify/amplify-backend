@@ -56,12 +56,12 @@ export const runPublish = async (props?: PublishOptions, cwd?: string) => {
   if (options.snapshotRelease) {
     if (fs.existsSync(path.join('.changeset', 'pre.json'))) {
       // Snapshot releases are not allowed in pre mode.
-      await execa('changeset', ['pre', 'exit'], execaOptions);
+      await execa('npx', ['changeset', 'pre', 'exit'], execaOptions);
     }
     await runVersion(['--snapshot', snapshotTag], cwd);
   }
 
-  const changesetArgs = ['publish'];
+  const changesetArgs = ['changeset', 'publish'];
   if (!options.includeGitTags) {
     changesetArgs.push('--no-git-tag');
   }
@@ -75,5 +75,5 @@ export const runPublish = async (props?: PublishOptions, cwd?: string) => {
       ? { env: { npm_config_registry: 'http://localhost:4873/' } }
       : {}),
   };
-  await execa('changeset', changesetArgs, execaPublishOptions);
+  await execa('npx', changesetArgs, execaPublishOptions);
 };

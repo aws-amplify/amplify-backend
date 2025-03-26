@@ -31,9 +31,16 @@ const npmClient = new NpmClient(
 
 await npmClient.configureNpmRc();
 
+const packagesToSkipJSON = getInput('packagesToSkip', {
+  required: true,
+});
+
+const packagesToSkip = new Set(JSON.parse(packagesToSkipJSON) as Array<string>);
+
 const releaseDeprecator = new ReleaseDeprecator(
   searchForReleaseStartingFrom,
   deprecationMessage,
+  packagesToSkip,
   new GithubClient(),
   new GitClient(),
   npmClient,

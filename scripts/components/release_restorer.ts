@@ -14,6 +14,7 @@ export class ReleaseRestorer {
    */
   constructor(
     private readonly gitRefToStartReleaseSearchFrom: string,
+    private readonly packagesToSkip: Set<string>,
     private readonly githubClient: GithubClient,
     private readonly gitClient: GitClient,
     private readonly npmClient: NpmClient,
@@ -39,10 +40,12 @@ export class ReleaseRestorer {
 
     const releaseTagsToRestore = await this.gitClient.getTagsAtCommit(
       releaseCommitHashToRestore,
+      this.packagesToSkip,
     );
 
     const previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
       releaseCommitHashToRestore,
+      this.packagesToSkip,
     );
 
     // first create the changeset restore PR

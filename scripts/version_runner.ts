@@ -23,8 +23,8 @@ export const runVersion = async (
     );
   }
 
-  const args = ['version', ...additionalArgs];
-  await execa('changeset', args, {
+  const args = ['changeset', 'version', ...additionalArgs];
+  await execa('npx', args, {
     stdio: 'inherit',
     cwd,
   });

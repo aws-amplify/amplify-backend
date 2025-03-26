@@ -29,6 +29,7 @@ void describe('release lifecycle', async () => {
 
   let cantaloupePackageName: string;
   let platypusPackageName: string;
+  let brandNewPackageName: string;
 
   before(async () => {
     await import('../start_npm_proxy.js');
@@ -43,9 +44,11 @@ void describe('release lifecycle', async () => {
    * It seeds the local npm proxy with a few releases of these packages.
    * When its done, the state of the git refs and npm dist-tags should be as follows:
    *
-   * third release commit                   ● <- HEAD, cantaloupe@1.2.0, cantaloupe@latest
+   * third release commit                   ● <- HEAD, cantaloupe@1.2.0, cantaloupe@latest, brand-new-package@1.0.0, brand-new-package@latest
    *                                        |
    * minor bump of cantaloupe only          ●
+   *                                        |
+   * add brand-new-package                  ●
    *                                        |
    * second release commit                  ● <- platypus@1.2.0, platypus@latest
    *                                        |
@@ -82,6 +85,8 @@ void describe('release lifecycle', async () => {
       `${testNameNormalized}-cantaloupe-${shortId}`.toLocaleLowerCase();
     platypusPackageName =
       `${testNameNormalized}-platypus-${shortId}`.toLocaleLowerCase();
+    brandNewPackageName =
+      `${testNameNormalized}-brand-new-package-${shortId}`.toLocaleLowerCase();
 
     await gitClient.init();
     await gitClient.switchToBranch('main');
@@ -123,6 +128,11 @@ void describe('release lifecycle', async () => {
     await gitClient.commitAllChanges('Version Packages (second release)');
     await runPublishInTestDir();
 
+    await npmClient.initWorkspacePackage(brandNewPackageName);
+    await setPackageToPublic(
+      path.join(testWorkingDir, 'packages', brandNewPackageName),
+    );
+
     await commitVersionBumpChangeset(
       testWorkingDir,
       gitClient,
@@ -146,6 +156,12 @@ void describe('release lifecycle', async () => {
       '1.2.0',
       'latest',
     );
+    await expectDistTagAtVersion(
+      npmClient,
+      brandNewPackageName,
+      '1.0.0',
+      'latest',
+    );
   });
 
   void it('can deprecate and restore packages using npm metadata', async () => {
@@ -158,6 +174,7 @@ void describe('release lifecycle', async () => {
     const releaseDeprecator1 = new ReleaseDeprecator(
       'HEAD',
       'the cantaloupe is rotten',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,
@@ -185,6 +202,7 @@ void describe('release lifecycle', async () => {
     const releaseDeprecator2 = new ReleaseDeprecator(
       'HEAD~',
       'RIP platypus',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,
@@ -213,6 +231,7 @@ void describe('release lifecycle', async () => {
     const releaseDeprecator3 = new ReleaseDeprecator(
       'HEAD~3',
       'real big mess',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,
@@ -252,6 +271,7 @@ void describe('release lifecycle', async () => {
     await gitClient.switchToBranch('main');
     const releaseRestorer1 = new ReleaseRestorer(
       'HEAD~3',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,
@@ -279,6 +299,7 @@ void describe('release lifecycle', async () => {
     await gitClient.switchToBranch('main');
     const releaseRestorer2 = new ReleaseRestorer(
       'HEAD~',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,
@@ -299,6 +320,7 @@ void describe('release lifecycle', async () => {
     await gitClient.switchToBranch('main');
     const releaseRestorer3 = new ReleaseRestorer(
       'HEAD',
+      new Set([brandNewPackageName]), // skip brand-new package,
       githubClient,
       gitClient,
       npmClient,

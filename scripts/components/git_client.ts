@@ -120,10 +120,19 @@ export class GitClient {
   /**
    * Returns a list of tags that point to the given commit
    */
-  getTagsAtCommit = async (commitHash: string) => {
+  getTagsAtCommit = async (
+    commitHash: string,
+    packagesToSkip?: Set<string>,
+  ) => {
     const { stdout: tagsString } = await this
       .exec`git tag --points-at ${commitHash}`;
-    return tagsString.split(EOL).filter((line) => line.trim().length > 0);
+    let tags = tagsString.split(EOL).filter((line) => line.trim().length > 0);
+    if (packagesToSkip) {
+      tags = tags.filter(
+        (tag) => !packagesToSkip.has(tag.substring(0, tag.indexOf('@'))),
+      );
+    }
+    return tags;
   };
 
   /**
@@ -159,9 +168,15 @@ export class GitClient {
    * This method will walk through past release tags until it finds the previous version of all of the input package versions
    * If a previous version of some package cannot be found, an error is thrown.
    */
-  getPreviousReleaseTags = async (releaseCommitHash: string) => {
+  getPreviousReleaseTags = async (
+    releaseCommitHash: string,
+    packagesToSkip: Set<string>,
+  ) => {
     await this.validateReleaseCommitHash(releaseCommitHash);
-    const releaseTags = await this.getTagsAtCommit(releaseCommitHash);
+    const releaseTags = await this.getTagsAtCommit(
+      releaseCommitHash,
+      packagesToSkip,
+    );
 
     // create a set of just the package names (strip off the version suffix) associated with this release commit
     const packageNamesRemaining = new Set(
@@ -175,22 +190,34 @@ export class GitClient {
     // the method return value that we will append release tags to in the loop
     const previousReleaseTags: string[] = [];
 
-    while (packageNamesRemaining.size > 0) {
-      releaseCommitCursor = await this.getNearestReleaseCommit(
-        releaseCommitCursor,
-        { inclusive: false },
+    try {
+      while (packageNamesRemaining.size > 0) {
+        releaseCommitCursor = await this.getNearestReleaseCommit(
+          releaseCommitCursor,
+          { inclusive: false },
+        );
+        const releaseTagsAtCursor = await this.getTagsAtCommit(
+          releaseCommitCursor,
+          packagesToSkip,
+        );
+        releaseTagsAtCursor.forEach((releaseTag) => {
+          const { packageName } = releaseTagToNameAndVersion(releaseTag);
+          if (packageNamesRemaining.has(packageName)) {
+            // this means we've found the previous version of "packageNameRemaining" that was released in releaseCommitHash
+            // so we add it to the return list and remove it from the search set
+            previousReleaseTags.push(releaseTag);
+            packageNamesRemaining.delete(packageName);
+          }
+        });
+      }
+    } catch (e) {
+      // In case error was thrown print out remaining packages.
+      packageNamesRemaining.forEach((packageName) =>
+        console.log(
+          `Unable to resolve previous release tags for ${packageName}`,
+        ),
       );
-      const releaseTagsAtCursor =
-        await this.getTagsAtCommit(releaseCommitCursor);
-      releaseTagsAtCursor.forEach((releaseTag) => {
-        const { packageName } = releaseTagToNameAndVersion(releaseTag);
-        if (packageNamesRemaining.has(packageName)) {
-          // this means we've found the previous version of "packageNameRemaining" that was released in releaseCommitHash
-          // so we add it to the return list and remove it from the search set
-          previousReleaseTags.push(releaseTag);
-          packageNamesRemaining.delete(packageName);
-        }
-      });
+      throw e;
     }
 
     return previousReleaseTags;

@@ -14,6 +14,7 @@ export class ReleaseDeprecator {
   constructor(
     private readonly gitRefToStartReleaseSearchFrom: string,
     private readonly deprecationMessage: string,
+    private readonly packagesToSkip: Set<string>,
     private readonly githubClient: GithubClient,
     private readonly gitClient: GitClient,
     private readonly npmClient: NpmClient,
@@ -41,10 +42,12 @@ export class ReleaseDeprecator {
 
     const releaseTagsToDeprecate = await this.gitClient.getTagsAtCommit(
       releaseCommitHashToDeprecate,
+      this.packagesToSkip,
     );
 
     const previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
       releaseCommitHashToDeprecate,
+      this.packagesToSkip,
     );
 
     // Create the changeset revert PR
