@@ -1,5 +1,20 @@
 # @aws-amplify/backend-secret
 
+## 1.3.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [0cc2de3]
+- Updated dependencies [b2f9042]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/platform-core@1.7.0
+
 ## 1.2.0
 
 ### Minor Changes

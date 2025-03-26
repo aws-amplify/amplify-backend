@@ -6,6 +6,7 @@ import {
 } from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
+import { SandboxSeedCommand } from './sandbox-seed/sandbox_seed_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
@@ -26,6 +27,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
+import { SandboxSeedGeneratePolicyCommand } from './sandbox-seed/sandbox_seed_policy_command.js';
 import { SDKProfileResolverProvider } from '../../sdk_profile_resolver_provider.js';
 
 /**
@@ -85,7 +87,13 @@ export const createSandboxCommand = (
   const commandMiddleWare = new CommandMiddleware(printer);
   return new SandboxCommand(
     sandboxFactory,
-    [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
+    [
+      new SandboxDeleteCommand(sandboxFactory),
+      createSandboxSecretCommand(),
+      new SandboxSeedCommand(sandboxBackendIdPartsResolver, [
+        new SandboxSeedGeneratePolicyCommand(sandboxBackendIdPartsResolver),
+      ]),
+    ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
     eventHandlerFactory.getSandboxEventHandlers,

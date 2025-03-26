@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack, aws_cognito } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -3060,6 +3060,32 @@ void describe('Auth construct', () => {
     const resourceNames = Object.keys(resources);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
+    });
+  });
+
+  void it('sets the correct userPoolName when name is provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customAuthName = 'CustomAuthName';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      name: customAuthName,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolName: customAuthName,
+    });
+  });
+
+  void it('uses empty string as userPoolName when name is not provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolName: Match.absent(),
     });
   });
 });
