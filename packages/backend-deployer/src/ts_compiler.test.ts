@@ -23,7 +23,7 @@ void describe('ts_compiler.ts', () => {
       name: 'SyntaxError',
       message: 'Failed to parse tsconfig.json.',
       resolution: 'Fix the syntax and type errors in your tsconfig.json file.',
-      details: /error TS5083: Cannot read file .*something\/tsconfig.json/,
+      details: /error TS5083: Cannot read file .*something.*tsconfig.json/,
     });
   });
 
