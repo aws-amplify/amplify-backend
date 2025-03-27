@@ -124,6 +124,7 @@ export class AmplifyEventLogger {
         : msg.level === 'error'
           ? format.error(msg.message)
           : msg.message,
+      msg.level === 'error' ? LogLevel.ERROR : LogLevel.INFO,
     );
   };
 

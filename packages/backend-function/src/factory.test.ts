@@ -636,7 +636,7 @@ void describe('AmplifyFunctionFactory', () => {
       template.hasResourceProperties('AWS::Lambda::Function', {
         Environment: {
           Variables: {
-            AMPLIFY_SSM_ENV_CONFIG: '{"testPath":{"name":"testContext"}}',
+            AMPLIFY_SSM_ENV_CONFIG: '{"testContext":{"path":"testPath"}}',
             testContext: '<value will be resolved during runtime>',
           },
         },

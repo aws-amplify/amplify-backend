@@ -225,13 +225,12 @@ export class Printer {
   };
 
   private prefixedMessage = (message: string, level = LogLevel.INFO) => {
-    return (
-      message &&
-      message
-        .split(EOL)
-        .map((line) => `${this.getLogPrefix(level)} ${line}`)
-        .join(EOL)
-    );
+    return message && [LogLevel.ERROR, LogLevel.DEBUG].includes(level)
+      ? `${this.getLogPrefix(level)} ${message}`
+      : message
+          .split(EOL)
+          .map((line) => `${this.getLogPrefix(level)} ${line}`)
+          .join(EOL);
   };
 }
 
