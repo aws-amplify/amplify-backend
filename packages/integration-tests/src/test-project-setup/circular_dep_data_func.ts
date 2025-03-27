@@ -5,6 +5,12 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { generateClientConfig } from '@aws-amplify/client-config';
+import assert from 'assert';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import { SecretClient, getSecretClient } from '@aws-amplify/backend-secret';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 
 /**
  * Creates test projects with circular dependency between data, and functions
@@ -24,6 +30,13 @@ export class CircularDepDataFuncTestProjectCreator
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
       e2eToolingClientConfig,
     ),
+    private readonly secretClient: SecretClient = getSecretClient(
+      e2eToolingClientConfig,
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig,
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -36,6 +49,9 @@ export class CircularDepDataFuncTestProjectCreator
       projectAmplifyDir,
       this.cfnClient,
       this.amplifyClient,
+      this.secretClient,
+      this.lambdaClient,
+      this.resourceFinder,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
@@ -62,6 +78,8 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
     import.meta.url,
   );
 
+  private readonly testSecretNames = ['amazonSecret'];
+
   /**
    * Create a test project instance.
    */
@@ -71,6 +89,9 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
+    private readonly secretClient: SecretClient,
+    private readonly lambdaClient: LambdaClient,
+    private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(
       name,
@@ -80,4 +101,81 @@ class CircularDepDataFuncTestProject extends TestProjectBase {
       amplifyClient,
     );
   }
+
+  override async deploy(
+    backendIdentifier: BackendIdentifier,
+    environment?: Record<string, string>,
+  ): Promise<void> {
+    await this.setUpDeployEnvironment(backendIdentifier);
+    await super.deploy(backendIdentifier, environment);
+  }
+
+  override async tearDown(
+    backendIdentifier: BackendIdentifier,
+    waitForStackDeletion?: boolean,
+  ): Promise<void> {
+    await super.tearDown(backendIdentifier, waitForStackDeletion);
+    await this.clearDeployEnvironment(backendIdentifier);
+  }
+
+  override async assertPostDeployment(
+    backendId: BackendIdentifier,
+  ): Promise<void> {
+    await super.assertPostDeployment(backendId);
+
+    const clientConfig = await generateClientConfig(backendId, '1.1');
+    if (!clientConfig.data?.url) {
+      throw new Error(
+        'Data storage auth with triggers project must include data',
+      );
+    }
+    const dataUrl = clientConfig.data?.url;
+
+    const customAPIFunction = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('customAPIFunction'),
+    );
+
+    assert.equal(customAPIFunction.length, 1);
+
+    await this.checkLambdaResponse(customAPIFunction[0], {
+      graphqlEndpoint: dataUrl,
+      testSecret: 'amazonSecret-e2eTestValue',
+    });
+  }
+
+  private setUpDeployEnvironment = async (
+    backendId: BackendIdentifier,
+  ): Promise<void> => {
+    for (const secretName of this.testSecretNames) {
+      const secretValue = `${secretName}-e2eTestValue`;
+      await this.secretClient.setSecret(backendId, secretName, secretValue);
+    }
+  };
+
+  private clearDeployEnvironment = async (
+    backendId: BackendIdentifier,
+  ): Promise<void> => {
+    // clear secrets
+    for (const secretName of this.testSecretNames) {
+      await this.secretClient.removeSecret(backendId, secretName);
+    }
+  };
+
+  private checkLambdaResponse = async (
+    lambdaName: string,
+    expectedResponse: unknown,
+  ) => {
+    // invoke the lambda
+    const response = await this.lambdaClient.send(
+      new InvokeCommand({ FunctionName: lambdaName }),
+    );
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || '',
+    );
+
+    // check expected response
+    assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
 }

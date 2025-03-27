@@ -2,6 +2,8 @@ import {
   AmplifyFunction,
   AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
+  BackendSecret,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -12,10 +14,13 @@ import {
 import { Construct } from 'constructs';
 import { CfnFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
-import { Tags } from 'aws-cdk-lib';
+import { Arn, Lazy, Stack, Tags } from 'aws-cdk-lib';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyFunctionBase } from './function_construct_base.js';
 import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
+import { SsmEnvVars } from './function_env_translator.js';
+import { amplifySsmEnvConfigKey } from './constants.js';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 export type ProvidedFunctionProps = {
   /**
@@ -71,7 +76,10 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
     this.resourceGroupName = props?.resourceGroupName ?? 'function';
   }
 
-  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     let providedFunction: IFunction;
     try {
       providedFunction = this.functionProvider(scope);
@@ -107,36 +115,130 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
       `${providedFunction.node.id}-provided`,
       this.outputStorageStrategy,
       providedFunction,
+      backendSecretResolver,
     );
   };
 }
 
 class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   readonly resources: FunctionResources;
+  private readonly cfnFunction: CfnFunction;
+  private readonly envVars: Record<string, string> = {};
+  private readonly ssmEnvVars: SsmEnvVars = {};
+  private readonly ssmPaths: string[] = [];
   constructor(
     scope: Construct,
     id: string,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
     providedFunction: IFunction,
+    private readonly backendSecretResolver: BackendSecretResolver,
   ) {
     super(scope, id, outputStorageStrategy);
 
-    const cfnFunction = providedFunction.node.findChild(
+    this.cfnFunction = providedFunction.node.findChild(
       'Resource',
     ) as CfnFunction;
 
-    Tags.of(cfnFunction).add(TagName.FRIENDLY_NAME, providedFunction.node.id);
+    Tags.of(this.cfnFunction).add(
+      TagName.FRIENDLY_NAME,
+      providedFunction.node.id,
+    );
+
+    const currentEnvVars = this.cfnFunction.environment;
+
+    this.cfnFunction.addPropertyOverride(
+      'Environment.Variables',
+      Lazy.any({
+        produce: () => {
+          if (
+            currentEnvVars &&
+            'variables' in currentEnvVars &&
+            isStringRecord(currentEnvVars.variables)
+          ) {
+            return {
+              ...currentEnvVars.variables,
+              ...this.envVars,
+              [amplifySsmEnvConfigKey]: JSON.stringify(this.ssmEnvVars),
+            };
+          }
+          return {
+            ...this.envVars,
+            [amplifySsmEnvConfigKey]: JSON.stringify(this.ssmEnvVars),
+          };
+        },
+      }),
+    );
+
+    providedFunction.node.addValidation({
+      validate: () => {
+        // only add the ssm access policy if there are ssm paths
+        if (this.ssmPaths.length > 0) {
+          const ssmAccessPolicy = new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['ssm:GetParameters'],
+            resources: this.ssmPaths
+              .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
+              .map((path) =>
+                Arn.format(
+                  {
+                    service: 'ssm',
+                    resource: 'parameter',
+                    resourceName: path,
+                  },
+                  Stack.of(providedFunction),
+                ),
+              ),
+          });
+          providedFunction.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+        }
+        return [];
+      },
+    });
 
     this.resources = {
       lambda: providedFunction,
       cfnResources: {
-        cfnFunction,
+        cfnFunction: this.cfnFunction,
       },
     };
 
     this.storeOutput();
   }
 
+  addEnvironment = (key: string, value: string | BackendSecret) => {
+    if (key === amplifySsmEnvConfigKey) {
+      throw new AmplifyUserError(
+        'CustomFunctionProviderReservedEnvironmentVariableError',
+        {
+          message: `${amplifySsmEnvConfigKey} is a reserved environment variable name`,
+          resolution: 'Please use a non-reserved environment variable name.',
+        },
+      );
+    }
+    if (typeof value === 'string') {
+      this.envVars[key] = value;
+    } else {
+      this.envVars[key] = '<value will be resolved during runtime>';
+      const { branchSecretPath, sharedSecretPath } =
+        this.backendSecretResolver.resolvePath(value);
+      this.ssmEnvVars[key] = {
+        path: branchSecretPath,
+        sharedPath: sharedSecretPath,
+      };
+      this.ssmPaths.push(branchSecretPath, sharedSecretPath);
+    }
+  };
+
   getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
     new FunctionResourceAccessAcceptor(this);
 }
+
+const isStringRecord = (value: unknown): value is Record<string, string> => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.keys(value).every(
+      (key) => typeof (value as Record<string, unknown>)[key] === 'string',
+    )
+  );
+};
