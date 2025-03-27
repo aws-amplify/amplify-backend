@@ -278,7 +278,7 @@ void describe('invokeCDKCommand', () => {
     // typescript also throws
     tsCompilerMock.mock.mockImplementationOnce(() => {
       return Promise.reject(
-        new AmplifyUserError('SyntaxError', {
+        new AmplifyUserError('FunctionEnvVarFileNotGeneratedError', {
           message: 'some test error',
           resolution: 'some test resolution',
           details: tscErrorDetails,

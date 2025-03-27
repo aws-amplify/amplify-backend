@@ -115,10 +115,7 @@ export class CDKDeployer implements BackendDeployer {
         if (
           synthError &&
           AmplifyError.isAmplifyError(typeError) &&
-          typeError.details &&
-          typeError.details.match(
-            /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/,
-          )
+          typeError.name === 'FunctionEnvVarFileNotGeneratedError'
         ) {
           // synth has failed and we don't have auto generated function environment definition files. This
           // resulted in the exception caught here, which is not very useful for the customers.

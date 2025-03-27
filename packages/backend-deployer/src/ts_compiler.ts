@@ -69,14 +69,37 @@ export const compileProject = (projectDirectory: string) => {
 
   // Report any errors
   if (diagnostics.length > 0) {
-    throw new AmplifyUserError('SyntaxError', {
-      message: 'TypeScript validation check failed.',
-      resolution: 'Fix the syntax and type errors in your backend definition.',
-      details: ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+    const tsFormattedError = ts.formatDiagnosticsWithColorAndContext(
+      diagnostics,
+      {
         getCanonicalFileName: (path) => path,
         getCurrentDirectory: ts.sys.getCurrentDirectory,
         getNewLine: () => ts.sys.newLine,
-      }),
+      },
+    );
+    if (diagnostics.length === 1 && diagnostics[0].code === 2307) {
+      // if the only TS error is function env var not present, then throw a more specific error
+      const errorMessage =
+        typeof diagnostics[0].messageText === 'string'
+          ? diagnostics[0].messageText
+          : diagnostics[0].messageText.messageText;
+      if (
+        errorMessage.match(
+          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/,
+        )
+      ) {
+        throw new AmplifyUserError('FunctionEnvVarFileNotGeneratedError', {
+          message: 'Function environment variable files are not generated',
+          resolution:
+            'Fix the syntax and type errors in your backend definition.',
+          details: tsFormattedError,
+        });
+      }
+    }
+    throw new AmplifyUserError('SyntaxError', {
+      message: 'TypeScript validation check failed.',
+      resolution: 'Fix the syntax and type errors in your backend definition.',
+      details: tsFormattedError,
     });
   }
 };
