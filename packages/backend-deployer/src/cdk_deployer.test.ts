@@ -170,37 +170,6 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(tsCompilerMock.mock.callCount(), 1);
   });
 
-  // void it('disables type checking when tsconfig is not present', async (context) => {
-  //   // simulate first execa call as throwing error when checking for tsconfig.json
-  //   const contextualExecuteCommandMock = context.mock.method(
-  //     invoker,
-  //     'executeCommand',
-  //     (commandArgs: string[]) => {
-  //       if (
-  //         commandArgs.includes('tsc') &&
-  //         commandArgs.includes('--showConfig')
-  //       ) {
-  //         throw new Error('some tsc error');
-  //       }
-  //       return Promise.resolve();
-  //     },
-  //   );
-  //   await invoker.deploy(branchBackendId, {
-  //     validateAppSources: true,
-  //   });
-  //   assert.strictEqual(contextualExecuteCommandMock.mock.callCount(), 1);
-
-  //   // Call 0 -> tsc showConfig
-  //   assert.equal(
-  //     contextualExecuteCommandMock.mock.calls[0].arguments[0]?.length,
-  //     4,
-  //   );
-  //   assert.deepStrictEqual(
-  //     contextualExecuteCommandMock.mock.calls[0].arguments[0],
-  //     ['tsc', '--showConfig', '--project', 'amplify'],
-  //   );
-  // });
-
   void it('run typescript even if synth fails and throws TS error', async (context) => {
     synthMock.mock.mockImplementationOnce(() => {
       throw new Error('some synth error');
