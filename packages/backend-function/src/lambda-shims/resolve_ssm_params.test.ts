@@ -24,8 +24,8 @@ void describe('internalAmplifyFunctionResolveSsmParams', () => {
     const secretPath = '/test/path';
     const secretValue = 'secretValue';
     process.env.AMPLIFY_SSM_ENV_CONFIG = JSON.stringify({
-      [secretPath]: {
-        name: envName,
+      [envName]: {
+        path: secretPath,
         sharedSecretPath: '/test/shared/path',
       },
     });
@@ -50,8 +50,8 @@ void describe('internalAmplifyFunctionResolveSsmParams', () => {
     let ssmPaths = {};
     for (let i = 0; i < 100; i++) {
       ssmPaths = Object.assign(ssmPaths, {
-        [secretPath + i]: {
-          name: envName + i,
+        [envName + i]: {
+          path: secretPath + i,
           sharedSecretPath: '/test/shared/path',
         },
       });

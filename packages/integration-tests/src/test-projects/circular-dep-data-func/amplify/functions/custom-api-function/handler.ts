@@ -1,18 +1,12 @@
-/**
- * This code loads environment values from SSM and places them in their corresponding environment variables.
- * If there are no SSM environment values for this function, this is a noop.
- */
-import type { GetParametersCommandOutput, SSM } from '@aws-sdk/client-ssm';
-import type { SsmEnvVars } from '../function_env_translator.js';
+import { GetParametersCommandOutput, SSM } from '@aws-sdk/client-ssm';
 
-/**
- * Reads SSM environment context from a known Amplify environment variable,
- * fetches values from SSM and places those values in the corresponding environment variables
- */
-export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
-  const envPathObject: SsmEnvVars = JSON.parse(
-    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}',
-  );
+const resolveSsmParams = async (client?: SSM) => {
+  const envPathObject: {
+    [name: string]: {
+      path: string;
+      sharedPath?: string;
+    };
+  } = JSON.parse(process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}');
   const paths = Object.values(envPathObject).map((paths) => paths.path);
 
   if (paths.length === 0) {
@@ -79,15 +73,20 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
   const response = await resolveSecrets(paths);
 
   const sharedPaths = (response?.InvalidParameters || [])
-    .map(
-      (invalidParam) =>
-        Object.values(envPathObject).find(
-          (paths) => paths.path === invalidParam,
-        )?.sharedPath,
-    )
+    .map((invalidParam) => envPathObject[invalidParam].sharedPath)
     .filter((sharedParam) => !!sharedParam) as string[]; // this assertion is safe because we are filtering out undefined
 
   if (sharedPaths.length > 0) {
     await resolveSecrets(sharedPaths);
   }
+};
+
+const ssmClient = new SSM();
+
+export const handler = async () => {
+  await resolveSsmParams(ssmClient);
+  return {
+    graphqlEndpoint: process.env.GRAPHQL_ENDPOINT,
+    testSecret: process.env.TEST_SECRET,
+  };
 };

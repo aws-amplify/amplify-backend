@@ -7,6 +7,7 @@ import {
 import stripANSI from 'strip-ansi';
 import { BackendDeployerOutputFormatter } from './types.js';
 import { ToolkitError } from '@aws-cdk/toolkit-lib';
+import { DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Transforms CDK error messages to human readable ones
@@ -20,6 +21,7 @@ export class CdkErrorMapper {
 
   getAmplifyError = (
     error: Error,
+    deploymentType?: DeploymentType,
   ): AmplifyError<CDKDeploymentError | string> => {
     let underlyingError: Error | undefined = error;
 
@@ -38,6 +40,25 @@ export class CdkErrorMapper {
     const errorFromCDK = this.getCDKError(error);
     if (errorFromCDK) {
       return errorFromCDK;
+    }
+
+    if (error.message.includes('does not support module.register()')) {
+      let resolutionMessage;
+      if (deploymentType === 'branch') {
+        resolutionMessage =
+          'Upgrade the node version in your CI/CD environment. ' +
+          'If you are using Amplify Hosting for your backend builds, you can add `nvm install 18.x` or `nvm install 20.x` in your `amplify.yml` before the `pipeline-deploy` command';
+      } else {
+        resolutionMessage = 'Upgrade to node `^18.19.0`, `^20.6.0,` or `>=22`';
+      }
+      return new AmplifyUserError(
+        'NodeVersionNotSupportedError',
+        {
+          message: 'Unable to deploy due to unsupported node version',
+          resolution: resolutionMessage,
+        },
+        underlyingError,
+      );
     }
 
     const errorMessage = stripANSI(error.message);

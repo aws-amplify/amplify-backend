@@ -120,7 +120,7 @@ export class CDKDeployer implements BackendDeployer {
           // synth has failed and we don't have auto generated function environment definition files. This
           // resulted in the exception caught here, which is not very useful for the customers.
           // We instead throw the synth error for customers to fix what caused the synth to fail.
-          throw this.cdkErrorMapper.getAmplifyError(synthError);
+          throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
         }
         throw typeError;
       } finally {
@@ -139,7 +139,7 @@ export class CDKDeployer implements BackendDeployer {
 
     // If typescript compilation was successful but synth had failed, we throw synth error
     if (synthError) {
-      throw this.cdkErrorMapper.getAmplifyError(synthError);
+      throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
     }
 
     // Perform actual deployment. CFN or hotswap
@@ -158,7 +158,7 @@ export class CDKDeployer implements BackendDeployer {
           backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
       });
     } catch (error) {
-      throw this.cdkErrorMapper.getAmplifyError(error as Error);
+      throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
     }
 
     return {

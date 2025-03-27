@@ -325,4 +325,51 @@ void describe('invokeCDKCommand', () => {
       },
     );
   });
+
+  void it('displays actionable error when older version of node is used during branch deployments', async () => {
+    const olderNodeVersionError = new Error(
+      'This version of Node.js (v18.18.2) does not support module.register(). Please upgrade to Node v18.19 or v20.6 and above.',
+    );
+    synthMock.mock.mockImplementationOnce(() => {
+      throw olderNodeVersionError;
+    });
+
+    await assert.rejects(
+      () => invoker.deploy(branchBackendId, sandboxDeployProps),
+      (err: AmplifyError<CDKDeploymentError>) => {
+        assert.equal(
+          err.message,
+          'Unable to deploy due to unsupported node version',
+        );
+        assert.equal(err.name, 'NodeVersionNotSupportedError');
+        assert.equal(
+          err.resolution,
+          'Upgrade the node version in your CI/CD environment. If you are using Amplify Hosting for your backend builds, you can add `nvm install 18.x` or `nvm install 20.x` in your `amplify.yml` before the `pipeline-deploy` command',
+        );
+        assert.deepStrictEqual(err.cause, olderNodeVersionError);
+        return true;
+      },
+    );
+
+    synthMock.mock.mockImplementationOnce(() => {
+      throw olderNodeVersionError;
+    });
+
+    await assert.rejects(
+      () => invoker.deploy(sandboxBackendId, sandboxDeployProps),
+      (err: AmplifyUserError) => {
+        assert.equal(
+          err.message,
+          'Unable to deploy due to unsupported node version',
+        );
+        assert.equal(err.name, 'NodeVersionNotSupportedError');
+        assert.equal(
+          err.resolution,
+          'Upgrade to node `^18.19.0`, `^20.6.0,` or `>=22`',
+        );
+        assert.deepStrictEqual(err.cause, olderNodeVersionError);
+        return true;
+      },
+    );
+  });
 });

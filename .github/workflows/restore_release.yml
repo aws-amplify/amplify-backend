@@ -17,6 +17,12 @@ on:
         description: |
           By default, the most recent release from HEAD (inclusive) of the target branch will be restored.
           To restore a different release, specify the release commit to restore here.
+      packagesToSkip:
+        required: false
+        type: string
+        default: '[]'
+        description: |
+          JSON array with packages to skip. Empty by default.
 
 jobs:
   install:
@@ -42,6 +48,7 @@ jobs:
       # mapping the inputs to these environment variables allows the @actions/core toolkit to pick up the inputs
       INPUT_USENPMREGISTRY: ${{ inputs.useNpmRegistry }}
       INPUT_SEARCHFORRELEASESTARTINGFROM: ${{ inputs.searchForReleaseStartingFrom }}
+      INPUT_PACKAGESTOSKIP: ${{ inputs.packagesToSkip }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
