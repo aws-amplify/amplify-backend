@@ -28,8 +28,15 @@ const npmClient = new NpmClient(
 
 await npmClient.configureNpmRc();
 
+const packagesToSkipJSON = getInput('packagesToSkip', {
+  required: true,
+});
+
+const packagesToSkip = new Set(JSON.parse(packagesToSkipJSON) as Array<string>);
+
 const releaseRestorer = new ReleaseRestorer(
   searchForReleaseStartingFrom,
+  packagesToSkip,
   new GithubClient(),
   new GitClient(),
   npmClient,
