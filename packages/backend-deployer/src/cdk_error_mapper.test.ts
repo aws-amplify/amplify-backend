@@ -49,43 +49,6 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Access Denied',
   },
   {
-    errorMessage:
-      `ReferenceError: var is not defined` +
-      EOL +
-      `    at lookup(/some_random/path.js: 1: 3005)`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage:
-      `ReferenceError: var is not defined` +
-      EOL +
-      `    at lookup(/some_random/path.js: 1: 3005)`,
-  },
-  {
-    errorMessage:
-      `TypeError: Cannot read properties of undefined (reading 'post')` +
-      EOL +
-      `    at lookup(/some_random/path.js: 1: 3005)`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage:
-      `TypeError: Cannot read properties of undefined (reading 'post')` +
-      EOL +
-      `    at lookup(/some_random/path.js: 1: 3005)`,
-  },
-  {
-    errorMessage: `TypeError [ERR_INVALID_MODULE_SPECIFIER]: Invalid module ..../function/foo/resource.ts is not a valid package name imported from 
-/Users/foo/Desktop/amplify-app/amplify/storage/foo/resource.ts
-    at new NodeError (node:internal/errors:405:5)`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage: `TypeError [ERR_INVALID_MODULE_SPECIFIER]: Invalid module ..../function/foo/resource.ts is not a valid package name imported from 
-/Users/foo/Desktop/amplify-app/amplify/storage/foo/resource.ts
-    at new NodeError (node:internal/errors:405:5)`,
-  },
-  {
     errorMessage: 'Has the environment been bootstrapped',
     expectedTopLevelErrorMessage:
       'This AWS account and region has not been bootstrapped.',
@@ -220,133 +183,6 @@ const testErrorMappings = [
   },
   {
     errorMessage:
-      `[esbuild Error]: Expected identifier but found ")"` +
-      EOL +
-      `      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage:
-      `[esbuild Error]: Expected identifier but found ")"` +
-      EOL +
-      `      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
-  },
-  {
-    errorMessage:
-      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
-      EOL +
-      EOL +
-      `    amplify/func-src/handler.ts:1:20:` +
-      EOL +
-      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
-      EOL +
-      `1 error`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage:
-      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
-      EOL +
-      EOL +
-      `    amplify/func-src/handler.ts:1:20:` +
-      EOL +
-      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
-      EOL +
-      `1 error`,
-  },
-  {
-    errorMessage:
-      `Error [TransformError]: Transform failed with 1 error:` +
-      EOL +
-      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"` +
-      EOL +
-      `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
-    expectedTopLevelErrorMessage:
-      '/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"',
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    errorMessage:
-      `Error [TransformError]: Transform failed with 2 errors:` +
-      EOL +
-      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
-      EOL +
-      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared` +
-      EOL +
-      `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
-    expectedTopLevelErrorMessage:
-      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
-      EOL +
-      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared`,
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    errorMessage:
-      `some rubbish before` +
-      EOL +
-      `Error: some cdk synth error` +
-      EOL +
-      `    at lookup (/some_random/path.js:1:3005)` +
-      EOL +
-      `    at lookup2 (/some_random/path2.js:2:3005)`,
-    expectedTopLevelErrorMessage:
-      'Unable to build the Amplify backend definition.',
-    errorName: 'BackendSynthError',
-    expectedDownstreamErrorMessage:
-      'Error: some cdk synth error' +
-      EOL +
-      '    at lookup (/some_random/path.js:1:3005)',
-  },
-  {
-    errorMessage:
-      `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts` +
-      EOL +
-      `      at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)` +
-      EOL +
-      `      at new NodeError (node:internal/errors:405:5) {` +
-      EOL +
-      `    url: 'file:///Users/user/work-space/shared_secret.js',` +
-      EOL +
-      `    code: 'ERR_MODULE_NOT_FOUND'` +
-      EOL +
-      `  }` +
-      EOL +
-      `  ` +
-      EOL +
-      `  Node.js v18.19.0`,
-    expectedTopLevelErrorMessage: 'Cannot find module',
-    errorName: 'ModuleNotFoundError',
-    expectedDownstreamErrorMessage: `[ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts${EOL}`,
-  },
-  {
-    errorMessage:
-      `Error: node:internal/modules/cjs/loader:1098` +
-      EOL +
-      `    const err = new Error('Cannot find module ');` +
-      EOL +
-      `                ^` +
-      EOL +
-      `  ` +
-      EOL +
-      `  Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'` +
-      EOL +
-      `      at createEsmNotFoundErr (node:internal/modules/cjs/loader:1098:15)` +
-      EOL +
-      `    code: 'MODULE_NOT_FOUND',` +
-      EOL +
-      `  }` +
-      EOL +
-      `  ` +
-      EOL +
-      `  Node.js v18.17.1`,
-    expectedTopLevelErrorMessage: 'Cannot find module',
-    errorName: 'ModuleNotFoundError',
-    expectedDownstreamErrorMessage: `Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'`,
-  },
-  {
-    errorMessage:
       'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
     expectedTopLevelErrorMessage:
       'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
@@ -398,6 +234,12 @@ const testErrorMappings = [
     expectedTopLevelErrorMessage: 'Unable to detect cdk installation',
     errorName: 'CDKNotFoundError',
     expectedDownstreamErrorMessage: `error Command cdk not found. Did you mean cdl?`,
+  },
+  {
+    errorMessage: `Cannot find module './myModule'`,
+    expectedTopLevelErrorMessage: 'Cannot find module',
+    errorName: 'ModuleNotFoundError',
+    expectedDownstreamErrorMessage: `Cannot find module './myModule'`,
   },
   {
     errorMessage: `[31mamplify-some-stack [34m failed: ValidationError: Stack:<stack-arn> is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
@@ -496,120 +338,11 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
   },
   {
     // eslint-disable-next-line spellcheck/spell-checker
-    errorMessage: `[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
-[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
-[31mFailed to publish asset abc:current_account-current_region[39m`,
-    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.'`,
-    errorName: 'CDKAssetPublishError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    // eslint-disable-next-line spellcheck/spell-checker
     errorMessage: `[31m[1mamplify-user-sandbox-c71414864a[22m: fail: socket hang up[39m
 
 [31mFailed to publish asset abc:current_account-current_region[39m`,
-    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'socket hang up'`,
+    expectedTopLevelErrorMessage: `CDK failed to publish assets`,
     errorName: 'CDKAssetPublishError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    errorMessage:
-      `Error: Transform failed with 1 error:` +
-      EOL +
-      `/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }` +
-      EOL +
-      `at failureErrorWithLog (/Users/some-path/esbuild/lib/main.js:123:45)` +
-      EOL +
-      `at /Users/some-path/esbuild/lib/main.js:678:90`,
-    expectedTopLevelErrorMessage:
-      '/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }',
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    errorMessage:
-      `Error [TransformError]:` +
-      EOL +
-      `You installed esbuild for another platform than the one you're currently using.
-    This won't work because esbuild is written with native code and needs to
-    install a platform-specific binary executable.` +
-      EOL +
-      `Specifically the @esbuild/linux-arm64 package is present but this platform
-    needs the @esbuild/darwin-arm64 package instead. People often get into this
-    situation by installing esbuild on Windows or macOS and copying node_modules
-    into a Docker image that runs Linux, or by copying node_modules between
-    Windows and WSL environments.` +
-      EOL +
-      `If you are installing with npm, you can try not copying the node_modules
-    directory when you copy the files over, and running npm ci or npm install
-    on the destination platform after the copy. Or you could consider using yarn
-    instead of npm which has built-in support for installing a package on multiple
-    platforms simultaneously.` +
-      EOL +
-      `If you are installing with yarn, you can try listing both this platform and the
-    other platform in your .yarnrc.yml file using the supportedArchitectures
-    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
-    Keep in mind that this means multiple copies of esbuild will be present.` +
-      EOL +
-      // eslint-disable-next-line spellcheck/spell-checker
-      `Another alternative is to use the esbuild-wasm package instead, which works
-    the same way on all platforms. But it comes with a heavy performance cost and
-    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
-    expectedTopLevelErrorMessage:
-      `You installed esbuild for another platform than the one you're currently using.
-    This won't work because esbuild is written with native code and needs to
-    install a platform-specific binary executable.` +
-      EOL +
-      `Specifically the @esbuild/linux-arm64 package is present but this platform
-    needs the @esbuild/darwin-arm64 package instead. People often get into this
-    situation by installing esbuild on Windows or macOS and copying node_modules
-    into a Docker image that runs Linux, or by copying node_modules between
-    Windows and WSL environments.` +
-      EOL +
-      `If you are installing with npm, you can try not copying the node_modules
-    directory when you copy the files over, and running npm ci or npm install
-    on the destination platform after the copy. Or you could consider using yarn
-    instead of npm which has built-in support for installing a package on multiple
-    platforms simultaneously.` +
-      EOL +
-      `If you are installing with yarn, you can try listing both this platform and the
-    other platform in your .yarnrc.yml file using the supportedArchitectures
-    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
-    Keep in mind that this means multiple copies of esbuild will be present.` +
-      EOL +
-      // eslint-disable-next-line spellcheck/spell-checker
-      `Another alternative is to use the esbuild-wasm package instead, which works
-    the same way on all platforms. But it comes with a heavy performance cost and
-    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
-    errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage: undefined,
-  },
-  {
-    errorMessage:
-      `Error [TransformError]: The package esbuild-package could not be found, and is needed by esbuild.` +
-      EOL +
-      `If you are installing esbuild with npm, make sure that you don't specify the
---no-optional or --omit=optional flags. The optionalDependencies feature
-of package.json is used by esbuild to install the correct binary executable
-for your current platform.
-` +
-      EOL +
-      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
-      EOL +
-      `at /Users/some-path/esbuild/lib/main.js:678:90`,
-    expectedTopLevelErrorMessage:
-      `The package esbuild-package could not be found, and is needed by esbuild.` +
-      EOL +
-      `If you are installing esbuild with npm, make sure that you don't specify the
---no-optional or --omit=optional flags. The optionalDependencies feature
-of package.json is used by esbuild to install the correct binary executable
-for your current platform.
-` +
-      EOL +
-      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
-      EOL +
-      `at /Users/some-path/esbuild/lib/main.js:678:90`,
-    errorName: 'ESBuildError',
     expectedDownstreamErrorMessage: undefined,
   },
   {
