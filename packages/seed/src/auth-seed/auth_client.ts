@@ -87,7 +87,6 @@ export class AuthClient {
         }
         case 'MFA': {
           if (
-            newUser.mfaPreference &&
             newUser.mfaPreference !== 'EMAIL' &&
             (!authConfig.mfaConfig ||
               (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE'))
