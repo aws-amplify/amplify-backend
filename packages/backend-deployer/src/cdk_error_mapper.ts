@@ -597,7 +597,6 @@ export type CDKDeploymentError =
   | 'AuthenticationError'
   | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
-  | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
