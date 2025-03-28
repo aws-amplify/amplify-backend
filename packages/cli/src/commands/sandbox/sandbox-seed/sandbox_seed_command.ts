@@ -2,7 +2,7 @@ import { Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { existsSync } from 'fs';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyError, AmplifyUserError } from '@aws-amplify/platform-core';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 import { format, printer } from '@aws-amplify/cli-core';
 import { tsImport } from 'tsx/esm/api';
@@ -58,7 +58,18 @@ export class SandboxSeedCommand implements CommandModule<object> {
           error,
         );
       } else {
-        throw e;
+        if (AmplifyError.isAmplifyError(e)) {
+          throw e;
+        }
+        throw new AmplifyUserError(
+          'SeedingFailedError',
+          {
+            message: 'Seed failed to complete',
+            resolution:
+              'Check the Caused by error and fix any issues in your seed script',
+          },
+          e instanceof Error ? error : undefined,
+        );
       }
     }
 
