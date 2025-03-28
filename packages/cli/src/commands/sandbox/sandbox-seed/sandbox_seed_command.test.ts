@@ -18,6 +18,7 @@ import { SandboxSeedGeneratePolicyCommand } from './sandbox_seed_policy_command.
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const seedFileContents = 'console.log(`seed has been run`);';
 
@@ -108,9 +109,12 @@ void describe('sandbox seed command', () => {
     void it('runs seed if seed script is found', async () => {
       const output = await commandRunner.runCommand('sandbox seed');
 
-      const successMessage = output.trimEnd().split('\n')[2].trimStart();
+      const outputArr = output.trimEnd().split('\n');
+      const seedMessage = outputArr[1];
+      const successMessage = outputArr[3].trimStart();
 
       assert.ok(output !== undefined);
+      assert.deepStrictEqual(seedMessage, 'seed has been run');
       assert.deepStrictEqual(
         successMessage,
         '✔ seed has successfully completed',
@@ -135,15 +139,17 @@ void describe('sandbox seed command', () => {
     });
 
     void it('throws error if seed script does not exist', async () => {
+      const seedPath = path.join('amplify', 'seed', 'seed.ts');
+      const expectedError = new AmplifyUserError('SeedScriptNotFoundError', {
+        message: `There is no file that corresponds to ${seedPath}`,
+        resolution: `Please make a file that corresponds to ${seedPath} and put your seed logic in it`,
+      });
+
       await assert.rejects(
         () => commandRunner.runCommand('sandbox seed'),
         (err: TestCommandError) => {
-          assert.match(err.output, /SeedScriptNotFoundError/);
-          assert.match(err.output, /There is no file that corresponds to/);
-          assert.match(
-            err.output,
-            /Please make a file that corresponds to (.*) and put your seed logic in it/,
-          );
+          assert.strictEqual(err.error.name, expectedError.name);
+          assert.strictEqual(err.error.message, expectedError.message);
           return true;
         },
       );

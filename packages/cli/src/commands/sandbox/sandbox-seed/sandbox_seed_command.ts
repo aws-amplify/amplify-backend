@@ -1,11 +1,12 @@
 import { Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { existsSync } from 'fs';
-import { execa } from 'execa';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { tsImport } from 'tsx/esm/api';
+import { pathToFileURL } from 'url';
 
 /**
  * Command that runs seed in sandbox environment
@@ -39,13 +40,28 @@ export class SandboxSeedCommand implements CommandModule<object> {
     printer.print(`${format.color('seed is running...', 'Blue')}`);
     const backendID = await this.backendIDResolver.resolve();
     const seedPath = path.join('amplify', 'seed', 'seed.ts');
-    await execa('tsx', [seedPath], {
-      cwd: process.cwd(),
-      stdio: 'inherit',
-      env: {
-        AMPLIFY_BACKEND_IDENTIFIER: JSON.stringify(backendID),
-      },
-    });
+    process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(backendID);
+    try {
+      await tsImport(pathToFileURL(seedPath).toString(), import.meta.url);
+    } catch (e) {
+      const error = e as Error;
+      if (
+        error.message.includes('Cannot find module') &&
+        error.message.includes('seed')
+      ) {
+        throw new AmplifyUserError(
+          'SeedScriptNotFoundError',
+          {
+            message: `There is no file that corresponds to ${seedPath}`,
+            resolution: `Please make a file that corresponds to ${seedPath} and put your seed logic in it`,
+          },
+          error,
+        );
+      } else {
+        throw e;
+      }
+    }
+
     printer.printNewLine();
     printer.print(`${format.success('✔')} seed has successfully completed`);
   };
