@@ -178,11 +178,18 @@ void describe('seeding auth APIs', () => {
       ),
     };
 
+    const mockMfaFlow = {
+      mfaSignUp: mock.fn<
+        (user: AuthSignUp, tempPassword: string) => Promise<boolean>
+      >(async () => Promise.resolve(true)),
+    };
+
     const authClient = new AuthClient(
       mockConfigReader as unknown as ConfigReader,
       mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       mockAuthAPIs as unknown as typeof auth,
       mockPasswordFlow as unknown as PersistentPasswordFlow,
+      mockMfaFlow as unknown as MfaFlow,
     );
 
     beforeEach(() => {
@@ -191,6 +198,7 @@ void describe('seeding auth APIs', () => {
       mockAuthAPIs.signOut.mock.resetCalls();
       mockPasswordFlow.persistentPasswordSignIn.mock.resetCalls();
       mockPasswordFlow.persistentPasswordSignUp.mock.resetCalls();
+      mockMfaFlow.mfaSignUp.mock.resetCalls();
     });
 
     void it('creates and signs up user', async () => {
@@ -294,6 +302,19 @@ void describe('seeding auth APIs', () => {
           return true;
         },
       );
+    });
+
+    void it('does not throw error if using email MFA flow and MFA is not configured in the auth resource', async () => {
+      const output = await authClient.createAndSignUpUser({
+        username: testUsername,
+        password: testPassword,
+        signInAfterCreation: true,
+        signInFlow: 'MFA',
+        mfaPreference: 'EMAIL',
+      });
+
+      assert.strictEqual(mockMfaFlow.mfaSignUp.mock.callCount(), 1);
+      assert.strictEqual(output.username, testUsername);
     });
 
     void it('signs in user with persistent password', async () => {
