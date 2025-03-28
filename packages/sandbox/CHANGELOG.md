@@ -1,5 +1,39 @@
 # @aws-amplify/sandbox
 
+## 2.1.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- d09014b: fix pretty sandbox qa bugs
+- d09014b: stagger FilterLogEvents API calls to prevent throttling exceptions
+- d09014b: reroute stderr through printer and ensure printing is done around spinners
+- ece77e7: remove cdk cli dependency
+- d09014b: Updates to pretty sandbox display
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [2857cf3]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [682d420]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/cli-core@2.1.0
+  - @aws-amplify/backend-deployer@2.1.0
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/client-config@1.7.0
+  - @aws-amplify/deployed-backend-client@1.7.0
+  - @aws-amplify/platform-core@1.8.0
+  - @aws-amplify/backend-secret@1.4.0
+
 ## 2.0.0
 
 ### Major Changes

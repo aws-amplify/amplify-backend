@@ -1,5 +1,24 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 2857cf3: refactor type checks to use TS compiler APIs instead of tsc cli
+- ece77e7: remove cdk cli dependency
+- 682d420: throw more actionable error message when unsupported version of node is used
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/platform-core@1.8.0
+
 ## 2.0.0
 
 ### Major Changes

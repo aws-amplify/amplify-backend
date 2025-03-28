@@ -1,5 +1,20 @@
 # @aws-amplify/platform-core
 
+## 1.8.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+- d09014b: add telemetry schema
+- d09014b: fix: exclude logs streaming options from sandbox command help output
+
+### Patch Changes
+
+- ece77e7: remove cdk cli dependency
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/plugin-types@1.10.0
+
 ## 1.7.0
 
 ### Minor Changes

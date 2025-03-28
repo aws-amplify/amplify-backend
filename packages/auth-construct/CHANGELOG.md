@@ -1,5 +1,20 @@
 # @aws-amplify/auth-construct
 
+## 1.8.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- d09014b: Modified the AmplifyAuth class in packages/auth-construct/src/construct.ts to explicitly set the userPoolName property to match the construct's name property
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.7.0
 
 ### Minor Changes

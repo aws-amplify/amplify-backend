@@ -1,5 +1,15 @@
 # @aws-amplify/plugin-types
 
+## 1.10.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- d09014b: change AmplifyEventMessage interface to type
+
 ## 1.9.0
 
 ### Minor Changes
