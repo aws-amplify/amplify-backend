@@ -5,8 +5,6 @@ inputs:
     required: true
   cdk-lib-version:
     required: true
-  cdk-cli-version:
-    required: true
 runs:
   using: composite
   steps:
@@ -20,10 +18,6 @@ runs:
           echo "CDK Lib version must be provided"
           exit 1;
         fi
-        if [ -z "${{ inputs.cdk-cli-version }}" ]; then
-          echo "CDK CLI version must be provided"
-          exit 1;
-        fi
         if [ -z "${{ inputs.node-version }}" ]; then
           echo "Node version must be provided"
           exit 1;
@@ -35,7 +29,7 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}-cdkcli${{ inputs.cdk-cli-version }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
@@ -44,9 +38,4 @@ runs:
         if [[ ${{ inputs.cdk-lib-version }} != 'FROM_PACKAGE_LOCK' ]]; then
           echo "Installing CDK Lib version ${{ inputs.cdk-lib-version }}"
           npm install --no-save aws-cdk-lib@${{ inputs.cdk-lib-version }}
-        fi
-        if [[ ${{ inputs.cdk-cli-version }} != 'FROM_PACKAGE_LOCK' ]]; then
-          echo "Installing CDK CLI version ${{ inputs.cdk-cli-version }}"
-          npm install --no-save aws-cdk@${{ inputs.cdk-cli-version }}
-          npx cdk --version
         fi

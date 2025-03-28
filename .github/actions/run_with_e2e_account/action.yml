@@ -24,8 +24,6 @@ inputs:
     default: false
   cdk-lib-version:
     required: true
-  cdk-cli-version:
-    required: true
 runs:
   using: composite
   steps:
@@ -38,14 +36,12 @@ runs:
       uses: ./.github/actions/restore_build_cache
       with:
         cdk-lib-version: ${{ inputs.cdk-lib-version }}
-        cdk-cli-version: ${{ inputs.cdk-cli-version }}
         node-version: ${{ inputs.node_version }}
     - name: Build With Cache
       if: inputs.fresh_build == 'true'
       uses: ./.github/actions/build_with_cache
       with:
         cdk-lib-version: ${{ inputs.cdk-lib-version }}
-        cdk-cli-version: ${{ inputs.cdk-cli-version }}
         node-version: ${{ inputs.node_version }}
     - name: Link CLI
       if: inputs.link_cli == 'true'

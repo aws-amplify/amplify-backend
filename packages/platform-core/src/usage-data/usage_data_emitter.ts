@@ -27,7 +27,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     private readonly url = getUrl(),
     private readonly accountIdFetcher = new AccountIdFetcher(),
   ) {
-    const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
+    const targetDependencies = ['@aws-cdk/toolkit-lib', 'aws-cdk-lib'];
 
     this.dependenciesToReport = this.dependencies?.filter((dependency) =>
       targetDependencies.includes(dependency.name),

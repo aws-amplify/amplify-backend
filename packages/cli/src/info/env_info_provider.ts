@@ -41,7 +41,7 @@ export class EnvironmentInfoProvider {
           '@aws-amplify/sandbox',
           '@aws-amplify/schema-generator',
           'typescript',
-          'aws-cdk',
+          '@aws-cdk/toolkit-lib',
           'aws-cdk-lib',
           'aws-amplify',
         ],
