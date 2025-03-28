@@ -1,5 +1,22 @@
 # @aws-amplify/backend-function
 
+## 1.14.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+- 119a05f: add addEnvironment for provided functions
+
+### Patch Changes
+
+- d09014b: fix pretty sandbox qa bugs
+- 119a05f: update shape of AMPLIFY_SSM_ENV_CONFIG
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.13.0
 
 ### Minor Changes

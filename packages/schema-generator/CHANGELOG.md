@@ -1,5 +1,19 @@
 # @aws-amplify/schema-generator
 
+## 1.4.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+  - @aws-amplify/platform-core@1.8.0
+
 ## 1.3.0
 
 ### Minor Changes
