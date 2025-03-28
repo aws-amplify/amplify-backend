@@ -13,7 +13,7 @@ import { DeploymentType } from '@aws-amplify/plugin-types';
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
-  private multiLineEolRegex = '[\r\n]+';
+  private multiLineEolRegex = '[\r\n]*';
   /**
    * Instantiate with a formatter that will be used for formatting CLI commands in error messages
    */
@@ -153,6 +153,20 @@ export class CdkErrorMapper {
         },
         error,
       );
+    } else if (
+      ['TypeError', 'TransformError', 'ReferenceError', 'SyntaxError'].some(
+        (errorName) => errorName === error.name,
+      )
+    ) {
+      throw new AmplifyUserError(
+        'SyntaxError',
+        {
+          message: 'Unable to build the Amplify backend definition.',
+          resolution:
+            'Check the Caused by error and fix any issues in your backend code',
+        },
+        error,
+      );
     } else if (ToolkitError.isToolkitError(error)) {
       // Handle all other Toolkit errors, we fallback to our own mapping for this one.
     }
@@ -244,24 +258,12 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /ValidationError: Role (?<roleArn>.*) is invalid or cannot be assumed/,
+      errorRegex: /Role (?<roleArn>.*) is invalid or cannot be assumed/,
       humanReadableErrorMessage:
         'Role {roleArn} is invalid or cannot be assumed',
       resolutionMessage:
         'Ensure the role exists and AWS credentials have an IAM policy that grants sts:AssumeRole for the role',
       errorName: 'InvalidOrCannotAssumeRoleError',
-      classification: 'ERROR',
-    },
-    {
-      errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`,
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'SyntaxError',
       classification: 'ERROR',
     },
     {
@@ -283,7 +285,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /EPERM: operation not permitted, rename (?<fileName>(.*)\/synth\.lock\.\S+) → '(.*)\/synth\.lock'/,
+        /operation not permitted, rename (?<fileName>(.*)\/synth\.lock\.\S+) → '(.*)\/synth\.lock'/,
       humanReadableErrorMessage: 'Not permitted to rename file: {fileName}',
       resolutionMessage: `Try running the command again and ensure that only one instance of sandbox is running. If it still doesn't work check the permissions of '.amplify' folder`,
       errorName: 'FilePermissionsError',
@@ -291,7 +293,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /EPERM: operation not permitted, mkdir '(.*).amplify\/artifacts\/cdk.out'/,
+        /operation not permitted, mkdir '(.*).amplify\/artifacts\/cdk.out'/,
       humanReadableErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
       resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
       errorName: 'FilePermissionsError',
@@ -299,16 +301,14 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /EPERM: operation not permitted, (unlink|open) (?<fileName>(.*)\.lock\S+)/,
+        /operation not permitted, (unlink|open) (?<fileName>(.*)\.lock\S+)/,
       humanReadableErrorMessage: 'Operation not permitted on file: {fileName}',
       resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
       errorName: 'FilePermissionsError',
       classification: 'ERROR',
     },
     {
-      errorRegex: new RegExp(
-        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`,
-      ),
+      errorRegex: new RegExp(`Cannot find module (.*)`),
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for missing file or package imports. Try installing them with your package manager.',
@@ -327,7 +327,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>\d+) bytes/,
+        /(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>\d+) bytes/,
       humanReadableErrorMessage: 'Maximum Lambda size exceeded',
       resolutionMessage:
         'Make sure your Lambda bundled packages with layers and dependencies is smaller than {maxSize} bytes unzipped.',
@@ -335,8 +335,7 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /InvalidParameterValueException: Uploaded file must be a non-empty zip/,
+      errorRegex: /Uploaded file must be a non-empty zip/,
       humanReadableErrorMessage: 'Lambda bundled into an empty zip',
       resolutionMessage: `Try removing '.amplify/artifacts' then running the command again. If it still doesn't work, see https://github.com/aws/aws-cdk/issues/18459 for more methods.`,
       errorName: 'LambdaEmptyZipFault',
@@ -392,48 +391,13 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(
-        `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`,
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'ESBuildError',
-      classification: 'ERROR',
-    },
-    {
-      // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(
-        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`,
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'ESBuildError',
-      classification: 'ERROR',
-    },
-    {
       // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`,
+        `Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*${this.multiLineEolRegex})+)`,
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
         'Fix the above mentioned type or syntax error in your backend definition.',
-      errorName: 'ESBuildError',
-      classification: 'ERROR',
-    },
-    {
-      // Captures other forms of transform error
-      errorRegex: new RegExp(
-        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`,
-      ),
-      humanReadableErrorMessage: '{esBuildErrorMessage}',
-      resolutionMessage:
-        'Make sure esbuild is installed and is compatible with the platform you are currently using.',
       errorName: 'ESBuildError',
       classification: 'ERROR',
     },
@@ -503,26 +467,12 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      // Error: .* is printed to stderr during cdk synth
-      // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(
-        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
-        'm',
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'BackendSynthError',
-      classification: 'ERROR',
-    },
-    {
       // This happens when 'defineBackend' call is missing in customer's app.
       // 'defineBackend' creates CDK app in memory. If it's missing then no cdk.App exists in memory and nothing is rendered.
       // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
       // But no files are rendered causing it to fail.
       errorRegex:
-        /ENOENT: no such file or directory, open '.*\.amplify.artifacts.cdk\.out.manifest\.json'/,
+        /no such file or directory, open '.*\.amplify.artifacts.cdk\.out.manifest\.json'/,
       humanReadableErrorMessage:
         'The Amplify backend definition is missing `defineBackend` call.',
       resolutionMessage:
@@ -531,8 +481,7 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /^ENOENT: no such file or directory, (?<action_and_filepath>.*)$/,
+      errorRegex: /no such file or directory, (?<action_and_filepath>.*)$/,
       humanReadableErrorMessage: 'Failed to {action_and_filepath}',
       resolutionMessage:
         'File or directory not found. Failed to {action_and_filepath}',
@@ -561,18 +510,15 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /BadRequestException: The code contains one or more errors|The code contains one or more errors.*AppSync/,
+        /The code contains one or more errors|The code contains one or more errors.*AppSync/,
       humanReadableErrorMessage: `A custom resolver used in your defineData contains one or more errors`,
       resolutionMessage: `Check for any syntax errors in your custom resolvers code.`,
       errorName: 'AppSyncResolverSyntaxError',
       classification: 'ERROR',
     },
     {
-      errorRegex: new RegExp(
-        `amplify-.*-(branch|sandbox)-.*fail: (?<publishFailure>.*)${this.multiLineEolRegex}.*Failed to publish asset`,
-        'm',
-      ),
-      humanReadableErrorMessage: `CDK failed to publish assets due to '{publishFailure}'`,
+      errorRegex: new RegExp(`Failed to publish asset`, 'm'),
+      humanReadableErrorMessage: `CDK failed to publish assets`,
       resolutionMessage: `Check the error message for more details.`,
       errorName: 'CDKAssetPublishError',
       classification: 'ERROR',
@@ -584,21 +530,6 @@ export class CdkErrorMapper {
       humanReadableErrorMessage: `Backend failed to be deleted since the previous deployment is still in progress.`,
       resolutionMessage: `Wait for the previous deployment for stack {stackArn} to be completed before attempting to delete again.`,
       errorName: 'DeleteFailedWhileDeploymentInProgressError',
-      classification: 'ERROR',
-    },
-    // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
-    {
-      // Error: .* is printed to stderr during cdk synth
-      // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(
-        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
-        'm',
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'BackendSynthError',
       classification: 'ERROR',
     },
     {
@@ -666,7 +597,6 @@ export type CDKDeploymentError =
   | 'AuthenticationError'
   | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
-  | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
