@@ -26,12 +26,21 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cdk-lib-version: ${{ inputs.cdk-lib-version }}
+    # Get the sha using local repository checkout instead of GitHub context.
+    # Some workflows might be trying to build repository using older commits.
+    - name: Get current commit sha
+      id: get-current-commit-sha
+      shell: bash
+      run: |
+        current_commit_sha=$(git rev-parse HEAD)
+        echo "current_commit_sha=$current_commit_sha"
+        echo "current_commit_sha=$current_commit_sha" >> "$GITHUB_OUTPUT";
     # cache build output based on commit sha
     - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # version 4.2.0
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
+        key: ${{ steps.get-current-commit-sha.outputs.current_commit_sha }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
         enableCrossOsArchive: true
     # only build if cache miss
     - if: steps.build-cache.outputs.cache-hit != 'true'
