@@ -30,7 +30,7 @@ void describe('Branch Linker Construct', () => {
     template.resourceCountIs('Custom::AmplifyBranchLinkerResource', 1);
 
     template.hasResourceProperties('AWS::Lambda::Function', {
-      Runtime: 'nodejs18.x',
+      Runtime: 'nodejs20.x',
       Handler: 'index.handler',
     });
   });
@@ -51,7 +51,7 @@ void describe('Branch Linker Construct', () => {
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: 'nodejs18.x',
+        Runtime: 'nodejs20.x',
         Handler: 'index.handler',
         Environment: {
           Variables: {

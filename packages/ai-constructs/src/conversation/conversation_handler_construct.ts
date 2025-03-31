@@ -102,7 +102,7 @@ export class ConversationHandlerFunction
       this,
       `conversationHandlerFunction`,
       {
-        runtime: LambdaRuntime.NODEJS_18_X,
+        runtime: LambdaRuntime.NODEJS_20_X,
         timeout: Duration.seconds(this.resolveTimeout()),
         entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
