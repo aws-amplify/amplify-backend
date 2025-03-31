@@ -225,7 +225,7 @@ void describe('AmplifyAuthFactory', () => {
     void it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
       const testFunc = new aws_lambda.Function(stack, 'testFunc', {
         code: aws_lambda.Code.fromInline('test placeholder'),
-        runtime: aws_lambda.Runtime.NODEJS_18_X,
+        runtime: aws_lambda.Runtime.NODEJS_20_X,
         handler: 'index.handler',
       });
       const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
@@ -361,7 +361,7 @@ void describe('AmplifyAuthFactory', () => {
   void it('sets customEmailSender when function is provided as email sender', () => {
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
-      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      runtime: aws_lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
     });
     const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
@@ -433,7 +433,7 @@ void describe('AmplifyAuthFactory', () => {
   void it('sets customSmsSender when function is provided as sms sender', () => {
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
-      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      runtime: aws_lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
     });
     const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
@@ -479,7 +479,7 @@ void describe('AmplifyAuthFactory', () => {
   void it('sets custom senders when functions are provided for both sms and email', () => {
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
-      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      runtime: aws_lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
     });
     const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
@@ -533,7 +533,7 @@ void describe('AmplifyAuthFactory', () => {
   void it('ensures empty lambdaTriggers do not remove triggers added elsewhere', () => {
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
-      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      runtime: aws_lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
     });
     const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
@@ -584,7 +584,7 @@ void describe('AmplifyAuthFactory', () => {
     });
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
-      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      runtime: aws_lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
     });
     const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
