@@ -55,6 +55,8 @@ jobs:
           # Use version from package lock. Tests projects are created outside of repository root
           # and are using latest CDK version.
           cdk-lib-version: FROM_PACKAGE_LOCK
+          # TODO temporarily bring back CDK CLI parameter since we bring back repo from before pretty sandbox work.
+          cdk-cli-version: FROM_PACKAGE_LOCK
           aws_region: ${{ matrix.region }}
           fresh_build: true
           shell: bash
