@@ -35,7 +35,7 @@
     "lodash.mergewith": "^4.6.2",
     "semver": "^7.6.3",
     "lodash.snakecase": "^4.1.1",
-    "uuid": "^9.0.1",
+    "uuid": "^11.1.0",
     "zod": "^3.22.2"
   },
   "peerDependencies": {
