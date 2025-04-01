@@ -688,7 +688,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
       },
     );
     new AmplifyAuth(stack, 'test', {
@@ -725,7 +725,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
       },
     );
     new AmplifyAuth(stack, 'test', {
@@ -763,7 +763,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
       },
     );
     assert.throws(
@@ -798,7 +798,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
       },
     );
 
@@ -853,7 +853,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
       },
     );
     new AmplifyAuth(stack, 'test', {

@@ -7,7 +7,7 @@ import { Dependency } from './get_dependencies_from_package_lock.js';
  */
 export const createAmplifyDepUpdater = async (
   dependencies: Dependency[],
-  createAmplifyDepsToFilter: string[] = ['aws-cdk', 'aws-cdk-lib'],
+  createAmplifyDepsToFilter: string[] = ['aws-cdk-lib'],
 ) => {
   const targetDependencies: Dependency[] = dependencies.filter((dependency) =>
     createAmplifyDepsToFilter.includes(dependency.name),

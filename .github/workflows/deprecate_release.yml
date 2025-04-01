@@ -40,7 +40,6 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: FROM_PACKAGE_LOCK
-          cdk-cli-version: FROM_PACKAGE_LOCK
   deprecate_release:
     needs:
       - install
@@ -66,6 +65,5 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: FROM_PACKAGE_LOCK
-          cdk-cli-version: FROM_PACKAGE_LOCK
       - name: Deprecate release versions
         run: npx tsx scripts/deprecate_release.ts

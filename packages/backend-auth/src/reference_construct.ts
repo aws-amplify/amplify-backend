@@ -123,7 +123,7 @@ export class AmplifyReferenceAuth
       scope,
       `${REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID}Lambda`,
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         timeout: Duration.seconds(10),
         entry: refAuthLambdaFilePath,
         handler: 'handler',

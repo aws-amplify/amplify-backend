@@ -207,7 +207,8 @@ void describe('invokeCDKCommand', () => {
 
   void it('throws the original synth error if the synth failed but tsc succeeded', async () => {
     // simulate first execa call for synth as throwing error
-    const synthError = new Error('Error: some cdk synth error\n at some/file');
+    const synthError = new Error('some cdk esbuild transform error');
+    synthError.name = 'TransformError';
     synthMock.mock.mockImplementationOnce(() => {
       throw synthError;
     });
@@ -217,11 +218,11 @@ void describe('invokeCDKCommand', () => {
           validateAppSources: true,
         }),
       new AmplifyUserError(
-        'BackendSynthError',
+        'SyntaxError',
         {
           message: 'Unable to build the Amplify backend definition.',
           resolution:
-            'Check your backend definition in the `amplify` folder for syntax and type errors.',
+            'Check the Caused by error and fix any issues in your backend code',
         },
         synthError,
       ),

@@ -113,10 +113,6 @@ void describe('UsageDataEmitter', () => {
       usageDataSent.projectSetting.details,
       JSON.stringify([
         {
-          name: 'aws-cdk',
-          version: '1.2.3',
-        },
-        {
           name: 'aws-cdk-lib',
           version: '12.13.14',
         },

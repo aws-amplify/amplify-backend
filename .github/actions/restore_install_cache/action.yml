@@ -6,8 +6,6 @@ inputs:
     required: true
   cdk-lib-version:
     required: true
-  cdk-cli-version:
-    required: true
 runs:
   using: composite
   steps:
@@ -21,10 +19,6 @@ runs:
           echo "CDK Lib version must be provided"
           exit 1;
         fi
-        if [ -z "${{ inputs.cdk-cli-version }}" ]; then
-          echo "CDK CLI version must be provided"
-          exit 1;
-        fi
         if [ -z "${{ inputs.node-version }}" ]; then
           echo "Node version must be provided"
           exit 1;
@@ -36,5 +30,5 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}-cdkcli${{ inputs.cdk-cli-version }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
         fail-on-cache-miss: true

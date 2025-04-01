@@ -13,7 +13,7 @@ import semver from 'semver';
  * and shouldn't be committed to the repo.
  */
 
-const targetDependencyNames = new Set(['aws-cdk', 'aws-cdk-lib']);
+const targetDependencyNames = new Set(['aws-cdk-lib']);
 
 const setBaselineDependencyVersions = async (
   packagePath: string,
