@@ -1,10 +1,14 @@
-// import https from 'https';
+import https from 'https';
 import isCI from 'is-ci';
 import os from 'os';
 import { v4 as uuid } from 'uuid';
-import { Dependency } from "@aws-amplify/plugin-types";
-import { TelemetryDataEmitter } from "./telemetry_data_emitter_factory";
-import { ErrorDetails, LatencyDetails, TelemetryPayload } from './telemetry_data';
+import { Dependency } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from './telemetry_data_emitter_factory';
+import {
+  ErrorDetails,
+  LatencyDetails,
+  TelemetryPayload,
+} from './telemetry_data';
 import { AmplifyError } from '../errors';
 import { getLocalProjectId } from './get_local_project_id';
 import { latestPayloadVersion } from './constants';
@@ -18,7 +22,7 @@ import { getUrl } from './get_telemetry_data_url';
  */
 export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   private dependenciesToReport?: Array<Dependency>;
-  
+
   /**
    * Constructor for TelemetryDataEmitter
    */
@@ -56,7 +60,9 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       'aws-cdk-lib',
     ];
 
-    this.dependenciesToReport = this.dependencies?.filter(dependency => targetDependencies.includes(dependency.name));
+    this.dependenciesToReport = this.dependencies?.filter((dependency) =>
+      targetDependencies.includes(dependency.name),
+    );
   }
 
   emitSuccess = async (
@@ -69,8 +75,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -89,8 +94,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -107,8 +111,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -116,10 +119,10 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   };
 
   private getTelemetryData = async (options: {
-    state: 'ABORTED' | 'FAILED' | 'SUCCEEDED',
-    metrics?: Record<string, number>,
-    dimensions?: Record<string, string>,
-    error?: AmplifyError,
+    state: 'ABORTED' | 'FAILED' | 'SUCCEEDED';
+    metrics?: Record<string, number>;
+    dimensions?: Record<string, string>;
+    error?: AmplifyError;
   }): Promise<TelemetryPayload> => {
     return {
       identifiers: {
@@ -153,41 +156,44 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       project: {
         dependencies: this.dependenciesToReport,
       },
-      latency: this.translateMetricsToLatencyData(options.metrics, options.dimensions),
+      latency: this.translateMetricsToLatencyData(
+        options.metrics,
+        options.dimensions,
+      ),
       error: this.translateAmplifyErrorToErrorData(options.error),
     };
   };
 
-  // private send = (data: TelemetryPayload) => {
-  //     return new Promise<void>((resolve) => {
-  //       const payload: string = JSON.stringify(data);
-  //       const req = https.request({
-  //         hostname: this.url.hostname,
-  //         port: this.url.port,
-  //         path: this.url.path,
-  //         method: 'POST',
-  //         headers: {
-  //           'content-type': 'application/json',
-  //           'content-length': payload.length,
-  //         },
-  //       });
-  //       req.on('error', () => {
-  //         /* noop */
-  //       });
-  //       req.setTimeout(2000, () => {
-  //         // 2 seconds
-  //         resolve();
-  //       });
-  
-  //       req.write(payload);
-  //       req.end(() => {
-  //         resolve();
-  //       });
-  //     });
-  //   };
+  private send = (data: TelemetryPayload) => {
+    return new Promise<void>((resolve) => {
+      const payload: string = JSON.stringify(data);
+      const req = https.request({
+        hostname: this.url.hostname,
+        port: this.url.port,
+        path: this.url.path,
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': payload.length,
+        },
+      });
+      req.on('error', () => {
+        /* noop */
+      });
+      req.setTimeout(2000, () => {
+        // 2 seconds
+        resolve();
+      });
+
+      req.write(payload);
+      req.end(() => {
+        resolve();
+      });
+    });
+  };
 
   private translateDimensionsToCommandData = (
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => {
     let path = '';
     let parameters = '';
@@ -222,12 +228,12 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
           message: serializedError.message,
           stack: serializedError.stack ?? '',
         };
-  
+
         if (errorDetails) {
           // this reverses the nesting so lowest level error is the top level error in our telemetry
           errorDetail.cause = errorDetails;
         }
-  
+
         errorDetails = errorDetail;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         currentError = (currentError as any).cause;
@@ -244,7 +250,9 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     metrics?: Record<string, number>,
     dimensions?: Record<string, string>,
   ): LatencyDetails => {
-    const isSandboxEvent = dimensions ? dimensions.subCommands.includes('SandboxEvent') : false;
+    const isSandboxEvent = dimensions
+      ? dimensions.subCommands.includes('SandboxEvent')
+      : false;
     let total = 0;
     let init;
     let synthesis;
@@ -255,19 +263,24 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       // go through metrics, convert from seconds to milliseconds if from sandbox event and truncate decimals
       for (const [name, data] of Object.entries(metrics)) {
         if (name === 'totalTime') {
-          total = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
+          total =
+            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'initTime') {
-          init = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
+          init =
+            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'synthesisTime') {
-          synthesis = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
+          synthesis =
+            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'deploymentTime') {
-          deployment = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
+          deployment =
+            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'hotSwapTime') {
-          hotSwap = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
+          hotSwap =
+            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
       }
     }

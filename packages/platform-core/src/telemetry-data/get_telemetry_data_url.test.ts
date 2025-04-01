@@ -12,7 +12,7 @@ void describe('getUrl', () => {
     const { getUrl } = require('./get_telemetry_data_url');
     assert.equal(
       url.format(getUrl()),
-      ''
+      'https://telemetry.cli.amplify.aws/metrics',
     );
   });
 
