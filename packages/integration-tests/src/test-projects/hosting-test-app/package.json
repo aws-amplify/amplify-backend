@@ -1,3 +1,4 @@
 {
-  "name": "hosting-test-app"
+  "name": "hosting-test-app",
+  "type": "module"
 }
