@@ -9,7 +9,7 @@ void describe('serializable error', () => {
     constructor(
       public readonly message: string,
       public readonly details?: string,
-      public readonly code?: string
+      public readonly code?: string,
     ) {
       super(message);
     }
@@ -19,7 +19,7 @@ void describe('serializable error', () => {
     const error = new ErrorWithDetailsAndCode(
       'some error message',
       undefined,
-      'ErrorCode'
+      'ErrorCode',
     );
     const serializableError = new SerializableError(error);
     assert.deepStrictEqual(serializableError.name, 'ErrorCode');
@@ -46,13 +46,13 @@ void describe('serializable error', () => {
     ];
     assert.ok(
       matches.length === 0,
-      `${os.homedir()} is included in ${serializableError.message}`
+      `${os.homedir()} is included in ${serializableError.message}`,
     );
   });
 
   void test('that error message does not contain file url path with user homedir', () => {
     const error = new Error(
-      `${pathToFileURL(process.cwd()).toString()} test error`
+      `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.message);
@@ -61,30 +61,30 @@ void describe('serializable error', () => {
     ];
     assert.ok(
       matches.length === 0,
-      `${os.homedir()} is included in ${serializableError.message}`
+      `${os.homedir()} is included in ${serializableError.message}`,
     );
   });
 
   void test('that error message does not contain arns', () => {
     const error = new Error(
-      'User: arn:aws:iam::123456789012:user/test is not authorized to perform: test-action'
+      'User: arn:aws:iam::123456789012:user/test is not authorized to perform: test-action',
     );
     const serializableError = new SerializableError(error);
     assert.deepStrictEqual(
       serializableError.message,
-      'User: <escaped ARN> is not authorized to perform: test-action'
+      'User: <escaped ARN> is not authorized to perform: test-action',
     );
   });
 
   void test('that error message does not contain stacks', () => {
     const error = new Error(
       // eslint-disable-next-line spellcheck/spell-checker
-      'Stack with id amplify-test-stack-sandbox-12345abcde does not exist'
+      'Stack with id amplify-test-stack-sandbox-12345abcde does not exist',
     );
     const serializableError = new SerializableError(error);
     assert.deepStrictEqual(
       serializableError.message,
-      'Stack with id <escaped stack> does not exist'
+      'Stack with id <escaped stack> does not exist',
     );
   });
 
@@ -98,16 +98,16 @@ void describe('serializable error', () => {
     ];
     assert.ok(
       matches.length === 0,
-      `${os.homedir()} is included in ${serializableError.stack}`
+      `${os.homedir()} is included in ${serializableError.stack}`,
     );
   });
 
   void test('that error stack does not contain file url path with user homedir', () => {
     const error = new Error(
-      `${pathToFileURL(process.cwd()).toString()} test error`
+      `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     error.stack = `${error.stack}  at methodName (${pathToFileURL(
-      process.cwd()
+      process.cwd(),
     ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
@@ -116,13 +116,13 @@ void describe('serializable error', () => {
     ];
     assert.ok(
       matches.length === 0,
-      `${os.homedir()} is included in ${serializableError.stack}`
+      `${os.homedir()} is included in ${serializableError.stack}`,
     );
     const expectedFilePath =
       'node_modules/@aws-amplify/test-package/lib/test.js';
     assert.ok(
       serializableError.stack.includes(expectedFilePath),
-      `${expectedFilePath} is not found in ${serializableError.stack}`
+      `${expectedFilePath} is not found in ${serializableError.stack}`,
     );
   });
 
@@ -134,9 +134,9 @@ void describe('serializable error', () => {
     const serializableError = new SerializableError(error);
     assert.ok(
       serializableError.stack.includes(
-        'Stack with id <escaped stack> does not exist'
+        'Stack with id <escaped stack> does not exist',
       ),
-      `Stack is not removed in ${serializableError.stack}`
+      `Stack is not removed in ${serializableError.stack}`,
     );
   });
 });

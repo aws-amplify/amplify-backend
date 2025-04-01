@@ -3,7 +3,10 @@ import { v4, validate } from 'uuid';
 import fs from 'fs';
 import assert from 'node:assert';
 import { getLocalProjectId } from './get_local_project_id';
-import { ConfigurationController, configControllerFactory } from '../config/local_configuration_controller_factory';
+import {
+  ConfigurationController,
+  configControllerFactory,
+} from '../config/local_configuration_controller_factory';
 
 void describe('getLocalProjectId', () => {
   const configControllerGet = mock.fn((value?: string) => value);
@@ -12,10 +15,14 @@ void describe('getLocalProjectId', () => {
     get: configControllerGet,
     set: configControllerSet,
   } as unknown as ConfigurationController;
-  mock.method(configControllerFactory, 'getInstance', () => mockedConfigController);
+  mock.method(
+    configControllerFactory,
+    'getInstance',
+    () => mockedConfigController,
+  );
   mock.method(fs, 'existsSync', () => true);
   mock.method(fs, 'readFile', () =>
-    Promise.resolve(JSON.stringify({ name: 'testAppName' }))
+    Promise.resolve(JSON.stringify({ name: 'testAppName' })),
   );
 
   void it('returns a valid project UUID', async () => {
@@ -23,7 +30,7 @@ void describe('getLocalProjectId', () => {
     const localProjectId = await getLocalProjectId();
     assert.ok(
       validate(localProjectId),
-      `${localProjectId} is not a valid UUID string`
+      `${localProjectId} is not a valid UUID string`,
     );
   });
 

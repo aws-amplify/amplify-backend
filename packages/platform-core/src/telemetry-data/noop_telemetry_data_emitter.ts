@@ -1,4 +1,4 @@
-import { TelemetryDataEmitter } from "./telemetry_data_emitter_factory";
+import { TelemetryDataEmitter } from './telemetry_data_emitter_factory';
 
 /**
  * no-op class that implements TelemetryDataEmitter

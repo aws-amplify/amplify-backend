@@ -1,7 +1,7 @@
-import { describe, it } from "node:test";
+import { describe, it } from 'node:test';
 import { Argv } from 'yargs';
-import { extractCommandInfo } from "./extract_command_info.js";
-import assert from "node:assert";
+import { extractCommandInfo } from './extract_command_info.js';
+import assert from 'node:assert';
 
 void describe('extractCommandInfo', () => {
   void it('returns undefined if yargs arguments have not been parsed', () => {
@@ -27,7 +27,7 @@ void describe('extractCommandInfo', () => {
     const actual = extractCommandInfo(parser);
     assert.deepEqual(actual, {
       subCommands: 'subCommand1 subCommand2',
-      options: 'option1 option2' // options sorted alphabetically
+      options: 'option1 option2', // options sorted alphabetically
     });
-  })
+  });
 });

@@ -9,17 +9,16 @@ const AMPLIFY_CLI_UUID_NAMESPACE = 'e6831f35-ca7a-4889-a7bf-541c81d58d40'; // A 
  * Generates a consistent project Uuid
  */
 export const getLocalProjectId = async (
-  namespace: string = AMPLIFY_CLI_UUID_NAMESPACE
+  namespace: string = AMPLIFY_CLI_UUID_NAMESPACE,
 ) => {
   const localProjectIdPath =
     process.cwd().replace(homedir() + path.sep, '') + '.projectId';
   const configController = configControllerFactory.getInstance(
-    'usage_data_preferences.json'
+    'usage_data_preferences.json',
   );
 
-  const cachedProjectId = await configController.get<string>(
-    localProjectIdPath
-  );
+  const cachedProjectId =
+    await configController.get<string>(localProjectIdPath);
 
   if (cachedProjectId) {
     return cachedProjectId;

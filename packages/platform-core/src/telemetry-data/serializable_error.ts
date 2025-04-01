@@ -16,7 +16,7 @@ export class SerializableError {
   // [\\w.\\-_@\\\\/]+ -> matches nested directories and file name
   private filePathRegex = new RegExp(
     `(file:/+)?${homedir().replaceAll('\\', '/')}[\\w.\\-_@\\\\/]+`,
-    'g'
+    'g',
   );
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;

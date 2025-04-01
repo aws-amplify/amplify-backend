@@ -1,4 +1,4 @@
-import { STSClient } from "@aws-sdk/client-sts";
+import { STSClient } from '@aws-sdk/client-sts';
 
 const NO_REGION = 'NO_REGION';
 /**
@@ -21,5 +21,5 @@ export class RegionFetcher {
     } catch {
       return NO_REGION;
     }
-  }
+  };
 }

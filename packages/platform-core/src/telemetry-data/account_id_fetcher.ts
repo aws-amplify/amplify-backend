@@ -21,12 +21,12 @@ export class AccountIdFetcher {
     }
     try {
       const stsResponse = await this.stsClient.send(
-        new GetCallerIdentityCommand({})
+        new GetCallerIdentityCommand({}),
       );
       if (stsResponse && stsResponse.Account) {
         this.accountId = uuidV5(
           stsResponse.Account.slice(0, -2),
-          AMPLIFY_CLI_UUID_NAMESPACE
+          AMPLIFY_CLI_UUID_NAMESPACE,
         );
         return this.accountId;
       }
