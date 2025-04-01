@@ -28,19 +28,16 @@ export type TestBranch = {
 export type AmplifyAppPool = {
   createTestBranch: () => Promise<TestBranch>;
   fetchTestBranchDetails: (testBranch: TestBranch) => Promise<Branch>;
-  getAppWithCapacity: () => Promise<App>;
 };
 
 class DefaultAmplifyAppPool implements AmplifyAppPool {
   private readonly maxNumberOfAmplifyApps = 20;
   private readonly maxBranchesPerApp = 50;
+  private readonly testAppPrefix = 'amplify-test-app';
   private readonly testBranchPrefix = 'testBranch';
   private readonly branchesCreated: Array<TestBranch> = [];
 
-  constructor(
-    private readonly amplifyClient: AmplifyClient,
-    private readonly testAppPrefix: string,
-  ) {
+  constructor(private readonly amplifyClient: AmplifyClient) {
     // Register a callback that fires at the end of the current process lifetime
     // and attempts to clean up branches created in this session.
     process.once(
@@ -135,7 +132,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
     return branches;
   };
 
-  public getAppWithCapacity = async (): Promise<App> => {
+  private getAppWithCapacity = async (): Promise<App> => {
     const existingAmplifyApps = await this.listAllTestAmplifyApps();
     for (const existingAmplifyApp of existingAmplifyApps) {
       if (existingAmplifyApp.appId) {
@@ -198,13 +195,4 @@ export const amplifyAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
     ...e2eToolingClientConfig,
     maxAttempts: 5,
   }),
-  'amplify-test-app',
-);
-
-export const amplifyHostingAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
-  new AmplifyClient({
-    ...e2eToolingClientConfig,
-    maxAttempts: 5,
-  }),
-  'amplify-test-hosting-app',
 );

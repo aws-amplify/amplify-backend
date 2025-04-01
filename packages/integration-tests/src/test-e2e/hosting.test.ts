@@ -12,22 +12,7 @@ import {
   StopJobCommand,
   UpdateAppCommand,
 } from '@aws-sdk/client-amplify';
-import {
-  CreateBucketCommand,
-  DeleteBucketCommand,
-  DeleteObjectsCommand,
-  GetObjectCommand,
-  ListObjectsV2Command,
-  NoSuchKey,
-  PutBucketPolicyCommand,
-  PutObjectCommand,
-  S3Client,
-  S3ServiceException,
-} from '@aws-sdk/client-s3';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-import { shortUuid } from '../short_uuid.js';
-import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
-import { amplifyHostingAppPool } from '../amplify_app_pool.js';
 
 const amplifyClient = new AmplifyClient({
   ...e2eToolingClientConfig,
@@ -38,9 +23,7 @@ void describe('hosting', () => {
   after(async () => {});
 
   void it('can deploy backend', async () => {
-    const app = await amplifyHostingAppPool.getAppWithCapacity();
-
-    const appId = app.appId;
+    const appId = 'test';
     const branchName = 'testBranch';
 
     // await amplifyClient.send(
