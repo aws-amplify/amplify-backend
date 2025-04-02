@@ -21,7 +21,7 @@
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "live-dependency-health-checks": "npm run test:dir packages/integration-tests/lib/test-live-dependency-health-checks",
     "new": "tsx scripts/copy_template.ts",
-    "prepare": "husky install",
+    "prepare": "husky",
     "publish": "tsx scripts/publish.ts",
     "publish:local": "tsx scripts/publish_local.ts",
     "publish:snapshot": "tsx scripts/publish_snapshot.ts",
@@ -98,7 +98,7 @@
     "semver": "^7.5.4",
     "tsx": "^4.6.1",
     "typedoc": "^0.28.1",
-    "typescript": "~5.2.0",
+    "typescript": "~5.8.2",
     "verdaccio": "^6.0.1"
   },
   "workspaces": [
