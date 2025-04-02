@@ -1,23 +1,20 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 import assert from 'assert';
 import {
   AmplifyClient,
-  CreateAppCommand,
   CreateBranchCommand,
-  CreateDeploymentCommand,
   DeleteBranchCommand,
-  JobStatus,
-  JobSummary,
+  GetAppCommand,
   GetBranchCommand,
   GetJobCommand,
+  JobStatus,
+  JobSummary,
   LimitExceededException,
+  ListBranchesCommand,
   ListJobsCommand,
   ListJobsCommandOutput,
-  ListBranchesCommand,
   NotFoundException,
-  StartDeploymentCommand,
   StartJobCommand,
-  StopJobCommand,
   UpdateAppCommand,
   UpdateBranchCommand,
 } from '@aws-sdk/client-amplify';
@@ -35,9 +32,22 @@ void describe('hosting', () => {
   let commitSha: string;
 
   before(async () => {
-    appId = 'd1z9ikmnr11ttr';
-    branchName = 'hosting-test';
-    commitSha = '55ba72b95241fcdf9f6e13e5c6614cfee57aaf4b';
+    assert.ok(
+      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID,
+      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID environment variable must be set.',
+    );
+    appId = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID;
+    assert.ok(
+      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME,
+      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME environment variable must be set.',
+    );
+    branchName = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME;
+    assert.ok(
+      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA,
+      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA environment variable must be set.',
+    );
+    commitSha = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA;
+    await ensureAppIsConfiguredProperly(appId);
     await pruneStaleBranches(appId);
     await ensureBranchIsConnected(appId, branchName);
   });
@@ -78,8 +88,14 @@ const waitForSuccessfulJobCompletion = async (
     assert.ok(jobSummary);
     console.log(`Job ${jobId} is in status ${jobSummary.status}`);
     // Fail if job is in terminal non-successful state.
-    assert.ok(jobSummary.status !== 'FAILED');
-    assert.ok(jobSummary.status !== 'CANCELLED');
+    assert.ok(
+      jobSummary.status !== 'FAILED',
+      `Job ${jobId} has failed. Check logs in the AWS Console.`,
+    );
+    assert.ok(
+      jobSummary.status !== 'CANCELLED',
+      `Job ${jobId} has been canceled. Check logs in the AWS Console.`,
+    );
     if (jobSummary.status === 'SUCCEED') {
       return;
     }
@@ -231,3 +247,59 @@ const pruneStaleBranches = async (appId: string) => {
     }
   }
 };
+
+const ensureAppIsConfiguredProperly = async (appId: string) => {
+  const getAppResult = await amplifyClient.send(
+    new GetAppCommand({
+      appId,
+    }),
+  );
+  assert.ok(getAppResult.app);
+  const app = getAppResult.app;
+  assert.ok(
+    !app.name?.startsWith('amplify-'),
+    'App name must not start with amplify- prefix. Otherwise cleanup script will delete it.',
+  );
+  assert.ok(
+    app.repository?.includes('amplify-backend'),
+    'App must be connected to amplify-backend repository, either main repo or fork',
+  );
+  await amplifyClient.send(
+    new UpdateAppCommand({
+      ...app,
+      buildSpec: buildSpec,
+    }),
+  );
+};
+
+const buildSpec = `version: 1
+env:
+  variables:
+    NODE_OPTIONS: '--max-old-space-size=4000'
+backend:
+  phases:
+    build:
+      commands:
+        # TODO remove node install when Hosting rolls new image.
+        - nvm install 18
+        # Uninstall Gen1 CLI, otherwise npm link below has a conflict on amplify binary
+        - npm uninstall -g @aws-amplify/cli
+        - npm ci --cache .npm --prefer-offline
+        - npm run build
+        - npm link ./packages/cli
+        - cd packages/integration-tests/src/test-projects/hosting-test-app
+        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+        - cd -
+frontend:
+  phases:
+    build:
+      commands:
+        - mkdir ./dist && touch ./dist/index.html
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .npm/**/*
+`;
