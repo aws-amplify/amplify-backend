@@ -6,6 +6,7 @@ import {
   CreateBranchCommand,
   CreateDeploymentCommand,
   JobStatus,
+  GetBranchCommand,
   GetJobCommand,
   ListJobsCommand,
   StartDeploymentCommand,
@@ -21,11 +22,18 @@ const amplifyClient = new AmplifyClient({
 });
 
 void describe('hosting', () => {
-  after(async () => {});
-
   void it('can deploy backend', async () => {
     const appId = 'd1z9ikmnr11ttr';
     const branchName = 'hosting-test';
+
+    const branch = await amplifyClient.send(
+      new GetBranchCommand({
+        branchName: branchName,
+        appId: appId,
+      }),
+    );
+
+    console.log(JSON.stringify(branch, null, 2));
 
     // await amplifyClient.send(
     //   new CreateBranchCommand({
@@ -52,7 +60,7 @@ void describe('hosting', () => {
       }),
     );
 
-    console.log(JSON.stringify(jobsList, null, 2));
+    //console.log(JSON.stringify(jobsList, null, 2));
 
     for (const jobSummary of jobsList.jobSummaries ?? []) {
       const job = await amplifyClient.send(
@@ -62,7 +70,7 @@ void describe('hosting', () => {
           jobId: jobSummary.jobId,
         }),
       );
-      console.log(JSON.stringify(job, null, 2));
+      //console.log(JSON.stringify(job, null, 2));
     }
 
     // for (const jobSummary of jobsList.jobSummaries ?? []) {
