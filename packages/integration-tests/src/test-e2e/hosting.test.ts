@@ -296,10 +296,13 @@ const ensureAppIsConfiguredProperly = async (app: App) => {
     app.repository?.includes('amplify-backend'),
     'App must be connected to amplify-backend repository, either main repo or fork',
   );
+  assert.ok(app.appArn);
+  const accountId = app.appArn.split(':')[4];
   await amplifyClient.send(
     new UpdateAppCommand({
       ...app,
       buildSpec: buildSpec,
+      iamServiceRoleArn: `arn:aws:iam::${accountId}:role/e2e-execution`,
     }),
   );
 };
