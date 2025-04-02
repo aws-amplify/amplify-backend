@@ -432,8 +432,8 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
         env:
-          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME: ${{ github.event.pull_request.base.ref }}
-          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA: ${{ github.event.pull_request.base.sha }}
+          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
   e2e_generate_deployment_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
