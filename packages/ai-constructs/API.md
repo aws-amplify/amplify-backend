@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';

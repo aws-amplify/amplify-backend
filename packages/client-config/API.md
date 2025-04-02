@@ -604,7 +604,7 @@ export type ClientConfigVersion = `${ClientConfigVersionOption}`;
 // @public (undocumented)
 export enum ClientConfigVersionOption {
     // (undocumented)
-    V0 = "0",
+    V0 = "0",// Legacy client config
     // (undocumented)
     V1 = "1",
     // (undocumented)
@@ -627,7 +627,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "1.1" | "1.2" | "1.3" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends ClientConfigVersion>(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;

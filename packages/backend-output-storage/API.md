@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { DeepPartial } from '@aws-amplify/plugin-types';

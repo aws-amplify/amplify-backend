@@ -38,7 +38,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     static fromError: (error: unknown) => AmplifyError;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
-    static isAmplifyError: (error: unknown) => error is AmplifyError<string>;
+    static isAmplifyError: (error: unknown) => error is AmplifyError;
     // (undocumented)
     readonly link?: string;
     // (undocumented)
@@ -474,7 +474,7 @@ export type TypedConfigurationFile<T> = {
 // @public
 export class TypedConfigurationFileFactory {
     constructor();
-    getInstance: <T extends z.ZodTypeAny>(fileName: TypedConfigurationFileName, schema: T, defaultValue: z.TypeOf<T>) => TypedConfigurationFile<z.TypeOf<T>>;
+    getInstance: <T extends z.ZodTypeAny>(fileName: TypedConfigurationFileName, schema: T, defaultValue: z.infer<T>) => TypedConfigurationFile<z.infer<T>>;
 }
 
 // @public (undocumented)
