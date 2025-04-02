@@ -433,7 +433,6 @@ jobs:
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
-          AMPLIFY_BACKEND_TESTS_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   e2e_generate_deployment_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest

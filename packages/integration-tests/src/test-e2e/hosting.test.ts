@@ -2,14 +2,16 @@ import { before, describe, it } from 'node:test';
 import assert from 'assert';
 import {
   AmplifyClient,
+  App,
   CreateBranchCommand,
   DeleteBranchCommand,
-  GetAppCommand,
   GetBranchCommand,
   GetJobCommand,
   JobStatus,
   JobSummary,
   LimitExceededException,
+  ListAppsCommand,
+  ListAppsCommandOutput,
   ListBranchesCommand,
   ListJobsCommand,
   ListJobsCommandOutput,
@@ -29,23 +31,24 @@ const amplifyClient = new AmplifyClient({
 /**
  * This test asserts that Amplify Hosting can deploy sample app using amplify-backed built from sources.
  *
+ * The test requires an Amplify App named 'hosting-test-app' to be created upfront in per every account/region pair we test in.
+ * The App is a pre-requisite because it requires manual step to connect repository.
+ * The App should be connected to amplify-backend repo (main repo in health_checks workflows, your fork if you're running test locally).
+ *
  * The test has the following inputs passed via environment variables:
- * 1. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID - an id of Amplify App. The App is a pre-requisite because
- *    it requires manual step to connect repository. The App should be connected to amplify-backend repo
- *    (main repo in health_checks workflows, your fork if you're running test locally).
- *    Otherwise, the test sets up other required configuration automatically.
- *    Amplify App's name must not start with 'amplify-' prefix, otherwise cleanup scripts will delete it.
- * 2. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME - branch under test.
+ * 1. GITHUB_REF - branch under test.
  *    Code must be pushed to GitHub - main repo or fork (depending on how Amplify App has been set up).
- * 3. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA - a commit hash to use when kicking off the build.
+ * 2. GITHUB_SHA - a commit hash to use when kicking off the build.
  *    The commit must be pushed to GitHub.
  *
  *
  *  In order to test this locally:
- *  1. Create Amplify App connected to your fork of amplify-backend repo.
+ *  1. Create Amplify App named 'hosting-test-app' connected to your fork of amplify-backend repo.
  *  2. Make changes, push to your fork.
  *  3. Run this test with required environment variables set (see definition above).
  */
+
+const testAppName = 'hosting-test-app';
 
 void describe('hosting', () => {
   let appId: string;
@@ -54,21 +57,16 @@ void describe('hosting', () => {
 
   before(async () => {
     assert.ok(
-      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID,
-      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID environment variable must be set.',
+      process.env.GITHUB_REF,
+      'GITHUB_REF environment variable must be set.',
     );
-    appId = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID;
+    branchName = process.env.GITHUB_REF;
     assert.ok(
-      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME,
-      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME environment variable must be set.',
+      process.env.GITHUB_SHA,
+      'GITHUB_SHA environment variable must be set.',
     );
-    branchName = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME;
-    assert.ok(
-      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA,
-      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA environment variable must be set.',
-    );
-    commitSha = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA;
-    await ensureAppIsConfiguredProperly(appId);
+    commitSha = process.env.GITHUB_SHA;
+    appId = await findTestingAppId();
     await pruneStaleBranches(appId);
     await ensureBranchIsConnected(appId, branchName);
   });
@@ -242,8 +240,8 @@ const ensureBranchIsConnected = async (appId: string, branchName: string) => {
  * Single app can have up to 50 branches. We're using a predefined app for hosting tests, as setup requires manual steps.
  * Therefore, we need to collect garbage to avoid hitting the limit.
  *
- * Note: if we ever hit the limit due to test traffic volume, then we should consider sharding it across
- * couple of predefined apps.
+ * Note: if we ever hit the limit due to test traffic volume, then we should consider more aggressive sharding across
+ * couple of predefined apps per account per region.
  */
 const pruneStaleBranches = async (appId: string) => {
   const staleDurationInMilliseconds = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -269,18 +267,31 @@ const pruneStaleBranches = async (appId: string) => {
   }
 };
 
-const ensureAppIsConfiguredProperly = async (appId: string) => {
-  const getAppResult = await amplifyClient.send(
-    new GetAppCommand({
-      appId,
-    }),
+const findTestingAppId = async (): Promise<string> => {
+  let listAppsResult: ListAppsCommandOutput | undefined;
+  do {
+    listAppsResult = await amplifyClient.send(
+      new ListAppsCommand({
+        maxResults: 100,
+        nextToken: listAppsResult?.nextToken,
+      }),
+    );
+
+    const testApp = listAppsResult?.apps?.find(
+      (item) => item.name === testAppName,
+    );
+    if (testApp?.appId) {
+      await ensureAppIsConfiguredProperly(testApp);
+      return testApp.appId;
+    }
+  } while (listAppsResult.nextToken);
+
+  assert.fail(
+    `App named '${testAppName}' is missing in test account and region.`,
   );
-  assert.ok(getAppResult.app);
-  const app = getAppResult.app;
-  assert.ok(
-    !app.name?.startsWith('amplify-'),
-    'App name must not start with amplify- prefix. Otherwise cleanup script will delete it.',
-  );
+};
+
+const ensureAppIsConfiguredProperly = async (app: App) => {
   assert.ok(
     app.repository?.includes('amplify-backend'),
     'App must be connected to amplify-backend repository, either main repo or fork',
