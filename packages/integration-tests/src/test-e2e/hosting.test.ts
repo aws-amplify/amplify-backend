@@ -36,9 +36,9 @@ const amplifyClient = new AmplifyClient({
  * The App should be connected to amplify-backend repo (main repo in health_checks workflows, your fork if you're running test locally).
  *
  * The test has the following inputs passed via environment variables:
- * 1. GITHUB_REF - branch under test.
+ * 1. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME - branch under test.
  *    Code must be pushed to GitHub - main repo or fork (depending on how Amplify App has been set up).
- * 2. GITHUB_SHA - a commit hash to use when kicking off the build.
+ * 2. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA - a commit hash to use when kicking off the build.
  *    The commit must be pushed to GitHub.
  *
  *
@@ -57,15 +57,15 @@ void describe('hosting', () => {
 
   before(async () => {
     assert.ok(
-      process.env.GITHUB_REF,
-      'GITHUB_REF environment variable must be set.',
+      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME,
+      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME environment variable must be set.',
     );
-    branchName = process.env.GITHUB_REF;
+    branchName = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME;
     assert.ok(
-      process.env.GITHUB_SHA,
-      'GITHUB_SHA environment variable must be set.',
+      process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA,
+      'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA environment variable must be set.',
     );
-    commitSha = process.env.GITHUB_SHA;
+    commitSha = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA;
     appId = await findTestingAppId();
     await pruneStaleBranches(appId);
     await ensureBranchIsConnected(appId, branchName);
