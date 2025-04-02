@@ -1,14 +1,22 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import fsp from 'fs/promises';
 import {
   TestCommandError,
   TestCommandRunner,
 } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
-import { version } from '#package.json';
 import { NoticesRenderer } from './notices/notices_renderer.js';
+import { fileURLToPath } from 'node:url';
 
-void describe('main parser', { concurrency: false }, () => {
+void describe('main parser', { concurrency: false }, async () => {
+  const packageJson = JSON.parse(
+    await fsp.readFile(
+      fileURLToPath(new URL('../package.json', import.meta.url)),
+      'utf-8',
+    ),
+  );
+  const version = packageJson.version;
   const tryFindAndPrintApplicableNoticesMock = mock.fn();
   const noticesRenderer = {
     tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,

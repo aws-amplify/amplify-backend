@@ -60,6 +60,12 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
     (value) => value instanceof Construct,
   );
 
+  if (!firstConstruct) {
+    throw new Error(
+      'Could not find a construct to compute the root stack from',
+    );
+  }
+
   const result = {
     // need to go up two levels to get the root stack
     root: Template.fromStack(Stack.of(firstConstruct).node.scope as Stack),
@@ -78,6 +84,11 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
     const firstConstruct = Object.values(resourceRecord.resources).find(
       (value) => value instanceof Construct,
     );
+    if (!firstConstruct) {
+      throw new Error(
+        'Could not find a construct in the resources exposed by resourceRecord',
+      );
+    }
     result[key as keyof T] = Template.fromStack(
       Stack.of(firstConstruct),
     ) as never; // TS can't figure out which "K in keyof T" "name" corresponds to here but this assignment is safe
