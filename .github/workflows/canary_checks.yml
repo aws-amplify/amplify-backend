@@ -44,6 +44,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        with:
+          # TODO temporarily pin to pre-pretty sandbox until we ship that
+          # Branch contains repo at 0cc2de3ae15f09a9eec5b9e0d54f0bae474c7aa9 plus changes to build step caching
+          ref: pre-pretty-sandbox-branch
       - name: Run live dependency health checks
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -52,6 +56,8 @@ jobs:
           # Use version from package lock. Tests projects are created outside of repository root
           # and are using latest CDK version.
           cdk-lib-version: FROM_PACKAGE_LOCK
+          # TODO temporarily bring back CDK CLI parameter since we bring back repo from before pretty sandbox work.
+          cdk-cli-version: FROM_PACKAGE_LOCK
           aws_region: ${{ matrix.region }}
           fresh_build: true
           shell: bash

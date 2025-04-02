@@ -280,7 +280,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('allows for overriding lambda config', () => {
     const authFn = new Function(stack, 'MyAuthFn', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),
@@ -328,7 +328,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('defaults to lambda if no other mode is provided', () => {
     const authFn = new Function(stack, 'MyAuthFn', {
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),
