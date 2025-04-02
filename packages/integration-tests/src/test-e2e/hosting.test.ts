@@ -6,6 +6,7 @@ import {
   CreateBranchCommand,
   CreateDeploymentCommand,
   JobStatus,
+  GetJobCommand,
   ListJobsCommand,
   StartDeploymentCommand,
   StartJobCommand,
@@ -23,8 +24,8 @@ void describe('hosting', () => {
   after(async () => {});
 
   void it('can deploy backend', async () => {
-    const appId = 'test';
-    const branchName = 'testBranch';
+    const appId = 'd1z9ikmnr11ttr';
+    const branchName = 'hosting-test';
 
     // await amplifyClient.send(
     //   new CreateBranchCommand({
@@ -33,15 +34,15 @@ void describe('hosting', () => {
     //   }),
     // );
 
-    await amplifyClient.send(
-      new UpdateAppCommand({
-        appId: appId,
-        buildSpec: 'foo',
-        enableBranchAutoBuild: false,
-        repository: 'https://github.com/aws-amplify/amplify-backend',
-        accessToken: process.env.AMPLIFY_BACKEND_TESTS_GITHUB_TOKEN,
-      }),
-    );
+    // await amplifyClient.send(
+    //   new UpdateAppCommand({
+    //     appId: appId,
+    //     buildSpec: 'foo',
+    //     enableBranchAutoBuild: false,
+    //     repository: 'https://github.com/aws-amplify/amplify-backend',
+    //     accessToken: process.env.AMPLIFY_BACKEND_TESTS_GITHUB_TOKEN,
+    //   }),
+    // );
 
     const jobsList = await amplifyClient.send(
       new ListJobsCommand({
@@ -51,24 +52,38 @@ void describe('hosting', () => {
       }),
     );
 
+    console.log(JSON.stringify(jobsList, null, 2));
+
     for (const jobSummary of jobsList.jobSummaries ?? []) {
-      if (jobSummary.status === JobStatus.CREATED)
-        await amplifyClient.send(
-          new StopJobCommand({
-            appId,
-            branchName,
-            jobId: jobSummary.jobId,
-          }),
-        );
+      const job = await amplifyClient.send(
+        new GetJobCommand({
+          appId,
+          branchName,
+          jobId: jobSummary.jobId,
+        }),
+      );
+      console.log(JSON.stringify(job, null, 2));
     }
 
-    await amplifyClient.send(
-      new StartJobCommand({
-        appId: appId,
-        branchName,
-        jobType: 'MANUAL',
-      }),
-    );
+    // for (const jobSummary of jobsList.jobSummaries ?? []) {
+    //   if (jobSummary.status === JobStatus.CREATED)
+    //     await amplifyClient.send(
+    //       new StopJobCommand({
+    //         appId,
+    //         branchName,
+    //         jobId: jobSummary.jobId,
+    //       }),
+    //     );
+    // }
+
+    // await amplifyClient.send(
+    //   new StartJobCommand({
+    //     appId: appId,
+    //     branchName,
+    //     jobType: 'MANUAL',
+    //     commitId: '1dccf9e09e3aec18041b0071528feab67275ea07',
+    //   }),
+    // );
 
     // const deployment = await amplifyClient.send(
     //   new CreateDeploymentCommand({
