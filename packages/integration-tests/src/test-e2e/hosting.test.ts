@@ -26,6 +26,27 @@ const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
 });
 
+/**
+ * This test asserts that Amplify Hosting can deploy sample app using amplify-backed built from sources.
+ *
+ * The test has the following inputs passed via environment variables:
+ * 1. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_APP_ID - an id of Amplify App. The App is a pre-requisite because
+ *    it requires manual step to connect repository. The App should be connected to amplify-backend repo
+ *    (main repo in health_checks workflows, your fork if you're running test locally).
+ *    Otherwise, the test sets up other required configuration automatically.
+ *    Amplify App's name must not start with 'amplify-' prefix, otherwise cleanup scripts will delete it.
+ * 2. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME - branch under test.
+ *    Code must be pushed to GitHub - main repo or fork (depending on how Amplify App has been set up).
+ * 3. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA - a commit hash to use when kicking off the build.
+ *    The commit must be pushed to GitHub.
+ *
+ *
+ *  In order to test this locally:
+ *  1. Create Amplify App connected to your fork of amplify-backend repo.
+ *  2. Make changes, push to your fork.
+ *  3. Run this test with required environment variables set (see definition above).
+ */
+
 void describe('hosting', () => {
   let appId: string;
   let branchName: string;
