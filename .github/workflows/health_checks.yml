@@ -857,6 +857,7 @@ jobs:
       - e2e_sandbox
       - e2e_notices
       - e2e_create_amplify
+      - e2e_hosting
       - resolve_inputs
     runs-on: ubuntu-latest
     steps:
