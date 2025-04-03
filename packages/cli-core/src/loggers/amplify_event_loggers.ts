@@ -9,6 +9,7 @@ import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
+import { EOL } from 'node:os';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -140,14 +141,25 @@ export class AmplifyEventLogger {
     }
 
     // Hot swap deployment
-    // TBD: This will be replaced with a proper marker event with a unique code later
-    if (msg.message.includes('hotswapped')) {
+    if (msg.code === 'CDK_TOOLKIT_I5403') {
+      const hotswappedResources = this.extractResourceNameFromHotSwapMessage(
+        msg.data,
+      );
+      let message = msg.message;
+      if (hotswappedResources && hotswappedResources.length > 0) {
+        message = hotswappedResources
+          .map(
+            (resource) =>
+              `${format.success('✔')} Updated ${resource.resourceType} ${resource.resourceName}`,
+          )
+          .join(EOL);
+      }
       if (this.printer.isSpinnerRunning()) {
         this.printer.stopSpinner();
-        this.printer.log(msg.message);
+        this.printer.log(message);
         this.printer.startSpinner('Deployment in progress...');
       } else {
-        this.printer.log(msg.message);
+        this.printer.log(message);
       }
     }
 
@@ -301,6 +313,32 @@ export class AmplifyEventLogger {
         this.amplifyIOEventsBridgeSingletonFactory.getInstance(),
       ),
     });
+  };
+
+  private extractResourceNameFromHotSwapMessage = (
+    data: unknown,
+  ): { resourceType: string; resourceName: string }[] | undefined => {
+    if (
+      data &&
+      typeof data === 'object' &&
+      'resources' in data &&
+      Array.isArray(data.resources)
+    ) {
+      return data.resources.map(
+        (resource: {
+          logicalId: string;
+          resourceType: string;
+          metadata?: { constructPath?: string };
+        }) => {
+          return {
+            resourceName:
+              resource?.metadata?.constructPath ?? resource.logicalId,
+            resourceType: resource.resourceType,
+          };
+        },
+      );
+    }
+    return undefined;
   };
 
   private safeJsonStringifyForDebug = (data: unknown) => {
