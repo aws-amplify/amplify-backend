@@ -18,7 +18,7 @@ import { EOL } from 'node:os';
 export class AmplifyEventLogger {
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
-
+  private testingData: unknown[] = [];
   /**
    * a logger instance to be used for CDK events
    */
@@ -30,7 +30,7 @@ export class AmplifyEventLogger {
   getEventLoggers = () => {
     if (minimumLogLevel === LogLevel.DEBUG) {
       return {
-        notify: [this.debug],
+        notify: [this.testing],
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
@@ -42,6 +42,33 @@ export class AmplifyEventLogger {
     return {
       notify: loggers,
     };
+  };
+
+  // eslint-disable-next-line @shopify/prefer-early-return
+  testing = <T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> => {
+    if (
+      msg.code === 'CDK_TOOLKIT_I5403' &&
+      msg.data &&
+      typeof msg.data === 'object'
+    ) {
+      this.testingData.push({
+        code: msg.code,
+        message: msg.message,
+        data: msg.data,
+      });
+    } else {
+      this.testingData.push({ code: msg.code, message: msg.message });
+    }
+
+    if (
+      msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.message.includes('Failed resources')
+    ) {
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify(this.testingData, null, 2));
+    }
+
+    return Promise.resolve();
   };
 
   /**
