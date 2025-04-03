@@ -40,6 +40,9 @@ const amplifyClient = new AmplifyClient({
  *    Code must be pushed to GitHub - main repo or fork (depending on how Amplify App has been set up).
  * 2. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA - a commit hash to use when kicking off the build.
  *    The commit must be pushed to GitHub.
+ * 3. AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN - an arn of execution role. The execution role must have
+ *    AmplifyBackendDeployFullAccess policy attached and establish trust relation shop with 'amplify.amazonaws.com'
+ *    service principal.
  *
  *
  *  In order to test this locally:
@@ -54,6 +57,7 @@ void describe('hosting', () => {
   let appId: string;
   let branchName: string;
   let commitSha: string;
+  let executionRoleArn: string;
 
   before(async () => {
     assert.ok(
@@ -66,7 +70,12 @@ void describe('hosting', () => {
       'AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA environment variable must be set.',
     );
     commitSha = process.env.AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA;
-    appId = await findTestingAppId();
+    assert.ok(
+      process.env.AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN,
+      'AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN environment variable must be set.',
+    );
+    executionRoleArn = process.env.AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN;
+    appId = await findTestingAppId(executionRoleArn);
     await pruneStaleBranches(appId);
     await ensureBranchIsConnected(appId, branchName);
   });
@@ -267,7 +276,7 @@ const pruneStaleBranches = async (appId: string) => {
   }
 };
 
-const findTestingAppId = async (): Promise<string> => {
+const findTestingAppId = async (executionRoleArn: string): Promise<string> => {
   let listAppsResult: ListAppsCommandOutput | undefined;
   do {
     listAppsResult = await amplifyClient.send(
@@ -281,7 +290,7 @@ const findTestingAppId = async (): Promise<string> => {
       (item) => item.name === testAppName,
     );
     if (testApp?.appId) {
-      await ensureAppIsConfiguredProperly(testApp);
+      await ensureAppIsConfiguredProperly(testApp, executionRoleArn);
       return testApp.appId;
     }
   } while (listAppsResult.nextToken);
@@ -291,18 +300,20 @@ const findTestingAppId = async (): Promise<string> => {
   );
 };
 
-const ensureAppIsConfiguredProperly = async (app: App) => {
+const ensureAppIsConfiguredProperly = async (
+  app: App,
+  executionRoleArn: string,
+) => {
   assert.ok(
     app.repository?.includes('amplify-backend'),
     'App must be connected to amplify-backend repository, either main repo or fork',
   );
   assert.ok(app.appArn);
-  const accountId = app.appArn.split(':')[4];
   await amplifyClient.send(
     new UpdateAppCommand({
       ...app,
       buildSpec: buildSpec,
-      iamServiceRoleArn: `arn:aws:iam::${accountId}:role/e2e-execution`,
+      iamServiceRoleArn: executionRoleArn,
     }),
   );
 };

@@ -81,3 +81,4 @@ runs:
       run: ${{ inputs.run }}
       env:
         AWS_REGION: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
+        AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
