@@ -31,10 +31,10 @@ export const waitForSandboxToBecomeIdle = () =>
   );
 
 /**
- * Reusable predicates: Wait for sandbox to indicate that it's executing hotswap deployment, i.e. " Lambda Function 'function arn' hotswapped!"
+ * Reusable predicates: Wait for sandbox to indicate that it's executing hotswap deployment, i.e. "✔ Updated AWS::Lambda::Function function/name"
  */
 export const waitForSandboxToBeginHotswappingResources = () =>
-  new PredicatedActionBuilder().waitForLineIncludes('hotswapped');
+  new PredicatedActionBuilder().waitForLineIncludes('✔ Updated');
 
 /**
  * Reusable predicated action: Wait for sandbox delete to prompt to delete all the resource and respond with yes
