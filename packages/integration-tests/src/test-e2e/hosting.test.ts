@@ -1,4 +1,4 @@
-import { before, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import assert from 'assert';
 import {
   AmplifyClient,
@@ -79,6 +79,33 @@ void describe('hosting', () => {
     await pruneStaleBranches(appId);
     await ensureBranchIsConnected(appId, branchName);
   });
+
+  after(async () => {
+    // Disconnect a branch if we're not on 'main' eagerly.
+    // So that we try to not leave garbage and hit 50 branches per app limit.
+    // The trade-offs considered here are:
+    // 1. This test's goal is to assert that our tooling works in hosting.
+    //    Therefore, re-deploying same app over and over again is fine (on main).
+    //    Functional coverage of deployed resources is tested by other tests.
+    // 2. We're using pre-created set of apps. Therefore, our priority is to utilize them
+    //    efficiently. Which means some compromises on test isolation.
+    // 3. Disconnecting a branch (deleting a branch) triggers main stack deletion.
+    //    Which may run asynchronously and lead to race conditions on workflow re-tries.
+    // 4. For now, we're choosing to
+    //    1. Keep 'main' always connected. We're building main every day. It doesn't make sense to disconnect it.
+    //    2. Eagerly delete branch otherwise (PR builds mostly).
+    //       If this becomes problematic due to race conditions, then we should revisit this and allow some grace period
+    //       before we delete branch in this case.
+    if (branchName !== 'main') {
+      await amplifyClient.send(
+        new DeleteBranchCommand({
+          appId,
+          branchName: branchName,
+        }),
+      );
+    }
+  });
+
   void it('can deploy backend', async () => {
     const deploymentJob = await startOrGetDeploymentJob(
       appId,
@@ -253,7 +280,7 @@ const ensureBranchIsConnected = async (appId: string, branchName: string) => {
  * couple of predefined apps per account per region.
  */
 const pruneStaleBranches = async (appId: string) => {
-  const staleDurationInMilliseconds = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+  const staleDurationInMilliseconds = 24 * 60 * 60 * 1000; // 1 day in milliseconds
   const listBranchesResult = await amplifyClient.send(
     new ListBranchesCommand({
       appId,
@@ -264,7 +291,9 @@ const pruneStaleBranches = async (appId: string) => {
   for (const branch of listBranchesResult.branches ?? []) {
     if (
       branch.updateTime &&
-      Date.now() - branch.updateTime.getTime() > staleDurationInMilliseconds
+      Date.now() - branch.updateTime.getTime() > staleDurationInMilliseconds &&
+      // skip main, we want to always retain it. See comment in 'after' hook above for more details.
+      branch.branchName !== 'main'
     ) {
       await amplifyClient.send(
         new DeleteBranchCommand({
