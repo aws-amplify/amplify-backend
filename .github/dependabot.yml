@@ -28,4 +28,5 @@ updates:
     # Ignore updates to certain dependencies.
     # See: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#ignore--
     ignore:
+      # newer versions of api-extractor introduce breaking behavior to us see: https://github.com/microsoft/rushstack/issues/4842
       - dependency-name: '@microsoft/api-extractor'
