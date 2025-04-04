@@ -61,6 +61,17 @@ export class CdkErrorMapper {
       );
     }
 
+    // CDK's ESBuild execution happens in a child process.
+    // https://github.com/aws/aws-cdk/blob/994e95289b589596179553a5b9d7201155bd9ed1/packages/aws-cdk-lib/aws-lambda-nodejs/lib/bundling.ts#L332-L350
+    // This means that the errors are printed to stderr and not included in the error thrown.
+    // Hence we make a special mapping here to avoid including the origin error as it's pretty much rubbish.
+    if (error.message.includes('Failed to bundle asset')) {
+      return new AmplifyUserError('CDKAssetBundleError', {
+        message: 'CDK failed to bundle your function code',
+        resolution: 'Check the error messages above for mode details',
+      });
+    }
+
     const errorMessage = stripANSI(error.message);
     const matchingError = this.getKnownErrors().find((knownError) =>
       knownError.errorRegex.test(errorMessage),
@@ -601,6 +612,7 @@ export type CDKDeploymentError =
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
   | 'CDKAssetPublishError'
+  | 'CDKAssetBundleError'
   | 'CDKNotFoundError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
