@@ -78,7 +78,7 @@
     "@typescript-eslint/parser": "^8.23.0",
     "c8": "^7.13.0",
     "eslint": "^8.38.0",
-    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-config-xo-typescript": "^0.57.0",
     "eslint-plugin-amplify-backend-rules": "^0.0.2",
     "eslint-plugin-check-file": "^2.6.2",
