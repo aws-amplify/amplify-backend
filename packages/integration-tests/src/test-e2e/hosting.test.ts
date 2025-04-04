@@ -156,6 +156,7 @@ const waitForSuccessfulJobCompletion = async (
     }
     await new Promise((resolve) => setTimeout(resolve, pollingInterval));
   }
+  assert.fail(`Job ${jobId} did not succeed within ${timeoutMs} timeout.`);
 };
 
 const startOrGetDeploymentJob = async (
@@ -163,6 +164,25 @@ const startOrGetDeploymentJob = async (
   branchName: string,
   commitSha: string,
 ): Promise<JobSummary> => {
+  /**
+   * The logic below is attempting to utilize build queue for single branch as efficiently as possible.
+   * Hosting can have only one build in flight for a single branch.
+   * Because we have to use pre-created apps with real branches connected this behavior becomes
+   * the bottleneck for this test.
+   * The trade-offs made here:
+   * 1. A single branch build can take up to ~10 minutes. Any build for given commit sha
+   *    that completes within that period counts as success regardless of which workflow run triggered it.
+   *    This should be rare as full workflow runs with e2e tests take more than 10 minutes.
+   *    However, it will protect us in case multiple instances of workflows are triggered
+   *    (subsequent commits or operator restarting workflows).
+   *    This still allows us to always obtain somewhat fresh validation that hosting builds work (up to 10 minutes delay).
+   * 2. In case that there is a build in flight for different commit sha, we let it finish
+   *    by re-trying attempt to create new job. We're not deleting job inflight because:
+   *    1. CFN deployments will finish asynchronously even if we delete the job, we would risk race conditions.
+   *    2. A workflow run deleting jobs that belong to previous workflow run is surprising and might be hard to debug.
+   *
+   * These choices should be evaluated and adjusted if data from runs proves them being ineffective.
+   */
   return runWithRetry(
     async () => {
       const existingJobs = await listJobs(appId, branchName);
@@ -170,8 +190,7 @@ const startOrGetDeploymentJob = async (
       const existingJob = existingJobs.find((item) => {
         return (
           item.commitId === commitSha &&
-          (item.status === JobStatus.SUCCEED ||
-            item.status === JobStatus.RUNNING ||
+          (item.status === JobStatus.RUNNING ||
             item.status === JobStatus.PENDING)
         );
       });
