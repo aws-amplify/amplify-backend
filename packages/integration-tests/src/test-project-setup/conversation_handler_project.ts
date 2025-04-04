@@ -1189,13 +1189,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
   };
 
   /**
-   * Bedrock sometimes produces empty response or half backed response.
+   * Bedrock sometimes produces half-baked response or we run into throttling.
    * On the other hand we have to run some assertions on those responses.
    * Therefore, we wrap transactions in retry loop.
    */
   private executeWithRetry = async (
     callable: (attempt: number) => Promise<void>,
   ) => {
-    await runWithRetry(callable, () => true, 4);
+    const retryDelayMs = 30 * 1000; // 30 seconds.
+    await runWithRetry(callable, () => true, 4, retryDelayMs);
   };
 }
