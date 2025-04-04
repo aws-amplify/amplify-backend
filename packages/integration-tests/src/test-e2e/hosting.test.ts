@@ -41,7 +41,7 @@ const amplifyClient = new AmplifyClient({
  * 2. AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA - a commit hash to use when kicking off the build.
  *    The commit must be pushed to GitHub.
  * 3. AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN - an arn of execution role. The execution role must have
- *    AmplifyBackendDeployFullAccess policy attached and establish trust relation shop with 'amplify.amazonaws.com'
+ *    AmplifyBackendDeployFullAccess policy attached and establish trust relationship with 'amplify.amazonaws.com'
  *    service principal.
  *
  *
