@@ -3,7 +3,8 @@ import url, { UrlWithStringQuery } from 'node:url';
 
 let cachedUrl: UrlWithStringQuery;
 
-const prodUrl = `https://telemetry.cli.amplify.aws/metrics`;
+// const prodUrl = `https://telemetry.cli.amplify.aws/metrics`;
+const prodUrl = `https://beta.telemetry.cli.amplify.aws.dev/metrics`;
 
 /**
  *  Telemetry data tracking service URL
