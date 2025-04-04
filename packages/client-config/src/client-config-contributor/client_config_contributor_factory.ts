@@ -35,6 +35,14 @@ export class ClientConfigContributorFactory {
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter,
   ) {
     this.versionedClientConfigContributors = {
+      [ClientConfigVersionOption.V1_4]: [
+        new Auth1_3(),
+        new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Storage1_2(),
+        new VersionContributor1_3(),
+        new Custom1_1(),
+      ],
+
       [ClientConfigVersionOption.V1_3]: [
         new Auth1_3(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),

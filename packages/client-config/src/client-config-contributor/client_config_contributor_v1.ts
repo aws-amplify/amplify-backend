@@ -13,6 +13,7 @@ import {
   clientConfigTypesV1_1,
   clientConfigTypesV1_2,
   clientConfigTypesV1_3,
+  //clientConfigTypesV1_4,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
@@ -20,6 +21,16 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
+
+/**
+ * Translator for the version number of ClientConfig of V1.4
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_4 implements ClientConfigContributor {
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_4 };
+  };
+}
 
 /**
  * Translator for the version number of ClientConfig of V1.3
