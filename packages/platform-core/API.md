@@ -229,6 +229,18 @@ export enum TagName {
 }
 
 // @public (undocumented)
+export type TelemetryDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitAbortion: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class TelemetryDataEmitterFactory {
+    getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryDataEmitter>;
+}
+
+// @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
 
 // @public (undocumented)

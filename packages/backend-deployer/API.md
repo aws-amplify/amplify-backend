@@ -30,6 +30,8 @@ export type BackendDeployerOutputFormatter = {
 export type DeploymentTimes = {
     synthesisTime?: number;
     totalTime?: number;
+    deploymentTime?: number;
+    hotSwapTime?: number;
 };
 
 // @public (undocumented)

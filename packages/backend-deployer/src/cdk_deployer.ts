@@ -167,6 +167,8 @@ export class CDKDeployer implements BackendDeployer {
         totalTime:
           synthTimeSeconds +
           Math.floor((Date.now() - deployStartTime) / 10) / 100,
+        deploymentTime: Math.floor((Date.now() - deployStartTime) / 10) / 100,
+        hotSwapTime: Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
     };
   };

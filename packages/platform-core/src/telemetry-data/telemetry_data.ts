@@ -51,6 +51,8 @@ const latencySchema = z.object({
   hotSwap: z.number().optional(),
 });
 
+export type LatencyDetails = z.infer<typeof latencySchema>;
+
 export type ErrorDetails = {
   name: string;
   message: string;
