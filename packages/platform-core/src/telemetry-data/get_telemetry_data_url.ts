@@ -1,10 +1,10 @@
 import url, { UrlWithStringQuery } from 'node:url';
-// import { latestApiVersion } from './constants.js';
+import { latestApiVersion } from './constants.js';
 
 let cachedUrl: UrlWithStringQuery;
 
 // const prodUrl = `https://telemetry.cli.amplify.aws/metrics`;
-const prodUrl = `https://beta.telemetry.cli.amplify.aws.dev/metrics`;
+const prodUrl = `https://beta.telemetry.cli.amplify.aws.dev/${latestApiVersion}/metrics`;
 
 /**
  *  Telemetry data tracking service URL

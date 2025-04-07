@@ -75,6 +75,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
+      console.log(JSON.stringify(data));
       await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
@@ -94,6 +95,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
+      console.log(JSON.stringify(data));
       await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
@@ -111,6 +113,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
+      console.log(JSON.stringify(data));
       await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
