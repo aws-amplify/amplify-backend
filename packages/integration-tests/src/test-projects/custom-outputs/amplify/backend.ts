@@ -45,3 +45,24 @@ backend.addOutput({
     user_pool_id: fakeCognitoUserPoolId,
   },
 });
+
+const fakeBucketName = 'fakeStorageBucket';
+backend.addOutput({
+  version: '1.4',
+  storage: {
+    buckets: [
+      {
+        name: fakeBucketName,
+        bucket_name: fakeBucketName,
+        aws_region: sampleRegion,
+        paths: {
+          'fakePath/*': {
+            groupsADMIN: ['read', 'write', 'delete', 'list'],
+            groupsGROUP1: ['read', 'delete', 'write'],
+            entityIdentity: ['read', 'write'],
+          },
+        },
+      },
+    ],
+  },
+});
