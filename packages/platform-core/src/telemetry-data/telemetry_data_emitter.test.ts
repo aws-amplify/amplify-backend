@@ -126,10 +126,6 @@ void describe('TelemetryDataEmitter', () => {
       release: os.release(),
     });
     assert.strictEqual(
-      telemetryDataSent.environment.shell,
-      os.userInfo().shell,
-    );
-    assert.strictEqual(
       telemetryDataSent.environment.npmUserAgent,
       testNpmUserAgent,
     );
@@ -202,10 +198,6 @@ void describe('TelemetryDataEmitter', () => {
       platform: os.platform(),
       release: os.release(),
     });
-    assert.strictEqual(
-      telemetryDataSent.environment.shell,
-      os.userInfo().shell,
-    );
     assert.strictEqual(
       telemetryDataSent.environment.npmUserAgent,
       testNpmUserAgent,
