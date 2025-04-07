@@ -487,7 +487,14 @@ export type TypedConfigurationFileName = 'notices_metadata.json' | 'notices_ackn
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
+export type UsageDataCollector = {
+    collectMetric: (key: string, value: number) => void;
+    collectDimension: (key: string, value: string) => void;
+};
+
+// @public (undocumented)
 export type UsageDataEmitter = {
+    readonly collector: UsageDataCollector;
     emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
     emitFailure: (error: AmplifyError, dimensions?: Record<string, string>) => Promise<void>;
 };
