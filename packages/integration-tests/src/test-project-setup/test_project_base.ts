@@ -3,6 +3,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   ClientConfigFileBaseName,
   ClientConfigFormat,
+  clientConfigTypesV1_4,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ampxCli } from '../process-controller/process_controller.js';
@@ -196,6 +197,11 @@ export abstract class TestProjectBase {
       this.projectDirPath,
       ClientConfigFormat.JSON,
     );
+
+    await this.assertClientConfigWithExpectedTyping(
+      this.projectDirPath,
+      ClientConfigFormat.JSON,
+    );
   }
 
   /**
@@ -211,6 +217,25 @@ export abstract class TestProjectBase {
     );
 
     assert.ok(clientConfigStats.isFile());
+  }
+
+  /**
+   * Verify client config file is generated with the expected typing
+   */
+  async assertClientConfigWithExpectedTyping(
+    dir?: string,
+    format?: ClientConfigFormat,
+  ) {
+    const outputFile = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
+      dir ?? this.projectAmplifyDirPath,
+      format,
+    );
+    const outputs = JSON.parse(await fsp.readFile(outputFile, 'utf-8'));
+
+    assert.ok(
+      outputs as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+    );
   }
 
   /**
