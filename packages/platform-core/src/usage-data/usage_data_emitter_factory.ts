@@ -5,7 +5,13 @@ import { USAGE_DATA_TRACKING_ENABLED } from './constants.js';
 import { AmplifyError } from '../index.js';
 import { Dependency } from '@aws-amplify/plugin-types';
 
+export type UsageDataCollector = {
+  collectMetric: (key: string, value: number) => void;
+  collectDimension: (key: string, value: string) => void;
+};
+
 export type UsageDataEmitter = {
+  readonly collector: UsageDataCollector;
   emitSuccess: (
     metrics?: Record<string, number>,
     dimensions?: Record<string, string>,

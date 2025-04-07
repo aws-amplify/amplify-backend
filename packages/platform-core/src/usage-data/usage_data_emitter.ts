@@ -8,7 +8,10 @@ import { latestPayloadVersion } from './constants.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
-import { UsageDataEmitter } from './usage_data_emitter_factory.js';
+import {
+  UsageDataCollector,
+  UsageDataEmitter,
+} from './usage_data_emitter_factory.js';
 import { AmplifyError } from '../index.js';
 import { Dependency } from '@aws-amplify/plugin-types';
 
@@ -16,7 +19,17 @@ import { Dependency } from '@aws-amplify/plugin-types';
  * Entry point for sending usage data metrics
  */
 export class DefaultUsageDataEmitter implements UsageDataEmitter {
-  private dependenciesToReport?: Array<Dependency>;
+  readonly collector: UsageDataCollector = {
+    collectMetric: (key: string, value: number) => {
+      this.metrics[key] = value;
+    },
+    collectDimension: (key: string, value: string) => {
+      this.dimensions[key] = value;
+    },
+  };
+  private readonly dependenciesToReport?: Array<Dependency>;
+  private readonly metrics: Record<string, number> = {};
+  private readonly dimensions: Record<string, string> = {};
   /**
    * Constructor for UsageDataEmitter
    */
@@ -74,6 +87,14 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     dimensions?: Record<string, string>;
     error?: AmplifyError;
   }): Promise<UsageData> => {
+    const metrics = {
+      ...this.metrics,
+      ...(options.metrics ?? {}),
+    };
+    const dimensions = {
+      ...this.dimensions,
+      ...(options.dimensions ?? {}),
+    };
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
@@ -92,8 +113,8 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       osRelease: os.release(),
       nodeVersion: process.versions.node,
       state: options.state,
-      codePathDurations: this.translateMetricsToUsageData(options.metrics),
-      input: this.translateDimensionsToUsageData(options.dimensions),
+      codePathDurations: this.translateMetricsToUsageData(metrics),
+      input: this.translateDimensionsToUsageData(dimensions),
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,

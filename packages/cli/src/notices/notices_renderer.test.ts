@@ -5,6 +5,7 @@ import { LogLevel, Notice, Printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesController } from './notices_controller.js';
 import { NoticesPrinter } from './notices_printer.js';
+import { UsageDataCollector } from '@aws-amplify/platform-core';
 
 void describe('NoticesRenderer', () => {
   // Setup common mocks
@@ -21,6 +22,15 @@ void describe('NoticesRenderer', () => {
 
   const mockPackageManagerController =
     {} as unknown as PackageManagerController;
+
+  const mockUsageDataCollectorCollectMetric =
+    mock.fn<UsageDataCollector['collectMetric']>();
+  const mockUsageDataCollectorCollectDimension =
+    mock.fn<UsageDataCollector['collectDimension']>();
+  const mockUsageDataCollector = {
+    collectMetric: mockUsageDataCollectorCollectMetric,
+    collectDimension: mockUsageDataCollectorCollectDimension,
+  } as unknown as UsageDataCollector;
 
   const mockNoticesControllerGetApplicableNotices =
     mock.fn<NoticesController['getApplicableNotices']>();
@@ -43,11 +53,14 @@ void describe('NoticesRenderer', () => {
     mockNoticesControllerGetApplicableNotices.mock.resetCalls();
     mockNoticesControllerRecordPrintingTimes.mock.resetCalls();
     mockNoticesPrinterPrint.mock.resetCalls();
+    mockUsageDataCollectorCollectMetric.mock.resetCalls();
+    mockUsageDataCollectorCollectDimension.mock.resetCalls();
   });
 
   void it('should skip notices for notices command', async () => {
     const renderer = new NoticesRenderer(
       mockPackageManagerController,
+      mockUsageDataCollector,
       mockNoticesController,
       mockNoticesPrinter,
       mockPrinter,
@@ -63,6 +76,8 @@ void describe('NoticesRenderer', () => {
       0,
     );
     assert.equal(mockNoticesPrinterPrint.mock.calls.length, 0);
+    assert.equal(mockUsageDataCollectorCollectMetric.mock.calls.length, 0);
+    assert.equal(mockUsageDataCollectorCollectDimension.mock.calls.length, 0);
   });
 
   void it('should fetch and print notices for non-notices commands', async () => {
@@ -80,6 +95,7 @@ void describe('NoticesRenderer', () => {
 
     const renderer = new NoticesRenderer(
       mockPackageManagerController as PackageManagerController,
+      mockUsageDataCollector,
       mockNoticesController,
       mockNoticesPrinter,
       mockPrinter,
@@ -100,6 +116,17 @@ void describe('NoticesRenderer', () => {
       mockNoticesPrinterPrint.mock.calls[0].arguments[0],
       mockNotices,
     );
+
+    assert.equal(mockUsageDataCollectorCollectMetric.mock.calls.length, 1);
+    assert.equal(mockUsageDataCollectorCollectDimension.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectMetric.mock.calls[0].arguments,
+      ['noticesRendered', 1],
+    );
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectDimension.mock.calls[0].arguments,
+      ['noticesRenderingStatus', 'SUCCESS'],
+    );
   });
 
   void it('should handle empty notices array', async () => {
@@ -109,6 +136,7 @@ void describe('NoticesRenderer', () => {
 
     const renderer = new NoticesRenderer(
       mockPackageManagerController,
+      mockUsageDataCollector,
       mockNoticesController,
       mockNoticesPrinter,
       mockPrinter,
@@ -125,6 +153,17 @@ void describe('NoticesRenderer', () => {
 
     // Verify print was not called when there are no notices
     assert.equal(mockNoticesPrinterPrint.mock.calls.length, 0);
+
+    assert.equal(mockUsageDataCollectorCollectMetric.mock.calls.length, 1);
+    assert.equal(mockUsageDataCollectorCollectDimension.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectMetric.mock.calls[0].arguments,
+      ['noticesRendered', 0],
+    );
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectDimension.mock.calls[0].arguments,
+      ['noticesRenderingStatus', 'SUCCESS'],
+    );
   });
 
   void it('should record printing times after successful notice display', async () => {
@@ -142,6 +181,7 @@ void describe('NoticesRenderer', () => {
 
     const renderer = new NoticesRenderer(
       mockPackageManagerController,
+      mockUsageDataCollector,
       mockNoticesController,
       mockNoticesPrinter,
       mockPrinter,
@@ -167,6 +207,7 @@ void describe('NoticesRenderer', () => {
 
     const renderer = new NoticesRenderer(
       mockPackageManagerController,
+      mockUsageDataCollector,
       mockNoticesController,
       mockNoticesPrinter,
       mockPrinter,
@@ -194,6 +235,13 @@ void describe('NoticesRenderer', () => {
     assert.deepStrictEqual(
       mockPrinterLog.mock.calls[1].arguments[1],
       LogLevel.DEBUG,
+    );
+
+    assert.equal(mockUsageDataCollectorCollectMetric.mock.calls.length, 0);
+    assert.equal(mockUsageDataCollectorCollectDimension.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectDimension.mock.calls[0].arguments,
+      ['noticesRenderingStatus', 'FAILURE'],
     );
   });
 });

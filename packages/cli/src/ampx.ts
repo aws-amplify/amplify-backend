@@ -41,7 +41,10 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 
 verifyCommandName();
 
-const noticesRenderer = new NoticesRenderer(packageManagerController);
+const noticesRenderer = new NoticesRenderer(
+  packageManagerController,
+  usageDataEmitter.collector,
+);
 const parser = createMainParser(
   libraryVersion,
   noticesRenderer,

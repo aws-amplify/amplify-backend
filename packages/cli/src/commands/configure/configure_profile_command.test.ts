@@ -32,6 +32,10 @@ void describe('configure command', () => {
   const configureCommand = new ConfigureProfileCommand(profileController);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser, {
+    collector: {
+      collectMetric: () => {},
+      collectDimension: () => {},
+    },
     emitSuccess: emitSuccessMock,
     emitFailure: emitFailureMock,
   });

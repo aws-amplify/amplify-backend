@@ -4,6 +4,11 @@ import { UsageDataEmitter } from './usage_data_emitter_factory';
  * no-op class that implements UsageDataEmitter.
  */
 export class NoOpUsageDataEmitter implements UsageDataEmitter {
+  readonly collector = {
+    collectMetric: () => {},
+    collectDimension: () => {},
+  };
+
   /**
    * no-op emitSuccess
    */

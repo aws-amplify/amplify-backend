@@ -3,6 +3,7 @@ import { NoticesPrinter } from './notices_printer.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { hideBin } from 'yargs/helpers';
+import { UsageDataCollector } from '@aws-amplify/platform-core';
 
 export type NoticesRendererParams = {
   event: 'postCommand' | 'postDeployment' | 'listNoticesCommand';
@@ -18,6 +19,7 @@ export class NoticesRenderer {
    */
   constructor(
     packageManagerController: PackageManagerController,
+    private readonly usageDataCollector: UsageDataCollector,
     private readonly noticesController: NoticesController = new NoticesController(
       packageManagerController,
     ),
@@ -43,7 +45,16 @@ export class NoticesRenderer {
         this.noticesPrinter.print(notices);
         await this.noticesController.recordPrintingTimes(notices);
       }
+      this.usageDataCollector.collectMetric('noticesRendered', notices.length);
+      this.usageDataCollector.collectDimension(
+        'noticesRenderingStatus',
+        'SUCCESS',
+      );
     } catch (e) {
+      this.usageDataCollector.collectDimension(
+        'noticesRenderingStatus',
+        'FAILURE',
+      );
       this._printer.log(
         `Unable to render notices on event=${params.event}`,
         LogLevel.DEBUG,
