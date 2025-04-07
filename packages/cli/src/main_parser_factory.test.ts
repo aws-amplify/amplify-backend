@@ -8,6 +8,7 @@ import {
 import { createMainParser } from './main_parser_factory.js';
 import { NoticesRenderer } from './notices/notices_renderer.js';
 import { fileURLToPath } from 'node:url';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 void describe('main parser', { concurrency: false }, async () => {
   const packageJson = JSON.parse(
@@ -21,8 +22,9 @@ void describe('main parser', { concurrency: false }, async () => {
   const noticesRenderer = {
     tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,
   } as unknown as NoticesRenderer;
+  const usageDataEmitter = {} as unknown as UsageDataEmitter;
 
-  const parser = createMainParser(version, noticesRenderer);
+  const parser = createMainParser(version, noticesRenderer, usageDataEmitter);
   const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {

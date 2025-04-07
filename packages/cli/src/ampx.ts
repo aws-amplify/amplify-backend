@@ -42,7 +42,11 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 verifyCommandName();
 
 const noticesRenderer = new NoticesRenderer(packageManagerController);
-const parser = createMainParser(libraryVersion, noticesRenderer);
+const parser = createMainParser(
+  libraryVersion,
+  noticesRenderer,
+  usageDataEmitter,
+);
 const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
 
 try {

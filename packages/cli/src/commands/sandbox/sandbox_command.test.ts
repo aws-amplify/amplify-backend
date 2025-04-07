@@ -20,7 +20,7 @@ import {
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
 import { EOL } from 'node:os';
 
@@ -33,10 +33,14 @@ const tryFindAndPrintApplicableNoticesMock = mock.fn();
 const noticesRenderer = {
   tryFindAndPrintApplicableNotices: tryFindAndPrintApplicableNoticesMock,
 } as unknown as NoticesRenderer;
+const usageDataEmitter = {} as unknown as UsageDataEmitter;
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
-    assert.ok(createSandboxCommand(noticesRenderer) instanceof SandboxCommand);
+    assert.ok(
+      createSandboxCommand(noticesRenderer, usageDataEmitter) instanceof
+        SandboxCommand,
+    );
   });
 });
 
