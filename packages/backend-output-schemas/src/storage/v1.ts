@@ -10,7 +10,14 @@ const storageAccessActionEnum = z.enum([
 
 const pathSchema = z.record(
   z.string(),
-  z.record(z.string(), z.array(storageAccessActionEnum)),
+  z.intersection(
+    z.object({
+      guest: z.array(storageAccessActionEnum),
+      authenticated: z.array(storageAccessActionEnum),
+      resource: z.array(storageAccessActionEnum),
+    }),
+    z.record(z.string(), z.array(storageAccessActionEnum)),
+  ),
 );
 
 const bucketSchema = z.object({
