@@ -56,6 +56,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       '@aws-amplify/plugin-types',
       '@aws-amplify/sandbox',
       '@aws-amplify/schema-generator',
+      '@aws-amplify/seed',
       'aws-cdk',
       'aws-cdk-lib',
     ];
