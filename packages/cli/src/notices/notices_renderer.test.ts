@@ -27,9 +27,12 @@ void describe('NoticesRenderer', () => {
     mock.fn<UsageDataCollector['collectMetric']>();
   const mockUsageDataCollectorCollectDimension =
     mock.fn<UsageDataCollector['collectDimension']>();
+  const mockUsageDataCollectorCollectError =
+    mock.fn<UsageDataCollector['collectError']>();
   const mockUsageDataCollector = {
     collectMetric: mockUsageDataCollectorCollectMetric,
     collectDimension: mockUsageDataCollectorCollectDimension,
+    collectError: mockUsageDataCollectorCollectError,
   } as unknown as UsageDataCollector;
 
   const mockNoticesControllerGetApplicableNotices =
@@ -55,6 +58,7 @@ void describe('NoticesRenderer', () => {
     mockNoticesPrinterPrint.mock.resetCalls();
     mockUsageDataCollectorCollectMetric.mock.resetCalls();
     mockUsageDataCollectorCollectDimension.mock.resetCalls();
+    mockUsageDataCollectorCollectError.mock.resetCalls();
   });
 
   void it('should skip notices for notices command', async () => {
@@ -78,6 +82,7 @@ void describe('NoticesRenderer', () => {
     assert.equal(mockNoticesPrinterPrint.mock.calls.length, 0);
     assert.equal(mockUsageDataCollectorCollectMetric.mock.calls.length, 0);
     assert.equal(mockUsageDataCollectorCollectDimension.mock.calls.length, 0);
+    assert.equal(mockUsageDataCollectorCollectError.mock.calls.length, 0);
   });
 
   void it('should fetch and print notices for non-notices commands', async () => {
@@ -199,9 +204,10 @@ void describe('NoticesRenderer', () => {
   });
 
   void it('should handle errors gracefully', async () => {
+    const testError = new Error('Test error');
     mockNoticesControllerGetApplicableNotices.mock.mockImplementation(
       async () => {
-        throw new Error('Test error');
+        throw testError;
       },
     );
 
@@ -242,6 +248,10 @@ void describe('NoticesRenderer', () => {
     assert.deepStrictEqual(
       mockUsageDataCollectorCollectDimension.mock.calls[0].arguments,
       ['noticesRenderingStatus', 'FAILURE'],
+    );
+    assert.deepStrictEqual(
+      mockUsageDataCollectorCollectError.mock.calls[0].arguments,
+      ['noticesError', testError],
     );
   });
 });

@@ -55,6 +55,9 @@ export class NoticesRenderer {
         'noticesRenderingStatus',
         'FAILURE',
       );
+      if (e instanceof Error) {
+        this.usageDataCollector.collectError('noticesError', e);
+      }
       this._printer.log(
         `Unable to render notices on event=${params.event}`,
         LogLevel.DEBUG,

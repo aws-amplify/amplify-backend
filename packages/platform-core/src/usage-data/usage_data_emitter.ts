@@ -26,10 +26,14 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     collectDimension: (key: string, value: string) => {
       this.dimensions[key] = value;
     },
+    collectError: (key: string, error: Error) => {
+      this.errors[key] = error;
+    },
   };
   private readonly dependenciesToReport?: Array<Dependency>;
   private readonly metrics: Record<string, number> = {};
   private readonly dimensions: Record<string, string> = {};
+  private readonly errors: Record<string, Error> = {};
   /**
    * Constructor for UsageDataEmitter
    */

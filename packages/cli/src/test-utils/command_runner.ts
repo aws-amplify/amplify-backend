@@ -63,6 +63,7 @@ export class TestCommandRunner {
       collector: {
         collectMetric: () => {},
         collectDimension: () => {},
+        collectError: () => {},
       },
       emitFailure: () => Promise.resolve(),
       emitSuccess: () => Promise.resolve(),

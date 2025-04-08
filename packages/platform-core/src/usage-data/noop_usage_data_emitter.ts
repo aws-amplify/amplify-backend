@@ -7,6 +7,7 @@ export class NoOpUsageDataEmitter implements UsageDataEmitter {
   readonly collector = {
     collectMetric: () => {},
     collectDimension: () => {},
+    collectError: () => {},
   };
 
   /**

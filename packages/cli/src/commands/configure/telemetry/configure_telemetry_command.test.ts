@@ -31,6 +31,7 @@ void describe('configure command', () => {
     collector: {
       collectMetric: () => {},
       collectDimension: () => {},
+      collectError: () => {},
     },
     emitSuccess: emitSuccessMock,
     emitFailure: emitFailureMock,
