@@ -247,7 +247,7 @@ export abstract class TestProjectBase {
         const value = object[key];
 
         // check if we have a storage path, if we do check that it's properties match what we expect to see
-        if (key.indexOf('/*') == key.length - 2) {
+        if (key.endsWith('/*')) {
           // ensure that resource, guest, authenticated only appear once
           let resourceCounter = 0;
           let authCounter = 0;
