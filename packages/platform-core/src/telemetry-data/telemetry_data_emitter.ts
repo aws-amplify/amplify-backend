@@ -67,13 +67,13 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   }
 
   emitSuccess = async (
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => {
     try {
       const data = await this.getTelemetryData({
         state: 'SUCCEEDED',
-        metrics,
+        latencyDetails,
         dimensions,
       });
       await this.send(data);
@@ -85,14 +85,14 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
 
   emitFailure = async (
     error: AmplifyError,
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => {
     try {
       const data = await this.getTelemetryData({
         state: 'FAILED',
         error,
-        metrics,
+        latencyDetails,
         dimensions,
       });
       await this.send(data);
@@ -103,13 +103,13 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   };
 
   emitAbortion = async (
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => {
     try {
       const data = await this.getTelemetryData({
         state: 'ABORTED',
-        metrics,
+        latencyDetails,
         dimensions,
       });
       await this.send(data);
@@ -121,7 +121,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
 
   private getTelemetryData = async (options: {
     state: 'ABORTED' | 'FAILED' | 'SUCCEEDED';
-    metrics?: Record<string, number>;
+    latencyDetails?: LatencyDetails;
     dimensions?: Record<string, string>;
     error?: AmplifyError;
   }): Promise<TelemetryPayload> => {
@@ -157,10 +157,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       project: {
         dependencies: this.dependenciesToReport,
       },
-      latency: this.translateMetricsToLatencyData(
-        options.metrics,
-        options.dimensions,
-      ),
+      latency: options.latencyDetails ?? { total: 0 },
       error: this.translateAmplifyErrorToErrorData(options.error),
     };
   };
@@ -245,53 +242,5 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     }
 
     return errorDetails;
-  };
-
-  private translateMetricsToLatencyData = (
-    metrics?: Record<string, number>,
-    dimensions?: Record<string, string>,
-  ): LatencyDetails => {
-    const isSandboxEvent = dimensions
-      ? dimensions.subCommands.includes('SandboxEvent')
-      : false;
-    let total = 0;
-    let init;
-    let synthesis;
-    let deployment;
-    let hotSwap;
-
-    if (metrics) {
-      // go through metrics, convert from seconds to milliseconds if from sandbox event and truncate decimals
-      for (const [name, data] of Object.entries(metrics)) {
-        if (name === 'totalTime') {
-          total =
-            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
-        }
-        if (name === 'initTime') {
-          init =
-            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
-        }
-        if (name === 'synthesisTime') {
-          synthesis =
-            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
-        }
-        if (name === 'deploymentTime') {
-          deployment =
-            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
-        }
-        if (name === 'hotSwapTime') {
-          hotSwap =
-            isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
-        }
-      }
-    }
-
-    return {
-      total,
-      init,
-      synthesis,
-      deployment,
-      hotSwap,
-    };
   };
 }

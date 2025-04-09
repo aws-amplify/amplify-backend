@@ -5,6 +5,7 @@ import {
   AmplifyError,
   AmplifyUserError,
   BackendLocator,
+  TelemetryDataEmitter,
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
@@ -76,12 +77,24 @@ void describe('invokeCDKCommand', () => {
     fromAssemblyDirectory: fromAssemblyDirectoryMock,
   } as unknown as Toolkit;
 
+  const mockTelemetryEmitSuccess = mock.fn();
+  const mockTelemetryEmitFailure = mock.fn();
+  const mockTelemetryEmitAbortion = mock.fn();
+  const telemetryDataEmitter = {
+    emitSuccess: mockTelemetryEmitSuccess,
+    emitFailure: mockTelemetryEmitFailure,
+    emitAbortion: mockTelemetryEmitAbortion,
+  } as unknown as TelemetryDataEmitter;
+
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
+
   const invoker = new CDKDeployer(
-    new CdkErrorMapper(formatterStub),
+    cdkErrorMapper,
     backendLocator,
     packageManagerControllerMock as never,
     cdkToolkit,
     mockIoHost,
+    telemetryDataEmitter,
   );
 
   const tsCompilerMock = mock.method(invoker, 'compileProject', () => {});
@@ -94,6 +107,7 @@ void describe('invokeCDKCommand', () => {
     fromAssemblyBuilderMock.mock.resetCalls();
     fromAssemblyDirectoryMock.mock.resetCalls();
     tsCompilerMock.mock.resetCalls();
+    mockTelemetryEmitFailure.mock.resetCalls();
   });
 
   void it('handles options for branch deployments', async () => {
@@ -203,6 +217,18 @@ void describe('invokeCDKCommand', () => {
       contextualTsCompilerCommandMock.mock.calls[0].arguments,
       ['amplify'],
     );
+
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
+      tsErrorFromCompiler,
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
   });
 
   void it('throws the original synth error if the synth failed but tsc succeeded', async () => {
@@ -232,6 +258,18 @@ void describe('invokeCDKCommand', () => {
     assert.equal(synthMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(tsCompilerMock.mock.calls[0].arguments, ['amplify']);
+
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
+      cdkErrorMapper.getAmplifyError(synthError, 'sandbox'),
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
   });
 
   void it('throws the original synth error if the synth failed to generate function env declaration files', async () => {
@@ -275,11 +313,24 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(tsCompilerMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(tsCompilerMock.mock.calls[0].arguments, ['amplify']);
+
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
+      cdkErrorMapper.getAmplifyError(synthError, 'sandbox'),
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
   });
 
   void it('returns human readable errors', async () => {
+    const accessDeniedError = new Error('Access Denied');
     synthMock.mock.mockImplementationOnce(() => {
-      throw new Error('Access Denied');
+      throw accessDeniedError;
     });
 
     await assert.rejects(
@@ -294,6 +345,18 @@ void describe('invokeCDKCommand', () => {
         return true;
       },
     );
+
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
+      cdkErrorMapper.getAmplifyError(accessDeniedError, 'sandbox'),
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
   });
 
   void it('displays actionable error when older version of node is used during branch deployments', async () => {
@@ -321,6 +384,18 @@ void describe('invokeCDKCommand', () => {
       },
     );
 
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
+      cdkErrorMapper.getAmplifyError(olderNodeVersionError, 'branch'),
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     synthMock.mock.mockImplementationOnce(() => {
       throw olderNodeVersionError;
     });
@@ -341,5 +416,17 @@ void describe('invokeCDKCommand', () => {
         return true;
       },
     );
+
+    assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 2);
+    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[1].arguments, [
+      cdkErrorMapper.getAmplifyError(olderNodeVersionError, 'sandbox'),
+      {
+        total: 0,
+        synthesis: 0,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
   });
 });

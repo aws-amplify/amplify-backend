@@ -6,12 +6,13 @@
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
 
 // @public
 export class AmplifyIOEventsBridgeSingletonFactory {
-    constructor(printer?: Printer);
+    constructor(telemetryDataEmitter: TelemetryDataEmitter, printer?: Printer);
     getInstance: () => AmplifyIOHost;
 }
 

@@ -13,6 +13,7 @@ import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { LogLevel, Printer } from '../printer/printer.js';
 import assert from 'node:assert';
 import { format } from '../format/format.js';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 void describe('amplify ci/cd event logging', () => {
   const printer = new Printer(
@@ -28,7 +29,16 @@ void describe('amplify ci/cd event logging', () => {
   const printerStopSpinnerMock = mock.method(printer, 'stopSpinner');
   const printerPrintsMock = mock.method(printer, 'print');
 
+  // Telemetry data emitter mocks
+  const emitTelemetrySuccessMock = mock.fn();
+  const emitTelemetryFailureMock = mock.fn();
+  const telemetryDataEmitterMock = {
+    emitSuccess: emitTelemetrySuccessMock,
+    emitFailure: emitTelemetryFailureMock,
+  } as unknown as TelemetryDataEmitter;
+
   const classUnderTest = new AmplifyIOEventsBridgeSingletonFactory(
+    telemetryDataEmitterMock,
     printer,
   ).getInstance();
 
@@ -38,6 +48,49 @@ void describe('amplify ci/cd event logging', () => {
     printerUpdateSpinnerMock.mock.resetCalls();
     printerStopSpinnerMock.mock.resetCalls();
     printerPrintsMock.mock.resetCalls();
+    emitTelemetrySuccessMock.mock.resetCalls();
+    emitTelemetryFailureMock.mock.resetCalls();
+  });
+
+  void it('generates correct events when fully loaded app is deleted', async () => {
+    for (const event of destroyAppCdkEvents) {
+      await classUnderTest.notify(
+        event as unknown as AmplifyIoHostEventMessage<unknown>,
+      );
+    }
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 141760,
+        synthesis: 0,
+        deployment: 141760,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
+    // Backend synthesized or TS checks are not run on destroy
+    // Print deployment completion message
+    assert.deepStrictEqual(printerLogMock.mock.callCount(), 1);
+    assert.deepStrictEqual(printerLogMock.mock.calls[0].arguments, [
+      format.success('✔') + ' Deployment completed in 141.76 seconds',
+    ]);
+
+    // No Spinners
+    assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 0);
+    assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 0);
+
+    // CFN updates coming straight formatted from CDK as-is
+    assert.deepStrictEqual(printerPrintsMock.mock.callCount(), 340);
+
+    // We assert 1 print call for validating formatting
+    assert.deepStrictEqual(
+      printerPrintsMock.mock.calls[0].arguments[0],
+      'amplify-sampleprojectapp-user-sandbox-0e1752a889 |   0 | 11:05:29 PM | DELETE_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-sampleprojectapp-user-sandbox-0e1752a889 User Initiated',
+    );
   });
 
   void it('generates correct events when customer updated amplify outputs and nothing else', async () => {
@@ -65,6 +118,19 @@ void describe('amplify ci/cd event logging', () => {
           ),
       ],
     );
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 61897,
+        synthesis: 1550,
+        deployment: 55447,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
 
     // Spinners
     assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 3);
@@ -114,6 +180,19 @@ void describe('amplify ci/cd event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 20743,
+        synthesis: 1900,
+        deployment: 14053,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     // CFN progress events (No CFN deployment for this case)
     assert.deepStrictEqual(printerPrintsMock.mock.callCount(), 0);
 
@@ -155,6 +234,19 @@ void describe('amplify ci/cd event logging', () => {
           ),
       ],
     );
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 243154,
+        synthesis: 1910,
+        deployment: 236434,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
 
     // Spinners
     assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 3);
@@ -204,6 +296,19 @@ void describe('amplify ci/cd event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 158164,
+        synthesis: 1940,
+        deployment: 151384,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     // Spinners
     assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 3);
     assert.deepStrictEqual(
@@ -252,6 +357,19 @@ void describe('amplify ci/cd event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 94067,
+        synthesis: 1910,
+        deployment: 87347,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     // Spinners
     assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 3);
     assert.deepStrictEqual(
@@ -271,30 +389,6 @@ void describe('amplify ci/cd event logging', () => {
     assert.deepStrictEqual(
       printerPrintsMock.mock.calls[0].arguments[0],
       'amplify-sampleprojectapp-user-sandbox-0e1752a889 | 0/7 | 11:20:31 PM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-sampleprojectapp-user-sandbox-0e1752a889 User Initiated',
-    );
-  });
-
-  void it('generates correct events when fully loaded app is deleted', async () => {
-    for (const event of destroyAppCdkEvents) {
-      await classUnderTest.notify(
-        event as unknown as AmplifyIoHostEventMessage<unknown>,
-      );
-    }
-
-    // Backend synthesized or TS checks are not run on destroy
-    assert.deepStrictEqual(printerLogMock.mock.callCount(), 0);
-
-    // No Spinners
-    assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 0);
-    assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 0);
-
-    // CFN updates coming straight formatted from CDK as-is
-    assert.deepStrictEqual(printerPrintsMock.mock.callCount(), 340);
-
-    // We assert 1 print call for validating formatting
-    assert.deepStrictEqual(
-      printerPrintsMock.mock.calls[0].arguments[0],
-      'amplify-sampleprojectapp-user-sandbox-0e1752a889 |   0 | 11:05:29 PM | DELETE_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-sampleprojectapp-user-sandbox-0e1752a889 User Initiated',
     );
   });
 

@@ -10,6 +10,7 @@ import EventEmitter from 'events';
 import { Format } from '@aws-amplify/cli-core';
 import { Printer } from '@aws-amplify/cli-core';
 import { SDKProfileResolver } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 // @public (undocumented)
 export type BackendIdSandboxResolver = (identifier?: string) => Promise<BackendIdentifier>;
@@ -48,7 +49,7 @@ export type SandboxOptions = {
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(sandboxIdResolver: BackendIdSandboxResolver, sdkProfileResolver: SDKProfileResolver, printer: Printer, format: Format);
+    constructor(sandboxIdResolver: BackendIdSandboxResolver, sdkProfileResolver: SDKProfileResolver, printer: Printer, format: Format, telemetryDataEmitter: TelemetryDataEmitter);
     getInstance: () => Promise<Sandbox>;
 }
 

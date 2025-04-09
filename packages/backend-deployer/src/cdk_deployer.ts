@@ -15,6 +15,8 @@ import {
   AmplifyFault,
   BackendLocator,
   CDKContextKey,
+  LatencyDetails,
+  TelemetryDataEmitter,
 } from '@aws-amplify/platform-core';
 import path from 'path';
 import {
@@ -47,6 +49,7 @@ export class CDKDeployer implements BackendDeployer {
     private readonly packageManagerController: PackageManagerController,
     private readonly cdkToolkit: Toolkit,
     private readonly ioHost: AmplifyIOHost,
+    private readonly telemetryDataEmitter: TelemetryDataEmitter,
   ) {}
 
   /**
@@ -94,7 +97,9 @@ export class CDKDeployer implements BackendDeployer {
       action: 'amplify',
       time: new Date(),
       level: 'result',
-      data: undefined,
+      data: {
+        duration: synthTimeSeconds * 1000, // convert back to ms for telemetry
+      },
     });
 
     // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
@@ -112,16 +117,36 @@ export class CDKDeployer implements BackendDeployer {
       try {
         await this.compileProject(path.dirname(this.backendLocator.locate()));
       } catch (typeError) {
+        const synthTime = synthTimeSeconds * 1000; // convert back to ms
+        const totalTime = synthTime + (Date.now() - typeCheckStartTime);
+        const latencyDetails: LatencyDetails = {
+          total: totalTime,
+          synthesis: synthTime,
+        };
         if (
           synthError &&
           AmplifyError.isAmplifyError(typeError) &&
           typeError.name === 'FunctionEnvVarFileNotGeneratedError'
         ) {
+          const error = this.cdkErrorMapper.getAmplifyError(
+            synthError,
+            backendId.type,
+          );
+          await this.telemetryDataEmitter.emitFailure(error, latencyDetails, {
+            subCommands: 'SandboxEvent',
+          });
           // synth has failed and we don't have auto generated function environment definition files. This
           // resulted in the exception caught here, which is not very useful for the customers.
           // We instead throw the synth error for customers to fix what caused the synth to fail.
-          throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
+          throw error;
         }
+        const error = this.cdkErrorMapper.getAmplifyError(
+          typeError as Error,
+          backendId.type,
+        );
+        await this.telemetryDataEmitter.emitFailure(error, latencyDetails, {
+          subCommands: 'SandboxEvent',
+        });
         throw typeError;
       } finally {
         const typeCheckTimeSeconds =
@@ -132,14 +157,29 @@ export class CDKDeployer implements BackendDeployer {
           action: 'amplify',
           time: new Date(),
           level: 'result',
-          data: undefined,
+          data: {
+            duration: typeCheckTimeSeconds * 1000, // convert back to ms for telemetry
+          },
         });
       }
     }
 
     // If typescript compilation was successful but synth had failed, we throw synth error
     if (synthError) {
-      throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
+      const synthTime = synthTimeSeconds * 1000; // convert back to ms
+      const totalTime = synthTime + (Date.now() - typeCheckStartTime);
+      const latencyDetails: LatencyDetails = {
+        total: totalTime,
+        synthesis: synthTime,
+      };
+      const error = this.cdkErrorMapper.getAmplifyError(
+        synthError,
+        backendId.type,
+      );
+      await this.telemetryDataEmitter.emitFailure(error, latencyDetails, {
+        subCommands: 'SandboxEvent',
+      });
+      throw error;
     }
 
     // Perform actual deployment. CFN or hotswap
@@ -157,8 +197,24 @@ export class CDKDeployer implements BackendDeployer {
         requireApproval:
           backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
       });
-    } catch (error) {
-      throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
+    } catch (deployError) {
+      const synthTime = synthTimeSeconds * 1000; // convert back to ms
+      const deploymentTime = Date.now() - deployStartTime;
+      const totalTime =
+        synthTime + (Date.now() - typeCheckStartTime) + deploymentTime;
+      const latencyDetails: LatencyDetails = {
+        total: totalTime,
+        synthesis: synthTime,
+        deployment: deploymentTime,
+      };
+      const error = this.cdkErrorMapper.getAmplifyError(
+        deployError as Error,
+        backendId.type,
+      );
+      await this.telemetryDataEmitter.emitFailure(error, latencyDetails, {
+        subCommands: 'SandboxEvent',
+      });
+      throw error;
     }
 
     return {
@@ -167,8 +223,6 @@ export class CDKDeployer implements BackendDeployer {
         totalTime:
           synthTimeSeconds +
           Math.floor((Date.now() - deployStartTime) / 10) / 100,
-        deploymentTime: Math.floor((Date.now() - deployStartTime) / 10) / 100,
-        hotSwapTime: Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
     };
   };

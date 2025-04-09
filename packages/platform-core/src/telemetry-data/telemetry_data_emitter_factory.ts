@@ -4,19 +4,20 @@ import { configControllerFactory } from '../config/local_configuration_controlle
 import { USAGE_DATA_TRACKING_ENABLED } from './constants';
 import { DefaultTelemetryDataEmitter } from './telemetry_data_emitter.js';
 import { NoOpTelemetryDataEmitter } from './noop_telemetry_data_emitter';
+import { LatencyDetails } from './telemetry_data';
 
 export type TelemetryDataEmitter = {
   emitSuccess: (
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => Promise<void>;
   emitFailure: (
     error: AmplifyError,
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => Promise<void>;
   emitAbortion: (
-    metrics?: Record<string, number>,
+    latencyDetails?: LatencyDetails,
     dimensions?: Record<string, string>,
   ) => Promise<void>;
 };

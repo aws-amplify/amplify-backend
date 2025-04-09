@@ -14,6 +14,7 @@ import { LogLevel, Printer } from '../printer/printer.js';
 import assert from 'node:assert';
 import { format } from '../format/format.js';
 import { EOL } from 'node:os';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 void describe('amplify sandbox event logging', () => {
   const printer = new Printer(
@@ -28,7 +29,16 @@ void describe('amplify sandbox event logging', () => {
   const printerUpdateSpinnerMock = mock.method(printer, 'updateSpinner');
   const printerStopSpinnerMock = mock.method(printer, 'stopSpinner');
 
+  // Telemetry data emitter mocks
+  const emitTelemetrySuccessMock = mock.fn();
+  const emitTelemetryFailureMock = mock.fn();
+  const telemetryDataEmitterMock = {
+    emitSuccess: emitTelemetrySuccessMock,
+    emitFailure: emitTelemetryFailureMock,
+  } as unknown as TelemetryDataEmitter;
+
   const classUnderTest = new AmplifyIOEventsBridgeSingletonFactory(
+    telemetryDataEmitterMock,
     printer,
   ).getInstance();
 
@@ -37,6 +47,255 @@ void describe('amplify sandbox event logging', () => {
     printerStartSpinnerMock.mock.resetCalls();
     printerUpdateSpinnerMock.mock.resetCalls();
     printerStopSpinnerMock.mock.resetCalls();
+    emitTelemetrySuccessMock.mock.resetCalls();
+    emitTelemetryFailureMock.mock.resetCalls();
+  });
+
+  void it('generates correct events when fully loaded app is deleted', async () => {
+    for (const event of destroyAppCdkEvents) {
+      await classUnderTest.notify(
+        event as unknown as AmplifyIoHostEventMessage<unknown>,
+      );
+    }
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 141760,
+        synthesis: 0,
+        deployment: 141760,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
+    // Backend synthesized or TS checks are not run on destroy
+    // Prints deployment completion message
+    assert.deepStrictEqual(printerLogMock.mock.callCount(), 1);
+    assert.deepStrictEqual(printerLogMock.mock.calls[0].arguments, [
+      format.success('✔') + ' Deployment completed in 141.76 seconds',
+    ]);
+
+    assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 26);
+    // CFN progress events for updating an app, there are too many events, so we assert on 2nd, 5th, 10th 19th and last
+    printerUpdateSpinnerMock.mock.calls
+      .map((call) => call.arguments[0]?.prefixText)
+      .forEach((prefixTextActual, index) => {
+        switch (index) {
+          case 1:
+            assert.deepStrictEqual(
+              prefixTextActual,
+              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('root stack'),
+                'Yellow',
+              )}${EOL}`,
+            );
+            break;
+          case 4:
+            assert.deepStrictEqual(
+              prefixTextActual,
+              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('root stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ data stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ MyCustomResources stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ storage stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('data'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:41 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | Lambda:LayerVersion       | ${format.color(
+                format.bold('∟ AwsCliLayer'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:34 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ ConnectionStack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:41 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | IAM:Policy                | ${format.color(
+                format.bold('  ∟ DefaultPolicy'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:39 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | Lambda:Function           | ${format.color(
+                format.bold('  ∟ Handler'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('MyCustomResources'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | SQS:Queue                 | ${format.color(
+                format.bold('∟ CustomQueue'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | SNS:Topic                 | ${format.color(
+                format.bold('∟ CustomTopics'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('storage'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:37 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | Lambda:Function           | ${format.color(
+                format.bold(
+                  '∟ BucketNotificationsHandler050a0587b7544547bf325f094a3db834',
+                ),
+                'Yellow',
+              )}${EOL}`,
+            );
+            break;
+          case 9:
+            assert.deepStrictEqual(
+              prefixTextActual,
+              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('root stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ data stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ MyCustomResources stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('data'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:45 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ Person'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:53 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('function'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('MyCustomResources'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | SNS:Topic                 | ${format.color(
+                format.bold('∟ CustomTopics'),
+                'Yellow',
+              )}${EOL}`,
+            );
+            break;
+          case 19:
+            assert.deepStrictEqual(
+              prefixTextActual,
+              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('root stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('data'),
+                'Yellow',
+              )}${EOL}`,
+            );
+            break;
+          case 25:
+            assert.deepStrictEqual(
+              prefixTextActual,
+              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('root stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:07:25 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('∟ auth stack'),
+                'Yellow',
+              )}${EOL}${cll()}${format.dim('3:07:25 AM')} | ${format.color(
+                'DELETE_IN_PROGRESS  ',
+                'Yellow',
+              )} | CloudFormation:Stack      | ${format.color(
+                format.bold('auth'),
+                'Yellow',
+              )}${EOL}`,
+            );
+            break;
+          default:
+            break;
+        }
+      });
+
+    // Spinners
+    assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      printerStartSpinnerMock.mock.calls.map((call) => call.arguments[0]),
+      ['Deployment in progress...'],
+    );
+    assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 1);
   });
 
   void it('generates correct events when customer updated amplify outputs and nothing else', async () => {
@@ -61,6 +320,19 @@ void describe('amplify sandbox event logging', () => {
           ),
       ],
     );
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 61897,
+        synthesis: 1550,
+        deployment: 55447,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
 
     // CFN progress events
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 6);
@@ -196,7 +468,7 @@ void describe('amplify sandbox event logging', () => {
     }
 
     // Typical success messages printed
-    assert.deepStrictEqual(printerLogMock.mock.callCount(), 17);
+    assert.deepStrictEqual(printerLogMock.mock.callCount(), 19);
     assert.deepStrictEqual(
       printerLogMock.mock.calls.map((call) => call.arguments[0]),
       [
@@ -231,8 +503,26 @@ void describe('amplify sandbox event logging', () => {
           ' Updated Custom::CDKBucketDeployment data/amplifyData/AmplifyCodegenAssets/AmplifyCodegenAssetsDeployment/CustomResource-1536MiB/Default',
         format.success('✔') +
           ' Updated Custom::CDKBucketDeployment data/modelIntrospectionSchemaBucketDeployment/CustomResource-1536MiB/Default',
+        format.success('✔') + ' Deployment completed in 9.67 seconds',
+        'AppSync API endpoint = ' +
+          format.link(
+            'https://ystl6ikbafavph56jdnbbbklmu.appsync-api.us-west-2.amazonaws.com/graphql',
+          ),
       ],
     );
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 18330,
+        synthesis: 2680,
+        hotSwap: 9670,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
 
     // CFN progress events (No CFN deployment for this case)
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 0);
@@ -288,6 +578,19 @@ void describe('amplify sandbox event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 20743,
+        synthesis: 1900,
+        deployment: 14053,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     // CFN progress events (No CFN deployment for this case)
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 0);
 
@@ -327,6 +630,19 @@ void describe('amplify sandbox event logging', () => {
           ),
       ],
     );
+
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 243154,
+        synthesis: 1910,
+        deployment: 236434,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
 
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 42);
     // CFN progress events for a new app, there are too many events, so we assert on 2nd, 10th, 20th 30th and last
@@ -610,6 +926,19 @@ void describe('amplify sandbox event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 158164,
+        synthesis: 1940,
+        deployment: 151384,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 24);
     // CFN progress events for updating an app, there are too many events, so we assert on 2nd, 5th, 10th 20th and last
     printerUpdateSpinnerMock.mock.calls
@@ -792,6 +1121,19 @@ void describe('amplify sandbox event logging', () => {
       ],
     );
 
+    // Telemetry
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitTelemetrySuccessMock.mock.calls[0].arguments, [
+      {
+        total: 94067,
+        synthesis: 1910,
+        deployment: 87347,
+      },
+      {
+        subCommands: 'SandboxEvent',
+      },
+    ]);
+
     assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 12);
     // CFN progress events for updating an app, there are too many events, so we assert on 2nd, 5th, 7th, 10th and last
     printerUpdateSpinnerMock.mock.calls
@@ -932,236 +1274,6 @@ void describe('amplify sandbox event logging', () => {
       ],
     );
     assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 4);
-  });
-
-  void it('generates correct events when fully loaded app is deleted', async () => {
-    for (const event of destroyAppCdkEvents) {
-      await classUnderTest.notify(
-        event as unknown as AmplifyIoHostEventMessage<unknown>,
-      );
-    }
-
-    // Backend synthesized or TS checks are not run on destroy
-    assert.deepStrictEqual(printerLogMock.mock.callCount(), 0);
-
-    assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 26);
-    // CFN progress events for updating an app, there are too many events, so we assert on 2nd, 5th, 10th 19th and last
-    printerUpdateSpinnerMock.mock.calls
-      .map((call) => call.arguments[0]?.prefixText)
-      .forEach((prefixTextActual, index) => {
-        switch (index) {
-          case 1:
-            assert.deepStrictEqual(
-              prefixTextActual,
-              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('root stack'),
-                'Yellow',
-              )}${EOL}`,
-            );
-            break;
-          case 4:
-            assert.deepStrictEqual(
-              prefixTextActual,
-              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('root stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ data stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ MyCustomResources stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ storage stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('data'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:41 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | Lambda:LayerVersion       | ${format.color(
-                format.bold('∟ AwsCliLayer'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:34 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ ConnectionStack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:41 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | IAM:Policy                | ${format.color(
-                format.bold('  ∟ DefaultPolicy'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:39 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | Lambda:Function           | ${format.color(
-                format.bold('  ∟ Handler'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('MyCustomResources'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | SQS:Queue                 | ${format.color(
-                format.bold('∟ CustomQueue'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | SNS:Topic                 | ${format.color(
-                format.bold('∟ CustomTopics'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('storage'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:37 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | Lambda:Function           | ${format.color(
-                format.bold(
-                  '∟ BucketNotificationsHandler050a0587b7544547bf325f094a3db834',
-                ),
-                'Yellow',
-              )}${EOL}`,
-            );
-            break;
-          case 9:
-            assert.deepStrictEqual(
-              prefixTextActual,
-              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('root stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ data stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:32 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ MyCustomResources stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('data'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:45 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ Person'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:53 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('function'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('MyCustomResources'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:33 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | SNS:Topic                 | ${format.color(
-                format.bold('∟ CustomTopics'),
-                'Yellow',
-              )}${EOL}`,
-            );
-            break;
-          case 19:
-            assert.deepStrictEqual(
-              prefixTextActual,
-              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('root stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:05:31 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('data'),
-                'Yellow',
-              )}${EOL}`,
-            );
-            break;
-          case 25:
-            assert.deepStrictEqual(
-              prefixTextActual,
-              `${cll()}${format.dim('3:05:29 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('root stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:07:25 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('∟ auth stack'),
-                'Yellow',
-              )}${EOL}${cll()}${format.dim('3:07:25 AM')} | ${format.color(
-                'DELETE_IN_PROGRESS  ',
-                'Yellow',
-              )} | CloudFormation:Stack      | ${format.color(
-                format.bold('auth'),
-                'Yellow',
-              )}${EOL}`,
-            );
-            break;
-          default:
-            break;
-        }
-      });
-
-    // Spinners
-    assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      printerStartSpinnerMock.mock.calls.map((call) => call.arguments[0]),
-      ['Deployment in progress...'],
-    );
-    assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 1);
   });
 
   void it('generates correct events when cfn deployment has failed', async () => {

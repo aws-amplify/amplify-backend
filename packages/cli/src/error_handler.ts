@@ -2,6 +2,7 @@ import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
 import {
   AmplifyError,
+  LatencyDetails,
   TelemetryDataEmitter,
   UsageDataEmitter,
 } from '@aws-amplify/platform-core';
@@ -17,7 +18,7 @@ type HandleErrorProps = {
   usageDataEmitter?: UsageDataEmitter;
   telemetryDataEmitter?: TelemetryDataEmitter;
   commandInfo?: { subCommands: string; options: string };
-  metrics?: Record<string, number>;
+  latencyDetails?: LatencyDetails;
   command?: string;
 };
 
@@ -75,7 +76,7 @@ export const generateCommandFailureHandler = (
   parser: Argv,
   usageDataEmitter?: UsageDataEmitter,
   telemetryDataEmitter?: TelemetryDataEmitter,
-  metrics?: Record<string, number>,
+  latencyDetails?: LatencyDetails,
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
@@ -96,7 +97,7 @@ export const generateCommandFailureHandler = (
       usageDataEmitter,
       telemetryDataEmitter,
       commandInfo: extractCommandInfo(parser),
-      metrics,
+      latencyDetails,
     });
     parser.exit(1, error || new Error(message));
   };
@@ -127,7 +128,7 @@ const handleError = async ({
   usageDataEmitter,
   telemetryDataEmitter,
   commandInfo,
-  metrics,
+  latencyDetails,
   command,
 }: HandleErrorProps) => {
   // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
@@ -164,7 +165,7 @@ const handleError = async ({
         : AmplifyError.fromError(
             error && error instanceof Error ? error : new Error(message),
           ),
-      metrics,
+      latencyDetails,
       commandInfo,
     ),
   ]);

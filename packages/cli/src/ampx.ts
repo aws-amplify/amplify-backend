@@ -7,6 +7,7 @@ import {
 import { extractSubCommands } from './extract_sub_commands.js';
 import {
   AmplifyFault,
+  LatencyDetails,
   PackageJsonReader,
   TelemetryDataEmitterFactory,
   UsageDataEmitterFactory,
@@ -49,7 +50,11 @@ attachUnhandledExceptionListeners(usageDataEmitter, telemetryDataEmitter);
 verifyCommandName();
 
 const noticesRenderer = new NoticesRenderer(packageManagerController);
-const parser = createMainParser(libraryVersion, noticesRenderer);
+const parser = createMainParser(
+  libraryVersion,
+  noticesRenderer,
+  telemetryDataEmitter,
+);
 
 const initTime = Date.now() - startTime;
 
@@ -64,8 +69,12 @@ process.on('beforeExit', async (code) => {
     process.exit(code);
   }
   const totalTime = Date.now() - startTime;
+  const latencyDetails: LatencyDetails = {
+    total: totalTime,
+    init: initTime,
+  };
   await telemetryDataEmitter.emitAbortion(
-    { totalTime, initTime },
+    latencyDetails,
     extractCommandInfo(parser),
   );
   process.exit(code);
@@ -74,6 +83,10 @@ process.on('beforeExit', async (code) => {
 try {
   await parser.parseAsync(hideBin(process.argv));
   const totalTime = Date.now() - startTime;
+  const latencyDetails: LatencyDetails = {
+    total: totalTime,
+    init: initTime,
+  };
   const metricDimension: Record<string, string> = {};
   const subCommands = extractSubCommands(parser);
 
@@ -86,18 +99,22 @@ try {
   });
   await usageDataEmitter.emitSuccess({}, metricDimension);
   await telemetryDataEmitter.emitSuccess(
-    { totalTime, initTime },
+    latencyDetails,
     extractCommandInfo(parser),
   );
   telemetryEmitCount++;
 } catch (e) {
   if (e instanceof Error) {
     const totalTime = Date.now() - startTime;
+    const latencyDetails: LatencyDetails = {
+      total: totalTime,
+      init: initTime,
+    };
     const errorHandler = generateCommandFailureHandler(
       parser,
       usageDataEmitter,
       telemetryDataEmitter,
-      { totalTime, initTime },
+      latencyDetails,
     );
     await noticesRenderer.tryFindAndPrintApplicableNotices({
       event: 'postCommand',

@@ -43,7 +43,7 @@ const projectSchema = z.object({
     .optional(),
 });
 
-const latencySchema = z.object({
+export const latencySchema = z.object({
   total: z.number(),
   init: z.number().optional(),
   synthesis: z.number().optional(),

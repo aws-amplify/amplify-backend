@@ -6,7 +6,7 @@ import url from 'url';
 import https from 'https';
 import http from 'http';
 import os from 'os';
-import { TelemetryPayload } from './telemetry_data';
+import { LatencyDetails, TelemetryPayload } from './telemetry_data';
 import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
 import { RegionFetcher } from './region_fetcher';
@@ -100,7 +100,7 @@ void describe('TelemetryDataEmitter', () => {
   void test('happy case, emitSuccess generates and send correct telemetry data', async () => {
     await setupAndInvokeUsageEmitter({
       state: 'SUCCEEDED',
-      metrics: { synthesisTime: 5, totalTime: 20 },
+      latencyDetails: { synthesis: 5, total: 20 },
     });
 
     const telemetryDataSent: TelemetryPayload = JSON.parse(
@@ -167,12 +167,12 @@ void describe('TelemetryDataEmitter', () => {
     await setupAndInvokeUsageEmitter({
       state: 'FAILED',
       error,
-      metrics: {
-        synthesisTime: 5,
-        totalTime: 20,
-        initTime: 2,
-        deploymentTime: 13,
-        hotSwapTime: 0,
+      latencyDetails: {
+        synthesis: 5,
+        total: 20,
+        init: 2,
+        deployment: 13,
+        hotSwap: 0,
       },
     });
 
@@ -251,7 +251,7 @@ void describe('TelemetryDataEmitter', () => {
   const setupAndInvokeUsageEmitter = async (testData: {
     state: 'ABORTED' | 'FAILED' | 'SUCCEEDED';
     error?: AmplifyError;
-    metrics?: Record<string, number>;
+    latencyDetails?: LatencyDetails;
   }) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
       onReqEndMock.mock.mockImplementationOnce(() => {
@@ -270,7 +270,7 @@ void describe('TelemetryDataEmitter', () => {
     let telemetryDataEmitterPromise;
     if (testData.state === 'SUCCEEDED') {
       telemetryDataEmitterPromise = telemetryDataEmitter.emitSuccess(
-        testData.metrics,
+        testData.latencyDetails,
         {
           subCommands: 'testCommandName',
           options: 'testOption1 testOption2',
@@ -279,7 +279,7 @@ void describe('TelemetryDataEmitter', () => {
     } else if (testData.error) {
       telemetryDataEmitterPromise = telemetryDataEmitter.emitFailure(
         testData.error,
-        testData.metrics,
+        testData.latencyDetails,
         {
           subCommands: 'testCommandName',
           options: 'testOption1 testOption2',

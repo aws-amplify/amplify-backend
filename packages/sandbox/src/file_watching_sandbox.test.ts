@@ -29,7 +29,10 @@ import {
 } from '@aws-amplify/cli-core';
 import { URL, fileURLToPath } from 'url';
 import { AmplifyIOHost, BackendIdentifier } from '@aws-amplify/plugin-types';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  TelemetryDataEmitter,
+} from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import {
   ParameterNotFound,
@@ -60,11 +63,21 @@ const mockIoHost: AmplifyIOHost = {
 };
 const mockProfileResolver = mock.fn();
 
+const mockTelemetryEmitSuccess = mock.fn();
+const mockTelemetryEmitFailure = mock.fn();
+const mockTelemetryEmitAbortion = mock.fn();
+const telemetryDataEmitter = {
+  emitSuccess: mockTelemetryEmitSuccess,
+  emitFailure: mockTelemetryEmitFailure,
+  emitAbortion: mockTelemetryEmitAbortion,
+} as unknown as TelemetryDataEmitter;
+
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
   mockIoHost,
   mockProfileResolver,
+  telemetryDataEmitter,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 

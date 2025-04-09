@@ -9,6 +9,7 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../../command_middleware.js';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -22,6 +23,14 @@ void describe('sandbox delete command', () => {
   );
   const mockProfileResolver = mock.fn();
 
+  // Telemetry data emitter mocks
+  const emitTelemetrySuccessMock = mock.fn();
+  const emitTelemetryFailureMock = mock.fn();
+  const telemetryDataEmitterMock = {
+    emitSuccess: emitTelemetrySuccessMock,
+    emitFailure: emitTelemetryFailureMock,
+  } as unknown as TelemetryDataEmitter;
+
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
       () =>
@@ -33,6 +42,7 @@ void describe('sandbox delete command', () => {
       mockProfileResolver,
       printer,
       format,
+      telemetryDataEmitterMock,
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>

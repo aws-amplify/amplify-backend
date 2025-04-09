@@ -13,7 +13,7 @@ import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
   PackageJsonReader,
-  TelemetryDataEmitterFactory,
+  TelemetryDataEmitter,
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
@@ -35,6 +35,7 @@ import { SDKProfileResolverProvider } from '../../sdk_profile_resolver_provider.
  */
 export const createSandboxCommand = (
   noticesRenderer: NoticesRenderer,
+  telemetryDataEmitter: TelemetryDataEmitter,
 ): CommandModule<object, SandboxCommandOptionsKebabCase> => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
@@ -45,6 +46,7 @@ export const createSandboxCommand = (
     new SDKProfileResolverProvider().resolve,
     printer,
     format,
+    telemetryDataEmitter,
   );
   const s3Client = new S3Client();
   const amplifyClient = new AmplifyClient();
@@ -74,12 +76,6 @@ export const createSandboxCommand = (
         libraryVersion,
         dependencies,
       );
-    },
-    async () => {
-      const dependencies = await new PackageManagerControllerFactory()
-        .getPackageManagerController()
-        .tryGetDependencies();
-      return await new TelemetryDataEmitterFactory().getInstance(dependencies);
     },
     noticesRenderer,
   );

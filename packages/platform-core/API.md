@@ -125,20 +125,36 @@ export class ConfigurationControllerFactory {
     getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
 }
 
-// @public (undocumented)
-export type ErrorDetails = {
-    name: string;
-    message: string;
-    stack: string;
-    cause?: ErrorDetails;
-};
-
 // @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
     extract: () => string | undefined;
 }
+
+// @public (undocumented)
+export type LatencyDetails = z.infer<typeof latencySchema>;
+
+// @public (undocumented)
+export const latencySchema: z.ZodObject<{
+    total: z.ZodNumber;
+    init: z.ZodOptional<z.ZodNumber>;
+    synthesis: z.ZodOptional<z.ZodNumber>;
+    deployment: z.ZodOptional<z.ZodNumber>;
+    hotSwap: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    total: number;
+    init?: number | undefined;
+    synthesis?: number | undefined;
+    deployment?: number | undefined;
+    hotSwap?: number | undefined;
+}, {
+    total: number;
+    init?: number | undefined;
+    synthesis?: number | undefined;
+    deployment?: number | undefined;
+    hotSwap?: number | undefined;
+}>;
 
 // @public (undocumented)
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
@@ -230,251 +246,15 @@ export enum TagName {
 
 // @public (undocumented)
 export type TelemetryDataEmitter = {
-    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
-    emitFailure: (error: AmplifyError, metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
-    emitAbortion: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitSuccess: (latencyDetails?: LatencyDetails, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, latencyDetails?: LatencyDetails, dimensions?: Record<string, string>) => Promise<void>;
+    emitAbortion: (latencyDetails?: LatencyDetails, dimensions?: Record<string, string>) => Promise<void>;
 };
 
 // @public
 export class TelemetryDataEmitterFactory {
     getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryDataEmitter>;
 }
-
-// @public (undocumented)
-export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
-
-// @public (undocumented)
-export const telemetryPayloadSchema: z.ZodObject<{
-    identifiers: z.ZodObject<{
-        payloadVersion: z.ZodString;
-        sessionUuid: z.ZodString;
-        eventId: z.ZodString;
-        timestamp: z.ZodString;
-        localProjectId: z.ZodString;
-        accountId: z.ZodOptional<z.ZodString>;
-        awsRegion: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        payloadVersion: string;
-        sessionUuid: string;
-        timestamp: string;
-        eventId: string;
-        localProjectId: string;
-        accountId?: string | undefined;
-        awsRegion?: string | undefined;
-    }, {
-        payloadVersion: string;
-        sessionUuid: string;
-        timestamp: string;
-        eventId: string;
-        localProjectId: string;
-        accountId?: string | undefined;
-        awsRegion?: string | undefined;
-    }>;
-    event: z.ZodObject<{
-        state: z.ZodEnum<["ABORTED", "FAILED", "SUCCEEDED"]>;
-        command: z.ZodObject<{
-            path: z.ZodArray<z.ZodString, "many">;
-            parameters: z.ZodArray<z.ZodString, "many">;
-        }, "strip", z.ZodTypeAny, {
-            path: string[];
-            parameters: string[];
-        }, {
-            path: string[];
-            parameters: string[];
-        }>;
-    }, "strip", z.ZodTypeAny, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
-        command: {
-            path: string[];
-            parameters: string[];
-        };
-    }, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
-        command: {
-            path: string[];
-            parameters: string[];
-        };
-    }>;
-    environment: z.ZodObject<{
-        os: z.ZodObject<{
-            platform: z.ZodString;
-            release: z.ZodString;
-        }, "strip", z.ZodTypeAny, {
-            platform: string;
-            release: string;
-        }, {
-            platform: string;
-            release: string;
-        }>;
-        shell: z.ZodString;
-        npmUserAgent: z.ZodString;
-        ci: z.ZodBoolean;
-        memory: z.ZodObject<{
-            total: z.ZodNumber;
-            free: z.ZodNumber;
-        }, "strip", z.ZodTypeAny, {
-            total: number;
-            free: number;
-        }, {
-            total: number;
-            free: number;
-        }>;
-    }, "strip", z.ZodTypeAny, {
-        os: {
-            platform: string;
-            release: string;
-        };
-        shell: string;
-        npmUserAgent: string;
-        ci: boolean;
-        memory: {
-            total: number;
-            free: number;
-        };
-    }, {
-        os: {
-            platform: string;
-            release: string;
-        };
-        shell: string;
-        npmUserAgent: string;
-        ci: boolean;
-        memory: {
-            total: number;
-            free: number;
-        };
-    }>;
-    project: z.ZodObject<{
-        dependencies: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            name: z.ZodString;
-            version: z.ZodString;
-        }, "strip", z.ZodTypeAny, {
-            name: string;
-            version: string;
-        }, {
-            name: string;
-            version: string;
-        }>, "many">>;
-    }, "strip", z.ZodTypeAny, {
-        dependencies?: {
-            name: string;
-            version: string;
-        }[] | undefined;
-    }, {
-        dependencies?: {
-            name: string;
-            version: string;
-        }[] | undefined;
-    }>;
-    latency: z.ZodObject<{
-        total: z.ZodNumber;
-        init: z.ZodOptional<z.ZodNumber>;
-        synthesis: z.ZodOptional<z.ZodNumber>;
-        deployment: z.ZodOptional<z.ZodNumber>;
-        hotSwap: z.ZodOptional<z.ZodNumber>;
-    }, "strip", z.ZodTypeAny, {
-        total: number;
-        init?: number | undefined;
-        synthesis?: number | undefined;
-        deployment?: number | undefined;
-        hotSwap?: number | undefined;
-    }, {
-        total: number;
-        init?: number | undefined;
-        synthesis?: number | undefined;
-        deployment?: number | undefined;
-        hotSwap?: number | undefined;
-    }>;
-    error: z.ZodOptional<z.ZodType<ErrorDetails, z.ZodTypeDef, ErrorDetails>>;
-}, "strip", z.ZodTypeAny, {
-    identifiers: {
-        payloadVersion: string;
-        sessionUuid: string;
-        timestamp: string;
-        eventId: string;
-        localProjectId: string;
-        accountId?: string | undefined;
-        awsRegion?: string | undefined;
-    };
-    event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
-        command: {
-            path: string[];
-            parameters: string[];
-        };
-    };
-    environment: {
-        os: {
-            platform: string;
-            release: string;
-        };
-        shell: string;
-        npmUserAgent: string;
-        ci: boolean;
-        memory: {
-            total: number;
-            free: number;
-        };
-    };
-    project: {
-        dependencies?: {
-            name: string;
-            version: string;
-        }[] | undefined;
-    };
-    latency: {
-        total: number;
-        init?: number | undefined;
-        synthesis?: number | undefined;
-        deployment?: number | undefined;
-        hotSwap?: number | undefined;
-    };
-    error?: ErrorDetails | undefined;
-}, {
-    identifiers: {
-        payloadVersion: string;
-        sessionUuid: string;
-        timestamp: string;
-        eventId: string;
-        localProjectId: string;
-        accountId?: string | undefined;
-        awsRegion?: string | undefined;
-    };
-    event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
-        command: {
-            path: string[];
-            parameters: string[];
-        };
-    };
-    environment: {
-        os: {
-            platform: string;
-            release: string;
-        };
-        shell: string;
-        npmUserAgent: string;
-        ci: boolean;
-        memory: {
-            total: number;
-            free: number;
-        };
-    };
-    project: {
-        dependencies?: {
-            name: string;
-            version: string;
-        }[] | undefined;
-    };
-    latency: {
-        total: number;
-        init?: number | undefined;
-        synthesis?: number | undefined;
-        deployment?: number | undefined;
-        hotSwap?: number | undefined;
-    };
-    error?: ErrorDetails | undefined;
-}>;
 
 // @public (undocumented)
 export type TypedConfigurationFile<T> = {

@@ -15,6 +15,7 @@ import {
   getSecretClientWithAmplifyErrorHandling,
 } from '@aws-amplify/backend-secret';
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -35,11 +36,21 @@ const mockIoHost: AmplifyIOHost = {
 };
 const mockProfileResolver = mock.fn();
 
+const mockTelemetryEmitSuccess = mock.fn();
+const mockTelemetryEmitFailure = mock.fn();
+const mockTelemetryEmitAbortion = mock.fn();
+const telemetryDataEmitter = {
+  emitSuccess: mockTelemetryEmitSuccess,
+  emitFailure: mockTelemetryEmitFailure,
+  emitAbortion: mockTelemetryEmitAbortion,
+} as unknown as TelemetryDataEmitter;
+
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
   mockIoHost,
   mockProfileResolver,
+  telemetryDataEmitter,
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClientWithAmplifyErrorHandling();

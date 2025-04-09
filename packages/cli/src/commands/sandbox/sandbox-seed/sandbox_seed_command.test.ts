@@ -18,7 +18,10 @@ import { SandboxSeedGeneratePolicyCommand } from './sandbox_seed_policy_command.
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  TelemetryDataEmitter,
+} from '@aws-amplify/platform-core';
 
 const seedFileContents = 'console.log(`seed has been run`);';
 
@@ -57,12 +60,21 @@ void describe('sandbox seed command', () => {
     resolve: () => Promise.resolve(testBackendId),
   } as SandboxBackendIdResolver;
 
+  // Telemetry data emitter mocks
+  const emitTelemetrySuccessMock = mock.fn();
+  const emitTelemetryFailureMock = mock.fn();
+  const telemetryDataEmitterMock = {
+    emitSuccess: emitTelemetrySuccessMock,
+    emitFailure: emitTelemetryFailureMock,
+  } as unknown as TelemetryDataEmitter;
+
   before(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
       () => Promise.resolve(testBackendId),
       mockProfileResolver,
       printer,
       format,
+      telemetryDataEmitterMock,
     );
 
     const sandboxSeedCommand = new SandboxSeedCommand(sandboxIdResolver, [
