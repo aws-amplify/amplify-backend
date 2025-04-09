@@ -122,7 +122,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,
-        details: JSON.stringify(this.dependenciesToReport),
+        details: this.createProjectSettingDetails(metrics, dimensions),
       },
     };
   };
@@ -153,6 +153,47 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
         resolve();
       });
     });
+  };
+
+  /**
+   * Creates 'projectSetting.details' field in telemetry payload.
+   * The 'projectSetting.details' is a dumping ground (large string blob) for anything that doesn't fit
+   * into Gen1 telemetry schema.
+   */
+  private createProjectSettingDetails = (
+    metrics: Record<string, number>,
+    dimensions: Record<string, string>,
+  ): string => {
+    let serializableErrors: Record<string, SerializableError> | undefined =
+      undefined;
+    const errorEntries = Object.entries(this.errors);
+    if (errorEntries.length > 0) {
+      serializableErrors = {};
+      for (const [key, error] of errorEntries) {
+        serializableErrors[key] = new SerializableError(error);
+      }
+    }
+    const filteredMetricsEntries = Object.entries(metrics).filter(([key]) =>
+      key.includes('notices'),
+    );
+    const filteredMetrics =
+      filteredMetricsEntries.length > 0
+        ? Object.fromEntries(filteredMetricsEntries)
+        : undefined;
+    const filteredDimensionEntries = Object.entries(dimensions).filter(
+      ([key]) => key.includes('notices'),
+    );
+    const filteredDimensions =
+      filteredDimensionEntries.length > 0
+        ? Object.fromEntries(filteredDimensionEntries)
+        : undefined;
+    const payload = {
+      dependencies: this.dependenciesToReport,
+      errors: serializableErrors,
+      metrics: filteredMetrics,
+      dimensions: filteredDimensions,
+    };
+    return JSON.stringify(payload);
   };
 
   private translateMetricsToUsageData = (metrics?: Record<string, number>) => {
