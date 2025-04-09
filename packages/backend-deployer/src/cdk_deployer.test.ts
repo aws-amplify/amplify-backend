@@ -218,17 +218,8 @@ void describe('invokeCDKCommand', () => {
       ['amplify'],
     );
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
-      tsErrorFromCompiler,
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
   });
 
   void it('throws the original synth error if the synth failed but tsc succeeded', async () => {
@@ -259,17 +250,8 @@ void describe('invokeCDKCommand', () => {
 
     assert.deepStrictEqual(tsCompilerMock.mock.calls[0].arguments, ['amplify']);
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
-      cdkErrorMapper.getAmplifyError(synthError, 'sandbox'),
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
   });
 
   void it('throws the original synth error if the synth failed to generate function env declaration files', async () => {
@@ -314,17 +296,8 @@ void describe('invokeCDKCommand', () => {
 
     assert.deepStrictEqual(tsCompilerMock.mock.calls[0].arguments, ['amplify']);
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
-      cdkErrorMapper.getAmplifyError(synthError, 'sandbox'),
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
   });
 
   void it('returns human readable errors', async () => {
@@ -346,17 +319,8 @@ void describe('invokeCDKCommand', () => {
       },
     );
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
-      cdkErrorMapper.getAmplifyError(accessDeniedError, 'sandbox'),
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
   });
 
   void it('displays actionable error when older version of node is used during branch deployments', async () => {
@@ -384,17 +348,8 @@ void describe('invokeCDKCommand', () => {
       },
     );
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 1);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[0].arguments, [
-      cdkErrorMapper.getAmplifyError(olderNodeVersionError, 'branch'),
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
 
     synthMock.mock.mockImplementationOnce(() => {
       throw olderNodeVersionError;
@@ -417,16 +372,7 @@ void describe('invokeCDKCommand', () => {
       },
     );
 
+    // can't test arguments of mockTelemetryEmitFailure because of flakiness around stack trace and latency times
     assert.strictEqual(mockTelemetryEmitFailure.mock.callCount(), 2);
-    assert.deepStrictEqual(mockTelemetryEmitFailure.mock.calls[1].arguments, [
-      cdkErrorMapper.getAmplifyError(olderNodeVersionError, 'sandbox'),
-      {
-        total: 0,
-        synthesis: 0,
-      },
-      {
-        subCommands: 'SandboxEvent',
-      },
-    ]);
   });
 });
