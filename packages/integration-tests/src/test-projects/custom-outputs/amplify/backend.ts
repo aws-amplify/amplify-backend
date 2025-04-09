@@ -50,6 +50,8 @@ const fakeBucketName = 'fakeStorageBucket';
 backend.addOutput({
   version: '1.4',
   storage: {
+    aws_region: sampleRegion,
+    bucket_name: fakeBucketName,
     buckets: [
       {
         name: fakeBucketName,
@@ -57,9 +59,10 @@ backend.addOutput({
         aws_region: sampleRegion,
         paths: {
           'fakePath/*': {
-            groupsADMIN: ['read', 'write', 'delete', 'list'],
-            groupsGROUP1: ['read', 'delete', 'write'],
-            entityIdentity: ['read', 'write'],
+            authenticated: ['get', 'list'],
+            groupsADMIN: ['get', 'list', 'write', 'delete'],
+            groupsGROUP1: ['get', 'list', 'write'],
+            entityIdentity: ['get', 'list'],
           },
         },
       },
