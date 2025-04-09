@@ -3,7 +3,6 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   ClientConfigFileBaseName,
   ClientConfigFormat,
-  clientConfigTypesV1_4,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ampxCli } from '../process-controller/process_controller.js';
@@ -28,6 +27,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { pathToFileURL } from 'url';
 import isMatch from 'lodash.ismatch';
 import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
+import { Validator } from 'jsonschema';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -233,9 +233,47 @@ export abstract class TestProjectBase {
     );
     const outputs = JSON.parse(await fsp.readFile(outputFile, 'utf-8'));
 
-    assert.ok(
-      outputs as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+    const schema = JSON.parse(
+      await fsp.readFile(
+        './packages/client-config/src/client-config-schema/schema_v1.4.json',
+        'utf-8',
+      ),
     );
+
+    const validator = new Validator();
+
+    const validSchema = validator.validate(outputs, schema, {
+      preValidateProperty: (object, key) => {
+        const value = object[key];
+
+        // check if we have a storage path, if we do check that it's properties match what we expect to see
+        if (key.indexOf('/*') == key.length - 2) {
+          // ensure that resource, guest, authenticated only appear once
+          let resourceCounter = 0;
+          let authCounter = 0;
+          let guestCounter = 0;
+          for (const k in value) {
+            if (k === 'resource' && resourceCounter === 0) {
+              resourceCounter = 1;
+            } else if (k === 'authenticated' && authCounter === 0) {
+              authCounter = 1;
+            } else if (k === 'guest' && guestCounter === 0) {
+              guestCounter = 1;
+              // ensure that if we see groups and entity in a property, they appear at the front of the property name
+              // and ensure that the property name is longer than 'groups' or 'entity' (which is where the 6 comes from)
+            } else if (
+              (k.indexOf('groups') == 0 || k.indexOf('entity') == 0) &&
+              k.length > 6
+            ) {
+              continue;
+            } else {
+              assert.fail(`Unexpected key in ${key}`);
+            }
+          }
+        }
+      },
+    });
+    assert.ok(validSchema.valid);
   }
 
   /**

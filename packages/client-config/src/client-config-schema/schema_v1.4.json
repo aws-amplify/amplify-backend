@@ -375,8 +375,7 @@
       "enum": ["read", "get", "list", "write", "delete"]
     },
     "amplify_storage_access_rule": {
-      "tsType": "{ guest?: AmplifyStorageAccessActions[]; authenticated?: AmplifyStorageAccessActions[]; [groups: `group${string}`]: AmplifyStorageAccessActions[]; [entity: `entity${string}`]: AmplifyStorageAccessActions[]; resource?: AmplifyStorageAccessActions[]; }",
-      "additionalProperties": false
+      "tsType": "{ guest?: AmplifyStorageAccessActions[]; authenticated?: AmplifyStorageAccessActions[]; [groups: `group${string}`]: AmplifyStorageAccessActions[]; [entity: `entity${string}`]: AmplifyStorageAccessActions[]; resource?: AmplifyStorageAccessActions[]; }"
     },
     "amplify_storage_bucket": {
       "type": "object",
