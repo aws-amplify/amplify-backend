@@ -490,6 +490,7 @@ export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 export type UsageDataCollector = {
     collectMetric: (key: string, value: number) => void;
     collectDimension: (key: string, value: string) => void;
+    collectError: (key: string, error: Error) => void;
 };
 
 // @public (undocumented)
