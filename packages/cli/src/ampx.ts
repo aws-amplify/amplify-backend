@@ -58,8 +58,13 @@ const parser = createMainParser(
 
 const initTime = Date.now() - startTime;
 
-// Below is a workaround in order to send data to telemetry when user force closes a prompt (e.g. with Ctrl+C)
+// Below is a workaround in order to send data to telemetry when user force closes a prompt (ie with Ctrl+C)
+// without the counter we would emit both success and abort
+let telemetryEmitCount = 0;
 const handleAbortion = async (code: number) => {
+  if (telemetryEmitCount !== 0) {
+    return;
+  }
   const totalTime = Date.now() - startTime;
   const latencyDetails: LatencyDetails = {
     total: totalTime,
@@ -95,6 +100,7 @@ try {
     latencyDetails,
     extractCommandInfo(parser),
   );
+  telemetryEmitCount++;
 } catch (e) {
   if (e instanceof Error) {
     const totalTime = Date.now() - startTime;
