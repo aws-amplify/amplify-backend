@@ -58,16 +58,8 @@ const parser = createMainParser(
 
 const initTime = Date.now() - startTime;
 
-// Below is a workaround in order to send data to telemetry when user force closes a prompt (ie with Ctrl+C)
-// without the counter we would send both success and abort data.
-// Trying to do await telemetryDataEmitter.emitAbortion in errorHandler ends up with:
-// Warning: Detected unsettled top-level await
-let telemetryEmitCount = 0;
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-process.on('beforeExit', async (code) => {
-  if (telemetryEmitCount !== 0) {
-    process.exit(code);
-  }
+// Below is a workaround in order to send data to telemetry when user force closes a prompt (e.g. with Ctrl+C)
+const handleAbortion = async (code: number) => {
   const totalTime = Date.now() - startTime;
   const latencyDetails: LatencyDetails = {
     total: totalTime,
@@ -78,7 +70,8 @@ process.on('beforeExit', async (code) => {
     extractCommandInfo(parser),
   );
   process.exit(code);
-});
+};
+process.on('beforeExit', (code) => void handleAbortion(code));
 
 try {
   await parser.parseAsync(hideBin(process.argv));
@@ -102,7 +95,6 @@ try {
     latencyDetails,
     extractCommandInfo(parser),
   );
-  telemetryEmitCount++;
 } catch (e) {
   if (e instanceof Error) {
     const totalTime = Date.now() - startTime;
