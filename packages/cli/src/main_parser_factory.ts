@@ -7,6 +7,7 @@ import { createInfoCommand } from './commands/info/info_command_factory.js';
 import { createNoticesCommand } from './commands/notices/notices_command_factory.js';
 import * as path from 'path';
 import { NoticesRenderer } from './notices/notices_renderer.js';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 /**
  * Creates main parser.
@@ -14,6 +15,7 @@ import { NoticesRenderer } from './notices/notices_renderer.js';
 export const createMainParser = (
   libraryVersion: string,
   noticesRenderer: NoticesRenderer,
+  usageDataEmitter: UsageDataEmitter,
 ): Argv => {
   const parser = yargs()
     .version(libraryVersion)
@@ -29,7 +31,7 @@ export const createMainParser = (
     // This tells yargs that the command name is `ampx`.
     .scriptName(path.parse(process.argv[1]).name)
     .command(createGenerateCommand())
-    .command(createSandboxCommand(noticesRenderer))
+    .command(createSandboxCommand(noticesRenderer, usageDataEmitter))
     .command(createPipelineDeployCommand())
     .command(createConfigureCommand())
     .command(createInfoCommand())

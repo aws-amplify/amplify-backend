@@ -28,6 +28,11 @@ void describe('configure command', () => {
   );
   const parser = yargs().command(telemetryCommand);
   const commandRunner = new TestCommandRunner(parser, {
+    collector: {
+      collectMetric: () => {},
+      collectDimension: () => {},
+      collectError: () => {},
+    },
     emitSuccess: emitSuccessMock,
     emitFailure: emitFailureMock,
   });

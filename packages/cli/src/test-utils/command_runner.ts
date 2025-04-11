@@ -60,6 +60,11 @@ export class TestCommandRunner {
   constructor(
     private parser: Argv,
     private usageDataEmitter: UsageDataEmitter = {
+      collector: {
+        collectMetric: () => {},
+        collectDimension: () => {},
+        collectError: () => {},
+      },
       emitFailure: () => Promise.resolve(),
       emitSuccess: () => Promise.resolve(),
     },

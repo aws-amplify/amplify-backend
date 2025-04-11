@@ -10,7 +10,7 @@ import os from 'os';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
-import { AmplifyError, AmplifyUserError } from '..';
+import { AmplifyError, AmplifyUserError, UsageDataCollector } from '..';
 
 const originalNpmUserAgent = process.env.npm_config_user_agent;
 const testNpmUserAgent = 'testNpmUserAgent';
@@ -111,12 +111,14 @@ void describe('UsageDataEmitter', () => {
     assert.ok(usageDataSent.downstreamException == undefined);
     assert.deepStrictEqual(
       usageDataSent.projectSetting.details,
-      JSON.stringify([
-        {
-          name: 'aws-cdk-lib',
-          version: '12.13.14',
-        },
-      ]),
+      JSON.stringify({
+        dependencies: [
+          {
+            name: 'aws-cdk-lib',
+            version: '12.13.14',
+          },
+        ],
+      }),
     );
   });
 
@@ -159,6 +161,78 @@ void describe('UsageDataEmitter', () => {
     );
   });
 
+  void test('can collect allow listed metrics, dimensions', async () => {
+    // noticesMetric1 is passed via emitter call
+    // noticesMetric2 is collected via collector
+    // noticesMetric3 is collected both ways, last one - emitter call wins.
+    // similar algorithm for dimensions.
+    await setupAndInvokeUsageEmitter(
+      {
+        isSuccess: true,
+        metrics: { noticesMetric1: 1.1, noticesMetric3: 1.3 },
+        dimensions: { noticesDimension1: 'd1', noticesDimension3: 'd3' },
+      },
+      (collector) => {
+        collector.collectMetric('noticesMetric2', 1.2);
+        collector.collectMetric('noticesMetric3', 0.3);
+        collector.collectDimension('noticesDimension2', 'd2');
+        collector.collectDimension('noticesDimension3', 'd3.1');
+      },
+    );
+
+    const usageDataSent: UsageData = JSON.parse(
+      onReqWriteMock.mock.calls[0].arguments[0],
+    );
+
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.details,
+      JSON.stringify({
+        dependencies: [{ name: 'aws-cdk-lib', version: '12.13.14' }],
+        metrics: {
+          noticesMetric2: 1.2,
+          noticesMetric3: 1.3,
+          noticesMetric1: 1.1,
+        },
+        dimensions: {
+          noticesDimension2: 'd2',
+          noticesDimension3: 'd3',
+          noticesDimension1: 'd1',
+        },
+      }),
+    );
+  });
+
+  void test('can collect errors', async () => {
+    const error1 = new Error('error1');
+    const error2 = new Error('error2');
+    await setupAndInvokeUsageEmitter(
+      {
+        isSuccess: true,
+      },
+      (collector) => {
+        collector.collectError('error1', error1);
+        collector.collectError('error2', error2);
+      },
+    );
+
+    const usageDataSent: UsageData = JSON.parse(
+      onReqWriteMock.mock.calls[0].arguments[0],
+    );
+
+    assert.ok(usageDataSent.projectSetting.details);
+    const projectSettingDetails = JSON.parse(
+      usageDataSent.projectSetting.details,
+    );
+    assert.strictEqual(
+      projectSettingDetails.errors['error1'].message,
+      'error1',
+    );
+    assert.strictEqual(
+      projectSettingDetails.errors['error2'].message,
+      'error2',
+    );
+  });
+
   /**
    * Lots of acrobatics done here to be able to mock nodejs https library (which doesn't support promises)
    * and node:test library which doesn't have the best mocking mechanism.
@@ -169,11 +243,15 @@ void describe('UsageDataEmitter', () => {
    * 4. Call the listener which signifies that the request is completed and the Promise in the code would resolve
    * 5. Now get hold of all the event handlers for assertions.
    */
-  const setupAndInvokeUsageEmitter = async (testData: {
-    isSuccess: boolean;
-    error?: AmplifyError;
-    metrics?: Record<string, number>;
-  }) => {
+  const setupAndInvokeUsageEmitter = async (
+    testData: {
+      isSuccess: boolean;
+      error?: AmplifyError;
+      metrics?: Record<string, number>;
+      dimensions?: Record<string, string>;
+    },
+    collectData?: (collector: UsageDataCollector) => void,
+  ) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
       onReqEndMock.mock.mockImplementationOnce(() => {
         resolve();
@@ -188,14 +266,20 @@ void describe('UsageDataEmitter', () => {
       accountIdFetcherMock,
     );
 
+    if (collectData) {
+      collectData(usageDataEmitter.collector);
+    }
+
     let usageDataEmitterPromise;
     if (testData.isSuccess) {
       usageDataEmitterPromise = usageDataEmitter.emitSuccess(testData.metrics, {
         command: 'testCommandName',
+        ...testData.dimensions,
       });
     } else if (testData.error) {
       usageDataEmitterPromise = usageDataEmitter.emitFailure(testData.error, {
         command: 'testCommandName',
+        ...testData.dimensions,
       });
     }
 

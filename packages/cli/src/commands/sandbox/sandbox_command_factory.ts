@@ -1,5 +1,4 @@
 import { CommandModule } from 'yargs';
-import { fileURLToPath } from 'node:url';
 import {
   SandboxCommand,
   SandboxCommandOptionsKebabCase,
@@ -13,15 +12,11 @@ import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
   PackageJsonReader,
-  UsageDataEmitterFactory,
+  UsageDataEmitter,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import {
-  PackageManagerControllerFactory,
-  format,
-  printer,
-} from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -34,6 +29,7 @@ import { SDKProfileResolverProvider } from '../../sdk_profile_resolver_provider.
  */
 export const createSandboxCommand = (
   noticesRenderer: NoticesRenderer,
+  usageDataEmitter: UsageDataEmitter,
 ): CommandModule<object, SandboxCommandOptionsKebabCase> => {
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
@@ -58,21 +54,10 @@ export const createSandboxCommand = (
     awsClientProvider,
   );
 
-  const libraryVersion =
-    new PackageJsonReader().read(
-      fileURLToPath(new URL('../../../package.json', import.meta.url)),
-    ).version ?? '';
-
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdPartsResolver.resolve,
     async () => {
-      const dependencies = await new PackageManagerControllerFactory()
-        .getPackageManagerController()
-        .tryGetDependencies();
-      return await new UsageDataEmitterFactory().getInstance(
-        libraryVersion,
-        dependencies,
-      );
+      return usageDataEmitter;
     },
     noticesRenderer,
   );

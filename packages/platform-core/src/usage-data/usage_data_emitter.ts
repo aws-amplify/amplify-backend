@@ -8,7 +8,10 @@ import { latestPayloadVersion } from './constants.js';
 import { getUrl } from './get_usage_data_url.js';
 import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
-import { UsageDataEmitter } from './usage_data_emitter_factory.js';
+import {
+  UsageDataCollector,
+  UsageDataEmitter,
+} from './usage_data_emitter_factory.js';
 import { AmplifyError } from '../index.js';
 import { Dependency } from '@aws-amplify/plugin-types';
 
@@ -16,7 +19,21 @@ import { Dependency } from '@aws-amplify/plugin-types';
  * Entry point for sending usage data metrics
  */
 export class DefaultUsageDataEmitter implements UsageDataEmitter {
-  private dependenciesToReport?: Array<Dependency>;
+  readonly collector: UsageDataCollector = {
+    collectMetric: (key: string, value: number) => {
+      this.metrics[key] = value;
+    },
+    collectDimension: (key: string, value: string) => {
+      this.dimensions[key] = value;
+    },
+    collectError: (key: string, error: Error) => {
+      this.errors[key] = error;
+    },
+  };
+  private readonly dependenciesToReport?: Array<Dependency>;
+  private readonly metrics: Record<string, number> = {};
+  private readonly dimensions: Record<string, string> = {};
+  private readonly errors: Record<string, Error> = {};
   /**
    * Constructor for UsageDataEmitter
    */
@@ -74,6 +91,14 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     dimensions?: Record<string, string>;
     error?: AmplifyError;
   }): Promise<UsageData> => {
+    const metrics = {
+      ...this.metrics,
+      ...(options.metrics ?? {}),
+    };
+    const dimensions = {
+      ...this.dimensions,
+      ...(options.dimensions ?? {}),
+    };
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
@@ -92,12 +117,12 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       osRelease: os.release(),
       nodeVersion: process.versions.node,
       state: options.state,
-      codePathDurations: this.translateMetricsToUsageData(options.metrics),
-      input: this.translateDimensionsToUsageData(options.dimensions),
+      codePathDurations: this.translateMetricsToUsageData(metrics),
+      input: this.translateDimensionsToUsageData(dimensions),
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,
-        details: JSON.stringify(this.dependenciesToReport),
+        details: this.createProjectSettingDetails(metrics, dimensions),
       },
     };
   };
@@ -128,6 +153,47 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
         resolve();
       });
     });
+  };
+
+  /**
+   * Creates 'projectSetting.details' field in telemetry payload.
+   * The 'projectSetting.details' is a dumping ground (large string blob) for anything that doesn't fit
+   * into Gen1 telemetry schema.
+   */
+  private createProjectSettingDetails = (
+    metrics: Record<string, number>,
+    dimensions: Record<string, string>,
+  ): string => {
+    let serializableErrors: Record<string, SerializableError> | undefined =
+      undefined;
+    const errorEntries = Object.entries(this.errors);
+    if (errorEntries.length > 0) {
+      serializableErrors = {};
+      for (const [key, error] of errorEntries) {
+        serializableErrors[key] = new SerializableError(error);
+      }
+    }
+    const filteredMetricsEntries = Object.entries(metrics).filter(([key]) =>
+      key.includes('notices'),
+    );
+    const filteredMetrics =
+      filteredMetricsEntries.length > 0
+        ? Object.fromEntries(filteredMetricsEntries)
+        : undefined;
+    const filteredDimensionEntries = Object.entries(dimensions).filter(
+      ([key]) => key.includes('notices'),
+    );
+    const filteredDimensions =
+      filteredDimensionEntries.length > 0
+        ? Object.fromEntries(filteredDimensionEntries)
+        : undefined;
+    const payload = {
+      dependencies: this.dependenciesToReport,
+      errors: serializableErrors,
+      metrics: filteredMetrics,
+      dimensions: filteredDimensions,
+    };
+    return JSON.stringify(payload);
   };
 
   private translateMetricsToUsageData = (metrics?: Record<string, number>) => {
