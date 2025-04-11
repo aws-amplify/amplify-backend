@@ -23,7 +23,7 @@ const prHasRunE2ELabel = async () => {
     prInfo.head?.repo?.full_name !== 'aws-amplify/amplify-backend'
   ) {
     throw new Error(
-      'PR must be opened from aws-amplify/amplify-backend repository when running e2e tests.',
+      'PR must be opened from a branch in aws-amplify/amplify-backend repository when running e2e tests.',
     );
   }
 
