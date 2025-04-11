@@ -203,6 +203,7 @@ backend.addOutput({
 });
 
 backend.addOutput({
+  version: '1.4',
   storage: {
     aws_region: 'us-east-1',
     bucket_name: 'someBucketName',
