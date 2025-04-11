@@ -1,5 +1,24 @@
 # @aws-amplify/backend-data
 
+## 1.6.0
+
+### Minor Changes
+
+- d09014b: Add imported tables to data.
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 995c3de: Use Node 20 as default runtime in functions
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.5.0
 
 ### Minor Changes

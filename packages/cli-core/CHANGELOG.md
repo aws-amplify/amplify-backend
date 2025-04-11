@@ -1,5 +1,33 @@
 # @aws-amplify/cli-core
 
+## 2.1.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- d09014b: fix pretty sandbox qa bugs
+- d09014b: reroute stderr through printer and ensure printing is done around spinners
+- 2857cf3: refactor type checks to use TS compiler APIs instead of tsc cli
+- 9dc0916: Update error matching and parsing based on toolkit integration
+- d09014b: After clearing console, move the cursor to the top of terminal
+- d6b9286: adjust spinner time to ensure it renders deterministic amount of time
+- d09014b: Use deployment started as a marker for assets published
+- d8a7304: update api after bumping typescript
+- d09014b: Move the spinner between timestamp and spinner text
+- d09014b: Updates to pretty sandbox display
+- 96fe987: Upgrade to cdk toolkit-lib and use new hotswap event markers
+- Updated dependencies [8483297]
+- Updated dependencies [baaaba9]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+  - @aws-amplify/platform-core@1.8.0
+
 ## 2.0.0
 
 ### Major Changes
