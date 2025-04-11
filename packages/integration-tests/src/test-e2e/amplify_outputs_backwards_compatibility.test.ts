@@ -157,6 +157,17 @@ void describe('client config backwards compatibility', () => {
     );
   };
 
+  const assertStorageAccessRules = async () => {
+    const outputs = JSON.parse(
+      await fsp.readFile(path.join(tempDir, 'amplify_outputs.json'), 'utf-8'),
+    );
+
+    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.groupsADMIN);
+    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.groupsGROUP1);
+    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.entityIdentity);
+    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.authenticated);
+  };
+
   void it('outputs generation should be backwards and forward compatible', async () => {
     // build an app using previous (baseline) version
     await baselineNpmProxyController.setUp();
@@ -182,6 +193,29 @@ backend.addOutput({
     someCustomOutput: 'someCustomOutputValue',
   },
 });
+
+backend.addOutput({
+  version: '1.4',
+  storage: {
+    aws_region: 'us-east-1',
+    bucket_name: 'someBucketName',
+    buckets: [
+      {
+        name: 'someBucketName',
+        bucket_name: 'someBucketName',
+        aws_region: 'us-east-1',
+        paths: {
+          'somePath/*': {
+            authenticated: ['get', 'list'],
+            groupsADMIN: ['get', 'list', 'write', 'delete'],
+            groupsGROUP1: ['get', 'list', 'write'],
+            entityIdentity: ['get', 'list'],
+          },
+        },
+      },
+    ],
+  },
+});
 `,
     );
     await deploy();
@@ -193,6 +227,7 @@ backend.addOutput({
     await currentNpmProxyController.setUp();
     await reinstallDependencies();
     await assertGenerateClientConfigCommand('current');
+    await assertStorageAccessRules();
 
     // 2. via API.
     await assertGenerateClientConfigAPI('current');
@@ -207,6 +242,7 @@ backend.addOutput({
     await baselineNpmProxyController.setUp();
     await reinstallDependencies();
     await assertGenerateClientConfigCommand('baseline');
+    await assertStorageAccessRules();
 
     // 2. via API.
     await assertGenerateClientConfigAPI('baseline');
