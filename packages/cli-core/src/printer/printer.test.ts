@@ -139,18 +139,18 @@ void describe('Printer', () => {
   void it('startSpinner start animating spinner with message until stopSpinner is called in TTY terminal', async () => {
     const message = 'Message 1';
 
-    // Refresh rate of 100 ms
+    // Refresh rate of 500 ms to avoid flakiness in tests
     const printer = new Printer(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
-      100,
+      500,
       true,
     );
     printer.startSpinner(message);
 
-    // Wait for 400 ms
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    // Wait for 1900 ms which should guarantee spinner outputting exactly 4 times at 0, 500, 1000, 1500
+    await new Promise((resolve) => setTimeout(resolve, 1900));
 
     // Stop spinner
     printer.stopSpinner();
