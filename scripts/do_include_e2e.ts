@@ -17,6 +17,7 @@ const prHasRunE2ELabel = async () => {
   const hasRunE2ELabel = prInfo.labels.some(
     (label) => label.name === 'run-e2e',
   );
+  console.log(JSON.stringify(prInfo, null, 2));
   return hasRunE2ELabel;
 };
 
@@ -35,14 +36,6 @@ const doIncludeE2e =
   isWorkflowTriggeredManually ||
   isWorkflowTriggeredBySchedule ||
   isPullRequestWithRunE2ELabel;
-
-if (doIncludeE2e) {
-  console.log(JSON.stringify(prInfo, null, 2));
-}
-
-console.log(JSON.stringify(prInfo, null, 2));
-
-throw new Error('foo');
 
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);
