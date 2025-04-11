@@ -246,28 +246,33 @@ export abstract class TestProjectBase {
       preValidateProperty: (object, key) => {
         const value = object[key];
 
-        // check if we have a storage path, if we do check that it's properties match what we expect to see
-        if (key.endsWith('/*')) {
-          // ensure that resource, guest, authenticated only appear once
-          let resourceCounter = 0;
-          let authCounter = 0;
-          let guestCounter = 0;
-          for (const k in value) {
-            if (k === 'resource' && resourceCounter === 0) {
-              resourceCounter = 1;
-            } else if (k === 'authenticated' && authCounter === 0) {
-              authCounter = 1;
-            } else if (k === 'guest' && guestCounter === 0) {
-              guestCounter = 1;
-              // ensure that if we see groups and entity in a property, they appear at the front of the property name
-              // and ensure that the property name is longer than 'groups' or 'entity' (which is where the 6 comes from)
-            } else if (
-              (k.indexOf('groups') == 0 || k.indexOf('entity') == 0) &&
-              k.length > 6
-            ) {
-              continue;
-            } else {
-              assert.fail(`Unexpected key in ${key}`);
+        if (key === 'buckets') {
+          for (const bucket of value) {
+            // check if we have storage paths, if we do check that each path's properties match what we expect to see
+            if ('paths' in bucket) {
+              for (const path in bucket['paths']) {
+                let resourceCounter = 0;
+                let authCounter = 0;
+                let guestCounter = 0;
+                for (const k in object[path]) {
+                  if (k === 'resource' && resourceCounter === 0) {
+                    resourceCounter = 1;
+                  } else if (k === 'authenticated' && authCounter === 0) {
+                    authCounter = 1;
+                  } else if (k === 'guest' && guestCounter === 0) {
+                    guestCounter = 1;
+                    // ensure that if we see groups and entity in a property, they appear at the front of the property name
+                    // and ensure that the property name is longer than 'groups' or 'entity' (which is where the 6 comes from)
+                  } else if (
+                    (k.indexOf('groups') == 0 || k.indexOf('entity') == 0) &&
+                    k.length > 6
+                  ) {
+                    continue;
+                  } else {
+                    assert.fail(`Unexpected key ${k} in ${path}`);
+                  }
+                }
+              }
             }
           }
         }
