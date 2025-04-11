@@ -1,5 +1,41 @@
 # create-amplify
 
+## 1.2.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 2902bd6: bump aws-cdk-lib
+- d09014b: update create-amplify template's data resource to use "identityPool" as the default authorization mode
+- ece77e7: remove cdk cli dependency
+- f1c87e3: update supported node versions
+- d09014b: Upgrade aws-cdk-lib
+- Updated dependencies [8483297]
+- Updated dependencies [baaaba9]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [a93aa54]
+- Updated dependencies [2857cf3]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [9dc0916]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d6b9286]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [96fe987]
+  - @aws-amplify/platform-core@1.8.0
+  - @aws-amplify/cli-core@2.1.0
+  - @aws-amplify/plugin-types@1.10.0
+
 ## 1.1.0
 
 ### Minor Changes

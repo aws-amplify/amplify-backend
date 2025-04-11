@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.6.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
 ## 1.5.0
 
 ### Minor Changes

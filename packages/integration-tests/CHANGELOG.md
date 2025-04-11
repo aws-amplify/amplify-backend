@@ -1,5 +1,16 @@
 # @aws-amplify/integration-tests
 
+## 0.8.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- ece77e7: remove cdk cli dependency
+- d09014b: remove unnecessary toolkit dependencies
+
 ## 0.7.0
 
 ### Minor Changes

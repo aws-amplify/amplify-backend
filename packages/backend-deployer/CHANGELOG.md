@@ -1,5 +1,33 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- d76ac76: wrap cdk's esbuild bundle error
+- a93aa54: upgrade cdk-toolkit to 0.2.0
+- 2857cf3: refactor type checks to use TS compiler APIs instead of tsc cli
+- ece77e7: remove cdk cli dependency
+- 9dc0916: Update error matching and parsing based on toolkit integration
+- 682d420: throw more actionable error message when unsupported version of node is used
+- 96fe987: Upgrade to cdk toolkit-lib and use new hotswap event markers
+- Updated dependencies [8483297]
+- Updated dependencies [baaaba9]
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/platform-core@1.8.0
+  - @aws-amplify/plugin-types@1.10.0
+
 ## 2.0.0
 
 ### Major Changes
