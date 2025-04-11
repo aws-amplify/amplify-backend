@@ -37,8 +37,12 @@ const doIncludeE2e =
   isPullRequestWithRunE2ELabel;
 
 if (doIncludeE2e) {
-  console.log('foo');
+  console.log(JSON.stringify(prInfo, null, 2));
 }
+
+console.log(JSON.stringify(prInfo, null, 2));
+
+throw new Error('foo');
 
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);
