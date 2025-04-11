@@ -12801,5 +12801,8 @@ export const data = [
   {
     code: 'CDK_TOOLKIT_I7000',
     message: '  Destroy time: 141.76s',
+    data: {
+      duration: 141760,
+    },
   },
 ];

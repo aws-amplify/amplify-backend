@@ -58,6 +58,9 @@ export const data = [
     action: 'amplify',
     level: 'result',
     message: 'Backend synthesized in 2.68 seconds',
+    data: {
+      duration: 2680,
+    },
   },
   {
     code: 'TS_STARTED',
@@ -69,6 +72,9 @@ export const data = [
     action: 'amplify',
     level: 'result',
     message: 'Type checks completed in 5.98 seconds',
+    data: {
+      duration: 5980,
+    },
   },
   {
     code: 'CDK_TOOLKIT_I1001',
@@ -3757,5 +3763,8 @@ export const data = [
   {
     code: 'CDK_TOOLKIT_I5000',
     message: '  Deployment time: 9.67s',
+    data: {
+      duration: 9670,
+    },
   },
 ];

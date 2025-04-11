@@ -28,6 +28,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -53,12 +54,23 @@ void describe('deploy command', () => {
   const formatterStub: BackendDeployerOutputFormatter = {
     normalizeAmpxCommand: () => 'test command',
   };
+
+  const mockTelemetryEmitSuccess = mock.fn();
+  const mockTelemetryEmitFailure = mock.fn();
+  const mockTelemetryEmitAbortion = mock.fn();
+  const telemetryDataEmitter = {
+    emitSuccess: mockTelemetryEmitSuccess,
+    emitFailure: mockTelemetryEmitFailure,
+    emitAbortion: mockTelemetryEmitAbortion,
+  } as unknown as TelemetryDataEmitter;
+
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
       mockIoHost,
       mockProfileResolver,
+      telemetryDataEmitter,
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -116,6 +128,7 @@ void describe('deploy command', () => {
       formatterStub,
       mockIoHost,
       mockProfileResolver,
+      telemetryDataEmitter,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -145,6 +158,7 @@ void describe('deploy command', () => {
       formatterStub,
       mockIoHost,
       mockProfileResolver,
+      telemetryDataEmitter,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -184,6 +198,7 @@ void describe('deploy command', () => {
       formatterStub,
       mockIoHost,
       mockProfileResolver,
+      telemetryDataEmitter,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -223,6 +238,7 @@ void describe('deploy command', () => {
       formatterStub,
       mockIoHost,
       mockProfileResolver,
+      telemetryDataEmitter,
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

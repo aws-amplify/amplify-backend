@@ -10,6 +10,10 @@ import { WriteStream } from 'node:tty';
 import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 import { EOL } from 'node:os';
+import {
+  LatencyDetails,
+  TelemetryDataEmitter,
+} from '@aws-amplify/platform-core';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -18,6 +22,9 @@ import { EOL } from 'node:os';
 export class AmplifyEventLogger {
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
+  private isHotswapDeployment = false;
+  private synthesisDuration: number | undefined;
+  private typeCheckDuration: number | undefined;
 
   /**
    * a logger instance to be used for CDK events
@@ -25,6 +32,7 @@ export class AmplifyEventLogger {
   constructor(
     private readonly printer: Printer = globalPrinter,
     private readonly amplifyIOEventsBridgeSingletonFactory: AmplifyIOEventsBridgeSingletonFactory,
+    private readonly telemetryDataEmitter: TelemetryDataEmitter,
   ) {}
 
   getEventLoggers = () => {
@@ -127,6 +135,26 @@ export class AmplifyEventLogger {
           : msg.message,
       msg.level === 'error' ? LogLevel.ERROR : LogLevel.INFO,
     );
+    if (
+      msg.code === 'SYNTH_FINISHED' &&
+      msg.data &&
+      typeof msg.data === 'object' &&
+      'duration' in msg.data &&
+      msg.data.duration &&
+      typeof msg.data.duration === 'number'
+    ) {
+      this.synthesisDuration = msg.data.duration;
+    }
+    if (
+      msg.code === 'TS_FINISHED' &&
+      msg.data &&
+      typeof msg.data === 'object' &&
+      'duration' in msg.data &&
+      msg.data.duration &&
+      typeof msg.data.duration === 'number'
+    ) {
+      this.typeCheckDuration = msg.data.duration;
+    }
   };
 
   cdkDeploymentProgress = async <T>(
@@ -147,6 +175,7 @@ export class AmplifyEventLogger {
       );
       let message = msg.message;
       if (hotswappedResources && hotswappedResources.length > 0) {
+        this.isHotswapDeployment = true;
         message = hotswappedResources
           .map(
             (resource) =>
@@ -191,6 +220,26 @@ export class AmplifyEventLogger {
             msg.data.duration / 1000
           } seconds`,
         );
+        const synthesisTime = this.synthesisDuration ?? 0;
+        const typeCheckTime = this.typeCheckDuration ?? 0;
+        const deploymentTime = msg.data.duration;
+        const latencyDetails: LatencyDetails = {
+          total: synthesisTime + typeCheckTime + deploymentTime,
+          synthesis: synthesisTime,
+        };
+        if (this.isHotswapDeployment) {
+          latencyDetails.hotSwap = deploymentTime;
+        } else {
+          latencyDetails.deployment = deploymentTime;
+        }
+        await this.telemetryDataEmitter.emitSuccess(latencyDetails, {
+          subCommands: 'SandboxEvent',
+        });
+
+        // reset state for telemetry
+        this.isHotswapDeployment = false;
+        this.synthesisDuration = undefined;
+        this.typeCheckDuration = undefined;
         if (
           this.outputs &&
           'awsAppsyncApiEndpoint' in this.outputs &&

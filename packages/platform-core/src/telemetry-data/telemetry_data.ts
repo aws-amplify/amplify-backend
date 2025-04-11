@@ -43,13 +43,15 @@ const projectSchema = z.object({
     .optional(),
 });
 
-const latencySchema = z.object({
+export const latencySchema = z.object({
   total: z.number(),
   init: z.number().optional(),
   synthesis: z.number().optional(),
   deployment: z.number().optional(),
   hotSwap: z.number().optional(),
 });
+
+export type LatencyDetails = z.infer<typeof latencySchema>;
 
 export type ErrorDetails = {
   name: string;

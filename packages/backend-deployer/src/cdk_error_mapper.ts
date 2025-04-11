@@ -169,7 +169,7 @@ export class CdkErrorMapper {
         (errorName) => errorName === error.name,
       )
     ) {
-      throw new AmplifyUserError(
+      return new AmplifyUserError(
         'SyntaxError',
         {
           message: 'Unable to build the Amplify backend definition.',

@@ -6,7 +6,10 @@ import {
 } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendLocator } from '@aws-amplify/platform-core';
+import {
+  BackendLocator,
+  TelemetryDataEmitter,
+} from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
 import { Toolkit } from '@aws-cdk/toolkit-lib';
 
@@ -53,6 +56,7 @@ export class BackendDeployerFactory {
     private readonly formatter: BackendDeployerOutputFormatter,
     private readonly backendDeployerIOHost: AmplifyIOHost,
     private readonly sdkProfileResolver: SDKProfileResolver,
+    private readonly telemetryDataEmitter: TelemetryDataEmitter,
   ) {}
 
   /**
@@ -73,6 +77,7 @@ export class BackendDeployerFactory {
           },
         }),
         this.backendDeployerIOHost,
+        this.telemetryDataEmitter,
       );
     }
     return BackendDeployerFactory.instance;

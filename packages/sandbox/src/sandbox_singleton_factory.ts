@@ -16,6 +16,7 @@ import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 import { SDKProfileResolver } from '@aws-amplify/plugin-types';
+import { TelemetryDataEmitter } from '@aws-amplify/platform-core';
 
 /**
  * Factory to create a new sandbox
@@ -30,6 +31,7 @@ export class SandboxSingletonFactory {
     private readonly sdkProfileResolver: SDKProfileResolver,
     private readonly printer: Printer,
     private readonly format: Format,
+    private readonly telemetryDataEmitter: TelemetryDataEmitter,
   ) {}
 
   /**
@@ -40,6 +42,7 @@ export class SandboxSingletonFactory {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
       const cdkEventsBridgeIoHost = new AmplifyIOEventsBridgeSingletonFactory(
+        this.telemetryDataEmitter,
         this.printer,
       ).getInstance();
 
@@ -48,6 +51,7 @@ export class SandboxSingletonFactory {
         this.format,
         cdkEventsBridgeIoHost,
         this.sdkProfileResolver,
+        this.telemetryDataEmitter,
       );
       SandboxSingletonFactory.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
