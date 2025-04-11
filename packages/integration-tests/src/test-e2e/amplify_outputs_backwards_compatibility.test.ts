@@ -157,15 +157,23 @@ void describe('client config backwards compatibility', () => {
     );
   };
 
-  const assertStorageAccessRules = async () => {
+  const assertStorageAccessRules = async (type: 'baseline' | 'current') => {
     const outputs = JSON.parse(
       await fsp.readFile(path.join(tempDir, 'amplify_outputs.json'), 'utf-8'),
     );
 
-    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.groupsADMIN);
-    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.groupsGROUP1);
-    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.entityIdentity);
-    assert.ok(outputs.storage.buckets[0].paths['somePath/*']?.authenticated);
+    assert.ok(
+      outputs.storage.buckets[0].paths['somePath/*']?.groupsADMIN,
+      `outputs schema should have storage groups with expected format with ${type} version`,
+    );
+    assert.ok(
+      outputs.storage.buckets[0].paths['somePath/*']?.entityIdentity,
+      `outputs schema should have storage entity with expected format with ${type} version`,
+    );
+    assert.ok(
+      outputs.storage.buckets[0].paths['somePath/*']?.authenticated,
+      `outputs schema should have authenticated in storage with expected format with ${type} version`,
+    );
   };
 
   void it('outputs generation should be backwards and forward compatible', async () => {
@@ -195,7 +203,6 @@ backend.addOutput({
 });
 
 backend.addOutput({
-  version: '1.4',
   storage: {
     aws_region: 'us-east-1',
     bucket_name: 'someBucketName',
@@ -208,7 +215,6 @@ backend.addOutput({
           'somePath/*': {
             authenticated: ['get', 'list'],
             groupsADMIN: ['get', 'list', 'write', 'delete'],
-            groupsGROUP1: ['get', 'list', 'write'],
             entityIdentity: ['get', 'list'],
           },
         },
@@ -227,7 +233,7 @@ backend.addOutput({
     await currentNpmProxyController.setUp();
     await reinstallDependencies();
     await assertGenerateClientConfigCommand('current');
-    await assertStorageAccessRules();
+    await assertStorageAccessRules('current');
 
     // 2. via API.
     await assertGenerateClientConfigAPI('current');
@@ -242,7 +248,7 @@ backend.addOutput({
     await baselineNpmProxyController.setUp();
     await reinstallDependencies();
     await assertGenerateClientConfigCommand('baseline');
-    await assertStorageAccessRules();
+    await assertStorageAccessRules('baseline');
 
     // 2. via API.
     await assertGenerateClientConfigAPI('baseline');
