@@ -27,6 +27,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { pathToFileURL } from 'url';
 import isMatch from 'lodash.ismatch';
 import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
+import { Validator } from 'jsonschema';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -196,6 +197,11 @@ export abstract class TestProjectBase {
       this.projectDirPath,
       ClientConfigFormat.JSON,
     );
+
+    await this.assertClientConfigWithExpectedTyping(
+      this.projectDirPath,
+      ClientConfigFormat.JSON,
+    );
   }
 
   /**
@@ -211,6 +217,68 @@ export abstract class TestProjectBase {
     );
 
     assert.ok(clientConfigStats.isFile());
+  }
+
+  /**
+   * Verify client config file is generated with the expected typing
+   */
+  async assertClientConfigWithExpectedTyping(
+    dir?: string,
+    format?: ClientConfigFormat,
+  ) {
+    const outputFile = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
+      dir ?? this.projectAmplifyDirPath,
+      format,
+    );
+    const outputs = JSON.parse(await fsp.readFile(outputFile, 'utf-8'));
+
+    const schema = JSON.parse(
+      await fsp.readFile(
+        './packages/client-config/src/client-config-schema/schema_v1.4.json',
+        'utf-8',
+      ),
+    );
+
+    const validator = new Validator();
+
+    const validSchema = validator.validate(outputs, schema, {
+      preValidateProperty: (object, key) => {
+        const value = object[key];
+
+        if (key === 'buckets') {
+          for (const bucket of value) {
+            // check if we have storage paths, if we do check that each path's properties match what we expect to see
+            if ('paths' in bucket) {
+              for (const path in bucket['paths']) {
+                let resourceCounter = 0;
+                let authCounter = 0;
+                let guestCounter = 0;
+                for (const k in object[path]) {
+                  if (k === 'resource' && resourceCounter === 0) {
+                    resourceCounter = 1;
+                  } else if (k === 'authenticated' && authCounter === 0) {
+                    authCounter = 1;
+                  } else if (k === 'guest' && guestCounter === 0) {
+                    guestCounter = 1;
+                    // ensure that if we see groups and entity in a property, they appear at the front of the property name
+                    // and ensure that the property name is longer than 'groups' or 'entity' (which is where the 6 comes from)
+                  } else if (
+                    (k.indexOf('groups') == 0 || k.indexOf('entity') == 0) &&
+                    k.length > 6
+                  ) {
+                    continue;
+                  } else {
+                    assert.fail(`Unexpected key ${k} in ${path}`);
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    });
+    assert.ok(validSchema.valid);
   }
 
   /**
