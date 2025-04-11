@@ -103,8 +103,6 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       hotswap: HotswapMode.FULL_DEPLOYMENT,
-      ci: true,
-      requireApproval: 'never',
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
@@ -124,8 +122,6 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       hotswap: HotswapMode.FALL_BACK,
-      ci: false,
-      requireApproval: undefined,
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
