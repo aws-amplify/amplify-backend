@@ -36,5 +36,9 @@ const doIncludeE2e =
   isWorkflowTriggeredBySchedule ||
   isPullRequestWithRunE2ELabel;
 
+if (doIncludeE2e) {
+  console.log('foo');
+}
+
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);
