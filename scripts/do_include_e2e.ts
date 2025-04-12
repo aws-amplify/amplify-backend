@@ -17,6 +17,16 @@ const prHasRunE2ELabel = async () => {
   const hasRunE2ELabel = prInfo.labels.some(
     (label) => label.name === 'run-e2e',
   );
+
+  if (
+    hasRunE2ELabel &&
+    prInfo.head?.repo?.full_name !== 'aws-amplify/amplify-backend'
+  ) {
+    throw new Error(
+      'PR must be opened from a branch in aws-amplify/amplify-backend repository when running e2e tests.',
+    );
+  }
+
   return hasRunE2ELabel;
 };
 
