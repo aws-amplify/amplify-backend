@@ -199,5 +199,5 @@ export type DefineConversationHandlerFunctionProps = {
 export const defineConversationHandlerFunction = (
   props: DefineConversationHandlerFunctionProps,
 ): ConversationHandlerFunctionFactory =>
-  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+  // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
   new DefaultConversationHandlerFunctionFactory(props, new Error().stack);

@@ -227,13 +227,13 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
             ([key]) => key.toLowerCase() === model.toLowerCase(),
           );
           if (!entry) {
-            // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
             throw new Error(`Could not find specified model ${model}`);
           }
           prev.push(entry);
           return prev;
         }
-        // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
         throw new Error(`Could not find specified model ${model}`);
       },
       [],
