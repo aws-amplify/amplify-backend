@@ -29,11 +29,11 @@ export const createGraphqlTypesGenerator = ({
   awsClientProvider,
 }: GraphqlTypesGeneratorFactoryParams): GraphqlTypesGenerator => {
   if (!backendIdentifier) {
-    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
     throw new Error('`backendIdentifier` must be defined');
   }
   if (!awsClientProvider) {
-    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
     throw new Error('`awsClientProvider` must be defined');
   }
 
@@ -46,7 +46,7 @@ export const createGraphqlTypesGenerator = ({
     );
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
-      // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
       throw new Error(`Unable to determine AppSync API ID.`);
     }
 
