@@ -17,7 +17,7 @@ setInterval(
       try {
         // Attempt to log error
         console.debug(error);
-        // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
       } catch {
         // Do nothing if logging fails
       }

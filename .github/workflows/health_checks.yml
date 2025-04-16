@@ -324,7 +324,9 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Check if any E2E tests should run
         id: check
-        run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
+        run: |
+          run_e2e=$(npx tsx scripts/do_include_e2e.ts)
+          echo "run_e2e=$run_e2e" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
       - name: Check if Package Manager E2E tests should be included
         id: check_package_manager

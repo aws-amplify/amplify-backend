@@ -45,7 +45,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
         dimensions,
       });
       await this.send(data);
-      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
     }
@@ -62,7 +62,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
         dimensions,
       });
       await this.send(data);
-      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
     }
