@@ -8,8 +8,7 @@ import { homedir } from 'os';
 export class SerializableError {
   name: string;
   message: string;
-  details?: string;
-  trace?: Trace[];
+  stack: string;
 
   // breakdown of filePathRegex:
   // (file:/+)? -> matches optional file url prefix
@@ -19,8 +18,6 @@ export class SerializableError {
     `(file:/+)?${homedir().replaceAll('\\', '/')}[\\w.\\-_@\\\\/]+`,
     'g',
   );
-  private stackTraceRegex =
-    /^\s*at (?:((?:\[object object\])?[^\\/]+(?: \[as \S+\])?) )?\(?(.*?):(\d+)(?::(\d+))?\)?\s*$/i;
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
   private stackRegex = /amplify-[a-zA-Z0-9-]+/g;
@@ -33,38 +30,10 @@ export class SerializableError {
         ? this.sanitize(error.code as string)
         : error.name;
     this.message = this.anonymizePaths(this.sanitize(error.message));
-    this.details =
-      'details' in error
-        ? this.anonymizePaths(this.sanitize(error.details as string))
-        : undefined;
-    this.trace = this.extractStackTrace(error);
+    this.stack = error.stack
+      ? this.anonymizePaths(this.sanitize(error.stack))
+      : '';
   }
-
-  private extractStackTrace = (error: Error): Trace[] => {
-    const result: Trace[] = [];
-    if (error.stack) {
-      const stack = error.stack.split('\n');
-      stack.forEach((line) => {
-        const match = this.stackTraceRegex.exec(line);
-        if (match) {
-          const [, methodName, file, lineNumber, columnNumber] = match;
-          result.push({
-            methodName,
-            file,
-            lineNumber,
-            columnNumber,
-          });
-        }
-      });
-      const processedPaths = this.processPaths(
-        result.map((trace) => trace.file),
-      );
-      result.forEach((trace, index) => {
-        trace.file = processedPaths[index];
-      });
-    }
-    return result;
-  };
 
   private anonymizePaths = (str: string): string => {
     let result = str;
@@ -94,14 +63,14 @@ export class SerializableError {
     return str?.replace(this.arnRegex, '<escaped ARN>') ?? '';
   };
 
-  private removeStackIdentifier = (str?: string): string => {
+  private removeStack = (str?: string): string => {
     return str?.replace(this.stackRegex, '<escaped stack>') ?? '';
   };
 
   private sanitize = (str: string) => {
     let result = str;
     result = this.removeARN(result);
-    result = this.removeStackIdentifier(result);
+    result = this.removeStack(result);
     return result.replaceAll(/["❌]/g, '');
   };
 
@@ -114,10 +83,3 @@ export class SerializableError {
     }
   };
 }
-
-type Trace = {
-  methodName: string;
-  file: string;
-  lineNumber: string;
-  columnNumber: string;
-};

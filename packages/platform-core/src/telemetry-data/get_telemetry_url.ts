@@ -1,12 +1,11 @@
 import url, { UrlWithStringQuery } from 'node:url';
-import { latestApiVersion } from './constants.js';
 
 let cachedUrl: UrlWithStringQuery;
 
-const prodUrl = `https://api.cli.amplify.aws/${latestApiVersion}/metrics`;
+const prodUrl = `https://telemetry.cli.amplify.aws/metrics`;
 
 /**
- *  Usage data tracking service URL
+ *  Telemetry data tracking service URL
  */
 export const getUrl = (): UrlWithStringQuery => {
   if (!cachedUrl) {
@@ -18,6 +17,6 @@ export const getUrl = (): UrlWithStringQuery => {
 
 const getParsedUrl = (): UrlWithStringQuery => {
   return url.parse(
-    process.env.AMPLIFY_BACKEND_USAGE_TRACKING_ENDPOINT || prodUrl,
+    process.env.AMPLIFY_BACKEND_TELEMETRY_TRACKING_ENDPOINT || prodUrl,
   );
 };

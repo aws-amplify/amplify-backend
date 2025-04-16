@@ -4,8 +4,7 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
-  USAGE_DATA_TRACKING_ENABLED,
-  UsageDataEmitter,
+  TELEMETRY_TRACKING_ENABLED,
   configControllerFactory,
 } from '@aws-amplify/platform-core';
 import { printer } from '@aws-amplify/cli-core';
@@ -13,12 +12,6 @@ import { printer } from '@aws-amplify/cli-core';
 void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
   const logMock = mock.method(printer, 'log');
-  const emitFailureMock = mock.fn<UsageDataEmitter['emitFailure']>(() =>
-    Promise.resolve(),
-  );
-  const emitSuccessMock = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
-    Promise.resolve(),
-  );
 
   mock.method(configControllerFactory, 'getInstance', () => ({
     set: mockedConfigControllerSet,
@@ -27,16 +20,11 @@ void describe('configure command', () => {
     configControllerFactory.getInstance('usage_data_preferences.json'),
   );
   const parser = yargs().command(telemetryCommand);
-  const commandRunner = new TestCommandRunner(parser, {
-    emitSuccess: emitSuccessMock,
-    emitFailure: emitFailureMock,
-  });
+  const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
     logMock.mock.resetCalls();
     mockedConfigControllerSet.mock.resetCalls();
-    emitSuccessMock.mock.resetCalls();
-    emitFailureMock.mock.resetCalls();
   });
 
   void it('enable telemetry & updates local config', async () => {
@@ -47,17 +35,12 @@ void describe('configure command', () => {
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      USAGE_DATA_TRACKING_ENABLED,
+      TELEMETRY_TRACKING_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],
       true,
     );
-    assert.equal(emitFailureMock.mock.callCount(), 0);
-    assert.equal(emitSuccessMock.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'telemetry enable',
-    });
   });
 
   void it('disables telemetry & updates local config', async () => {
@@ -68,17 +51,12 @@ void describe('configure command', () => {
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      USAGE_DATA_TRACKING_ENABLED,
+      TELEMETRY_TRACKING_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],
       false,
     );
-    assert.equal(emitFailureMock.mock.callCount(), 0);
-    assert.equal(emitSuccessMock.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'telemetry disable',
-    });
   });
 
   void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
@@ -88,13 +66,5 @@ void describe('configure command', () => {
       /Not enough non-option arguments: got 0, need at least 1/,
     );
     assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
-    assert.equal(emitFailureMock.mock.callCount(), 1);
-    assert.match(
-      emitFailureMock.mock.calls[0].arguments[0].message,
-      /Not enough non-option arguments: got 0, need at least 1/,
-    );
-    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
-      command: 'telemetry',
-    });
   });
 });

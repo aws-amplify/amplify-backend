@@ -10,6 +10,11 @@ import { WriteStream } from 'node:tty';
 import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 import { EOL } from 'node:os';
+import { context, trace } from '@opentelemetry/api';
+import {
+  TelemetryPayload,
+  setSpanAttributesFromObject,
+} from '@aws-amplify/platform-core';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -18,6 +23,7 @@ import { EOL } from 'node:os';
 export class AmplifyEventLogger {
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
+  private isHotSwap = false;
 
   /**
    * a logger instance to be used for CDK events
@@ -147,6 +153,7 @@ export class AmplifyEventLogger {
       );
       let message = msg.message;
       if (hotswappedResources && hotswappedResources.length > 0) {
+        this.isHotSwap = true;
         message = hotswappedResources
           .map(
             (resource) =>
@@ -201,6 +208,16 @@ export class AmplifyEventLogger {
               this.outputs.awsAppsyncApiEndpoint as string,
             )}`,
           );
+        }
+        const span = trace.getSpan(context.active());
+        const latency: Partial<TelemetryPayload['latency']> = {};
+        if (this.isHotSwap && span) {
+          latency.hotSwap = msg.data.duration;
+          setSpanAttributesFromObject(span, 'latency', latency);
+          this.isHotSwap = false;
+        } else if (span) {
+          latency.deployment = msg.data.duration;
+          setSpanAttributesFromObject(span, 'latency', latency);
         }
       }
     }

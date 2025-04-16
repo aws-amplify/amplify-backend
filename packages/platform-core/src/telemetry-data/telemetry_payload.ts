@@ -10,7 +10,7 @@ const identifiersSchema = z.object({
   awsRegion: z.string().optional(),
 });
 
-const eventSchema = z.object({
+export const eventSchema = z.object({
   state: z.enum(['ABORTED', 'FAILED', 'SUCCEEDED']),
   command: z.object({
     path: z.array(z.string()),
@@ -32,7 +32,7 @@ const environmentSchema = z.object({
   }),
 });
 
-const projectSchema = z.object({
+export const projectSchema = z.object({
   dependencies: z
     .array(
       z.object({
@@ -43,7 +43,7 @@ const projectSchema = z.object({
     .optional(),
 });
 
-const latencySchema = z.object({
+export const latencySchema = z.object({
   total: z.number(),
   init: z.number().optional(),
   synthesis: z.number().optional(),
@@ -58,7 +58,7 @@ export type ErrorDetails = {
   cause?: ErrorDetails;
 };
 
-const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
+export const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
   z.object({
     name: z.string(),
     message: z.string(),
@@ -77,3 +77,5 @@ export const telemetryPayloadSchema = z.object({
 });
 
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
+
+export type TelemetryPayloadKeys = keyof TelemetryPayload;

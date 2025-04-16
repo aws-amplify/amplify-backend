@@ -15,6 +15,7 @@ void describe('AccountIdFetcher', async () => {
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
     const accountId = await accountIdFetcher.fetch();
 
+    assert.ok(accountId);
     assert.ok(validate(accountId), `${accountId} is not a valid UUID string`);
     mockSend.mock.resetCalls();
   });
@@ -27,7 +28,7 @@ void describe('AccountIdFetcher', async () => {
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
     const accountId = await accountIdFetcher.fetch();
 
-    assert.strictEqual(accountId, 'NO_ACCOUNT_ID');
+    assert.strictEqual(accountId, undefined);
     mockSend.mock.resetCalls();
   });
 

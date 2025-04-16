@@ -31,6 +31,7 @@
     "@aws-sdk/client-ssm": "^3.750.0",
     "@aws-sdk/credential-providers": "^3.750.0",
     "@aws-sdk/types": "^3.734.0",
+    "@opentelemetry/api": "^1.9.0",
     "@parcel/watcher": "^2.4.1",
     "debounce-promise": "^3.1.2",
     "glob": "^10.2.7",

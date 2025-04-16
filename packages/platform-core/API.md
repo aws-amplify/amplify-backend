@@ -8,11 +8,13 @@ import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
-import { Dependency } from '@aws-amplify/plugin-types';
+import { ExportResult } from '@opentelemetry/core';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Span } from '@opentelemetry/api';
 import z from 'zod';
 
 declare namespace __export__cdk {
@@ -222,14 +224,31 @@ export class ParameterPathConversions {
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
+// @public
+export const setSpanAttributesFromObject: (span: Span, prefix: TelemetryPayloadKeys, obj: Record<string, any>) => void;
+
 // @public (undocumented)
 export enum TagName {
     // (undocumented)
     FRIENDLY_NAME = "amplify:friendly-name"
 }
 
+// @public
+export const TELEMETRY_TRACKING_ENABLED = "telemetry.enabled";
+
 // @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
+
+// @public
+export class TelemetryPayloadExporter {
+    // (undocumented)
+    export: (spans: ReadableSpan[], resultCallback: (result: ExportResult) => void) => Promise<void>;
+    // (undocumented)
+    shutdown: () => Promise<void>;
+}
+
+// @public (undocumented)
+export type TelemetryPayloadKeys = keyof TelemetryPayload;
 
 // @public (undocumented)
 export const telemetryPayloadSchema: z.ZodObject<{
@@ -244,16 +263,16 @@ export const telemetryPayloadSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         payloadVersion: string;
         sessionUuid: string;
-        timestamp: string;
         eventId: string;
+        timestamp: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     }, {
         payloadVersion: string;
         sessionUuid: string;
-        timestamp: string;
         eventId: string;
+        timestamp: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
@@ -271,13 +290,13 @@ export const telemetryPayloadSchema: z.ZodObject<{
             parameters: string[];
         }>;
     }, "strip", z.ZodTypeAny, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
+        state: "ABORTED" | "FAILED" | "SUCCEEDED";
         command: {
             path: string[];
             parameters: string[];
         };
     }, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
+        state: "ABORTED" | "FAILED" | "SUCCEEDED";
         command: {
             path: string[];
             parameters: string[];
@@ -378,14 +397,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        timestamp: string;
         eventId: string;
+        timestamp: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
+        state: "ABORTED" | "FAILED" | "SUCCEEDED";
         command: {
             path: string[];
             parameters: string[];
@@ -422,14 +441,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        timestamp: string;
         eventId: string;
+        timestamp: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
+        state: "ABORTED" | "FAILED" | "SUCCEEDED";
         command: {
             path: string[];
             parameters: string[];
@@ -464,6 +483,9 @@ export const telemetryPayloadSchema: z.ZodObject<{
     error?: ErrorDetails | undefined;
 }>;
 
+// @public
+export const translateErrorToErrorDetails: (error?: Error) => TelemetryPayload["error"];
+
 // @public (undocumented)
 export type TypedConfigurationFile<T> = {
     read: () => Promise<T>;
@@ -482,20 +504,6 @@ export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
 
 // @public (undocumented)
 export type TypedConfigurationFileName = 'notices_metadata.json' | 'notices_acknowledgments.json';
-
-// @public
-export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
-
-// @public (undocumented)
-export type UsageDataEmitter = {
-    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
-    emitFailure: (error: AmplifyError, dimensions?: Record<string, string>) => Promise<void>;
-};
-
-// @public
-export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
-}
 
 // (No @packageDocumentation comment for this package)
 

@@ -25,6 +25,9 @@ updates:
       smithy:
         patterns:
           - '@smithy/*'
+      opentelemetry:
+        patterns:
+          - '@opentelemetry/*'
     # Ignore updates to certain dependencies.
     # See: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#ignore--
     ignore:
