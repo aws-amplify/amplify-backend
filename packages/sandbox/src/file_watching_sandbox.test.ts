@@ -100,7 +100,7 @@ const sandboxExecutor = new AmplifySandboxExecutor(
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
-  Promise.resolve(),
+  Promise.resolve({ deploymentTimes: { totalTime: 0, synthesisTime: 0 } }),
 );
 const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve(),
@@ -678,14 +678,14 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
-    const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
       functionsLogStreamer:
         functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
-    sandboxInstance.on('successfulDeployment', mockListener);
+    const mockEmit = mock.fn();
+    contextual.mock.method(sandboxInstance, 'emit', mockEmit);
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'deploy',
@@ -706,7 +706,6 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     await Promise.all([firstFileChange, secondFileChange]);
-
     // contextual backendDeployer should have been called once (throwing error)
     assert.strictEqual(contextualBackendDeployerMock.mock.callCount(), 1);
 
@@ -714,7 +713,12 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // of the two file change events, successfulDeployment event should only be fired once
-    assert.strictEqual(mockListener.mock.callCount(), 1);
+    assert.strictEqual(mockEmit.mock.callCount(), 2);
+    assert.strictEqual(mockEmit.mock.calls[0].arguments[0], 'failedDeployment');
+    assert.strictEqual(
+      mockEmit.mock.calls[1].arguments[0],
+      'successfulDeployment',
+    );
   });
 
   void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes', async (contextual) => {
@@ -988,8 +992,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   });
 
-  void it('emits the successfulDeployment event after deployment', async () => {
-    const mockListener = mock.fn();
+  void it('emits the successfulDeployment event after deployment', async (contextual) => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
@@ -997,13 +1000,14 @@ void describe('Sandbox using local project name resolver', () => {
         functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
 
-    sandboxInstance.on('successfulDeployment', mockListener);
+    const mockEmit = mock.fn();
+    contextual.mock.method(sandboxInstance, 'emit', mockEmit);
 
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
 
-    assert.equal(mockListener.mock.callCount(), 1);
+    assert.strictEqual(mockEmit.mock.callCount(), 1);
   });
 
   void it('emits the successfulDeletion event after delete is finished', async () => {

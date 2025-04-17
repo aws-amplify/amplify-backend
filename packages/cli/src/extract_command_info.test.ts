@@ -26,8 +26,8 @@ void describe('extractCommandInfo', () => {
     } as unknown as Argv;
     const actual = extractCommandInfo(parser);
     assert.deepEqual(actual, {
-      path: 'subCommand1 subCommand2',
-      parameters: 'param1 param2', // parameters sorted alphabetically
+      path: ['subCommand1', 'subCommand2'],
+      parameters: ['param1', 'param2'], // parameters sorted alphabetically
     });
   });
 });
