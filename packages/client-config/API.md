@@ -23,6 +23,9 @@ type AmazonCognitoStandardAttributes_3 = 'address' | 'birthdate' | 'email' | 'fa
 type AmazonCognitoStandardAttributes_4 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
+type AmazonCognitoStandardAttributes_5 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
+
+// @public
 interface AmazonLocationServiceConfig {
     name?: string;
     style?: string;
@@ -47,6 +50,12 @@ interface AmazonLocationServiceConfig_4 {
 }
 
 // @public
+interface AmazonLocationServiceConfig_5 {
+    name?: string;
+    style?: string;
+}
+
+// @public
 type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
@@ -58,25 +67,26 @@ type AmazonPinpointChannels_3 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 
 // @public
 type AmazonPinpointChannels_4 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
-// @public (undocumented)
+// @public
+type AmazonPinpointChannels_5 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
+
+// @public
 type AmplifyStorageAccessActions = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
 type AmplifyStorageAccessActions_2 = 'read' | 'get' | 'list' | 'write' | 'delete';
 
+// @public (undocumented)
+type AmplifyStorageAccessActions_3 = 'read' | 'get' | 'list' | 'write' | 'delete';
+
 // @public
-interface AmplifyStorageAccessRule {
-    // (undocumented)
-    authenticated?: AmplifyStorageAccessActions[];
-    // (undocumented)
-    entity?: AmplifyStorageAccessActions[];
-    // (undocumented)
-    groups?: AmplifyStorageAccessActions[];
-    // (undocumented)
+type AmplifyStorageAccessRule = {
     guest?: AmplifyStorageAccessActions[];
-    // (undocumented)
+    authenticated?: AmplifyStorageAccessActions[];
+    [groups: `group${string}`]: AmplifyStorageAccessActions[];
+    [entity: `entity${string}`]: AmplifyStorageAccessActions[];
     resource?: AmplifyStorageAccessActions[];
-}
+};
 
 // @public
 interface AmplifyStorageAccessRule_2 {
@@ -92,7 +102,21 @@ interface AmplifyStorageAccessRule_2 {
     resource?: AmplifyStorageAccessActions_2[];
 }
 
-// @public (undocumented)
+// @public
+interface AmplifyStorageAccessRule_3 {
+    // (undocumented)
+    authenticated?: AmplifyStorageAccessActions_3[];
+    // (undocumented)
+    entity?: AmplifyStorageAccessActions_3[];
+    // (undocumented)
+    groups?: AmplifyStorageAccessActions_3[];
+    // (undocumented)
+    guest?: AmplifyStorageAccessActions_3[];
+    // (undocumented)
+    resource?: AmplifyStorageAccessActions_3[];
+}
+
+// @public
 interface AmplifyStorageBucket {
     // (undocumented)
     aws_region: string;
@@ -128,10 +152,30 @@ interface AmplifyStorageBucket_3 {
     bucket_name: string;
     // (undocumented)
     name: string;
+    // (undocumented)
+    paths?: {
+        [k: string]: AmplifyStorageAccessRule_3;
+    };
+}
+
+// @public (undocumented)
+interface AmplifyStorageBucket_4 {
+    // (undocumented)
+    aws_region: string;
+    // (undocumented)
+    bucket_name: string;
+    // (undocumented)
+    name: string;
 }
 
 // @public
 interface AmplifyUserGroupConfig {
+    // (undocumented)
+    precedence?: number;
+}
+
+// @public
+interface AmplifyUserGroupConfig_2 {
     // (undocumented)
     precedence?: number;
 }
@@ -254,7 +298,7 @@ interface AWSAmplifyBackendOutputs {
         bucket_name: string;
         buckets?: AmplifyStorageBucket[];
     };
-    version: '1.3';
+    version: '1.4';
 }
 
 // @public
@@ -291,6 +335,9 @@ interface AWSAmplifyBackendOutputs_2 {
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
         mfa_methods?: ('SMS' | 'TOTP')[];
+        groups?: {
+            [k: string]: AmplifyUserGroupConfig_2;
+        }[];
     };
     custom?: {
         [k: string]: unknown;
@@ -332,19 +379,19 @@ interface AWSAmplifyBackendOutputs_2 {
         bucket_name: string;
         buckets?: AmplifyStorageBucket_2[];
     };
-    version: '1.2';
+    version: '1.3';
 }
 
 // @public
 interface AWSAmplifyBackendOutputs_3 {
     analytics?: {
         amazon_pinpoint?: {
-            aws_region: AwsRegion_3;
+            aws_region: string;
             app_id: string;
         };
     };
     auth?: {
-        aws_region: AwsRegion_3;
+        aws_region: string;
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -384,7 +431,7 @@ interface AWSAmplifyBackendOutputs_3 {
         authorization_types: AwsAppsyncAuthorizationType_3[];
     };
     geo?: {
-        aws_region: AwsRegion_3;
+        aws_region: string;
         maps?: {
             items: {
                 [k: string]: AmazonLocationServiceConfig_3;
@@ -410,7 +457,7 @@ interface AWSAmplifyBackendOutputs_3 {
         bucket_name: string;
         buckets?: AmplifyStorageBucket_3[];
     };
-    version: '1.1';
+    version: '1.2';
 }
 
 // @public
@@ -486,6 +533,84 @@ interface AWSAmplifyBackendOutputs_4 {
     storage?: {
         aws_region: AwsRegion_4;
         bucket_name: string;
+        buckets?: AmplifyStorageBucket_4[];
+    };
+    version: '1.1';
+}
+
+// @public
+interface AWSAmplifyBackendOutputs_5 {
+    analytics?: {
+        amazon_pinpoint?: {
+            aws_region: AwsRegion_5;
+            app_id: string;
+        };
+    };
+    auth?: {
+        aws_region: AwsRegion_5;
+        user_pool_id: string;
+        user_pool_client_id: string;
+        identity_pool_id?: string;
+        password_policy?: {
+            min_length: number;
+            require_numbers: boolean;
+            require_lowercase: boolean;
+            require_uppercase: boolean;
+            require_symbols: boolean;
+        };
+        oauth?: {
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
+            domain: string;
+            scopes: string[];
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
+        };
+        standard_required_attributes?: AmazonCognitoStandardAttributes_5[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
+        unauthenticated_identities_enabled?: boolean;
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
+    };
+    custom?: {
+        [k: string]: unknown;
+    };
+    data?: {
+        aws_region: AwsRegion_5;
+        url: string;
+        model_introspection?: {
+            [k: string]: unknown;
+        };
+        api_key?: string;
+        default_authorization_type: AwsAppsyncAuthorizationType_5;
+        authorization_types: AwsAppsyncAuthorizationType_5[];
+    };
+    geo?: {
+        aws_region: AwsRegion_5;
+        maps?: {
+            items: {
+                [k: string]: AmazonLocationServiceConfig_5;
+            };
+            default: string;
+        };
+        search_indices?: {
+            items: string[];
+            default: string;
+        };
+        geofence_collections?: {
+            items: string[];
+            default: string;
+        };
+    };
+    notifications?: {
+        aws_region: AwsRegion_5;
+        amazon_pinpoint_app_id: string;
+        channels: AmazonPinpointChannels_5[];
+    };
+    storage?: {
+        aws_region: AwsRegion_5;
+        bucket_name: string;
     };
     version: '1';
 }
@@ -502,7 +627,10 @@ type AwsAppsyncAuthorizationType_3 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | '
 // @public
 type AwsAppsyncAuthorizationType_4 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
-// @public (undocumented)
+// @public
+type AwsAppsyncAuthorizationType_5 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
+
+// @public
 type AwsRegion = string;
 
 // @public (undocumented)
@@ -514,8 +642,11 @@ type AwsRegion_3 = string;
 // @public (undocumented)
 type AwsRegion_4 = string;
 
+// @public (undocumented)
+type AwsRegion_5 = string;
+
 // @public
-export type ClientConfig = clientConfigTypesV1_3.AWSAmplifyBackendOutputs | clientConfigTypesV1_2.AWSAmplifyBackendOutputs | clientConfigTypesV1_1.AWSAmplifyBackendOutputs | clientConfigTypesV1.AWSAmplifyBackendOutputs;
+export type ClientConfig = clientConfigTypesV1_4.AWSAmplifyBackendOutputs | clientConfigTypesV1_3.AWSAmplifyBackendOutputs | clientConfigTypesV1_2.AWSAmplifyBackendOutputs | clientConfigTypesV1_1.AWSAmplifyBackendOutputs | clientConfigTypesV1.AWSAmplifyBackendOutputs;
 
 // @public (undocumented)
 export enum ClientConfigFileBaseName {
@@ -544,30 +675,45 @@ export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfi
 
 declare namespace clientConfigTypesV1 {
     export {
-        AmazonCognitoStandardAttributes_4 as AmazonCognitoStandardAttributes,
-        AwsRegion_4 as AwsRegion,
-        AwsAppsyncAuthorizationType_4 as AwsAppsyncAuthorizationType,
-        AmazonPinpointChannels_4 as AmazonPinpointChannels,
-        AWSAmplifyBackendOutputs_4 as AWSAmplifyBackendOutputs,
-        AmazonLocationServiceConfig_4 as AmazonLocationServiceConfig
+        AmazonCognitoStandardAttributes_5 as AmazonCognitoStandardAttributes,
+        AwsRegion_5 as AwsRegion,
+        AwsAppsyncAuthorizationType_5 as AwsAppsyncAuthorizationType,
+        AmazonPinpointChannels_5 as AmazonPinpointChannels,
+        AWSAmplifyBackendOutputs_5 as AWSAmplifyBackendOutputs,
+        AmazonLocationServiceConfig_5 as AmazonLocationServiceConfig
     }
 }
 export { clientConfigTypesV1 }
 
 declare namespace clientConfigTypesV1_1 {
     export {
-        AmazonCognitoStandardAttributes_3 as AmazonCognitoStandardAttributes,
-        AwsRegion_3 as AwsRegion,
-        AwsAppsyncAuthorizationType_3 as AwsAppsyncAuthorizationType,
-        AmazonPinpointChannels_3 as AmazonPinpointChannels,
-        AWSAmplifyBackendOutputs_3 as AWSAmplifyBackendOutputs,
-        AmazonLocationServiceConfig_3 as AmazonLocationServiceConfig,
-        AmplifyStorageBucket_3 as AmplifyStorageBucket
+        AmazonCognitoStandardAttributes_4 as AmazonCognitoStandardAttributes,
+        AwsRegion_4 as AwsRegion,
+        AwsAppsyncAuthorizationType_4 as AwsAppsyncAuthorizationType,
+        AmazonPinpointChannels_4 as AmazonPinpointChannels,
+        AWSAmplifyBackendOutputs_4 as AWSAmplifyBackendOutputs,
+        AmazonLocationServiceConfig_4 as AmazonLocationServiceConfig,
+        AmplifyStorageBucket_4 as AmplifyStorageBucket
     }
 }
 export { clientConfigTypesV1_1 }
 
 declare namespace clientConfigTypesV1_2 {
+    export {
+        AmazonCognitoStandardAttributes_3 as AmazonCognitoStandardAttributes,
+        AwsRegion_3 as AwsRegion,
+        AwsAppsyncAuthorizationType_3 as AwsAppsyncAuthorizationType,
+        AmazonPinpointChannels_3 as AmazonPinpointChannels,
+        AmplifyStorageAccessActions_3 as AmplifyStorageAccessActions,
+        AWSAmplifyBackendOutputs_3 as AWSAmplifyBackendOutputs,
+        AmazonLocationServiceConfig_3 as AmazonLocationServiceConfig,
+        AmplifyStorageBucket_3 as AmplifyStorageBucket,
+        AmplifyStorageAccessRule_3 as AmplifyStorageAccessRule
+    }
+}
+export { clientConfigTypesV1_2 }
+
+declare namespace clientConfigTypesV1_3 {
     export {
         AmazonCognitoStandardAttributes_2 as AmazonCognitoStandardAttributes,
         AwsRegion_2 as AwsRegion,
@@ -575,28 +721,29 @@ declare namespace clientConfigTypesV1_2 {
         AmazonPinpointChannels_2 as AmazonPinpointChannels,
         AmplifyStorageAccessActions_2 as AmplifyStorageAccessActions,
         AWSAmplifyBackendOutputs_2 as AWSAmplifyBackendOutputs,
+        AmplifyUserGroupConfig_2 as AmplifyUserGroupConfig,
         AmazonLocationServiceConfig_2 as AmazonLocationServiceConfig,
         AmplifyStorageBucket_2 as AmplifyStorageBucket,
         AmplifyStorageAccessRule_2 as AmplifyStorageAccessRule
     }
 }
-export { clientConfigTypesV1_2 }
+export { clientConfigTypesV1_3 }
 
-declare namespace clientConfigTypesV1_3 {
+declare namespace clientConfigTypesV1_4 {
     export {
         AmazonCognitoStandardAttributes,
         AwsRegion,
         AwsAppsyncAuthorizationType,
         AmazonPinpointChannels,
+        AmplifyStorageAccessRule,
         AmplifyStorageAccessActions,
         AWSAmplifyBackendOutputs,
         AmplifyUserGroupConfig,
         AmazonLocationServiceConfig,
-        AmplifyStorageBucket,
-        AmplifyStorageAccessRule
+        AmplifyStorageBucket
     }
 }
-export { clientConfigTypesV1_3 }
+export { clientConfigTypesV1_4 }
 
 // @public (undocumented)
 export type ClientConfigVersion = `${ClientConfigVersionOption}`;
@@ -612,11 +759,13 @@ export enum ClientConfigVersionOption {
     // (undocumented)
     V1_2 = "1.2",
     // (undocumented)
-    V1_3 = "1.3"
+    V1_3 = "1.3",
+    // (undocumented)
+    V1_4 = "1.4"
 }
 
 // @public
-export type ClientConfigVersionTemplateType<T> = T extends '1.3' ? clientConfigTypesV1_3.AWSAmplifyBackendOutputs : T extends '1.2' ? clientConfigTypesV1_2.AWSAmplifyBackendOutputs : T extends '1.1' ? clientConfigTypesV1_1.AWSAmplifyBackendOutputs : T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
+export type ClientConfigVersionTemplateType<T> = T extends '1.4' ? clientConfigTypesV1_4.AWSAmplifyBackendOutputs : T extends '1.3' ? clientConfigTypesV1_3.AWSAmplifyBackendOutputs : T extends '1.2' ? clientConfigTypesV1_2.AWSAmplifyBackendOutputs : T extends '1.1' ? clientConfigTypesV1_1.AWSAmplifyBackendOutputs : T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
 
 // @public (undocumented)
 export type CustomClientConfig = {
