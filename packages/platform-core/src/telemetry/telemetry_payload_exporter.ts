@@ -5,14 +5,7 @@ import isCI from 'is-ci';
 import os from 'os';
 import { v4 as uuidV4 } from 'uuid';
 import { getUrl } from './get_telemetry_url';
-import {
-  TelemetryPayload,
-  errorSchema,
-  eventSchema,
-  latencySchema,
-  projectSchema,
-  telemetryPayloadSchema,
-} from './telemetry_payload';
+import { TelemetryPayload, telemetryPayloadSchema } from './telemetry_payload';
 import { latestPayloadVersion } from './constants';
 import { getLocalProjectId } from './get_local_project_id';
 import { AccountIdFetcher } from './account_id_fetcher';
@@ -27,33 +20,6 @@ export class TelemetryPayloadExporter {
   private readonly url = getUrl();
   private readonly accountIdFetcher = new AccountIdFetcher();
   private readonly regionFetcher = new RegionFetcher();
-  private readonly targetDependencies = [
-    '@aws-amplify/ai-constructs',
-    '@aws-amplify/auth-construct',
-    '@aws-amplify/backend',
-    '@aws-amplify/backend-ai',
-    '@aws-amplify/backend-auth',
-    '@aws-amplify/backend-cli',
-    '@aws-amplify/backend-data',
-    '@aws-amplify/backend-deployer',
-    '@aws-amplify/backend-function',
-    '@aws-amplify/backend-output-schemas',
-    '@aws-amplify/backend-output-storage',
-    '@aws-amplify/backend-secret',
-    '@aws-amplify/backend-storage',
-    '@aws-amplify/cli-core',
-    '@aws-amplify/client-config',
-    '@aws-amplify/deployed-backend-client',
-    '@aws-amplify/form-generator',
-    '@aws-amplify/model-generator',
-    '@aws-amplify/platform-core',
-    '@aws-amplify/plugin-types',
-    '@aws-amplify/sandbox',
-    '@aws-amplify/schema-generator',
-    '@aws-amplify/seed',
-    'aws-cdk',
-    'aws-cdk-lib',
-  ];
 
   export = async (
     spans: ReadableSpan[],
@@ -97,35 +63,8 @@ export class TelemetryPayloadExporter {
       const localProjectId = await getLocalProjectId();
       const accountId = await this.accountIdFetcher.fetch();
       const awsRegion = await this.regionFetcher.fetch();
-      const emptyProject: TelemetryPayload['project'] = {
-        dependencies: undefined,
-      };
-      const emptyLatency: TelemetryPayload['latency'] = {
-        total: 0,
-      };
 
-      const unflattened = this.unflattenAttributes(span.attributes);
-
-      const parsedDependencies: TelemetryPayload['project']['dependencies'] =
-        unflattened.project?.dependencies
-          ? JSON.parse(unflattened.project.dependencies)
-          : undefined;
-      const dependenciesToReport = parsedDependencies
-        ? parsedDependencies.filter((dependency) =>
-            this.targetDependencies.includes(dependency.name),
-          )
-        : undefined;
-
-      const parsedEvent = eventSchema.parse(unflattened.event);
-      const parsedProject = dependenciesToReport
-        ? projectSchema.parse({ dependencies: dependenciesToReport })
-        : emptyProject;
-      const parsedLatency = unflattened.latency
-        ? latencySchema.parse(unflattened.latency)
-        : emptyLatency;
-      const parsedError = unflattened.error
-        ? errorSchema.parse(unflattened.error)
-        : undefined;
+      const unflattened = this.unflattenSpanAttributes(span.attributes);
 
       const payload: TelemetryPayload = telemetryPayloadSchema.parse({
         identifiers: {
@@ -137,7 +76,7 @@ export class TelemetryPayloadExporter {
           accountId: accountId,
           awsRegion: awsRegion,
         },
-        event: parsedEvent,
+        event: unflattened.event,
         environment: {
           os: {
             platform: os.platform(),
@@ -153,9 +92,11 @@ export class TelemetryPayloadExporter {
             /* eslint-enable spellcheck/spell-checker */
           },
         },
-        project: parsedProject,
-        latency: parsedLatency,
-        error: parsedError,
+        project: {
+          dependencies: unflattened.project?.dependencies,
+        },
+        latency: unflattened.latency,
+        error: unflattened.error,
       });
       return payload;
     } catch {
@@ -164,27 +105,50 @@ export class TelemetryPayloadExporter {
     }
   };
 
-  // Helper to unflatten dot notation keys into nested objects
-  private unflattenAttributes = (attributes: Record<string, unknown>) => {
-    // handle whatever values are in span attributes
-    // later this is parsed with the telemetry zod schema
+  // Helper to unflatten dot notation span attributes into telemetry payload
+  private unflattenSpanAttributes = (attributes: Record<string, unknown>) => {
+    // Using any here is safe because we parse the result with telemetry schema
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: Record<string, any> = {};
+    const result: any = {};
 
-    for (const [key, value] of Object.entries(attributes)) {
-      const parts = key.split('.');
+    for (const [flatKey, value] of Object.entries(attributes)) {
+      const keys = flatKey.split('.');
       let current = result;
 
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
+      keys.forEach((key, i) => {
+        const isLast = i === keys.length - 1;
+        const isArrayIndex = /^\d+$/.test(key);
+        const index = isArrayIndex ? Number(key) : key;
 
-        if (i === parts.length - 1) {
-          current[part] = value;
+        if (isLast) {
+          if (isArrayIndex) {
+            if (!Array.isArray(current)) {
+              current = [];
+            }
+            current[index] = value;
+          } else {
+            current[key] = value;
+          }
         } else {
-          current[part] = current[part] || {};
-          current = current[part];
+          const nextKey = keys[i + 1];
+          const nextIsArrayIndex = /^\d+$/.test(nextKey);
+
+          if (isArrayIndex) {
+            if (!Array.isArray(current)) {
+              current = [];
+            }
+            if (!current[index]) {
+              current[index] = nextIsArrayIndex ? [] : {};
+            }
+            current = current[index];
+          } else {
+            if (!(key in current)) {
+              current[key] = nextIsArrayIndex ? [] : {};
+            }
+            current = current[key];
+          }
         }
-      }
+      });
     }
     return result;
   };

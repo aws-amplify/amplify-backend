@@ -42,6 +42,7 @@ import {
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { EOL } from 'os';
 import { Span, trace } from '@opentelemetry/api';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 
 /**
  * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
@@ -300,43 +301,41 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           // not reset tracker prematurely
           this.shouldValidateAppSources,
         );
-        const latency: TelemetryPayload['latency'] = {
-          total: deployResult.deploymentTimes.totalTime
-            ? deployResult.deploymentTimes.totalTime * 1000
-            : 0,
-          synthesis: deployResult.deploymentTimes.synthesisTime
-            ? deployResult.deploymentTimes.synthesisTime * 1000
-            : undefined,
-        };
-        const event: TelemetryPayload['event'] = {
-          state: 'SUCCEEDED',
-          command: {
-            path: ['SandboxDeployment'],
-            parameters: [],
+        const data: DeepPartial<TelemetryPayload> = {
+          latency: {
+            total: deployResult.deploymentTimes.totalTime
+              ? deployResult.deploymentTimes.totalTime * 1000
+              : 0,
+            synthesis: deployResult.deploymentTimes.synthesisTime
+              ? deployResult.deploymentTimes.synthesisTime * 1000
+              : 0,
+          },
+          event: {
+            state: 'SUCCEEDED',
+            command: {
+              path: ['SandboxDeployment'],
+            },
           },
         };
-        setSpanAttributesFromObject(span, 'latency', latency);
-        setSpanAttributesFromObject(span, 'event', event);
+        setSpanAttributesFromObject(span, data);
         span.end();
         this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
         this.emit('successfulDeployment', deployResult);
       } catch (error) {
-        const event: TelemetryPayload['event'] = {
-          state: 'FAILED',
-          command: {
-            path: ['SandboxDeployment'],
-            parameters: [],
-          },
-        };
         const amplifyError = AmplifyError.isAmplifyError(error)
           ? error
           : AmplifyError.fromError(error);
-        setSpanAttributesFromObject(span, 'event', event);
-        setSpanAttributesFromObject(
-          span,
-          'error',
-          translateErrorToErrorDetails(amplifyError) ?? {},
-        );
+        const data: DeepPartial<TelemetryPayload> = {
+          event: {
+            state: 'FAILED',
+            command: {
+              path: ['SandboxDeployment'],
+              parameters: [],
+            },
+          },
+          error: translateErrorToErrorDetails(amplifyError),
+        };
+        setSpanAttributesFromObject(span, data);
         span.end();
         // Print a meaningful message
         this.printer.log(format.error(error), LogLevel.ERROR);

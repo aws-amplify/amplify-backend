@@ -2,6 +2,8 @@ import { AttributeValue, Span, SpanContext } from '@opentelemetry/api';
 import { beforeEach, describe, it, mock } from 'node:test';
 import { setSpanAttributesFromObject } from './set_span_attributes_from_object';
 import assert from 'node:assert';
+import { TelemetryPayload } from './telemetry_payload';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 
 void describe('setSpanAttributesFromObject', () => {
   const setAttributeMock =
@@ -32,11 +34,13 @@ void describe('setSpanAttributesFromObject', () => {
   });
 
   void it('sets span attributes from object', () => {
-    const latency = {
-      total: 123,
-      init: 12,
+    const data: DeepPartial<TelemetryPayload> = {
+      latency: {
+        total: 123,
+        init: 12,
+      },
     };
-    setSpanAttributesFromObject(mockSpan, 'latency', latency);
+    setSpanAttributesFromObject(mockSpan, data);
     assert.strictEqual(setAttributeMock.mock.callCount(), 2);
     assert.deepStrictEqual(setAttributeMock.mock.calls[0].arguments, [
       'latency.total',
@@ -53,15 +57,15 @@ void describe('setSpanAttributesFromObject', () => {
       total: 123,
       init: 12,
     };
-    const event = {
-      test: 'test value',
-      nestedObject: {
-        testParam: ['testParam'],
-        fooBar: ['foo', 'bar'],
+    const event: TelemetryPayload['event'] = {
+      state: 'SUCCEEDED',
+      command: {
+        path: ['command1'],
+        parameters: ['foo', 'bar'],
       },
     };
-    setSpanAttributesFromObject(mockSpan, 'latency', latency);
-    setSpanAttributesFromObject(mockSpan, 'event', event);
+    setSpanAttributesFromObject(mockSpan, { latency });
+    setSpanAttributesFromObject(mockSpan, { event });
     assert.strictEqual(setAttributeMock.mock.callCount(), 5);
     assert.deepStrictEqual(setAttributeMock.mock.calls[0].arguments, [
       'latency.total',
@@ -72,15 +76,15 @@ void describe('setSpanAttributesFromObject', () => {
       12,
     ]);
     assert.deepStrictEqual(setAttributeMock.mock.calls[2].arguments, [
-      'event.test',
-      'test value',
+      'event.state',
+      'SUCCEEDED',
     ]);
     assert.deepStrictEqual(setAttributeMock.mock.calls[3].arguments, [
-      'event.nestedObject.testParam',
-      ['testParam'],
+      'event.command.path',
+      ['command1'],
     ]);
     assert.deepStrictEqual(setAttributeMock.mock.calls[4].arguments, [
-      'event.nestedObject.fooBar',
+      'event.command.parameters',
       ['foo', 'bar'],
     ]);
   });

@@ -7,6 +7,7 @@
 import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { ExportResult } from '@opentelemetry/core';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
@@ -127,6 +128,9 @@ export class ConfigurationControllerFactory {
     getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
 }
 
+// @public
+export const dependenciesToReport: string[];
+
 // @public (undocumented)
 export type ErrorDetails = {
     name: string;
@@ -225,7 +229,7 @@ export class ParameterPathConversions {
 }
 
 // @public
-export const setSpanAttributesFromObject: (span: Span, prefix: TelemetryPayloadKeys, obj: Record<string, any>) => void;
+export const setSpanAttributesFromObject: (span: Span, obj: DeepPartial<TelemetryPayload> | ErrorDetails, prefix?: string) => void;
 
 // @public (undocumented)
 export enum TagName {

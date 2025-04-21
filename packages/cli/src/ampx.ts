@@ -16,6 +16,7 @@ import {
   PackageJsonReader,
   TelemetryPayload,
   TelemetryPayloadExporter,
+  dependenciesToReport,
   setSpanAttributesFromObject,
   translateErrorToErrorDetails,
 } from '@aws-amplify/platform-core';
@@ -25,6 +26,7 @@ import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 
 const contextManager = new AsyncLocalStorageContextManager();
 context.setGlobalContextManager(contextManager);
@@ -55,9 +57,9 @@ await tracer.startActiveSpan('command', async (span: Span) => {
   const packageManagerController =
     new PackageManagerControllerFactory().getPackageManagerController();
   const dependencies = await packageManagerController.tryGetDependencies();
-  setSpanAttributesFromObject(span, 'project', {
-    dependencies: JSON.stringify(dependencies),
-  });
+  const filteredDependencies = dependencies?.filter((dep) =>
+    dependenciesToReport.includes(dep.name),
+  );
 
   attachUnhandledExceptionListeners();
 
@@ -70,16 +72,20 @@ await tracer.startActiveSpan('command', async (span: Span) => {
 
   // Below is a workaround in order to send telemetry data when user force closes a prompt (e.g. with Ctrl+C)
   const handleAbortion = async (code: number) => {
-    const latency: TelemetryPayload['latency'] = {
-      total: Date.now() - startTime,
-      init: initTime,
+    const data: DeepPartial<TelemetryPayload> = {
+      event: {
+        state: 'ABORTED',
+        command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
+      },
+      latency: {
+        total: Date.now() - startTime,
+        init: initTime,
+      },
+      project: {
+        dependencies: filteredDependencies,
+      },
     };
-    const event: TelemetryPayload['event'] = {
-      state: 'ABORTED',
-      command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
-    };
-    setSpanAttributesFromObject(span, 'latency', latency);
-    setSpanAttributesFromObject(span, 'event', event);
+    setSpanAttributesFromObject(span, data);
     span.end();
     // wait a little to try to have span be exported before ending the process
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -98,39 +104,45 @@ await tracer.startActiveSpan('command', async (span: Span) => {
     await noticesRenderer.tryFindAndPrintApplicableNotices({
       event: 'postCommand',
     });
-    const latency: TelemetryPayload['latency'] = {
-      total: Date.now() - startTime,
-      init: initTime,
+    const data: DeepPartial<TelemetryPayload> = {
+      event: {
+        state: 'SUCCEEDED',
+        command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
+      },
+      latency: {
+        total: Date.now() - startTime,
+        init: initTime,
+      },
+      project: {
+        dependencies: filteredDependencies,
+      },
     };
-    const event: TelemetryPayload['event'] = {
-      state: 'SUCCEEDED',
-      command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
-    };
-    setSpanAttributesFromObject(span, 'latency', latency);
-    setSpanAttributesFromObject(span, 'event', event);
+    setSpanAttributesFromObject(span, data);
     span.end();
   } catch (e) {
     if (e instanceof Error) {
-      const latency: TelemetryPayload['latency'] = {
-        total: Date.now() - startTime,
-        init: initTime,
+      const data: DeepPartial<TelemetryPayload> = {
+        event: {
+          state: 'FAILED',
+          command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
+        },
+        latency: {
+          total: Date.now() - startTime,
+          init: initTime,
+        },
+        project: {
+          dependencies: filteredDependencies,
+        },
+        error: translateErrorToErrorDetails(e),
       };
-      const event: TelemetryPayload['event'] = {
-        state: 'FAILED',
-        command: extractCommandInfo(parser) ?? { path: [], parameters: [] },
-      };
-      setSpanAttributesFromObject(span, 'latency', latency);
-      setSpanAttributesFromObject(span, 'event', event);
-      setSpanAttributesFromObject(
-        span,
-        'error',
-        translateErrorToErrorDetails(e) ?? {},
-      );
+      setSpanAttributesFromObject(span, data);
       await noticesRenderer.tryFindAndPrintApplicableNotices({
         event: 'postCommand',
         error: e,
       });
       span.end();
+      // wait a little to try to have span be exported before handling error and ending the process
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await errorHandler(format.error(e), e);
     }
   }
