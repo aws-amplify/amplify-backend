@@ -28,6 +28,8 @@ import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 
+attachUnhandledExceptionListeners();
+
 const contextManager = new AsyncLocalStorageContextManager();
 context.setGlobalContextManager(contextManager);
 
@@ -60,8 +62,6 @@ await tracer.startActiveSpan('command', async (span: Span) => {
   const filteredDependencies = dependencies?.filter((dep) =>
     dependenciesToReport.includes(dep.name),
   );
-
-  attachUnhandledExceptionListeners();
 
   verifyCommandName();
 
