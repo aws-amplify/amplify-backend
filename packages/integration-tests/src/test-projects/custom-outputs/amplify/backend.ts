@@ -16,7 +16,7 @@ const sampleIdentityPoolId = 'test_identity_pool_id';
 const sampleUserPoolClientId = 'test_user_pool_client_id';
 
 backend.addOutput({
-  version: '1.3',
+  version: '1.4',
   custom: {
     // test deploy time values
     restApiUrl: restApi.url,
@@ -26,7 +26,7 @@ backend.addOutput({
 });
 
 backend.addOutput({
-  version: '1.3',
+  version: '1.4',
   custom: {
     // test synth time values
     // and composition of config
@@ -36,12 +36,36 @@ backend.addOutput({
 
 const fakeCognitoUserPoolId = 'fakeCognitoUserPoolId';
 backend.addOutput({
-  version: '1.3',
+  version: '1.4',
   // test reserved key
   auth: {
     aws_region: sampleRegion,
     identity_pool_id: sampleIdentityPoolId,
     user_pool_client_id: sampleUserPoolClientId,
     user_pool_id: fakeCognitoUserPoolId,
+  },
+});
+
+const fakeBucketName = 'fakeStorageBucket';
+backend.addOutput({
+  version: '1.4',
+  storage: {
+    aws_region: sampleRegion,
+    bucket_name: fakeBucketName,
+    buckets: [
+      {
+        name: fakeBucketName,
+        bucket_name: fakeBucketName,
+        aws_region: sampleRegion,
+        paths: {
+          'fakePath/*': {
+            authenticated: ['get', 'list'],
+            groupsADMIN: ['get', 'list', 'write', 'delete'],
+            groupsGROUP1: ['get', 'list', 'write'],
+            entityIdentity: ['get', 'list'],
+          },
+        },
+      },
+    ],
   },
 });
