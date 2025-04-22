@@ -154,40 +154,19 @@ export class DefaultTelemetryPayloadExporter
       const keys = flatKey.split('.');
       let current = result;
 
-      keys.forEach((key, i) => {
-        const isLast = i === keys.length - 1;
-        const isArrayIndex = /^\d+$/.test(key);
-        const index = isArrayIndex ? Number(key) : key;
-
-        if (isLast) {
-          if (isArrayIndex) {
-            if (!Array.isArray(current)) {
-              current = [];
-            }
-            current[index] = value;
-          } else {
-            current[key] = value;
-          }
-        } else {
-          const nextKey = keys[i + 1];
-          const nextIsArrayIndex = /^\d+$/.test(nextKey);
-
-          if (isArrayIndex) {
-            if (!Array.isArray(current)) {
-              current = [];
-            }
-            if (!current[index]) {
-              current[index] = nextIsArrayIndex ? [] : {};
-            }
-            current = current[index];
-          } else {
-            if (!(key in current)) {
-              current[key] = nextIsArrayIndex ? [] : {};
-            }
-            current = current[key];
-          }
+      // Navigate through the nested structure
+      for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        // Create nested object if it doesn't exist
+        if (!(key in current)) {
+          current[key] = {};
         }
-      });
+        current = current[key];
+      }
+
+      // Set the value at the final key
+      const lastKey = keys[keys.length - 1];
+      current[lastKey] = value;
     }
     return result;
   };

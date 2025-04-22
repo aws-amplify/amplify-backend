@@ -294,6 +294,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private deploy = async (options: SandboxOptions) => {
     const tracer = trace.getTracer('amplify-backend');
     await tracer.startActiveSpan('sandbox', async (span: Span) => {
+      const startTime = Date.now();
       try {
         const deployResult = await this.executor.deploy(
           await this.backendIdSandboxResolver(options.identifier),
@@ -314,6 +315,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             state: 'SUCCEEDED',
             command: {
               path: ['SandboxDeployment'],
+              parameters: [],
             },
           },
         };
@@ -326,6 +328,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           ? error
           : AmplifyError.fromError(error);
         const data: DeepPartial<TelemetryPayload> = {
+          latency: {
+            total: Date.now() - startTime,
+          },
           event: {
             state: 'FAILED',
             command: {
