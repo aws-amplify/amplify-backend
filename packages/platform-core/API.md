@@ -247,7 +247,7 @@ export type TelemetryPayloadExporter = {
     shutdown: () => Promise<void>;
 };
 
-// @public (undocumented)
+// @public
 export class TelemetryPayloadExporterFactory {
     // (undocumented)
     getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryPayloadExporter>;
