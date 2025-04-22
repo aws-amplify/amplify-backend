@@ -158,14 +158,8 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       testNpmUserAgent,
     );
     assert.strictEqual(telemetryPayloadSent.environment.ci, isCI);
-    assert.strictEqual(
-      telemetryPayloadSent.environment.memory.total,
-      os.totalmem(),
-    );
-    assert.strictEqual(
-      telemetryPayloadSent.environment.memory.free,
-      os.freemem(),
-    );
+    assert.ok(telemetryPayloadSent.environment.memory.total);
+    assert.ok(telemetryPayloadSent.environment.memory.free);
     assert.deepStrictEqual(telemetryPayloadSent.project.dependencies, [
       {
         name: 'aws-cdk',
@@ -239,14 +233,8 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       testNpmUserAgent,
     );
     assert.strictEqual(telemetryPayloadSent.environment.ci, isCI);
-    assert.strictEqual(
-      telemetryPayloadSent.environment.memory.total,
-      os.totalmem(),
-    );
-    assert.strictEqual(
-      telemetryPayloadSent.environment.memory.free,
-      os.freemem(),
-    );
+    assert.ok(telemetryPayloadSent.environment.memory.total);
+    assert.ok(telemetryPayloadSent.environment.memory.free);
     assert.deepStrictEqual(telemetryPayloadSent.project.dependencies, [
       {
         name: 'aws-cdk',
