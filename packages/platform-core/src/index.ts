@@ -11,7 +11,7 @@ export * from './parameter_path_conversions.js';
 export * from './object_accumulator.js';
 export { TagName } from './tag_name.js';
 export * from './naming_convention_conversions.js';
-export * from './telemetry/telemetry_payload_exporter.js';
+export * from './telemetry/telemetry_payload_exporter_factory.js';
 export {
   ErrorDetails,
   TelemetryPayload,
@@ -20,7 +20,4 @@ export {
 } from './telemetry/telemetry_payload.js';
 export * from './telemetry/set_span_attributes_from_object.js';
 export * from './telemetry/translate_error_to_error_details.js';
-export {
-  TELEMETRY_TRACKING_ENABLED,
-  dependenciesToReport,
-} from './telemetry/constants.js';
+export { TELEMETRY_TRACKING_ENABLED } from './telemetry/constants.js';

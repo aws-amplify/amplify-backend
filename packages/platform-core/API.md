@@ -9,6 +9,7 @@ import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
+import { Dependency } from '@aws-amplify/plugin-types';
 import { ExportResult } from '@opentelemetry/core';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
@@ -128,9 +129,6 @@ export class ConfigurationControllerFactory {
     getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
 }
 
-// @public
-export const dependenciesToReport: string[];
-
 // @public (undocumented)
 export type ErrorDetails = {
     name: string;
@@ -243,12 +241,16 @@ export const TELEMETRY_TRACKING_ENABLED = "telemetry.enabled";
 // @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
 
-// @public
-export class TelemetryPayloadExporter {
-    // (undocumented)
+// @public (undocumented)
+export type TelemetryPayloadExporter = {
     export: (spans: ReadableSpan[], resultCallback: (result: ExportResult) => void) => Promise<void>;
-    // (undocumented)
     shutdown: () => Promise<void>;
+};
+
+// @public (undocumented)
+export class TelemetryPayloadExporterFactory {
+    // (undocumented)
+    getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryPayloadExporter>;
 }
 
 // @public (undocumented)

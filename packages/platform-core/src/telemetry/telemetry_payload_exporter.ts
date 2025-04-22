@@ -10,16 +10,61 @@ import { latestPayloadVersion } from './constants';
 import { getLocalProjectId } from './get_local_project_id';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { RegionFetcher } from './region_fetcher';
+import { Dependency } from '@aws-amplify/plugin-types';
+import { TelemetryPayloadExporter } from './telemetry_payload_exporter_factory';
 
 /**
  * Maps data from span to payload and sends the payload
  */
-export class TelemetryPayloadExporter {
+export class DefaultTelemetryPayloadExporter
+  implements TelemetryPayloadExporter
+{
   private isShutdown = false;
-  private readonly sessionId = uuidV4();
-  private readonly url = getUrl();
-  private readonly accountIdFetcher = new AccountIdFetcher();
-  private readonly regionFetcher = new RegionFetcher();
+  private dependenciesToReport?: Array<Dependency>;
+
+  /**
+   * Constructor for DefaultTelemetryPayloadExporter
+   */
+  constructor(
+    private readonly dependencies?: Array<Dependency>,
+    private readonly payloadVersion = latestPayloadVersion,
+    private readonly sessionId = uuidV4(),
+    private readonly url = getUrl(),
+    private readonly accountIdFetcher = new AccountIdFetcher(),
+    private readonly regionFetcher = new RegionFetcher(),
+  ) {
+    const targetDependencies = [
+      '@aws-amplify/ai-constructs',
+      '@aws-amplify/auth-construct',
+      '@aws-amplify/backend',
+      '@aws-amplify/backend-ai',
+      '@aws-amplify/backend-auth',
+      '@aws-amplify/backend-cli',
+      '@aws-amplify/backend-data',
+      '@aws-amplify/backend-deployer',
+      '@aws-amplify/backend-function',
+      '@aws-amplify/backend-output-schemas',
+      '@aws-amplify/backend-output-storage',
+      '@aws-amplify/backend-secret',
+      '@aws-amplify/backend-storage',
+      '@aws-amplify/cli-core',
+      '@aws-amplify/client-config',
+      '@aws-amplify/deployed-backend-client',
+      '@aws-amplify/form-generator',
+      '@aws-amplify/model-generator',
+      '@aws-amplify/platform-core',
+      '@aws-amplify/plugin-types',
+      '@aws-amplify/sandbox',
+      '@aws-amplify/schema-generator',
+      '@aws-amplify/seed',
+      'aws-cdk',
+      'aws-cdk-lib',
+    ];
+
+    this.dependenciesToReport = this.dependencies?.filter((dependency) =>
+      targetDependencies.includes(dependency.name),
+    );
+  }
 
   export = async (
     spans: ReadableSpan[],
@@ -60,21 +105,17 @@ export class TelemetryPayloadExporter {
     span: ReadableSpan,
   ): Promise<TelemetryPayload | undefined> => {
     try {
-      const localProjectId = await getLocalProjectId();
-      const accountId = await this.accountIdFetcher.fetch();
-      const awsRegion = await this.regionFetcher.fetch();
-
       const unflattened = this.unflattenSpanAttributes(span.attributes);
 
       const payload: TelemetryPayload = telemetryPayloadSchema.parse({
         identifiers: {
-          payloadVersion: latestPayloadVersion,
+          payloadVersion: this.payloadVersion,
           sessionUuid: this.sessionId,
           eventId: uuidV4(),
           timestamp: new Date().toISOString(),
-          localProjectId: localProjectId,
-          accountId: accountId,
-          awsRegion: awsRegion,
+          localProjectId: await getLocalProjectId(),
+          accountId: await this.accountIdFetcher.fetch(),
+          awsRegion: await this.regionFetcher.fetch(),
         },
         event: unflattened.event,
         environment: {
@@ -86,14 +127,12 @@ export class TelemetryPayloadExporter {
           npmUserAgent: process.env.npm_config_user_agent ?? '',
           ci: isCI,
           memory: {
-            /* eslint-disable spellcheck/spell-checker */
             total: os.totalmem(),
             free: os.freemem(),
-            /* eslint-enable spellcheck/spell-checker */
           },
         },
         project: {
-          dependencies: unflattened.project?.dependencies,
+          dependencies: this.dependenciesToReport,
         },
         latency: unflattened.latency,
         error: unflattened.error,

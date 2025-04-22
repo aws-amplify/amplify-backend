@@ -15,8 +15,7 @@ import {
   AmplifyFault,
   PackageJsonReader,
   TelemetryPayload,
-  TelemetryPayloadExporter,
-  dependenciesToReport,
+  TelemetryPayloadExporterFactory,
   setSpanAttributesFromObject,
   translateErrorToErrorDetails,
 } from '@aws-amplify/platform-core';
@@ -30,12 +29,19 @@ import { DeepPartial } from '@aws-amplify/plugin-types';
 
 attachUnhandledExceptionListeners();
 
+const packageManagerController =
+  new PackageManagerControllerFactory().getPackageManagerController();
+const dependencies = await packageManagerController.tryGetDependencies();
+
 const contextManager = new AsyncLocalStorageContextManager();
 context.setGlobalContextManager(contextManager);
 
+const telemetryPayloadExporter =
+  await new TelemetryPayloadExporterFactory().getInstance(dependencies);
+
 trace.setGlobalTracerProvider(
   new BasicTracerProvider({
-    spanProcessors: [new SimpleSpanProcessor(new TelemetryPayloadExporter())],
+    spanProcessors: [new SimpleSpanProcessor(telemetryPayloadExporter)],
   }),
 );
 
@@ -56,13 +62,6 @@ await tracer.startActiveSpan('command', async (span: Span) => {
     });
   }
 
-  const packageManagerController =
-    new PackageManagerControllerFactory().getPackageManagerController();
-  const dependencies = await packageManagerController.tryGetDependencies();
-  const filteredDependencies = dependencies?.filter((dep) =>
-    dependenciesToReport.includes(dep.name),
-  );
-
   verifyCommandName();
 
   const noticesRenderer = new NoticesRenderer(packageManagerController);
@@ -80,9 +79,6 @@ await tracer.startActiveSpan('command', async (span: Span) => {
       latency: {
         total: Date.now() - startTime,
         init: initTime,
-      },
-      project: {
-        dependencies: filteredDependencies,
       },
     };
     setSpanAttributesFromObject(span, data);
@@ -113,9 +109,6 @@ await tracer.startActiveSpan('command', async (span: Span) => {
         total: Date.now() - startTime,
         init: initTime,
       },
-      project: {
-        dependencies: filteredDependencies,
-      },
     };
     setSpanAttributesFromObject(span, data);
     span.end();
@@ -129,9 +122,6 @@ await tracer.startActiveSpan('command', async (span: Span) => {
         latency: {
           total: Date.now() - startTime,
           init: initTime,
-        },
-        project: {
-          dependencies: filteredDependencies,
         },
         error: translateErrorToErrorDetails(e),
       };
