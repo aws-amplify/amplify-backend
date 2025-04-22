@@ -151,7 +151,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.strictEqual(
       telemetryPayloadSent.environment.shell,
-      os.userInfo().shell,
+      os.userInfo().shell ?? '',
     );
     assert.strictEqual(
       telemetryPayloadSent.environment.npmUserAgent,
@@ -226,7 +226,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.strictEqual(
       telemetryPayloadSent.environment.shell,
-      os.userInfo().shell,
+      os.userInfo().shell ?? '',
     );
     assert.strictEqual(
       telemetryPayloadSent.environment.npmUserAgent,
