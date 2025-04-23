@@ -1,5 +1,9 @@
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AmplifyFault,
+  AmplifyUserError,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -25,6 +29,14 @@ void describe('sandbox_event_handler_factory', () => {
     ClientConfigFormat.JSON,
   );
 
+  // Usage data emitter mocks
+  const emitSuccessMock = mock.fn();
+  const emitFailureMock = mock.fn();
+  const usageDataEmitterMock = {
+    emitSuccess: emitSuccessMock,
+    emitFailure: emitFailureMock,
+  } as unknown as UsageDataEmitter;
+
   const printMock = mock.method(printer, 'print');
 
   const tryFindAndPrintApplicableNoticesMock = mock.fn();
@@ -39,11 +51,14 @@ void describe('sandbox_event_handler_factory', () => {
       name: 'name',
       type: 'sandbox',
     }),
+    async () => usageDataEmitterMock,
     noticesRenderer,
   );
 
   afterEach(() => {
     printMock.mock.resetCalls();
+    emitSuccessMock.mock.resetCalls();
+    emitFailureMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
   });
 
@@ -69,6 +84,15 @@ void describe('sandbox_event_handler_factory', () => {
       'test-out',
       'json',
     ]);
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 1);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[0], {
+      synthesisTime: 2,
+      totalTime: 10,
+    });
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
   });
 
   void it('calls the usage emitter on the failedDeployment event with AmplifyError', async () => {
@@ -86,6 +110,15 @@ void describe('sandbox_event_handler_factory', () => {
     );
 
     assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0],
+      testError,
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
   });
 
   void it('calls the usage emitter on the failedDeployment event with generic Error', async () => {
@@ -100,6 +133,35 @@ void describe('sandbox_event_handler_factory', () => {
     );
 
     assert.deepStrictEqual(generateClientConfigMock.mock.callCount(), 0);
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 1);
+
+    const expectedError = new AmplifyFault(
+      'UnknownFault',
+      {
+        message: 'Error: Some generic error',
+      },
+      testError,
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].name,
+      expectedError.name,
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      expectedError.message,
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].classification,
+      expectedError.classification,
+    );
+    assert.deepStrictEqual(
+      emitFailureMock.mock.calls[0].arguments[0].cause.message,
+      expectedError.cause?.message,
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'Sandbox',
+    });
   });
 
   void it('does not throw when client config adapter fails on the successfulDeployment event', async () => {
@@ -133,6 +195,10 @@ void describe('sandbox_event_handler_factory', () => {
       'test-out',
       'json',
     ]);
+
+    // No metrics emitted
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
   });
 
   void it('calls deleteClientConfigFile on client config adapter on the successfulDeletion event', async () => {
@@ -156,5 +222,9 @@ void describe('sandbox_event_handler_factory', () => {
       fspMock.mock.calls[0].arguments[0],
       path.join(process.cwd(), 'test-out', 'amplify_outputs.json'),
     );
+
+    // No metrics emitted as of now
+    assert.strictEqual(emitSuccessMock.mock.callCount(), 0);
+    assert.strictEqual(emitFailureMock.mock.callCount(), 0);
   });
 });

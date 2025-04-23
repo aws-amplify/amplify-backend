@@ -1,4 +1,5 @@
 import { CommandModule } from 'yargs';
+import { fileURLToPath } from 'node:url';
 import {
   SandboxCommand,
   SandboxCommandOptionsKebabCase,
@@ -10,10 +11,17 @@ import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import {
+  PackageJsonReader,
+  UsageDataEmitterFactory,
+} from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import { format, printer } from '@aws-amplify/cli-core';
+import {
+  PackageManagerControllerFactory,
+  format,
+  printer,
+} from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -50,8 +58,22 @@ export const createSandboxCommand = (
     awsClientProvider,
   );
 
+  const libraryVersion =
+    new PackageJsonReader().read(
+      fileURLToPath(new URL('../../../package.json', import.meta.url)),
+    ).version ?? '';
+
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdPartsResolver.resolve,
+    async () => {
+      const dependencies = await new PackageManagerControllerFactory()
+        .getPackageManagerController()
+        .tryGetDependencies();
+      return await new UsageDataEmitterFactory().getInstance(
+        libraryVersion,
+        dependencies,
+      );
+    },
     noticesRenderer,
   );
 

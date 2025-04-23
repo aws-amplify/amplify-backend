@@ -57,6 +57,7 @@ export class DefaultTelemetryPayloadExporter
       '@aws-amplify/sandbox',
       '@aws-amplify/schema-generator',
       '@aws-amplify/seed',
+      'aws-amplify',
       'aws-cdk',
       'aws-cdk-lib',
     ];

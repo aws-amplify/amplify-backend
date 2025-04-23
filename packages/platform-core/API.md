@@ -269,16 +269,16 @@ export const telemetryPayloadSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     }, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
@@ -296,13 +296,13 @@ export const telemetryPayloadSchema: z.ZodObject<{
             parameters: string[];
         }>;
     }, "strip", z.ZodTypeAny, {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
     }, {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
@@ -403,14 +403,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
@@ -447,14 +447,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
@@ -510,6 +510,20 @@ export const typedConfigurationFileFactory: TypedConfigurationFileFactory;
 
 // @public (undocumented)
 export type TypedConfigurationFileName = 'notices_metadata.json' | 'notices_acknowledgments.json';
+
+// @public
+export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
+
+// @public (undocumented)
+export type UsageDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class UsageDataEmitterFactory {
+    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
+}
 
 // (No @packageDocumentation comment for this package)
 

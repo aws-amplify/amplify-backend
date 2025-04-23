@@ -20,6 +20,7 @@ import {
   PackageJsonReader,
   TelemetryPayload,
   TelemetryPayloadExporterFactory,
+  UsageDataEmitterFactory,
   setSpanAttributes,
   translateErrorToTelemetryErrorDetails,
 } from '@aws-amplify/platform-core';
@@ -31,11 +32,28 @@ import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 
-attachUnhandledExceptionListeners();
-
 const packageManagerController =
   new PackageManagerControllerFactory().getPackageManagerController();
 const dependencies = await packageManagerController.tryGetDependencies();
+
+const packageJson = new PackageJsonReader().read(
+  fileURLToPath(new URL('../package.json', import.meta.url)),
+);
+const libraryVersion = packageJson.version;
+
+if (libraryVersion == undefined) {
+  throw new AmplifyFault('UnknownVersionFault', {
+    message:
+      'Library version cannot be determined. Check the library installation',
+  });
+}
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
+  libraryVersion,
+  dependencies,
+);
+
+attachUnhandledExceptionListeners(usageDataEmitter);
 
 const contextManager = new AsyncLocalStorageContextManager();
 openTelemetryContext.setGlobalContextManager(contextManager);
@@ -54,23 +72,11 @@ const tracer = openTelemetryTrace.getTracer('amplify-backend');
 await tracer.startActiveSpan('command', async (span: Span) => {
   const startTime = Date.now();
 
-  const packageJson = new PackageJsonReader().read(
-    fileURLToPath(new URL('../package.json', import.meta.url)),
-  );
-  const libraryVersion = packageJson.version;
-
-  if (libraryVersion == undefined) {
-    throw new AmplifyFault('UnknownVersionFault', {
-      message:
-        'Library version cannot be determined. Check the library installation',
-    });
-  }
-
   verifyCommandName();
 
   const noticesRenderer = new NoticesRenderer(packageManagerController);
   const parser = createMainParser(libraryVersion, noticesRenderer);
-  const errorHandler = generateCommandFailureHandler(parser);
+  const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
   const initTime = Date.now() - startTime;
 
   // Below is a workaround in order to send telemetry data when user force closes a prompt (e.g. with Ctrl+C)
@@ -105,6 +111,7 @@ await tracer.startActiveSpan('command', async (span: Span) => {
     await noticesRenderer.tryFindAndPrintApplicableNotices({
       event: 'postCommand',
     });
+    await usageDataEmitter.emitSuccess({}, metricDimension);
     const data: DeepPartial<TelemetryPayload> = {
       event: {
         state: 'SUCCEEDED',

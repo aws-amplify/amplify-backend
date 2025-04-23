@@ -1,6 +1,7 @@
 import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
+import { DeployResult } from '@aws-amplify/backend-deployer';
 import { format, printer } from '@aws-amplify/cli-core';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
 
@@ -15,6 +16,7 @@ export class SandboxEventHandlerFactory {
     private readonly getBackendIdentifier: (
       sandboxIdentifier?: string,
     ) => Promise<BackendIdentifier>,
+    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>,
     private readonly noticesRenderer: NoticesRenderer,
   ) {}
 
@@ -24,13 +26,23 @@ export class SandboxEventHandlerFactory {
   }) => {
     return {
       successfulDeployment: [
-        async () => {
+        async (...args: unknown[]) => {
           const backendIdentifier =
             await this.getBackendIdentifier(sandboxIdentifier);
+          const usageDataEmitter = await this.getUsageDataEmitter();
           try {
             await clientConfigLifecycleHandler.generateClientConfigFile(
               backendIdentifier,
             );
+            if (args && args[0]) {
+              const deployResult = args[0] as DeployResult;
+              if (deployResult && deployResult.deploymentTimes) {
+                await usageDataEmitter.emitSuccess(
+                  deployResult.deploymentTimes,
+                  { command: 'Sandbox' },
+                );
+              }
+            }
           } catch (error) {
             // Don't crash sandbox if config cannot be generated, but print the error message
             printer.print(
@@ -51,17 +63,27 @@ export class SandboxEventHandlerFactory {
       ],
       failedDeployment: [
         async (...args: unknown[]) => {
+          const usageDataEmitter = await this.getUsageDataEmitter();
           if (args.length == 0 || !args[0]) {
             return;
           }
           const deployError = args[0];
-          if (deployError) {
-            const amplifyError = AmplifyError.isAmplifyError(deployError)
-              ? deployError
-              : AmplifyError.fromError(deployError);
+          if (deployError && AmplifyError.isAmplifyError(deployError)) {
+            await this.noticesRenderer.tryFindAndPrintApplicableNotices({
+              event: 'postDeployment',
+              error: deployError,
+            });
+            await usageDataEmitter.emitFailure(deployError, {
+              command: 'Sandbox',
+            });
+          } else {
+            const amplifyError = AmplifyError.fromError(deployError);
             await this.noticesRenderer.tryFindAndPrintApplicableNotices({
               event: 'postDeployment',
               error: amplifyError,
+            });
+            await usageDataEmitter.emitFailure(amplifyError, {
+              command: 'Sandbox',
             });
           }
         },

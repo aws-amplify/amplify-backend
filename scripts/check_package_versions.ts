@@ -14,7 +14,6 @@ const getExpectedMajorVersion = (packageName: string) => {
       return '0.';
     case '@aws-amplify/backend-deployer':
     case '@aws-amplify/cli-core':
-    case '@aws-amplify/platform-core':
     case '@aws-amplify/sandbox':
       return '2.';
     default:
