@@ -1,5 +1,26 @@
 # @aws-amplify/platform-core
 
+## 1.8.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+- d09014b: add telemetry schema
+- d09014b: fix: exclude logs streaming options from sandbox command help output
+
+### Patch Changes
+
+- 8483297: Bumps [uuid](https://github.com/uuidjs/uuid) from 9.0.1 to 11.1.0.
+- baaaba9: Bumps [@types/uuid](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/uuid) from 9.0.7 to 10.0.0.
+- ece77e7: remove cdk cli dependency
+- d8a7304: update api after bumping typescript
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+
 ## 1.7.0
 
 ### Minor Changes
