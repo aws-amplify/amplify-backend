@@ -1,11 +1,11 @@
 import { AttributeValue, Span, SpanContext } from '@opentelemetry/api';
 import { beforeEach, describe, it, mock } from 'node:test';
-import { setSpanAttributesFromObject } from './set_span_attributes_from_object';
+import { setSpanAttributes } from './set_span_attributes';
 import assert from 'node:assert';
 import { TelemetryPayload } from './telemetry_payload';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 
-void describe('setSpanAttributesFromObject', () => {
+void describe('setSpanAttributes', () => {
   const setAttributeMock =
     mock.fn<(key: string, value: AttributeValue) => Span>();
 
@@ -40,7 +40,7 @@ void describe('setSpanAttributesFromObject', () => {
         init: 12,
       },
     };
-    setSpanAttributesFromObject(mockSpan, data);
+    setSpanAttributes(mockSpan, data);
     assert.strictEqual(setAttributeMock.mock.callCount(), 2);
     assert.deepStrictEqual(setAttributeMock.mock.calls[0].arguments, [
       'latency.total',
@@ -64,8 +64,8 @@ void describe('setSpanAttributesFromObject', () => {
         parameters: ['foo', 'bar'],
       },
     };
-    setSpanAttributesFromObject(mockSpan, { latency });
-    setSpanAttributesFromObject(mockSpan, { event });
+    setSpanAttributes(mockSpan, { latency });
+    setSpanAttributes(mockSpan, { event });
     assert.strictEqual(setAttributeMock.mock.callCount(), 5);
     assert.deepStrictEqual(setAttributeMock.mock.calls[0].arguments, [
       'latency.total',

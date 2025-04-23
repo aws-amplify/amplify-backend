@@ -36,12 +36,12 @@ import {
   AmplifyUserError,
   BackendIdentifierConversions,
   TelemetryPayload,
-  setSpanAttributesFromObject,
-  translateErrorToErrorDetails,
+  setSpanAttributes,
+  translateErrorToTelemetryErrorDetails,
 } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { EOL } from 'os';
-import { Span, trace } from '@opentelemetry/api';
+import { Span, trace as openTelemetryTrace } from '@opentelemetry/api';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 
 /**
@@ -292,7 +292,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private deploy = async (options: SandboxOptions) => {
-    const tracer = trace.getTracer('amplify-backend');
+    const tracer = openTelemetryTrace.getTracer('amplify-backend');
     await tracer.startActiveSpan('sandbox', async (span: Span) => {
       const startTime = Date.now();
       try {
@@ -319,7 +319,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             },
           },
         };
-        setSpanAttributesFromObject(span, data);
+        setSpanAttributes(span, data);
         span.end();
         this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
         this.emit('successfulDeployment', deployResult);
@@ -338,9 +338,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
               parameters: [],
             },
           },
-          error: translateErrorToErrorDetails(amplifyError),
+          error: translateErrorToTelemetryErrorDetails(amplifyError),
         };
-        setSpanAttributesFromObject(span, data);
+        setSpanAttributes(span, data);
         span.end();
         // Print a meaningful message
         this.printer.log(format.error(error), LogLevel.ERROR);

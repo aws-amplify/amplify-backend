@@ -1,6 +1,6 @@
 import {
   ConfigurationController,
-  TELEMETRY_TRACKING_ENABLED,
+  TELEMETRY_ENABLED,
 } from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
 import { printer } from '@aws-amplify/cli-core';
@@ -42,11 +42,11 @@ export class ConfigureTelemetryCommand implements CommandModule<object> {
   builder = (yargs: Argv) => {
     return yargs
       .command('enable', 'Enable anonymous data collection', {}, async () => {
-        await this.configController.set(TELEMETRY_TRACKING_ENABLED, true);
+        await this.configController.set(TELEMETRY_ENABLED, true);
         printer.log('You have enabled telemetry data collection');
       })
       .command('disable', 'Disable anonymous data collection', {}, async () => {
-        await this.configController.set(TELEMETRY_TRACKING_ENABLED, false);
+        await this.configController.set(TELEMETRY_ENABLED, false);
         printer.log('You have disabled telemetry data collection');
       })
       .demandCommand()

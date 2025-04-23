@@ -5,7 +5,7 @@ import { ErrorDetails, TelemetryPayload } from './telemetry_payload';
 /**
  * Flatten object to dot notation and set span attributes for telemetry
  */
-export const setSpanAttributesFromObject = (
+export const setSpanAttributes = (
   span: Span,
   obj: DeepPartial<TelemetryPayload> | ErrorDetails,
   prefix: string = '',
@@ -20,7 +20,7 @@ export const setSpanAttributesFromObject = (
       if (isAttributeValue(value)) {
         span.setAttribute(fullKey, value);
       } else if (typeof value === 'object') {
-        setSpanAttributesFromObject(span, value, fullKey);
+        setSpanAttributes(span, value, fullKey);
       }
     }
   }

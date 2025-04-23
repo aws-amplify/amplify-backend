@@ -4,7 +4,7 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
-  TELEMETRY_TRACKING_ENABLED,
+  TELEMETRY_ENABLED,
   configControllerFactory,
 } from '@aws-amplify/platform-core';
 import { printer } from '@aws-amplify/cli-core';
@@ -35,7 +35,7 @@ void describe('configure command', () => {
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      TELEMETRY_TRACKING_ENABLED,
+      TELEMETRY_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],
@@ -51,7 +51,7 @@ void describe('configure command', () => {
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      TELEMETRY_TRACKING_ENABLED,
+      TELEMETRY_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],

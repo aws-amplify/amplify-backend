@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-import { Span, context, trace } from '@opentelemetry/api';
+import {
+  Span,
+  context as openTelemetryContext,
+  trace as openTelemetryTrace,
+} from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   BasicTracerProvider,
@@ -16,8 +20,8 @@ import {
   PackageJsonReader,
   TelemetryPayload,
   TelemetryPayloadExporterFactory,
-  setSpanAttributesFromObject,
-  translateErrorToErrorDetails,
+  setSpanAttributes,
+  translateErrorToTelemetryErrorDetails,
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
@@ -34,18 +38,18 @@ const packageManagerController =
 const dependencies = await packageManagerController.tryGetDependencies();
 
 const contextManager = new AsyncLocalStorageContextManager();
-context.setGlobalContextManager(contextManager);
+openTelemetryContext.setGlobalContextManager(contextManager);
 
 const telemetryPayloadExporter =
   await new TelemetryPayloadExporterFactory().getInstance(dependencies);
 
-trace.setGlobalTracerProvider(
+openTelemetryTrace.setGlobalTracerProvider(
   new BasicTracerProvider({
     spanProcessors: [new SimpleSpanProcessor(telemetryPayloadExporter)],
   }),
 );
 
-const tracer = trace.getTracer('amplify-backend');
+const tracer = openTelemetryTrace.getTracer('amplify-backend');
 
 await tracer.startActiveSpan('command', async (span: Span) => {
   const startTime = Date.now();
@@ -81,13 +85,14 @@ await tracer.startActiveSpan('command', async (span: Span) => {
         init: initTime,
       },
     };
-    setSpanAttributesFromObject(span, data);
+    setSpanAttributes(span, data);
     span.end();
     // wait a little to try to have span be exported before ending the process
     await new Promise((resolve) => setTimeout(resolve, 200));
     process.exit(code);
   };
   process.on('beforeExit', (code) => void handleAbortion(code));
+
   try {
     await parser.parseAsync(hideBin(process.argv));
     const metricDimension: Record<string, string> = {};
@@ -110,7 +115,7 @@ await tracer.startActiveSpan('command', async (span: Span) => {
         init: initTime,
       },
     };
-    setSpanAttributesFromObject(span, data);
+    setSpanAttributes(span, data);
     span.end();
   } catch (e) {
     if (e instanceof Error) {
@@ -123,9 +128,9 @@ await tracer.startActiveSpan('command', async (span: Span) => {
           total: Date.now() - startTime,
           init: initTime,
         },
-        error: translateErrorToErrorDetails(e),
+        error: translateErrorToTelemetryErrorDetails(e),
       };
-      setSpanAttributesFromObject(span, data);
+      setSpanAttributes(span, data);
       await noticesRenderer.tryFindAndPrintApplicableNotices({
         event: 'postCommand',
         error: e,

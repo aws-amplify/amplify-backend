@@ -4,7 +4,7 @@ import { TelemetryPayload } from './telemetry_payload';
 /**
  * Translates an error into the shape of error details for telemetry
  */
-export const translateErrorToErrorDetails = (
+export const translateErrorToTelemetryErrorDetails = (
   error?: Error,
 ): TelemetryPayload['error'] => {
   if (!error) {
@@ -24,7 +24,7 @@ export const translateErrorToErrorDetails = (
 
       if (errorDetails) {
         // this reverses the nesting so lowest level error is the top level error in our telemetry
-        errorDetail.cause = errorDetails;
+        errorDetail.caused = errorDetails;
       }
 
       errorDetails = errorDetail;

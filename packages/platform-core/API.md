@@ -134,7 +134,7 @@ export type ErrorDetails = {
     name: string;
     message: string;
     stack: string;
-    cause?: ErrorDetails;
+    caused?: ErrorDetails;
 };
 
 // @public
@@ -227,7 +227,7 @@ export class ParameterPathConversions {
 }
 
 // @public
-export const setSpanAttributesFromObject: (span: Span, obj: DeepPartial<TelemetryPayload> | ErrorDetails, prefix?: string) => void;
+export const setSpanAttributes: (span: Span, obj: DeepPartial<TelemetryPayload> | ErrorDetails, prefix?: string) => void;
 
 // @public (undocumented)
 export enum TagName {
@@ -236,7 +236,7 @@ export enum TagName {
 }
 
 // @public
-export const TELEMETRY_TRACKING_ENABLED = "telemetry.enabled";
+export const TELEMETRY_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
@@ -490,7 +490,7 @@ export const telemetryPayloadSchema: z.ZodObject<{
 }>;
 
 // @public
-export const translateErrorToErrorDetails: (error?: Error) => TelemetryPayload["error"];
+export const translateErrorToTelemetryErrorDetails: (error?: Error) => TelemetryPayload["error"];
 
 // @public (undocumented)
 export type TypedConfigurationFile<T> = {

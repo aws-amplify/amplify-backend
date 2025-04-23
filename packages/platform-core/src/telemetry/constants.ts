@@ -4,6 +4,6 @@
 export const latestPayloadVersion = '1.0.0';
 
 /**
- * Key to access whether user opted-in status of telemetry tracking preference.
+ * Key to access whether user opted-in for telemetry.
  */
-export const TELEMETRY_TRACKING_ENABLED = 'telemetry.enabled';
+export const TELEMETRY_ENABLED = 'telemetry.enabled';

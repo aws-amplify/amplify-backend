@@ -10,8 +10,11 @@ import { WriteStream } from 'node:tty';
 import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 import { EOL } from 'node:os';
-import { context, trace } from '@opentelemetry/api';
-import { setSpanAttributesFromObject } from '@aws-amplify/platform-core';
+import {
+  context as openTelemetryContext,
+  trace as openTelemetryTrace,
+} from '@opentelemetry/api';
+import { setSpanAttributes } from '@aws-amplify/platform-core';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -206,16 +209,16 @@ export class AmplifyEventLogger {
             )}`,
           );
         }
-        const span = trace.getSpan(context.active());
+        const span = openTelemetryTrace.getSpan(openTelemetryContext.active());
         if (this.isHotSwap && span) {
-          setSpanAttributesFromObject(span, {
+          setSpanAttributes(span, {
             latency: {
               hotSwap: msg.data.duration,
             },
           });
           this.isHotSwap = false;
         } else if (span) {
-          setSpanAttributesFromObject(span, {
+          setSpanAttributes(span, {
             latency: {
               deployment: msg.data.duration,
             },

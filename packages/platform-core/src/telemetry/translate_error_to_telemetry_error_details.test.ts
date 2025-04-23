@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
-import { translateErrorToErrorDetails } from './translate_error_to_error_details';
+import { translateErrorToTelemetryErrorDetails } from './translate_error_to_telemetry_error_details';
 import assert from 'node:assert';
 import { TelemetryPayload } from './telemetry_payload';
 
-void describe('translateErrorToErrorDetails', () => {
+void describe('translateErrorToTelemetryErrorDetails', () => {
   void it('returns error details', () => {
     const error = new Error('test error message');
     error.stack = 'test stack';
@@ -12,7 +12,7 @@ void describe('translateErrorToErrorDetails', () => {
       message: 'test error message',
       stack: 'test stack',
     };
-    const actual = translateErrorToErrorDetails(error);
+    const actual = translateErrorToTelemetryErrorDetails(error);
     assert.deepStrictEqual(actual, expectedError);
   });
 
@@ -32,23 +32,23 @@ void describe('translateErrorToErrorDetails', () => {
       name: 'DeeplyNestedError',
       message: 'deeply nested error',
       stack: 'stack for deeply nested error',
-      cause: {
+      caused: {
         name: 'NestedError',
         message: 'nested error',
         stack: 'stack for nested error',
-        cause: {
+        caused: {
           name: 'Error',
           message: 'top level error',
           stack: 'stack for error',
         },
       },
     };
-    const actual = translateErrorToErrorDetails(error);
+    const actual = translateErrorToTelemetryErrorDetails(error);
     assert.deepStrictEqual(actual, expectedError);
   });
 
   void it('returns undefined if there is no error', () => {
-    const actual = translateErrorToErrorDetails();
+    const actual = translateErrorToTelemetryErrorDetails();
     assert.strictEqual(actual, undefined);
   });
 });
