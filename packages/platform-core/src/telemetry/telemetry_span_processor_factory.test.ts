@@ -1,14 +1,16 @@
 import { after, before, beforeEach, describe, it, mock } from 'node:test';
-import { TelemetryPayloadExporterFactory } from './telemetry_payload_exporter_factory';
+import { TelemetrySpanProcessorFactory } from './telemetry_span_processor_factory';
 import assert from 'node:assert';
-import { NoOpTelemetryPayloadExporter } from './noop_telemetry_payload_exporter';
 import {
   ConfigurationController,
   configControllerFactory,
 } from '../config/local_configuration_controller_factory';
-import { DefaultTelemetryPayloadExporter } from './telemetry_payload_exporter';
+import {
+  NoopSpanProcessor,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
 
-void describe('TelemetryPayloadExporterFactory', () => {
+void describe('TelemetrySpanProcessorFactory', () => {
   const configControllerGet = mock.fn((value?: boolean) => value);
   const mockedConfigController: ConfigurationController = {
     get: configControllerGet,
@@ -37,37 +39,37 @@ void describe('TelemetryPayloadExporterFactory', () => {
     configControllerGet.mock.resetCalls();
   });
 
-  void it('returns DefaultTelemetryPayloadExporter by default', async () => {
+  void it('returns SimpleSpanProcessor by default', async () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
-    const telemetryPayloadExporter =
-      await new TelemetryPayloadExporterFactory().getInstance();
+    const telemetrySpanProcessor =
+      await new TelemetrySpanProcessorFactory().getInstance();
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(
-      telemetryPayloadExporter instanceof DefaultTelemetryPayloadExporter,
+      telemetrySpanProcessor instanceof SimpleSpanProcessor,
       true,
     );
   });
 
-  void it('returns NoOpTelemetryPayloadExporter if AMPLIFY_DISABLE_TELEMETRY env var is set', async () => {
+  void it('returns NoopSpanProcessor if AMPLIFY_DISABLE_TELEMETRY env var is set', async () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
     process.env['AMPLIFY_DISABLE_TELEMETRY'] = '1';
-    const telemetryPayloadExporter =
-      await new TelemetryPayloadExporterFactory().getInstance();
+    const telemetrySpanProcessor =
+      await new TelemetrySpanProcessorFactory().getInstance();
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(
-      telemetryPayloadExporter instanceof NoOpTelemetryPayloadExporter,
+      telemetrySpanProcessor instanceof NoopSpanProcessor,
       true,
     );
     delete process.env['AMPLIFY_DISABLE_TELEMETRY'];
   });
 
-  void it('returns NoOpTelemetryPayloadExporter if local config file exists and reads true', async () => {
+  void it('returns NoopSpanProcessor if local config file exists and reads true', async () => {
     configControllerGet.mock.mockImplementationOnce(() => false);
-    const telemetryPayloadExporter =
-      await new TelemetryPayloadExporterFactory().getInstance();
+    const telemetrySpanProcessor =
+      await new TelemetrySpanProcessorFactory().getInstance();
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(
-      telemetryPayloadExporter instanceof NoOpTelemetryPayloadExporter,
+      telemetrySpanProcessor instanceof NoopSpanProcessor,
       true,
     );
   });

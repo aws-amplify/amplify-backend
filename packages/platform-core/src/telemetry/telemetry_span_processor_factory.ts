@@ -1,26 +1,20 @@
 import { Dependency } from '@aws-amplify/plugin-types';
-import { ExportResult } from '@opentelemetry/core';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import {
+  NoopSpanProcessor,
+  SimpleSpanProcessor,
+  SpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
 import { configControllerFactory } from '../config/local_configuration_controller_factory';
 import { TELEMETRY_ENABLED } from './constants';
-import { NoOpTelemetryPayloadExporter } from './noop_telemetry_payload_exporter';
 import { DefaultTelemetryPayloadExporter } from './telemetry_payload_exporter';
 
-export type TelemetryPayloadExporter = {
-  export: (
-    spans: ReadableSpan[],
-    resultCallback: (result: ExportResult) => void,
-  ) => Promise<void>;
-  shutdown: () => Promise<void>;
-};
-
 /**
- * Creates TelemetryPayloadExporter
+ * Creates TelemetrySpanProcessorFactory
  */
-export class TelemetryPayloadExporterFactory {
+export class TelemetrySpanProcessorFactory {
   getInstance = async (
     dependencies?: Array<Dependency>,
-  ): Promise<TelemetryPayloadExporter> => {
+  ): Promise<SpanProcessor> => {
     const configController = configControllerFactory.getInstance(
       'usage_data_preferences.json',
     );
@@ -32,8 +26,10 @@ export class TelemetryPayloadExporterFactory {
       process.env.AMPLIFY_DISABLE_TELEMETRY ||
       telemetryTrackingDisabledLocalFile
     ) {
-      return new NoOpTelemetryPayloadExporter();
+      return new NoopSpanProcessor();
     }
-    return new DefaultTelemetryPayloadExporter(dependencies);
+    return new SimpleSpanProcessor(
+      new DefaultTelemetryPayloadExporter(dependencies),
+    );
   };
 }

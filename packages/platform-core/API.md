@@ -10,13 +10,12 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { Dependency } from '@aws-amplify/plugin-types';
-import { ExportResult } from '@opentelemetry/core';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Span } from '@opentelemetry/api';
+import { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import z from 'zod';
 
 declare namespace __export__cdk {
@@ -240,18 +239,6 @@ export const TELEMETRY_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
-
-// @public (undocumented)
-export type TelemetryPayloadExporter = {
-    export: (spans: ReadableSpan[], resultCallback: (result: ExportResult) => void) => Promise<void>;
-    shutdown: () => Promise<void>;
-};
-
-// @public
-export class TelemetryPayloadExporterFactory {
-    // (undocumented)
-    getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryPayloadExporter>;
-}
 
 // @public (undocumented)
 export type TelemetryPayloadKeys = keyof TelemetryPayload;
@@ -488,6 +475,12 @@ export const telemetryPayloadSchema: z.ZodObject<{
     };
     error?: ErrorDetails | undefined;
 }>;
+
+// @public
+export class TelemetrySpanProcessorFactory {
+    // (undocumented)
+    getInstance: (dependencies?: Array<Dependency>) => Promise<SpanProcessor>;
+}
 
 // @public
 export const translateErrorToTelemetryErrorDetails: (error?: Error) => TelemetryPayload["error"];

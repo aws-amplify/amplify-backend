@@ -5,10 +5,7 @@ import {
   trace as openTelemetryTrace,
 } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import {
-  BasicTracerProvider,
-  SimpleSpanProcessor,
-} from '@opentelemetry/sdk-trace-base';
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base';
 import { createMainParser } from './main_parser_factory.js';
 import {
   attachUnhandledExceptionListeners,
@@ -19,7 +16,7 @@ import {
   AmplifyFault,
   PackageJsonReader,
   TelemetryPayload,
-  TelemetryPayloadExporterFactory,
+  TelemetrySpanProcessorFactory,
   UsageDataEmitterFactory,
   setSpanAttributes,
   translateErrorToTelemetryErrorDetails,
@@ -58,12 +55,12 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 const contextManager = new AsyncLocalStorageContextManager();
 openTelemetryContext.setGlobalContextManager(contextManager);
 
-const telemetryPayloadExporter =
-  await new TelemetryPayloadExporterFactory().getInstance(dependencies);
+const telemetrySpanProcessor =
+  await new TelemetrySpanProcessorFactory().getInstance(dependencies);
 
 openTelemetryTrace.setGlobalTracerProvider(
   new BasicTracerProvider({
-    spanProcessors: [new SimpleSpanProcessor(telemetryPayloadExporter)],
+    spanProcessors: [telemetrySpanProcessor],
   }),
 );
 
@@ -93,8 +90,10 @@ await tracer.startActiveSpan('command', async (span: Span) => {
     };
     setSpanAttributes(span, data);
     span.end();
-    // wait a little to try to have span be exported before ending the process
-    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Ensure all spans are exported before exiting
+    await telemetrySpanProcessor.forceFlush();
+
     process.exit(code);
   };
   process.on('beforeExit', (code) => void handleAbortion(code));
@@ -124,6 +123,9 @@ await tracer.startActiveSpan('command', async (span: Span) => {
     };
     setSpanAttributes(span, data);
     span.end();
+
+    // Ensure all spans are exported before exiting
+    await telemetrySpanProcessor.forceFlush();
   } catch (e) {
     if (e instanceof Error) {
       const data: DeepPartial<TelemetryPayload> = {
@@ -143,8 +145,8 @@ await tracer.startActiveSpan('command', async (span: Span) => {
         error: e,
       });
       span.end();
-      // wait a little to try to have span be exported before handling error and ending the process
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Ensure all spans are exported before exiting
+      await telemetrySpanProcessor.forceFlush();
       await errorHandler(format.error(e), e);
     }
   }

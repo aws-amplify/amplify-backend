@@ -13,7 +13,7 @@ export * from './parameter_path_conversions.js';
 export * from './object_accumulator.js';
 export { TagName } from './tag_name.js';
 export * from './naming_convention_conversions.js';
-export * from './telemetry/telemetry_payload_exporter_factory.js';
+export * from './telemetry/telemetry_span_processor_factory.js';
 export {
   ErrorDetails,
   TelemetryPayload,

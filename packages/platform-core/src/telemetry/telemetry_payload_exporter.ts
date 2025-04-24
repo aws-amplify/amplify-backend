@@ -11,15 +11,13 @@ import { getLocalProjectId } from './get_local_project_id';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { RegionFetcher } from './region_fetcher';
 import { Dependency } from '@aws-amplify/plugin-types';
-import { TelemetryPayloadExporter } from './telemetry_payload_exporter_factory';
 
 /**
  * Maps data from span to payload and sends the payload
  */
-export class DefaultTelemetryPayloadExporter
-  implements TelemetryPayloadExporter
-{
+export class DefaultTelemetryPayloadExporter {
   private isShutdown = false;
+  private spanQueue: ReadableSpan[] = [];
   private dependenciesToReport?: Array<Dependency>;
 
   /**
@@ -77,7 +75,8 @@ export class DefaultTelemetryPayloadExporter
     }
 
     try {
-      await this.sendSpans(spans);
+      this.spanQueue.push(...spans);
+      await this.sendSpans();
       resultCallback({ code: ExportResultCode.SUCCESS });
     } catch {
       resultCallback({ code: ExportResultCode.FAILED });
@@ -85,11 +84,15 @@ export class DefaultTelemetryPayloadExporter
   };
 
   shutdown = async (): Promise<void> => {
-    this.isShutdown = true;
+    await this.sendSpans();
   };
 
-  private sendSpans = async (spans: ReadableSpan[]) => {
-    for (const span of spans) {
+  forceFlush = async (): Promise<void> => {
+    await this.sendSpans();
+  };
+
+  private sendSpans = async () => {
+    for (const span of this.spanQueue) {
       try {
         const payload = await this.getTelemetryPayload(span);
         if (payload) {
@@ -99,6 +102,7 @@ export class DefaultTelemetryPayloadExporter
       } catch {
         // Don't propogate errors related to not being able to send telemetry
       }
+      this.spanQueue.shift();
     }
   };
 

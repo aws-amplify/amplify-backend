@@ -84,6 +84,7 @@ void describe('sandbox_event_handler_factory', () => {
       'test-out',
       'json',
     ]);
+
     assert.strictEqual(emitSuccessMock.mock.callCount(), 1);
     assert.strictEqual(emitFailureMock.mock.callCount(), 0);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[0], {
