@@ -25,6 +25,12 @@ updates:
       smithy:
         patterns:
           - '@smithy/*'
+      eslint:
+        patterns:
+          - '@shopify/eslint-plugin'
+          - '@typescript-eslint/*'
+          - 'eslint'
+          - 'eslint-*'
       opentelemetry:
         patterns:
           - '@opentelemetry/*'

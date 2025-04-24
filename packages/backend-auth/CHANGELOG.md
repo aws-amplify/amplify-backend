@@ -1,5 +1,27 @@
 # @aws-amplify/backend-auth
 
+## 1.7.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 995c3de: Use Node 20 as default runtime in functions
+- Updated dependencies [a93aa54]
+- Updated dependencies [995c3de]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d50ffb7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/auth-construct@1.8.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.6.0
 
 ### Minor Changes

@@ -1,5 +1,18 @@
 # @aws-amplify/plugin-types
 
+## 1.10.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- a93aa54: upgrade cdk-toolkit to 0.2.0
+- d09014b: change AmplifyEventMessage interface to type
+- d8a7304: update api after bumping typescript
+- 96fe987: Upgrade to cdk toolkit-lib and use new hotswap event markers
+
 ## 1.9.0
 
 ### Minor Changes
