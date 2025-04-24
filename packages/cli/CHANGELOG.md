@@ -1,5 +1,61 @@
 # @aws-amplify/backend-cli
 
+## 1.7.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+- d09014b: adding seed feature
+- 7a2aff9: switched seed runner from execa to tsImport
+
+### Patch Changes
+
+- d50ffb7: updated tests and changed client config to v1.4
+- d8a7304: update how main parser test gets cli version
+- d09014b: Add notices
+- d09014b: Cache dependencies when assessing notices predicates
+- ece77e7: remove cdk cli dependency
+- f1c87e3: update supported node versions
+- 3148b48: removed spinners, adjusted mfaConfig detection with email
+- d09014b: fix: exclude logs streaming options from sandbox command help output
+- d09014b: remove unnecessary toolkit dependencies
+- Updated dependencies [d09014b]
+- Updated dependencies [8483297]
+- Updated dependencies [baaaba9]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d76ac76]
+- Updated dependencies [d09014b]
+- Updated dependencies [a93aa54]
+- Updated dependencies [2857cf3]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [9dc0916]
+- Updated dependencies [d09014b]
+- Updated dependencies [d50ffb7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d6b9286]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [682d420]
+- Updated dependencies [d8a7304]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [96fe987]
+  - @aws-amplify/form-generator@1.2.0
+  - @aws-amplify/platform-core@1.8.0
+  - @aws-amplify/cli-core@2.1.0
+  - @aws-amplify/sandbox@2.1.0
+  - @aws-amplify/backend-deployer@2.1.0
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/client-config@1.7.0
+  - @aws-amplify/deployed-backend-client@1.7.0
+  - @aws-amplify/model-generator@1.2.0
+  - @aws-amplify/backend-secret@1.4.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+  - @aws-amplify/schema-generator@1.4.0
+
 ## 1.6.0
 
 ### Minor Changes
