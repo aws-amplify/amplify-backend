@@ -324,7 +324,9 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Check if any E2E tests should run
         id: check
-        run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
+        run: |
+          run_e2e=$(npx tsx scripts/do_include_e2e.ts)
+          echo "run_e2e=$run_e2e" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
       - name: Check if Package Manager E2E tests should be included
         id: check_package_manager
@@ -410,6 +412,30 @@ jobs:
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
+  e2e_hosting:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - do_include_e2e
+      - build
+      - resolve_inputs
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - name: Run e2e hosting tests
+        uses: ./.github/actions/run_with_e2e_account
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          node_version: 18
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
+        env:
+          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
+          AMPLIFY_BACKEND_TESTS_HOSTING_TEST_COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
   e2e_generate_deployment_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -833,6 +859,7 @@ jobs:
       - e2e_sandbox
       - e2e_notices
       - e2e_create_amplify
+      - e2e_hosting
       - resolve_inputs
     runs-on: ubuntu-latest
     steps:

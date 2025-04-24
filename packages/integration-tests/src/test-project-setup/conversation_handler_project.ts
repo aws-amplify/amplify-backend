@@ -760,11 +760,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
     console.log(
       `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`,
     );
-    await this.lambdaClient.send(
+    const invocationResponse = await this.lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
         Payload: Buffer.from(JSON.stringify(event)),
       }),
+    );
+
+    invocationResponse.Payload = undefined;
+    console.log(
+      `Invocation Response for conversationId=${event.conversationId} is ${JSON.stringify(invocationResponse)}`,
     );
 
     // assert that response came back
@@ -833,6 +838,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
       assert.ok(chunks);
 
+      console.log(
+        `Received chunks for conversationId=${event.conversationId} is ${JSON.stringify(chunks)}`,
+      );
+
       if (chunks.length === 1 && chunks[0].errors) {
         return {
           content: '',
@@ -866,6 +875,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
         }
         return accumulated;
       }, '');
+
+      console.log(
+        `Content from chunks for conversationId=${event.conversationId} is ${content}`,
+      );
 
       return { content };
     }
@@ -911,6 +924,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
     );
     const response =
       queryResult.data.listConversationMessageAssistantResponses.items[0];
+
+    console.log(
+      `Non-streaming response for conversationId=${event.conversationId} is ${JSON.stringify(response)}`,
+    );
 
     if (response.errors) {
       return {
@@ -1111,7 +1128,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
     apolloClient: ApolloClient<NormalizedCacheObject>,
     message: CreateConversationMessageChatInput,
   ): Promise<void> => {
-    await apolloClient.mutate({
+    console.log(
+      `Inserting message to conversation history ${JSON.stringify(message)}`,
+    );
+    const insertionResult = await apolloClient.mutate({
       mutation: gql`
         mutation InsertMessage($input: CreateConversationMessageChatInput!) {
           createConversationMessageChat(input: $input) {
@@ -1123,6 +1143,11 @@ class ConversationHandlerTestProject extends TestProjectBase {
         input: message,
       },
     });
+    if (insertionResult.errors?.length) {
+      throw new Error(`Failed to insert message ${message.id}`, {
+        cause: insertionResult.errors,
+      });
+    }
   };
 
   private getCommonEventProperties = (streamResponse: boolean) => {
@@ -1164,13 +1189,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
   };
 
   /**
-   * Bedrock sometimes produces empty response or half backed response.
+   * Bedrock sometimes produces half-baked response or we run into throttling.
    * On the other hand we have to run some assertions on those responses.
    * Therefore, we wrap transactions in retry loop.
    */
   private executeWithRetry = async (
     callable: (attempt: number) => Promise<void>,
   ) => {
-    await runWithRetry(callable, () => true, 4);
+    const retryDelayMs = 30 * 1000; // 30 seconds.
+    await runWithRetry(callable, () => true, 4, retryDelayMs);
   };
 }

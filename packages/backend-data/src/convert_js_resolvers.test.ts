@@ -24,11 +24,11 @@ const testSchema = /* GraphQL */ `
   }
 `;
 
-const createStackAndSetContext = (): Stack => {
+const createStackAndSetContext = (backendType: 'sandbox' | 'branch'): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
-  app.node.setContext('amplify-backend-type', 'branch');
+  app.node.setContext('amplify-backend-type', backendType);
   const stack = new Stack(app);
   return stack;
 };
@@ -60,13 +60,13 @@ void describe('defaultJsResolverCode', () => {
   });
 });
 
-void describe('convertJsResolverDefinition', () => {
+void describe('convertJsResolverDefinition - branch deployment', () => {
   let stack: Stack;
   let amplifyApi: AmplifyData;
   const authorizationModes = { apiKeyConfig: { expires: Duration.days(7) } };
 
   void beforeEach(() => {
-    stack = createStackAndSetContext();
+    stack = createStackAndSetContext('branch');
     amplifyApi = new AmplifyData(stack, 'amplifyData', {
       apiName: 'amplifyData',
       definition: AmplifyDataDefinition.fromString(testSchema),
@@ -189,6 +189,69 @@ void describe('convertJsResolverDefinition', () => {
     });
 
     template.resourceCountIs('AWS::AppSync::Resolver', 1);
+  });
+
+  void it('adds api id and environment name to stash for non-sandbox deployment', () => {
+    const absolutePath = resolve(
+      fileURLToPath(import.meta.url),
+      '../../lib/assets',
+      'js_resolver_handler.js',
+    );
+
+    const schema = a.schema({
+      customQuery: a
+        .query()
+        .authorization((allow) => allow.publicApiKey())
+        .returns(a.string())
+        .handler(
+          a.handler.custom({
+            entry: absolutePath,
+          }),
+        ),
+    });
+    const { jsFunctions } = schema.transform();
+    convertJsResolverDefinition(stack, amplifyApi, jsFunctions);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::AppSync::Resolver', {
+      Runtime: {
+        Name: 'APPSYNC_JS',
+        RuntimeVersion: '1.0.0',
+      },
+      Kind: 'PIPELINE',
+      TypeName: 'Query',
+      FieldName: 'customQuery',
+      Code: {
+        'Fn::Join': [
+          '',
+          [
+            "/**\n * Pipeline resolver request handler\n */\nexport const request = (ctx) => {\n    ctx.stash.awsAppsyncApiId = '",
+            {
+              'Fn::GetAtt': [
+                Match.stringLikeRegexp('amplifyDataGraphQLAPI.*'),
+                'ApiId',
+              ],
+            },
+            "';\n    ctx.stash.amplifyApiEnvironmentName = 'testEnvName';\n    return {};\n};\n/**\n * Pipeline resolver response handler\n */\nexport const response = (ctx) => {\n    return ctx.prev.result;\n};\n",
+          ],
+        ],
+      },
+    });
+  });
+});
+
+void describe('convertJsResolverDefinition - sandbox deployment', () => {
+  let stack: Stack;
+  let amplifyApi: AmplifyData;
+  const authorizationModes = { apiKeyConfig: { expires: Duration.days(7) } };
+
+  void beforeEach(() => {
+    stack = createStackAndSetContext('sandbox');
+    amplifyApi = new AmplifyData(stack, 'amplifyData', {
+      apiName: 'amplifyData',
+      definition: AmplifyDataDefinition.fromString(testSchema),
+      authorizationModes,
+    });
   });
 
   void it('adds api id and environment name to stash', () => {

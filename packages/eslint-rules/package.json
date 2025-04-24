@@ -1,5 +1,5 @@
 {
-  "name": "eslint-plugin-amplify-backend-rules",
+  "name": "@aws-amplify/eslint-plugin-amplify-backend-rules",
   "private": true,
   "version": "0.0.2",
   "type": "commonjs",

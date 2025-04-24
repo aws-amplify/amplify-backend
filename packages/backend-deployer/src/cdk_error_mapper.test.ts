@@ -347,6 +347,13 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
   },
   {
     errorMessage:
+      'Failed to bundle asset assetName, bundle output is located at some rubbish',
+    expectedTopLevelErrorMessage: `CDK failed to bundle your function code`,
+    errorName: 'CDKAssetBundleError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
       // eslint-disable-next-line spellcheck/spell-checker
       `Error: npm ERR! code ENOENT
 npm ERR! syscall lstat

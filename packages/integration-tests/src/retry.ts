@@ -10,6 +10,7 @@ export const runWithRetry = async <T>(
   callable: (attempt: number) => Promise<T>,
   retryPredicate: RetryPredicate,
   maxAttempts = 3,
+  delayMs?: number,
 ): Promise<T> => {
   const collectedErrors: Error[] = [];
 
@@ -22,6 +23,9 @@ export const runWithRetry = async <T>(
         collectedErrors.push(error);
         if (!retryPredicate(error)) {
           throw error;
+        }
+        if (delayMs) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       } else {
         // re-throw non-Error.

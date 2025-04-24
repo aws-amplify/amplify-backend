@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 npm run update:create-amplify-deps
 npm run update:tsconfig-refs
 npm run check:package-lock

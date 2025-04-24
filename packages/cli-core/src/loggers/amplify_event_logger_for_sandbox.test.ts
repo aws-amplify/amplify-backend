@@ -8,7 +8,7 @@ import { data as addFunctionStorageCdkEvents } from './test-assets/add_function_
 import { data as deleteFunctionStorageCdkEvents } from './test-assets/delete_function_storage_cdk_events.js';
 import { data as destroyAppCdkEvents } from './test-assets/destroy_cdk_structured_events.js';
 import { data as failedCfnDeploymentCdkEvents } from './test-assets/failed_auth_structured_cdk_events.js';
-
+import { data as hotswappedCDKEvents } from './test-assets/hotswap_lambda_data_resources_cdk_events.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { LogLevel, Printer } from '../printer/printer.js';
 import assert from 'node:assert';
@@ -186,6 +186,83 @@ void describe('amplify sandbox event logging', () => {
       ],
     );
     assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 4);
+  });
+
+  void it('generates correct events when customer changes are hotswapped', async () => {
+    for (const event of hotswappedCDKEvents) {
+      await classUnderTest.notify(
+        event as unknown as AmplifyIoHostEventMessage<unknown>,
+      );
+    }
+
+    // Typical success messages printed
+    assert.deepStrictEqual(printerLogMock.mock.callCount(), 17);
+    assert.deepStrictEqual(
+      printerLogMock.mock.calls.map((call) => call.arguments[0]),
+      [
+        format.success('✔') + ' Backend synthesized in 2.68 seconds',
+        format.success('✔') + ' Type checks completed in 5.98 seconds',
+        format.success('✔') + ' Built and published assets',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/third-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/second-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/sixth-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/say-hellos-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/first-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/fifth-lambda',
+        format.success('✔') +
+          ' Updated AWS::AppSync::GraphQLSchema data/amplifyData/GraphQLAPI/TransformerSchema',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/fourth-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/ninth-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/eighth-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/seventh-lambda',
+        format.success('✔') +
+          ' Updated AWS::Lambda::Function function/tenth-lambda',
+        format.success('✔') +
+          ' Updated Custom::CDKBucketDeployment data/amplifyData/AmplifyCodegenAssets/AmplifyCodegenAssetsDeployment/CustomResource-1536MiB/Default',
+        format.success('✔') +
+          ' Updated Custom::CDKBucketDeployment data/modelIntrospectionSchemaBucketDeployment/CustomResource-1536MiB/Default',
+      ],
+    );
+
+    // CFN progress events (No CFN deployment for this case)
+    assert.deepStrictEqual(printerUpdateSpinnerMock.mock.callCount(), 0);
+
+    // Spinners
+    assert.deepStrictEqual(printerStartSpinnerMock.mock.callCount(), 18);
+    assert.deepStrictEqual(
+      printerStartSpinnerMock.mock.calls.map((call) => call.arguments[0]),
+      [
+        'Synthesizing backend...',
+        'Running type checks...',
+        'Building and publishing assets...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+        'Deployment in progress...',
+      ],
+    );
+    assert.deepStrictEqual(printerStopSpinnerMock.mock.callCount(), 18);
   });
 
   void it('generates correct events when no change in the app is detected', async () => {

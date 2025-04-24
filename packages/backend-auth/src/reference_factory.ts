@@ -92,7 +92,7 @@ export class AmplifyReferenceAuthFactory
    */
   constructor(
     private readonly props: AmplifyReferenceAuthProps,
-    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack,
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
@@ -234,7 +234,7 @@ export const referenceAuth = (
 ): ConstructFactory<BackendReferenceAuth> => {
   return new AmplifyReferenceAuthFactory(
     props,
-    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
     new Error().stack,
   );
 };

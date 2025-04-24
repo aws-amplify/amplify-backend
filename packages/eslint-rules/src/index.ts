@@ -19,16 +19,16 @@ export const rules: Record<string, unknown> = {
 
 export const configs = {
   recommended: {
-    plugins: ['amplify-backend-rules'],
+    plugins: ['@aws-amplify/amplify-backend-rules'],
     rules: {
-      'amplify-backend-rules/amplify-error-name': 'error',
-      'amplify-backend-rules/amplify-error-no-instanceof': 'error',
-      'amplify-backend-rules/backend-output-client-error-no-instanceof':
+      '@aws-amplify/amplify-backend-rules/amplify-error-name': 'error',
+      '@aws-amplify/amplify-backend-rules/amplify-error-no-instanceof': 'error',
+      '@aws-amplify/amplify-backend-rules/backend-output-client-error-no-instanceof':
         'error',
-      'amplify-backend-rules/no-empty-catch': 'error',
-      'amplify-backend-rules/prefer-amplify-errors': 'off',
-      'amplify-backend-rules/no-amplify-errors': 'off',
-      'amplify-backend-rules/propagate-error-cause': 'error',
+      '@aws-amplify/amplify-backend-rules/no-empty-catch': 'error',
+      '@aws-amplify/amplify-backend-rules/prefer-amplify-errors': 'off',
+      '@aws-amplify/amplify-backend-rules/no-amplify-errors': 'off',
+      '@aws-amplify/amplify-backend-rules/propagate-error-cause': 'error',
     },
     overrides: [
       {
@@ -44,7 +44,7 @@ export const configs = {
         ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'error',
+          '@aws-amplify/amplify-backend-rules/prefer-amplify-errors': 'error',
         },
       },
       {
@@ -55,7 +55,7 @@ export const configs = {
           'packages/deployed-backend-client/src/**',
         ],
         rules: {
-          'amplify-backend-rules/no-amplify-errors': 'error',
+          '@aws-amplify/amplify-backend-rules/no-amplify-errors': 'error',
         },
       },
     ],

@@ -19,7 +19,6 @@ import {
 import path from 'path';
 import {
   HotswapMode,
-  RequireApproval,
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
@@ -153,9 +152,6 @@ export class CDKDeployer implements BackendDeployer {
           backendId.type === 'sandbox'
             ? HotswapMode.FALL_BACK
             : HotswapMode.FULL_DEPLOYMENT,
-        ci: backendId.type !== 'sandbox',
-        requireApproval:
-          backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
       });
     } catch (error) {
       throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
