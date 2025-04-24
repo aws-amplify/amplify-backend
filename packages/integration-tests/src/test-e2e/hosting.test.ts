@@ -58,6 +58,7 @@ void describe('hosting', () => {
   let branchName: string;
   let commitSha: string;
   let executionRoleArn: string;
+  let jobId: string | undefined;
 
   before(async () => {
     assert.ok(
@@ -81,6 +82,24 @@ void describe('hosting', () => {
   });
 
   after(async () => {
+    // Print logs
+    if (jobId) {
+      const getJobResult = await amplifyClient.send(
+        new GetJobCommand({
+          appId,
+          branchName,
+          jobId,
+        }),
+      );
+      for (const step of getJobResult.job?.steps ?? []) {
+        // Steps have pre-signed URLs.
+        if (step.logUrl) {
+          const logResponse = await fetch(step.logUrl);
+          console.log(await logResponse.text());
+        }
+      }
+    }
+
     // Disconnect a branch if we're not on 'main' eagerly.
     // So that we try to not leave garbage and hit 50 branches per app limit.
     // The trade-offs considered here are:
@@ -112,6 +131,7 @@ void describe('hosting', () => {
       branchName,
       commitSha,
     );
+    jobId = deploymentJob.jobId;
     if (deploymentJob.status !== JobStatus.SUCCEED) {
       assert.ok(deploymentJob.jobId);
       await waitForSuccessfulJobCompletion(
@@ -374,8 +394,6 @@ backend:
   phases:
     build:
       commands:
-        # TODO remove node install when Hosting rolls new image.
-        - nvm install 18
         # Uninstall Gen1 CLI, otherwise npm link below has a conflict on amplify binary
         - npm uninstall -g @aws-amplify/cli
         - npm ci --cache .npm --prefer-offline
