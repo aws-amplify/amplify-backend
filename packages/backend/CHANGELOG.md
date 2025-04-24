@@ -1,5 +1,48 @@
 # @aws-amplify/backend
 
+## 1.16.0
+
+### Minor Changes
+
+- d09014b: Add imported tables to data.
+- 995c3de: Use Node 20 as default runtime in functions
+- d09014b: integrate with aws cdk toolkit
+- 119a05f: add addEnvironment for provided functions
+
+### Patch Changes
+
+- d50ffb7: updated tests and changed client config to v1.4
+- 119a05f: update shape of AMPLIFY_SSM_ENV_CONFIG
+- d8a7304: update api after bumping typescript
+- Updated dependencies [2ba971d]
+- Updated dependencies [8483297]
+- Updated dependencies [baaaba9]
+- Updated dependencies [d09014b]
+- Updated dependencies [119a05f]
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [995c3de]
+- Updated dependencies [d09014b]
+- Updated dependencies [ece77e7]
+- Updated dependencies [d50ffb7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [1f44f11]
+- Updated dependencies [d09014b]
+- Updated dependencies [119a05f]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/backend-data@1.6.0
+  - @aws-amplify/backend-function@1.14.0
+  - @aws-amplify/platform-core@1.8.0
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-auth@1.7.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-storage@1.4.0
+  - @aws-amplify/client-config@1.7.0
+  - @aws-amplify/backend-secret@1.4.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.15.0
 
 ### Minor Changes

@@ -14,6 +14,7 @@ type SomeTypeUnderSubNamespace = {
 
 type SomeOtherTypeUnderSubNamespace = {
   someProperty: SomeTypeUnderSubNamespace;
+  someArrayProperty: SomeTypeUnderSubNamespace[];
 };
 
 class SomeClassUnderNamespace {

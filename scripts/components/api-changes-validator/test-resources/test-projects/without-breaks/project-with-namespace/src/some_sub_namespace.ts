@@ -4,4 +4,5 @@ export type SomeTypeUnderSubNamespace = {
 
 export type SomeOtherTypeUnderSubNamespace = {
   someProperty: SomeTypeUnderSubNamespace;
+  someArrayProperty: SomeTypeUnderSubNamespace[];
 };

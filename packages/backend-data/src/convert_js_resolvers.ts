@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'fs';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { resolveEntryPath } from './resolve_entry_path.js';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
@@ -78,8 +79,11 @@ export const convertJsResolverDefinition = (
 
     const resolverName = `Resolver_${resolver.typeName}_${resolver.fieldName}`;
 
-    const amplifyApiEnvironmentName =
-      scope.node.tryGetContext('amplifyEnvironmentName') ?? 'NONE';
+    const isSandboxDeployment =
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+    const amplifyApiEnvironmentName = isSandboxDeployment
+      ? 'NONE'
+      : scope.node.tryGetContext(CDKContextKey.BACKEND_NAME);
     new CfnResolver(scope, resolverName, {
       apiId: amplifyApi.apiId,
       fieldName: resolver.fieldName,

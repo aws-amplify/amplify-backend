@@ -1,5 +1,28 @@
 # @aws-amplify/backend-function
 
+## 1.14.0
+
+### Minor Changes
+
+- 995c3de: Use Node 20 as default runtime in functions
+- d09014b: integrate with aws cdk toolkit
+- 119a05f: add addEnvironment for provided functions
+
+### Patch Changes
+
+- 8483297: Bumps [uuid](https://github.com/uuidjs/uuid) from 9.0.1 to 11.1.0.
+- d09014b: fix pretty sandbox qa bugs
+- 119a05f: update shape of AMPLIFY_SSM_ENV_CONFIG
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [d50ffb7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
 ## 1.13.0
 
 ### Minor Changes
