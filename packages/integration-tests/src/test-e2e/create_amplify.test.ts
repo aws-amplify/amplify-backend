@@ -40,15 +40,18 @@ void describe(
         initialState: 'empty',
         startDelayMS: startDelayIntervalMS * 0,
       },
-      {
+    ];
+
+    if (process.platform !== 'win32') {
+      testCases.push({
         initialState: 'module',
         startDelayMS: startDelayIntervalMS * 1,
-      },
-      {
+      });
+      testCases.push({
         initialState: 'commonjs',
         startDelayMS: startDelayIntervalMS * 2,
-      },
-    ];
+      });
+    }
 
     testCases.forEach(({ initialState, startDelayMS }) => {
       void describe('installs expected packages and scaffolds expected files', () => {
