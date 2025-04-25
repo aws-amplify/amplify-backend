@@ -5,9 +5,10 @@ version: 2
 updates:
   # Maintain dependencies for npm ecosystem
   - package-ecosystem: 'npm'
-    # Checks all directories from the current layer and below recursively for package.json files
+    # Checks root and top level package directories.
     directories:
-      - '**/*'
+      - '/'
+      - '/packages/*'
     schedule:
       # Runs every Monday at 09:00 Pacific Time
       interval: 'weekly'
