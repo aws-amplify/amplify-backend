@@ -25,13 +25,17 @@ void describe('RegionFetcher', async () => {
   });
 
   void test('returns cached region on subsequent calls', async () => {
-    const regionFetcher = new RegionFetcher(
-      new STSClient({ region: 'us-east-1' }),
-    );
+    const stsClient = new STSClient();
+    const mockRegion = mock.fn(() => Promise.resolve('us-east-1'));
+    mock.method(stsClient.config, 'region', mockRegion);
+    const regionFetcher = new RegionFetcher(stsClient);
     const region1 = await regionFetcher.fetch();
     const region2 = await regionFetcher.fetch();
 
     assert.strictEqual(region1, 'us-east-1');
     assert.strictEqual(region2, 'us-east-1');
+
+    // we only retrieve region from STSClient once
+    assert.strictEqual(mockRegion.mock.callCount(), 1);
   });
 });

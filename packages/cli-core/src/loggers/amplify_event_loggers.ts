@@ -118,6 +118,9 @@ export class AmplifyEventLogger {
       case 'DEPLOY_STARTED':
         this.printer.stopSpinner();
         break;
+      case 'DEPLOY_FAILED':
+        this.isHotSwap = false;
+        return;
       case 'AMPLIFY_CFN_PROGRESS_UPDATE':
         if (!this.printer.isSpinnerRunning()) {
           this.printer.startSpinner('Deployment in progress...');

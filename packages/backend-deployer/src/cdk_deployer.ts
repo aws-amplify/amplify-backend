@@ -154,6 +154,14 @@ export class CDKDeployer implements BackendDeployer {
             : HotswapMode.FULL_DEPLOYMENT,
       });
     } catch (error) {
+      await this.ioHost.notify({
+        message: 'Deployment failed',
+        code: 'DEPLOY_FAILED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'debug',
+        data: undefined,
+      });
       throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
     }
 

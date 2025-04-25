@@ -1,22 +1,22 @@
 import { STSClient } from '@aws-sdk/client-sts';
 
 /**
- * Retrieves the AWS region of the user
+ * Retrieves AWS region of the user
  */
 export class RegionFetcher {
-  private region?: string;
+  private regionPromise?: Promise<string>;
 
   /**
    * constructor for RegionFetcher
    */
   constructor(private readonly stsClient = new STSClient()) {}
   fetch = async () => {
-    if (this.region) {
-      return this.region;
+    if (this.regionPromise) {
+      return await this.regionPromise;
     }
     try {
-      this.region = await this.stsClient.config.region();
-      return this.region;
+      this.regionPromise = this.stsClient.config.region();
+      return await this.regionPromise;
     } catch {
       return;
     }
