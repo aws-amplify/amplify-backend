@@ -19,23 +19,34 @@ updates:
     # Groups dependencies into one PR, dependencies that don't match any group will be in their own individual PR
     # see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#groups--.
     groups:
+      apollo:
+        patterns:
+          - '@apollo/*'
       aws-sdk:
         patterns:
           - '@aws-sdk/*'
-      smithy:
+      changesets:
         patterns:
-          - '@smithy/*'
+          - '@changesets/*'
       eslint:
         patterns:
           - '@shopify/eslint-plugin'
           - '@typescript-eslint/*'
           - 'eslint'
           - 'eslint-*'
+      inquirer:
+        patterns:
+          - '@inquirer/*'
       opentelemetry:
         patterns:
           - '@opentelemetry/*'
+      smithy:
+        patterns:
+          - '@smithy/*'
     # Ignore updates to certain dependencies.
     # See: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#ignore--
     ignore:
       # newer versions of api-extractor introduce breaking behavior to us see: https://github.com/microsoft/rushstack/issues/4842
       - dependency-name: '@microsoft/api-extractor'
+      # typings for node should match the lowest Node version we currently support. Do not upgrade this eagerly.
+      - dependency-name: '@types/node'
