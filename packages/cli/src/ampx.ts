@@ -19,6 +19,7 @@ import {
   TelemetrySpanProcessorFactory,
   UsageDataEmitterFactory,
   setSpanAttributes,
+  telemetrySpanAttributeCountLimit,
   translateErrorToTelemetryErrorDetails,
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
@@ -61,6 +62,9 @@ const telemetrySpanProcessor =
 openTelemetryTrace.setGlobalTracerProvider(
   new BasicTracerProvider({
     spanProcessors: [telemetrySpanProcessor],
+    spanLimits: {
+      attributeCountLimit: telemetrySpanAttributeCountLimit,
+    },
   }),
 );
 

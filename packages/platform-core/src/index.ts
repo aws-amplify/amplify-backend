@@ -22,4 +22,7 @@ export {
 } from './telemetry/telemetry_payload.js';
 export * from './telemetry/set_span_attributes.js';
 export * from './telemetry/translate_error_to_telemetry_error_details.js';
-export { TELEMETRY_ENABLED } from './telemetry/constants.js';
+export {
+  TELEMETRY_ENABLED,
+  telemetrySpanAttributeCountLimit,
+} from './telemetry/constants.js';

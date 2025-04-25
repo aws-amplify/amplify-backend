@@ -6,11 +6,16 @@ import os from 'os';
 import { v4 as uuidV4 } from 'uuid';
 import { getUrl } from './get_telemetry_url';
 import { TelemetryPayload, telemetryPayloadSchema } from './telemetry_payload';
-import { latestPayloadVersion } from './constants';
+import {
+  latestPayloadVersion,
+  telemetrySpanAttributeCountLimit,
+} from './constants';
 import { getLocalProjectId } from './get_local_project_id';
 import { AccountIdFetcher } from './account_id_fetcher';
 import { RegionFetcher } from './region_fetcher';
 import { Dependency } from '@aws-amplify/plugin-types';
+import { translateErrorToTelemetryErrorDetails } from './translate_error_to_telemetry_error_details';
+import { AmplifyFault } from '../errors';
 
 /**
  * Maps data from span to payload and sends the payload
@@ -110,9 +115,8 @@ export class DefaultTelemetryPayloadExporter {
     span: ReadableSpan,
   ): Promise<TelemetryPayload | undefined> => {
     try {
-      const unflattened = this.unflattenSpanAttributes(span.attributes);
-
-      const payload: TelemetryPayload = telemetryPayloadSchema.parse({
+      let payload: TelemetryPayload;
+      const basePayload: Partial<TelemetryPayload> = {
         identifiers: {
           payloadVersion: this.payloadVersion,
           sessionUuid: this.sessionId,
@@ -122,7 +126,6 @@ export class DefaultTelemetryPayloadExporter {
           accountId: await this.accountIdFetcher.fetch(),
           awsRegion: await this.regionFetcher.fetch(),
         },
-        event: unflattened.event,
         environment: {
           os: {
             platform: os.platform(),
@@ -139,17 +142,48 @@ export class DefaultTelemetryPayloadExporter {
         project: {
           dependencies: this.dependenciesToReport,
         },
-        latency: unflattened.latency,
-        error: unflattened.error,
-      });
-      return payload;
+      };
+
+      if (
+        Object.keys(span.attributes).length >= telemetrySpanAttributeCountLimit
+      ) {
+        payload = {
+          ...(basePayload as TelemetryPayload), // to undo Partial typing on basePayload to ensure payload completeness
+          event: {
+            state: 'FAILED',
+            command: {
+              path: [],
+              parameters: [],
+            },
+          },
+          latency: { total: 0 },
+          error: translateErrorToTelemetryErrorDetails(
+            new AmplifyFault('TelemetrySpanAttributeCountLimitFault', {
+              message: `Telemetry span attribute count has hit the limit of ${telemetrySpanAttributeCountLimit}`,
+            }),
+          ),
+        };
+      } else {
+        const unflattened = this.unflattenSpanAttributes(span.attributes);
+
+        payload = {
+          ...(basePayload as TelemetryPayload), // to undo Partial typing on basePayload to ensure payload completeness
+          event: unflattened.event,
+          latency: unflattened.latency,
+          error: unflattened.error,
+        };
+      }
+
+      const parsedPayload: TelemetryPayload =
+        telemetryPayloadSchema.parse(payload);
+      return parsedPayload;
     } catch {
       // Don't propogate errors related to not being able to get telemetry payload
       return;
     }
   };
 
-  // Helper to unflatten dot notation span attributes into telemetry payload
+  // Unflattens dot notation span attributes into telemetry payload
   private unflattenSpanAttributes = (attributes: Record<string, unknown>) => {
     // Using any here is safe because we parse the result with telemetry schema
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

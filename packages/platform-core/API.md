@@ -477,6 +477,9 @@ export const telemetryPayloadSchema: z.ZodObject<{
 }>;
 
 // @public
+export const telemetrySpanAttributeCountLimit = 1000;
+
+// @public
 export class TelemetrySpanProcessorFactory {
     // (undocumented)
     getInstance: (dependencies?: Array<Dependency>) => Promise<SpanProcessor>;

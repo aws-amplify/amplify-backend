@@ -12,6 +12,7 @@ import { AccountIdFetcher } from './account_id_fetcher';
 import { RegionFetcher } from './region_fetcher';
 import isCI from 'is-ci';
 import { ExportResultCode } from '@opentelemetry/core';
+import { telemetrySpanAttributeCountLimit } from './constants';
 
 void describe('DefaultTelemetryPayloadExporter', () => {
   let telemetryPayloadExporter: DefaultTelemetryPayloadExporter;
@@ -73,8 +74,6 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       'latency.init': 10,
       'latency.synthesis': 250,
       'latency.deployment': 740,
-      'project.dependencies.0.name': 'some-dep',
-      'project.dependencies.0.version': '1.0.0',
     },
     name: 'test-span',
     spanContext: () => ({
@@ -255,6 +254,86 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       'test error message',
     );
     assert.strictEqual(telemetryPayloadSent.error.stack, 'test error stack');
+    assert.deepStrictEqual(mockResultCallback.mock.calls[0].arguments[0], {
+      code: ExportResultCode.SUCCESS,
+    });
+  });
+
+  void it('sends bare bones span with error when span is at attribute count limit', async () => {
+    const spanAttributes: Record<string, string> = {};
+    for (let i = 0; i < telemetrySpanAttributeCountLimit; i++) {
+      spanAttributes[`attribute${i}`] = `attributeValue${i}`;
+    }
+    const mockSpanWithMaxAttributes = {
+      ...mockSpan,
+      attributes: {
+        ...spanAttributes,
+      },
+    };
+
+    await setUpAndSendTelemetryPayload(mockSpanWithMaxAttributes);
+    const telemetryPayloadSent: TelemetryPayload = JSON.parse(
+      onReqWriteMock.mock.calls[0].arguments[0],
+    );
+
+    assert.strictEqual(
+      telemetryPayloadSent.identifiers.payloadVersion,
+      testPayloadVersion,
+    );
+    assert.ok(validate(telemetryPayloadSent.identifiers.sessionUuid));
+    assert.notEqual(
+      telemetryPayloadSent.identifiers.sessionUuid,
+      telemetryPayloadSent.identifiers.eventId,
+    );
+    assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
+    assert.strictEqual(telemetryPayloadSent.event.state, 'FAILED');
+    assert.deepStrictEqual(telemetryPayloadSent.event.command.path, []);
+    assert.deepStrictEqual(telemetryPayloadSent.event.command.parameters, []);
+    assert.strictEqual(
+      telemetryPayloadSent.environment.os.platform,
+      os.platform(),
+    );
+    assert.strictEqual(
+      telemetryPayloadSent.environment.os.release,
+      os.release(),
+    );
+    assert.strictEqual(
+      telemetryPayloadSent.environment.shell,
+      os.userInfo().shell ?? '',
+    );
+    assert.strictEqual(
+      telemetryPayloadSent.environment.npmUserAgent,
+      testNpmUserAgent,
+    );
+    assert.strictEqual(telemetryPayloadSent.environment.ci, isCI);
+    assert.ok(telemetryPayloadSent.environment.memory.total);
+    assert.ok(telemetryPayloadSent.environment.memory.free);
+    assert.deepStrictEqual(telemetryPayloadSent.project.dependencies, [
+      {
+        name: 'aws-cdk',
+        version: '1.2.3',
+      },
+      {
+        name: 'aws-cdk-lib',
+        version: '12.13.14',
+      },
+    ]);
+    assert.strictEqual(telemetryPayloadSent.latency.total, 0);
+    assert.strictEqual(telemetryPayloadSent.latency.init, undefined);
+    assert.strictEqual(telemetryPayloadSent.latency.synthesis, undefined);
+    assert.strictEqual(telemetryPayloadSent.latency.deployment, undefined);
+    assert.strictEqual(
+      telemetryPayloadSent.error?.name,
+      'TelemetrySpanAttributeCountLimitFault',
+    );
+    assert.strictEqual(
+      telemetryPayloadSent.error.message,
+      `Telemetry span attribute count has hit the limit of ${telemetrySpanAttributeCountLimit}`,
+    );
+    assert.ok(telemetryPayloadSent.error.stack);
     assert.deepStrictEqual(mockResultCallback.mock.calls[0].arguments[0], {
       code: ExportResultCode.SUCCESS,
     });
