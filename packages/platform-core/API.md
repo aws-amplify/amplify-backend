@@ -7,12 +7,15 @@
 import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { Dependency } from '@aws-amplify/plugin-types';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Span } from '@opentelemetry/api';
+import { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import z from 'zod';
 
 declare namespace __export__cdk {
@@ -130,7 +133,7 @@ export type ErrorDetails = {
     name: string;
     message: string;
     stack: string;
-    cause?: ErrorDetails;
+    caused?: ErrorDetails;
 };
 
 // @public
@@ -222,14 +225,23 @@ export class ParameterPathConversions {
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
+// @public
+export const setSpanAttributes: (span: Span, obj: DeepPartial<TelemetryPayload> | ErrorDetails, prefix?: string) => void;
+
 // @public (undocumented)
 export enum TagName {
     // (undocumented)
     FRIENDLY_NAME = "amplify:friendly-name"
 }
 
+// @public
+export const TELEMETRY_ENABLED = "telemetry.enabled";
+
 // @public (undocumented)
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
+
+// @public (undocumented)
+export type TelemetryPayloadKeys = keyof TelemetryPayload;
 
 // @public (undocumented)
 export const telemetryPayloadSchema: z.ZodObject<{
@@ -463,6 +475,18 @@ export const telemetryPayloadSchema: z.ZodObject<{
     };
     error?: ErrorDetails | undefined;
 }>;
+
+// @public
+export const telemetrySpanAttributeCountLimit = 1000;
+
+// @public
+export class TelemetrySpanProcessorFactory {
+    // (undocumented)
+    getInstance: (dependencies?: Array<Dependency>) => Promise<SpanProcessor>;
+}
+
+// @public
+export const translateErrorToTelemetryErrorDetails: (error?: Error) => TelemetryPayload["error"];
 
 // @public (undocumented)
 export type TypedConfigurationFile<T> = {

@@ -38,6 +38,9 @@ updates:
       inquirer:
         patterns:
           - '@inquirer/*'
+      opentelemetry:
+        patterns:
+          - '@opentelemetry/*'
       smithy:
         patterns:
           - '@smithy/*'

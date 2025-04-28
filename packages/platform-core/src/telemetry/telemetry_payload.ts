@@ -55,7 +55,7 @@ export type ErrorDetails = {
   name: string;
   message: string;
   stack: string;
-  cause?: ErrorDetails;
+  caused?: ErrorDetails;
 };
 
 const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
@@ -63,7 +63,7 @@ const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
     name: z.string(),
     message: z.string(),
     stack: z.string(),
-    cause: z.optional(errorSchema), // Recursive reference
+    caused: z.optional(errorSchema), // Recursive reference
   }),
 );
 
@@ -77,3 +77,5 @@ export const telemetryPayloadSchema = z.object({
 });
 
 export type TelemetryPayload = z.infer<typeof telemetryPayloadSchema>;
+
+export type TelemetryPayloadKeys = keyof TelemetryPayload;
