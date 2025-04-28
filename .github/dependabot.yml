@@ -16,7 +16,9 @@ updates:
       timezone: 'America/Los_Angeles'
     # Update package.json files if new version is outside of version range specified there. Otherwise lock file only.
     versioning-strategy: increase-if-necessary
-    open-pull-requests-limit: 20
+    allow:
+      - dependency-type: 'production'
+    open-pull-requests-limit: 10
     # Groups dependencies into one PR, dependencies that don't match any group will be in their own individual PR
     # see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#groups--.
     groups:
@@ -26,6 +28,7 @@ updates:
       aws-sdk:
         patterns:
           - '@aws-sdk/*'
+          - '@types/aws-*'
       changesets:
         patterns:
           - '@changesets/*'
