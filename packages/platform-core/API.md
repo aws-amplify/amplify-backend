@@ -108,6 +108,13 @@ export enum CDKContextKey {
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
+// @public
+export type CloudWatchLogEvent = {
+    readonly message: string;
+    readonly logGroupName: string;
+    timestamp: Date;
+};
+
 // @public (undocumented)
 export const configControllerFactory: ConfigurationControllerFactory;
 
@@ -271,17 +278,17 @@ export const telemetryPayloadSchema: z.ZodObject<{
             parameters: string[];
         }>;
     }, "strip", z.ZodTypeAny, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
+        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     }, {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
+        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     }>;
     environment: z.ZodObject<{
         os: z.ZodObject<{
@@ -385,11 +392,11 @@ export const telemetryPayloadSchema: z.ZodObject<{
         awsRegion?: string | undefined;
     };
     event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
+        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     };
     environment: {
         os: {
@@ -429,11 +436,11 @@ export const telemetryPayloadSchema: z.ZodObject<{
         awsRegion?: string | undefined;
     };
     event: {
-        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
+        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     };
     environment: {
         os: {

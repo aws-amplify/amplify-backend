@@ -5,14 +5,35 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
 import EventEmitter from 'events';
 import { Format } from '@aws-amplify/cli-core';
+import { LambdaClient } from '@aws-sdk/client-lambda';
 import { Printer } from '@aws-amplify/cli-core';
 import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export type BackendIdSandboxResolver = (identifier?: string) => Promise<BackendIdentifier>;
+
+// @public
+export class CloudWatchLogEventMonitor {
+    constructor(cloudWatchLogsClient: CloudWatchLogsClient, printer?: Printer);
+    activate: (outputLocation?: string) => void;
+    addLogGroups: (friendlyResourceName: string, logGroupName: string) => void;
+    // (undocumented)
+    readonly cloudWatchLogsClient: CloudWatchLogsClient;
+    pause: () => void;
+}
+
+// @public
+export class LambdaFunctionLogStreamer {
+    constructor(lambda: LambdaClient, logsMonitor: CloudWatchLogEventMonitor, backendOutputClient: BackendOutputClient, printer: Printer);
+    startStreamingLogs: (sandboxBackendId: BackendIdentifier, streamingOptions?: SandboxFunctionStreamingOptions) => Promise<void>;
+    // (undocumented)
+    stopStreamingLogs: () => void;
+}
 
 // @public
 export type Sandbox = {

@@ -5,7 +5,9 @@
 ```ts
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { CloudWatchLogEvent } from '@aws-amplify/platform-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { Server } from 'socket.io';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
 
@@ -38,6 +40,39 @@ export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
 export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
+
+// @public
+export class ConsolePrinter implements Printer {
+    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, ttyEnabled?: boolean);
+    clearConsole: () => void;
+    indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
+    // (undocumented)
+    isSpinnerRunning: () => boolean;
+    log: (message: string, level?: LogLevel) => void;
+    // (undocumented)
+    logCloudWatch: (tag: string, event: CloudWatchLogEvent, color?: ColorName) => void;
+    // (undocumented)
+    logMarkdown: (message: string) => void;
+    print: (message: string) => void;
+    printNewLine: () => void;
+    startSpinner: (message: string, options?: {
+        timeoutSeconds: number;
+    }) => void;
+    // (undocumented)
+    readonly stderr: WriteStream | NodeJS.WritableStream;
+    // (undocumented)
+    readonly stdout: WriteStream | NodeJS.WritableStream;
+    stopSpinner: (successMessage?: string) => void;
+    // (undocumented)
+    readonly ttyEnabled: boolean;
+    updateSpinner: (options: {
+        message?: string;
+        prefixText?: string;
+    }) => void;
+}
+
+// @public
+export const embedAndStoreCode: (baseDir?: string) => Promise<void>;
 
 // @public
 export class Format {
@@ -74,6 +109,16 @@ export class Format {
 
 // @public (undocumented)
 export const format: Format;
+
+// @public
+export const getRelevantCodeSnippets: (query: string | string[], topK?: number) => Promise<{
+    filePath: any;
+    content: any;
+    distance: any;
+}[]>;
+
+// @public
+export const handleErrorWithAI: (error: Error) => Promise<any>;
 
 // @public (undocumented)
 export enum LogLevel {
@@ -426,37 +471,54 @@ export class PackageManagerControllerFactory {
     getPackageManagerController(): PackageManagerController;
 }
 
+// @public (undocumented)
+export type Printer = {
+    print: (message: string) => void;
+    printNewLine: () => void;
+    log: (message: string, level?: LogLevel) => void;
+    logCloudWatch: (tag: string, event: CloudWatchLogEvent, color?: ColorName) => void;
+    logMarkdown: (message: string) => void;
+    indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
+    startSpinner: (message: string, options?: {
+        timeoutSeconds: number;
+    }) => void;
+    stopSpinner: (successMessage?: string) => void;
+    isSpinnerRunning: () => boolean;
+    updateSpinner: (options: {
+        message?: string;
+        prefixText?: string;
+    }) => void;
+    clearConsole: () => void;
+};
+
+// @public (undocumented)
+export const printer: ConsolePrinter;
+
 // @public
-export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, ttyEnabled?: boolean);
+export class WebConsolePrinter implements Printer {
+    constructor(minimumLogLevel: LogLevel, io: Server);
     clearConsole: () => void;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
+    readonly io: Server;
+    // (undocumented)
     isSpinnerRunning: () => boolean;
     log: (message: string, level?: LogLevel) => void;
+    // (undocumented)
+    logCloudWatch: (tag: string, event: CloudWatchLogEvent, color?: ColorName) => void;
+    // (undocumented)
+    logMarkdown: (message: string) => void;
     print: (message: string) => void;
     printNewLine: () => void;
     startSpinner: (message: string, options?: {
         timeoutSeconds: number;
     }) => void;
-    // (undocumented)
-    readonly stderr: WriteStream | NodeJS.WritableStream;
-    // (undocumented)
-    readonly stdout: WriteStream | NodeJS.WritableStream;
     stopSpinner: (successMessage?: string) => void;
-    // (undocumented)
-    readonly ttyEnabled: boolean;
     updateSpinner: (options: {
         message?: string;
         prefixText?: string;
     }) => void;
 }
-
-// @public (undocumented)
-export const printer: Printer;
-
-// @public (undocumented)
-export type RecordValue = string | number | string[] | Date;
 
 // (No @packageDocumentation comment for this package)
 
