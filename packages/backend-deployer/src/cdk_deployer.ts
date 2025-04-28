@@ -159,7 +159,7 @@ export class CDKDeployer implements BackendDeployer {
         code: 'DEPLOY_FAILED',
         action: 'amplify',
         time: new Date(),
-        level: 'debug',
+        level: 'error',
         data: undefined,
       });
       throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
