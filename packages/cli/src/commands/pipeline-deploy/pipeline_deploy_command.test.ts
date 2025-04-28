@@ -14,9 +14,9 @@ import {
   BackendDeployerOutputFormatter,
 } from '@aws-amplify/backend-deployer';
 import {
+  ConsolePrinter,
   LogLevel,
   PackageManagerControllerFactory,
-  Printer,
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import {
@@ -48,7 +48,7 @@ void describe('deploy command', () => {
 
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
-    new Printer(LogLevel.DEBUG),
+    new ConsolePrinter(LogLevel.DEBUG),
   );
   const formatterStub: BackendDeployerOutputFormatter = {
     normalizeAmpxCommand: () => 'test command',

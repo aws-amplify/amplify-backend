@@ -1,19 +1,19 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { NoticesRenderer } from './notices_renderer.js';
-import { LogLevel, Notice, Printer } from '@aws-amplify/cli-core';
+import { ConsolePrinter, LogLevel, Notice } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { NoticesController } from './notices_controller.js';
 import { NoticesPrinter } from './notices_printer.js';
 
 void describe('NoticesRenderer', () => {
   // Setup common mocks
-  const mockPrinterPrintNewLine = mock.fn<Printer['printNewLine']>();
-  const mockPrinterLog = mock.fn<Printer['log']>();
+  const mockPrinterPrintNewLine = mock.fn<ConsolePrinter['printNewLine']>();
+  const mockPrinterLog = mock.fn<ConsolePrinter['log']>();
   const mockPrinter = {
     printNewLine: mockPrinterPrintNewLine,
     log: mockPrinterLog,
-  } as unknown as Printer;
+  } as unknown as ConsolePrinter;
 
   const mockProcess = {
     argv: ['node', 'script.js', 'someCommand'],

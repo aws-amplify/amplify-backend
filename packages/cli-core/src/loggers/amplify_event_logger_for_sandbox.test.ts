@@ -10,13 +10,14 @@ import { data as destroyAppCdkEvents } from './test-assets/destroy_cdk_structure
 import { data as failedCfnDeploymentCdkEvents } from './test-assets/failed_auth_structured_cdk_events.js';
 import { data as hotswappedCDKEvents } from './test-assets/hotswap_lambda_data_resources_cdk_events.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
-import { LogLevel, Printer } from '../printer/printer.js';
 import assert from 'node:assert';
 import { format } from '../format/format.js';
 import { EOL } from 'node:os';
+import { ConsolePrinter } from '../printer/console_printer.js';
+import { LogLevel } from '../printer/printer.js';
 
 void describe('amplify sandbox event logging', () => {
-  const printer = new Printer(
+  const printer = new ConsolePrinter(
     LogLevel.INFO,
     process.stdout,
     process.stderr,

@@ -22,9 +22,9 @@ import {
 import { Sandbox, SandboxOptions } from './sandbox.js';
 import {
   AmplifyPrompter,
+  ConsolePrinter,
   LogLevel,
   PackageManagerControllerFactory,
-  Printer,
   format,
 } from '@aws-amplify/cli-core';
 import { URL, fileURLToPath } from 'url';
@@ -49,7 +49,7 @@ const subscribeMock = mock.fn<
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG),
+  new ConsolePrinter(LogLevel.DEBUG),
 );
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -96,7 +96,7 @@ const printer = {
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
   secretClient,
-  printer as unknown as Printer,
+  printer as unknown as ConsolePrinter,
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
@@ -160,7 +160,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       sandboxExecutor,
       ssmClientMock,
       functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
-      printer as unknown as Printer,
+      printer as unknown as ConsolePrinter,
       openMock as never,
       subscribeMock as never,
     );
@@ -1171,7 +1171,7 @@ const setupAndStartSandbox = async (
     testData.executor,
     testData.ssmClient,
     testData.functionsLogStreamer,
-    printer as unknown as Printer,
+    printer as unknown as ConsolePrinter,
     testData.open ?? _open,
     subscribeMock as never,
   );

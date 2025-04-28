@@ -26,6 +26,7 @@ import {
   LogLevel,
   Printer,
   format,
+  handleErrorWithAI,
 } from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
@@ -300,6 +301,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // Print a meaningful message
       this.printer.log(format.error(error), LogLevel.ERROR);
       this.emit('failedDeployment', error);
+
+      if (error && error instanceof Error) {
+        this.printer.logMarkdown(
+          await handleErrorWithAI(
+            error.cause && error.cause instanceof Error ? error.cause : error,
+          ),
+        );
+      }
 
       // If the error is because of a non-allowed destructive change such as
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes

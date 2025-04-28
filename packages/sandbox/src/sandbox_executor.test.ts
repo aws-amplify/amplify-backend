@@ -6,9 +6,9 @@ import {
   BackendDeployerOutputFormatter,
 } from '@aws-amplify/backend-deployer';
 import {
+  ConsolePrinter,
   LogLevel,
   PackageManagerControllerFactory,
-  Printer,
 } from '@aws-amplify/cli-core';
 import {
   SecretListItem,
@@ -22,7 +22,7 @@ const mockedPrinter = {
 };
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG),
+  new ConsolePrinter(LogLevel.DEBUG),
 );
 
 const formatterStub: BackendDeployerOutputFormatter = {

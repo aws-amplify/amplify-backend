@@ -1,4 +1,9 @@
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  format,
+  handleErrorWithAI,
+  printer,
+} from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { extractSubCommands } from './extract_sub_commands.js';
@@ -121,6 +126,9 @@ const handleError = async ({
   if (errorHasCauseStackTrace(error)) {
     printer.printNewLine();
     printer.log(format.dim(error.cause.stack), LogLevel.DEBUG);
+  }
+  if (error) {
+    printer.logMarkdown(await handleErrorWithAI(error));
   }
 
   await usageDataEmitter?.emitFailure(

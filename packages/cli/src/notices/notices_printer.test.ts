@@ -1,13 +1,13 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { NoticesPrinter } from './notices_printer.js';
-import { Notice, Printer } from '@aws-amplify/cli-core';
+import { ConsolePrinter, Notice } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 void describe('NoticesPrinter', () => {
   const mockPrinter = {
-    print: mock.fn<Printer['print']>(),
-    printNewLine: mock.fn<Printer['printNewLine']>(),
+    print: mock.fn<ConsolePrinter['print']>(),
+    printNewLine: mock.fn<ConsolePrinter['printNewLine']>(),
   };
   const mockPackageManagerController = {
     getCommand: mock.fn<PackageManagerController['getCommand']>((args) => {
@@ -22,7 +22,7 @@ void describe('NoticesPrinter', () => {
     mockPackageManagerController.getCommand.mock.resetCalls();
     noticesPrinter = new NoticesPrinter(
       mockPackageManagerController as unknown as PackageManagerController,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
   });
 

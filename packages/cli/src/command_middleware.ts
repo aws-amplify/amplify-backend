@@ -3,7 +3,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { Printer, format } from '@aws-amplify/cli-core';
+import { ConsolePrinter, format } from '@aws-amplify/cli-core';
 
 /**
  * Contains middleware functions.
@@ -12,7 +12,7 @@ export class CommandMiddleware {
   /**
    * Creates command middleware.
    */
-  constructor(private readonly printer: Printer) {}
+  constructor(private readonly printer: ConsolePrinter) {}
 
   /**
    * Ensure AWS credentials and region of the input profile (or 'default' if undefined) are available in the provider chain.

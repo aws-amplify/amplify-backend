@@ -6,7 +6,7 @@ import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import fs from 'fs/promises';
 import path from 'path';
 import { ArgumentsCamelCase } from 'yargs';
-import { Printer } from '@aws-amplify/cli-core';
+import { ConsolePrinter } from '@aws-amplify/cli-core';
 
 const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
   if (restoreVal) {
@@ -20,7 +20,7 @@ void describe('commandMiddleware', () => {
   void describe('ensureAwsCredentialAndRegion', () => {
     const printerMock = { log: mock.fn() };
     const commandMiddleware = new CommandMiddleware(
-      printerMock as unknown as Printer,
+      printerMock as unknown as ConsolePrinter,
     );
     const testAccessKeyId = '124';
     const testSecretAccessKey = '667';

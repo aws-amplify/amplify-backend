@@ -1,0 +1,508 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <!-- <script
+      crossorigin="anonymous"
+      defer="defer"
+      type="application/javascript"
+      src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    /> -->
+    <title>Amplify Sandbox</title>
+    <style>
+      body {
+        margin: 0;
+        padding-bottom: 3rem;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      #form {
+        background: rgba(0, 0, 0, 0.15);
+        padding: 0.25rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        height: 3rem;
+        box-sizing: border-box;
+        backdrop-filter: blur(10px);
+      }
+      #input {
+        border: none;
+        padding: 0 1rem;
+        flex-grow: 1;
+        border-radius: 2rem;
+        margin: 0.25rem;
+      }
+      #input:focus {
+        outline: none;
+      }
+      #form > button {
+        background: #333;
+        border: none;
+        padding: 0 1rem;
+        margin: 0.25rem;
+        border-radius: 3px;
+        outline: none;
+        color: #fff;
+      }
+
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      #messages > li {
+        padding: 0.5rem 1rem;
+      }
+      /* #messages > li:nth-child(odd) {
+              background: #efefef;
+            } */
+      .loader {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        background: linear-gradient(
+          0deg,
+          rgba(255, 61, 0, 0.2) 33%,
+          #ff3d00 100%
+        );
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+      }
+      .loader::after {
+        content: '';
+        box-sizing: border-box;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #263238;
+      }
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% {
+          -webkit-transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /** Tabs*/
+      /* Style the tab */
+      .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+      }
+
+      /* Style the buttons inside the tab */
+      .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+      }
+
+      /* Change background color of buttons on hover */
+      .tab button:hover {
+        background-color: #ddd;
+      }
+
+      /* Create an active/current tablink class */
+      .tab button.active {
+        background-color: #ccc;
+      }
+
+      /* Style the tab content */
+      .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        -webkit-animation: fadeEffect 1s;
+        animation: fadeEffect 1s;
+      }
+
+      .tabcontent > div {
+        padding: 0.5rem 1rem;
+      }
+
+      /* Fade in tabs */
+      @-webkit-keyframes fadeEffect {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeEffect {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      th,
+      td {
+        border-style: solid;
+        border-color: #96d4d4;
+        border-width: thin;
+        height: 30px;
+        padding: 5px;
+      }
+
+      th {
+        text-align: left;
+      }
+
+      .resourceName {
+        overflow-x: auto;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 700px;
+        max-width: 700px;
+      }
+
+      .status {
+        width: 100px;
+        max-width: 100px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      #textarea {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+      }
+
+      #submit {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tab" id="tabGroup">
+      <button
+        class="tablinks"
+        id="SandboxConsoleTabButton"
+        onclick="openTab(event, 'SandboxConsole')"
+      >
+        Sandbox Console
+      </button>
+      <button class="tablinks" onclick="openTab(event, 'DeployedResources')">
+        Deployed Resources
+      </button>
+      <!-- <button class="tablinks" onclick="openTab(event, 'Tokyo')">Tokyo</button> -->
+    </div>
+
+    <div
+      id="SandboxConsole"
+      class="tabcontent"
+      style="overflow-y: scroll; height: 95%; width: 100%; position: fixed"
+    >
+      <ul id="messages"></ul>
+    </div>
+
+    <div id="DeployedResources" class="tabcontent">
+      <table id="Resources"></table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const messages = document.getElementById('messages');
+      document.getElementById('SandboxConsoleTabButton').click();
+
+      socket.on('logMessage', (msg) => {
+        const item = document.createElement('li');
+        item.innerHTML = msg;
+        messages.appendChild(item);
+
+        const sandboxDiv = document.getElementById('SandboxConsole');
+        sandboxDiv.scroll({ top: sandboxDiv.scrollHeight, behavior: 'smooth' });
+
+        if (msg.includes('Deployment completed')) {
+          socket.emit('DeploymentCompleted');
+        }
+      });
+
+      socket.on('deployedBackendResources', (data) => {
+        document.getElementById('Resources').textContent = '';
+        const resourceGroups = data.resources
+          .filter((resource) => resource.resourceType !== 'AWS::CDK::Metadata')
+          .reduce((accumulator, currentValue) => {
+            const resourceType = currentValue.resourceType;
+            if (!accumulator[resourceType]) {
+              accumulator[resourceType] = [];
+            }
+            accumulator[resourceType].push(currentValue);
+            return accumulator;
+          }, {});
+        for (const resourceType in resourceGroups) {
+          const resources = resourceGroups[resourceType];
+
+          if (!resources || resources.length === 0) {
+            continue;
+          }
+          const h2 = document.createElement('h2');
+          h2.innerHTML = resourceType;
+
+          const resourceGroupTable = document.createElement('table');
+          resourceGroupTable.classList.add('table');
+          const resourceGroupTableHeadTr = document.createElement('tr');
+          const resourceGroupTableHeadTd1 = document.createElement('th');
+          resourceGroupTableHeadTd1.classList.add('resourceName');
+          const resourceGroupTableHeadTd2 = document.createElement('th');
+          const resourceGroupTableHeadTd3 = document.createElement('th');
+          resourceGroupTableHeadTd1.innerHTML = 'Logical Resource ID';
+          resourceGroupTableHeadTd2.innerHTML = 'Status';
+          resourceGroupTableHeadTd2.classList.add('status');
+          resourceGroupTableHeadTd3.innerHTML = 'Resource Type';
+          resourceGroupTableHeadTr.appendChild(resourceGroupTableHeadTd1);
+          resourceGroupTableHeadTr.appendChild(resourceGroupTableHeadTd2);
+          resourceGroupTableHeadTr.appendChild(resourceGroupTableHeadTd3);
+          const resourceGroupTableHeader = document.createElement('thead');
+          resourceGroupTableHeader.appendChild(resourceGroupTableHeadTr);
+          resourceGroupTable.appendChild(resourceGroupTableHeader);
+
+          const resourceGroupTableBody = document.createElement('tbody');
+          resourceGroupTable.appendChild(resourceGroupTableBody);
+
+          resources.forEach((resource) => {
+            const resourceGroupTableTr = document.createElement('tr');
+            const logicalResourceId = document.createElement('td');
+            let displayName = resource.logicalResourceId;
+            let isAFunctionResource = false;
+            if (resource.resourceType === 'AWS::Lambda::Function') {
+              const functionConfiguration = data.functionConfigurations.find(
+                (configuration) =>
+                  configuration.functionName === resource.physicalResourceId,
+              );
+              if (functionConfiguration && functionConfiguration.friendlyName) {
+                isAFunctionResource = true;
+                displayName = functionConfiguration.friendlyName;
+              }
+            }
+            logicalResourceId.classList.add('resourceName');
+            logicalResourceId.innerText = displayName;
+
+            const resourceStatus = document.createElement('td');
+            resourceStatus.innerText = resource.resourceStatus;
+            const resourceType = document.createElement('td');
+            resourceType.innerText = resource.resourceType;
+            resourceGroupTableTr.appendChild(logicalResourceId);
+            resourceGroupTableTr.appendChild(resourceStatus);
+            resourceGroupTableTr.appendChild(resourceType);
+            if (isAFunctionResource) {
+              logicalResourceId.appendChild(
+                getStartStreamingButton(
+                  displayName,
+                  resource.physicalResourceId,
+                  socket,
+                ),
+              );
+            }
+            resourceGroupTableBody.appendChild(resourceGroupTableTr);
+          });
+          document.getElementById('Resources').appendChild(h2);
+          document.getElementById('Resources').appendChild(resourceGroupTable);
+        }
+      });
+
+      socket.on('cloudWatchEvent', (msg) => {
+        const functionLogsTab = document.getElementById(msg.tag + 'Logs');
+        const newDiv = document.createElement('li');
+        newDiv.innerText = `[${msg.event.timestamp}] ${msg.event.message}`;
+        functionLogsTab.appendChild(newDiv);
+      });
+
+      socket.on('startSpinner', (msg) => {
+        const item = document.createElement('li');
+        const spinnerSpan = document.createElement('span');
+        spinnerSpan.id = msg.id;
+        spinnerSpan.classList.add('loader');
+        const prefixTextSpan = document.createElement('span');
+        prefixTextSpan.style = 'float:left';
+        if (msg.prefixText) {
+          prefixTextSpan.innerHTML = msg.prefixText;
+        }
+        const suffixTextSpan = document.createElement('span');
+        prefixTextSpan.style = 'float:left';
+        if (msg.message) {
+          suffixTextSpan.innerHTML = msg.message;
+        }
+        item.appendChild(prefixTextSpan);
+        item.appendChild(spinnerSpan);
+        item.appendChild(suffixTextSpan);
+
+        console.log(item.getHTML());
+
+        messages.appendChild(item);
+
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('stopSpinner', (msg) => {
+        const spinnerSpan = document.getElementById(msg.id);
+        spinnerSpan.classList.remove('loader');
+        if (msg.message) {
+          spinnerSpan.parentElement.children[2].innerHTML = msg.message;
+        } else {
+          spinnerSpan.parentElement.remove();
+        }
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('updateSpinner', (msg) => {
+        const spinnerSpan = document.getElementById(msg.id);
+        if (msg.message) {
+          spinnerSpan.parentElement.children[2].innerHTML = msg.message;
+        } else if (msg.prefixText) {
+          spinnerSpan.parentElement.firstChild.innerHTML = msg.prefixText;
+        }
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('functionExecutionResult', (msg) => {
+        const resultsDiv = document.getElementById(
+          msg.functionName + 'Results',
+        );
+        resultsDiv.innerText = msg.output;
+      });
+
+      socket.onAny((eventName, ...args) => {
+        console.log(
+          `Received event ${eventName} with args ${JSON.stringify(args)}`,
+        );
+      });
+
+      function getStartStreamingButton(friendlyName, functionArn, socket) {
+        const streamFunctionButton = document.createElement('button');
+        streamFunctionButton.innerText = 'Stream Logs';
+        streamFunctionButton.onclick = () =>
+          streamLogs(friendlyName, functionArn, socket);
+        streamFunctionButton.style = 'margin-left:30px;';
+        return streamFunctionButton;
+      }
+
+      function createFunctionTabbedPage(friendlyName, functionArn) {
+        const tabGroup = document.getElementById('tabGroup');
+        const newTabButton = `<button class="tablinks" id='${friendlyName}Button' onclick="openTab(event, '${friendlyName}')">${friendlyName}</button>`;
+        tabGroup.insertAdjacentHTML('beforeend', newTabButton);
+
+        const html = `
+      <div class="tabcontent", id="${friendlyName}">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-10">
+              <p class="center">
+                <textarea
+                  name="main"
+                  placeholder="Add your input here!"
+                  id="${friendlyName}InputTextArea"
+                  rows="5"
+                  class="form-control"
+                ></textarea>
+              </p>
+
+              <button type="submit" id="${friendlyName}ExecuteButton" class="btn btn-default" style="position: absolute; bottom: 20px; right: 20px; margin: 20px;"
+                onclick="socket.emit('executeFunction', {
+                  functionName: '${functionArn}',
+                  payload: document.getElementById('${friendlyName}InputTextArea').value,
+                })">Execute!</button>
+            </div>
+          </div>
+        </div>
+        <h2 class='center'>Results</h2>
+        <div id="${functionArn}Results"> </div>
+        <h2 class='center'>Logs</h2>
+        <div id="${friendlyName}Logs" style="overflow-y: scroll; height: 65%; position: fixed"> </div>
+      </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+      }
+
+      function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName('tabcontent');
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = 'none';
+        }
+        tablinks = document.getElementsByClassName('tablinks');
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(' active', '');
+        }
+        document.getElementById(tabName).style.display = 'block';
+        evt.currentTarget.className += ' active';
+      }
+
+      function streamLogs(friendlyName, functionArn, socket) {
+        const exists = document.getElementById(friendlyName);
+        if (!exists) {
+          createFunctionTabbedPage(friendlyName, functionArn);
+        }
+        document.getElementById(friendlyName + 'Button').click();
+        socket.emit('startStreamingLogs', friendlyName);
+      }
+    </script>
+  </body>
+</html>

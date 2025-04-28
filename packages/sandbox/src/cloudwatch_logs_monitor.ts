@@ -1,11 +1,13 @@
 import {
   ColorName,
+  ConsolePrinter,
   LogLevel,
   Printer,
   colorNames,
+  printer as consolePrinter,
   format,
-  printer,
 } from '@aws-amplify/cli-core';
+import { CloudWatchLogEvent } from '@aws-amplify/platform-core';
 import {
   CloudWatchLogsClient,
   FilterLogEventsCommand,
@@ -20,26 +22,6 @@ import path from 'path';
  * If there is some error with reading events (i.e. Throttle) then this is also how long we wait until we try again
  */
 const SLEEP_MS = 2_000;
-
-/**
- * Represents a CloudWatch Log Event that will be printed to the terminal
- */
-type CloudWatchLogEvent = {
-  /**
-   * The log event message
-   */
-  readonly message: string;
-
-  /**
-   * The name of the log group
-   */
-  readonly logGroupName: string;
-
-  /**
-   * The time at which the event occurred
-   */
-  readonly timestamp: Date;
-};
 
 /**
  * Represents how an event from a CloudWatch Log Group will be displayed
@@ -84,14 +66,15 @@ export class CloudWatchLogEventMonitor {
 
   private active = false;
 
-  private printer = printer; // default stdout
-
   private enableColors = true; // show colors on console but not while writing to files
 
   /**
    * Initializes the start time to be `now`
    */
-  constructor(readonly cloudWatchLogsClient: CloudWatchLogsClient) {
+  constructor(
+    readonly cloudWatchLogsClient: CloudWatchLogsClient,
+    private printer: Printer = consolePrinter,
+  ) {
     this.startTime = Date.now();
   }
 
@@ -106,7 +89,7 @@ export class CloudWatchLogEventMonitor {
       const targetPath = path.isAbsolute(outputLocation)
         ? outputLocation
         : path.resolve(process.cwd(), outputLocation);
-      this.printer = new Printer(
+      this.printer = new ConsolePrinter(
         LogLevel.INFO,
         fs.createWriteStream(targetPath, { flags: 'a', autoClose: true }),
       );
@@ -175,13 +158,13 @@ export class CloudWatchLogEventMonitor {
         this.print(event);
       });
     } catch (error) {
-      printer.log(
+      this.printer.log(
         `${format.error(
           'Error streaming logs from CloudWatch.',
         )} ${format.error(error)}`,
         LogLevel.ERROR,
       );
-      printer.log('Logs streaming has been paused.');
+      this.printer.log('Logs streaming has been paused.');
       this.pause();
     }
 
@@ -212,20 +195,11 @@ export class CloudWatchLogEventMonitor {
       return;
     }
 
-    if (this.enableColors) {
-      this.printer.print(
-        `${format.note(event.timestamp.toLocaleTimeString())} [${format.color(
-          cloudWatchEventDisplay.friendlyName,
-          cloudWatchEventDisplay.color,
-        )}] ${event.message.trim()}`,
-      );
-    } else {
-      this.printer.print(
-        `${event.timestamp.toLocaleTimeString()} [${
-          cloudWatchEventDisplay.friendlyName
-        }] ${event.message.trim()}`,
-      );
-    }
+    this.printer.logCloudWatch(
+      cloudWatchEventDisplay.friendlyName,
+      event,
+      this.enableColors ? cloudWatchEventDisplay.color : undefined,
+    );
   };
 
   /**

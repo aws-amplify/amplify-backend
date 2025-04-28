@@ -1,7 +1,8 @@
 import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
-import { LogLevel, Printer } from './printer.js';
 import tty from 'node:tty';
+import { ConsolePrinter } from './console_printer.js';
+import { LogLevel } from './printer.js';
 
 void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
@@ -31,7 +32,7 @@ void describe('Printer', () => {
   });
 
   void it('log should print message followed by new line', () => {
-    new Printer(LogLevel.INFO).log('hello world');
+    new ConsolePrinter(LogLevel.INFO).log('hello world');
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
@@ -41,12 +42,12 @@ void describe('Printer', () => {
   });
 
   void it('log should not print debug logs by default', () => {
-    new Printer(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
+    new ConsolePrinter(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
   void it('log should print debug logs when printer is configured with minimum log level >= DEBUG', () => {
-    new Printer(LogLevel.DEBUG).log('hello world', LogLevel.DEBUG);
+    new ConsolePrinter(LogLevel.DEBUG).log('hello world', LogLevel.DEBUG);
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0].toString(),
@@ -56,14 +57,14 @@ void describe('Printer', () => {
   });
 
   void it('log should not print debug logs by default', () => {
-    new Printer(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
+    new ConsolePrinter(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
   void it('indicateProgress start animating spinner with message and stops animation in TTY terminal', async () => {
     const message = 'Message 1';
 
-    await new Printer(
+    await new ConsolePrinter(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
@@ -90,7 +91,7 @@ void describe('Printer', () => {
   void it('indicateProgress animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     const message = 'Message 1';
 
-    await new Printer(
+    await new ConsolePrinter(
       LogLevel.INFO,
       process.stdout,
       process.stderr,
@@ -122,7 +123,7 @@ void describe('Printer', () => {
       write: mock.fn(),
     } as unknown as tty.WriteStream;
     try {
-      await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
+      await new ConsolePrinter(LogLevel.INFO, ttyStream).indicateProgress(
         message,
         async () => {
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -140,7 +141,7 @@ void describe('Printer', () => {
     const message = 'Message 1';
 
     // Refresh rate of 500 ms to avoid flakiness in tests
-    const printer = new Printer(
+    const printer = new ConsolePrinter(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
@@ -174,7 +175,7 @@ void describe('Printer', () => {
     const message = 'Message 1';
 
     // Refresh rate of 50 ms
-    const printer = new Printer(
+    const printer = new ConsolePrinter(
       LogLevel.INFO,
       process.stdout,
       process.stderr,
@@ -208,7 +209,7 @@ void describe('Printer', () => {
     const message = 'Message 1';
 
     // Refresh rate of 50 ms
-    const printer = new Printer(
+    const printer = new ConsolePrinter(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
@@ -228,7 +229,7 @@ void describe('Printer', () => {
     const message = 'Message 1';
 
     // Refresh rate of 50 ms
-    const printer = new Printer(
+    const printer = new ConsolePrinter(
       LogLevel.INFO,
       ttyStream,
       process.stderr,
@@ -253,7 +254,13 @@ void describe('Printer', () => {
 
   void it('invalid spinner ids do not wreak havoc', async () => {
     // Refresh rate of 50 ms
-    const printer = new Printer(LogLevel.INFO, ttyStream, ttyStream, 10, true);
+    const printer = new ConsolePrinter(
+      LogLevel.INFO,
+      ttyStream,
+      ttyStream,
+      10,
+      true,
+    );
     assert.ok(!printer.isSpinnerRunning());
 
     printer.updateSpinner({ prefixText: 'some test' });
@@ -268,7 +275,7 @@ void describe('Printer', () => {
     const message = 'Message 1';
 
     // Refresh rate of 50 ms
-    const printer = new Printer(
+    const printer = new ConsolePrinter(
       LogLevel.INFO,
       ttyStream,
       process.stderr,

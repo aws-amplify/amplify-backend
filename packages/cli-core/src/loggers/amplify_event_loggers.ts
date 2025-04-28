@@ -1,4 +1,3 @@
-import { LogLevel, Printer } from '../printer/printer.js';
 import { printer as globalPrinter, minimumLogLevel } from '../printer.js';
 import { format } from '../format/format.js';
 import {
@@ -10,6 +9,9 @@ import { WriteStream } from 'node:tty';
 import { RewritableBlock } from './cfn-deployment-progress/rewritable_block.js';
 import { AmplifyIOEventsBridgeSingletonFactory } from './amplify_io_events_bridge_singleton_factory.js';
 import { EOL } from 'node:os';
+import { ConsolePrinter } from '../printer/console_printer.js';
+import { LogLevel, Printer } from '../printer/printer.js';
+import { WebConsolePrinter } from '../printer/web_console_printer.js';
 
 /**
  * Amplify events logger class. Implements several loggers that connect
@@ -34,7 +36,10 @@ export class AmplifyEventLogger {
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
-    if (this.printer.ttyEnabled) {
+    if (
+      (this.printer instanceof ConsolePrinter && this.printer.ttyEnabled) ||
+      this.printer instanceof WebConsolePrinter
+    ) {
       loggers.push(this.fancyCfnDeploymentProgress);
     } else {
       loggers.push(this.nonTtyCfnDeploymentProgress);
@@ -302,9 +307,13 @@ export class AmplifyEventLogger {
 
   private getNewCfnDeploymentProgressLogger = (printer: Printer) => {
     const getBlockWidth = () =>
-      printer.stdout instanceof WriteStream ? printer.stdout.columns : 600;
+      printer instanceof ConsolePrinter && printer.stdout instanceof WriteStream
+        ? printer.stdout.columns
+        : 600;
     const getBlockHeight = () =>
-      printer.stdout instanceof WriteStream ? printer.stdout.rows : 100;
+      printer instanceof ConsolePrinter && printer.stdout instanceof WriteStream
+        ? printer.stdout.rows
+        : 100;
     return new CfnDeploymentProgressLogger({
       getBlockWidth,
       rewritableBlock: new RewritableBlock(

@@ -3,9 +3,9 @@ import {
   AmplifyIoHostEventMessage,
   AmplifyIoHostEventRequestMessageIoRequest,
 } from '@aws-amplify/plugin-types';
-import { LogLevel, Printer } from '../printer/printer.js';
 import { format } from '../format/format.js';
 import { printer as globalPrinter } from '../printer.js';
+import { LogLevel, Printer } from '../printer/printer.js';
 
 /**
  * Implements IIoHost interface of AmplifyIOHost

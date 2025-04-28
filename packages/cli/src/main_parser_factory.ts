@@ -1,12 +1,13 @@
 import yargs, { Argv } from 'yargs';
 import { createGenerateCommand } from './commands/generate/generate_command_factory.js';
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';
-import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
+// import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
 import { createInfoCommand } from './commands/info/info_command_factory.js';
 import { createNoticesCommand } from './commands/notices/notices_command_factory.js';
 import * as path from 'path';
 import { NoticesRenderer } from './notices/notices_renderer.js';
+import { createDevConsoleCommandFactory } from './commands/dev-console/dev_console_command_factory.js';
 
 /**
  * Creates main parser.
@@ -15,6 +16,7 @@ export const createMainParser = (
   libraryVersion: string,
   noticesRenderer: NoticesRenderer,
 ): Argv => {
+  const sandboxCommand = createSandboxCommand(noticesRenderer);
   const parser = yargs()
     .version(libraryVersion)
     // This option is being used indirectly to configure the log level of the Printer instance.
@@ -29,8 +31,9 @@ export const createMainParser = (
     // This tells yargs that the command name is `ampx`.
     .scriptName(path.parse(process.argv[1]).name)
     .command(createGenerateCommand())
-    .command(createSandboxCommand(noticesRenderer))
-    .command(createPipelineDeployCommand())
+    .command(sandboxCommand)
+    .command(createDevConsoleCommandFactory())
+    //.command(createPipelineDeployCommand()) // IoBridgeFactory needs to be hold references based on printer
     .command(createConfigureCommand())
     .command(createInfoCommand())
     .command(createNoticesCommand())

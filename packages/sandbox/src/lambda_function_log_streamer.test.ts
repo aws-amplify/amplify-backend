@@ -14,7 +14,7 @@ import {
   LambdaClient,
 } from '@aws-sdk/client-lambda';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
-import { Printer } from '@aws-amplify/cli-core';
+import { ConsolePrinter } from '@aws-amplify/cli-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
 import { TagName } from '@aws-amplify/platform-core';
 
@@ -99,7 +99,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     lambdaClientMock,
     cloudWatchLogMonitorMock as unknown as CloudWatchLogEventMonitor,
     backendOutputClientMock as unknown as BackendOutputClient,
-    printer as unknown as Printer,
+    printer as unknown as ConsolePrinter,
   );
 
   beforeEach(() => {

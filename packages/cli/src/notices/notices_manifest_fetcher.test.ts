@@ -2,10 +2,10 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
 import {
+  ConsolePrinter,
   LogLevel,
   NoticesManifest,
   NoticesManifestValidator,
-  Printer,
 } from '@aws-amplify/cli-core';
 import { noticesMetadataFileInstance } from './notices_files.js';
 
@@ -20,7 +20,7 @@ void describe('NoticesManifestFetcher', () => {
     validate: mock.fn<NoticesManifestValidator['validate']>(),
   };
   const mockPrinter = {
-    log: mock.fn<Printer['log']>(),
+    log: mock.fn<ConsolePrinter['log']>(),
   };
 
   beforeEach(() => {
@@ -56,7 +56,7 @@ void describe('NoticesManifestFetcher', () => {
       'https://test-url',
       1000, // 1 second TTL
       mockFetch as unknown as typeof fetch,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
 
     const result = await fetcher.fetchNoticesManifest();
@@ -88,7 +88,7 @@ void describe('NoticesManifestFetcher', () => {
       'https://test-url',
       1000, // 1 second TTL
       mockFetch as unknown as typeof fetch,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
 
     const result = await fetcher.fetchNoticesManifest();
@@ -114,7 +114,7 @@ void describe('NoticesManifestFetcher', () => {
       'https://test-url',
       1000, // 1 second TTL
       mockFetch as unknown as typeof fetch,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
 
     await assert.rejects(async () => await fetcher.fetchNoticesManifest(), {
@@ -166,7 +166,7 @@ void describe('NoticesManifestFetcher', () => {
       'https://test-url',
       1000, // 1 second TTL
       mockFetch as unknown as typeof fetch,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
 
     const result = await fetcher.fetchNoticesManifest();
@@ -195,7 +195,7 @@ void describe('NoticesManifestFetcher', () => {
       'https://test-url',
       1000, // 1 second TTL
       mockFetch as unknown as typeof fetch,
-      mockPrinter as unknown as Printer,
+      mockPrinter as unknown as ConsolePrinter,
     );
 
     const result = await fetcher.fetchNoticesManifest();
