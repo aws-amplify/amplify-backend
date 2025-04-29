@@ -35,9 +35,14 @@ import {
   AmplifyError,
   AmplifyUserError,
   BackendIdentifierConversions,
+  TelemetryPayload,
+  setSpanAttributes,
+  translateErrorToTelemetryErrorDetails,
 } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { EOL } from 'os';
+import { Span, trace as openTelemetryTrace } from '@opentelemetry/api';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 
 /**
  * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
@@ -287,31 +292,72 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private deploy = async (options: SandboxOptions) => {
-    try {
-      const deployResult = await this.executor.deploy(
-        await this.backendIdSandboxResolver(options.identifier),
-        // It's important to pass this as callback so that debounce does
-        // not reset tracker prematurely
-        this.shouldValidateAppSources,
-      );
-      this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
-      this.emit('successfulDeployment', deployResult);
-    } catch (error) {
-      // Print a meaningful message
-      this.printer.log(format.error(error), LogLevel.ERROR);
-      this.emit('failedDeployment', error);
+    const tracer = openTelemetryTrace.getTracer('amplify-backend');
+    await tracer.startActiveSpan('sandbox', async (span: Span) => {
+      const startTime = Date.now();
+      try {
+        const deployResult = await this.executor.deploy(
+          await this.backendIdSandboxResolver(options.identifier),
+          // It's important to pass this as callback so that debounce does
+          // not reset tracker prematurely
+          this.shouldValidateAppSources,
+        );
+        const data: DeepPartial<TelemetryPayload> = {
+          latency: {
+            total: deployResult.deploymentTimes.totalTime
+              ? deployResult.deploymentTimes.totalTime * 1000
+              : 0,
+            synthesis: deployResult.deploymentTimes.synthesisTime
+              ? deployResult.deploymentTimes.synthesisTime * 1000
+              : 0,
+          },
+          event: {
+            state: 'SUCCEEDED',
+            command: {
+              path: ['SandboxDeployment'],
+              parameters: [],
+            },
+          },
+        };
+        setSpanAttributes(span, data);
+        span.end();
+        this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
+        this.emit('successfulDeployment', deployResult);
+      } catch (error) {
+        const amplifyError = AmplifyError.isAmplifyError(error)
+          ? error
+          : AmplifyError.fromError(error);
+        const data: DeepPartial<TelemetryPayload> = {
+          latency: {
+            total: Date.now() - startTime,
+          },
+          event: {
+            state: 'FAILED',
+            command: {
+              path: ['SandboxDeployment'],
+              parameters: [],
+            },
+          },
+          error: translateErrorToTelemetryErrorDetails(amplifyError),
+        };
+        setSpanAttributes(span, data);
+        span.end();
+        // Print a meaningful message
+        this.printer.log(format.error(error), LogLevel.ERROR);
+        this.emit('failedDeployment', error);
 
-      // If the error is because of a non-allowed destructive change such as
-      // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
-      // offer to recreate the sandbox or revert the change
-      if (
-        AmplifyError.isAmplifyError(error) &&
-        error.name === 'CFNUpdateNotSupportedError'
-      ) {
-        await this.handleUnsupportedDestructiveChanges(options);
+        // If the error is because of a non-allowed destructive change such as
+        // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
+        // offer to recreate the sandbox or revert the change
+        if (
+          AmplifyError.isAmplifyError(error) &&
+          error.name === 'CFNUpdateNotSupportedError'
+        ) {
+          await this.handleUnsupportedDestructiveChanges(options);
+        }
+        // else do not propagate and let the sandbox continue to run
       }
-      // else do not propagate and let the sandbox continue to run
-    }
+    });
   };
 
   private reset = async (options: SandboxOptions) => {

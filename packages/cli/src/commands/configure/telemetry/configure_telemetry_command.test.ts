@@ -4,6 +4,7 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
+  TELEMETRY_ENABLED,
   USAGE_DATA_TRACKING_ENABLED,
   UsageDataEmitter,
   configControllerFactory,
@@ -58,6 +59,14 @@ void describe('configure command', () => {
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'telemetry enable',
     });
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[1].arguments[0],
+      TELEMETRY_ENABLED,
+    );
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[1].arguments[1],
+      true,
+    );
   });
 
   void it('disables telemetry & updates local config', async () => {
@@ -79,6 +88,14 @@ void describe('configure command', () => {
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'telemetry disable',
     });
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[1].arguments[0],
+      TELEMETRY_ENABLED,
+    );
+    assert.strictEqual(
+      mockedConfigControllerSet.mock.calls[1].arguments[1],
+      false,
+    );
   });
 
   void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {

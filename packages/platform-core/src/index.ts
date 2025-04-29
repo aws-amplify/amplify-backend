@@ -13,8 +13,16 @@ export * from './parameter_path_conversions.js';
 export * from './object_accumulator.js';
 export { TagName } from './tag_name.js';
 export * from './naming_convention_conversions.js';
+export * from './telemetry/telemetry_span_processor_factory.js';
 export {
   ErrorDetails,
   TelemetryPayload,
+  TelemetryPayloadKeys,
   telemetryPayloadSchema,
-} from './telemetry-data/telemetry_data.js';
+} from './telemetry/telemetry_payload.js';
+export * from './telemetry/set_span_attributes.js';
+export * from './telemetry/translate_error_to_telemetry_error_details.js';
+export {
+  TELEMETRY_ENABLED,
+  telemetrySpanAttributeCountLimit,
+} from './telemetry/constants.js';
