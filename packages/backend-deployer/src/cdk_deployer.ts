@@ -155,6 +155,8 @@ export class CDKDeployer implements BackendDeployer {
       });
     } catch (error) {
       throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
+    } finally {
+      await synthAssembly?.dispose();
     }
 
     return {
