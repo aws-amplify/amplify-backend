@@ -12,3 +12,4 @@ export {
   DataLogLevel,
   AmplifyGen1DynamoDbTableMapping,
 } from './types.js';
+export { convertSchemaToCDK2 } from './convert_schema.js'

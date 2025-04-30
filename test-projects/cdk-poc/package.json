@@ -1,0 +1,12 @@
+{
+  "name": "cdk-poc",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --outputs-file outputs.json --all",
+    "generate-outputs": "ampx generate outputs --stack amplify-bar-foo-sandbox-39082c11af",
+    "generate-outputs2": "ampx generate outputs --stack some-ordinary-stack",
+    "sandbox": "cdk deploy --watch --all --hotswap-fallback --method=direct"
+  }
+}

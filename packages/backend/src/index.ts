@@ -24,3 +24,7 @@ export { defineStorage } from '@aws-amplify/backend-storage';
 
 // function
 export { defineFunction } from '@aws-amplify/backend-function';
+
+export { AmplifyStack } from './engine/amplify_stack.js';
+
+export { AmplifyClientConfigConstruct } from './engine/client-config-resource/client_config_construct.js';

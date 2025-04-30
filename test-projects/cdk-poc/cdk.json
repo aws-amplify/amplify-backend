@@ -1,0 +1,6 @@
+{
+  "app": "tsx amplify/backend.ts",
+  "watch": {
+    "include": "amplify/**"
+  }
+}

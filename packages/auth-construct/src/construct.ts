@@ -252,7 +252,10 @@ export class AmplifyAuth
       },
       groups: this.groups,
     };
-    this.storeOutput(props.outputStorageStrategy);
+    // TODO this will need to spread to other amplify constructs.
+    // OR we need to re-do the config generation in different way.
+    const outputStorageStrategy = props.outputStorageStrategy ?? this.node.tryGetContext('amplify.outputStorageStrategy');
+    this.storeOutput(outputStorageStrategy);
 
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),

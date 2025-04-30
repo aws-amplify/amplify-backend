@@ -13,6 +13,7 @@ import {
 } from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct, IConstruct } from 'constructs';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
@@ -28,6 +29,12 @@ export class AmplifyStack extends Stack {
     if (backendId.type === 'sandbox') {
       Aspects.of(this).add(new SandboxRemovalPolicyDestroyAspect());
     }
+
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      this,
+    );
+
+    this.node.setContext('amplify.outputStorageStrategy', outputStorageStrategy);
   }
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs

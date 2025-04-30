@@ -155,6 +155,81 @@ export const convertSchemaToCDK = (
 };
 
 /**
+ * TODO this is a version of convertSchemaToCDK without Gen2 stuff.
+ * Ultimately this should go to AmplifyDataDefinition.fromSchema or so in the data construct.
+ *
+ * Given an input schema type, produce the relevant CDK Graphql Def interface
+ * @param schema TS schema builder definition or string GraphQL schema
+ * @param importedTableName table name to use for imported models. If not defined the model is not imported.
+ * @returns the cdk graphql definition interface
+ */
+export const convertSchemaToCDK2 = (
+  schema: DataSchema,
+  importedTableName?: string,
+): IAmplifyDataDefinition => {
+  if (isDataSchema(schema)) {
+    /**
+     * This is not super obvious, but the IAmplifyDataDefinition interface requires a record of each model type to a
+     * data source strategy (how it should be deployed and managed). Normally this is handled for customers by static
+     * methods on AmplifyDataDefinition, but since the data-schema-types don't produce that today, we use the builder
+     * to generate that argument for us (so it's consistent with a customer using normal Graphql strings), then
+     * apply that value back into the final IAmplifyDataDefinition output for data-schema users.
+     */
+    const {
+      schema: transformedSchema,
+      functionSlots,
+      customSqlDataSourceStrategies,
+    } = schema.transform();
+
+    // const provisionStrategyName =
+    //   stableBackendIdentifiers.getStableBackendHash();
+    // TODO figure out different source of unique name.
+    const provisionStrategyName = 'figureOut';
+
+    const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy2(
+      schema.data.configuration.database,
+      customSqlDataSourceStrategies,
+      provisionStrategyName,
+      importedTableName,
+    );
+
+    const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
+      transformedSchema,
+      dbStrategy,
+    ).dataSourceStrategies;
+
+    if (dbStrategy.dbType === 'DYNAMODB') {
+      return {
+        schema: transformedSchema,
+        functionSlots,
+        dataSourceStrategies: generatedModelDataSourceStrategies,
+      };
+    }
+
+    return {
+      schema: transformedSchema,
+      functionSlots,
+      dataSourceStrategies: generatedModelDataSourceStrategies,
+      customSqlDataSourceStrategies:
+        customSqlDataSourceStrategies?.map(
+          (existing: CustomSqlDataSourceStrategy) => ({
+            ...existing,
+            strategy: dbStrategy,
+          }),
+        ) || [],
+    };
+  }
+
+  if (importedTableName) {
+    return AmplifyDataDefinition.fromString(schema, {
+      ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+      tableName: importedTableName,
+    });
+  }
+  return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
+};
+
+/**
  * Given an input list of CDK Graphql Def interface schemas, produce the relevant CDK Graphql Def interface
  * @param schemas the cdk graphql definition interfaces to combine
  * @returns the cdk graphql definition interface
@@ -222,6 +297,73 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     dbConnectionConfig: {
       connectionUriSsmPath: [branchSecretPath, sharedSecretPath],
       ...(sslCertConfig ? { sslCertConfig } : undefined),
+    },
+    vpcConfiguration,
+    customSqlStatements,
+  };
+
+  return strategy;
+};
+
+/**
+ * Given the generated rds builder database configuration, convert it into the DataSource strategy
+ * @param configuration the database configuration from `data-schema`
+ * @returns the data strategy needed to configure the data source
+ */
+const convertDatabaseConfigurationToDataSourceStrategy2 = (
+  configuration: DataSourceConfiguration,
+  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
+  provisionStrategyName: string,
+  importedTableName?: string,
+): ModelDataSourceStrategy => {
+  if (configuration.engine === 'dynamodb') {
+    if (importedTableName) {
+      return {
+        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        tableName: importedTableName,
+      };
+    }
+    return DYNAMO_DATA_SOURCE_STRATEGY;
+  }
+
+  const dbType = SQL_DB_TYPES[configuration.engine];
+  let vpcConfiguration: VpcConfig | undefined = undefined;
+
+  if (configuration.vpcConfig !== undefined) {
+    vpcConfiguration = {
+      vpcId: configuration.vpcConfig.vpcId,
+      securityGroupIds: configuration.vpcConfig.securityGroupIds,
+      subnetAvailabilityZoneConfig:
+      configuration.vpcConfig.subnetAvailabilityZones,
+    };
+  }
+
+  const customSqlStatements = customSqlStatementsFromStrategies(
+    customSqlDataSourceStrategies,
+  );
+
+  // const { branchSecretPath, sharedSecretPath } =
+  //   backendSecretResolver.resolvePath(configuration.connectionUri);
+
+  // let sslCertConfig: SslCertSsmPathConfig | undefined;
+  // TODO replace with CDK
+  // if (configuration.sslCert) {
+  //   const { branchSecretPath, sharedSecretPath } =
+  //     backendSecretResolver.resolvePath(configuration.sslCert);
+  //   sslCertConfig = {
+  //     ssmPath: [branchSecretPath, sharedSecretPath],
+  //   };
+  // }
+  const strategy: ModelDataSourceStrategy = {
+    dbType,
+    name:
+      provisionStrategyName +
+      (configuration.identifier ?? configuration.engine),
+    // TODO replace with CDK
+    dbConnectionConfig: {
+      connectionUriSsmPath: [/* TODO */]
+      // connectionUriSsmPath: [branchSecretPath, sharedSecretPath],
+      // ...(sslCertConfig ? { sslCertConfig } : undefined),
     },
     vpcConfiguration,
     customSqlStatements,
