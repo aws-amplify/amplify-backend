@@ -1,0 +1,3 @@
+{
+  "app": "npx tsx amplify/backend.ts"
+}

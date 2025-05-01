@@ -44,3 +44,12 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     name: backendName,
   };
 };
+
+/**
+ * TODO
+ */
+export const setBackendIdentifier = (scope: Construct, backendIdentifier: BackendIdentifier): void => {
+  scope.node.setContext(CDKContextKey.BACKEND_NAME, backendIdentifier.name);
+  scope.node.setContext(CDKContextKey.BACKEND_NAMESPACE, backendIdentifier.namespace);
+  scope.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, backendIdentifier.type);
+};

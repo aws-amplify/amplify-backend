@@ -1,9 +1,10 @@
 import {
+  BackendIdentifier,
   ConstructFactory,
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -147,14 +148,24 @@ export class BackendFactory<
   };
 }
 
+export type DefineBackendOptions = {
+  app: App;
+  backendIdentifier: BackendIdentifier;
+};
+
 /**
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
+ * @param options - options
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
+  options?: DefineBackendOptions,
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  const backend = new BackendFactory(
+    constructFactories,
+    createDefaultStack(options?.app, options?.backendIdentifier),
+  );
   return {
     ...backend.resources,
     createStack: backend.createStack,
