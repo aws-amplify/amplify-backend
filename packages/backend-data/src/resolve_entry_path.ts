@@ -5,6 +5,7 @@ import {
 import { dirname, join } from 'path';
 import type { JsResolverEntry } from '@aws-amplify/data-schema-types';
 import { AmplifyDataError } from './types.js';
+import fs from 'fs';
 
 /**
  * Resolve JS Resolver Handler or Sql Reference Handler entry path to absolute path
@@ -12,24 +13,29 @@ import { AmplifyDataError } from './types.js';
  * @returns resolved absolute file path
  */
 export const resolveEntryPath = (entry: JsResolverEntry): string => {
-  const unresolvedImportLocationError = new AmplifyUserError<AmplifyDataError>(
-    'UnresolvedEntryPathError',
-    {
-      message:
-        'Could not determine import path to construct absolute code path from relative path: ' +
-        JSON.stringify(entry),
-      resolution: 'Consider using an absolute path instead.',
-    },
-  );
-
   if (typeof entry === 'string') {
-    return entry;
+    if (fs.existsSync(entry)) {
+      return entry;
+    }
+    throw new AmplifyUserError<AmplifyDataError>('InvalidPathError', {
+      message: `Cannot find file at ${entry}`,
+      resolution: `Check that the file exists at ${entry} and is readable`,
+    });
   }
 
-  const filePath = new FilePathExtractor(entry.importLine).extract();
-  if (filePath) {
-    return join(dirname(filePath), entry.relativePath);
+  const importPath = new FilePathExtractor(entry.importLine).extract();
+
+  if (importPath) {
+    const filePath = join(dirname(importPath), entry.relativePath);
+    if (filePath && fs.existsSync(filePath)) {
+      return filePath;
+    }
   }
 
-  throw unresolvedImportLocationError;
+  throw new AmplifyUserError<AmplifyDataError>('UnresolvedEntryPathError', {
+    message:
+      'Could not determine import path to construct absolute code path from relative path: ' +
+      JSON.stringify(entry),
+    resolution: 'Consider using an absolute path instead.',
+  });
 };
