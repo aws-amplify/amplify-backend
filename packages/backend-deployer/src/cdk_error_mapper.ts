@@ -382,6 +382,16 @@ export class CdkErrorMapper {
       errorName: 'AccessDeniedError',
       classification: 'ERROR',
     },
+    // Same as above but matches Service errors where resource name is not included in the message
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage: 'Ensure you have permissions to call {action}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
     {
       errorRegex:
         /User:(.*) is not authorized to perform:(?<action>.*) on resource:(?<resource>.*)/,

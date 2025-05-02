@@ -337,6 +337,13 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage: `StackName failed: AccessDenied: User: <escaped ARN> is not authorized to perform: cloudformation:ListExports because no identity-based policy allows the cloudformation:ListExports action`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     // eslint-disable-next-line spellcheck/spell-checker
     errorMessage: `[31m[1mamplify-user-sandbox-c71414864a[22m: fail: socket hang up[39m
 
