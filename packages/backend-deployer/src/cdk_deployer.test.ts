@@ -273,13 +273,32 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(tsCompilerMock.mock.calls[0].arguments, ['amplify']);
   });
 
-  void it('returns human readable errors', async () => {
+  void it('returns human readable errors on deploy', async () => {
     synthMock.mock.mockImplementationOnce(() => {
       throw new Error('Access Denied');
     });
 
     await assert.rejects(
       () => invoker.deploy(branchBackendId, sandboxDeployProps),
+      (err: AmplifyError<CDKDeploymentError>) => {
+        assert.equal(
+          err.message,
+          'The deployment role does not have sufficient permissions to perform this deployment.',
+        );
+        assert.equal(err.name, 'AccessDeniedError');
+        assert.equal(err.cause?.message, 'Access Denied');
+        return true;
+      },
+    );
+  });
+
+  void it('returns human readable errors on destroy', async () => {
+    destroyMock.mock.mockImplementationOnce(() => {
+      throw new Error('Access Denied');
+    });
+
+    await assert.rejects(
+      () => invoker.destroy(branchBackendId),
       (err: AmplifyError<CDKDeploymentError>) => {
         assert.equal(
           err.message,

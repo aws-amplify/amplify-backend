@@ -182,16 +182,20 @@ export class CDKDeployer implements BackendDeployer {
    */
   destroy = async (backendId: BackendIdentifier) => {
     const deploymentStartTime = Date.now();
-    await this.cdkToolkit.destroy(await this.getCdkCloudAssembly(backendId), {
-      stacks: {
-        strategy: StackSelectionStrategy.ALL_STACKS,
-      },
-    });
-    return {
-      deploymentTimes: {
-        totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
-      },
-    };
+    try {
+      await this.cdkToolkit.destroy(await this.getCdkCloudAssembly(backendId), {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+      });
+      return {
+        deploymentTimes: {
+          totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
+        },
+      };
+    } catch (error) {
+      throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
+    }
   };
 
   compileProject = (projectDirectory: string): Promise<void> => {
