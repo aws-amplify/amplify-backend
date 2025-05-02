@@ -372,7 +372,6 @@ export class CdkErrorMapper {
       errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
-    //User: <escaped ARN> is not authorized to perform: cloudformation:ListExports because no identity-based policy allows the cloudformation:ListExports action
     {
       errorRegex:
         /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
