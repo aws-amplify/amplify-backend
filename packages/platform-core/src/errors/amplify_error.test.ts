@@ -255,6 +255,18 @@ void describe('AmplifyError.fromError', async () => {
       );
     });
   });
+  void it('wraps permissions related errors in AmplifyUserError', () => {
+    const error = new Error('You do not have permissions.');
+    ['AccessDenied', 'AccessDeniedException'].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'AccessDeniedError',
+        `Failed the test while wrapping error ${name}`,
+      );
+    });
+  });
   void it('wraps request signature related errors in AmplifyUserError', () => {
     const error = new Error(
       'The request signature we calculated does not match the signature you provided.',

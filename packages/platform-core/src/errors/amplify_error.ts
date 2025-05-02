@@ -125,6 +125,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error,
       );
     }
+    if (error instanceof Error && isPermissionsError(error)) {
+      return new AmplifyUserError(
+        'AccessDeniedError',
+        {
+          message: errorMessage,
+          resolution:
+            'Ensure your IAM role has the AmplifyBackendDeployFullAccess policy along with any additional permissions required for this operation.',
+        },
+        error,
+      );
+    }
     if (error instanceof Error && isRequestSignatureError(error)) {
       return new AmplifyUserError(
         'RequestSignatureError',
@@ -288,6 +299,10 @@ const isCredentialsError = (err?: Error): boolean => {
       'CredentialsError',
     ].includes(err.name)
   );
+};
+
+const isPermissionsError = (err?: Error): boolean => {
+  return !!err && ['AccessDeniedException', 'AccessDenied'].includes(err.name);
 };
 
 const isRequestSignatureError = (err?: Error): boolean => {
