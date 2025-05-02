@@ -1,5 +1,27 @@
 # @aws-amplify/backend-cli
 
+## 1.7.1
+
+### Patch Changes
+
+- 4b8bb99: Bumps [open](https://github.com/sindresorhus/open) from 9.1.0 to 10.1.0.
+- 701bc20: switch to new version of telemetry
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+- Updated dependencies [16b3c61]
+- Updated dependencies [edb1896]
+- Updated dependencies [5bcd7d1]
+- Updated dependencies [4b8bb99]
+- Updated dependencies [51bc721]
+- Updated dependencies [701bc20]
+- Updated dependencies [854aa25]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/backend-deployer@2.1.1
+  - @aws-amplify/plugin-types@1.10.1
+  - @aws-amplify/sandbox@2.1.1
+  - @aws-amplify/form-generator@1.2.1
+  - @aws-amplify/platform-core@1.9.0
+  - @aws-amplify/cli-core@2.1.1
+
 ## 1.7.0
 
 ### Minor Changes

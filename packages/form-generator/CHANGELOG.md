@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.2.1
+
+### Patch Changes
+
+- 51bc721: Bumps [@aws-amplify/graphql-directives](https://github.com/aws-amplify/amplify-category-api/tree/HEAD/packages/amplify-graphql-directives) from 1.1.0 to 2.7.0.
+
 ## 1.2.0
 
 ### Minor Changes

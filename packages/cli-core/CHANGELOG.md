@@ -1,5 +1,15 @@
 # @aws-amplify/cli-core
 
+## 2.1.1
+
+### Patch Changes
+
+- 701bc20: switch to new version of telemetry
+- Updated dependencies [701bc20]
+- Updated dependencies [854aa25]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/platform-core@1.9.0
+
 ## 2.1.0
 
 ### Minor Changes

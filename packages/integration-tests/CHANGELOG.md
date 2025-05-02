@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.8.1
+
+### Patch Changes
+
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+
 ## 0.8.0
 
 ### Minor Changes
