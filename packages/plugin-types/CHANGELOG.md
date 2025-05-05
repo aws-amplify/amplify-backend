@@ -1,5 +1,12 @@
 # @aws-amplify/plugin-types
 
+## 1.10.1
+
+### Patch Changes
+
+- edb1896: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 0.2.0 to 0.3.2.
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+
 ## 1.10.0
 
 ### Minor Changes

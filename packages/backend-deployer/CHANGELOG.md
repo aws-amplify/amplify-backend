@@ -1,5 +1,21 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.1
+
+### Patch Changes
+
+- 16b3c61: Map errors from CDK destroy
+- edb1896: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 0.2.0 to 0.3.2.
+- 701bc20: switch to new version of telemetry
+- 854aa25: Add permissions related error mapping
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+- Updated dependencies [edb1896]
+- Updated dependencies [701bc20]
+- Updated dependencies [854aa25]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/plugin-types@1.10.1
+  - @aws-amplify/platform-core@1.9.0
+
 ## 2.1.0
 
 ### Minor Changes

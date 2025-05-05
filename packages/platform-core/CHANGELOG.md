@@ -1,5 +1,19 @@
 # @aws-amplify/platform-core
 
+## 1.9.0
+
+### Minor Changes
+
+- 701bc20: switch to new version of telemetry
+
+### Patch Changes
+
+- 854aa25: Add permissions related error mapping
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+- Updated dependencies [edb1896]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/plugin-types@1.10.1
+
 ## 1.8.0
 
 ### Minor Changes
