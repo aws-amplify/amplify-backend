@@ -288,7 +288,7 @@ jobs:
       - uses: ./.github/actions/setup_node
         with:
           node-version: 18
-      - uses: ./.github/actions/restore_install_cache
+      - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
