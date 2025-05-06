@@ -275,7 +275,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs:
-      - install
+      - build
       - resolve_inputs
     permissions:
       # This is required so that this job can add the 'run-e2e' label and push to the pull request
