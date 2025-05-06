@@ -56,13 +56,15 @@ export class DependabotVersionUpdateHandler {
       return;
     }
 
-    // Get all of the public packages with version updates (where 'package.json' is modified)
+    // Get all of the public packages with version updates
     const modifiedPackageDirs = new Set<string>();
     const packageJsonFiles = changedFiles.filter(
       (changedFile) =>
         changedFile.startsWith('packages/') &&
-        changedFile.endsWith('package.json'),
+        changedFile.match(/(package|default_packages).json$/),
     );
+    console.log('changedFiles', changedFiles);
+    console.log('packageJsonFiles', packageJsonFiles);
     packageJsonFiles.forEach((changedPackageFile) => {
       modifiedPackageDirs.add(
         changedPackageFile.split('/').slice(0, 2).join('/'),
