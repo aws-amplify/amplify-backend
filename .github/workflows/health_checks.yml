@@ -295,6 +295,7 @@ jobs:
       - name: Handle Dependabot version update pull request
         run: |
           npm run update:create-amplify-deps
+          npm run lint:fix
           npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA"
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}

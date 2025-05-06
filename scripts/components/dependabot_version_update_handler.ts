@@ -63,6 +63,8 @@ export class DependabotVersionUpdateHandler {
         changedFile.startsWith('packages/') &&
         changedFile.match(/(package|default_packages).json$/),
     );
+    console.log('changedFiles', changedFiles);
+    console.log('packageJsonFiles', packageJsonFiles);
     packageJsonFiles.forEach((changedPackageFile) => {
       modifiedPackageDirs.add(
         changedPackageFile.split('/').slice(0, 2).join('/'),
