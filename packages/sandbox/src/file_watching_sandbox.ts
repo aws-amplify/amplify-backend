@@ -343,7 +343,35 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         setSpanAttributes(span, data);
         span.end();
         // Print a meaningful message
-        this.printer.log(format.error(error), LogLevel.ERROR);
+        this.printer.log(format.error(amplifyError), LogLevel.ERROR);
+
+        // Print stack traces
+        let errorToDisplayStackTrace: Error | undefined = amplifyError;
+        while (errorToDisplayStackTrace) {
+          this.printer.log(
+            `Stack Trace for ${errorToDisplayStackTrace.name}`,
+            LogLevel.DEBUG,
+          );
+          if (errorToDisplayStackTrace.stack) {
+            this.printer.log(
+              format.dim(errorToDisplayStackTrace.stack),
+              LogLevel.DEBUG,
+            );
+          }
+          errorToDisplayStackTrace =
+            errorToDisplayStackTrace.cause instanceof Error
+              ? errorToDisplayStackTrace.cause
+              : undefined;
+        }
+        if (amplifyError.stack) {
+          this.printer.log(format.dim(amplifyError.stack), LogLevel.DEBUG);
+        }
+        if (amplifyError.cause?.stack) {
+          this.printer.log(
+            format.dim(amplifyError.cause.stack),
+            LogLevel.DEBUG,
+          );
+        }
         this.emit('failedDeployment', error);
 
         // If the error is because of a non-allowed destructive change such as
