@@ -108,6 +108,7 @@ void describe('dependabot version update handler', async () => {
       action: '',
       actor: '',
       job: '',
+      runAttempt: 0,
       runNumber: 0,
       runId: 0,
       apiUrl: '',
