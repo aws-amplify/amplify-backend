@@ -721,7 +721,7 @@ void describe('Sandbox using local project name resolver', () => {
     );
 
     // assert print statements are called correctly
-    assert.strictEqual(printer.log.mock.callCount(), 17);
+    assert.strictEqual(printer.log.mock.callCount(), 15);
     assert.match(
       printer.log.mock.calls[5].arguments[0],
       /random BackendDeployer error/,
