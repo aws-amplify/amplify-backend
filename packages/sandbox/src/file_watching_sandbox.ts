@@ -348,11 +348,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // Print stack traces
         let errorToDisplayStackTrace: Error | undefined = amplifyError;
         while (errorToDisplayStackTrace) {
-          this.printer.log(
-            `Stack Trace for ${errorToDisplayStackTrace.name}`,
-            LogLevel.DEBUG,
-          );
           if (errorToDisplayStackTrace.stack) {
+            this.printer.log(
+              `Stack Trace for ${errorToDisplayStackTrace.name}`,
+              LogLevel.DEBUG,
+            );
             this.printer.log(
               format.dim(errorToDisplayStackTrace.stack),
               LogLevel.DEBUG,
