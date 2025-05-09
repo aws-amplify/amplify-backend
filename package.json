@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "tsc --build packages/* scripts",
+    "build": "tsc --build packages/* scripts && tsx scripts/concurrent_workspace_script.ts post:compile --if-present",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
     "check:create-amplify-deps": "npm run update:create-amplify-deps && tsx scripts/check_no_git_diff.ts",
     "check:dependencies": "tsx scripts/check_dependencies.ts",
