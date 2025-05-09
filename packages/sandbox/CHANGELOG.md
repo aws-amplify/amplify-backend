@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 2.1.2
+
+### Patch Changes
+
+- c863999: print stack traces in debug mode for sandbox deploy failures
+
 ## 2.1.1
 
 ### Patch Changes
