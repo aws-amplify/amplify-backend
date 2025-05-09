@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import path from 'path';
 import { existsSync } from 'fs';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
@@ -36,9 +36,11 @@ export class SandboxSeedCommand implements CommandModule<object> {
   /**
    * @inheritDoc
    */
-  handler = async (): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<SandboxCommandGlobalOptions>,
+  ): Promise<void> => {
     printer.print(`${format.color('seed is running...', 'Blue')}`);
-    const backendID = await this.backendIDResolver.resolve();
+    const backendID = await this.backendIDResolver.resolve(args.identifier);
     const seedPath = path.join('amplify', 'seed', 'seed.ts');
     process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(backendID);
     try {
