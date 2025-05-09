@@ -21,7 +21,10 @@ export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
   /**
    * Generates policy to run seed, is a subcommand of seed
    */
-  constructor(private readonly backendIdResolver: SandboxBackendIdResolver) {
+  constructor(
+    private readonly backendIdResolver: SandboxBackendIdResolver,
+    private readonly seedPolicyTemplate = generateSeedPolicyTemplate,
+  ) {
     this.command = 'generate-policy';
     this.describe = 'Generates policy for seeding';
   }
@@ -33,7 +36,7 @@ export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
     args: ArgumentsCamelCase<SandboxCommandGlobalOptions>,
   ): Promise<void> => {
     const backendId = await this.backendIdResolver.resolve(args.identifier);
-    const policyDocument = await generateSeedPolicyTemplate(backendId);
+    const policyDocument = await this.seedPolicyTemplate(backendId);
     printer.print(JSON.stringify(policyDocument.toJSON(), null, 2));
   };
 

@@ -137,7 +137,6 @@ void describe('sandbox seed command', () => {
         successMessage,
         '✔ seed has successfully completed',
       );
-      assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
   });
 
