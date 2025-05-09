@@ -22,6 +22,8 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "post:compile": "npm run bundle:default-handler",
+    "bundle:default-handler": "esbuild src/conversation/runtime/default_handler.ts --bundle --platform=node --target=node20 --outfile=lib/conversation/runtime/default_handler_bundled/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",

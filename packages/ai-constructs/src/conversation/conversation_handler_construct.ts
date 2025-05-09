@@ -8,6 +8,9 @@ import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import {
   ApplicationLogLevel,
   CfnFunction,
+  Code,
+  Function,
+  IFunction,
   Runtime as LambdaRuntime,
   LoggingFormat,
 } from 'aws-cdk-lib/aws-lambda';
@@ -27,7 +30,10 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 
 const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
-const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
+const defaultHandlerFilePath = path.join(
+  resourcesRoot,
+  'default_handler_bundled',
+);
 
 export type ConversationHandlerFunctionProps = {
   entry?: string;
@@ -98,36 +104,49 @@ export class ConversationHandlerFunction
 
     Tags.of(this).add(TagName.FRIENDLY_NAME, id);
 
-    const conversationHandler = new NodejsFunction(
-      this,
-      `conversationHandlerFunction`,
-      {
-        runtime: LambdaRuntime.NODEJS_20_X,
-        timeout: Duration.seconds(this.resolveTimeout()),
-        entry: this.props.entry ?? defaultHandlerFilePath,
-        handler: 'handler',
-        memorySize: this.resolveMemory(),
-        bundling: {
-          // Do not bundle SDK if conversation handler is using our default implementation which is
-          // compatible with Lambda provided SDK.
-          // For custom entry we do bundle SDK as we can't control version customer is coding against.
-          bundleAwsSDK: !!this.props.entry,
-        },
-        loggingFormat: LoggingFormat.JSON,
-        applicationLogLevelV2: this.props.logging?.level,
-        logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
-          retention: this.props.logging?.retention ?? RetentionDays.INFINITE,
-          dataProtectionPolicy: new DataProtectionPolicy({
-            identifiers: [
-              new CustomDataIdentifier(
-                'JWTToken',
-                'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
-              ),
-            ],
-          }),
+    const commonHandlerProperties = {
+      runtime: LambdaRuntime.NODEJS_20_X,
+      timeout: Duration.seconds(this.resolveTimeout()),
+      memorySize: this.resolveMemory(),
+      loggingFormat: LoggingFormat.JSON,
+      applicationLogLevelV2: this.props.logging?.level,
+      logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
+        retention: this.props.logging?.retention ?? RetentionDays.INFINITE,
+        dataProtectionPolicy: new DataProtectionPolicy({
+          identifiers: [
+            new CustomDataIdentifier(
+              'JWTToken',
+              'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
+            ),
+          ],
         }),
-      },
-    );
+      }),
+    };
+
+    let conversationHandler: IFunction;
+    if (this.props.entry) {
+      // When custom entry is defined. Use NodejsFunction to bundle the handler.
+      conversationHandler = new NodejsFunction(
+        this,
+        `conversationHandlerFunction`,
+        {
+          entry: this.props.entry,
+          handler: 'handler',
+          bundling: {
+            // For custom entry we do bundle SDK as we can't control version customer is coding against.
+            bundleAwsSDK: true,
+          },
+          ...commonHandlerProperties,
+        },
+      );
+    } else {
+      // Use default handler that is bundled by us at the package build time.
+      conversationHandler = new Function(this, `conversationHandlerFunction`, {
+        handler: 'index.handler',
+        code: Code.fromAsset(defaultHandlerFilePath),
+        ...commonHandlerProperties,
+      });
+    }
 
     if (this.props.models && this.props.models.length > 0) {
       const resources = this.props.models.map(
