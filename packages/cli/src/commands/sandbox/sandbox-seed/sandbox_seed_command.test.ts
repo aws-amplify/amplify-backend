@@ -121,6 +121,24 @@ void describe('sandbox seed command', () => {
       );
       assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
     });
+
+    void it('run seed with identifier if provided', async () => {
+      const output = await commandRunner.runCommand(
+        'sandbox seed --identifier app-name',
+      );
+
+      const outputArr = output.trimEnd().split('\n');
+      const seedMessage = outputArr[1];
+      const successMessage = outputArr[3].trimStart();
+
+      assert.ok(output !== undefined);
+      assert.deepStrictEqual(seedMessage, 'seed has been run');
+      assert.deepStrictEqual(
+        successMessage,
+        '✔ seed has successfully completed',
+      );
+      assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
+    });
   });
 
   void describe('seed script does not exist', () => {
