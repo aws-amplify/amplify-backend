@@ -28,7 +28,7 @@ export type ConversationMessageContentBlock =
       text?: never;
       document: Omit<bedrock.DocumentBlock, 'source'> & {
         // Upstream (Appsync) may send documents in a form of Base64 encoded strings
-        source: { bytes: string };
+        source: { bytes?: string; s3AttachmentKey?: string };
       };
       toolUse?: never;
       toolResult?: never;

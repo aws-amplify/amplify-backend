@@ -21,6 +21,23 @@ export type GetQueryOutput = {
   data: Record<string, ConversationHistoryMessageItem>;
 };
 
+export type GetAttachmentUploadUrlInput = {
+  input: {
+    conversationId: string;
+    attachmentKey: string;
+  }
+};
+
+export type GetAttachmentUploadUrlOutput = {
+  data: Record<
+    string,
+    {
+      uploadUrl: string;
+      downloadUrl: string;
+    }
+  >;
+};
+
 export type ListQueryInput = {
   filter: {
     conversationId: {
@@ -55,6 +72,7 @@ const messageItemSelectionSet = `
                   document {
                     source {
                       bytes
+                      s3AttachmentKey
                     }
                     format
                     name
@@ -314,8 +332,8 @@ export class ConversationMessageHistoryRetriever {
     const items =
       response.data[this.event.messageHistoryQuery.listQueryName].items;
 
-    items.forEach((item) => {
-      item.content?.forEach((contentBlock) => {
+    for (const item of items) {
+      for (const contentBlock of item.content ?? []) {
         let property: keyof typeof contentBlock;
         for (property in contentBlock) {
           // Deserialization of GraphQl query result sets these properties to 'null'
@@ -343,8 +361,60 @@ export class ConversationMessageHistoryRetriever {
             }
           });
         }
-      });
-    });
+        if (contentBlock.document) {
+          const source = contentBlock.document.source;
+          if (
+            source &&
+            's3AttachmentKey' in source &&
+            typeof source.s3AttachmentKey === 'string'
+          ) {
+            //       const query = `
+            //     query GetMessage($id: ${this.event.messageHistoryQuery.getQueryInputTypeName}!) {
+            //         ${this.event.messageHistoryQuery.getQueryName}(id: $id) {
+            //           ${messageItemSelectionSet}
+            //         }
+            //     }
+            // `;
+            // TODO the names used in query must be variable like above.
+            const query = `
+          query GetAttachmentUrls($input: GetConversationMessageChatAttachmentUrlsInput!) {
+              getAttachmentUploadUrlChat(input: $input) {
+                downloadUrl
+                uploadUrl
+              }
+          }
+      `;
+
+            const variables: GetAttachmentUploadUrlInput = {
+              input: {
+                conversationId: this.event.conversationId,
+                attachmentKey: source.s3AttachmentKey,
+              }
+            };
+            const attachmentResponse =
+              await this.graphqlRequestExecutor.executeGraphql<
+                GetAttachmentUploadUrlInput,
+                GetAttachmentUploadUrlOutput
+              >({
+                query,
+                variables,
+              });
+
+            const downloadUrl = attachmentResponse.data['getAttachmentUploadUrlChat']
+              .downloadUrl;
+
+            const response = await fetch(downloadUrl);
+            const content = await response.arrayBuffer();
+
+            console.info(`Received attachment with ${content.byteLength} bytes`);
+
+            contentBlock.document.source = {
+              bytes: new Uint8Array(content),
+            };
+          }
+        }
+      }
+    }
 
     return items;
   };
