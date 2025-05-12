@@ -82,8 +82,8 @@ on:
 
 env:
   # Health checks can run on un-released code. Often work in progress.
-  # Disable data from there.
-  AMPLIFY_DISABLE_TELEMETRY: true
+  # Send telemetry to beta endpoint
+  AMPLIFY_BACKEND_TELEMETRY_TRACKING_ENDPOINT: ${{ vars.TELEMETRY_BETA_ENDPOINT }}
 
 jobs:
   # This workflow may be called by variety of events.
