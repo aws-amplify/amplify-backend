@@ -1189,14 +1189,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
   };
 
   /**
-   * Bedrock sometimes produces half-baked response or we run into throttling.
+   * Bedrock sometimes produces half-baked or no response when we run into throttling.
    * On the other hand we have to run some assertions on those responses.
    * Therefore, we wrap transactions in retry loop.
    */
   private executeWithRetry = async (
     callable: (attempt: number) => Promise<void>,
   ) => {
-    const retryDelayMs = 30 * 1000; // 30 seconds.
+    // Bedrock has low request per minute quota for our test accounts.
+    // Therefore, retrying earlier than one minute might not be successful.
+    const retryDelayMs = 90 * 1000; // 90 seconds. (RPM quota window + some buffer).
     await runWithRetry(callable, () => true, 4, retryDelayMs);
   };
 }
