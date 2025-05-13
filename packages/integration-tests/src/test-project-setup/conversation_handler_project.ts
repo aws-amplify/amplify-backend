@@ -1189,7 +1189,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
   };
 
   /**
-   * Bedrock sometimes produces half-baked response, or we run into throttling.
+   * Bedrock sometimes produces half-baked or no response when we run into throttling.
    * On the other hand we have to run some assertions on those responses.
    * Therefore, we wrap transactions in retry loop.
    */
