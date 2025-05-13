@@ -100,6 +100,7 @@ export class ProcessController {
           continue;
         }
       } catch (error) {
+        console.log('process controller error: ', error);
         await killExecaProcess(execaProcess);
         execaProcess.stdin?.write('N');
         errorThrownFromActions = error;
