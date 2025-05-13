@@ -1198,7 +1198,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
   ) => {
     // Bedrock has low request per minute quota for our test accounts.
     // Therefore, retrying earlier than one minute might not be successful.
-    const retryDelayMs = 90 * 1000; // 90 seconds. (RPS quota window + some buffer).
+    const retryDelayMs = 90 * 1000; // 90 seconds. (RPM quota window + some buffer).
     await runWithRetry(callable, () => true, 4, retryDelayMs);
   };
 }
