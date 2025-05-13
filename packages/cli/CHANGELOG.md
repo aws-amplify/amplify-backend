@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 1.7.2
+
+### Patch Changes
+
+- 360b3ac: update seed commands to take identifier
+- Updated dependencies [c863999]
+  - @aws-amplify/sandbox@2.1.2
+
 ## 1.7.1
 
 ### Patch Changes
