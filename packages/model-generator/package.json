@@ -29,7 +29,7 @@
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/credential-providers": "^3.750.0",
     "@aws-sdk/types": "^3.734.0",
-    "graphql": "^15.8.0"
+    "graphql": "^16.11.0"
   },
   "peerDependencies": {
     "@aws-sdk/client-amplify": "^3.750.0",
