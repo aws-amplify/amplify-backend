@@ -23,7 +23,6 @@ import {
 } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import path from 'path';
-import { TagName } from '@aws-amplify/platform-core';
 import {
   AIConversationOutput,
   aiConversationOutputKey,
@@ -102,7 +101,9 @@ export class ConversationHandlerFunction
       throw new Error('Entry must be absolute path');
     }
 
-    Tags.of(this).add(TagName.FRIENDLY_NAME, id);
+    // Intentionally not using import from 'platform-core'
+    // To not drag excessive amount of dependencies into construct layer.
+    Tags.of(this).add('amplify:friendly-name', id);
 
     const commonHandlerProperties = {
       runtime: LambdaRuntime.NODEJS_20_X,
