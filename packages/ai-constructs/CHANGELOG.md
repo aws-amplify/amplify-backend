@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.5.3
+
+### Patch Changes
+
+- 0115a02: Remove dependency on platform-core
+
 ## 1.5.2
 
 ### Patch Changes
