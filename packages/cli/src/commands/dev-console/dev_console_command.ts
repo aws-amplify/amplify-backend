@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { Server } from 'socket.io';
 import {
   WebConsolePrinter,
+  askAI,
   embedAndStoreCode,
   format,
   minimumLogLevel,
@@ -131,6 +132,11 @@ export class DevConsoleCommand implements CommandModule<object> {
           logsFilters: [data],
           enabled: true,
         });
+      });
+
+      socket.on('aiQuestion', async (data) => {
+        const response = await askAI(data);
+        printer.logMarkdown(response, 'AIMessage');
       });
 
       socket.on('executeFunction', async (data) => {

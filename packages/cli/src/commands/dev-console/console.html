@@ -2,12 +2,19 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <link
+    <!-- <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
       integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
       crossorigin="anonymous"
+    /> -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- <script
       crossorigin="anonymous"
       defer="defer"
@@ -238,6 +245,36 @@
         bottom: 20px;
         right: 20px;
       }
+
+      /* Chat Box */
+      .chat-overlay {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 600px;
+        max-height: 1000px;
+        z-index: 1050;
+        display: none;
+      }
+      .chat-body {
+        overflow-y: auto;
+        max-height: 850px;
+      }
+      .chat-box textarea {
+        resize: none;
+      }
+      .chat-toggle-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1051;
+      }
+      .btn-close {
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        color: white;
+      }
     </style>
   </head>
   <body>
@@ -261,6 +298,43 @@
       style="overflow-y: scroll; height: 95%; width: 100%; position: fixed"
     >
       <ul id="messages"></ul>
+      <!-- Chat Toggle Button -->
+      <button class="btn btn-primary chat-toggle-btn" onclick="toggleAIChat()">
+        Chat
+      </button>
+      <!-- Chat Overlay Box -->
+      <div class="chat-overlay shadow rounded bg-light" id="chatBox">
+        <div class="card">
+          <div
+            class="card-header bg-primary text-white p-2 d-flex justify-content-between align-items-center"
+          >
+            <span>Claude 3.5 Haiku AI Agent</span>
+            <button type="button" class="btn-close" onclick="toggleAIChat()">
+              &times;
+            </button>
+          </div>
+          <div class="card-body chat-body p-2" id="ai-chat-body"></div>
+          <div class="card-footer p-2">
+            <div class="input-group chat-box">
+              <textarea
+                class="form-control"
+                rows="1"
+                placeholder="Ask your question and click send..."
+                id="ai-question"
+              ></textarea>
+              <div class="input-group-append">
+                <button
+                  class="btn btn-primary"
+                  id="ai-question-button"
+                  onclick="askAI()"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="DeployedResources" class="tabcontent">
@@ -269,6 +343,16 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+      document
+        .getElementById('ai-question')
+        .addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+
+            document.getElementById('ai-question-button').click();
+          }
+        });
+
       const socket = io();
       const messages = document.getElementById('messages');
       document.getElementById('SandboxConsoleTabButton').click();
@@ -284,6 +368,11 @@
         if (msg.includes('Deployment completed')) {
           socket.emit('DeploymentCompleted');
         }
+      });
+
+      socket.on('AIMessage', (msg) => {
+        document.getElementById('chatBox').style.display = 'block';
+        addNewAiChatMessage(msg, true);
       });
 
       socket.on('deployedBackendResources', (data) => {
@@ -502,6 +591,31 @@
         }
         document.getElementById(friendlyName + 'Button').click();
         socket.emit('startStreamingLogs', friendlyName);
+      }
+
+      function toggleAIChat() {
+        var chatBox = document.getElementById('chatBox');
+        chatBox.style.display =
+          chatBox.style.display === 'none' ? 'block' : 'none';
+      }
+
+      function askAI() {
+        const question = document.getElementById('ai-question').value;
+        document.getElementById('ai-question').value = '';
+        addNewAiChatMessage(question, false);
+        socket.emit('aiQuestion', question);
+      }
+
+      function addNewAiChatMessage(message, isAiMessage) {
+        const chatWindow = document.getElementById('ai-chat-body');
+        const messageSpan = document.createElement('div');
+        messageSpan.classList.add(
+          'mb-2',
+          isAiMessage ? 'text-left' : 'text-right',
+        );
+        messageSpan.innerHTML = message;
+        chatWindow.appendChild(messageSpan);
+        chatWindow.scroll({ top: chatWindow.scrollHeight, behavior: 'smooth' });
       }
     </script>
   </body>

@@ -307,6 +307,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           await handleErrorWithAI(
             error.cause && error.cause instanceof Error ? error.cause : error,
           ),
+          'AIMessage',
         );
       }
 

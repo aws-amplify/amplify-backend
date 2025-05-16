@@ -11,7 +11,7 @@ export type Printer = {
     event: CloudWatchLogEvent,
     color?: ColorName,
   ) => void;
-  logMarkdown: (message: string) => void;
+  logMarkdown: (message: string, type?: string) => void;
   indicateProgress: (
     message: string,
     callback: () => Promise<void>,

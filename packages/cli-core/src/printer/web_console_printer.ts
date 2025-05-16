@@ -63,8 +63,11 @@ export class WebConsolePrinter implements Printer {
     this.print(this.prefixedMessage(message, level));
   };
 
-  logMarkdown = (message: string) => {
-    this.io.emit('logMessage', this.mdToHtmlConverter.makeHtml(message));
+  logMarkdown = (message: string, type?: string) => {
+    this.io.emit(
+      type ?? 'logMessage',
+      this.mdToHtmlConverter.makeHtml(message),
+    );
   };
 
   /**

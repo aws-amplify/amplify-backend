@@ -28,6 +28,8 @@ if (libraryVersion == undefined) {
   });
 }
 
+Error.stackTraceLimit = Infinity;
+
 const packageManagerController =
   new PackageManagerControllerFactory().getPackageManagerController();
 const dependencies = await packageManagerController.tryGetDependencies();
