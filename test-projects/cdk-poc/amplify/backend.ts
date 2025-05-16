@@ -14,9 +14,10 @@ import { convertSchemaToCDK2 } from '@aws-amplify/backend-data';
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const app = new App();
-
 // POC 1 - retain gen2 stacks.
+// ################### defineBackend #################
+
+const app = new App();
 
 // Can be any stack ?
 const mainStack = new AmplifyStack(app, {
@@ -28,22 +29,29 @@ const mainStack = new AmplifyStack(app, {
 const authStack = new NestedStack(mainStack, 'auth');
 const dataStack = new NestedStack(mainStack, 'data');
 
+// ###################################################
+
+// ################### defineAuth ####################
 const amplifyAuth = new AmplifyAuth(authStack, 'amplifyAuth', {
   loginWith: {
     email: true,
   },
 });
+// ###################################################
 
+// ################### defineFunction ################
 const someFunction = new NodejsFunction(mainStack, 'some-function', {
   entry: path.join(dirname, 'some-function.ts'),
   runtime: Runtime.NODEJS_22_X,
 });
+// ###################################################
 
 (amplifyAuth.resources.userPool as UserPool).addTrigger(
   UserPoolOperation.POST_CONFIRMATION,
   someFunction,
 );
 
+// ################### defineData ####################
 const schema = a.schema({
   Todo: a
     .model({
@@ -85,6 +93,9 @@ new AmplifyData(dataStack, 'data', {
   functionNameMap: {
     someFunction: someFunction,
   },
+
+  // This below can be internalized
+
   // This could have better name if used in docs.
   // With Amplify Auth this was internalized by passing this via cdk context.
   outputStorageStrategy: new StackMetadataBackendOutputStorageStrategy(
@@ -95,6 +106,8 @@ new AmplifyData(dataStack, 'data', {
     _provisionHotswapFriendlyResources: true,
   },
 });
+// ###################################################
+
 
 // outputs?
 // https://stackoverflow.com/questions/56835557/aws-cdk-post-deployment-actions
@@ -105,6 +118,10 @@ new AmplifyData(dataStack, 'data', {
 // or ampx generate from CDK outputs
 // or custom resource ? (sandbox latency...).
 // or have amplify-js being able to read cdk outputs.
+
+
+
+
 
 // POC 2 - no amplify stacks
 
