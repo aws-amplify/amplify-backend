@@ -17,8 +17,8 @@ const dirname = path.dirname(filename);
 
 const backendIdentifier: BackendIdentifier = {
   type: 'sandbox',
-  name: 'foo',
-  namespace: 'bar',
+  name: 'foo2',
+  namespace: 'bar2',
 };
 
 const app = new App();
