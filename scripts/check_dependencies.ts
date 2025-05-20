@@ -24,5 +24,20 @@ await new DependenciesValidator(
     },
   },
   [], // Add a list of dependencies here that should be versioned together
-  [],
+  [
+    {
+      dependencyName: 'zod',
+      globalDependencyVersion: '^3.22.3',
+      exceptions: [
+        {
+          packageName: '@aws-amplify/backend-output-schemas',
+          dependencyVersion: '3.22.3',
+        },
+        {
+          packageName: '@aws-amplify/platform-core',
+          dependencyVersion: '3.22.3',
+        },
+      ],
+    },
+  ],
 ).validate();
