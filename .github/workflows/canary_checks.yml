@@ -19,10 +19,6 @@ jobs:
           rm package-lock.json
           ./scripts/retry.js npm install
           npm run build
-        env:
-          # increase v8's old memory section max size to 5 GB
-          # see https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-          NODE_OPTIONS: '--max-old-space-size=5120'
       - name: Check dependencies
         shell: bash
         run: |
