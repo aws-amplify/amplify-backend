@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "Node18",
+    "module": "Node16",
     "moduleResolution": "Node16",
     "lib": ["es2022"],
     "composite": true,
