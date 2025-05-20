@@ -3,7 +3,7 @@ import { versionedAuthOutputSchema } from './auth/index.js';
 import { versionedGraphqlOutputSchema } from './graphql/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
 import { versionedStackOutputSchema } from './stack/index.js';
-import { versionedCustomOutputSchema } from './custom/index.js';
+import { versionedCustomOutputSchema } from './custom';
 import { versionedFunctionOutputSchema } from './function/index.js';
 import { versionedAIConversationOutputSchema } from './ai/conversation/index.js';
 

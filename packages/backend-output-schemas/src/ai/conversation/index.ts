@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { aiConversationOutputSchema as aiConversationOutputSchemaV1 } from './v1.js';
+import { aiConversationOutputSchema as aiConversationOutputSchemaV1 } from './v1';
 
 export const versionedAIConversationOutputSchema = z.discriminatedUnion(
   'version',

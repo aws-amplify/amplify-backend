@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { functionOutputSchema as functionOutputSchemaV1 } from './v1.js';
+import { functionOutputSchema as functionOutputSchemaV1 } from './v1';
 
 export const versionedFunctionOutputSchema = z.discriminatedUnion('version', [
   functionOutputSchemaV1,

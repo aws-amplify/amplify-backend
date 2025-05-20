@@ -29,7 +29,7 @@
     "@aws-amplify/model-generator": "^1.2.0",
     "@aws-amplify/platform-core": "^1.8.0",
     "@aws-amplify/plugin-types": "^1.10.0",
-    "zod": "^3.22.2"
+    "zod": "^3.25.6"
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.734.0",

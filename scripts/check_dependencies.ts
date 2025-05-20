@@ -27,15 +27,15 @@ await new DependenciesValidator(
   [
     {
       dependencyName: 'zod',
-      globalDependencyVersion: '^3.22.2',
+      globalDependencyVersion: '^3.25.6',
       exceptions: [
         {
           packageName: '@aws-amplify/backend-output-schemas',
-          dependencyVersion: '3.22.2',
+          dependencyVersion: '3.25.6',
         },
         {
           packageName: '@aws-amplify/platform-core',
-          dependencyVersion: '3.22.2',
+          dependencyVersion: '3.25.6',
         },
       ],
     },

@@ -61,7 +61,7 @@
     "open": "^10.1.0",
     "semver": "^7.6.3",
     "yargs": "^17.7.2",
-    "zod": "^3.22.2"
+    "zod": "^3.25.6"
   },
   "peerDependencies": {
     "@aws-sdk/types": "^3.734.0",
