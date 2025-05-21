@@ -362,6 +362,7 @@ export class ConversationMessageHistoryRetriever {
           });
         }
         if (contentBlock.document) {
+          console.log(contentBlock.document.name);
           const source = contentBlock.document.source;
           if (
             source &&
@@ -385,32 +386,44 @@ export class ConversationMessageHistoryRetriever {
           }
       `;
 
-            const variables: GetAttachmentUploadUrlInput = {
-              input: {
-                conversationId: this.event.conversationId,
-                attachmentKey: source.s3AttachmentKey,
-              }
-            };
-            const attachmentResponse =
-              await this.graphqlRequestExecutor.executeGraphql<
-                GetAttachmentUploadUrlInput,
-                GetAttachmentUploadUrlOutput
-              >({
-                query,
-                variables,
-              });
+            if (source.s3AttachmentKey.startsWith('https://')){
+              // this is a hack, property name tbd.
+              const response = await fetch(source.s3AttachmentKey);
+              const content = await response.arrayBuffer();
 
-            const downloadUrl = attachmentResponse.data['getAttachmentUploadUrlChat']
-              .downloadUrl;
+              console.info(`Received attachment from url with ${content.byteLength} bytes`);
 
-            const response = await fetch(downloadUrl);
-            const content = await response.arrayBuffer();
+              contentBlock.document.source = {
+                bytes: new Uint8Array(content),
+              };
+            } else {
+              const variables: GetAttachmentUploadUrlInput = {
+                input: {
+                  conversationId: this.event.conversationId,
+                  attachmentKey: source.s3AttachmentKey,
+                }
+              };
+              const attachmentResponse =
+                await this.graphqlRequestExecutor.executeGraphql<
+                  GetAttachmentUploadUrlInput,
+                  GetAttachmentUploadUrlOutput
+                >({
+                  query,
+                  variables,
+                });
 
-            console.info(`Received attachment with ${content.byteLength} bytes`);
+              const downloadUrl = attachmentResponse.data['getAttachmentUploadUrlChat']
+                .downloadUrl;
 
-            contentBlock.document.source = {
-              bytes: new Uint8Array(content),
-            };
+              const response = await fetch(downloadUrl);
+              const content = await response.arrayBuffer();
+
+              console.info(`Received attachment from s3 with ${content.byteLength} bytes`);
+
+              contentBlock.document.source = {
+                bytes: new Uint8Array(content),
+              };
+            }
           }
         }
       }
