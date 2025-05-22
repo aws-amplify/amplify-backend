@@ -22,7 +22,7 @@
     "@aws-amplify/backend-output-schemas": "^1.6.0",
     "@aws-amplify/platform-core": "^1.8.0",
     "@aws-amplify/plugin-types": "^1.10.0",
-    "zod": "^3.22.3"
+    "zod": "3.25.17"
   },
   "peerDependencies": {
     "@aws-sdk/client-amplify": "^3.750.0",

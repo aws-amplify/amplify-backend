@@ -62,3 +62,5 @@ updates:
       - dependency-name: '@microsoft/api-extractor'
       # typings for node should match the lowest Node version we currently support. Do not upgrade this eagerly.
       - dependency-name: '@types/node'
+      # zod is currently very volatile because they are preparing to sunset v3 in favor of v4
+      - dependency-name: 'zod'
