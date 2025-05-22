@@ -1,5 +1,19 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.8.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
+### Patch Changes
+
+- Updated dependencies [17fe9cb]
+- Updated dependencies [dd00ce1]
+  - @aws-amplify/backend-output-schemas@1.7.0
+  - @aws-amplify/platform-core@1.10.0
+
 ## 1.7.0
 
 ### Minor Changes

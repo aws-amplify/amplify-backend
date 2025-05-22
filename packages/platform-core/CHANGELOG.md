@@ -1,5 +1,12 @@
 # @aws-amplify/platform-core
 
+## 1.10.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
 ## 1.9.0
 
 ### Minor Changes
