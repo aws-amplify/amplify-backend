@@ -1,4 +1,6 @@
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { format } from './format/format.js';
+import { LogLevel } from './printer/printer.js';
+import { printer } from './printer.js';
 import { Argv } from 'yargs';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { extractSubCommands } from './extract_sub_commands.js';
@@ -17,7 +19,7 @@ type HandleErrorProps = {
  * Attaches process listeners to handle unhandled exceptions and rejections
  */
 export const attachUnhandledExceptionListeners = (
-  usageDataEmitter: UsageDataEmitter,
+  usageDataEmitter?: UsageDataEmitter,
 ): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
@@ -54,7 +56,7 @@ export const attachUnhandledExceptionListeners = (
  * This prevents our top-level error handler from being invoked after the yargs error handler has already been invoked
  */
 export const generateCommandFailureHandler = (
-  parser: Argv,
+  parser?: Argv,
   usageDataEmitter?: UsageDataEmitter,
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
@@ -63,19 +65,29 @@ export const generateCommandFailureHandler = (
    * @param error error thrown by yargs handler
    */
   const handleCommandFailure = async (message: string, error?: Error) => {
-    const printHelp = () => {
-      printer.printNewLine();
-      parser.showHelp();
-      printer.printNewLine();
-    };
-    await handleErrorSafe({
-      command: extractSubCommands(parser),
-      printMessagePreamble: printHelp,
-      error,
-      message,
-      usageDataEmitter,
-    });
-    parser.exit(1, error || new Error(message));
+    if (!parser) {
+      await handleErrorSafe({
+        error,
+        message,
+      });
+    }
+
+    // for ampx commands
+    if (parser) {
+      const printHelp = () => {
+        printer.printNewLine();
+        parser.showHelp();
+        printer.printNewLine();
+      };
+      await handleErrorSafe({
+        command: extractSubCommands(parser),
+        printMessagePreamble: printHelp,
+        error,
+        message,
+        usageDataEmitter,
+      });
+      parser.exit(1, error || new Error(message));
+    }
   };
   return handleCommandFailure;
 };
