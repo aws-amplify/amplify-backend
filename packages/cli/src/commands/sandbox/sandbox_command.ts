@@ -34,6 +34,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     streamFunctionLogs: boolean | undefined;
     logsFilter: string[] | undefined;
     logsOutFile: string | undefined;
+    devtools: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -91,12 +92,46 @@ export class SandboxCommand
   /**
    * @inheritDoc
    */
+  private devToolsServer: any;
+
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>,
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.sandboxIdentifier = args.identifier;
     this.profile = args.profile;
+
+    // Start DevTools server if --devtools option is provided
+    if (args.devtools) {
+      const { DevToolsServer } = await import('./devtools/server.js');
+      this.devToolsServer = new DevToolsServer();
+      const port = await this.devToolsServer.start();
+      printer.print(
+        `${EOL}DevTools server started at ${format.highlight(`http://localhost:${port}`)}`
+      );
+      
+      // Open the browser
+      const open = (await import('open')).default;
+      await open(`http://localhost:${port}`);
+      
+      // Intercept printer logs to send to DevTools
+      const originalPrint = printer.print;
+      const originalLog = printer.log;
+      
+      printer.print = function(this: any, message: string, logLevel?: any) {
+        if (this.devToolsServer) {
+          this.devToolsServer.sendLog(logLevel || 'INFO', message);
+        }
+        return originalPrint.call(printer, message);
+      }.bind(this);
+      
+      printer.log = function(this: any, message: string, logLevel?: any) {
+        if (this.devToolsServer) {
+          this.devToolsServer.sendLog(logLevel || 'INFO', message);
+        }
+        return originalLog.call(printer, message, logLevel);
+      }.bind(this);
+    }
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
@@ -255,6 +290,11 @@ export class SandboxCommand
           implies: ['stream-function-logs'],
           requiresArg: true,
         })
+        .option('devtools', {
+          describe: 'Open a browser window that displays console logs',
+          boolean: true,
+          global: false,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
@@ -281,6 +321,12 @@ export class SandboxCommand
         'sandbox delete',
       )}`,
     );
+    
+    // Stop DevTools server if it's running
+    if (this.devToolsServer) {
+      await this.devToolsServer.stop();
+      this.devToolsServer = undefined;
+    }
   };
 
   private validateDirectory = async (option: string, dir: string) => {

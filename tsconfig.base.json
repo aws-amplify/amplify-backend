@@ -3,7 +3,7 @@
     "target": "es2022",
     "module": "Node16",
     "moduleResolution": "Node16",
-    "lib": ["es2022"],
+    "lib": ["es2022", "dom"],
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -23,7 +23,8 @@
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true, 
+    "jsx": "react-jsx"
   },
   "exclude": ["**/node_modules", "**/lib"]
 }
