@@ -40,7 +40,7 @@ void describe('serializable error', () => {
   });
 
   void test('that regular stack trace does not contain user homedir for file url paths', () => {
-    console.log(`rotp os.homedir`, os.homedir);
+    console.log(`rotp os.homedir`, os.homedir());
     const error = new Error('test error');
     error.stack = `at methodName (${pathToFileURL(
       os.homedir(),
