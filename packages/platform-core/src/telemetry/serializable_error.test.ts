@@ -38,7 +38,7 @@ void describe('serializable error', () => {
   });
 
   void test('that error message does not contain user homedir', () => {
-    const error = new Error(`${os.homedir()} test error`);
+    const error = new Error(`${process.cwd()} test error`);
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.message);
     const matches = [
@@ -65,7 +65,7 @@ void describe('serializable error', () => {
 
   void test('that error message does not contain file url path with user homedir', () => {
     const error = new Error(
-      `${pathToFileURL(os.homedir()).toString()} test error`,
+      `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.message);
@@ -117,7 +117,7 @@ void describe('serializable error', () => {
   });
 
   void test('that error stack does not contain user homedir', () => {
-    const error = new Error(`${os.homedir()} test error`);
+    const error = new Error(`${process.cwd()} test error`);
     error.stack = `${error.stack}  at methodName (${os.homedir()}:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
@@ -145,16 +145,13 @@ void describe('serializable error', () => {
   });
 
   void test('that error stack does not contain file url path with user homedir', () => {
-    console.log(`rotp os.homedir`, os.homedir());
     const error = new Error(
-      `${pathToFileURL(os.homedir()).toString()} test error`,
+      `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     error.stack = `${error.stack}  at methodName (${pathToFileURL(
       os.homedir(),
     ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
-    console.log(`rotp error`, error);
     const serializableError = new SerializableError(error);
-    console.log(`rotp serializableError`, serializableError);
     assert.ok(serializableError.stack);
     const matches = [
       ...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g')),

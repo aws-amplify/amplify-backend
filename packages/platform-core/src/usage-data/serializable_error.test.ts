@@ -42,7 +42,7 @@ void describe('serializable error', () => {
   void test('that regular stack trace does not contain user homedir for file url paths', () => {
     const error = new Error('test error');
     error.stack = `at methodName (${pathToFileURL(
-      os.homedir(),
+      process.cwd(),
     ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.trace);
@@ -141,7 +141,7 @@ void describe('serializable error', () => {
   });
 
   void test('that error message does not contain user homedir', () => {
-    const error = new ErrorWithDetailsAndCode(`${os.homedir()} test error`);
+    const error = new ErrorWithDetailsAndCode(`${process.cwd()} test error`);
     const serializableError = new SerializableError(error);
     const matches = [
       ...serializableError.message.matchAll(new RegExp(os.homedir(), 'g')),
@@ -166,7 +166,7 @@ void describe('serializable error', () => {
 
   void test('that error message does not contain file url path with user homedir', () => {
     const error = new ErrorWithDetailsAndCode(
-      `${pathToFileURL(os.homedir()).toString()} test error`,
+      `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     const serializableError = new SerializableError(error);
     const matches = [
@@ -195,7 +195,7 @@ void describe('serializable error', () => {
   void test('that error details do not contain user homedir', () => {
     const error = new ErrorWithDetailsAndCode(
       'test error',
-      `${os.homedir()} test details`,
+      `${process.cwd()} test details`,
     );
     const serializableError = new SerializableError(error);
     const matches = serializableError.details
@@ -225,7 +225,7 @@ void describe('serializable error', () => {
   void test('that error details do not contain file url path with user homedir', () => {
     const error = new ErrorWithDetailsAndCode(
       'test error',
-      `${pathToFileURL(os.homedir()).toString()} test details`,
+      `${pathToFileURL(process.cwd()).toString()} test details`,
     );
     const serializableError = new SerializableError(error);
     const matches = serializableError.details
