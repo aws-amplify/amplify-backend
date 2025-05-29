@@ -13,10 +13,10 @@ export class SerializableError {
 
   // breakdown of filePathRegex:
   // (file:/+)? -> matches optional file url prefix
-  // homedir() -> users home directory, replacing \ with /
+  // homedir()/process.cwd() -> users home directory or current working directory, replacing \ with /
   // [\\w.\\-_@\\\\/]+ -> matches nested directories and file name
   private filePathRegex = new RegExp(
-    `(file:/+)?${homedir().replaceAll('\\', '/')}[\\w.\\-_@\\\\/]+`,
+    `(file:/+)?(${homedir().replaceAll('\\', '/')}|${process.cwd().replaceAll('\\', '/')})[\\w.\\-_@\\\\/]+`,
     'g',
   );
   private stackTraceRegex =
