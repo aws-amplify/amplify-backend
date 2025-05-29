@@ -1,5 +1,12 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.7.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
 ## 1.6.0
 
 ### Minor Changes
