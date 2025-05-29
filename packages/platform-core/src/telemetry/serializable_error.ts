@@ -12,10 +12,10 @@ export class SerializableError {
 
   // breakdown of filePathRegex:
   // (file:/+)? -> matches optional file url prefix
-  // homedir()/process.cwd() -> users home directory or current working directory, replacing \ with [\\/]+
-  // [\\w.\\-_@\\\\/]* -> matches nested directories and file name
+  // homedir()/process.cwd() -> users home directory or current working directory, replacing \ with /
+  // [\\w.\\-_@\\\\/]+ -> matches nested directories and file name
   private filePathRegex = new RegExp(
-    `(file:/+)?(${homedir().replaceAll('\\', '[\\\\/]+')}|${process.cwd().replaceAll('\\', '[\\\\/]+')})[\\w.\\-_@\\\\/]*`,
+    `(file:/+)?(${homedir().replaceAll('\\', '/')}|${process.cwd().replaceAll('\\', '/')})[\\w.\\-_@\\\\/]+`,
     'g',
   );
   private arnRegex =
@@ -38,12 +38,9 @@ export class SerializableError {
   private anonymizePaths = (str: string): string => {
     let result = str;
     const matches = [...result.matchAll(this.filePathRegex)];
-    console.log('rotp str', str);
-    console.log('rotp matches', matches);
     for (const match of matches) {
       result = result.replace(match[0], this.processPaths([match[0]])[0]);
     }
-
     return result;
   };
 

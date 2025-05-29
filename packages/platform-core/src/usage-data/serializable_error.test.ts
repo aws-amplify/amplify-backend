@@ -40,14 +40,11 @@ void describe('serializable error', () => {
   });
 
   void test('that regular stack trace does not contain user homedir for file url paths', () => {
-    console.log(`rotp os.homedir`, os.homedir());
     const error = new Error('test error');
     error.stack = `at methodName (${pathToFileURL(
       os.homedir(),
     ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
-    console.log(`rotp error`, error);
     const serializableError = new SerializableError(error);
-    console.log(`rotp serializableError`, serializableError);
     assert.ok(serializableError.trace);
     serializableError.trace?.forEach((trace) => {
       assert.ok(
