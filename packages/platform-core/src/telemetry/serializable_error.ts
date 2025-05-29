@@ -15,7 +15,7 @@ export class SerializableError {
   // homedir()/process.cwd() -> users home directory or current working directory, replacing \ with [\\/]+
   // [\\w.\\-_@\\\\/]* -> matches nested directories and file name
   private filePathRegex = new RegExp(
-    `(file:/+)?(${homedir().replaceAll('\\', '[\\/]+')}|${process.cwd().replaceAll('\\', '[\\/]+')})[\\w.\\-_@\\\\/]*`,
+    `(file:/+)?(${homedir().replaceAll('\\', '[\\\\/]+')}|${process.cwd().replaceAll('\\', '[\\\\/]+')})[\\w.\\-_@\\\\/]*`,
     'g',
   );
   private arnRegex =
