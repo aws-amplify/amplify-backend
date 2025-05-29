@@ -38,6 +38,8 @@ export class SerializableError {
   private anonymizePaths = (str: string): string => {
     let result = str;
     const matches = [...result.matchAll(this.filePathRegex)];
+    console.log('rotp str', str);
+    console.log('rotp matches', matches);
     for (const match of matches) {
       result = result.replace(match[0], this.processPaths([match[0]])[0]);
     }
