@@ -1,5 +1,19 @@
 # @aws-amplify/cli-core
 
+## 2.2.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
+### Patch Changes
+
+- Updated dependencies [3b4f18f]
+- Updated dependencies [17fe9cb]
+- Updated dependencies [dd00ce1]
+  - @aws-amplify/platform-core@1.10.0
+
 ## 2.1.1
 
 ### Patch Changes
