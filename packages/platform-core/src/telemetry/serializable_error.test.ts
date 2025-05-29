@@ -118,7 +118,7 @@ void describe('serializable error', () => {
 
   void test('that error stack does not contain user homedir', () => {
     const error = new Error(`${process.cwd()} test error`);
-    error.stack = `${error.stack}  at methodName (${os.homedir()}:12:34)\n`;
+    error.stack = `${error.stack}  at methodName (${process.cwd()}:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
     const matches = [
@@ -149,7 +149,7 @@ void describe('serializable error', () => {
       `${pathToFileURL(process.cwd()).toString()} test error`,
     );
     error.stack = `${error.stack}  at methodName (${pathToFileURL(
-      os.homedir(),
+      process.cwd(),
     ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
