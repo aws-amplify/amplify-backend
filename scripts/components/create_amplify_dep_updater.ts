@@ -1,6 +1,13 @@
 import fsp from 'fs/promises';
+import { context } from '@actions/github';
+import { Context } from '@actions/github/lib/context.js';
 import path from 'path';
 import { Dependency } from './get_dependencies_from_package_lock.js';
+import {
+  BumpType,
+  ChangesetFrontMatterContent,
+  createChangesetFile,
+} from './create_changeset_file.js';
 
 /**
  * Modifies target dependencies used for create amplify
@@ -8,6 +15,7 @@ import { Dependency } from './get_dependencies_from_package_lock.js';
 export const createAmplifyDepUpdater = async (
   dependencies: Dependency[],
   createAmplifyDepsToFilter: string[] = ['aws-cdk-lib'],
+  ghContext: Context = context,
 ) => {
   const targetDependencies: Dependency[] = dependencies.filter((dependency) =>
     createAmplifyDepsToFilter.includes(dependency.name),
@@ -72,5 +80,24 @@ export const createAmplifyDepUpdater = async (
         2,
       ),
     );
+    // create changeset if event is a dependabot pull request
+    if (
+      ghContext.payload.pull_request &&
+      ghContext.payload.pull_request.head.ref.startsWith('dependabot/')
+    ) {
+      const fileName = path.join(
+        process.cwd(),
+        `.changeset/dependabot-create-amplify-${ghContext.payload.pull_request.head.sha}.md`,
+      );
+      const frontMatterContent: ChangesetFrontMatterContent = {
+        packageName: 'create-amplify',
+        bumpType: BumpType.PATCH,
+      };
+      await createChangesetFile(
+        fileName,
+        [frontMatterContent],
+        'bump create amplify dependencies',
+      );
+    }
   }
 };
