@@ -18,7 +18,7 @@ import {
 } from '@aws-amplify/platform-core';
 import path from 'path';
 import {
-  HotswapMode,
+  MemoryContext,
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
@@ -148,10 +148,9 @@ export class CDKDeployer implements BackendDeployer {
         stacks: {
           strategy: StackSelectionStrategy.ALL_STACKS,
         },
-        hotswap:
-          backendId.type === 'sandbox'
-            ? HotswapMode.FALL_BACK
-            : HotswapMode.FULL_DEPLOYMENT,
+        deploymentMethod: {
+          method: backendId.type === 'sandbox' ? 'hotswap' : 'direct',
+        },
       });
     } catch (error) {
       await this.ioHost.notify({
@@ -223,23 +222,24 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
    */
-  private getCdkCloudAssembly = (
+  private getCdkCloudAssembly = async (
     backendId: BackendIdentifier,
     secretLastUpdated?: number,
+    // createContextStore: () => IContextStore = () => new MemoryContext({}),
   ) => {
-    const contextParams: {
-      [key: string]: unknown;
-    } = {};
-
+    // const context = createContextStore();
+    const context = new MemoryContext({});
     if (backendId.type === 'sandbox') {
       if (secretLastUpdated) {
-        contextParams['secretLastUpdated'] = secretLastUpdated;
+        await context.update({ secretLastUpdated: secretLastUpdated });
       }
     }
 
-    contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
-    contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
-    contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
+    await context.update({
+      [CDKContextKey.BACKEND_NAMESPACE]: backendId.namespace,
+      [CDKContextKey.BACKEND_NAME]: backendId.name,
+      [CDKContextKey.DEPLOYMENT_TYPE]: backendId.type,
+    });
     return this.cdkToolkit.fromAssemblyBuilder(
       async () => {
         await tsImport(
@@ -254,7 +254,7 @@ export class CDKDeployer implements BackendDeployer {
         process.emit('message', 'amplifySynth', undefined);
         return new CloudAssembly(this.absoluteCloudAssemblyLocation);
       },
-      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation },
+      { contextStore: context, outdir: this.absoluteCloudAssemblyLocation },
     );
   };
 }

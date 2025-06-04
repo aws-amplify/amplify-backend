@@ -16,7 +16,7 @@
     "@aws-sdk/types": "^3.734.0"
   },
   "dependencies": {
-    "@aws-cdk/toolkit-lib": "0.3.2"
+    "@aws-cdk/toolkit-lib": "1.0.0"
   },
   "imports": {
     "#package.json": "./package.json"
