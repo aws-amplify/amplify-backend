@@ -41,7 +41,7 @@ export type AmplifyIOHost = {
 };
 
 // @public (undocumented)
-export type AmplifyIoHostEventMessage<T> = {} & SimpleSpread<IoMessage<T>, AmplifyEventMessage | Pick<AmplifyEventMessage, 'action'> & Partial<Pick<AmplifyEventMessage, 'code'>>>;
+export type AmplifyIoHostEventMessage<T> = {} & SimpleSpread<IoMessage<T>, AmplifyEventMessage | (Pick<AmplifyEventMessage, 'action'> & Partial<Pick<AmplifyEventMessage, 'code'>>)>;
 
 // @public (undocumented)
 export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;
