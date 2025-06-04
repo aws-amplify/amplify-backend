@@ -127,6 +127,8 @@ export class AmplifyEventLogger {
         }
         this.printer.updateSpinner({ prefixText: msg.message });
         return;
+      case undefined:
+        return;
     }
     this.printer.log(
       msg.level === 'result'
