@@ -18,7 +18,6 @@ import {
   AssemblyError,
   AssemblySourceProps,
   DeployOptions,
-  HotswapMode,
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
@@ -28,7 +27,7 @@ const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
 
-void describe('invokeCDKCommand', () => {
+void describe('invokeCDKCommand', async () => {
   const branchBackendId: BackendIdentifier = {
     namespace: '123',
     name: 'testBranch',
@@ -102,17 +101,28 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(synthMock.mock.callCount(), 1);
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
-      hotswap: HotswapMode.FULL_DEPLOYMENT,
+      deploymentMethod: {
+        method: 'direct',
+      },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
-    assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
-        'amplify-backend-namespace': '123',
-        'amplify-backend-name': 'testBranch',
-        'amplify-backend-type': 'branch',
-      },
-      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
-    } as AssemblySourceProps);
+    const fromAssemblyBuilderOptions: AssemblySourceProps =
+      fromAssemblyBuilderMock.mock.calls[0].arguments[1];
+    assert.strictEqual(
+      fromAssemblyBuilderOptions.outdir,
+      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    );
+    assert.ok(
+      fromAssemblyBuilderOptions.contextStore,
+      'contextStore should be defined',
+    );
+    const contextStoreContents =
+      await fromAssemblyBuilderOptions.contextStore.read();
+    assert.deepStrictEqual(contextStoreContents, {
+      'amplify-backend-namespace': '123',
+      'amplify-backend-name': 'testBranch',
+      'amplify-backend-type': 'branch',
+    });
   });
 
   void it('handles deployProps for sandbox', async () => {
@@ -121,18 +131,29 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(synthMock.mock.callCount(), 1);
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
-      hotswap: HotswapMode.FALL_BACK,
+      deploymentMethod: {
+        method: 'hotswap',
+      },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
-    assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
-        'amplify-backend-namespace': 'foo',
-        'amplify-backend-name': 'bar',
-        'amplify-backend-type': 'sandbox',
-        secretLastUpdated: 12345678,
-      },
-      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
-    } as AssemblySourceProps);
+    const fromAssemblyBuilderOptions: AssemblySourceProps =
+      fromAssemblyBuilderMock.mock.calls[0].arguments[1];
+    assert.strictEqual(
+      fromAssemblyBuilderOptions.outdir,
+      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    );
+    assert.ok(
+      fromAssemblyBuilderOptions.contextStore,
+      'contextStore should be defined',
+    );
+    const contextStoreContents =
+      await fromAssemblyBuilderOptions.contextStore.read();
+    assert.deepStrictEqual(contextStoreContents, {
+      'amplify-backend-namespace': 'foo',
+      'amplify-backend-name': 'bar',
+      'amplify-backend-type': 'sandbox',
+      secretLastUpdated: 12345678,
+    });
   });
 
   void it('handles destroy for sandbox', async () => {
@@ -142,14 +163,23 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(destroyMock.mock.calls[0].arguments[1], {
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
-    assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
-        'amplify-backend-namespace': 'foo',
-        'amplify-backend-name': 'bar',
-        'amplify-backend-type': 'sandbox',
-      },
-      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
-    } as AssemblySourceProps);
+    const fromAssemblyBuilderOptions: AssemblySourceProps =
+      fromAssemblyBuilderMock.mock.calls[0].arguments[1];
+    assert.strictEqual(
+      fromAssemblyBuilderOptions.outdir,
+      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    );
+    assert.ok(
+      fromAssemblyBuilderOptions.contextStore,
+      'contextStore should be defined',
+    );
+    const contextStoreContents =
+      await fromAssemblyBuilderOptions.contextStore.read();
+    assert.deepStrictEqual(contextStoreContents, {
+      'amplify-backend-namespace': 'foo',
+      'amplify-backend-name': 'bar',
+      'amplify-backend-type': 'sandbox',
+    });
   });
 
   void it('enables type checking for branch deployments', async () => {

@@ -8,7 +8,7 @@ import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
-import { Toolkit } from '@aws-cdk/toolkit-lib';
+import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
@@ -69,7 +69,9 @@ export class BackendDeployerFactory {
           emojis: false,
           color: false,
           sdkConfig: {
-            profile: this.sdkProfileResolver(),
+            baseCredentials: BaseCredentials.awsCliCompatible({
+              profile: this.sdkProfileResolver(),
+            }),
           },
         }),
         this.backendDeployerIOHost,
