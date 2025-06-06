@@ -50,6 +50,19 @@ void describe('serializable error', () => {
     );
   });
 
+  void test('that error message does not contain current working directory', () => {
+    const error = new Error(`${process.cwd()} test error`);
+    const serializableError = new SerializableError(error);
+    assert.ok(serializableError.message);
+    const matches = [
+      ...serializableError.message.matchAll(new RegExp(process.cwd(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${process.cwd()} is included in ${serializableError.message}`,
+    );
+  });
+
   void test('that error message does not contain file url path with user homedir', () => {
     const error = new Error(
       `${pathToFileURL(process.cwd()).toString()} test error`,
@@ -62,6 +75,21 @@ void describe('serializable error', () => {
     assert.ok(
       matches.length === 0,
       `${os.homedir()} is included in ${serializableError.message}`,
+    );
+  });
+
+  void test('that error message does not contain file url path with current working directory', () => {
+    const error = new Error(
+      `${pathToFileURL(process.cwd()).toString()} test error`,
+    );
+    const serializableError = new SerializableError(error);
+    assert.ok(serializableError.message);
+    const matches = [
+      ...serializableError.message.matchAll(new RegExp(process.cwd(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${process.cwd()} is included in ${serializableError.message}`,
     );
   });
 
@@ -102,6 +130,20 @@ void describe('serializable error', () => {
     );
   });
 
+  void test('that error stack does not contain current working directory', () => {
+    const error = new Error(`${process.cwd()} test error`);
+    error.stack = `${error.stack}  at methodName (${process.cwd()}:12:34)\n`;
+    const serializableError = new SerializableError(error);
+    assert.ok(serializableError.stack);
+    const matches = [
+      ...serializableError.stack.matchAll(new RegExp(process.cwd(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${process.cwd()} is included in ${serializableError.stack}`,
+    );
+  });
+
   void test('that error stack does not contain file url path with user homedir', () => {
     const error = new Error(
       `${pathToFileURL(process.cwd()).toString()} test error`,
@@ -117,6 +159,30 @@ void describe('serializable error', () => {
     assert.ok(
       matches.length === 0,
       `${os.homedir()} is included in ${serializableError.stack}`,
+    );
+    const expectedFilePath =
+      'node_modules/@aws-amplify/test-package/lib/test.js';
+    assert.ok(
+      serializableError.stack.includes(expectedFilePath),
+      `${expectedFilePath} is not found in ${serializableError.stack}`,
+    );
+  });
+
+  void test('that error stack does not contain file url path with current working directory', () => {
+    const error = new Error(
+      `${pathToFileURL(process.cwd()).toString()} test error`,
+    );
+    error.stack = `${error.stack}  at methodName (${pathToFileURL(
+      process.cwd(),
+    ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
+    const serializableError = new SerializableError(error);
+    assert.ok(serializableError.stack);
+    const matches = [
+      ...serializableError.stack.matchAll(new RegExp(process.cwd(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${process.cwd()} is included in ${serializableError.stack}`,
     );
     const expectedFilePath =
       'node_modules/@aws-amplify/test-package/lib/test.js';
