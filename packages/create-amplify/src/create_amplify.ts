@@ -44,5 +44,8 @@ try {
 } catch (err) {
   if (err instanceof Error) {
     await errorHandler(format.error(err), err);
+  } else {
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
+    await errorHandler(format.error(err), new Error(JSON.stringify(err)));
   }
 }
