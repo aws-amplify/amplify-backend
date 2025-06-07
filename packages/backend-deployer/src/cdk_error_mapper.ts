@@ -260,6 +260,17 @@ export class CdkErrorMapper {
       errorName: 'CDKVersionMismatchError',
       classification: 'ERROR',
     },
+    // Similar to previous error but there are instances of the error that do not mention upgrading CDK CLI or compatible CDK CLI version
+    {
+      errorRegex:
+        /Cannot read asset manifest .*: Cloud assembly schema version mismatch: Maximum schema version supported is .*, but found .*/,
+      humanReadableErrorMessage:
+        "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+      resolutionMessage:
+        "Make sure that version of 'aws-cdk' is greater or equal to version of 'aws-cdk-lib'",
+      errorName: 'CDKVersionMismatchError',
+      classification: 'ERROR',
+    },
     {
       errorRegex: /Command cdk not found/,
       humanReadableErrorMessage: 'Unable to detect cdk installation',
