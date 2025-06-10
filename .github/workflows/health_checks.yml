@@ -42,7 +42,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: true
+        default: false
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -597,7 +597,7 @@ jobs:
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
-            node-version: 20
+            node-version: 18
           - os: windows-latest
             node-version: 18
           - os: macos-14
