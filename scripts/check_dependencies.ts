@@ -24,5 +24,20 @@ await new DependenciesValidator(
     },
   },
   [], // Add a list of dependencies here that should be versioned together
-  [],
+  [
+    {
+      dependencyName: '@aws-sdk/types',
+      globalDependencyVersion: '^3.734.0',
+      exceptions: [
+        {
+          packageName: '@aws-amplify/data-construct',
+          dependencyVersion: '3.609.0',
+        },
+        {
+          packageName: '@aws-amplify/graphql-api-construct',
+          dependencyVersion: '3.609.0',
+        },
+      ],
+    },
+  ],
 ).validate();
