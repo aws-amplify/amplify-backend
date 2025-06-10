@@ -113,10 +113,6 @@ jobs:
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
           fi
-          if [ "${{ inputs.include-windows }}" != "false" ]; then
-            os+=', "windows-latest"'
-            os_for_e2e+=', "windows-latest"'
-          fi
           os+=']'
           os_for_e2e+=']'
           echo "os=$os" >> "$GITHUB_OUTPUT"
@@ -272,10 +268,10 @@ jobs:
           mkdir api-validation-projects
           npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   handle_dependabot_version_update:
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs:
-      - install
+      - build
       - resolve_inputs
     permissions:
       # This is required so that this job can add the 'run-e2e' label and push to the pull request
@@ -288,12 +284,15 @@ jobs:
       - uses: ./.github/actions/setup_node
         with:
           node-version: 18
-      - uses: ./.github/actions/restore_install_cache
+      - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Handle Dependabot version update pull request
-        run: npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA"
+        run: |
+          npm run update:create-amplify-deps
+          npm run lint:fix
+          npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA"
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           # The dependabot_handler_version_update script needs to add the 'run-e2e' pull request label
