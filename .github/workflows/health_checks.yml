@@ -42,7 +42,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: false
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -112,10 +112,6 @@ jobs:
           if [ "${{ inputs.include-macos }}" != "false" ]; then
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
-          fi
-          if [ "${{ inputs.include-windows }}" != "false" ]; then
-            os+=', "windows-latest"'
-            os_for_e2e+=', "windows-latest"'
           fi
           os+=']'
           os_for_e2e+=']'
@@ -597,7 +593,7 @@ jobs:
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
-            node-version: 18
+            node-version: 20
           - os: windows-latest
             node-version: 18
           - os: macos-14
