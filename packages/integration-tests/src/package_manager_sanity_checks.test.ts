@@ -129,6 +129,7 @@ void describe('getting started happy path', async () => {
         branchBackendIdentifier.name,
         '--appId',
         branchBackendIdentifier.namespace,
+        '--debug',
       ],
       tempDir,
       { env: { CI: 'true' } },
