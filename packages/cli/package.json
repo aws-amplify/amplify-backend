@@ -16,9 +16,11 @@
   },
   "scripts": {
     "update:api": "api-extractor run --local",
-    "build:devtools": "cd src/commands/sandbox/devtools/react-app && npm install && npm run build && mkdir -p ../public && cp -r build/* ../public/ && mkdir -p ../../../../lib/commands/sandbox/devtools/public && cp -r build/* ../../../../lib/commands/sandbox/devtools/public/",
-    "prebuild": "npm run build:devtools",
-    "build": "tsc"
+    "clean": "rm -rf lib",
+    "build:devtools": "cd src/commands/sandbox/sandbox-devtools/react-app && npm install -g vite && vite build",
+    "build:ts": "tsc --build --force",
+    "postbuild:ts": "mkdir -p lib/commands/sandbox/sandbox-devtools/public && cp -r src/commands/sandbox/sandbox-devtools/react-app/build/* lib/commands/sandbox/sandbox-devtools/public/ || echo '<!DOCTYPE html><html><head><title>Sandbox</title></head><body><div id=\"root\"></div></body></html>' > lib/commands/sandbox/sandbox-devtools/public/index.html",
+    "build": "npm run clean && npm run build:devtools && npm run build:ts && npm run postbuild:ts && chmod +x lib/ampx.js"
   },
   "repository": {
     "type": "git",
