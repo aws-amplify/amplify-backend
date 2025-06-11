@@ -24,15 +24,14 @@
     "execa": "^9.5.1",
     "tsx": "^4.6.1",
     "strip-ansi": "^7.1.0",
-    "@aws-cdk/toolkit-lib": "0.3.2"
+    "@aws-cdk/toolkit-lib": "0.3.2",
+    "minimatch": "10.0.1"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.189.1",
     "typescript": "^5.0.0"
   },
   "overrides": {
-    "@aws-cdk/toolkit-lib": {
-      "minimatch": "10.0.1"
-    }
+    "minimatch": "10.0.1"
   }
 }
