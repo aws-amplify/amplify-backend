@@ -29,10 +29,5 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.189.1",
     "typescript": "^5.0.0"
-  },
-  "overrides": {
-    "@aws-cdk/toolkit-lib": {
-      "minimatch": "10.0.1"
-    }
   }
 }

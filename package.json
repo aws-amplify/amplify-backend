@@ -114,8 +114,6 @@
     "*.md": "prettier --write"
   },
   "overrides": {
-    "glob": {
-      "minimatch": "10.0.1"
-    }
+    "minimatch": "10.0.1"
   }
 }

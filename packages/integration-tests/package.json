@@ -52,10 +52,5 @@
     "uuid": "^11.1.0",
     "zod": "3.25.17"
   },
-  "license": "Apache-2.0",
-  "overrides": {
-    "glob": {
-      "minimatch": "10.0.1"
-    }
-  }
+  "license": "Apache-2.0"
 }
