@@ -20,5 +20,10 @@
   },
   "imports": {
     "#package.json": "./package.json"
+  },
+  "overrides": {
+    "@aws-cdk/toolkit-lib": {
+      "minimatch": "10.0.1"
+    }
   }
 }
