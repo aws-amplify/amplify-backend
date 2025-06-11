@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { type Server, createServer } from 'node:http';

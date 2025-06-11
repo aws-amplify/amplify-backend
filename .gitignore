@@ -25,6 +25,5 @@ testDir
 
 # React app build files
 packages/cli/src/commands/sandbox/sandbox-devtools/public/
-packages/cli/src/commands/sandbox/sandbox-devtools/react-app/build/
 packages/cli/src/commands/sandbox/sandbox-devtools/react-app/dist/
 packages/cli/src/commands/sandbox/sandbox-devtools/amplify-backend.code-workspace

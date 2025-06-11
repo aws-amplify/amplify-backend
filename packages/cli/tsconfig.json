@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "exclude": ["src/commands/sandbox/sandbox-devtools/react-app/**/*"],
+  "exclude": [
+    "src/commands/sandbox/sandbox-devtools/react-app/**/*",
+    "lib/**/*"
+  ],
   "references": [
     { "path": "../backend-deployer" },
     { "path": "../backend-output-schemas" },
