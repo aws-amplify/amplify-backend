@@ -14,6 +14,7 @@ export {
   MFA,
   MFASmsSettings,
   MFATotpSettings,
+  MFAEmailSettings,
   MFASettings,
   PhoneNumberLogin,
   TriggerEvent,

@@ -145,12 +145,21 @@ export type MFA = {
 } & MFASettings);
 
 // @public
+export type MFAEmailSettings = boolean;
+
+// @public
 export type MFASettings = {
     totp?: MFATotpSettings;
+    sms?: MFASmsSettings;
+    email: MFAEmailSettings;
+} | {
+    totp?: MFATotpSettings;
     sms: MFASmsSettings;
+    email?: MFAEmailSettings;
 } | {
     totp: MFATotpSettings;
     sms?: MFASmsSettings;
+    email?: MFAEmailSettings;
 };
 
 // @public

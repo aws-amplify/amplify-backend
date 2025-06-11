@@ -126,14 +126,29 @@ export type MFASmsSettings =
  */
 export type MFATotpSettings = boolean;
 /**
+ * If true, the MFA token is sent to the user via email.
+ * @see - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-mfa-sms-email-message.html
+ */
+export type MFAEmailSettings = boolean;
+/**
  * Configure the MFA types that users can use. At least one of totp or sms is required.
  */
 export type MFASettings =
   | {
       totp?: MFATotpSettings;
-      sms: MFASmsSettings;
+      sms?: MFASmsSettings;
+      email: MFAEmailSettings;
     }
-  | { totp: MFATotpSettings; sms?: MFASmsSettings };
+  | {
+      totp?: MFATotpSettings;
+      sms: MFASmsSettings;
+      email?: MFAEmailSettings;
+    }
+  | {
+      totp: MFATotpSettings;
+      sms?: MFASmsSettings;
+      email?: MFAEmailSettings;
+    };
 
 /**
  * MFA configuration. MFA settings are required if the mode is either "OPTIONAL" or "REQUIRED"
