@@ -112,5 +112,10 @@
     "*.json": "prettier --write",
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
+  },
+  "overrides": {
+    "glob": {
+      "minimatch": "10.0.1"
+    }
   }
 }

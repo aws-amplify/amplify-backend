@@ -41,5 +41,10 @@
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",
     "@types/parse-gitignore": "^1.0.0"
+  },
+  "overrides": {
+    "glob": {
+      "minimatch": "10.0.1"
+    }
   }
 }
