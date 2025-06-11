@@ -118,6 +118,7 @@
     "*.md": "prettier --write"
   },
   "dependencies": {
+    "cookie-signature": "1.0.6",
     "express": "^5.1.0",
     "ws": "^8.18.2"
   }
