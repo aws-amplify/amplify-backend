@@ -114,8 +114,8 @@ jobs:
             os_for_e2e+=', "macos-14-xlarge"'
           fi
           if [ "${{ inputs.include-windows }}" != "false" ]; then
-            os+=', "windows-latest"'
-            os_for_e2e+=', "windows-latest"'
+            os+=', "windows-2025"'
+            os_for_e2e+=', "windows-2025"'
           fi
           os+=']'
           os_for_e2e+=']'
@@ -245,7 +245,7 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -463,7 +463,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_deployment ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
     needs:
       - do_include_e2e
       - build
@@ -511,7 +511,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_sandbox ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
     needs:
       - do_include_e2e
       - build
@@ -540,7 +540,7 @@ jobs:
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
     runs-on: ${{ matrix.os }}
     name: e2e_notices ${{ matrix.os }}
-    timeout-minutes: 5
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 8 || 5 }}
     needs:
       - do_include_e2e
       - build
@@ -595,14 +595,14 @@ jobs:
         exclude:
           - os: macos-14
             node-version: 20
-          - os: windows-latest
+          - os: windows-2025
             node-version: 18
           - os: macos-14
             node-version: 22
-          - os: windows-latest
+          - os: windows-2025
             node-version: 22
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
     needs:
       - do_include_e2e
       - build

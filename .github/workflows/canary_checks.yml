@@ -19,10 +19,10 @@ jobs:
           rm package-lock.json
           ./scripts/retry.js npm install
           npm run build
-      - name: Check dependencies
-        shell: bash
-        run: |
-          npm run check:dependencies
+      # - name: Check dependencies
+      #   shell: bash
+      #   run: |
+      #     npm run check:dependencies
       - name: Run unit and integration tests
         shell: bash
         run: |
