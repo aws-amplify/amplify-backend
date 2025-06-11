@@ -32,7 +32,9 @@
   },
   "overrides": {
     "@aws-cdk/toolkit-lib": {
-      "minimatch": "10.0.1"
+      "glob": {
+        "minimatch": "10.0.1"
+      }
     }
   }
 }
