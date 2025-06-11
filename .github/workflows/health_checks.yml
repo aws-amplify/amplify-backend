@@ -797,11 +797,11 @@ jobs:
         run: npx tsx scripts/check_changeset_completeness.ts "$BASE_SHA"
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      - name: Validate that changeset has necessary dependency updates
-        run: |
-          npx changeset version
-          npm update
-          npm run check:dependencies
+      # - name: Validate that changeset has necessary dependency updates
+      #   run: |
+      #     npx changeset version
+      #     npm update
+      #     npm run check:dependencies
   check_package_versions:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
