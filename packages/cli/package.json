@@ -16,11 +16,12 @@
   },
   "scripts": {
     "update:api": "api-extractor run --local",
-    "clean": "rm -rf lib",
-    "build:devtools": "cd src/commands/sandbox/sandbox-devtools/react-app && npm install -g vite && vite build",
+    "clean": "rm -rf lib && rm -rf src/commands/sandbox/sandbox-devtools/public",
+    "build:devtools": "cd src/commands/sandbox/sandbox-devtools/react-app && npm install && npm run build",
     "build:ts": "tsc --build --force",
-    "postbuild:ts": "mkdir -p lib/commands/sandbox/sandbox-devtools/public && cp -r src/commands/sandbox/sandbox-devtools/react-app/build/* lib/commands/sandbox/sandbox-devtools/public/ || echo '<!DOCTYPE html><html><head><title>Sandbox</title></head><body><div id=\"root\"></div></body></html>' > lib/commands/sandbox/sandbox-devtools/public/index.html",
-    "build": "npm run clean && npm run build:devtools && npm run build:ts && npm run postbuild:ts && chmod +x lib/ampx.js"
+    "copy:devtools": "mkdir -p lib/commands/sandbox/sandbox-devtools/react-app/dist && cp -r src/commands/sandbox/sandbox-devtools/react-app/dist/* lib/commands/sandbox/sandbox-devtools/react-app/dist/ || echo 'No React app build found'",
+    "build": "npm run clean && npm run build:devtools && npm run build:ts && npm run copy:devtools && chmod +x lib/ampx.js",
+    "postinstall": "npm run build:devtools && npm run copy:devtools"
   },
   "repository": {
     "type": "git",

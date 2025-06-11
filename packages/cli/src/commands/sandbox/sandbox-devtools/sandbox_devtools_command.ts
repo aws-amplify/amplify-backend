@@ -125,10 +125,10 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     const server = createServer(app);
     const io = new Server(server);
 
-    // Serve static files from the 'public' directory
+    // Serve static files from the React app's 'dist' directory
     const publicPath = join(
       dirname(fileURLToPath(import.meta.url)),
-      './public',
+      './react-app/dist',
     );
     app.use(express.static(publicPath));
 
