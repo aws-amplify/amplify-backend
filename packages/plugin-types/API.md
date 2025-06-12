@@ -27,7 +27,7 @@ import { ToolkitAction } from '@aws-cdk/toolkit-lib';
 
 // @public (undocumented)
 export type AmplifyEventMessage = {
-    code: string;
+    code?: string;
     action: ToolkitAction | 'amplify';
 };
 

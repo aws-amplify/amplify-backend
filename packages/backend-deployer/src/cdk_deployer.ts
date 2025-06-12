@@ -18,7 +18,7 @@ import {
 } from '@aws-amplify/platform-core';
 import path from 'path';
 import {
-  HotswapMode,
+  MemoryContext,
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
@@ -148,10 +148,10 @@ export class CDKDeployer implements BackendDeployer {
         stacks: {
           strategy: StackSelectionStrategy.ALL_STACKS,
         },
-        hotswap:
+        deploymentMethod:
           backendId.type === 'sandbox'
-            ? HotswapMode.FALL_BACK
-            : HotswapMode.FULL_DEPLOYMENT,
+            ? { method: 'hotswap', fallback: { method: 'direct' } }
+            : { method: 'direct' },
       });
     } catch (error) {
       await this.ioHost.notify({
@@ -246,6 +246,7 @@ export class CDKDeployer implements BackendDeployer {
           pathToFileURL(this.backendLocator.locate()).toString(),
           import.meta.url,
         );
+
         /**
           By not having a child process with toolkit lib, the `process.on('beforeExit')` does not execute
           on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
@@ -254,7 +255,10 @@ export class CDKDeployer implements BackendDeployer {
         process.emit('message', 'amplifySynth', undefined);
         return new CloudAssembly(this.absoluteCloudAssemblyLocation);
       },
-      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation },
+      {
+        contextStore: new MemoryContext(contextParams),
+        outdir: this.absoluteCloudAssemblyLocation,
+      },
     );
   };
 }
