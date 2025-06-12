@@ -1,5 +1,17 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.2
+
+### Patch Changes
+
+- e1295a7: minimatch override
+- 376a000: Pin minimatch
+- f3bc310: pin tsx
+- Updated dependencies [3b4f18f]
+- Updated dependencies [17fe9cb]
+- Updated dependencies [dd00ce1]
+  - @aws-amplify/platform-core@1.10.0
+
 ## 2.1.1
 
 ### Patch Changes
