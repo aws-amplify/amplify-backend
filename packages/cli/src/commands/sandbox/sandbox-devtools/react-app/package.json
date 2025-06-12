@@ -13,6 +13,7 @@
   "dependencies": {
     "@cloudscape-design/components": "^3.0.982",
     "@cloudscape-design/global-styles": "^1.0.44",
+    "esbuild": "0.25.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "socket.io-client": "^4.8.1"
