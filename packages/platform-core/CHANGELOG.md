@@ -1,5 +1,16 @@
 # @aws-amplify/platform-core
 
+## 1.10.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
+### Patch Changes
+
+- 3b4f18f: Update error path processing to include current working directory for anonymization
+
 ## 1.9.0
 
 ### Minor Changes
