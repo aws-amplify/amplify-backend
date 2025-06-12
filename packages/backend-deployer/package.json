@@ -22,7 +22,7 @@
     "@aws-amplify/platform-core": "^1.9.0",
     "@aws-amplify/plugin-types": "^1.10.1",
     "execa": "^9.5.1",
-    "tsx": "^4.6.1",
+    "tsx": "4.19.4",
     "strip-ansi": "^7.1.0",
     "@aws-cdk/toolkit-lib": "0.3.2",
     "minimatch": "10.0.1"
