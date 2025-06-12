@@ -120,6 +120,7 @@
   "dependencies": {
     "cookie-signature": "1.0.6",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
     "ws": "^8.18.2"
   }
 }

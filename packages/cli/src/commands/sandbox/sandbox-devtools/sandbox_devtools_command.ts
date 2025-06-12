@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { CommandModule } from 'yargs';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -131,6 +132,17 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       './react-app/dist',
     );
     app.use(express.static(publicPath));
+
+    // Apply rate limiting to all routes
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: 100, // Limit each IP to 100 requests per windowMs
+      standardHeaders: 'draft-7', // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    });
+
+    // Apply the rate limiting middleware to all requests
+    app.use(limiter);
 
     // For any other request, serve the index.html (for React router)
     app.get('*', (req, res) => {
