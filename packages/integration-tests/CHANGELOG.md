@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.9.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
 ## 0.8.1
 
 ### Patch Changes
