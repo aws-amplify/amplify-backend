@@ -30,7 +30,7 @@ export const askAI = async (message: string) => {
   ${context}`;
 
   const invokeAgentCommand = new InvokeAgentCommand({
-    agentAliasId: 'CM4CCXA47A',
+    agentAliasId: 'MOGIAHZ82G',
     sessionId: sessionID,
     agentId: 'FKXLDWRVIP',
     inputText: message,
