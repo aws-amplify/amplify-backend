@@ -247,6 +247,11 @@ export class CDKDeployer implements BackendDeployer {
           import.meta.url,
         );
 
+        /**
+          By not having a child process with toolkit lib, the `process.on('beforeExit')` does not execute
+          on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
+          to the same process and catch it in backend package where App is initialized to explicitly perform synth
+         */
         process.emit('message', 'amplifySynth', undefined);
         return new CloudAssembly(this.absoluteCloudAssemblyLocation);
       },
