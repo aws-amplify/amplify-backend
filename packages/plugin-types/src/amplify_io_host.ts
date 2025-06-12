@@ -9,7 +9,7 @@ import { IoMessage, IoRequest, ToolkitAction } from '@aws-cdk/toolkit-lib';
 export type SimpleSpread<L, R> = R & Pick<L, Exclude<keyof L, keyof R>>;
 
 export type AmplifyEventMessage = {
-  code: string;
+  code?: string;
   action: ToolkitAction | 'amplify';
 };
 
