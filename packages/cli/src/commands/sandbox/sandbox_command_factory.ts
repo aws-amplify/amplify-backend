@@ -7,6 +7,7 @@ import {
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxSeedCommand } from './sandbox-seed/sandbox_seed_command.js';
+import { SandboxDevToolsCommandFactory } from './sandbox-devtools/sandbox_devtools_command_factory.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
@@ -86,6 +87,7 @@ export const createSandboxCommand = (
       new SandboxSeedCommand(sandboxBackendIdPartsResolver, [
         new SandboxSeedGeneratePolicyCommand(sandboxBackendIdPartsResolver),
       ]),
+      new SandboxDevToolsCommandFactory().create(),
     ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
