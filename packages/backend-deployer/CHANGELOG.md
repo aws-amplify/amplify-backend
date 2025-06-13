@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.3
+
+### Patch Changes
+
+- 3726005: update aws-cdk/toolkit to latest GA version
+- Updated dependencies [3726005]
+  - @aws-amplify/plugin-types@1.11.0
+
 ## 2.1.2
 
 ### Patch Changes

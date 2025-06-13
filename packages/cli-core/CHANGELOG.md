@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 2.2.1
+
+### Patch Changes
+
+- 3726005: update aws-cdk/toolkit to latest GA version
+
 ## 2.2.0
 
 ### Minor Changes
