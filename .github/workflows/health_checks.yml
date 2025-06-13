@@ -147,7 +147,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs:
       - resolve_inputs
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
@@ -245,7 +245,7 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
