@@ -8,6 +8,11 @@ import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-ho
 import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base';
 import { createMainParser } from './main_parser_factory.js';
 import {
+  attachUnhandledExceptionListeners,
+  generateCommandFailureHandler,
+} from './error_handler.js';
+import { extractSubCommands } from './extract_sub_commands.js';
+import {
   AmplifyFault,
   PackageJsonReader,
   TelemetryPayload,
@@ -20,13 +25,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
-import {
-  PackageManagerControllerFactory,
-  attachUnhandledExceptionListeners,
-  extractSubCommands,
-  format,
-  generateCommandFailureHandler,
-} from '@aws-amplify/cli-core';
+import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
 import { DeepPartial } from '@aws-amplify/plugin-types';
