@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.11.0
+
+### Minor Changes
+
+- 3726005: update aws-cdk/toolkit to latest GA version
+
 ## 1.10.1
 
 ### Patch Changes
