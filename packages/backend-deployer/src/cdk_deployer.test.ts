@@ -18,7 +18,7 @@ import {
   AssemblyError,
   AssemblySourceProps,
   DeployOptions,
-  HotswapMode,
+  MemoryContext,
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
@@ -102,15 +102,15 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(synthMock.mock.callCount(), 1);
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
-      hotswap: HotswapMode.FULL_DEPLOYMENT,
+      deploymentMethod: { method: 'direct' },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
+      contextStore: new MemoryContext({
         'amplify-backend-namespace': '123',
         'amplify-backend-name': 'testBranch',
         'amplify-backend-type': 'branch',
-      },
+      }),
       outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
     } as AssemblySourceProps);
   });
@@ -121,16 +121,16 @@ void describe('invokeCDKCommand', () => {
     assert.strictEqual(synthMock.mock.callCount(), 1);
     assert.strictEqual(deployMock.mock.callCount(), 1);
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
-      hotswap: HotswapMode.FALL_BACK,
+      deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
+      contextStore: new MemoryContext({
         'amplify-backend-namespace': 'foo',
         'amplify-backend-name': 'bar',
         'amplify-backend-type': 'sandbox',
         secretLastUpdated: 12345678,
-      },
+      }),
       outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
     } as AssemblySourceProps);
   });
@@ -143,11 +143,11 @@ void describe('invokeCDKCommand', () => {
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
-      context: {
+      contextStore: new MemoryContext({
         'amplify-backend-namespace': 'foo',
         'amplify-backend-name': 'bar',
         'amplify-backend-type': 'sandbox',
-      },
+      }),
       outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
     } as AssemblySourceProps);
   });
