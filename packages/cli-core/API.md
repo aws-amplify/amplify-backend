@@ -5,9 +5,7 @@
 ```ts
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
-import { Argv } from 'yargs';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
 
@@ -35,17 +33,11 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
-// @public
-export const attachUnhandledExceptionListeners: (usageDataEmitter?: UsageDataEmitter) => void;
-
 // @public (undocumented)
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
 export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
-
-// @public
-export const extractSubCommands: (yargs: Argv) => string | undefined;
 
 // @public
 export class Format {
@@ -82,9 +74,6 @@ export class Format {
 
 // @public (undocumented)
 export const format: Format;
-
-// @public
-export const generateCommandFailureHandler: (parser?: Argv, usageDataEmitter?: UsageDataEmitter) => ((message: string, error: Error) => Promise<void>);
 
 // @public (undocumented)
 export enum LogLevel {
@@ -196,7 +185,7 @@ export const noticeSchema: z.ZodObject<{
         errorMessage: string;
     })[];
     link?: string | undefined;
-    frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
     validFrom?: number | undefined;
     validTo?: number | undefined;
 }, {
@@ -224,7 +213,7 @@ export const noticeSchema: z.ZodObject<{
         errorMessage: string;
     })[];
     link?: string | undefined;
-    frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+    frequency?: "once" | "command" | "deployment" | "daily" | undefined;
     validFrom?: number | undefined;
     validTo?: number | undefined;
 }>;
@@ -325,7 +314,7 @@ export const noticesManifestSchema: z.ZodObject<{
             errorMessage: string;
         })[];
         link?: string | undefined;
-        frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
         validFrom?: number | undefined;
         validTo?: number | undefined;
     }, {
@@ -353,7 +342,7 @@ export const noticesManifestSchema: z.ZodObject<{
             errorMessage: string;
         })[];
         link?: string | undefined;
-        frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
         validFrom?: number | undefined;
         validTo?: number | undefined;
     }>, "many">;
@@ -383,7 +372,7 @@ export const noticesManifestSchema: z.ZodObject<{
             errorMessage: string;
         })[];
         link?: string | undefined;
-        frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
         validFrom?: number | undefined;
         validTo?: number | undefined;
     }[];
@@ -413,7 +402,7 @@ export const noticesManifestSchema: z.ZodObject<{
             errorMessage: string;
         })[];
         link?: string | undefined;
-        frequency?: "command" | "once" | "deployment" | "daily" | undefined;
+        frequency?: "once" | "command" | "deployment" | "daily" | undefined;
         validFrom?: number | undefined;
         validTo?: number | undefined;
     }[];
