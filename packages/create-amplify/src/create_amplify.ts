@@ -8,10 +8,10 @@
  */
 
 import {
-  LogLevel,
   PackageManagerControllerFactory,
+  attachUnhandledExceptionListeners,
   format,
-  printer,
+  generateCommandFailureHandler,
 } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
@@ -19,26 +19,33 @@ import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
-const projectRoot = await getProjectRoot();
-
-const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot,
-);
-
-const packageManagerController =
-  packageManagerControllerFactory.getPackageManagerController();
-
-const amplifyProjectCreator = new AmplifyProjectCreator(
-  projectRoot,
-  packageManagerController,
-  new ProjectRootValidator(projectRoot),
-  new GitIgnoreInitializer(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, packageManagerController),
-);
+attachUnhandledExceptionListeners();
+const errorHandler = generateCommandFailureHandler();
 
 try {
+  const projectRoot = await getProjectRoot();
+
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    projectRoot,
+  );
+
+  const packageManagerController =
+    packageManagerControllerFactory.getPackageManagerController();
+
+  const amplifyProjectCreator = new AmplifyProjectCreator(
+    projectRoot,
+    packageManagerController,
+    new ProjectRootValidator(projectRoot),
+    new GitIgnoreInitializer(projectRoot),
+    new InitialProjectFileGenerator(projectRoot, packageManagerController),
+  );
+
   await amplifyProjectCreator.create();
 } catch (err) {
-  printer.log(format.error(err), LogLevel.ERROR);
-  process.exitCode = 1;
+  if (err instanceof Error) {
+    await errorHandler(format.error(err), err);
+  } else {
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
+    await errorHandler(format.error(err), new Error(JSON.stringify(err)));
+  }
 }
