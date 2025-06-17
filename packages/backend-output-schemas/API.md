@@ -379,6 +379,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             region: string;
         };
     } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
@@ -423,12 +429,6 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             bucketName: string;
             storageRegion: string;
             buckets?: string | undefined;
-        };
-    } | undefined;
-    "AWS::Amplify::Custom"?: {
-        version: "1";
-        payload: {
-            customOutputs: string;
         };
     } | undefined;
     "AWS::Amplify::Function"?: {
@@ -451,6 +451,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             region: string;
         };
     } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
     "AWS::Amplify::Auth"?: {
         version: "1";
         payload: {
@@ -495,12 +501,6 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             bucketName: string;
             storageRegion: string;
             buckets?: string | undefined;
-        };
-    } | undefined;
-    "AWS::Amplify::Custom"?: {
-        version: "1";
-        payload: {
-            customOutputs: string;
         };
     } | undefined;
     "AWS::Amplify::Function"?: {
