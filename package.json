@@ -66,6 +66,8 @@
     "@aws-sdk/client-iam": "^3.750.0",
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-ssm": "^3.750.0",
+    "@aws-sdk/eventstream-handler-node": "^3.821.0",
+    "@aws-sdk/middleware-eventstream": "^3.821.0",
     "@changesets/cli": "^2.26.1",
     "@changesets/get-release-plan": "^4.0.0",
     "@changesets/types": "^6.0.0",
