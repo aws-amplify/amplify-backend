@@ -2,7 +2,7 @@
   "defaultDevPackages": [
     "@aws-amplify/backend",
     "@aws-amplify/backend-cli",
-    "aws-cdk-lib@2.189.1",
+    "aws-cdk-lib@2.201.0",
     "constructs@^10.0.0",
     "typescript@^5.0.0",
     "tsx",

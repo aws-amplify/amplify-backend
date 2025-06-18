@@ -16,3 +16,6 @@ packages/client-config/src/client-config-schema
 
 # Directory below is git-ignored. We create and delete test projects in e2e tests there.
 packages/integration-tests/src/e2e-tests
+
+# Frontend code
+packages/cli/src/commands/sandbox/sandbox-devtools/react-app/**
