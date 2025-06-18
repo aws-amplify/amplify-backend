@@ -605,7 +605,7 @@ jobs:
           - os: windows-2025
             node-version: 22
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
     needs:
       - do_include_e2e
       - build
@@ -634,7 +634,7 @@ jobs:
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
     needs:
       - build
       - do_include_e2e
