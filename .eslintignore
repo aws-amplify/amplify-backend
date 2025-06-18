@@ -18,4 +18,4 @@ packages/client-config/src/client-config-schema
 packages/integration-tests/src/e2e-tests
 
 # Frontend code
-packages/cli/src/commands/sandbox/devtools/react-app/**
+packages/cli/src/commands/sandbox/sandbox-devtools/react-app/**
