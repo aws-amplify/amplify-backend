@@ -1,8 +1,11 @@
 import {
   AmplifyResourceGroupName,
   ConstructContainerEntryGenerator,
+  ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  FunctionResources,
   GenerateContainerEntryProps,
+  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
 import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
@@ -11,6 +14,7 @@ import { EventType } from 'aws-cdk-lib/aws-s3';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { Tags } from 'aws-cdk-lib';
 import { TagName } from '@aws-amplify/platform-core';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * Generates a single instance of storage resources
@@ -41,10 +45,12 @@ export class StorageContainerEntryGenerator
     Tags.of(amplifyStorage).add(TagName.FRIENDLY_NAME, this.props.name);
 
     Object.entries(this.props.triggers || {}).forEach(
-      ([triggerEvent, handlerFactory]) => {
+      ([triggerEvent, handlerRef]) => {
         const events = [];
-        const handler = handlerFactory.getInstance(this.getInstanceProps)
-          .resources.lambda;
+        // Handle both direct IFunction and factory patterns
+        const handler = this.isDirectFunctionReference(handlerRef)
+          ? handlerRef
+          : handlerRef.getInstance(this.getInstanceProps).resources.lambda;
         // triggerEvent is converted string from Object.entries
         switch (triggerEvent as AmplifyStorageTriggerEvent) {
           case 'onDelete':
@@ -85,4 +91,15 @@ export class StorageContainerEntryGenerator
 
     return amplifyStorage;
   };
+
+  /**
+   * Type guard to distinguish between direct function reference and factory
+   */
+  private isDirectFunctionReference(
+    functionRef:
+      | IFunction
+      | ConstructFactory<ResourceProvider<FunctionResources>>,
+  ): functionRef is IFunction {
+    return 'functionArn' in functionRef;
+  }
 }
