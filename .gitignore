@@ -22,4 +22,3 @@ concurrent_workspace_script_cache.json
 
 testDir
 /.amplify
-.husky/pre-push
