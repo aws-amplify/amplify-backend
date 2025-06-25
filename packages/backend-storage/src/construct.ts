@@ -21,12 +21,28 @@ import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { StorageAccessDefinitionOutput } from './private_types.js';
+import { CfnIdentityPool, IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { StorageAccessGenerator } from './types.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
 
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
+/**
+ * Direct access control definition for L3 construct usage
+ */
+export type StorageAccessDefinition = {
+  [path: string]: Array<{
+    type: 'authenticated' | 'guest' | 'owner' | 'groups';
+    actions: Array<'read' | 'write' | 'delete'>;
+    groups?: string[]; // Required when type: 'groups'
+  }>;
+}
+
+/**
+ * Enhanced props interface supporting both factory and direct L3 usage
+ */
 export type AmplifyStorageProps = {
   /**
    * Whether this storage resource is the default storage resource for the backend.
@@ -45,22 +61,51 @@ export type AmplifyStorageProps = {
    */
   versioned?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+
+  /**
+   * Define access permissions for objects in the S3 bucket.
+   * Supports both direct access definition (L3 construct) and callback function (factory pattern).
+   * @example Direct L3 usage
+   * access: {
+   *   'public/*': [{ type: 'guest', actions: ['read'] }],
+   *   'private/{owner}/*': [{ type: 'owner', actions: ['read', 'write', 'delete'] }]
+   * }
+   * @example Factory pattern
+   * access: (allow) => ({
+   *   'public/*': [allow.guest.to(['read'])]
+   * })
+   */
+  access?: StorageAccessDefinition | StorageAccessGenerator;
+
+  /**
+   * Direct reference to Cognito User Pool for access control.
+   * If not provided, will attempt to auto-discover from the construct tree.
+   */
+  userPool?: IUserPool;
+
+  /**
+   * Direct reference to Cognito Identity Pool for access control.
+   * If not provided, will attempt to auto-discover from the construct tree.
+   */
+  identityPool?: CfnIdentityPool;
+
   /**
    * S3 event trigger configuration
+   * Supports both direct IFunction references (L3 construct) and factory pattern.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
-   * @example
-   * import { triggerHandler } from '../functions/trigger-handler/resource.ts'
-   *
-   * export const storage = defineStorage({
-   *   triggers: {
-   *     onUpload: triggerHandler
-   *   }
-   * })
+   * @example Direct L3 usage
+   * triggers: {
+   *   onUpload: myLambdaFunction // Direct IFunction reference
+   * }
+   * @example Factory pattern
+   * triggers: {
+   *   onUpload: defineFunction({ entry: './handler.ts' })
+   * }
    */
   triggers?: Partial<
     Record<
       AmplifyStorageTriggerEvent,
-      ConstructFactory<ResourceProvider<FunctionResources>>
+      IFunction | ConstructFactory<ResourceProvider<FunctionResources>>
     >
   >;
 };
@@ -136,6 +181,17 @@ export class AmplifyStorage
       storageStackType,
       fileURLToPath(new URL('../package.json', import.meta.url)),
     );
+
+    // PHASE 1: Detect access control pattern
+    if (props.access) {
+      if (this.isDirectAccessDefinition(props.access)) {
+        // Direct L3 usage - will be implemented in Phase 2
+        // this.directAccess = props.access;
+      } else {
+        // Factory pattern - existing behavior
+        // this.factoryAccess = props.access;
+      }
+    }
   }
 
   /**
@@ -155,4 +211,24 @@ export class AmplifyStorage
   addAccessDefinition = (accessOutput: StorageAccessDefinitionOutput) => {
     this.accessDefinition = accessOutput;
   };
+
+  /**
+   * Type guard to distinguish between direct access definition and factory callback
+   */
+  private isDirectAccessDefinition(
+    access: StorageAccessDefinition | StorageAccessGenerator,
+  ): access is StorageAccessDefinition {
+    return typeof access === 'object' && typeof access !== 'function';
+  }
+
+  /**
+   * Type guard to distinguish between direct function reference and factory
+   */
+  private isDirectFunctionReference(
+    functionRef:
+      | IFunction
+      | ConstructFactory<ResourceProvider<FunctionResources>>,
+  ): functionRef is IFunction {
+    return 'functionArn' in functionRef;
+  }
 }

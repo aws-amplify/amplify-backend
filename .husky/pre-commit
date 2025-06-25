@@ -1,3 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Add common Node.js paths
+export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.local/share/mise/installs/node/20.19.2/bin:$PATH"
+
 npm run update:create-amplify-deps
 npm run update:tsconfig-refs
 npm run check:package-lock
