@@ -38,7 +38,7 @@ export type StorageAccessDefinition = {
     actions: Array<'read' | 'write' | 'delete'>;
     groups?: string[]; // Required when type: 'groups'
   }>;
-}
+};
 
 /**
  * Enhanced props interface supporting both factory and direct L3 usage
