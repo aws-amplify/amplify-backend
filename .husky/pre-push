@@ -1,4 +1,2 @@
-#!/bin/sh
-export PATH="/Users/rozayc/.local/share/mise/installs/node/20.19.2/bin:$PATH"
-npm exec changeset status --since=main
+npx changeset status --since main
 npm run check:api
