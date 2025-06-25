@@ -1,7 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
-import { format, printer } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { isDevToolsRunning } from './port_checker.js';
 import {
   SandboxFunctionStreamingOptions,
   SandboxSingletonFactory,
@@ -43,6 +44,7 @@ export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
   failedDeployment: EventHandler[];
+  resourceConfigChanged: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
@@ -91,12 +93,16 @@ export class SandboxCommand
   /**
    * @inheritDoc
    */
+
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>,
   ): Promise<void> => {
+    printer.log('DEBUG: Starting sandbox handler execution', LogLevel.DEBUG);
     const sandbox = await this.sandboxFactory.getInstance();
+    printer.log('DEBUG: Sandbox instance created', LogLevel.DEBUG);
     this.sandboxIdentifier = args.identifier;
     this.profile = args.profile;
+    printer.log(`DEBUG: Sandbox identifier: ${this.sandboxIdentifier}, profile: ${this.profile}`, LogLevel.DEBUG);
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
@@ -105,12 +111,16 @@ export class SandboxCommand
       args.outputsOutDir,
       args.outputsFormat,
     );
+    printer.log('DEBUG: Created client config lifecycle handler', LogLevel.DEBUG);
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxIdentifier: this.sandboxIdentifier,
       clientConfigLifecycleHandler,
     });
+    printer.log(`DEBUG: Event handlers created: ${eventHandlers ? 'yes' : 'no'}`, LogLevel.DEBUG);
+    
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
+        printer.log(`DEBUG: Attaching ${handlers.length} handlers for event: ${event}`, LogLevel.DEBUG);
         handlers.forEach((handler) => sandbox.on(event, handler));
       });
     }
@@ -149,14 +159,59 @@ export class SandboxCommand
         watchExclusions.push(args.logsOutFile);
       }
     }
-    await sandbox.start({
-      dir: args.dirToWatch,
-      exclude: watchExclusions,
-      identifier: args.identifier,
-      watchForChanges: !args.once,
-      functionStreamingOptions,
+    printer.log('DEBUG: Starting sandbox with options:', LogLevel.DEBUG);
+    printer.log(`DEBUG: - dir: ${args.dirToWatch || 'undefined'}`, LogLevel.DEBUG);
+    printer.log(`DEBUG: - exclude: ${JSON.stringify(watchExclusions)}`, LogLevel.DEBUG);
+    printer.log(`DEBUG: - identifier: ${args.identifier || 'undefined'}`, LogLevel.DEBUG);
+    printer.log(`DEBUG: - watchForChanges: ${!args.once}`, LogLevel.DEBUG);
+    printer.log(`DEBUG: - functionStreamingOptions: ${JSON.stringify(functionStreamingOptions)}`, LogLevel.DEBUG);
+    
+    // Check if DevTools is running (asks user to start sandbox in Devtools, so Devtools can manage the sandbox)
+    const devToolsRunning = await isDevToolsRunning();
+    if (devToolsRunning) {
+      printer.log('DevTools is currently running', LogLevel.ERROR);
+      throw new AmplifyUserError('DevToolsRunningError', {
+        message: 'DevTools is currently running. Please start the sandbox through DevTools instead.',
+        resolution: 'Open DevTools in your browser and use the "Start Sandbox" button to start the sandbox.',
+      });
+    }
+    
+    try {
+      await sandbox.start({
+        dir: args.dirToWatch,
+        exclude: watchExclusions,
+        identifier: args.identifier,
+        watchForChanges: !args.once,
+        functionStreamingOptions,
+      });
+      printer.log('DEBUG: Sandbox started successfully', LogLevel.DEBUG);
+      
+      // Register additional event listeners for debugging
+      sandbox.on('successfulDeployment', () => {
+        printer.log('DEBUG: Event - successfulDeployment triggered', LogLevel.DEBUG);
+      });
+      
+      sandbox.on('failedDeployment', (error) => {
+        printer.log(`DEBUG: Event - failedDeployment triggered: ${error}`, LogLevel.DEBUG);
+      });
+      
+      sandbox.on('resourceConfigChanged', () => {
+        printer.log('DEBUG: Event - resourceConfigChanged triggered', LogLevel.DEBUG);
+      });
+      
+      sandbox.on('successfulDeletion', () => {
+        printer.log('DEBUG: Event - successfulDeletion triggered', LogLevel.DEBUG);
+      });
+      
+    } catch (error) {
+      printer.log(`DEBUG: Error starting sandbox: ${error}`, LogLevel.ERROR);
+      throw error;
+    }
+    
+    process.once('SIGINT', () => {
+      printer.log('DEBUG: SIGINT received, handling sandbox shutdown', LogLevel.DEBUG);
+      void this.sigIntHandler();
     });
-    process.once('SIGINT', () => void this.sigIntHandler());
   };
 
   /**
@@ -276,6 +331,15 @@ export class SandboxCommand
   };
 
   sigIntHandler = async () => {
+    printer.log('DEBUG: sigIntHandler called - stopping sandbox process', LogLevel.DEBUG);
+    try {
+      const sandbox = await this.sandboxFactory.getInstance();
+      printer.log('DEBUG: Attempting to stop sandbox', LogLevel.DEBUG);
+      await sandbox.stop();
+    } catch (error) {
+      printer.log(`DEBUG: Error in sigIntHandler: ${error}`, LogLevel.ERROR);
+    }
+    
     printer.print(
       `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
         'sandbox delete',
