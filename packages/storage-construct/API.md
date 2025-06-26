@@ -4,16 +4,44 @@
 
 ```ts
 
+import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import { EventType } from 'aws-cdk-lib/aws-s3';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Stack } from 'aws-cdk-lib';
 
 // @public
-export class AmplifyConstruct extends Construct {
-    constructor(scope: Construct, id: string, props?: ConstructCognitoProps);
+export class AmplifyStorage extends Construct {
+    constructor(scope: Construct, id: string, props: AmplifyStorageProps);
+    addTrigger: (events: EventType[], handler: IFunction) => void;
+    // (undocumented)
+    readonly isDefault: boolean;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly resources: StorageResources;
+    // (undocumented)
+    readonly stack: Stack;
 }
 
 // @public (undocumented)
-export type ConstructCognitoProps = {
-    includeQueue?: boolean;
+export type AmplifyStorageProps = {
+    isDefault?: boolean;
+    name: string;
+    versioned?: boolean;
+    triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
+};
+
+// @public (undocumented)
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+
+// @public (undocumented)
+export type StorageResources = {
+    bucket: IBucket;
+    cfnResources: {
+        cfnBucket: CfnBucket;
+    };
 };
 
 // (No @packageDocumentation comment for this package)

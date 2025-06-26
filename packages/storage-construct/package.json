@@ -16,9 +16,13 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf lib",
+    "test": "node --test lib/construct.test.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/backend-output-storage": "^1.3.1"
+  },
   "peerDependencies": {
     "aws-cdk-lib": "^2.158.0",
     "constructs": "^10.0.0"

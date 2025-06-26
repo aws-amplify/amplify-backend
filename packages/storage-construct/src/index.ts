@@ -1,1 +1,6 @@
-export * from './construct.js';
+export {
+  AmplifyStorage,
+  AmplifyStorageProps,
+  AmplifyStorageTriggerEvent,
+  StorageResources,
+} from './construct.js';
