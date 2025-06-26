@@ -23,6 +23,12 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
+  
+  /**
+   * Gets the current state of the sandbox
+   * @returns The current state: 'running', 'stopped', 'deploying', or 'nonexistent'
+   */
+  getState: () => 'running' | 'stopped' | 'deploying' | 'nonexistent';
 } & EventEmitter;
 
 export type SandboxEvents =

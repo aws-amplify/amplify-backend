@@ -19,6 +19,7 @@ export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
     stop: () => Promise<void>;
     delete: (options: SandboxDeleteOptions) => Promise<void>;
+    getState: () => 'running' | 'stopped' | 'deploying' | 'nonexistent';
 } & EventEmitter;
 
 // @public (undocumented)
