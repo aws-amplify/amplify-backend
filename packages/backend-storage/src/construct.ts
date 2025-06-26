@@ -66,14 +66,14 @@ export type AmplifyStorageProps = {
    * Define access permissions for objects in the S3 bucket.
    * Supports both direct access definition (L3 construct) and callback function (factory pattern).
    * @example Direct L3 usage
-   * access: {
-   *   'public/*': [{ type: 'guest', actions: ['read'] }],
-   *   'private/{owner}/*': [{ type: 'owner', actions: ['read', 'write', 'delete'] }]
-   * }
+   * access: \{
+   *   'public/*': [\{ type: 'guest', actions: ['read'] \}],
+   *   'private/\{owner\}/*': [\{ type: 'owner', actions: ['read', 'write', 'delete'] \}]
+   * \}
    * @example Factory pattern
-   * access: (allow) => ({
+   * access: (allow) => (\{
    *   'public/*': [allow.guest.to(['read'])]
-   * })
+   * \})
    */
   access?: StorageAccessDefinition | StorageAccessGenerator;
 

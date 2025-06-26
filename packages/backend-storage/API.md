@@ -23,11 +23,23 @@ export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorag
 };
 
 // @public (undocumented)
+export type StorageAccessDefinition = {
+  [path: string]: Array<{
+    type: 'authenticated' | 'guest' | 'owner' | 'groups';
+    actions: Array<'read' | 'write' | 'delete'>;
+    groups?: string[];
+  }>;
+};
+
+// @public (undocumented)
 export type AmplifyStorageProps = {
     isDefault?: boolean;
     name: string;
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+    access?: StorageAccessDefinition | StorageAccessGenerator;
+    userPool?: IUserPool;
+    identityPool?: CfnIdentityPool;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
