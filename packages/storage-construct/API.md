@@ -15,7 +15,7 @@ import { Stack } from 'aws-cdk-lib';
 export class AmplifyStorage extends Construct {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
     addTrigger: (events: EventType[], handler: IFunction) => void;
-    grantAccess: (auth: any, access: StorageAccessDefinition) => void;
+    grantAccess: (_auth: unknown, _access: StorageAccessDefinition) => void;
     // (undocumented)
     readonly isDefault: boolean;
     // (undocumented)
