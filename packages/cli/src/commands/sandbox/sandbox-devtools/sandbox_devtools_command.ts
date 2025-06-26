@@ -1,5 +1,5 @@
-import { CommandModule } from 'yargs';
-import { printer, LogLevel } from '@aws-amplify/cli-core';
+import { Argv, CommandModule } from 'yargs';
+import { LogLevel, printer } from '@aws-amplify/cli-core';
 
 /**
  * Command that starts the sandbox devtools.
@@ -34,7 +34,7 @@ export class SandboxDevToolsCommand implements CommandModule<object, object> {
   /**
    * @inheritDoc
    */
-  builder = (yargs: any): any => {
+  builder = (yargs: Argv): Argv => {
     return yargs.version(false);
   };
 }
