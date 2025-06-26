@@ -9,5 +9,6 @@ export {
 export {
   StorageAccessDefinitionOutput,
   StorageAccessConfig,
+  InternalStorageAction,
 } from './private_types.js';
 export * from './types.js';

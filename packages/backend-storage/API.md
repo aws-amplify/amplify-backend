@@ -67,6 +67,9 @@ export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFact
 export type EntityId = 'identity';
 
 // @public
+export type InternalStorageAction = Exclude<StorageAction, 'read'>;
+
+// @public
 export type StorageAccessBuilder = {
     authenticated: StorageActionBuilder;
     guest: StorageActionBuilder;
@@ -75,8 +78,6 @@ export type StorageAccessBuilder = {
     resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
-// Warning: (ae-forgotten-export) The symbol "InternalStorageAction" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type StorageAccessConfig = Record<string, InternalStorageAction[]>;
 
