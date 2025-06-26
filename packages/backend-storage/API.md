@@ -26,8 +26,6 @@ import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 // @public
 export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources>, StackProvider {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
-    // Warning: (ae-forgotten-export) The symbol "StorageAccessDefinitionOutput" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     accessDefinition: StorageAccessDefinitionOutput;
     addAccessDefinition: (accessOutput: StorageAccessDefinitionOutput) => void;
@@ -96,6 +94,11 @@ export type StorageAccessDefinitionBaseline = {
         groups?: string[];
     }>;
 };
+
+// Warning: (ae-forgotten-export) The symbol "StorageAccessConfig" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type StorageAccessDefinitionOutput = Record<string, StorageAccessConfig>;
 
 // @public (undocumented)
 export type StorageAccessGenerator = (allow: StorageAccessBuilder) => StorageAccessRecord;
