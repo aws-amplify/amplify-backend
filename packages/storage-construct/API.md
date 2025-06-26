@@ -15,6 +15,7 @@ import { Stack } from 'aws-cdk-lib';
 export class AmplifyStorage extends Construct {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
     addTrigger: (events: EventType[], handler: IFunction) => void;
+    grantAccess: (auth: any, access: StorageAccessDefinition) => void;
     // (undocumented)
     readonly isDefault: boolean;
     // (undocumented)
@@ -35,6 +36,15 @@ export type AmplifyStorageProps = {
 
 // @public (undocumented)
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+
+// @public (undocumented)
+export type StorageAccessDefinition = {
+    [path: string]: Array<{
+        type: 'authenticated' | 'guest' | 'owner' | 'groups';
+        actions: Array<'read' | 'write' | 'delete'>;
+        groups?: string[];
+    }>;
+};
 
 // @public (undocumented)
 export type StorageResources = {

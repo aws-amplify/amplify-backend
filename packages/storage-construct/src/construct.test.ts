@@ -101,6 +101,29 @@ void describe('AmplifyStorage', () => {
     );
   });
 
+  void it('has grantAccess method', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    // Test that grantAccess method exists and can be called
+    assert.equal(typeof storage.grantAccess, 'function');
+
+    // Test calling grantAccess (currently just logs warning)
+    const mockAuth = {};
+    const accessDefinition = {
+      'photos/*': [
+        {
+          type: 'authenticated' as const,
+          actions: ['read' as const, 'write' as const],
+        },
+      ],
+    };
+
+    // Should not throw
+    storage.grantAccess(mockAuth, accessDefinition);
+  });
+
   void describe('storage overrides', () => {
     void it('can override bucket properties', () => {
       const app = new App();

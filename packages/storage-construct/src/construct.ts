@@ -51,6 +51,14 @@ export type AmplifyStorageProps = {
   triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
 };
 
+export type StorageAccessDefinition = {
+  [path: string]: Array<{
+    type: 'authenticated' | 'guest' | 'owner' | 'groups';
+    actions: Array<'read' | 'write' | 'delete'>;
+    groups?: string[];
+  }>;
+};
+
 export type StorageResources = {
   bucket: IBucket;
   cfnResources: {
@@ -134,6 +142,29 @@ export class AmplifyStorage extends Construct {
     handler.addEventSource(
       new S3EventSourceV2(this.resources.bucket, { events }),
     );
+  };
+
+  /**
+   * Grant access to this storage bucket based on auth construct and access definition
+   * @param _auth - The AmplifyAuth construct to grant access to
+   * @param _access - Access definition specifying paths and permissions
+   * @example
+   * const auth = new AmplifyAuth(stack, 'Auth', {...});
+   * const storage = new AmplifyStorage(stack, 'Storage', {...});
+   * storage.grantAccess(auth, {
+   *   'photos/*': [
+   *     { type: 'authenticated', actions: ['read', 'write'] },
+   *     { type: 'guest', actions: ['read'] }
+   *   ]
+   * });
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  grantAccess = (_auth: unknown, _access: StorageAccessDefinition): void => {
+    // TODO: Implement access control logic
+    // This will be implemented in future phases to:
+    // 1. Extract roles from the auth construct
+    // 2. Generate IAM policies based on access definition
+    // 3. Attach policies to appropriate roles
   };
 
   /**

@@ -3,4 +3,5 @@ export {
   AmplifyStorageProps,
   AmplifyStorageTriggerEvent,
   StorageResources,
+  StorageAccessDefinition,
 } from './construct.js';
