@@ -75,6 +75,11 @@ export type StorageAccessBuilder = {
     resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
+// Warning: (ae-forgotten-export) The symbol "InternalStorageAction" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type StorageAccessConfig = Record<string, InternalStorageAction[]>;
+
 // @public (undocumented)
 export type StorageAccessDefinition = {
     getResourceAccessAcceptors: ((getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor)[];
@@ -95,8 +100,6 @@ export type StorageAccessDefinitionBaseline = {
     }>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "StorageAccessConfig" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type StorageAccessDefinitionOutput = Record<string, StorageAccessConfig>;
 
