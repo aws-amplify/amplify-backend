@@ -32,7 +32,7 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 /**
  * Direct access control definition for L3 construct usage
  */
-export type StorageAccessDefinition = {
+export type StorageAccessDefinitionBaseline = {
   [path: string]: Array<{
     type: 'authenticated' | 'guest' | 'owner' | 'groups';
     actions: Array<'read' | 'write' | 'delete'>;
@@ -75,7 +75,7 @@ export type AmplifyStorageProps = {
    *   'public/*': [allow.guest.to(['read'])]
    * \})
    */
-  access?: StorageAccessDefinition | StorageAccessGenerator;
+  access?: StorageAccessDefinitionBaseline | StorageAccessGenerator;
 
   /**
    * Direct reference to Cognito User Pool for access control.
@@ -216,8 +216,8 @@ export class AmplifyStorage
    * Type guard to distinguish between direct access definition and factory callback
    */
   private isDirectAccessDefinition(
-    access: StorageAccessDefinition | StorageAccessGenerator,
-  ): access is StorageAccessDefinition {
+    access: StorageAccessDefinitionBaseline | StorageAccessGenerator,
+  ): access is StorageAccessDefinitionBaseline {
     return typeof access === 'object' && typeof access !== 'function';
   }
 

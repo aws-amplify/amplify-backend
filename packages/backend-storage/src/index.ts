@@ -3,7 +3,7 @@ export {
   StorageResources,
   AmplifyStorageProps,
   AmplifyStorageTriggerEvent,
-  StorageAccessDefinition,
+  StorageAccessDefinitionBaseline,
   AmplifyStorage,
 } from './construct.js';
 export * from './types.js';

@@ -7,40 +7,56 @@
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
+import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { EventType } from 'aws-cdk-lib/aws-s3';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
+
+// @public
+export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources>, StackProvider {
+    constructor(scope: Construct, id: string, props: AmplifyStorageProps);
+    // Warning: (ae-forgotten-export) The symbol "StorageAccessDefinitionOutput" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    accessDefinition: StorageAccessDefinitionOutput;
+    addAccessDefinition: (accessOutput: StorageAccessDefinitionOutput) => void;
+    addTrigger: (events: EventType[], handler: IFunction) => void;
+    // (undocumented)
+    readonly isDefault: boolean;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly resources: StorageResources;
+    // (undocumented)
+    readonly stack: Stack;
+}
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
     access?: StorageAccessGenerator;
 };
 
-// @public (undocumented)
-export type StorageAccessDefinition = {
-  [path: string]: Array<{
-    type: 'authenticated' | 'guest' | 'owner' | 'groups';
-    actions: Array<'read' | 'write' | 'delete'>;
-    groups?: string[];
-  }>;
-};
-
-// @public (undocumented)
+// @public
 export type AmplifyStorageProps = {
     isDefault?: boolean;
     name: string;
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
-    access?: StorageAccessDefinition | StorageAccessGenerator;
+    access?: StorageAccessDefinitionBaseline | StorageAccessGenerator;
     userPool?: IUserPool;
     identityPool?: CfnIdentityPool;
-    triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction | ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
 // @public (undocumented)
@@ -70,6 +86,15 @@ export type StorageAccessDefinition = {
         uniqueDefinitionId: string;
         validationErrorOptions: AmplifyUserErrorOptions;
     }[];
+};
+
+// @public
+export type StorageAccessDefinitionBaseline = {
+    [path: string]: Array<{
+        type: 'authenticated' | 'guest' | 'owner' | 'groups';
+        actions: Array<'read' | 'write' | 'delete'>;
+        groups?: string[];
+    }>;
 };
 
 // @public (undocumented)

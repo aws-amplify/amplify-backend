@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
-import { AmplifyStorage, StorageAccessDefinition } from './construct.js';
+import {
+  AmplifyStorage,
+  StorageAccessDefinitionBaseline,
+} from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -11,7 +14,7 @@ void describe('AmplifyStorage Phase 1 - Enhanced Props Interface', () => {
     const app = new App();
     const stack = new Stack(app);
 
-    const directAccess: StorageAccessDefinition = {
+    const directAccess: StorageAccessDefinitionBaseline = {
       'public/*': [
         { type: 'guest', actions: ['read'] },
         { type: 'authenticated', actions: ['read', 'write'] },
