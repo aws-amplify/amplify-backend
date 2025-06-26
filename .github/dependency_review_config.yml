@@ -28,3 +28,5 @@ allow-licenses:
   - X11
   - zlib-acknowledgement
   - Zlib
+  - LicenseRef-scancode-unknown-license-reference AND MIT
+  - MIT AND Zlib
