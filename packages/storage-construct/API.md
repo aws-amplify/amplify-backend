@@ -9,13 +9,15 @@ import { Construct } from 'constructs';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IRole } from 'aws-cdk-lib/aws-iam';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
 export class AmplifyStorage extends Construct {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
     addTrigger: (events: EventType[], handler: IFunction) => void;
-    grantAccess: (_auth: unknown, _access: StorageAccessDefinition) => void;
+    grantAccess: (auth: unknown, access: StorageAccessConfig) => void;
     // (undocumented)
     readonly isDefault: boolean;
     // (undocumented)
@@ -37,14 +39,69 @@ export type AmplifyStorageProps = {
 // @public (undocumented)
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
+// @public
+export class AuthRoleResolver {
+    getRoleForAccessType: (accessType: string, roles: AuthRoles, groups?: string[]) => IRole | undefined;
+    resolveRoles: () => AuthRoles;
+    validateAuthConstruct: (authConstruct: unknown) => boolean;
+}
+
 // @public (undocumented)
-export type StorageAccessDefinition = {
-    [path: string]: Array<{
-        type: 'authenticated' | 'guest' | 'owner' | 'groups';
-        actions: Array<'read' | 'write' | 'delete'>;
-        groups?: string[];
-    }>;
+export interface AuthRoles {
+    // (undocumented)
+    authenticatedRole?: IRole;
+    // (undocumented)
+    groupRoles?: Record<string, IRole>;
+    // (undocumented)
+    unauthenticatedRole?: IRole;
+}
+
+// @public (undocumented)
+export type InternalStorageAction = 'get' | 'list' | 'write' | 'delete';
+
+// @public (undocumented)
+export type StorageAccessConfig = {
+    [path: string]: StorageAccessRule[];
 };
+
+// @public (undocumented)
+export interface StorageAccessDefinition {
+    // (undocumented)
+    actions: StorageAction[];
+    // (undocumented)
+    idSubstitution: string;
+    // (undocumented)
+    role: IRole;
+}
+
+// @public
+export class StorageAccessOrchestrator {
+    constructor(policyFactory: StorageAccessPolicyFactory);
+    orchestrateStorageAccess: (accessDefinitions: Record<StoragePath, StorageAccessDefinition[]>) => void;
+}
+
+// @public
+export class StorageAccessPolicyFactory {
+    constructor(bucket: IBucket);
+    // (undocumented)
+    createPolicy: (permissions: Map<InternalStorageAction, {
+        allow: Set<StoragePath>;
+        deny: Set<StoragePath>;
+    }>) => Policy;
+}
+
+// @public (undocumented)
+export type StorageAccessRule = {
+    type: 'authenticated' | 'guest' | 'owner' | 'groups';
+    actions: Array<'read' | 'write' | 'delete'>;
+    groups?: string[];
+};
+
+// @public (undocumented)
+export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
+
+// @public (undocumented)
+export type StoragePath = `${string}/*`;
 
 // @public (undocumented)
 export type StorageResources = {
