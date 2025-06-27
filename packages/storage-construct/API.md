@@ -47,14 +47,11 @@ export class AuthRoleResolver {
 }
 
 // @public (undocumented)
-export interface AuthRoles {
-    // (undocumented)
+export type AuthRoles = {
     authenticatedRole?: IRole;
-    // (undocumented)
-    groupRoles?: Record<string, IRole>;
-    // (undocumented)
     unauthenticatedRole?: IRole;
-}
+    groupRoles?: Record<string, IRole>;
+};
 
 // @public (undocumented)
 export type InternalStorageAction = 'get' | 'list' | 'write' | 'delete';
@@ -65,14 +62,11 @@ export type StorageAccessConfig = {
 };
 
 // @public (undocumented)
-export interface StorageAccessDefinition {
-    // (undocumented)
-    actions: StorageAction[];
-    // (undocumented)
-    idSubstitution: string;
-    // (undocumented)
+export type StorageAccessDefinition = {
     role: IRole;
-}
+    actions: StorageAction[];
+    idSubstitution: string;
+};
 
 // @public
 export class StorageAccessOrchestrator {
