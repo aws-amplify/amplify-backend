@@ -10,7 +10,7 @@ export type StorageAccessDefinition = {
   role: IRole;
   actions: StorageAction[];
   idSubstitution: string;
-}
+};
 
 /**
  * Orchestrates the process of converting storage access rules into IAM policies

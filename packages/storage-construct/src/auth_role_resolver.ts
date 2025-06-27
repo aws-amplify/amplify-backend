@@ -4,7 +4,7 @@ export type AuthRoles = {
   authenticatedRole?: IRole;
   unauthenticatedRole?: IRole;
   groupRoles?: Record<string, IRole>;
-}
+};
 
 /**
  * Resolves IAM roles from auth construct
