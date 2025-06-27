@@ -21,7 +21,7 @@
     "build:ts": "tsc --build --force",
     "copy:devtools": "mkdir -p lib/commands/sandbox/sandbox-devtools/react-app/dist && cp -r src/commands/sandbox/sandbox-devtools/react-app/dist/* lib/commands/sandbox/sandbox-devtools/react-app/dist/ || echo 'No React app build found'",
     "build": "npm run clean && npm run build:devtools && npm run build:ts && npm run copy:devtools && chmod +x lib/ampx.js",
-    "postinstall": "npm run build:devtools && npm run copy:devtools"
+    "build:clean": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",

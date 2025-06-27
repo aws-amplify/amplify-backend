@@ -25,10 +25,8 @@ import { NoticesRenderer } from '../../notices/notices_renderer.js';
 import { EOL } from 'node:os';
 import { PortChecker } from './port_checker.js';
 
-// Mock PortChecker.prototype.isDevToolsRunning to always return false
-mock.method(PortChecker.prototype, 'isDevToolsRunning', () =>
-  Promise.resolve(false),
-);
+// Mock PortChecker.prototype.isPortInUse to always return false
+mock.method(PortChecker.prototype, 'isPortInUse', () => Promise.resolve(false));
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -96,7 +94,6 @@ void describe('sandbox command', () => {
         successfulDeployment: [clientConfigGenerationMock],
         successfulDeletion: [clientConfigDeletionMock],
         failedDeployment: [],
-        resourceConfigChanged: [],
       }),
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
@@ -216,8 +213,8 @@ void describe('sandbox command', () => {
   });
 
   void it('Prints stopping sandbox and instructions to delete sandbox when users send ctrl+c', async (contextual) => {
-    // Ensure isDevToolsRunning returns false for this test
-    //contextual.mock.method(PortChecker.prototype, 'isDevToolsRunning', () => Promise.resolve(false));
+    // Ensure isPortInUse returns false for this test
+    //contextual.mock.method(PortChecker.prototype, 'isPortInUse', () => Promise.resolve(false));
 
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
@@ -406,8 +403,8 @@ void describe('sandbox command', () => {
   });
 
   void it('throws an error when DevTools is running', async (contextual) => {
-    // Mock isDevToolsRunning to return true for this test
-    contextual.mock.method(PortChecker.prototype, 'isDevToolsRunning', () =>
+    // Mock isPortInUse to return true for this test
+    contextual.mock.method(PortChecker.prototype, 'isPortInUse', () =>
       Promise.resolve(true),
     );
 

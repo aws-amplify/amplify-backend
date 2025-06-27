@@ -91,40 +91,4 @@ void describe('port_checker', () => {
       }
     });
   });
-
-  void describe('isDevToolsRunning', () => {
-    void it('checks if port 3333 is in use', async () => {
-      // Instead of mocking isPortInUse, mock the net.createServer that it uses
-      const mockServer = {
-        once: mock.fn((event, callback) => {
-          if (event === 'error') {
-            callback({ code: 'EADDRINUSE' });
-          }
-          return mockServer;
-        }),
-        listen: mock.fn(),
-        close: mock.fn(),
-      };
-
-      const originalCreateServer = net.createServer;
-      net.createServer = mock.fn(() => mockServer as unknown as net.Server);
-
-      try {
-        // Call the function under test
-        const portChecker = new PortChecker();
-        const result = await portChecker.isDevToolsRunning();
-
-        // Verify the result
-        assert.strictEqual(result, true);
-
-        // Verify that server.listen was called with port 3333
-        assert.strictEqual(mockServer.listen.mock.calls.length, 1);
-        assert.deepStrictEqual(mockServer.listen.mock.calls[0].arguments, [
-          3333,
-        ]);
-      } finally {
-        net.createServer = originalCreateServer;
-      }
-    });
-  });
 });
