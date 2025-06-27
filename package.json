@@ -59,15 +59,13 @@
     "@actions/github": "^6.0.0",
     "@aws-amplify/eslint-plugin-amplify-backend-rules": "^0.0.2",
     "@aws-sdk/client-amplify": "^3.750.0",
-    "@aws-sdk/client-cloudformation": "^3.828.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.835.0",
+    "@aws-sdk/client-cloudformation": "^3.750.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.750.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.750.0",
     "@aws-sdk/client-dynamodb": "^3.750.0",
-    "@aws-sdk/client-iam": "^3.835.0",
+    "@aws-sdk/client-iam": "^3.750.0",
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-ssm": "^3.750.0",
-    "@aws-sdk/eventstream-handler-node": "^3.821.0",
-    "@aws-sdk/middleware-eventstream": "^3.821.0",
     "@changesets/cli": "^2.26.1",
     "@changesets/get-release-plan": "^4.0.0",
     "@changesets/types": "^6.0.0",
@@ -99,14 +97,14 @@
     "glob": "^11.0.2",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
-    "npm-force-resolutions": "^0.0.10",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "semver": "^7.5.4",
     "tsx": "4.19.4",
     "typedoc": "^0.28.1",
     "typescript": "~5.8.2",
-    "verdaccio": "^6.0.1"
+    "verdaccio": "^6.0.1",
+    "minimatch": "10.0.3"
   },
   "workspaces": [
     "packages/*"
@@ -120,22 +118,7 @@
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
   },
-  "dependencies": {
-    "@aws-sdk/client-lambda": "^3.835.0",
-    "cookie-signature": "1.0.6",
-    "debounce-promise": "^3.1.2",
-    "esbuild": "0.25.5",
-    "express": "^5.1.0",
-    "express-rate-limit": "^7.5.0",
-    "jszip": "^3.10.1",
-    "ws": "^8.18.2"
-  },
   "overrides": {
-    "minimatch": "10.0.1",
-    "@aws-sdk/*": "3.750.0",
-    "@aws-sdk/types": "3.821.0",
-    "@typescript-eslint/typescript-estree": "8.29.1",
-    "argparse": "1.0.10",
-    "eslint-visitor-keys": "2.1.0"
+    "minimatch": "10.0.3"
   }
 }
