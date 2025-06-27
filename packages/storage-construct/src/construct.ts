@@ -31,7 +31,7 @@ export type AmplifyStorageProps = {
   /**
    * Whether this storage resource is the default storage resource for the backend.
    * required and relevant only if there are multiple storage resources defined.
-   * @default false.
+   * @default false
    */
   isDefault?: boolean;
   /**
@@ -48,14 +48,16 @@ export type AmplifyStorageProps = {
    * S3 event trigger configuration
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
    * @example
-   * import { myFunction } from '../functions/my-function/resource.ts'
+   * ```typescript
+   * import \{ myFunction \} from '../functions/my-function/resource.ts'
    *
-   * export const storage = new AmplifyStorage(stack, 'MyStorage', {
+   * export const storage = new AmplifyStorage(stack, 'MyStorage', \{
    *   name: 'myStorage',
-   *   triggers: {
+   *   triggers: \{
    *     onUpload: myFunction
-   *   }
-   * })
+   *   \}
+   * \})
+   * ```
    */
   triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
 };
@@ -160,14 +162,16 @@ export class AmplifyStorage extends Construct {
    * @param auth - The AmplifyAuth construct to grant access to
    * @param access - Access definition specifying paths and permissions
    * @example
-   * const auth = new AmplifyAuth(stack, 'Auth', {...});
-   * const storage = new AmplifyStorage(stack, 'Storage', {...});
-   * storage.grantAccess(auth, {
+   * ```typescript
+   * const auth = new AmplifyAuth(stack, 'Auth', \{...\});
+   * const storage = new AmplifyStorage(stack, 'Storage', \{...\});
+   * storage.grantAccess(auth, \{
    *   'photos/*': [
-   *     { type: 'authenticated', actions: ['read', 'write'] },
-   *     { type: 'guest', actions: ['read'] }
+   *     \{ type: 'authenticated', actions: ['read', 'write'] \},
+   *     \{ type: 'guest', actions: ['read'] \}
    *   ]
-   * });
+   * \});
+   * ```
    */
   grantAccess = (auth: unknown, access: StorageAccessConfig): void => {
     const policyFactory = new StorageAccessPolicyFactory(this.resources.bucket);
