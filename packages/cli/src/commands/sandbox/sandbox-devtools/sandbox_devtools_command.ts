@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { createServer } from 'node:http';
+import { RequestListener, createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Server } from 'socket.io';
@@ -18,47 +18,8 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { EOL } from 'os';
 import { ShutdownService } from './services/shutdown_service.js';
 import { SocketHandlerService } from './services/socket_handlers.js';
-import { cleanAnsiCodes } from './utils/cloudformation_utils.js';
-
-/**
- * Attempts to start the server on the specified port
- * @param server The HTTP server
- * @param port The port to use
- * @returns A promise that resolves with the port when the server starts
- * @throws Error if the port is already in use
- */
-export async function findAvailablePort(
-  server: ReturnType<typeof createServer>,
-  port: number,
-): Promise<number> {
-  let serverStarted = false;
-
-  try {
-    await new Promise<void>((resolve, reject) => {
-      server.listen(port, () => {
-        serverStarted = true;
-        resolve();
-      });
-
-      server.once('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'EADDRINUSE') {
-          reject(new Error(`Port ${port} is already in use. Please close any applications using this port and try again.`));
-        } else {
-          reject(err);
-        }
-      });
-    });
-  } catch (error) {
-    printer.log(`Failed to start server: ${error}`, LogLevel.ERROR);
-    throw error;
-  }
-
-  if (!serverStarted) {
-    throw new Error(`Failed to start server on port ${port}`);
-  }
-
-  return port;
-}
+import { cleanAnsiCodes } from './cloudformation_format.js';
+import { PortChecker } from '../port_checker.js';
 
 /**
  * Command to start devtools console.
@@ -87,9 +48,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
    */
   handler = async (): Promise<void> => {
     const app = express();
-    const server = createServer(app);
+    const server = createServer(app as RequestListener);
     const io = new Server(server);
-    
+
     // Serve static files from the React app's 'dist' directory
     const publicPath = join(
       dirname(fileURLToPath(import.meta.url)),
@@ -118,8 +79,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     );
 
     const backendId = await sandboxBackendIdResolver.resolve();
-    
-    
+
     // Initialize the backend client
     const backendClient = new DeployedBackendClientFactory().getInstance({
       getS3Client: () => new S3Client(),
@@ -136,14 +96,10 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     );
 
     const sandbox = await sandboxFactory.getInstance();
-    
-    
-    // Track deployment in progress state (used to update UI state)
-    let deploymentInProgress = false;
-    
+
     // Track sandbox state - can be 'running', 'stopped', 'nonexistent', 'deploying', or 'unknown'
     let sandboxState = 'unknown';
-    
+
     // Store recent deployment messages to avoid duplicates
     const recentDeploymentMessages = new Set<string>();
 
@@ -152,37 +108,34 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       try {
         // Use the sandbox's getState method to get the actual state
         const state = sandbox.getState();
-        
+
         // Update sandboxState to match actual state
         sandboxState = state;
-        
-        // If the sandbox is not in 'deploying' state, set deploymentInProgress to false
-        if (state !== 'deploying') {
-          deploymentInProgress = false;
-        }
-        
+
         return state;
       } catch (error) {
-        printer.log(`Error checking sandbox status: ${error}`, LogLevel.ERROR);
+        printer.log(
+          `Error checking sandbox status: ${String(error)}`,
+          LogLevel.ERROR,
+        );
         return 'unknown';
       }
     };
-    
-    
+
     // Create a simple storage manager for PR 2
     const storageManager = {
-      clearAll: () => {}
+      clearAll: () => {},
     };
-    
+
     // Initialize the shutdown service
     const shutdownService = new ShutdownService(
       io,
       server,
       storageManager,
       sandbox,
-      getSandboxState
+      getSandboxState,
     );
-    
+
     // Initialize the socket handler service
     const socketHandlerService = new SocketHandlerService(
       io,
@@ -190,10 +143,11 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       getSandboxState,
       backendId,
       shutdownService,
-      backendClient 
+      backendClient,
     );
 
-    const port = await findAvailablePort(server, 3333);
+    const portChecker = new PortChecker();
+    const port = await portChecker.findAvailablePort(server, 3333);
 
     printer.print(
       `${EOL}DevTools server started at ${format.highlight(`http://localhost:${port}`)}`,
@@ -202,32 +156,29 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Open the browser
     const open = (await import('open')).default;
     await open(`http://localhost:${port}`);
-    
+
     // Get initial sandbox status and set sandboxState
     const initialStatus = getSandboxState();
-    sandboxState = initialStatus; 
-    
+    sandboxState = initialStatus;
+
     // Store original printer methods
-    // const originalPrint = printer.print;
     const originalLog = printer.log;
-    
-    // Track the original log level of messages
+
     const messageLogLevels = new Map<string, LogLevel>();
-    
-       
+
     // Override the original log function to track log levels
-    printer.log = function(message: string, level: LogLevel = LogLevel.INFO) {
+    printer.log = function (message: string, level: LogLevel = LogLevel.INFO) {
       // Store the log level for this message
       messageLogLevels.set(message, level);
-      
+
       // Call the original log method with tracking
       originalLog.call(this, message, level);
-      
+
       // Clean up the map after a delay to prevent memory leaks
       setTimeout(() => {
         messageLogLevels.delete(message);
       }, 5000); // Clean up after 5 seconds
-      
+
       // Skip DEBUG level messages from being sent to the client
       if (level === LogLevel.DEBUG) {
         return;
@@ -235,98 +186,113 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
       // Clean up ANSI color codes and other formatting from the message
       const cleanMessage = cleanAnsiCodes(message);
-      
+
       // Remove timestamp prefix if present (to avoid duplicate timestamps)
       let finalMessage = cleanMessage;
       const timeRegex = /^\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+/;
       if (timeRegex.test(finalMessage)) {
         finalMessage = finalMessage.replace(timeRegex, '');
       }
-    
-      
+
       // Emit the log to the client (except DEBUG messages)
       io.emit('log', {
         timestamp: new Date().toISOString(),
         level: LogLevel[level],
-        message: finalMessage
+        message: finalMessage,
       });
     };
-    
-
 
     // Listen for resource configuration changes
-    sandbox.on('resourceConfigChanged', async (data) => {
+    sandbox.on('resourceConfigChanged', (data) => {
       printer.log('Resource configuration changed', LogLevel.DEBUG);
       io.emit('resourceConfigChanged', data);
     });
-    
+
     // Listen for successful deployment
     sandbox.on('successfulDeployment', () => {
       printer.log('Successful deployment detected', LogLevel.DEBUG);
-      
+
       // Get the current sandbox state
       const currentState = getSandboxState();
-      printer.log(`DEBUG: After successful deployment, sandbox state is: ${currentState}`, LogLevel.DEBUG);
-      
-      deploymentInProgress = false;
-      
+      printer.log(
+        `DEBUG: After successful deployment, sandbox state is: ${currentState}`,
+        LogLevel.DEBUG,
+      );
+
       // Clear recent deployment messages
       recentDeploymentMessages.clear();
-      
+
       sandboxState = currentState;
-      printer.log(`DEBUG: Using sandbox state '${sandboxState}' after successful deployment`, LogLevel.DEBUG);
-      
+      printer.log(
+        `DEBUG: Using sandbox state '${sandboxState}' after successful deployment`,
+        LogLevel.DEBUG,
+      );
+
       // Emit sandbox status update with the actual state and deployment completion info
-      const statusData = { 
+      const statusData = {
         status: sandboxState,
         identifier: backendId.name,
         deploymentCompleted: true,
         message: 'Deployment completed successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       // Log the data being sent
-      printer.log(`DEBUG: About to emit sandboxStatus event with data: ${JSON.stringify(statusData)}`, LogLevel.DEBUG);
-      
+      printer.log(
+        `DEBUG: About to emit sandboxStatus event with data: ${JSON.stringify(statusData)}`,
+        LogLevel.DEBUG,
+      );
+
       // Emit to all connected clients
       io.emit('sandboxStatus', statusData);
-      
-      printer.log(`DEBUG: Emitted sandboxStatus event with status '${sandboxState}' and deploymentCompleted flag`, LogLevel.INFO);
+
+      printer.log(
+        `DEBUG: Emitted sandboxStatus event with status '${sandboxState}' and deploymentCompleted flag`,
+        LogLevel.INFO,
+      );
     });
 
     // Listen for failed deployment
     sandbox.on('failedDeployment', (error) => {
-      printer.log('Failed deployment detected, checking current status', LogLevel.DEBUG);
-      
+      printer.log(
+        'Failed deployment detected, checking current status',
+        LogLevel.DEBUG,
+      );
+
       // Get the current sandbox state
       const currentState = getSandboxState();
-      printer.log(`DEBUG: After failed deployment, sandbox state is: ${currentState}`, LogLevel.DEBUG);
-      
-      deploymentInProgress = false;
-      
+      printer.log(
+        `DEBUG: After failed deployment, sandbox state is: ${currentState}`,
+        LogLevel.DEBUG,
+      );
+
       // Clear recent deployment messages
       recentDeploymentMessages.clear();
-      
+
       // Emit sandbox status update with deployment failure information
-      const statusData = { 
+      const statusData = {
         status: currentState,
         identifier: backendId.name,
         deploymentCompleted: true,
         error: true,
         message: `Deployment failed: ${error}`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       // Log the data being sent
-      printer.log(`DEBUG: About to emit sandboxStatus event with data: ${JSON.stringify(statusData)}`, LogLevel.DEBUG);
-      
+      printer.log(
+        `DEBUG: About to emit sandboxStatus event with data: ${JSON.stringify(statusData)}`,
+        LogLevel.DEBUG,
+      );
+
       // Emit to all connected clients
       io.emit('sandboxStatus', statusData);
-    
-      printer.log(`DEBUG: Emitted sandboxStatus event with status '${currentState}' and deployment failure info`, LogLevel.INFO);
+
+      printer.log(
+        `DEBUG: Emitted sandboxStatus event with status '${currentState}' and deployment failure info`,
+        LogLevel.INFO,
+      );
     });
-    
-    
 
     // Handle socket connections
     io.on('connection', (socket) => {
@@ -334,18 +300,14 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       socketHandlerService.setupSocketHandlers(socket);
     });
 
-
     // Keep the process running until Ctrl+C
-    process.once('SIGINT', async () => {
-      await shutdownService.shutdown('SIGINT', true);
-    });
-    
-    // Also handle process termination signals
-    process.once('SIGTERM', async () => {
-      await shutdownService.shutdown('SIGTERM', true);
+    process.once('SIGINT', () => {
+      void shutdownService.shutdown('SIGINT', true);
     });
 
-    // Wait indefinitely
-    await new Promise(() => {});
+    // Also handle process termination signals
+    process.once('SIGTERM', () => {
+      void shutdownService.shutdown('SIGTERM', true);
+    });
   };
 }

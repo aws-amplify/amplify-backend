@@ -721,22 +721,22 @@ void describe('Sandbox using local project name resolver', () => {
     );
 
     // assert print statements are called correctly
-    assert.strictEqual(printer.log.mock.callCount(), 15);
+    assert.strictEqual(printer.log.mock.callCount(), 20);
     assert.match(
-      printer.log.mock.calls[5].arguments[0],
+      printer.log.mock.calls[8].arguments[0],
       /random BackendDeployer error/,
     );
-    assert.strictEqual(printer.log.mock.calls[5].arguments[1], LogLevel.ERROR);
+    assert.strictEqual(printer.log.mock.calls[8].arguments[1], LogLevel.ERROR);
     assert.strictEqual(
-      printer.log.mock.calls[6].arguments[0],
+      printer.log.mock.calls[9].arguments[0],
       'Stack Trace for UnknownFault',
     );
-    assert.strictEqual(printer.log.mock.calls[6].arguments[1], LogLevel.DEBUG);
+    assert.strictEqual(printer.log.mock.calls[9].arguments[1], LogLevel.DEBUG);
     assert.match(
-      printer.log.mock.calls[7].arguments[0],
+      printer.log.mock.calls[10].arguments[0],
       /file_watching_sandbox.ts/,
     );
-    assert.strictEqual(printer.log.mock.calls[7].arguments[1], LogLevel.DEBUG);
+    assert.strictEqual(printer.log.mock.calls[10].arguments[1], LogLevel.DEBUG);
   });
 
   void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes', async (contextual) => {
