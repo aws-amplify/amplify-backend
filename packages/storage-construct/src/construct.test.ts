@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
+
 import assert from 'node:assert';
 
 void describe('AmplifyStorage', () => {
@@ -106,22 +107,112 @@ void describe('AmplifyStorage', () => {
     const stack = new Stack(app);
     const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
 
-    // Test that grantAccess method exists and can be called
+    // Test that grantAccess method exists
     assert.equal(typeof storage.grantAccess, 'function');
+  });
 
-    // Test calling grantAccess (currently just logs warning)
-    const mockAuth = {};
-    const accessDefinition = {
+  void it('validates auth construct in grantAccess', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const accessConfig = {
+      'photos/*': [
+        { type: 'authenticated' as const, actions: ['read' as const] },
+      ],
+    };
+
+    // Should throw with null auth construct
+    assert.throws(() => {
+      storage.grantAccess(null, accessConfig);
+    }, /Invalid auth construct/);
+
+    // Should throw with undefined auth construct
+    assert.throws(() => {
+      storage.grantAccess(undefined, accessConfig);
+    }, /Invalid auth construct/);
+  });
+
+  void it('processes access config with mock auth', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    // Create mock auth construct
+    const mockAuth = { mockAuthConstruct: true };
+    const accessConfig = {
       'photos/*': [
         {
           type: 'authenticated' as const,
           actions: ['read' as const, 'write' as const],
         },
+        { type: 'guest' as const, actions: ['read' as const] },
+      ],
+      'documents/*': [
+        { type: 'authenticated' as const, actions: ['read' as const] },
       ],
     };
 
-    // Should not throw
-    storage.grantAccess(mockAuth, accessDefinition);
+    // Should not throw with valid mock auth
+    storage.grantAccess(mockAuth, accessConfig);
+  });
+
+  void it('handles owner access type', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+    const accessConfig = {
+      'private/{entity_id}/*': [
+        {
+          type: 'owner' as const,
+          actions: ['read' as const, 'write' as const, 'delete' as const],
+        },
+      ],
+    };
+
+    // Should handle owner access without throwing
+    storage.grantAccess(mockAuth, accessConfig);
+  });
+
+  void it('handles group access type', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+    const accessConfig = {
+      'admin/*': [
+        {
+          type: 'groups' as const,
+          actions: ['read' as const, 'write' as const],
+          groups: ['admin', 'moderator'],
+        },
+      ],
+    };
+
+    // Should handle group access without throwing
+    storage.grantAccess(mockAuth, accessConfig);
+  });
+
+  void it('handles all storage actions', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+    const accessConfig = {
+      'test/*': [
+        {
+          type: 'authenticated' as const,
+          actions: ['read' as const, 'write' as const, 'delete' as const],
+        },
+      ],
+    };
+
+    // Should handle all action types without throwing
+    storage.grantAccess(mockAuth, accessConfig);
   });
 
   void describe('storage overrides', () => {

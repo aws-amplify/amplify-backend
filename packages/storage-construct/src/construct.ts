@@ -12,6 +12,15 @@ import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage'
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
+import {
+  StorageAccessPolicyFactory,
+  StoragePath,
+} from './storage_access_policy_factory.js';
+import {
+  StorageAccessDefinition,
+  StorageAccessOrchestrator,
+} from './storage_access_orchestrator.js';
+import { AuthRoleResolver } from './auth_role_resolver.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -51,12 +60,14 @@ export type AmplifyStorageProps = {
   triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
 };
 
-export type StorageAccessDefinition = {
-  [path: string]: Array<{
-    type: 'authenticated' | 'guest' | 'owner' | 'groups';
-    actions: Array<'read' | 'write' | 'delete'>;
-    groups?: string[];
-  }>;
+export type StorageAccessRule = {
+  type: 'authenticated' | 'guest' | 'owner' | 'groups';
+  actions: Array<'read' | 'write' | 'delete'>;
+  groups?: string[];
+};
+
+export type StorageAccessConfig = {
+  [path: string]: StorageAccessRule[];
 };
 
 export type StorageResources = {
@@ -146,8 +157,8 @@ export class AmplifyStorage extends Construct {
 
   /**
    * Grant access to this storage bucket based on auth construct and access definition
-   * @param _auth - The AmplifyAuth construct to grant access to
-   * @param _access - Access definition specifying paths and permissions
+   * @param auth - The AmplifyAuth construct to grant access to
+   * @param access - Access definition specifying paths and permissions
    * @example
    * const auth = new AmplifyAuth(stack, 'Auth', {...});
    * const storage = new AmplifyStorage(stack, 'Storage', {...});
@@ -158,13 +169,54 @@ export class AmplifyStorage extends Construct {
    *   ]
    * });
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  grantAccess = (_auth: unknown, _access: StorageAccessDefinition): void => {
-    // TODO: Implement access control logic
-    // This will be implemented in future phases to:
-    // 1. Extract roles from the auth construct
-    // 2. Generate IAM policies based on access definition
-    // 3. Attach policies to appropriate roles
+  grantAccess = (auth: unknown, access: StorageAccessConfig): void => {
+    const policyFactory = new StorageAccessPolicyFactory(this.resources.bucket);
+    const orchestrator = new StorageAccessOrchestrator(policyFactory);
+    const roleResolver = new AuthRoleResolver();
+
+    // Validate auth construct
+    if (!roleResolver.validateAuthConstruct(auth)) {
+      throw new Error('Invalid auth construct provided to grantAccess');
+    }
+
+    // Resolve roles from auth construct
+    const authRoles = roleResolver.resolveRoles();
+
+    // Convert access config to orchestrator format
+    const accessDefinitions: Record<StoragePath, StorageAccessDefinition[]> =
+      {};
+
+    Object.entries(access).forEach(([path, rules]) => {
+      const storagePath = path as StoragePath;
+      accessDefinitions[storagePath] = [];
+
+      rules.forEach((rule) => {
+        const role = roleResolver.getRoleForAccessType(
+          rule.type,
+          authRoles,
+          rule.groups,
+        );
+
+        if (role) {
+          // Determine ID substitution based on access type
+          let idSubstitution = '*';
+          if (rule.type === 'owner') {
+            idSubstitution = '${cognito-identity.amazonaws.com:sub}';
+          }
+
+          accessDefinitions[storagePath].push({
+            role,
+            actions: rule.actions,
+            idSubstitution,
+          });
+        } else {
+          // Role not found for access type
+        }
+      });
+    });
+
+    // Orchestrate access control
+    orchestrator.orchestrateStorageAccess(accessDefinitions);
   };
 
   /**
