@@ -215,6 +215,92 @@ void describe('AmplifyStorage', () => {
     storage.grantAccess(mockAuth, accessConfig);
   });
 
+  void it('validates path patterns', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+
+    // Should throw for invalid path (not ending with /*)
+    assert.throws(() => {
+      storage.grantAccess(mockAuth, {
+        'invalid-path': [
+          { type: 'authenticated' as const, actions: ['read' as const] },
+        ],
+      });
+    }, /Storage access paths must end with/);
+  });
+
+  void it('handles complex path hierarchies', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+    const accessConfig = {
+      'public/*': [
+        { type: 'authenticated' as const, actions: ['read' as const] },
+        { type: 'guest' as const, actions: ['read' as const] },
+      ],
+      'private/{entity_id}/*': [
+        {
+          type: 'owner' as const,
+          actions: ['read' as const, 'write' as const, 'delete' as const],
+        },
+      ],
+      'shared/documents/*': [
+        {
+          type: 'authenticated' as const,
+          actions: ['read' as const, 'write' as const],
+        },
+      ],
+    };
+
+    // Should handle complex path scenarios without throwing
+    storage.grantAccess(mockAuth, accessConfig);
+  });
+
+  void it('validates entity_id token placement', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+
+    // Should throw for entity_id not at end
+    assert.throws(() => {
+      storage.grantAccess(mockAuth, {
+        'users/{entity_id}/documents/files/*': [
+          { type: 'owner' as const, actions: ['read' as const] },
+        ],
+      });
+    }, /must be the path part right before the ending wildcard/);
+  });
+
+  void it('prevents too many path prefixes', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { mockAuthConstruct: true };
+
+    // Should throw for too many nested paths
+    assert.throws(() => {
+      storage.grantAccess(mockAuth, {
+        'foo/*': [
+          { type: 'authenticated' as const, actions: ['read' as const] },
+        ],
+        'foo/bar/*': [
+          { type: 'authenticated' as const, actions: ['read' as const] },
+        ],
+        'foo/bar/baz/*': [
+          { type: 'authenticated' as const, actions: ['read' as const] },
+        ],
+      });
+    }, /only one other path can be a prefix/);
+  });
+
   void describe('storage overrides', () => {
     void it('can override bucket properties', () => {
       const app = new App();

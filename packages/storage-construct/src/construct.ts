@@ -21,6 +21,7 @@ import {
   StorageAccessOrchestrator,
 } from './storage_access_orchestrator.js';
 import { AuthRoleResolver } from './auth_role_resolver.js';
+import { entityIdSubstitution } from './constants.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -205,7 +206,7 @@ export class AmplifyStorage extends Construct {
           // Determine ID substitution based on access type
           let idSubstitution = '*';
           if (rule.type === 'owner') {
-            idSubstitution = '${cognito-identity.amazonaws.com:sub}';
+            idSubstitution = entityIdSubstitution;
           }
 
           accessDefinitions[storagePath].push({

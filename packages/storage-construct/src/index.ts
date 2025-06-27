@@ -17,3 +17,5 @@ export {
   StorageAccessDefinition,
 } from './storage_access_orchestrator.js';
 export { AuthRoleResolver, AuthRoles } from './auth_role_resolver.js';
+export { validateStorageAccessPaths } from './validate_storage_access_paths.js';
+export { entityIdPathToken, entityIdSubstitution } from './constants.js';

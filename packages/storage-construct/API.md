@@ -54,6 +54,12 @@ export type AuthRoles = {
 };
 
 // @public (undocumented)
+export const entityIdPathToken = "{entity_id}";
+
+// @public (undocumented)
+export const entityIdSubstitution = "${cognito-identity.amazonaws.com:sub}";
+
+// @public (undocumented)
 export type InternalStorageAction = 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
@@ -104,6 +110,9 @@ export type StorageResources = {
         cfnBucket: CfnBucket;
     };
 };
+
+// @public
+export const validateStorageAccessPaths: (storagePaths: string[]) => void;
 
 // (No @packageDocumentation comment for this package)
 

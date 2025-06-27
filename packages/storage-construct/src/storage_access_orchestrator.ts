@@ -5,6 +5,8 @@ import {
   StorageAction,
   StoragePath,
 } from './storage_access_policy_factory.js';
+import { entityIdPathToken, entityIdSubstitution } from './constants.js';
+import { validateStorageAccessPaths } from './validate_storage_access_paths.js';
 
 export type StorageAccessDefinition = {
   role: IRole;
@@ -45,6 +47,10 @@ export class StorageAccessOrchestrator {
   orchestrateStorageAccess = (
     accessDefinitions: Record<StoragePath, StorageAccessDefinition[]>,
   ) => {
+    // Validate all paths first
+    const allPaths = Object.keys(accessDefinitions);
+    validateStorageAccessPaths(allPaths);
+
     // Process each path and its access definitions
     Object.entries(accessDefinitions).forEach(([s3Prefix, definitions]) => {
       definitions.forEach((definition) => {
@@ -106,10 +112,34 @@ export class StorageAccessOrchestrator {
   };
 
   private attachPolicies = () => {
+    // Apply deny-by-default logic for parent-child path relationships
+    const allPaths = Array.from(this.prefixDenyMap.keys());
+    allPaths.forEach((storagePath) => {
+      const parent = this.findParent(storagePath, allPaths);
+      // do not add to prefix deny map if there is no parent or the path is a subpath with entity id
+      if (
+        !parent ||
+        parent === storagePath.replaceAll(`${entityIdSubstitution}/`, '')
+      ) {
+        return;
+      }
+      // if a parent path is defined, invoke the denyByDefault callback on this subpath for all policies that exist on the parent path
+      this.prefixDenyMap
+        .get(parent)
+        ?.forEach((denyByDefaultCallback) =>
+          denyByDefaultCallback(storagePath),
+        );
+    });
+
     this.acceptorAccessMap.forEach(({ role, accessMap }) => {
       if (accessMap.size === 0) {
         return;
       }
+      // Remove subpaths from allow set to prevent unnecessary paths
+      accessMap.forEach(({ allow }) => {
+        this.removeSubPathsFromSet(allow);
+      });
+
       const policy = this.policyFactory.createPolicy(accessMap);
       role.attachInlinePolicy(policy);
     });
@@ -141,14 +171,36 @@ export class StorageAccessOrchestrator {
     s3Prefix: StoragePath,
     idSubstitution: string,
   ): StoragePath => {
-    const entityIdToken = '{entity_id}';
-    let result = s3Prefix.replace(entityIdToken, idSubstitution);
+    const prefix = s3Prefix.replaceAll(
+      entityIdPathToken,
+      idSubstitution,
+    ) as StoragePath;
 
-    // Handle owner paths - remove extra wildcard
-    if (result.endsWith('/*/*')) {
-      result = result.slice(0, -2);
+    // for owner paths where prefix ends with '/*/*' remove the last wildcard
+    if (prefix.endsWith('/*/*')) {
+      return prefix.slice(0, -2) as StoragePath;
     }
 
-    return result as StoragePath;
+    return prefix as StoragePath;
+  };
+
+  /**
+   * Returns the element in paths that is a prefix of path, if any
+   * Note that there can only be one at this point because of upstream validation
+   */
+  private findParent = (path: string, paths: string[]) =>
+    paths.find((p) => path !== p && path.startsWith(p.replaceAll('*', ''))) as
+      | StoragePath
+      | undefined;
+
+  /**
+   * Remove subpaths from set to prevent unnecessary paths in policies
+   */
+  private removeSubPathsFromSet = (paths: Set<StoragePath>) => {
+    paths.forEach((path) => {
+      if (this.findParent(path, Array.from(paths))) {
+        paths.delete(path);
+      }
+    });
   };
 }
