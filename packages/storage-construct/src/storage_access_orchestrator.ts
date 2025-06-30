@@ -85,7 +85,8 @@ export class StorageAccessOrchestrator {
     actions: InternalStorageAction[],
     s3Prefix: StoragePath,
   ) => {
-    const roleId = role.roleArn;
+    // Use role node ID for consistent grouping
+    const roleId = role.node.id;
 
     if (!this.acceptorAccessMap.has(roleId)) {
       this.acceptorAccessMap.set(roleId, {

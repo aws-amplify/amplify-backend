@@ -61,7 +61,7 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
 
   if (otherPrefixes.length > 0) {
     throw new Error(
-      `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token. Found [${path}] which has prefixes [${otherPrefixes.join(', ')}].`,
+      `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
     );
   }
 
