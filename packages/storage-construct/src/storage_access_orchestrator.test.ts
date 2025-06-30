@@ -71,13 +71,35 @@ void describe('StorageAccessOrchestrator', () => {
 
       // Storage-construct may create multiple policies, so check >= 1
       assert.ok(attachInlinePolicyMock.mock.callCount() >= 1);
-      const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
-      const statements = policy.document.toJSON().Statement;
 
-      // Verify expected actions are present
-      const actions = statements.map((s: any) => s.Action).flat();
-      assert.ok(actions.includes('s3:GetObject'));
-      assert.ok(actions.includes('s3:PutObject'));
+      // Collect all statements from all policy calls
+      const allStatements = attachInlinePolicyMock.mock.calls
+        .map((call) => call.arguments[0].document.toJSON().Statement)
+        .flat();
+
+      // Verify GetObject statement with correct resource
+      const getStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:GetObject',
+      );
+      assert.ok(getStatements.length >= 1);
+      const getResources = getStatements.map((s: any) => s.Resource).flat();
+      assert.ok(getResources.includes(`${bucket.bucketArn}/test/prefix/*`));
+
+      // Verify PutObject statement with correct resource
+      const putStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:PutObject',
+      );
+      assert.ok(putStatements.length >= 1);
+      const putResources = putStatements.map((s: any) => s.Resource).flat();
+      assert.ok(putResources.includes(`${bucket.bucketArn}/test/prefix/*`));
+
+      // Verify all statements have correct Effect and Version
+      allStatements.forEach((s: any) => {
+        assert.equal(s.Effect, 'Allow');
+      });
+
+      const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
+      assert.equal(policy.document.toJSON().Version, '2012-10-17');
     });
 
     void it('handles multiple permissions for the same role', () => {
@@ -109,15 +131,42 @@ void describe('StorageAccessOrchestrator', () => {
       // Storage-construct may create multiple policies
       assert.ok(attachInlinePolicyMock.mock.callCount() >= 1);
 
-      // Verify all expected actions are present across all policies
+      // Collect all statements from all policy calls
       const allStatements = attachInlinePolicyMock.mock.calls
         .map((call) => call.arguments[0].document.toJSON().Statement)
         .flat();
-      const allActions = allStatements.map((s: any) => s.Action).flat();
 
-      assert.ok(allActions.includes('s3:GetObject'));
-      assert.ok(allActions.includes('s3:PutObject'));
-      assert.ok(allActions.includes('s3:DeleteObject'));
+      // Verify GetObject statement with correct resources
+      const getStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:GetObject',
+      );
+      assert.ok(getStatements.length >= 1);
+      const getResources = getStatements.map((s: any) => s.Resource).flat();
+      assert.ok(getResources.includes(`${bucket.bucketArn}/test/prefix/*`));
+      assert.ok(getResources.includes(`${bucket.bucketArn}/another/prefix/*`));
+
+      // Verify PutObject statement
+      const putStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:PutObject',
+      );
+      assert.ok(putStatements.length >= 1);
+      const putResources = putStatements.map((s: any) => s.Resource).flat();
+      assert.ok(putResources.includes(`${bucket.bucketArn}/test/prefix/*`));
+
+      // Verify DeleteObject statement
+      const deleteStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:DeleteObject',
+      );
+      assert.ok(deleteStatements.length >= 1);
+      const deleteResources = deleteStatements
+        .map((s: any) => s.Resource)
+        .flat();
+      assert.ok(deleteResources.includes(`${bucket.bucketArn}/test/prefix/*`));
+
+      // Verify all statements have correct Effect
+      allStatements.forEach((s: any) => {
+        assert.equal(s.Effect, 'Allow');
+      });
     });
 
     void it('handles multiple roles', () => {
@@ -180,11 +229,41 @@ void describe('StorageAccessOrchestrator', () => {
       });
 
       assert.ok(attachInlinePolicyMock.mock.callCount() >= 1);
-      const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
-      const policyStr = JSON.stringify(policy.document.toJSON());
 
-      // Verify entity substitution occurred
-      assert.ok(policyStr.includes(entityIdSubstitution));
+      // Collect all statements and verify entity substitution
+      const allStatements = attachInlinePolicyMock.mock.calls
+        .map((call) => call.arguments[0].document.toJSON().Statement)
+        .flat();
+
+      // Verify GetObject statement with entity substitution
+      const getStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:GetObject',
+      );
+      assert.ok(getStatements.length >= 1);
+      const getResources = getStatements.map((s: any) => s.Resource).flat();
+      assert.ok(
+        getResources.some((r: string) => r.includes(entityIdSubstitution)),
+      );
+      assert.ok(
+        getResources.some((r: string) =>
+          r.includes(`test/${entityIdSubstitution}`),
+        ),
+      );
+
+      // Verify PutObject statement with entity substitution
+      const putStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:PutObject',
+      );
+      assert.ok(putStatements.length >= 1);
+      const putResources = putStatements.map((s: any) => s.Resource).flat();
+      assert.ok(
+        putResources.some((r: string) => r.includes(entityIdSubstitution)),
+      );
+
+      // Verify all statements have correct Effect
+      allStatements.forEach((s: any) => {
+        assert.equal(s.Effect, 'Allow');
+      });
     });
 
     void it('denies parent actions on a subpath by default', () => {
@@ -253,13 +332,33 @@ void describe('StorageAccessOrchestrator', () => {
       });
 
       assert.ok(attachInlinePolicyMock.mock.callCount() >= 1);
-      const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
-      const statements = policy.document.toJSON().Statement;
-      const actions = statements.map((s: any) => s.Action).flat();
 
-      // Verify read expands to get and list
-      assert.ok(actions.includes('s3:GetObject'));
-      assert.ok(actions.includes('s3:ListBucket'));
+      // Collect all statements from all policy calls
+      const allStatements = attachInlinePolicyMock.mock.calls
+        .map((call) => call.arguments[0].document.toJSON().Statement)
+        .flat();
+
+      // Verify GetObject statement (from read expansion)
+      const getStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:GetObject',
+      );
+      assert.ok(getStatements.length >= 1);
+      assert.equal(getStatements[0].Effect, 'Allow');
+      const getResources = getStatements.map((s: any) => s.Resource).flat();
+      assert.ok(getResources.includes(`${bucket.bucketArn}/foo/bar/*`));
+
+      // Verify ListBucket statement (from read expansion)
+      const listStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:ListBucket',
+      );
+      assert.ok(listStatements.length >= 1);
+      assert.equal(listStatements[0].Effect, 'Allow');
+      assert.equal(listStatements[0].Resource, bucket.bucketArn);
+      assert.deepStrictEqual(listStatements[0].Condition, {
+        StringLike: {
+          's3:prefix': ['foo/bar/*', 'foo/bar/'],
+        },
+      });
     });
   });
 });
