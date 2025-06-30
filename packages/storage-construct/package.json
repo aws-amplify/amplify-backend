@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf lib",
-    "test": "node --test lib/construct.test.js",
+    "test": "node --test lib/*.test.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
