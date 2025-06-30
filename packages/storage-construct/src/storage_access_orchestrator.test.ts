@@ -387,3 +387,119 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+void describe('StorageAccessOrchestrator Performance Tests', () => {
+  let stack: Stack;
+  let bucket: Bucket;
+  let storageAccessPolicyFactory: StorageAccessPolicyFactory;
+  let authRole: Role;
+
+  beforeEach(() => {
+    stack = createStackAndSetContext();
+    bucket = new Bucket(stack, 'testBucket');
+    storageAccessPolicyFactory = new StorageAccessPolicyFactory(bucket);
+
+    authRole = new Role(stack, 'AuthRole', {
+      assumedBy: new ServicePrincipal('cognito-identity.amazonaws.com'),
+    });
+  });
+
+  void it('optimizes large policy sets efficiently', () => {
+    const attachInlinePolicyMock = mock.method(authRole, 'attachInlinePolicy');
+    const storageAccessOrchestrator = new StorageAccessOrchestrator(
+      storageAccessPolicyFactory,
+    );
+
+    // Create 50 similar paths that should be optimized
+    const accessDefinitions: any = {};
+    for (let i = 0; i < 50; i++) {
+      accessDefinitions[`files/folder${i}/*`] = [
+        {
+          role: authRole,
+          actions: ['get'],
+          idSubstitution: '*',
+        },
+      ];
+    }
+    // Add parent path that should subsume all others
+    accessDefinitions['files/*'] = [
+      {
+        role: authRole,
+        actions: ['get'],
+        idSubstitution: '*',
+      },
+    ];
+
+    const startTime = Date.now();
+    storageAccessOrchestrator.orchestrateStorageAccess(accessDefinitions);
+    const endTime = Date.now();
+
+    // Should complete quickly (under 1 second)
+    assert.ok(
+      endTime - startTime < 1000,
+      'Should optimize large policy sets quickly',
+    );
+
+    // Should create only one policy with optimized paths
+    assert.equal(attachInlinePolicyMock.mock.callCount(), 1);
+    const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
+    const statements = policy.document.toJSON().Statement;
+
+    // Should optimize to only include parent path
+    const getStatements = statements.filter(
+      (s: any) => s.Action === 's3:GetObject',
+    );
+    assert.equal(getStatements.length, 1);
+    assert.equal(getStatements[0].Resource, `${bucket.bucketArn}/files/*`);
+  });
+
+  void it('handles complex nested hierarchies without performance degradation', () => {
+    const attachInlinePolicyMock = mock.method(authRole, 'attachInlinePolicy');
+    const storageAccessOrchestrator = new StorageAccessOrchestrator(
+      storageAccessPolicyFactory,
+    );
+
+    // Create complex nested structure
+    const accessDefinitions: any = {
+      'level1/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'level1/level2a/*': [
+        { role: authRole, actions: ['get'], idSubstitution: '*' },
+      ],
+      'level1/level2b/*': [
+        { role: authRole, actions: ['get'], idSubstitution: '*' },
+      ],
+      'level1/level2c/*': [
+        { role: authRole, actions: ['get'], idSubstitution: '*' },
+      ],
+      'other1/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'other1/sub/*': [
+        { role: authRole, actions: ['get'], idSubstitution: '*' },
+      ],
+      'other2/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'other2/sub/*': [
+        { role: authRole, actions: ['get'], idSubstitution: '*' },
+      ],
+    };
+
+    const startTime = Date.now();
+    storageAccessOrchestrator.orchestrateStorageAccess(accessDefinitions);
+    const endTime = Date.now();
+
+    // Should handle complexity efficiently
+    assert.ok(
+      endTime - startTime < 500,
+      'Should handle complex hierarchies quickly',
+    );
+
+    // Should create optimized policy
+    assert.equal(attachInlinePolicyMock.mock.callCount(), 1);
+    const policy = attachInlinePolicyMock.mock.calls[0].arguments[0];
+    const statements = policy.document.toJSON().Statement;
+
+    // Should optimize nested paths
+    const getStatements = statements.filter(
+      (s: any) => s.Action === 's3:GetObject',
+    );
+    assert.ok(getStatements.length <= 4, 'Should optimize nested paths');
+  });
+});
