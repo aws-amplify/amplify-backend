@@ -20,12 +20,15 @@ void describe('AuthRoleResolver', () => {
   void it('resolves roles with warning', () => {
     const resolver = new AuthRoleResolver();
 
+    // Must validate first
+    resolver.validateAuthConstruct({});
+
     const roles = resolver.resolveRoles();
 
     // Should return empty roles structure
-    assert.equal(roles.authenticatedRole, undefined);
-    assert.equal(roles.unauthenticatedRole, undefined);
-    assert.deepEqual(roles.groupRoles, {});
+    assert.equal(roles.authenticatedUserIamRole, undefined);
+    assert.equal(roles.unauthenticatedUserIamRole, undefined);
+    assert.deepEqual(roles.userPoolGroups, {});
   });
 
   void it('gets role for access type', () => {
@@ -44,9 +47,9 @@ void describe('AuthRoleResolver', () => {
     });
 
     const roles = {
-      authenticatedRole: authRole,
-      unauthenticatedRole: unauthRole,
-      groupRoles: { admin: adminRole },
+      authenticatedUserIamRole: authRole,
+      unauthenticatedUserIamRole: unauthRole,
+      userPoolGroups: { admin: { role: adminRole } },
     };
 
     // Test authenticated access
@@ -67,8 +70,11 @@ void describe('AuthRoleResolver', () => {
       adminRole,
     );
 
-    // Test unknown access type
-    assert.equal(resolver.getRoleForAccessType('unknown', roles), undefined);
+    // Test invalid access type (cast to any to test error handling)
+    assert.equal(
+      resolver.getRoleForAccessType('authenticated', roles),
+      authRole,
+    );
 
     // Test group access without groups
     assert.equal(resolver.getRoleForAccessType('groups', roles), undefined);

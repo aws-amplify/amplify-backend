@@ -1,64 +1,106 @@
 import { IRole } from 'aws-cdk-lib/aws-iam';
 
+/**
+ * Represents the collection of IAM roles provided by an auth construct.
+ * These roles are used to grant different types of access to storage resources.
+ */
 export type AuthRoles = {
-  authenticatedRole?: IRole;
-  unauthenticatedRole?: IRole;
-  groupRoles?: Record<string, IRole>;
+  /** Role for authenticated (signed-in) users */
+  authenticatedUserIamRole?: IRole;
+  /** Role for unauthenticated (guest) users */
+  unauthenticatedUserIamRole?: IRole;
+  /** Map of user group names to their corresponding IAM roles */
+  userPoolGroups?: Record<string, { role: IRole }>;
 };
 
 /**
- * Resolves IAM roles from auth construct
+ * The AuthRoleResolver extracts IAM roles from auth constructs and maps them
+ * to storage access types. It handles different auth providers and role structures.
+ *
+ * This class abstracts the complexity of different auth construct implementations
+ * and provides a consistent interface for role resolution.
+ * @example
+ * ```typescript
+ * const resolver = new AuthRoleResolver();
+ * if (resolver.validateAuthConstruct(auth)) {
+ *   const roles = resolver.resolveRoles();
+ *   const authRole = resolver.getRoleForAccessType('authenticated', roles);
+ * }
+ * ```
  */
 export class AuthRoleResolver {
+  private authConstruct: unknown;
+
   /**
-   * Extract roles from auth construct
-   * This is a simplified implementation - in a real scenario, this would
-   * inspect the auth construct and extract the actual IAM roles
+   * Validates that an auth construct provides the necessary role structure.
+   * @param auth - The auth construct to validate
+   * @returns true if valid, false otherwise
+   */
+  validateAuthConstruct = (auth: unknown): boolean => {
+    if (!auth || typeof auth !== 'object') {
+      return false;
+    }
+
+    // Store for later use
+    this.authConstruct = auth;
+
+    // For now, accept any object as valid (simplified validation)
+    return true;
+  };
+
+  /**
+   * Extracts IAM roles from the validated auth construct.
+   * @returns Object containing available IAM roles
+   * @throws {Error} If called before validateAuthConstruct or with invalid construct
    */
   resolveRoles = (): AuthRoles => {
-    // For now, return empty roles with warning
-    // In actual implementation, this would:
-    // 1. Check if authConstruct is an AmplifyAuth instance
-    // 2. Extract the Cognito Identity Pool roles
-    // 3. Extract any User Pool group roles
+    if (!this.authConstruct) {
+      throw new Error('Must call validateAuthConstruct first');
+    }
 
-    // AuthRoleResolver.resolveRoles is not fully implemented - returning empty roles
+    const authObj = this.authConstruct as Record<string, unknown>;
+    const resources = authObj.resources || {};
 
     return {
-      authenticatedRole: undefined,
-      unauthenticatedRole: undefined,
-      groupRoles: {},
+      authenticatedUserIamRole: resources.authenticatedUserIamRole,
+      unauthenticatedUserIamRole: resources.unauthenticatedUserIamRole,
+      userPoolGroups: resources.userPoolGroups || {},
     };
   };
 
   /**
-   * Validate auth construct
-   */
-  validateAuthConstruct = (authConstruct: unknown): boolean => {
-    // Basic validation - in real implementation would check for proper auth construct
-    return authConstruct !== null && authConstruct !== undefined;
-  };
-
-  /**
-   * Get role for specific access type
+   * Gets the appropriate IAM role for a specific access type.
+   * @param accessType - The type of access (authenticated, guest, owner, groups)
+   * @param authRoles - The available auth roles
+   * @param groups - Required for 'groups' access type
+   * @returns The IAM role or undefined if not found
    */
   getRoleForAccessType = (
-    accessType: string,
-    roles: AuthRoles,
+    accessType: 'authenticated' | 'guest' | 'owner' | 'groups',
+    authRoles: AuthRoles,
     groups?: string[],
   ): IRole | undefined => {
     switch (accessType) {
       case 'authenticated':
-        return roles.authenticatedRole;
+      case 'owner': // Owner access uses authenticated role with entity substitution
+        return authRoles.authenticatedUserIamRole;
+
       case 'guest':
-        return roles.unauthenticatedRole;
+        return authRoles.unauthenticatedUserIamRole;
+
       case 'groups':
-        if (groups && groups.length > 0 && roles.groupRoles) {
-          return roles.groupRoles[groups[0]]; // Return first group role for simplicity
+        if (!groups || groups.length === 0) {
+          return undefined;
+        }
+        // Return the first available group role
+        for (const groupName of groups) {
+          const groupRole = authRoles.userPoolGroups?.[groupName]?.role;
+          if (groupRole) {
+            return groupRole;
+          }
         }
         return undefined;
-      case 'owner':
-        return roles.authenticatedRole; // Owner access uses authenticated role
+
       default:
         return undefined;
     }

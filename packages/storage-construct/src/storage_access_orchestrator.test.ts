@@ -41,7 +41,7 @@ void describe('StorageAccessOrchestrator', () => {
               {
                 // Invalid: missing /*
                 role: authRole,
-                actions: ['get', 'write'],
+                actions: ['read', 'write'],
                 idSubstitution: '*',
               },
             ],
@@ -63,7 +63,7 @@ void describe('StorageAccessOrchestrator', () => {
         'test/prefix/*': [
           {
             role: authRole,
-            actions: ['get', 'write'],
+            actions: ['read', 'write'],
             idSubstitution: '*',
           },
         ],
@@ -115,14 +115,14 @@ void describe('StorageAccessOrchestrator', () => {
         'test/prefix/*': [
           {
             role: authRole,
-            actions: ['get', 'write', 'delete'],
+            actions: ['read', 'write', 'delete'],
             idSubstitution: '*',
           },
         ],
         'another/prefix/*': [
           {
             role: authRole,
-            actions: ['get'],
+            actions: ['read'],
             idSubstitution: '*',
           },
         ],
@@ -186,19 +186,19 @@ void describe('StorageAccessOrchestrator', () => {
         'test/prefix/*': [
           {
             role: authRole,
-            actions: ['get', 'write', 'delete'],
+            actions: ['read', 'write', 'delete'],
             idSubstitution: '*',
           },
           {
             role: unauthRole,
-            actions: ['get'],
+            actions: ['read'],
             idSubstitution: '*',
           },
         ],
         'another/prefix/*': [
           {
             role: unauthRole,
-            actions: ['get', 'delete'],
+            actions: ['read', 'delete'],
             idSubstitution: '*',
           },
         ],
@@ -222,7 +222,7 @@ void describe('StorageAccessOrchestrator', () => {
         [`test/${entityIdPathToken}/*`]: [
           {
             role: authRole,
-            actions: ['get', 'write'],
+            actions: ['read', 'write'],
             idSubstitution: entityIdSubstitution,
           },
         ],
@@ -283,14 +283,14 @@ void describe('StorageAccessOrchestrator', () => {
         'foo/*': [
           {
             role: authRole,
-            actions: ['get', 'write'],
+            actions: ['read', 'write'],
             idSubstitution: '*',
           },
         ],
         'foo/bar/*': [
           {
             role: unauthRole,
-            actions: ['get'],
+            actions: ['read'],
             idSubstitution: '*',
           },
         ],
@@ -400,7 +400,7 @@ void describe('StorageAccessOrchestrator Performance Tests', () => {
       accessDefinitions[`files/folder${i}/*`] = [
         {
           role: authRole,
-          actions: ['get'],
+          actions: ['read'],
           idSubstitution: '*',
         },
       ];
@@ -409,7 +409,7 @@ void describe('StorageAccessOrchestrator Performance Tests', () => {
     accessDefinitions['files/*'] = [
       {
         role: authRole,
-        actions: ['get'],
+        actions: ['read'],
         idSubstitution: '*',
       },
     ];
@@ -436,23 +436,23 @@ void describe('StorageAccessOrchestrator Performance Tests', () => {
 
     // Create complex nested structure
     const accessDefinitions: any = {
-      'level1/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'level1/*': [{ role: authRole, actions: ['read'], idSubstitution: '*' }],
       'level1/level2a/*': [
-        { role: authRole, actions: ['get'], idSubstitution: '*' },
+        { role: authRole, actions: ['read'], idSubstitution: '*' },
       ],
       'level1/level2b/*': [
-        { role: authRole, actions: ['get'], idSubstitution: '*' },
+        { role: authRole, actions: ['read'], idSubstitution: '*' },
       ],
       'level1/level2c/*': [
-        { role: authRole, actions: ['get'], idSubstitution: '*' },
+        { role: authRole, actions: ['read'], idSubstitution: '*' },
       ],
-      'other1/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'other1/*': [{ role: authRole, actions: ['read'], idSubstitution: '*' }],
       'other1/sub/*': [
-        { role: authRole, actions: ['get'], idSubstitution: '*' },
+        { role: authRole, actions: ['read'], idSubstitution: '*' },
       ],
-      'other2/*': [{ role: authRole, actions: ['get'], idSubstitution: '*' }],
+      'other2/*': [{ role: authRole, actions: ['read'], idSubstitution: '*' }],
       'other2/sub/*': [
-        { role: authRole, actions: ['get'], idSubstitution: '*' },
+        { role: authRole, actions: ['read'], idSubstitution: '*' },
       ],
     };
 
