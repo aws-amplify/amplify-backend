@@ -18,17 +18,13 @@ export class AmplifyStorage extends Construct {
     constructor(scope: Construct, id: string, props: AmplifyStorageProps);
     addTrigger: (events: EventType[], handler: IFunction) => void;
     grantAccess: (auth: unknown, access: StorageAccessConfig) => void;
-    // (undocumented)
     readonly isDefault: boolean;
-    // (undocumented)
     readonly name: string;
-    // (undocumented)
     readonly resources: StorageResources;
-    // (undocumented)
     readonly stack: Stack;
 }
 
-// @public (undocumented)
+// @public
 export type AmplifyStorageProps = {
     isDefault?: boolean;
     name: string;
@@ -36,38 +32,40 @@ export type AmplifyStorageProps = {
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
 };
 
-// @public (undocumented)
+// @public
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 // @public
 export class AuthRoleResolver {
-    getRoleForAccessType: (accessType: string, roles: AuthRoles, groups?: string[]) => IRole | undefined;
+    getRoleForAccessType: (accessType: "authenticated" | "guest" | "owner" | "groups", authRoles: AuthRoles, groups?: string[]) => IRole | undefined;
     resolveRoles: () => AuthRoles;
-    validateAuthConstruct: (authConstruct: unknown) => boolean;
+    validateAuthConstruct: (auth: unknown) => boolean;
 }
 
-// @public (undocumented)
+// @public
 export type AuthRoles = {
-    authenticatedRole?: IRole;
-    unauthenticatedRole?: IRole;
-    groupRoles?: Record<string, IRole>;
+    authenticatedUserIamRole?: IRole;
+    unauthenticatedUserIamRole?: IRole;
+    userPoolGroups?: Record<string, {
+        role: IRole;
+    }>;
 };
 
-// @public (undocumented)
+// @public
 export const entityIdPathToken = "{entity_id}";
 
-// @public (undocumented)
+// @public
 export const entityIdSubstitution = "${cognito-identity.amazonaws.com:sub}";
 
-// @public (undocumented)
+// @public
 export type InternalStorageAction = 'get' | 'list' | 'write' | 'delete';
 
-// @public (undocumented)
+// @public
 export type StorageAccessConfig = {
     [path: string]: StorageAccessRule[];
 };
 
-// @public (undocumented)
+// @public
 export type StorageAccessDefinition = {
     role: IRole;
     actions: StorageAction[];
@@ -83,27 +81,26 @@ export class StorageAccessOrchestrator {
 // @public
 export class StorageAccessPolicyFactory {
     constructor(bucket: IBucket);
-    // (undocumented)
-    createPolicy: (permissions: Map<InternalStorageAction, {
+    createPolicy: (accessMap: Map<InternalStorageAction, {
         allow: Set<StoragePath>;
         deny: Set<StoragePath>;
     }>) => Policy;
 }
 
-// @public (undocumented)
+// @public
 export type StorageAccessRule = {
     type: 'authenticated' | 'guest' | 'owner' | 'groups';
     actions: Array<'read' | 'write' | 'delete'>;
     groups?: string[];
 };
 
-// @public (undocumented)
-export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
+// @public
+export type StorageAction = 'read' | 'write' | 'delete';
 
-// @public (undocumented)
+// @public
 export type StoragePath = `${string}/*`;
 
-// @public (undocumented)
+// @public
 export type StorageResources = {
     bucket: IBucket;
     cfnResources: {
