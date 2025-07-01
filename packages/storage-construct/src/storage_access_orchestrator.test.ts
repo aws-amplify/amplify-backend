@@ -50,6 +50,32 @@ void describe('StorageAccessOrchestrator', () => {
       );
     });
 
+    void it('throws if duplicate access definitions exist for same role and path', () => {
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
+        storageAccessPolicyFactory,
+      );
+
+      assert.throws(
+        () =>
+          storageAccessOrchestrator.orchestrateStorageAccess({
+            'test/prefix/*': [
+              {
+                role: authRole,
+                actions: ['read'],
+                idSubstitution: '*',
+              },
+              {
+                // Duplicate: same role and idSubstitution
+                role: authRole,
+                actions: ['write'],
+                idSubstitution: '*',
+              },
+            ],
+          }),
+        { message: /Multiple access rules for the same role/ },
+      );
+    });
+
     void it('passes expected policy to role', () => {
       const attachInlinePolicyMock = mock.method(
         authRole,

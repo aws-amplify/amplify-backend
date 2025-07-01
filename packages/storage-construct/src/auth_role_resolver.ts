@@ -59,12 +59,17 @@ export class AuthRoleResolver {
     }
 
     const authObj = this.authConstruct as Record<string, unknown>;
-    const resources = authObj.resources || {};
+    const resources = (authObj.resources as Record<string, unknown>) || {};
 
     return {
-      authenticatedUserIamRole: resources.authenticatedUserIamRole,
-      unauthenticatedUserIamRole: resources.unauthenticatedUserIamRole,
-      userPoolGroups: resources.userPoolGroups || {},
+      authenticatedUserIamRole: resources.authenticatedUserIamRole as
+        | IRole
+        | undefined,
+      unauthenticatedUserIamRole: resources.unauthenticatedUserIamRole as
+        | IRole
+        | undefined,
+      userPoolGroups:
+        (resources.userPoolGroups as Record<string, { role: IRole }>) || {},
     };
   };
 

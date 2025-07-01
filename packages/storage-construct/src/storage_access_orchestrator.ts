@@ -123,6 +123,8 @@ export class StorageAccessOrchestrator {
     const allPaths = Object.keys(accessDefinitions);
     validateStorageAccessPaths(allPaths);
 
+    this.validateAccessDefinitionUniqueness(accessDefinitions);
+
     // Phase 2: Collection
     // Process each path and its access definitions, grouping by role
     Object.entries(accessDefinitions).forEach(([s3Prefix, definitions]) => {
@@ -383,6 +385,34 @@ export class StorageAccessOrchestrator {
       if (this.findParent(path, Array.from(paths))) {
         paths.delete(path);
       }
+    });
+  };
+
+  /**
+   * Validates that access definitions are unique within each storage path.
+   * This mirrors the uniqueness validation from backend-storage to prevent
+   * duplicate access rules that could cause conflicts.
+   */
+  private validateAccessDefinitionUniqueness = (
+    accessDefinitions: Record<StoragePath, StorageAccessDefinition[]>,
+  ) => {
+    Object.entries(accessDefinitions).forEach(([path, definitions]) => {
+      const uniqueDefinitionIdSet = new Set<string>();
+
+      definitions.forEach((definition) => {
+        // Create unique identifier combining role and substitution pattern
+        const uniqueDefinitionId = `${definition.role.node.id}-${definition.idSubstitution}`;
+
+        if (uniqueDefinitionIdSet.has(uniqueDefinitionId)) {
+          throw new Error(
+            `Invalid storage access definition. ` +
+              `Multiple access rules for the same role and access type are not allowed on path '${path}'. ` +
+              `Combine actions into a single rule instead.`,
+          );
+        }
+
+        uniqueDefinitionIdSet.add(uniqueDefinitionId);
+      });
     });
   };
 }
