@@ -76,6 +76,53 @@ void describe('StorageAccessOrchestrator', () => {
       );
     });
 
+    void it('handles resource access with function role', () => {
+      const functionRole = new Role(stack, 'FunctionRole', {
+        assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+      });
+      const attachInlinePolicyMock = mock.method(
+        functionRole,
+        'attachInlinePolicy',
+      );
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
+        storageAccessPolicyFactory,
+      );
+
+      storageAccessOrchestrator.orchestrateStorageAccess({
+        'uploads/*': [
+          {
+            role: functionRole,
+            actions: ['read', 'write'],
+            idSubstitution: '*',
+          },
+        ],
+      });
+
+      // Should create policy for function role
+      assert.ok(attachInlinePolicyMock.mock.callCount() >= 1);
+
+      // Collect all statements from all policy calls
+      const allStatements = attachInlinePolicyMock.mock.calls
+        .map((call) => call.arguments[0].document.toJSON().Statement)
+        .flat();
+
+      // Verify GetObject statement
+      const getStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:GetObject',
+      );
+      assert.ok(getStatements.length >= 1);
+      const getResources = getStatements.map((s: any) => s.Resource).flat();
+      assert.ok(getResources.includes(`${bucket.bucketArn}/uploads/*`));
+
+      // Verify PutObject statement
+      const putStatements = allStatements.filter(
+        (s: any) => s.Action === 's3:PutObject',
+      );
+      assert.ok(putStatements.length >= 1);
+      const putResources = putStatements.map((s: any) => s.Resource).flat();
+      assert.ok(putResources.includes(`${bucket.bucketArn}/uploads/*`));
+    });
+
     void it('passes expected policy to role', () => {
       const attachInlinePolicyMock = mock.method(
         authRole,

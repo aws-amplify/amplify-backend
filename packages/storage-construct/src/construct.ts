@@ -125,7 +125,7 @@ export type StorageAccessRule = {
    * - 'owner': The user who owns the resource (uses entity_id substitution)
    * - 'groups': Specific user groups from Cognito User Pool
    */
-  type: 'authenticated' | 'guest' | 'owner' | 'groups';
+  type: 'authenticated' | 'guest' | 'owner' | 'groups' | 'resource';
 
   /**
    * Array of actions the principal can perform:
@@ -144,6 +144,12 @@ export type StorageAccessRule = {
    * ```
    */
   groups?: string[];
+
+  /**
+   * Required when type is 'resource'. The AWS resource that should get access.
+   * Currently supports Lambda functions and other constructs with IAM roles.
+   */
+  resource?: unknown;
 };
 
 /**
@@ -424,6 +430,7 @@ export class AmplifyStorage extends Construct {
           rule.type,
           authRoles,
           rule.groups,
+          rule.resource,
         );
 
         if (role) {
@@ -432,6 +439,10 @@ export class AmplifyStorage extends Construct {
           if (rule.type === 'owner') {
             // For owner access, substitute with the user's Cognito identity ID
             idSubstitution = entityIdSubstitution;
+          }
+          // Resource access also uses wildcard (no entity substitution)
+          if (rule.type === 'resource') {
+            idSubstitution = '*';
           }
 
           // Add the access definition to be processed by the orchestrator

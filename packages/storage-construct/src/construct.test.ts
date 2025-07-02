@@ -132,6 +132,33 @@ void describe('AmplifyStorage', () => {
     }, /Invalid auth construct/);
   });
 
+  void it('supports resource access for Lambda functions', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const storage = new AmplifyStorage(stack, 'test', { name: 'testName' });
+
+    const mockAuth = { resources: {} };
+    const mockFunction = {
+      role: {
+        attachInlinePolicy: () => {},
+        node: { id: 'MockFunctionRole' },
+      },
+    };
+
+    // Should not throw when granting resource access
+    assert.doesNotThrow(() => {
+      storage.grantAccess(mockAuth, {
+        'functions/*': [
+          {
+            type: 'resource' as const,
+            actions: ['read' as const, 'write' as const],
+            resource: mockFunction,
+          },
+        ],
+      });
+    });
+  });
+
   void describe('storage overrides', () => {
     void it('can override bucket properties', () => {
       const app = new App();

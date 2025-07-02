@@ -81,9 +81,10 @@ export class AuthRoleResolver {
    * @returns The IAM role or undefined if not found
    */
   getRoleForAccessType = (
-    accessType: 'authenticated' | 'guest' | 'owner' | 'groups',
+    accessType: 'authenticated' | 'guest' | 'owner' | 'groups' | 'resource',
     authRoles: AuthRoles,
     groups?: string[],
+    resource?: unknown,
   ): IRole | undefined => {
     switch (accessType) {
       case 'authenticated':
@@ -106,8 +107,41 @@ export class AuthRoleResolver {
         }
         return undefined;
 
+      case 'resource':
+        return this.extractRoleFromResource(resource);
+
       default:
         return undefined;
     }
+  };
+
+  /**
+   * Extracts IAM role from a resource construct.
+   * Supports Lambda functions and other constructs with IAM roles.
+   */
+  private extractRoleFromResource = (resource: unknown): IRole | undefined => {
+    if (!resource || typeof resource !== 'object') {
+      return undefined;
+    }
+
+    const resourceObj = resource as Record<string, unknown>;
+
+    // Try to extract role from Lambda function
+    if (resourceObj.role && typeof resourceObj.role === 'object') {
+      return resourceObj.role as IRole;
+    }
+
+    // Try to extract from resources property (common pattern)
+    if (resourceObj.resources && typeof resourceObj.resources === 'object') {
+      const resources = resourceObj.resources as Record<string, unknown>;
+      if (resources.lambda && typeof resources.lambda === 'object') {
+        const lambda = resources.lambda as Record<string, unknown>;
+        if (lambda.role) {
+          return lambda.role as IRole;
+        }
+      }
+    }
+
+    return undefined;
   };
 }
