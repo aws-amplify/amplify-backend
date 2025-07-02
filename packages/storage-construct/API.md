@@ -37,7 +37,7 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 // @public
 export class AuthRoleResolver {
-    getRoleForAccessType: (accessType: "authenticated" | "guest" | "owner" | "groups", authRoles: AuthRoles, groups?: string[]) => IRole | undefined;
+    getRoleForAccessType: (accessType: "authenticated" | "guest" | "owner" | "groups" | "resource", authRoles: AuthRoles, groups?: string[], resource?: unknown) => IRole | undefined;
     resolveRoles: () => AuthRoles;
     validateAuthConstruct: (auth: unknown) => boolean;
 }
@@ -89,9 +89,10 @@ export class StorageAccessPolicyFactory {
 
 // @public
 export type StorageAccessRule = {
-    type: 'authenticated' | 'guest' | 'owner' | 'groups';
+    type: 'authenticated' | 'guest' | 'owner' | 'groups' | 'resource';
     actions: Array<'read' | 'write' | 'delete'>;
     groups?: string[];
+    resource?: unknown;
 };
 
 // @public
