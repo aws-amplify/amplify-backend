@@ -213,9 +213,6 @@ void describe('sandbox command', () => {
   });
 
   void it('Prints stopping sandbox and instructions to delete sandbox when users send ctrl+c', async (contextual) => {
-    // Ensure isPortInUse returns false for this test
-    //contextual.mock.method(PortChecker.prototype, 'isPortInUse', () => Promise.resolve(false));
-
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
