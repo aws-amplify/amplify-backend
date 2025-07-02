@@ -23,6 +23,10 @@ import { CommandMiddleware } from '../../command_middleware.js';
 import { AmplifyError } from '@aws-amplify/platform-core';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
 import { EOL } from 'node:os';
+import { PortChecker } from './port_checker.js';
+
+// Mock PortChecker.prototype.isPortInUse to always return false
+mock.method(PortChecker.prototype, 'isPortInUse', () => Promise.resolve(false));
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -74,6 +78,9 @@ void describe('sandbox command', () => {
       format,
     );
     sandbox = await sandboxFactory.getInstance();
+
+    // Increase the maximum number of listeners to avoid memory leak warnings
+    sandbox.setMaxListeners(20);
 
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());
     const sandboxDeleteCommand = new SandboxDeleteCommand(sandboxFactory);
@@ -389,6 +396,40 @@ void describe('sandbox command', () => {
         logsFilters: ['func1', 'func2'],
         logsOutFile: 'someFile',
       } as SandboxFunctionStreamingOptions,
+    );
+  });
+
+  void it('throws an error when DevTools is running', async (contextual) => {
+    // Mock isPortInUse to return true for this test
+    contextual.mock.method(PortChecker.prototype, 'isPortInUse', () =>
+      Promise.resolve(true),
+    );
+
+    // Mock printer.log to verify error message
+    const printerLogMock = contextual.mock.method(printer, 'log');
+
+    // Expect the command to throw an AmplifyUserError
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox'),
+      (err: TestCommandError) => {
+        assert.ok(err.error);
+        assert.strictEqual(err.error.name, 'DevToolsRunningError');
+        assert.strictEqual(
+          err.error.message,
+          'DevTools is currently running. Please start the sandbox through DevTools instead.',
+        );
+        return true;
+      },
+    );
+
+    // Verify that sandbox.start was never called
+    assert.equal(sandboxStartMock.mock.callCount(), 0);
+
+    // Verify that the error was logged
+    assert.ok(
+      printerLogMock.mock.calls.some(
+        (call) => call.arguments[0] === 'DevTools is currently running',
+      ),
     );
   });
 });

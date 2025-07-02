@@ -22,3 +22,8 @@ concurrent_workspace_script_cache.json
 
 testDir
 /.amplify
+
+# React app build files
+packages/cli/src/commands/sandbox/sandbox-devtools/public/
+packages/cli/src/commands/sandbox/sandbox-devtools/react-app/dist/
+packages/cli/src/commands/sandbox/sandbox-devtools/amplify-backend.code-workspace

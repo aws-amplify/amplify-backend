@@ -1,7 +1,8 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
-import { format, printer } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { PortChecker } from './port_checker.js';
 import {
   SandboxFunctionStreamingOptions,
   SandboxSingletonFactory,
@@ -91,6 +92,7 @@ export class SandboxCommand
   /**
    * @inheritDoc
    */
+
   handler = async (
     args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>,
   ): Promise<void> => {
@@ -109,6 +111,7 @@ export class SandboxCommand
       sandboxIdentifier: this.sandboxIdentifier,
       clientConfigLifecycleHandler,
     });
+
     if (eventHandlers) {
       Object.entries(eventHandlers).forEach(([event, handlers]) => {
         handlers.forEach((handler) => sandbox.on(event, handler));
@@ -149,6 +152,20 @@ export class SandboxCommand
         watchExclusions.push(args.logsOutFile);
       }
     }
+
+    // Check if DevTools is running (asks user to start sandbox in Devtools, so Devtools can manage the sandbox)
+    const portChecker = new PortChecker();
+    const DEVTOOLS_PORT = 3333;
+    const devToolsRunning = await portChecker.isPortInUse(DEVTOOLS_PORT);
+    if (devToolsRunning) {
+      printer.log('DevTools is currently running', LogLevel.ERROR);
+      throw new AmplifyUserError('DevToolsRunningError', {
+        message:
+          'DevTools is currently running. Please start the sandbox through DevTools instead.',
+        resolution:
+          'Open DevTools in your browser and use the "Start Sandbox" button to start the sandbox.',
+      });
+    }
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
@@ -156,7 +173,10 @@ export class SandboxCommand
       watchForChanges: !args.once,
       functionStreamingOptions,
     });
-    process.once('SIGINT', () => void this.sigIntHandler());
+
+    process.once('SIGINT', () => {
+      void this.sigIntHandler();
+    });
   };
 
   /**
@@ -281,6 +301,12 @@ export class SandboxCommand
         'sandbox delete',
       )}`,
     );
+    try {
+      const sandbox = await this.sandboxFactory.getInstance();
+      await sandbox.stop();
+    } catch (error) {
+      printer.log(`Error stopping sandbox: ${String(error)}`, LogLevel.ERROR);
+    }
   };
 
   private validateDirectory = async (option: string, dir: string) => {
