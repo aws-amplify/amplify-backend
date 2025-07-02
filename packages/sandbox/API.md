@@ -19,7 +19,7 @@ export type Sandbox = {
     start: (options: SandboxOptions) => Promise<void>;
     stop: () => Promise<void>;
     delete: (options: SandboxDeleteOptions) => Promise<void>;
-    getState: () => 'running' | 'stopped' | 'deploying' | 'nonexistent';
+    getState: () => 'running' | 'stopped' | 'deploying' | 'nonexistent' | 'unknown';
 } & EventEmitter;
 
 // @public (undocumented)
@@ -28,7 +28,7 @@ export type SandboxDeleteOptions = {
 };
 
 // @public (undocumented)
-export type SandboxEvents = 'successfulDeployment' | 'failedDeployment' | 'successfulDeletion';
+export type SandboxEvents = 'deploymentStarted' | 'successfulDeployment' | 'failedDeployment' | 'deletionStarted' | 'successfulDeletion' | 'failedDeletion' | 'successfulStop' | 'failedStop';
 
 // @public (undocumented)
 export type SandboxFunctionStreamingOptions = {
