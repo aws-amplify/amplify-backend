@@ -80,12 +80,4 @@ export class PortChecker {
       server.listen(port);
     });
   }
-
-  /**
-   * Checks if DevTools is running by checking if the default DevTools port is in use
-   * @returns A promise that resolves to true if DevTools is running, false otherwise
-   */
-  async isDevToolsRunning(): Promise<boolean> {
-    return this.isPortInUse(PortChecker.defaultDevtoolsPort);
-  }
 }

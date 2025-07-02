@@ -23,7 +23,7 @@ export class ShutdownService {
     private readonly server: ReturnType<typeof createServer>,
     private readonly storageManager: StorageManager,
     private readonly sandbox: import('@aws-amplify/sandbox').Sandbox,
-    private readonly getSandboxState: () => string,
+    private readonly getSandboxState: () => Promise<string>,
   ) {}
 
   /**
@@ -38,19 +38,18 @@ export class ShutdownService {
     printer.print(`\nStopping the devtools server (${String(reason)}).`);
 
     // Check if sandbox is running and stop it
-    const status = this.getSandboxState();
-    printer.log(`${reason} handler - checking sandbox status`, LogLevel.INFO);
+    const status = await this.getSandboxState();
 
     if (status === 'running') {
-      printer.log('Stopping sandbox before exiting...', LogLevel.INFO);
+      printer.log('Stopping sandbox before exiting...', LogLevel.DEBUG);
       try {
-        printer.log(`Stopping sandbox from ${reason} handler`, LogLevel.INFO);
+        printer.log(`Stopping sandbox from ${reason} handler`, LogLevel.DEBUG);
         await this.sandbox.stop();
         printer.log('Sandbox stopped successfully', LogLevel.INFO);
       } catch (error) {
         printer.log(`Error stopping sandbox: ${String(error)}`, LogLevel.ERROR);
         if (error instanceof Error && error.stack) {
-          printer.log(`DEBUG: Error stack: ${error.stack}`, LogLevel.DEBUG);
+          printer.log(`Error stack: ${error.stack}`, LogLevel.DEBUG);
         }
       }
     }

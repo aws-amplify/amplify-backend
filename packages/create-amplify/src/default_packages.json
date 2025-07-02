@@ -8,7 +8,5 @@
     "tsx",
     "esbuild"
   ],
-  "defaultProdPackages": [
-    "aws-amplify"
-  ]
+  "defaultProdPackages": ["aws-amplify"]
 }

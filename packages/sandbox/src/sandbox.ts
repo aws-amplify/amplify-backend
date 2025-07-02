@@ -23,18 +23,28 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
-  
+
   /**
    * Gets the current state of the sandbox
-   * @returns The current state: 'running', 'stopped', 'deploying', or 'nonexistent'
+   * @returns The current state: 'running', 'stopped', 'deploying', 'nonexistent', or 'unknown'
    */
-  getState: () => 'running' | 'stopped' | 'deploying' | 'nonexistent';
+  getState: () =>
+    | 'running'
+    | 'stopped'
+    | 'deploying'
+    | 'nonexistent'
+    | 'unknown';
 } & EventEmitter;
 
 export type SandboxEvents =
+  | 'deploymentStarted' // Event emitted when deployment starts
   | 'successfulDeployment'
   | 'failedDeployment'
-  | 'successfulDeletion';
+  | 'deletionStarted' // Event emitted when deletion starts
+  | 'successfulDeletion'
+  | 'failedDeletion' // Event emitted when deletion fails
+  | 'successfulStop' // Event emitted when stop succeeds
+  | 'failedStop'; // Event emitted when stop fails
 
 export type SandboxOptions = {
   dir?: string;

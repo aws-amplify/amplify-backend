@@ -40,6 +40,14 @@ export type SocketEvents = {
   stopDevTools: void;
   getSavedDeploymentProgress: void;
   getSavedResources: void;
+  getCustomFriendlyNames: void;
+  updateCustomFriendlyName: {
+    resourceId: string;
+    friendlyName: string;
+  };
+  removeCustomFriendlyName: {
+    resourceId: string;
+  };
 };
 
 type BackendMetadata = {
@@ -60,7 +68,7 @@ export class SocketHandlerService {
   constructor(
     private io: Server,
     private sandbox: Sandbox,
-    private getSandboxState: () => string,
+    private getSandboxState: () => Promise<string>,
     private backendId: { name: string },
     private shutdownService: import('./shutdown_service.js').ShutdownService,
     private backendClient?: Record<string, unknown>,
@@ -83,6 +91,20 @@ export class SocketHandlerService {
       this.handleGetDeployedBackendResources.bind(this, socket),
     );
 
+    // Friendly name handlers
+    socket.on(
+      'getCustomFriendlyNames',
+      this.handleGetCustomFriendlyNames.bind(this, socket),
+    );
+    socket.on(
+      'updateCustomFriendlyName',
+      this.handleUpdateCustomFriendlyName.bind(this, socket),
+    );
+    socket.on(
+      'removeCustomFriendlyName',
+      this.handleRemoveCustomFriendlyName.bind(this, socket),
+    );
+
     // Sandbox operation handlers
     socket.on(
       'startSandboxWithOptions',
@@ -98,9 +120,9 @@ export class SocketHandlerService {
   /**
    * Handles the getSandboxStatus event
    */
-  private handleGetSandboxStatus(socket: Socket): void {
+  private async handleGetSandboxStatus(socket: Socket): Promise<void> {
     try {
-      const status = this.getSandboxState();
+      const status = await this.getSandboxState();
 
       socket.emit('sandboxStatus', {
         status,
@@ -131,7 +153,7 @@ export class SocketHandlerService {
   } | null> {
     try {
       // Get the current sandbox state
-      const status = this.getSandboxState();
+      const status = await this.getSandboxState();
 
       // If sandbox is not running, don't try to fetch resources
       if (status !== 'running') {
@@ -271,7 +293,7 @@ export class SocketHandlerService {
       printer.log('Fetching deployed backend resources...', LogLevel.INFO);
 
       // Get the current sandbox state
-      const status = this.getSandboxState();
+      const status = await this.getSandboxState();
 
       // If sandbox is running, fetch actual resources
       if (status === 'running') {
@@ -454,6 +476,62 @@ export class SocketHandlerService {
         error: `${String(error)}`,
       });
     }
+  }
+
+  /**
+   * Handles the getCustomFriendlyNames event
+   */
+  private handleGetCustomFriendlyNames(socket: Socket): void {
+    // In PR 2, we don't have actual storage for custom friendly names
+    // Just return an empty object
+    socket.emit('customFriendlyNames', {});
+  }
+
+  /**
+   * Handles the updateCustomFriendlyName event
+   */
+  private handleUpdateCustomFriendlyName(
+    socket: Socket,
+    data: SocketEvents['updateCustomFriendlyName'],
+  ): void {
+    if (!data || !data.resourceId || !data.friendlyName) {
+      return;
+    }
+
+    // In PR 2, we don't actually store the custom friendly name
+    // Just emit the event to acknowledge the update
+    this.io.emit('customFriendlyNameUpdated', {
+      resourceId: data.resourceId,
+      friendlyName: data.friendlyName,
+    });
+
+    printer.log(
+      `Custom friendly name updated for ${data.resourceId}: ${data.friendlyName}`,
+      LogLevel.INFO,
+    );
+  }
+
+  /**
+   * Handles the removeCustomFriendlyName event
+   */
+  private handleRemoveCustomFriendlyName(
+    socket: Socket,
+    data: SocketEvents['removeCustomFriendlyName'],
+  ): void {
+    if (!data || !data.resourceId) {
+      return;
+    }
+
+    // In PR 2, we don't actually store the custom friendly name
+    // Just emit the event to acknowledge the removal
+    this.io.emit('customFriendlyNameRemoved', {
+      resourceId: data.resourceId,
+    });
+
+    printer.log(
+      `Custom friendly name removed for ${data.resourceId}`,
+      LogLevel.INFO,
+    );
   }
 
   /**

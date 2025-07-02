@@ -10,7 +10,7 @@ import {
   Multiselect,
   FormField,
   Input,
-  Grid
+  Grid,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
 
@@ -33,39 +33,41 @@ const cleanAnsiCodes = (text: string): string => {
 const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedLogLevels, setSelectedLogLevels] = useState<string[]>([]);
-  const [availableLogLevels, setAvailableLogLevels] = useState<{label: string, value: string}[]>([]);
+  const [availableLogLevels, setAvailableLogLevels] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [autoScroll] = useState<boolean>(true);
-  
+
   // Extract unique log levels from logs
   useEffect(() => {
-    const uniqueLevels = [...new Set(logs.map(log => log.level))];
+    const uniqueLevels = [...new Set(logs.map((log) => log.level))];
     setAvailableLogLevels(
-      uniqueLevels.map(level => ({
+      uniqueLevels.map((level) => ({
         label: level,
-        value: level
-      }))
+        value: level,
+      })),
     );
   }, [logs]);
-  
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
+    const matchesLevel =
+      selectedLogLevels.length === 0 || selectedLogLevels.includes(log.level);
 
-    const matchesLevel = selectedLogLevels.length === 0 || selectedLogLevels.includes(log.level);
-    
-
-    const matchesSearch = !searchQuery || 
+    const matchesSearch =
+      !searchQuery ||
       log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.level.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.timestamp.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesLevel && matchesSearch;
   });
 
   // Auto-scroll to bottom when logs change
   useEffect(() => {
     if (autoScroll && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
     }
   }, [filteredLogs, autoScroll]);
 
@@ -79,9 +81,12 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   };
 
   // Map log level to StatusIndicator type
-  const getStatusType = (level: string): "success" | "info" | "warning" | "error" | "pending" => {
-    const normalizedLevel = typeof level === 'string' ? level.toLowerCase() : 'info';
-    
+  const getStatusType = (
+    level: string,
+  ): 'success' | 'info' | 'warning' | 'error' | 'pending' => {
+    const normalizedLevel =
+      typeof level === 'string' ? level.toLowerCase() : 'info';
+
     switch (normalizedLevel) {
       case 'error':
         return 'error';
@@ -93,7 +98,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
       case 'info':
         return 'info';
       case 'debug':
-        return 'pending'; 
+        return 'pending';
       default:
         return 'info';
     }
@@ -105,7 +110,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
       id: 'timestamp',
       header: 'Time',
       cell: (item: LogEntry) => formatTimestamp(item.timestamp),
-      width: 100
+      width: 100,
     },
     {
       id: 'level',
@@ -115,7 +120,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
           {item.level}
         </StatusIndicator>
       ),
-      width: 150
+      width: 150,
     },
     {
       id: 'message',
@@ -124,8 +129,8 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
         const cleanedMessage = cleanAnsiCodes(item.message);
         return cleanedMessage;
       },
-      width: 'auto'
-    }
+      width: 'auto',
+    },
   ];
 
   const emptyState = (
@@ -140,28 +145,31 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   );
 
   return (
-    <Container
-      disableContentPaddings={false}
-      variant="default"
-      fitHeight
-    >
+    <Container disableContentPaddings={false} variant="default" fitHeight>
       <SpaceBetween size="m">
         <Header variant="h2">Console Logs</Header>
-        
+
         <Grid gridDefinition={[{ colspan: 6 }, { colspan: 6 }]}>
           <FormField label="Filter by log level">
             <Multiselect
-              selectedOptions={selectedLogLevels.map(level => ({ label: level, value: level }))}
-              onChange={({ detail }) => 
-                setSelectedLogLevels(detail.selectedOptions.map(option => option.value as string))
+              selectedOptions={selectedLogLevels.map((level) => ({
+                label: level,
+                value: level,
+              }))}
+              onChange={({ detail }) =>
+                setSelectedLogLevels(
+                  detail.selectedOptions.map(
+                    (option) => option.value as string,
+                  ),
+                )
               }
               options={availableLogLevels}
               placeholder="Select log levels to filter"
               filteringType="auto"
-              deselectAriaLabel={option => `Remove ${option.label}`}
+              deselectAriaLabel={(option) => `Remove ${option.label}`}
             />
           </FormField>
-          
+
           <FormField label="Search logs">
             <Input
               value={searchQuery}
@@ -170,14 +178,14 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
             />
           </FormField>
         </Grid>
-        
-        <div 
-          style={{ 
-            overflow: 'auto', 
+
+        <div
+          style={{
+            overflow: 'auto',
             maxHeight: 'calc(100vh - 300px)',
             display: 'flex',
-            flexDirection: 'column'
-          }} 
+            flexDirection: 'column',
+          }}
           ref={scrollContainerRef}
         >
           <Table
