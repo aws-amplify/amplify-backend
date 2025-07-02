@@ -106,7 +106,8 @@
     "tsx": "4.19.4",
     "typedoc": "^0.28.1",
     "typescript": "~5.8.2",
-    "verdaccio": "^6.0.1"
+    "verdaccio": "^6.0.1",
+    "minimatch": "10.0.3"
   },
   "workspaces": [
     "packages/*"
@@ -131,11 +132,6 @@
     "ws": "^8.18.2"
   },
   "overrides": {
-    "minimatch": "10.0.1",
-    "@aws-sdk/*": "3.750.0",
-    "@aws-sdk/types": "3.821.0",
-    "@typescript-eslint/typescript-estree": "8.29.1",
-    "argparse": "1.0.10",
-    "eslint-visitor-keys": "2.1.0"
+    "minimatch": "10.0.3"
   }
 }

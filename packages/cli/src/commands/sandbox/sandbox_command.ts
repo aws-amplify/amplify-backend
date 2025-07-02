@@ -153,21 +153,6 @@ export class SandboxCommand
         watchExclusions.push(args.logsOutFile);
       }
     }
-    printer.log('Starting sandbox with options:', LogLevel.DEBUG);
-    printer.log(`- dir: ${args.dirToWatch || 'undefined'}`, LogLevel.DEBUG);
-    printer.log(
-      `- exclude: ${JSON.stringify(watchExclusions)}`,
-      LogLevel.DEBUG,
-    );
-    printer.log(
-      `- identifier: ${args.identifier || 'undefined'}`,
-      LogLevel.DEBUG,
-    );
-    printer.log(`- watchForChanges: ${!args.once}`, LogLevel.DEBUG);
-    printer.log(
-      `- functionStreamingOptions: ${JSON.stringify(functionStreamingOptions)}`,
-      LogLevel.DEBUG,
-    );
 
     // Check if DevTools is running (asks user to start sandbox in Devtools, so Devtools can manage the sandbox)
     const portChecker = new PortChecker();
