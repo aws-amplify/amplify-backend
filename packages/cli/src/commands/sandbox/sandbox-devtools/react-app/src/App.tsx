@@ -281,7 +281,7 @@ function App() {
       }
     });
 
-     // Set up a periodic ping to check connection health
+    // Set up a periodic ping to check connection health
     const pingInterval = setInterval(() => {
       if (socket.connected) {
         socket.emit('ping', {}, (response: any) => {
