@@ -427,12 +427,6 @@ export class SocketHandlerService {
     try {
       printer.log('Stopping sandbox...', LogLevel.INFO);
 
-      socket.emit('sandboxStatus', {
-        status: 'stopping',
-        identifier: this.backendId.name,
-        message: 'Stopping sandbox...',
-      });
-
       await this.sandbox.stop();
 
       socket.emit('sandboxStatus', {

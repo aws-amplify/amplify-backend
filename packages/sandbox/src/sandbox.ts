@@ -26,12 +26,13 @@ export type Sandbox = {
 
   /**
    * Gets the current state of the sandbox
-   * @returns The current state: 'running', 'stopped', 'deploying', 'nonexistent', or 'unknown'
+   * @returns The current state: 'running', 'stopped', 'deploying', 'deleting', 'nonexistent', or 'unknown'
    */
   getState: () =>
     | 'running'
     | 'stopped'
     | 'deploying'
+    | 'deleting'
     | 'nonexistent'
     | 'unknown';
 } & EventEmitter;

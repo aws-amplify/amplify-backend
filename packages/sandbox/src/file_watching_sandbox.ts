@@ -79,6 +79,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     | 'running'
     | 'stopped'
     | 'deploying'
+    | 'deleting'
     | 'nonexistent'
     | 'unknown' = 'unknown';
 
@@ -102,12 +103,13 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
   /**
    * Gets the current state of the sandbox
-   * @returns The current state: 'running', 'stopped', 'deploying', 'nonexistent', or 'unknown'
+   * @returns The current state: 'running', 'stopped', 'deploying', 'deleting', 'nonexistent', or 'unknown'
    */
   getState = ():
     | 'running'
     | 'stopped'
     | 'deploying'
+    | 'deleting'
     | 'nonexistent'
     | 'unknown' => {
     return this.state;
@@ -321,6 +323,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.printer.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...',
     );
+
+    // Set state to deleting
+    this.state = 'deleting';
 
     // Emit deletionStarted event with relevant info
     this.emit('deletionStarted', {
