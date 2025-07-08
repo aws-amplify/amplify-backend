@@ -19,7 +19,6 @@ interface SandboxOptionsModalProps {
 }
 
 export interface SandboxOptions {
-  profile?: string;
   identifier?: string;
   dirToWatch?: string;
   exclude?: string[];
@@ -37,7 +36,6 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
   onDismiss,
   onConfirm,
 }) => {
-  const [profile, setProfile] = useState<string>('');
   const [identifier, setIdentifier] = useState<string>('');
   const [dirToWatch, setDirToWatch] = useState<string>('./amplify');
   const [excludeInput, setExcludeInput] = useState<string>('');
@@ -51,10 +49,6 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
 
   const handleConfirm = () => {
     const options: SandboxOptions = {};
-
-    if (profile.trim()) {
-      options.profile = profile.trim();
-    }
 
     if (identifier.trim()) {
       options.identifier = identifier.trim();
@@ -121,29 +115,16 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
       }
     >
       <SpaceBetween size="l">
-        <ColumnLayout columns={2}>
-          <FormField
-            label="AWS Profile"
-            description="The AWS profile to use for the sandbox"
-          >
-            <Input
-              value={profile}
-              onChange={({ detail }) => setProfile(detail.value)}
-              placeholder="e.g., personal"
-            />
-          </FormField>
-
-          <FormField
-            label="Sandbox Identifier"
-            description="A unique identifier for the sandbox (1-15 characters, alphanumeric and hyphens only)"
-          >
-            <Input
-              value={identifier}
-              onChange={({ detail }) => setIdentifier(detail.value)}
-              placeholder="e.g., my-sandbox"
-            />
-          </FormField>
-        </ColumnLayout>
+        <FormField
+          label="Sandbox Identifier"
+          description="A unique identifier for the sandbox (1-15 characters, alphanumeric and hyphens only)"
+        >
+          <Input
+            value={identifier}
+            onChange={({ detail }) => setIdentifier(detail.value)}
+            placeholder="e.g., my-sandbox"
+          />
+        </FormField>
 
         <FormField
           label="Directory to Watch"

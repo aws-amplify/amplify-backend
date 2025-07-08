@@ -33,7 +33,6 @@ export type SocketEvents = {
     logsFilter?: string;
     logsOutFile?: string;
     debugMode?: boolean;
-    profile?: string;
   };
   stopSandbox: void;
   deleteSandbox: void;
