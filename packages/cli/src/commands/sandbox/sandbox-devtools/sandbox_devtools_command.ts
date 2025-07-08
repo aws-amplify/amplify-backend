@@ -236,8 +236,21 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendClient,
     );
 
+    const port = 3333;
     const portChecker = new PortChecker();
-    const port = await portChecker.findAvailablePort(server, 3333);
+    const isInUse = await portChecker.isPortInUse(port);
+
+    if (isInUse) {
+      printer.log(
+        `Port ${port} is already in use. Please close any applications using this port and try again.`,
+        LogLevel.ERROR,
+      );
+      throw new Error(
+        `Port ${port} is required for DevTools. Please ensure it's available.`,
+      );
+    }
+
+    server.listen(port);
 
     printer.print(
       `${EOL}DevTools server started at ${format.highlight(`http://localhost:${port}`)}`,
