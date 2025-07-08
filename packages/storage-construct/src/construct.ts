@@ -68,6 +68,7 @@ export type StorageAuthActionBuilder = {
     actions:
       | Exclude<StorageAction, 'get' | 'list'>[]
       | Exclude<StorageAction, 'read'>[],
+    path: StoragePath,
   ) => void;
 };
 
@@ -154,7 +155,11 @@ export class AmplifyStorage
     );
   };
 
-  grantAccess(grantable: IGrantable, path: StoragePath): void;
+  grantAccess(
+    grantable: IGrantable,
+    actions: Array<StorageAction>,
+    path: StoragePath,
+  ): void;
   grantAccess(
     auth: ResourceProvider<AuthResources>,
     access: StorageAuthAccessGenerator,
