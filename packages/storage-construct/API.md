@@ -4,16 +4,73 @@
 
 ```ts
 
+import { AuthResources } from '@aws-amplify/plugin-types';
+import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import { EventType } from 'aws-cdk-lib/aws-s3';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IGrantable } from 'aws-cdk-lib/aws-iam';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
+import { StackProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export class AmplifyConstruct extends Construct {
-    constructor(scope: Construct, id: string, props?: ConstructCognitoProps);
+export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources>, StackProvider {
+    constructor(scope: Construct, id: string, props?: AmplifyStorageProps);
+    addTrigger: (events: EventType[], handler: IFunction) => void;
+    // (undocumented)
+    grantAccess(grantable: IGrantable, path: StoragePath): void;
+    // (undocumented)
+    grantAccess(auth: ResourceProvider<AuthResources>, access: StorageAuthAccessGenerator): void;
+    // (undocumented)
+    readonly isDefault: boolean;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly resources: StorageResources;
+    // (undocumented)
+    readonly stack: Stack;
 }
 
 // @public (undocumented)
-export type ConstructCognitoProps = {
-    includeQueue?: boolean;
+export type AmplifyStorageProps = {
+    isDefault?: boolean;
+    name?: string;
+    versioned?: boolean;
+};
+
+// @public
+export type EntityId = 'identity';
+
+// @public
+export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
+
+// @public
+export type StorageAuthAccessBuilder = {
+    authenticated: StorageAuthActionBuilder;
+    guest: StorageAuthActionBuilder;
+    groups: (groupNames: string[]) => StorageAuthActionBuilder;
+    entity: (entityId: EntityId) => StorageAuthActionBuilder;
+};
+
+// @public (undocumented)
+export type StorageAuthAccessGenerator = (allow: StorageAuthAccessBuilder) => void;
+
+// @public (undocumented)
+export type StorageAuthActionBuilder = {
+    to: (actions: Exclude<StorageAction, 'get' | 'list'>[] | Exclude<StorageAction, 'read'>[]) => void;
+};
+
+// @public
+export type StoragePath = `${string}/*`;
+
+// @public (undocumented)
+export type StorageResources = {
+    bucket: IBucket;
+    cfnResources: {
+        cfnBucket: CfnBucket;
+    };
 };
 
 // (No @packageDocumentation comment for this package)

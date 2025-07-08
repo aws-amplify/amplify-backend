@@ -1,5 +1,5 @@
 // import { describe, it } from 'node:test';
-// import { AmplifyConstruct } from './construct.js';
+// import { AmplifyStorage } from './construct.js';
 // import { App, Stack } from 'aws-cdk-lib';
 // import { Template } from 'aws-cdk-lib/assertions';
 //
