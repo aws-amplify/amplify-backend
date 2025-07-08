@@ -26,7 +26,6 @@ interface ConsoleViewerProps {
   logs: LogEntry[];
 }
 
-
 const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedLogLevels, setSelectedLogLevels] = useState<string[]>([]);

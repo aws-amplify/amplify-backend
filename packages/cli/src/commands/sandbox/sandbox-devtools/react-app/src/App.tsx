@@ -132,7 +132,6 @@ function App() {
           },
         ]);
       } else {
-
         if (!data.deploymentCompleted) {
           setLogs((prev) => [
             ...prev,
@@ -337,7 +336,6 @@ function App() {
     }
   }, [sandboxStatus, connected]);
 
-  
   // Reset loading state when sandbox status changes
   useEffect(() => {
     if (sandboxStatus !== 'unknown') {
