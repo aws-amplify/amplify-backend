@@ -19,6 +19,7 @@ const stack = backend.createStack('foo');
 
 const auth = new AmplifyAuth(stack, 'auth');
 const func = new NodejsFunction(stack, 'func');
+const trigger = new NodejsFunction(stack, 'trigger');
 
 const storage = new AmplifyStorage(stack, 'storage', {
   name: 'myStorage',
@@ -40,3 +41,6 @@ storage.grantAccess(auth, (allow) => {
     .groups(['Admins'])
     .to(['read', 'write', 'delete'], 'protected/{entity_id}/*');
 });
+
+storage.addTrigger('onDelete', trigger);
+storage.addTrigger('onUpload', trigger);

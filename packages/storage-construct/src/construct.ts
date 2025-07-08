@@ -125,6 +125,8 @@ export type StorageAuthAccessGenerator = (
   allow: StorageAuthAccessBuilder,
 ) => void;
 
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+
 /**
  * TODO
  */
@@ -146,14 +148,13 @@ export class AmplifyStorage
 
   /**
    * Attach a Lambda function trigger handler to the S3 events
-   * @param events - list of S3 events that will trigger the handler
+   * @param event - event that will trigger the handler
    * @param handler - The function that will handle the event
    */
-  addTrigger = (events: EventType[], handler: IFunction): void => {
-    handler.addEventSource(
-      new S3EventSourceV2(this.resources.bucket, { events }),
-    );
-  };
+  addTrigger = (
+    event: AmplifyStorageTriggerEvent,
+    handler: IFunction,
+  ): void => {};
 
   grantAccess(
     grantable: IGrantable,

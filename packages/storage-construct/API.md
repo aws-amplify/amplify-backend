@@ -7,7 +7,6 @@
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { EventType } from 'aws-cdk-lib/aws-s3';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
@@ -18,9 +17,9 @@ import { StackProvider } from '@aws-amplify/plugin-types';
 // @public
 export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources>, StackProvider {
     constructor(scope: Construct, id: string, props?: AmplifyStorageProps);
-    addTrigger: (events: EventType[], handler: IFunction) => void;
+    addTrigger: (event: AmplifyStorageTriggerEvent, handler: IFunction) => void;
     // (undocumented)
-    grantAccess(grantable: IGrantable, path: StoragePath): void;
+    grantAccess(grantable: IGrantable, actions: Array<StorageAction>, path: StoragePath): void;
     // (undocumented)
     grantAccess(auth: ResourceProvider<AuthResources>, access: StorageAuthAccessGenerator): void;
     // (undocumented)
@@ -39,6 +38,9 @@ export type AmplifyStorageProps = {
     name?: string;
     versioned?: boolean;
 };
+
+// @public (undocumented)
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 // @public
 export type EntityId = 'identity';
@@ -59,7 +61,7 @@ export type StorageAuthAccessGenerator = (allow: StorageAuthAccessBuilder) => vo
 
 // @public (undocumented)
 export type StorageAuthActionBuilder = {
-    to: (actions: Exclude<StorageAction, 'get' | 'list'>[] | Exclude<StorageAction, 'read'>[]) => void;
+    to: (actions: Exclude<StorageAction, 'get' | 'list'>[] | Exclude<StorageAction, 'read'>[], path: StoragePath) => void;
 };
 
 // @public

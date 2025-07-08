@@ -6,6 +6,8 @@ const someFunc = defineFunction();
 
 export const storage = defineStorage({
   name: 'testName',
+  isDefault: true,
+  versioned: true,
   triggers: {
     onDelete,
     onUpload,
