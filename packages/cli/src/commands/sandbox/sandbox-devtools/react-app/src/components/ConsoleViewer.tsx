@@ -13,6 +13,7 @@ import {
   Grid,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
+import stripAnsi from 'strip-ansi';
 
 interface LogEntry {
   id: string;
@@ -25,10 +26,6 @@ interface ConsoleViewerProps {
   logs: LogEntry[];
 }
 
-const cleanAnsiCodes = (text: string): string => {
-  // This regex handles various ANSI escape sequences including colors, bold, dim, etc.
-  return text.replace(/\u001b\[\d+(;\d+)*m|\[2m|\[22m|\[1m|\[36m|\[39m/g, '');
-};
 
 const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -75,7 +72,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
     try {
       const date = new Date(timestamp);
       return date.toLocaleTimeString();
-    } catch (e) {
+    } catch {
       return timestamp;
     }
   };
@@ -126,7 +123,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
       id: 'message',
       header: 'Message',
       cell: (item: LogEntry) => {
-        const cleanedMessage = cleanAnsiCodes(item.message);
+        const cleanedMessage = stripAnsi(item.message);
         return cleanedMessage;
       },
       width: 'auto',

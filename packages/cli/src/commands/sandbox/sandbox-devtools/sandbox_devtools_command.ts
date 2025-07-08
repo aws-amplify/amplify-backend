@@ -24,7 +24,7 @@ import {
 import { EOL } from 'os';
 import { ShutdownService } from './services/shutdown_service.js';
 import { SocketHandlerService } from './services/socket_handlers.js';
-import { cleanAnsiCodes } from './logging/cloudformation_format.js';
+import stripAnsi from 'strip-ansi';
 import { PortChecker } from '../port_checker.js';
 
 /**
@@ -273,7 +273,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
       processingMessage = true;
 
-      const cleanMessage = cleanAnsiCodes(message);
+      const cleanMessage = stripAnsi(message);
 
       // Remove timestamp prefix if present (to avoid duplicate timestamps)
       let finalMessage = cleanMessage;
