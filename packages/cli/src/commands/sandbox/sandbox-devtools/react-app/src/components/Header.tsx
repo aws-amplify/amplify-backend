@@ -18,6 +18,7 @@ interface HeaderProps {
   onDeleteSandbox?: () => void;
   onStopDevTools?: () => void;
   onOpenSettings?: () => void;
+  isStartingLoading?: boolean;
 }
 
 const Header = ({
@@ -29,6 +30,7 @@ const Header = ({
   onDeleteSandbox,
   onStopDevTools,
   onOpenSettings,
+  isStartingLoading = false,
 }: HeaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusCheckTimeout, setStatusCheckTimeout] = useState<number>(0);
@@ -59,7 +61,6 @@ const Header = ({
   }, [sandboxStatus]);
 
   const handleStartSandbox = () => {
-    setIsLoading(true);
     onStartSandbox();
   };
 
@@ -174,7 +175,7 @@ const Header = ({
               onClick={handleStartSandbox}
               iconName="add-plus"
               variant="primary"
-              loading={isLoading || isDeploying}
+              loading={isStartingLoading || isDeploying}
               disabled={!connected || isDeploying}
             >
               Start Sandbox

@@ -53,10 +53,10 @@ function App() {
   const [sandboxIdentifier, setSandboxIdentifier] = useState<
     string | undefined
   >(undefined);
-  const [statusError, setStatusError] = useState<string | null>(null);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const statusRequestedRef = useRef<boolean>(false);
+  const [isStartingLoading, setIsStartingLoading] = useState(false);
 
   const deploymentInProgress = sandboxStatus === 'deploying';
 
@@ -122,7 +122,6 @@ function App() {
       }
 
       if (data.error) {
-        setStatusError(data.error);
         setLogs((prev) => [
           ...prev,
           {
@@ -133,7 +132,6 @@ function App() {
           },
         ]);
       } else {
-        setStatusError(null);
 
         if (!data.deploymentCompleted) {
           setLogs((prev) => [
@@ -339,8 +337,16 @@ function App() {
     }
   }, [sandboxStatus, connected]);
 
+  
+  // Reset loading state when sandbox status changes
+  useEffect(() => {
+    if (sandboxStatus !== 'unknown') {
+      setIsStartingLoading(false);
+    }
+  }, [sandboxStatus]);
+
   const startSandbox = () => {
-    // Show the options modal instead of starting the sandbox directly
+    setIsStartingLoading(true);
     setShowOptionsModal(true);
   };
 
@@ -424,6 +430,7 @@ function App() {
           onDeleteSandbox={deleteSandbox}
           onStopDevTools={stopDevTools}
           onOpenSettings={() => {}}
+          isStartingLoading={isStartingLoading}
         />
       }
     >
@@ -435,12 +442,6 @@ function App() {
         >
           Please restart it on the command line using:{' '}
           <strong>npx ampx sandbox devtools</strong>
-        </Alert>
-      )}
-
-      {statusError && (
-        <Alert type="error" header="Sandbox Error">
-          {statusError}
         </Alert>
       )}
 
@@ -495,7 +496,10 @@ function App() {
 
       <SandboxOptionsModal
         visible={showOptionsModal}
-        onDismiss={() => setShowOptionsModal(false)}
+        onDismiss={() => {
+          setShowOptionsModal(false);
+          setIsStartingLoading(false);
+        }}
         onConfirm={handleStartSandboxWithOptions}
       />
     </>
