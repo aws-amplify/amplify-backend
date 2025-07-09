@@ -1,4 +1,5 @@
 import { SocketClientService } from './socket_client_service';
+import { SOCKET_EVENTS } from '../../../shared/socket_events';
 
 /**
  * Type for a resource with friendly name
@@ -31,21 +32,21 @@ export class ResourceClientService extends SocketClientService {
    * Requests custom friendly names from the server
    */
   public getCustomFriendlyNames(): void {
-    this.emit('getCustomFriendlyNames');
+    this.emit(SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES);
   }
 
   /**
    * Requests saved resources from the server
    */
   public getSavedResources(): void {
-    this.emit('getSavedResources');
+    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCES);
   }
 
   /**
    * Requests deployed backend resources from the server
    */
   public getDeployedBackendResources(): void {
-    this.emit('getDeployedBackendResources');
+    this.emit(SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES);
   }
 
   /**
@@ -57,7 +58,10 @@ export class ResourceClientService extends SocketClientService {
     resourceId: string,
     friendlyName: string,
   ): void {
-    this.emit('updateCustomFriendlyName', { resourceId, friendlyName });
+    this.emit(SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME, {
+      resourceId,
+      friendlyName,
+    });
   }
 
   /**
@@ -65,7 +69,7 @@ export class ResourceClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public removeCustomFriendlyName(resourceId: string): void {
-    this.emit('removeCustomFriendlyName', { resourceId });
+    this.emit(SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME, { resourceId });
   }
 
   /**
@@ -76,7 +80,7 @@ export class ResourceClientService extends SocketClientService {
   public onSavedResources(
     handler: (data: BackendResourcesData) => void,
   ): () => void {
-    return this.on('savedResources', handler);
+    return this.on(SOCKET_EVENTS.SAVED_RESOURCES, handler);
   }
 
   /**
@@ -87,7 +91,7 @@ export class ResourceClientService extends SocketClientService {
   public onDeployedBackendResources(
     handler: (data: BackendResourcesData) => void,
   ): () => void {
-    return this.on('deployedBackendResources', handler);
+    return this.on(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, handler);
   }
 
   /**
@@ -98,7 +102,7 @@ export class ResourceClientService extends SocketClientService {
   public onCustomFriendlyNames(
     handler: (data: Record<string, string>) => void,
   ): () => void {
-    return this.on('customFriendlyNames', handler);
+    return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES, handler);
   }
 
   /**
@@ -109,7 +113,7 @@ export class ResourceClientService extends SocketClientService {
   public onCustomFriendlyNameUpdated(
     handler: (data: { resourceId: string; friendlyName: string }) => void,
   ): () => void {
-    return this.on('customFriendlyNameUpdated', handler);
+    return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_UPDATED, handler);
   }
 
   /**
@@ -120,7 +124,7 @@ export class ResourceClientService extends SocketClientService {
   public onCustomFriendlyNameRemoved(
     handler: (data: { resourceId: string }) => void,
   ): () => void {
-    return this.on('customFriendlyNameRemoved', handler);
+    return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_REMOVED, handler);
   }
 
   /**
@@ -129,6 +133,6 @@ export class ResourceClientService extends SocketClientService {
    * @returns A function to unsubscribe
    */
   public onError(handler: (data: { message: string }) => void): () => void {
-    return this.on('error', handler);
+    return this.on(SOCKET_EVENTS.ERROR, handler);
   }
 }

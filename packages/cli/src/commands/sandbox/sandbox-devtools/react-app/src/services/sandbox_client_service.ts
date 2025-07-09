@@ -1,4 +1,5 @@
 import { SocketClientService } from './socket_client_service';
+import { SOCKET_EVENTS } from '../../../shared/socket_events';
 
 /**
  * Type definition for sandbox status
@@ -50,7 +51,7 @@ export class SandboxClientService extends SocketClientService {
    * Requests the current sandbox status
    */
   public getSandboxStatus(): void {
-    this.emit('getSandboxStatus');
+    this.emit(SOCKET_EVENTS.GET_SANDBOX_STATUS);
   }
 
   /**
@@ -58,28 +59,28 @@ export class SandboxClientService extends SocketClientService {
    * @param options The sandbox options
    */
   public startSandboxWithOptions(options: SandboxOptions): void {
-    this.emit('startSandboxWithOptions', options);
+    this.emit(SOCKET_EVENTS.START_SANDBOX_WITH_OPTIONS, options);
   }
 
   /**
    * Stops the sandbox
    */
   public stopSandbox(): void {
-    this.emit('stopSandbox');
+    this.emit(SOCKET_EVENTS.STOP_SANDBOX);
   }
 
   /**
    * Deletes the sandbox
    */
   public deleteSandbox(): void {
-    this.emit('deleteSandbox');
+    this.emit(SOCKET_EVENTS.DELETE_SANDBOX);
   }
 
   /**
    * Stops the DevTools process
    */
   public stopDevTools(): void {
-    this.emit('stopDevTools');
+    this.emit(SOCKET_EVENTS.STOP_DEV_TOOLS);
   }
 
   /**
@@ -90,20 +91,20 @@ export class SandboxClientService extends SocketClientService {
   public onSandboxStatus(
     handler: (data: SandboxStatusData) => void,
   ): () => void {
-    return this.on('sandboxStatus', handler);
+    return this.on(SOCKET_EVENTS.SANDBOX_STATUS, handler);
   }
 
   /**
    * Gets saved deployment progress
    */
   public getSavedDeploymentProgress(): void {
-    this.emit('getSavedDeploymentProgress');
+    this.emit(SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS);
   }
 
   /**
    * Gets log settings
    */
   public getLogSettings(): void {
-    this.emit('getLogSettings');
+    this.emit(SOCKET_EVENTS.GET_LOG_SETTINGS);
   }
 }

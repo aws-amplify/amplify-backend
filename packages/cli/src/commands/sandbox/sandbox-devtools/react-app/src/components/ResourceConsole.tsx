@@ -47,7 +47,6 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
   const [editingFriendlyName, setEditingFriendlyName] = useState<string>('');
   const REFRESH_COOLDOWN_MS = 5000; // 5 seconds minimum between refreshes
 
-
   // Use the resource manager hook
   const {
     resources,

@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { Sandbox } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { ResourceService } from './resource_service.js';
+import { SOCKET_EVENTS } from '../shared/socket_events.js';
 
 // Simple type definitions for PR 2
 export type ResourceWithFriendlyName = {
@@ -73,40 +74,46 @@ export class SocketHandlerService {
   public setupSocketHandlers(socket: Socket): void {
     // Sandbox status handlers
     socket.on(
-      'getSandboxStatus',
+      SOCKET_EVENTS.GET_SANDBOX_STATUS,
       this.handleGetSandboxStatus.bind(this, socket),
     );
 
     // Resource handlers
     socket.on(
-      'getDeployedBackendResources',
+      SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES,
       this.handleGetDeployedBackendResources.bind(this, socket),
     );
 
     // Friendly name handlers
     socket.on(
-      'getCustomFriendlyNames',
+      SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,
       this.handleGetCustomFriendlyNames.bind(this, socket),
     );
     socket.on(
-      'updateCustomFriendlyName',
+      SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
       this.handleUpdateCustomFriendlyName.bind(this, socket),
     );
     socket.on(
-      'removeCustomFriendlyName',
+      SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
       this.handleRemoveCustomFriendlyName.bind(this, socket),
     );
 
     // Sandbox operation handlers
     socket.on(
-      'startSandboxWithOptions',
+      SOCKET_EVENTS.START_SANDBOX_WITH_OPTIONS,
       this.handleStartSandboxWithOptions.bind(this, socket),
     );
-    socket.on('stopSandbox', this.handleStopSandbox.bind(this, socket));
-    socket.on('deleteSandbox', this.handleDeleteSandbox.bind(this, socket));
+    socket.on(
+      SOCKET_EVENTS.STOP_SANDBOX,
+      this.handleStopSandbox.bind(this, socket),
+    );
+    socket.on(
+      SOCKET_EVENTS.DELETE_SANDBOX,
+      this.handleDeleteSandbox.bind(this, socket),
+    );
 
     // DevTools handlers
-    socket.on('stopDevTools', this.handleStopDevTools.bind(this));
+    socket.on(SOCKET_EVENTS.STOP_DEV_TOOLS, this.handleStopDevTools.bind(this));
   }
 
   /**
@@ -116,7 +123,7 @@ export class SocketHandlerService {
     try {
       const status = await this.getSandboxState();
 
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status,
         identifier: this.backendId.name,
       });
@@ -125,7 +132,7 @@ export class SocketHandlerService {
         `Error getting sandbox status on request: ${String(error)}`,
         LogLevel.ERROR,
       );
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'unknown',
         error: `${String(error)}`,
         identifier: this.backendId.name,
@@ -151,7 +158,7 @@ export class SocketHandlerService {
           // Use the ResourceService to get deployed backend resources
           const resources =
             await this.resourceService.getDeployedBackendResources();
-          socket.emit('deployedBackendResources', resources);
+          socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, resources);
           return;
         } catch (error) {
           const errorMessage = String(error);
@@ -162,7 +169,7 @@ export class SocketHandlerService {
 
           // Check if this is a deployment in progress error
           if (errorMessage.includes('deployment is in progress')) {
-            socket.emit('deployedBackendResources', {
+            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
               name: this.backendId.name,
               status: 'deploying',
               resources: [],
@@ -171,7 +178,7 @@ export class SocketHandlerService {
                 'Sandbox deployment is in progress. Resources will update when deployment completes.',
             });
           } else if (errorMessage.includes('does not exist')) {
-            socket.emit('deployedBackendResources', {
+            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
               name: this.backendId.name,
               status: 'nonexistent',
               resources: [],
@@ -179,7 +186,7 @@ export class SocketHandlerService {
               message: 'No sandbox exists. Please create a sandbox first.',
             });
           } else {
-            socket.emit('deployedBackendResources', {
+            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
               name: this.backendId.name,
               status: 'error',
               resources: [],
@@ -193,7 +200,7 @@ export class SocketHandlerService {
       }
 
       // For non-running states, return appropriate status
-      socket.emit('deployedBackendResources', {
+      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
         name: this.backendId.name,
         status: status,
         resources: [],
@@ -208,7 +215,7 @@ export class SocketHandlerService {
         `Error checking sandbox status: ${String(error)}`,
         LogLevel.ERROR,
       );
-      socket.emit('deployedBackendResources', {
+      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
         name: this.backendId.name,
         status: 'error',
         resources: [],
@@ -233,7 +240,7 @@ export class SocketHandlerService {
       );
 
       // Emit status update to indicate we're starting
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'deploying',
         identifier: options.identifier || this.backendId.name,
         message: 'Starting sandbox...',
@@ -261,7 +268,7 @@ export class SocketHandlerService {
       printer.log('Sandbox start command issued successfully', LogLevel.DEBUG);
     } catch (error) {
       printer.log(`Error starting sandbox: ${String(error)}`, LogLevel.ERROR);
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: options.identifier || this.backendId.name,
         error: `${String(error)}`,
@@ -278,7 +285,7 @@ export class SocketHandlerService {
 
       await this.sandbox.stop();
 
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'stopped',
         identifier: this.backendId.name,
         message: 'Sandbox stopped successfully',
@@ -287,7 +294,7 @@ export class SocketHandlerService {
       printer.log('Sandbox stopped successfully', LogLevel.INFO);
     } catch (error) {
       printer.log(`Error stopping sandbox: ${String(error)}`, LogLevel.ERROR);
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: this.backendId.name,
         error: `${String(error)}`,
@@ -302,7 +309,7 @@ export class SocketHandlerService {
     try {
       printer.log('Deleting sandbox...', LogLevel.INFO);
 
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'deleting',
         identifier: this.backendId.name,
         message: 'Deleting sandbox...',
@@ -313,7 +320,7 @@ export class SocketHandlerService {
       printer.log('Sandbox delete command issued successfully', LogLevel.DEBUG);
     } catch (error) {
       printer.log(`Error deleting sandbox: ${String(error)}`, LogLevel.ERROR);
-      socket.emit('sandboxStatus', {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: this.backendId.name,
         error: `${String(error)}`,
@@ -327,7 +334,7 @@ export class SocketHandlerService {
   private handleGetCustomFriendlyNames(socket: Socket): void {
     // In PR 2, we don't have actual storage for custom friendly names
     // Just return an empty object
-    socket.emit('customFriendlyNames', {});
+    socket.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES, {});
   }
 
   /**
@@ -343,7 +350,7 @@ export class SocketHandlerService {
 
     // In PR 2, we don't actually store the custom friendly name
     // Just emit the event to acknowledge the update
-    this.io.emit('customFriendlyNameUpdated', {
+    this.io.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_UPDATED, {
       resourceId: data.resourceId,
       friendlyName: data.friendlyName,
     });
@@ -367,7 +374,7 @@ export class SocketHandlerService {
 
     // In PR 2, we don't actually store the custom friendly name
     // Just emit the event to acknowledge the removal
-    this.io.emit('customFriendlyNameRemoved', {
+    this.io.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_REMOVED, {
       resourceId: data.resourceId,
     });
 
