@@ -57,23 +57,17 @@ export class ShutdownService {
     // Clear all stored resources when devtools ends
     this.storageManager.clearAll();
 
-    // Notify clients that the server is shutting down
-    this.io.emit('log', {
-      timestamp: new Date().toISOString(),
-      level: 'INFO',
-      message: `DevTools server is shutting down (${String(reason)})...`,
-    });
-
     // Close socket and server connections
     await this.io.close();
-    this.server.close();
 
-    // Exit the process if requested
+    // Properly wait for the HTTP server to close
+    await new Promise<void>((resolve) => {
+      this.server.close(() => resolve());
+    });
+
+    // Exit the process if requested - no delay needed now that we properly await all closures
     if (exitProcess) {
-      // Short delay to allow messages to be sent
-      void setTimeout(() => {
-        process.exit(0);
-      }, 500);
+      process.exit(0);
     }
 
     return Promise.resolve();
