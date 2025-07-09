@@ -1,42 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Socket } from 'socket.io-client';
-import { SandboxStatus } from '../App';
-
-/**
- * Type for a resource with friendly name
- */
-export type ResourceWithFriendlyName = {
-  logicalResourceId: string;
-  physicalResourceId: string;
-  resourceType: string;
-  resourceStatus: string;
-  friendlyName?: string;
-  consoleUrl?: string | null;
-};
-
-/**
- * Type for backend resources data
- */
-export type BackendResourcesData = {
-  name: string;
-  status: string;
-  resources: ResourceWithFriendlyName[];
-  region: string | null;
-  message?: string;
-};
+import { SandboxStatus } from '../services/sandbox_client_service';
+import { useResourceClientService } from '../contexts/socket_client_context';
+import {
+  ResourceWithFriendlyName,
+  BackendResourcesData,
+} from '../services/resource_client_service';
 
 /**
  * Hook for managing backend resources
- * @param socket The Socket.IO client socket
  * @param onResourcesLoaded Callback function called when resources are loaded
  * @param sandboxStatus The current sandbox status
  * @returns The resource manager state and functions
  */
 export const useResourceManager = (
-  socket: Socket | null,
   onResourcesLoaded?: (data: BackendResourcesData) => void,
   sandboxStatus?: SandboxStatus,
 ) => {
+  const resourceClientService = useResourceClientService();
   const [resources, setResources] = useState<ResourceWithFriendlyName[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,16 +27,14 @@ export const useResourceManager = (
   const [backendName, setBackendName] = useState<string>('');
 
   useEffect(() => {
-    if (!socket) return;
-
-    socket.emit('getCustomFriendlyNames');
+    resourceClientService.getCustomFriendlyNames();
 
     const loadResources = () => {
       setIsLoading(true);
       setError(null);
 
-      socket.emit('getSavedResources');
-      socket.emit('getDeployedBackendResources');
+      resourceClientService.getSavedResources();
+      resourceClientService.getDeployedBackendResources();
     };
 
     loadResources();
@@ -121,22 +99,35 @@ export const useResourceManager = (
       setError(data.message);
     };
 
-    socket.on('savedResources', handleSavedResources);
-    socket.on('deployedBackendResources', handleDeployedBackendResources);
-    socket.on('customFriendlyNames', handleCustomFriendlyNames);
-    socket.on('customFriendlyNameUpdated', handleCustomFriendlyNameUpdated);
-    socket.on('customFriendlyNameRemoved', handleCustomFriendlyNameRemoved);
-    socket.on('error', handleError);
+    // Register event handlers
+    const unsubscribeSavedResources =
+      resourceClientService.onSavedResources(handleSavedResources);
+    const unsubscribeDeployedBackendResources =
+      resourceClientService.onDeployedBackendResources(
+        handleDeployedBackendResources,
+      );
+    const unsubscribeCustomFriendlyNames =
+      resourceClientService.onCustomFriendlyNames(handleCustomFriendlyNames);
+    const unsubscribeCustomFriendlyNameUpdated =
+      resourceClientService.onCustomFriendlyNameUpdated(
+        handleCustomFriendlyNameUpdated,
+      );
+    const unsubscribeCustomFriendlyNameRemoved =
+      resourceClientService.onCustomFriendlyNameRemoved(
+        handleCustomFriendlyNameRemoved,
+      );
+    const unsubscribeError = resourceClientService.onError(handleError);
 
+    // Cleanup function to unsubscribe from events
     return () => {
-      socket.off('savedResources', handleSavedResources);
-      socket.off('deployedBackendResources', handleDeployedBackendResources);
-      socket.off('customFriendlyNames', handleCustomFriendlyNames);
-      socket.off('customFriendlyNameUpdated', handleCustomFriendlyNameUpdated);
-      socket.off('customFriendlyNameRemoved', handleCustomFriendlyNameRemoved);
-      socket.off('error', handleError);
+      unsubscribeSavedResources();
+      unsubscribeDeployedBackendResources();
+      unsubscribeCustomFriendlyNames();
+      unsubscribeCustomFriendlyNameUpdated();
+      unsubscribeCustomFriendlyNameRemoved();
+      unsubscribeError();
     };
-  }, [socket, sandboxStatus, onResourcesLoaded]);
+  }, [resourceClientService, sandboxStatus, onResourcesLoaded]);
 
   /**
    * Updates a custom friendly name for a resource
@@ -147,12 +138,7 @@ export const useResourceManager = (
     resourceId: string,
     friendlyName: string,
   ) => {
-    if (!socket) return;
-
-    socket.emit('updateCustomFriendlyName', {
-      resourceId,
-      friendlyName,
-    });
+    resourceClientService.updateCustomFriendlyName(resourceId, friendlyName);
   };
 
   /**
@@ -160,11 +146,7 @@ export const useResourceManager = (
    * @param resourceId The resource ID
    */
   const removeCustomFriendlyName = (resourceId: string) => {
-    if (!socket) return;
-
-    socket.emit('removeCustomFriendlyName', {
-      resourceId,
-    });
+    resourceClientService.removeCustomFriendlyName(resourceId);
   };
 
   /**
@@ -189,11 +171,9 @@ export const useResourceManager = (
    * Refreshes the resources
    */
   const refreshResources = () => {
-    if (!socket) return;
-
     setIsLoading(true);
     setError(null);
-    socket.emit('getDeployedBackendResources');
+    resourceClientService.getDeployedBackendResources();
   };
 
   return {

@@ -1,0 +1,109 @@
+import { SocketClientService } from './socket_client_service';
+
+/**
+ * Type definition for sandbox status
+ */
+export type SandboxStatus =
+  | 'running'
+  | 'stopped'
+  | 'nonexistent'
+  | 'unknown'
+  | 'deploying'
+  | 'deleting'
+  | 'stopping';
+
+/**
+ * Interface for sandbox status data
+ */
+export interface SandboxStatusData {
+  status: SandboxStatus;
+  error?: string;
+  identifier?: string;
+  stackStatus?: string;
+  deploymentCompleted?: boolean;
+  message?: string;
+  timestamp?: string;
+}
+
+/**
+ * Interface for sandbox options
+ */
+export interface SandboxOptions {
+  identifier?: string;
+  once?: boolean;
+  dirToWatch?: string;
+  exclude?: string[];
+  outputsFormat?: string;
+  outputsOutDir?: string;
+  outputsVersion?: string;
+  streamFunctionLogs?: boolean;
+  logsFilter?: string[];
+  logsOutFile?: string;
+  debugMode?: boolean;
+}
+
+/**
+ * Service for handling sandbox-related socket communication
+ */
+export class SandboxClientService extends SocketClientService {
+  /**
+   * Requests the current sandbox status
+   */
+  public getSandboxStatus(): void {
+    this.emit('getSandboxStatus');
+  }
+
+  /**
+   * Starts the sandbox with the specified options
+   * @param options The sandbox options
+   */
+  public startSandboxWithOptions(options: SandboxOptions): void {
+    this.emit('startSandboxWithOptions', options);
+  }
+
+  /**
+   * Stops the sandbox
+   */
+  public stopSandbox(): void {
+    this.emit('stopSandbox');
+  }
+
+  /**
+   * Deletes the sandbox
+   */
+  public deleteSandbox(): void {
+    this.emit('deleteSandbox');
+  }
+
+  /**
+   * Stops the DevTools process
+   */
+  public stopDevTools(): void {
+    this.emit('stopDevTools');
+  }
+
+  /**
+   * Registers a handler for sandbox status events
+   * @param handler The event handler
+   * @returns A function to unsubscribe
+   */
+  public onSandboxStatus(
+    handler: (data: SandboxStatusData) => void,
+  ): () => void {
+    return this.on('sandboxStatus', handler);
+  }
+
+  /**
+   * Gets saved deployment progress
+   */
+  public getSavedDeploymentProgress(): void {
+    this.emit('getSavedDeploymentProgress');
+  }
+
+  /**
+   * Gets log settings
+   */
+  public getLogSettings(): void {
+    this.emit('getLogSettings');
+  }
+}

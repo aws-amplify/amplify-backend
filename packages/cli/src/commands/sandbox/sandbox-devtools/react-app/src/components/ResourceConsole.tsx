@@ -1,9 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Socket } from 'socket.io-client';
-import {
-  useResourceManager,
-  ResourceWithFriendlyName,
-} from '../hooks/useResourceManager';
+import { useResourceManager } from '../hooks/useResourceManager';
+import { ResourceWithFriendlyName } from '../services/resource_client_service';
+import { useResourceClientService } from '../contexts/socket_client_context';
 import '@cloudscape-design/global-styles/index.css';
 import {
   Button,
@@ -23,10 +21,9 @@ import {
   SelectProps,
   Modal,
 } from '@cloudscape-design/components';
-import { SandboxStatus } from '../App';
+import { SandboxStatus } from '../services/sandbox_client_service';
 
 interface ResourceConsoleProps {
-  socket: Socket | null;
   sandboxStatus?: SandboxStatus;
 }
 
@@ -40,7 +37,6 @@ type ColumnDefinition = {
 };
 
 const ResourceConsole: React.FC<ResourceConsoleProps> = ({
-  socket,
   sandboxStatus = 'unknown',
 }) => {
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
@@ -70,7 +66,10 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
     removeCustomFriendlyName,
     getResourceDisplayName,
     refreshResources: originalRefreshResources,
-  } = useResourceManager(socket, undefined, sandboxStatus);
+  } = useResourceManager(undefined, sandboxStatus);
+
+  // Get the resource client service
+  const resourceClientService = useResourceClientService();
 
   // Define column definitions for all tables
   const columnDefinitions = React.useMemo<ColumnDefinition[]>(
@@ -246,9 +245,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
   };
 
   const refreshFriendlyNames = () => {
-    if (socket) {
-      socket.emit('getCustomFriendlyNames');
-    }
+    resourceClientService.getCustomFriendlyNames();
   };
 
   const handleSaveFriendlyName = () => {
