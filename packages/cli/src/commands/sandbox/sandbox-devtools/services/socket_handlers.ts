@@ -294,8 +294,8 @@ export class SocketHandlerService {
       // Get the current sandbox state
       const status = await this.getSandboxState();
 
-      // If sandbox is running, fetch actual resources
-      if (status === 'running') {
+      // If sandbox is running or stopped, fetch actual resources
+      if (status === 'running' || status === 'stopped') {
         try {
           const enhancedData = await this.fetchBackendResources();
 
