@@ -36,8 +36,7 @@ export type SandboxStatus =
   | 'nonexistent' // Sandbox does not exist
   | 'unknown' // Status is unknown
   | 'deploying' // Sandbox is being deployed
-  | 'deleting' // Sandbox is being deleted
-  | 'stopping'; // Sandbox is being stopped
+  | 'deleting'; // Sandbox is being deleted
 
 /**
  * Type for sandbox status data
@@ -137,78 +136,24 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     const sandbox = await sandboxFactory.getInstance();
 
-    let sandboxState = 'unknown';
-
-    // Function to determine the sandbox state and update related flags
+    // Simple function to get sandbox state - only check AWS stack if sandbox state is unknown
     const getSandboxState = async () => {
-      const previousState = sandboxState; // Store the previous state
-
-      // If the state is unknown, check if the stack exists
-      if (sandboxState === 'unknown') {
+      const state = sandbox.getState();
+      if (state === 'unknown') {
         try {
-          // Check AWS stack state
           const cfnClient = new CloudFormationClient();
           const stackName = BackendIdentifierConversions.toStackName(backendId);
-
-          try {
-            await cfnClient.send(
-              new DescribeStacksCommand({ StackName: stackName }),
-            );
-            // Stack exists, check sandbox's internal state
-            const state = sandbox.getState();
-            // If sandbox state is unknown but stack exists, default to stopped
-            sandboxState = state === 'unknown' ? 'stopped' : state;
-            printer.log(
-              `Stack exists, sandbox state is: ${sandboxState}`,
-              LogLevel.DEBUG,
-            );
-          } catch (error) {
-            const errorMessage = String(error);
-            if (errorMessage.includes('does not exist')) {
-              sandboxState = 'nonexistent';
-              printer.log(
-                'Stack does not exist, setting sandbox state to nonexistent',
-                LogLevel.DEBUG,
-              );
-            } else {
-              throw error;
-            }
+          await cfnClient.send(
+            new DescribeStacksCommand({ StackName: stackName }),
+          );
+          return 'stopped'; // Stack exists, default to stopped
+        } catch (error) {
+          if (String(error).includes('does not exist')) {
+            return 'nonexistent';
           }
-        } catch (error) {
-          printer.log(
-            `Error checking sandbox status: ${String(error)}`,
-            LogLevel.ERROR,
-          );
-          // Keep state as unknown if there's an error
-        }
-      } else {
-        try {
-          const state = sandbox.getState();
-
-          sandboxState = state;
-        } catch (error) {
-          printer.log(
-            `Error checking sandbox status: ${String(error)}`,
-            LogLevel.ERROR,
-          );
-          // Don't change the state if there's an error
         }
       }
-
-      // If the state has changed, emit an update to all clients
-      if (previousState !== sandboxState) {
-        printer.log(
-          `Sandbox state changed from ${previousState} to ${sandboxState}, notifying all clients`,
-          LogLevel.INFO,
-        );
-        io.emit('sandboxStatus', {
-          status: sandboxState as SandboxStatus,
-          identifier: backendId.name,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      return sandboxState;
+      return state;
     };
 
     // Create a simple storage manager for PR 2
@@ -321,10 +266,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     sandbox.on('deploymentStarted', (data) => {
       printer.log('Deployment started', LogLevel.DEBUG);
 
-      sandboxState = 'deploying';
-
       const statusData: SandboxStatusData = {
-        status: 'deploying',
+        status: sandbox.getState(), // This should be 'deploying' after deployment starts,
         identifier: backendId.name,
         message: 'Deployment started',
         timestamp: data.timestamp || new Date().toISOString(),
@@ -341,10 +284,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         storageManager.clearResources();
 
-        sandboxState = currentState;
-
         const statusData: SandboxStatusData = {
-          status: sandboxState as SandboxStatus,
+          status: currentState,
           identifier: backendId.name,
           message: 'Deployment completed successfully',
           timestamp: new Date().toISOString(),
@@ -357,10 +298,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     sandbox.on('deletionStarted', (data) => {
       printer.log('Deletion started', LogLevel.DEBUG);
 
-      sandboxState = 'deleting';
-
       const statusData: SandboxStatusData = {
-        status: 'deleting',
+        status: sandbox.getState(), // This should be 'deleting' after deletion starts
         identifier: backendId.name,
         message: 'Deletion started',
         timestamp: data.timestamp || new Date().toISOString(),
@@ -372,10 +311,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     sandbox.on('successfulDeletion', () => {
       printer.log('Successful deletion detected', LogLevel.DEBUG);
 
-      sandboxState = 'nonexistent';
-
       const statusData: SandboxStatusData = {
-        status: 'nonexistent',
+        status: sandbox.getState(), // This should be 'nonexistent' after deletion
         identifier: backendId.name,
         message: 'Sandbox deleted successfully',
         timestamp: new Date().toISOString(),
@@ -440,7 +377,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Listen for successful stop
     sandbox.on('successfulStop', () => {
-      sandboxState = 'stopped';
       io.emit('sandboxStatus', {
         status: 'stopped',
         identifier: backendId.name,
@@ -452,12 +388,31 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Listen for failed stop
     sandbox.on('failedStop', (error) => {
       io.emit('sandboxStatus', {
-        status: sandboxState as SandboxStatus,
+        status: sandbox.getState(),
         identifier: backendId.name,
         error: true,
         message: `Error stopping sandbox: ${String(error)}`,
         timestamp: new Date().toISOString(),
       });
+    });
+
+    // Listen for initialization errors
+    sandbox.on('initializationError', (error) => {
+      void (async () => {
+        printer.log('Initialization error detected', LogLevel.DEBUG);
+
+        // Emit sandbox status update with initialization failure information
+        const statusData: SandboxStatusData = {
+          status: sandbox.getState() as SandboxStatus,
+          identifier: backendId.name,
+          error: true,
+          message: `Initialization failed: ${String(error)}`,
+          timestamp: new Date().toISOString(),
+        };
+
+        // Emit to all connected clients
+        io.emit('sandboxStatus', statusData);
+      })();
     });
 
     // Handle socket connections

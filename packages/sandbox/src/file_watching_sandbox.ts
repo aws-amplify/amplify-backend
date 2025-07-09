@@ -140,11 +140,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const watchForChanges = options.watchForChanges ?? true;
 
     if (!fs.existsSync(watchDir)) {
-      throw new AmplifyUserError('PathNotFoundError', {
+      const error = new AmplifyUserError('PathNotFoundError', {
         message: `${watchDir} does not exist.`,
         resolution:
           'Make sure you are running this command from your project root directory.',
       });
+
+      // Emit initialization error event before throwing
+      this.emit('initializationError', error);
+
+      throw error;
     }
 
     // Set state to running at the beginning of start
@@ -324,7 +329,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       '[Sandbox] Deleting all the resources in the sandbox environment...',
     );
 
-    // Set state to deleting
+    // Update state to deleting
     this.state = 'deleting';
 
     // Emit deletionStarted event with relevant info
@@ -378,6 +383,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const tracer = openTelemetryTrace.getTracer('amplify-backend');
     await tracer.startActiveSpan('sandbox', async (span: Span) => {
       const startTime = Date.now();
+      // Track state before deployment for error handling
+      const stateBeforeDeployment = this.state;
       try {
         // Set state to deploying
         this.state = 'deploying';
@@ -462,6 +469,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             errorToDisplayStackTrace.cause instanceof Error
               ? errorToDisplayStackTrace.cause
               : undefined;
+        }
+
+        // Update state based on error type and state before deployment
+        if (stateBeforeDeployment === 'nonexistent') {
+          // If this was an initial creation attempt, stay nonexistent
+          this.state = 'nonexistent';
+        } else if (options.watchForChanges === false) {
+          // If --once flag was used, set to stopped on error
+          this.state = 'stopped';
+        } else {
+          // For watch mode, keep running to allow fixes
+          this.state = 'running';
         }
 
         this.emit('failedDeployment', error);
@@ -554,7 +573,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           'InvalidSignatureException',
         ].includes(e.name)
       ) {
-        throw new AmplifyUserError(
+        const error = new AmplifyUserError(
           'SSMCredentialsError',
           {
             message: `${e.name}: ${e.message}`,
@@ -563,6 +582,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           },
           e,
         );
+
+        // Emit initialization error event before throwing
+        this.emit('initializationError', error);
+
+        throw error;
       }
 
       // If we are unable to retrieve bootstrap version parameter due to other reasons, we fail fast.
