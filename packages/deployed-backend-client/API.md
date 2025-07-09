@@ -182,6 +182,7 @@ export type DeployedBackendResource = {
     resourceType?: string;
     physicalResourceId?: string;
     arn?: string;
+    metadata?: any;
 };
 
 // @public (undocumented)

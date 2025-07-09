@@ -76,15 +76,19 @@ export class ResourceService {
 
             // Check if the resource has metadata with a construct path
             // Use a type guard to check if the resource has a metadata property
-            const metadata =
-              'metadata' in resource &&
-              typeof resource.metadata === 'object' &&
-              resource.metadata !== null &&
-              'constructPath' in resource.metadata
-                ? {
-                    constructPath: resource.metadata.constructPath as string,
-                  }
-                : undefined;
+            let metadata = undefined;
+
+            if ('metadata' in resource) {
+              if (
+                typeof resource.metadata === 'object' &&
+                resource.metadata !== null &&
+                'constructPath' in resource.metadata
+              ) {
+                metadata = {
+                  constructPath: resource.metadata.constructPath as string,
+                };
+              }
+            }
 
             const resourceWithFriendlyName = {
               ...resource,

@@ -1,5 +1,6 @@
 import {
   CloudFormationClient,
+  GetTemplateCommand,
   ListStackResourcesCommand,
   ListStackResourcesCommandOutput,
   StackResourceSummary,
@@ -87,6 +88,12 @@ export class DeployedResourcesEnumerator {
         },
       ) ?? [];
 
+    // Fetch template metadata
+    const templateMetadata = await this.getTemplateMetadata(
+      cfnClient,
+      stackName,
+    );
+
     const parentDeployedNonStackResources = parentStackNonStackResources.map(
       (stackResourceSummary: StackResourceSummary) => ({
         logicalResourceId: stackResourceSummary.LogicalResourceId,
@@ -102,10 +109,74 @@ export class DeployedResourcesEnumerator {
           region,
           accountId,
         ),
+        metadata:
+          templateMetadata[stackResourceSummary.LogicalResourceId || ''],
       }),
     );
 
     deployedBackendResources.push(...parentDeployedNonStackResources);
     return deployedBackendResources;
   };
+
+  /**
+   * Fetches CloudFormation template metadata for construct paths
+   */
+  private async getTemplateMetadata(
+    cfnClient: CloudFormationClient,
+    stackName: string,
+  ): Promise<Record<string, { constructPath?: string }>> {
+    try {
+      const template = await cfnClient.send(
+        new GetTemplateCommand({ StackName: stackName }),
+      );
+
+      const templateBody =
+        typeof template.TemplateBody === 'string'
+          ? JSON.parse(template.TemplateBody)
+          : template.TemplateBody;
+
+      if (!templateBody?.Resources) {
+        return {};
+      }
+
+      const metadata: Record<string, { constructPath?: string }> = {};
+
+      Object.entries(templateBody.Resources).forEach(
+        ([logicalId, resource]: [string, unknown]) => {
+          if (typeof resource !== 'object' || resource === null) {
+            return;
+          }
+
+          const resourceObj = resource as Record<string, unknown>;
+          if (
+            !resourceObj.Metadata ||
+            typeof resourceObj.Metadata !== 'object' ||
+            resourceObj.Metadata === null
+          ) {
+            return;
+          }
+
+          const resourceMetadata = resourceObj.Metadata as Record<
+            string,
+            unknown
+          >;
+          if (
+            !('aws:cdk:path' in resourceMetadata) ||
+            typeof resourceMetadata['aws:cdk:path'] !== 'string'
+          ) {
+            return;
+          }
+
+          metadata[logicalId] = {
+            constructPath: resourceMetadata['aws:cdk:path'],
+          };
+        },
+      );
+
+      return metadata;
+    } catch {
+      // If we can't get template metadata, return empty object
+      return {};
+    }
+  }
 }

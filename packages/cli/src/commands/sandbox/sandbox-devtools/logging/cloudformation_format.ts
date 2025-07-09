@@ -6,6 +6,11 @@ import { normalizeCDKConstructPath } from '@aws-amplify/cli-core';
  * @param metadata Optional CDK metadata that may contain construct path
  * @param metadata.constructPath Optional construct path from CDK metadata
  * @returns A user-friendly name for the resource
+ *
+ *   - "TodoTable" → "Todo Table"
+ *   - "TodoIAMRole2DA8E66E" → "Todo IAM Role"
+ *   - "amplifyDataGraphQLAPI42A6FA33" → "Data GraphQLAPI"
+ *   - "testNameBucketPolicyA5C458BB" → "test Name Bucket Policy"
  */
 export const createFriendlyName = (
   logicalId: string,
@@ -16,40 +21,22 @@ export const createFriendlyName = (
     return normalizeCDKConstructPath(metadata.constructPath);
   }
 
-  // For CloudFormation stacks, try to extract a friendly name
-  if (
-    logicalId.includes('NestedStack') ||
-    logicalId.endsWith('StackResource')
-  ) {
-    const nestedStackName = getFriendlyNameFromNestedStackName(logicalId);
-    if (nestedStackName) {
-      return nestedStackName;
-    }
-  }
-
   // Fall back to the basic transformation
-  let name = logicalId.replace(/^amplify/, '').replace(/^Amplify/, '');
-  name = name.replace(/([A-Z])/g, ' $1').trim();
-  name = name.replace(/[0-9]+[A-Z]*[0-9]*/, '');
+  let name = logicalId.replace(/^amplify/, '').replace(/^Amplify/, ''); // Remove 'amplify' prefix
 
-  return name || logicalId;
-};
+  // Improve readability by adding spaces between lowercase and uppercase transitions
+  name = name.replace(/([a-z])([A-Z])/g, '$1 $2');
 
-/**
- * Extracts a friendly name from a nested stack logical ID
- * @param stackName The stack name to process
- * @returns A friendly name or undefined if no match
- */
-const getFriendlyNameFromNestedStackName = (
-  stackName: string,
-): string | undefined => {
-  const parts = stackName.split('-');
+  // Add spaces before uppercase letters that follow another uppercase
+  name = name.replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
 
-  if (parts && parts.length === 7 && parts[3] === 'sandbox') {
-    return parts[5].slice(0, -10) + ' stack';
-  } else if (parts && parts.length === 5 && parts[3] === 'sandbox') {
-    return 'root stack';
-  }
+  // Remove CloudFormation resource IDs (alphanumeric suffixes)
+  name = name.replace(/[0-9A-F]{6,}$/g, '');
 
-  return undefined;
+  // Clean up spacing and remove leftover single letters (like "A", "B", "C")
+  name = name.replace(/\s[A-Z]\s/g, ' ').replace(/\s[A-Z]$/g, '');
+  name = name.replace(/\s+/g, ' ').trim();
+
+  const result = name || logicalId;
+  return result;
 };
