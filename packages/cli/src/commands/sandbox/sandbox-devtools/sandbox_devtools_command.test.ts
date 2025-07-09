@@ -3,10 +3,23 @@ import assert from 'node:assert';
 import { SandboxDevToolsCommand } from './sandbox_devtools_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
 import { PortChecker } from '../port_checker.js';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('SandboxDevToolsCommand', () => {
   let command: SandboxDevToolsCommand;
   let originalHandler: () => Promise<void>;
+  let mockSandboxBackendIdResolver: SandboxBackendIdResolver;
+  let mockSandboxFactory: SandboxSingletonFactory;
+  let mockAwsClientProvider: {
+    getS3Client: () => S3Client;
+    getAmplifyClient: () => AmplifyClient;
+    getCloudFormationClient: () => CloudFormationClient;
+  };
+  let mockPortChecker: PortChecker;
 
   beforeEach(() => {
     mock.reset();
@@ -16,12 +29,39 @@ void describe('SandboxDevToolsCommand', () => {
     mock.method(printer, 'log', () => {});
     mock.method(format, 'highlight', (text: string) => text);
 
-    // Mock PortChecker to prevent actual port operations
-    mock.method(PortChecker.prototype, 'isPortInUse', () =>
-      Promise.resolve(false),
-    );
+    // Create mock for SandboxBackendIdResolver
+    mockSandboxBackendIdResolver = {
+      resolve: () => Promise.resolve({ name: 'test-backend' }),
+    } as unknown as SandboxBackendIdResolver;
 
-    command = new SandboxDevToolsCommand();
+    // Create mock for SandboxSingletonFactory
+    mockSandboxFactory = {
+      getInstance: () =>
+        Promise.resolve({
+          getState: () => 'running',
+          on: () => ({}),
+        }),
+    } as unknown as SandboxSingletonFactory;
+
+    // Create mock for AWS client provider
+    mockAwsClientProvider = {
+      getS3Client: () => ({}) as S3Client,
+      getAmplifyClient: () => ({}) as AmplifyClient,
+      getCloudFormationClient: () => ({}) as CloudFormationClient,
+    };
+
+    // Mock PortChecker to prevent actual port operations
+    mockPortChecker = new PortChecker();
+    mock.method(mockPortChecker, 'isPortInUse', () => Promise.resolve(false));
+
+    command = new SandboxDevToolsCommand(
+      mockSandboxBackendIdResolver,
+      mockSandboxFactory,
+      mockAwsClientProvider,
+      mockPortChecker,
+      format,
+      printer,
+    );
     originalHandler = command.handler;
   });
 
@@ -61,7 +101,7 @@ void describe('SandboxDevToolsCommand', () => {
 
     void it('uses correct port when available', async (contextual) => {
       const portCheckerMock = contextual.mock.method(
-        PortChecker.prototype,
+        mockPortChecker,
         'isPortInUse',
         () => Promise.resolve(false),
       );
@@ -70,8 +110,7 @@ void describe('SandboxDevToolsCommand', () => {
 
       // Simplified handler test
       command.handler = async () => {
-        const portChecker = new PortChecker();
-        const isInUse = await portChecker.isPortInUse(3333);
+        const isInUse = await mockPortChecker.isPortInUse(3333);
         const port = isInUse ? 4444 : 3333;
         printer.print(`DevTools server started at http://localhost:${port}`);
       };
@@ -83,13 +122,12 @@ void describe('SandboxDevToolsCommand', () => {
     });
 
     void it('handles port checker errors', async (contextual) => {
-      contextual.mock.method(PortChecker.prototype, 'isPortInUse', () => {
+      contextual.mock.method(mockPortChecker, 'isPortInUse', () => {
         throw new Error('Port check failed');
       });
 
       command.handler = async () => {
-        const portChecker = new PortChecker();
-        await portChecker.isPortInUse(3333);
+        await mockPortChecker.isPortInUse(3333);
       };
 
       await assert.rejects(

@@ -5,14 +5,13 @@ import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Server } from 'socket.io';
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import {
-  BackendIdentifierConversions,
-  PackageJsonReader,
-} from '@aws-amplify/platform-core';
+  LogLevel,
+  format as formatUtil,
+  printer as printerUtil,
+} from '@aws-amplify/cli-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
-import { SDKProfileResolverProvider } from '../../../sdk_profile_resolver_provider.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { DeployedBackendClientFactory } from '@aws-amplify/deployed-backend-client';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -75,8 +74,28 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
   /**
    * DevTools command constructor.
+   * @param sandboxBackendIdResolver Resolver for sandbox backend ID
+   * @param sandboxFactory Factory for creating sandbox instances
+   * @param awsClientProvider Provider for AWS clients
+   * @param awsClientProvider.getS3Client Function to get S3 client
+   * @param awsClientProvider.getAmplifyClient Function to get Amplify client
+   * @param awsClientProvider.getCloudFormationClient Function to get CloudFormation client
+   * @param portChecker Checker for port availability
+   * @param format Formatter for console output
+   * @param printer Printer for console output
    */
-  constructor() {
+  constructor(
+    private readonly sandboxBackendIdResolver: SandboxBackendIdResolver,
+    private readonly sandboxFactory: SandboxSingletonFactory,
+    private readonly awsClientProvider: {
+      getS3Client: () => S3Client;
+      getAmplifyClient: () => AmplifyClient;
+      getCloudFormationClient: () => CloudFormationClient;
+    },
+    private readonly portChecker: PortChecker = new PortChecker(),
+    private readonly format = formatUtil,
+    private readonly printer = printerUtil,
+  ) {
     this.command = 'devtools';
     this.describe = 'Starts a development console for Amplify sandbox';
   }
@@ -113,35 +132,22 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       res.sendFile(join(publicPath, 'index.html'));
     });
 
-    const sandboxBackendIdResolver = new SandboxBackendIdResolver(
-      new LocalNamespaceResolver(new PackageJsonReader()),
-    );
-
-    const backendId = await sandboxBackendIdResolver.resolve();
+    const backendId = await this.sandboxBackendIdResolver.resolve();
 
     // Initialize the backend client
-    const backendClient = new DeployedBackendClientFactory().getInstance({
-      getS3Client: () => new S3Client(),
-      getAmplifyClient: () => new AmplifyClient(),
-      getCloudFormationClient: () => new CloudFormationClient(),
-    });
-
-    // Get the sandbox instance but don't start it automatically
-    const sandboxFactory = new SandboxSingletonFactory(
-      sandboxBackendIdResolver.resolve,
-      new SDKProfileResolverProvider().resolve,
-      printer,
-      format,
+    const backendClient = new DeployedBackendClientFactory().getInstance(
+      this.awsClientProvider,
     );
 
-    const sandbox = await sandboxFactory.getInstance();
+    // Get the sandbox instance but don't start it automatically
+    const sandbox = await this.sandboxFactory.getInstance();
 
     // Simple function to get sandbox state - only check AWS stack if sandbox state is unknown
     const getSandboxState = async () => {
       const state = sandbox.getState();
       if (state === 'unknown') {
         try {
-          const cfnClient = new CloudFormationClient();
+          const cfnClient = this.awsClientProvider.getCloudFormationClient();
           const stackName = BackendIdentifierConversions.toStackName(backendId);
           await cfnClient.send(
             new DescribeStacksCommand({ StackName: stackName }),
@@ -182,11 +188,10 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     );
 
     const port = 3333;
-    const portChecker = new PortChecker();
-    const isInUse = await portChecker.isPortInUse(port);
+    const isInUse = await this.portChecker.isPortInUse(port);
 
     if (isInUse) {
-      printer.log(
+      this.printer.log(
         `Port ${port} is already in use. Please close any applications using this port and try again.`,
         LogLevel.ERROR,
       );
@@ -197,8 +202,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     server.listen(port);
 
-    printer.print(
-      `${EOL}DevTools server started at ${format.highlight(`http://localhost:${port}`)}`,
+    this.printer.print(
+      `${EOL}DevTools server started at ${this.format.highlight(`http://localhost:${port}`)}`,
     );
 
     // Open the browser
@@ -207,13 +212,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Flag to prevent duplicate processing of messages
     let processingMessage = false;
-    // Store original printer methodsAdd commentMore actions
-    const originalPrint = printer.print;
-    const originalLog = printer.log;
+    // Store original printer methods
+    const originalPrint = this.printer.print;
+    const originalLog = this.printer.log;
     let currentLogLevel: LogLevel | null = null;
 
     // Override printer.log to capture the log level
-    printer.log = function (message: string, level?: LogLevel) {
+    this.printer.log = function (message: string, level?: LogLevel) {
       currentLogLevel = level ? level : LogLevel.DEBUG;
       const result = originalLog.call(this, message, currentLogLevel);
       currentLogLevel = null;
@@ -221,7 +226,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     };
 
     // Override printer.print (the lower-level method)
-    printer.print = function (message: string) {
+    this.printer.print = function (message: string) {
       // Call the original print method
       originalPrint.call(this, message);
       // Avoid double processing if this is called from printer.log
@@ -258,13 +263,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Listen for resource configuration changes
     sandbox.on('resourceConfigChanged', (data) => {
-      printer.log('Resource configuration changed', LogLevel.DEBUG);
+      this.printer.log('Resource configuration changed', LogLevel.DEBUG);
       io.emit('resourceConfigChanged', data);
     });
 
     // Listen for deployment started
     sandbox.on('deploymentStarted', (data) => {
-      printer.log('Deployment started', LogLevel.DEBUG);
+      this.printer.log('Deployment started', LogLevel.DEBUG);
 
       const statusData: SandboxStatusData = {
         status: sandbox.getState(), // This should be 'deploying' after deployment starts,
@@ -278,7 +283,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     sandbox.on('successfulDeployment', () => {
       void (async () => {
-        printer.log('Successful deployment detected', LogLevel.DEBUG);
+        this.printer.log('Successful deployment detected', LogLevel.DEBUG);
 
         const currentState = await getSandboxState();
 
@@ -296,7 +301,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     });
 
     sandbox.on('deletionStarted', (data) => {
-      printer.log('Deletion started', LogLevel.DEBUG);
+      this.printer.log('Deletion started', LogLevel.DEBUG);
 
       const statusData: SandboxStatusData = {
         status: sandbox.getState(), // This should be 'deleting' after deletion starts
@@ -309,7 +314,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     });
 
     sandbox.on('successfulDeletion', () => {
-      printer.log('Successful deletion detected', LogLevel.DEBUG);
+      this.printer.log('Successful deletion detected', LogLevel.DEBUG);
 
       const statusData: SandboxStatusData = {
         status: sandbox.getState(), // This should be 'nonexistent' after deletion
@@ -324,7 +329,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     sandbox.on('failedDeletion', (error) => {
       void (async () => {
-        printer.log('Failed deletion detected', LogLevel.DEBUG);
+        this.printer.log('Failed deletion detected', LogLevel.DEBUG);
 
         // Get the current sandbox state
         const currentState = await getSandboxState();
@@ -347,7 +352,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Listen for failed deployment
     sandbox.on('failedDeployment', (error) => {
       void (async () => {
-        printer.log(
+        this.printer.log(
           'Failed deployment detected, checking current status',
           LogLevel.DEBUG,
         );
@@ -368,7 +373,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         // Emit to all connected clients
         io.emit('sandboxStatus', statusData);
 
-        printer.log(
+        this.printer.log(
           `Emitted status '${currentState}' and deployment failure info`,
           LogLevel.DEBUG,
         );
@@ -399,7 +404,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Listen for initialization errors
     sandbox.on('initializationError', (error) => {
       void (async () => {
-        printer.log('Initialization error detected', LogLevel.DEBUG);
+        this.printer.log('Initialization error detected', LogLevel.DEBUG);
 
         // Emit sandbox status update with initialization failure information
         const statusData: SandboxStatusData = {
