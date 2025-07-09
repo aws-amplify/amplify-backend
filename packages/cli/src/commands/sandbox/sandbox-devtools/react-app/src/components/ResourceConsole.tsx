@@ -451,7 +451,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
     );
   }
 
-  if (!resources || Object.keys(groupedResources).length === 0) {
+  if (!resources || resources.length === 0) {
     return (
       <Container>
         <SpaceBetween direction="vertical" size="m">
