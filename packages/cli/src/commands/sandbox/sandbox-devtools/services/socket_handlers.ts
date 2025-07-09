@@ -4,6 +4,7 @@ import { Sandbox } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
+import { ShutdownService } from './shutdown_service.js';
 
 // Simple type definitions for PR 2
 export type ResourceWithFriendlyName = {
@@ -62,7 +63,7 @@ export class SocketHandlerService {
     private sandbox: Sandbox,
     private getSandboxState: () => Promise<string>,
     private backendId: { name: string },
-    private shutdownService: import('./shutdown_service.js').ShutdownService,
+    private shutdownService: ShutdownService,
     private resourceService: ResourceService,
     private backendClient?: Record<string, unknown>,
   ) {}
