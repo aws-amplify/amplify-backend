@@ -28,7 +28,7 @@ export type SandboxDeleteOptions = {
 };
 
 // @public (undocumented)
-export type SandboxEvents = 'deploymentStarted' | 'successfulDeployment' | 'failedDeployment' | 'deletionStarted' | 'successfulDeletion' | 'failedDeletion' | 'successfulStop' | 'failedStop';
+export type SandboxEvents = 'deploymentStarted' | 'successfulDeployment' | 'failedDeployment' | 'deletionStarted' | 'successfulDeletion' | 'failedDeletion' | 'successfulStop' | 'failedStop' | 'initializationError';
 
 // @public (undocumented)
 export type SandboxFunctionStreamingOptions = {
