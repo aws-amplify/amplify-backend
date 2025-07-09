@@ -18,7 +18,7 @@ type MockWithImplementation<T extends (...args: any[]) => any> = {
     calls: { arguments: Parameters<T>; result: ReturnType<T> }[];
     resetCalls: () => void;
   };
-}
+};
 
 void describe('ResourceService', () => {
   let resourceService: ResourceService;

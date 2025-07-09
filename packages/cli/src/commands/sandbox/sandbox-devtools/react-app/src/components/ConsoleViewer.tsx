@@ -33,7 +33,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
     { label: string; value: string }[]
   >([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [autoScroll] = useState<boolean>(true);
+  const [autoScroll, setAutoScroll] = useState<boolean>(true);
 
   // Extract unique log levels from logs
   useEffect(() => {
@@ -58,6 +58,43 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
 
     return matchesLevel && matchesSearch;
   });
+
+  // Check if scrolled to bottom
+  const isAtBottom = (): boolean => {
+    if (!scrollContainerRef.current) return true;
+
+    const { scrollTop, scrollHeight, clientHeight } =
+      scrollContainerRef.current;
+    // Consider "at bottom" if within 10px of the actual bottom
+    return scrollHeight - scrollTop - clientHeight < 10;
+  };
+
+  // Set up scroll event listener
+  useEffect(() => {
+    // Handle scroll events
+    const handleScroll = (): void => {
+      // If user manually scrolled to bottom, re-enable auto-scroll
+      if (isAtBottom() && !autoScroll) {
+        setAutoScroll(true);
+      }
+
+      // If user scrolled up and auto-scroll is enabled, disable it
+      if (!isAtBottom() && autoScroll) {
+        setAutoScroll(false);
+      }
+    };
+
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [autoScroll]);
 
   // Auto-scroll to bottom when logs change
   useEffect(() => {
