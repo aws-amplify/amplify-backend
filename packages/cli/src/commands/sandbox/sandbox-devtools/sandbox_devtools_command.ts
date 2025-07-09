@@ -23,6 +23,7 @@ import {
 import { EOL } from 'os';
 import { ShutdownService } from './services/shutdown_service.js';
 import { SocketHandlerService } from './services/socket_handlers.js';
+import { ResourceService } from './services/resource_service.js';
 import stripAnsi from 'strip-ansi';
 import { PortChecker } from '../port_checker.js';
 
@@ -177,6 +178,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       getSandboxState,
     );
 
+    // Initialize the resource service
+    const resourceService = new ResourceService(
+      backendId.name,
+      getSandboxState,
+      backendId.namespace,
+    );
+
     // Initialize the socket handler service
     const socketHandlerService = new SocketHandlerService(
       io,
@@ -184,6 +192,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       getSandboxState,
       backendId,
       shutdownService,
+      resourceService,
       backendClient,
     );
 

@@ -1,8 +1,8 @@
 import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { Server, Socket } from 'socket.io';
 import { Sandbox } from '@aws-amplify/sandbox';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { ResourceService } from './resource_service.js';
 
 // Simple type definitions for PR 2
 export type ResourceWithFriendlyName = {
@@ -49,14 +49,6 @@ export type SocketEvents = {
   };
 };
 
-type BackendMetadata = {
-  [key: string]: unknown;
-  name: string;
-  resources: Array<
-    ResourceWithFriendlyName & { metadata?: Record<string, unknown> }
-  >;
-};
-
 /**
  * Service for handling socket events
  */
@@ -70,6 +62,7 @@ export class SocketHandlerService {
     private getSandboxState: () => Promise<string>,
     private backendId: { name: string },
     private shutdownService: import('./shutdown_service.js').ShutdownService,
+    private resourceService: ResourceService,
     private backendClient?: Record<string, unknown>,
   ) {}
 
@@ -141,148 +134,6 @@ export class SocketHandlerService {
   }
 
   /**
-   * Fetches backend resources and processes them
-   * @returns The processed resources or null if there was an error
-   */
-  private async fetchBackendResources(): Promise<{
-    name: string;
-    status: string;
-    resources: ResourceWithFriendlyName[];
-    region: string | null;
-  } | null> {
-    try {
-      // Get the current sandbox state
-      const status = await this.getSandboxState();
-
-      // If sandbox is not running, don't try to fetch resources
-      if (status !== 'running') {
-        printer.log(
-          `Sandbox is not running (status: ${status}), cannot fetch resources`,
-          LogLevel.DEBUG,
-        );
-        return null;
-      }
-
-      printer.log('Fetching backend metadata...', LogLevel.DEBUG);
-
-      // Use the backend client to fetch actual resources
-      if (
-        !this.backendClient ||
-        typeof (this.backendClient as Record<string, unknown>)
-          .getBackendMetadata !== 'function'
-      ) {
-        printer.log(
-          'Backend client is not properly initialized',
-          LogLevel.ERROR,
-        );
-        return null;
-      }
-
-      const data = await (
-        this.backendClient as {
-          getBackendMetadata: (id: {
-            name: string;
-          }) => Promise<BackendMetadata>;
-        }
-      ).getBackendMetadata(this.backendId);
-
-      printer.log(
-        `Successfully fetched backend metadata with ${data.resources?.length || 0} resources`,
-        LogLevel.INFO,
-      );
-
-      // Get region information
-      const cfnClient = new CloudFormationClient();
-      const regionValue = cfnClient.config.region;
-      let region = null;
-
-      try {
-        if (typeof regionValue === 'function') {
-          if (regionValue.constructor.name === 'AsyncFunction') {
-            region = await regionValue();
-          } else {
-            region = regionValue();
-          }
-        } else if (regionValue) {
-          region = String(regionValue);
-        }
-
-        // Final check to ensure region is a string
-        if (region && typeof region !== 'string') {
-          region = String(region);
-        }
-      } catch (error) {
-        printer.log('Error processing region: ' + error, LogLevel.ERROR);
-        region = null;
-      }
-
-      // Process resources and add friendly names
-      const resourcesWithFriendlyNames = data.resources.map(
-        (resource: ResourceWithFriendlyName) => {
-          const logicalId = resource.logicalResourceId || '';
-          let resourceType = resource.resourceType || '';
-
-          // Remove CUSTOM:: prefix from resource type
-          if (resourceType.startsWith('CUSTOM::')) {
-            resourceType = resourceType.substring(8); // Remove "CUSTOM::" (8 characters)
-          } else if (resourceType.startsWith('Custom::')) {
-            resourceType = resourceType.substring(8); // Remove "Custom::" (8 characters)
-          }
-
-          // Simple friendly name implementation for PR 2
-          const metadata =
-            'metadata' in resource &&
-            typeof resource.metadata === 'object' &&
-            resource.metadata !== null &&
-            'constructPath' in resource.metadata
-              ? {
-                  constructPath: resource.metadata.constructPath as string,
-                }
-              : undefined;
-
-          // Simple friendly name implementation
-          let friendlyName = logicalId;
-
-          // Use construct path if available
-          if (metadata?.constructPath) {
-            friendlyName = metadata.constructPath;
-          } else if (
-            logicalId.startsWith('amplify') ||
-            logicalId.startsWith('Amplify')
-          ) {
-            // Remove 'amplify' prefix and add spaces before capital letters
-            friendlyName = logicalId.replace(/^[aA]mplify/, '');
-            friendlyName = friendlyName.replace(/([A-Z])/g, ' $1').trim();
-          }
-
-          return {
-            ...resource,
-            resourceType: resourceType,
-            friendlyName: friendlyName,
-          } as ResourceWithFriendlyName;
-        },
-      );
-
-      // Add region and resources with friendly names to the data
-      const enhancedData = {
-        ...data,
-        region,
-        resources: resourcesWithFriendlyNames,
-        status,
-      };
-
-      return enhancedData;
-    } catch (error) {
-      const errorMessage = String(error);
-      printer.log(
-        `Error fetching backend resources: ${errorMessage}`,
-        LogLevel.ERROR,
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Handles the getDeployedBackendResources event
    */
   private async handleGetDeployedBackendResources(
@@ -297,12 +148,11 @@ export class SocketHandlerService {
       // If sandbox is running or stopped, fetch actual resources
       if (status === 'running' || status === 'stopped') {
         try {
-          const enhancedData = await this.fetchBackendResources();
-
-          if (enhancedData) {
-            socket.emit('deployedBackendResources', enhancedData);
-            return;
-          }
+          // Use the ResourceService to get deployed backend resources
+          const resources =
+            await this.resourceService.getDeployedBackendResources();
+          socket.emit('deployedBackendResources', resources);
+          return;
         } catch (error) {
           const errorMessage = String(error);
           printer.log(

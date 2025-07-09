@@ -124,20 +124,26 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
         id: 'actions',
         header: 'Actions',
         cell: (item: ResourceWithFriendlyName) => {
+          const url = item.consoleUrl;
+
           return (
             <SpaceBetween direction="horizontal" size="xs">
-              {item.consoleUrl && (
-                <Button
-                  variant="link"
-                  href={item.consoleUrl}
-                  target="_blank"
-                  iconAlign="right"
-                  iconName="external"
-                >
-                  AWS Console
-                </Button>
-              )}
-              
+              {url &&
+                (deploymentInProgress ? (
+                  <span style={{ color: '#888' }}>
+                    View in AWS Console (disabled during deployment)
+                  </span>
+                ) : (
+                  <Button
+                    variant="link"
+                    href={url}
+                    target="_blank"
+                    iconAlign="right"
+                    iconName="external"
+                  >
+                    View in AWS Console
+                  </Button>
+                ))}
             </SpaceBetween>
           );
         },
