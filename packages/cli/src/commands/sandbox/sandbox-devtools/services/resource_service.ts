@@ -1,12 +1,7 @@
 import { LogLevel, printer } from '@aws-amplify/cli-core';
-import {
-  DeployedBackendClient,
-  DeployedBackendClientFactory,
-} from '@aws-amplify/deployed-backend-client';
+import { DeployedBackendClient } from '@aws-amplify/deployed-backend-client';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { S3Client } from '@aws-sdk/client-s3';
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { RegionFetcher } from '@aws-amplify/platform-core';
 import { createFriendlyName } from '../logging/cloudformation_format.js';
 
 import {
@@ -30,23 +25,15 @@ export type DeployedBackendResources = {
  * Service for managing backend resources
  */
 export class ResourceService {
-  private backendClient: DeployedBackendClient;
-
   /**
    * Creates a new ResourceService
    */
   constructor(
     private backendName: string,
-    private getSandboxState: () => Promise<string>,
+    private backendClient: DeployedBackendClient,
     private namespace: string = 'amplify-backend', // Add namespace parameter with default
-  ) {
-    // Initialize the backend client
-    this.backendClient = new DeployedBackendClientFactory().getInstance({
-      getS3Client: () => new S3Client(),
-      getAmplifyClient: () => new AmplifyClient(),
-      getCloudFormationClient: () => new CloudFormationClient(),
-    });
-  }
+    private regionFetcher: RegionFetcher = new RegionFetcher(), // Add regionFetcher with default
+  ) {}
 
   /**
    * Gets the deployed backend resources
@@ -65,31 +52,12 @@ export class ResourceService {
         const data = await this.backendClient.getBackendMetadata(backendId);
         printer.log('Successfully fetched backend metadata', LogLevel.DEBUG);
 
-        // Get the AWS region from the CloudFormation client
-        const cfnClient = new CloudFormationClient();
-        const regionValue = cfnClient.config.region;
-
-        // Handle different types of region values
-        let region = null;
-
+        // Get the AWS region using RegionFetcher
+        let region: string | null = null;
         try {
-          if (typeof regionValue === 'function') {
-            // If it's an async function, we need to await it
-            if (regionValue.constructor.name === 'AsyncFunction') {
-              region = await regionValue();
-            } else {
-              region = regionValue();
-            }
-          } else if (regionValue) {
-            region = String(regionValue);
-          }
-
-          // Final check to ensure region is a string
-          if (region && typeof region !== 'string') {
-            region = String(region);
-          }
+          region = (await this.regionFetcher.fetch()) ?? null;
         } catch (error) {
-          printer.log('Error processing region: ' + error, LogLevel.ERROR);
+          printer.log('Error getting region: ' + error, LogLevel.ERROR);
           region = null;
         }
 

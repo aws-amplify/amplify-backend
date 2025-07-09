@@ -181,7 +181,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Initialize the resource service
     const resourceService = new ResourceService(
       backendId.name,
-      getSandboxState,
+      backendClient,
       backendId.namespace,
     );
 
