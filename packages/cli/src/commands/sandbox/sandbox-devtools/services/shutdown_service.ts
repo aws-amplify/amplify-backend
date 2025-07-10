@@ -1,10 +1,7 @@
-import { LogLevel, printer } from '@aws-amplify/cli-core';
-import { Server } from 'socket.io';
-import { createServer } from 'node:http';
-// Simple storage manager interface for PR 2
-type StorageManager = {
-  clearAll: () => void;
-};
+import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { Server as SocketIOServer } from 'socket.io';
+import { Server as HttpServer } from 'node:http';
+import { Sandbox } from '@aws-amplify/sandbox';
 
 /**
  * Service for handling the shutdown process of the DevTools server
@@ -15,15 +12,18 @@ export class ShutdownService {
    * @param io The Socket.IO server
    * @param server The HTTP server
    * @param storageManager The local storage manager
+   * @param storageManager.clearAll Function to clear all stored data
    * @param sandbox The sandbox instance
    * @param getSandboxState Function to get the current sandbox state
+   * @param printer Printer for console output
    */
   constructor(
-    private readonly io: Server,
-    private readonly server: ReturnType<typeof createServer>,
-    private readonly storageManager: StorageManager,
-    private readonly sandbox: import('@aws-amplify/sandbox').Sandbox,
+    private readonly io: SocketIOServer,
+    private readonly server: HttpServer,
+    private readonly storageManager: { clearAll: () => void },
+    private readonly sandbox: Sandbox,
     private readonly getSandboxState: () => Promise<string>,
+    private readonly printer: Printer,
   ) {}
 
   /**
@@ -35,21 +35,27 @@ export class ShutdownService {
     reason: string,
     exitProcess: boolean = false,
   ): Promise<void> {
-    printer.print(`\nStopping the devtools server (${String(reason)}).`);
+    this.printer.print(`\nStopping the devtools server (${String(reason)}).`);
 
     // Check if sandbox is running and stop it
     const status = await this.getSandboxState();
 
     if (status === 'running') {
-      printer.log('Stopping sandbox before exiting...', LogLevel.DEBUG);
+      this.printer.log('Stopping sandbox before exiting...', LogLevel.DEBUG);
       try {
-        printer.log(`Stopping sandbox from ${reason} handler`, LogLevel.DEBUG);
+        this.printer.log(
+          `Stopping sandbox from ${reason} handler`,
+          LogLevel.DEBUG,
+        );
         await this.sandbox.stop();
-        printer.log('Sandbox stopped successfully', LogLevel.INFO);
+        this.printer.log('Sandbox stopped successfully', LogLevel.INFO);
       } catch (error) {
-        printer.log(`Error stopping sandbox: ${String(error)}`, LogLevel.ERROR);
+        this.printer.log(
+          `Error stopping sandbox: ${String(error)}`,
+          LogLevel.ERROR,
+        );
         if (error instanceof Error && error.stack) {
-          printer.log(`Error stack: ${error.stack}`, LogLevel.DEBUG);
+          this.printer.log(`Error stack: ${error.stack}`, LogLevel.DEBUG);
         }
       }
     }
@@ -62,7 +68,7 @@ export class ShutdownService {
 
     // Properly wait for the HTTP server to close
     await new Promise<void>((resolve) => {
-      this.server.close(() => resolve());
+      void this.server.close(() => resolve());
     });
 
     // Exit the process if requested - no delay needed now that we properly await all closures

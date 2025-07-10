@@ -4,7 +4,6 @@ import { SandboxDevToolsCommand } from './sandbox_devtools_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
 import { PortChecker } from '../port_checker.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -13,7 +12,6 @@ void describe('SandboxDevToolsCommand', () => {
   let command: SandboxDevToolsCommand;
   let originalHandler: () => Promise<void>;
   let mockSandboxBackendIdResolver: SandboxBackendIdResolver;
-  let mockSandboxFactory: SandboxSingletonFactory;
   let mockAwsClientProvider: {
     getS3Client: () => S3Client;
     getAmplifyClient: () => AmplifyClient;
@@ -34,15 +32,6 @@ void describe('SandboxDevToolsCommand', () => {
       resolve: () => Promise.resolve({ name: 'test-backend' }),
     } as unknown as SandboxBackendIdResolver;
 
-    // Create mock for SandboxSingletonFactory
-    mockSandboxFactory = {
-      getInstance: () =>
-        Promise.resolve({
-          getState: () => 'running',
-          on: () => ({}),
-        }),
-    } as unknown as SandboxSingletonFactory;
-
     // Create mock for AWS client provider
     mockAwsClientProvider = {
       getS3Client: () => ({}) as S3Client,
@@ -56,7 +45,6 @@ void describe('SandboxDevToolsCommand', () => {
 
     command = new SandboxDevToolsCommand(
       mockSandboxBackendIdResolver,
-      mockSandboxFactory,
       mockAwsClientProvider,
       mockPortChecker,
       format,

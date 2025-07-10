@@ -1,4 +1,8 @@
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  Printer,
+  printer as printerUtil,
+} from '@aws-amplify/cli-core';
 import { DeployedBackendClient } from '@aws-amplify/deployed-backend-client';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { RegionFetcher } from '@aws-amplify/platform-core';
@@ -29,10 +33,11 @@ export class ResourceService {
    * Creates a new ResourceService
    */
   constructor(
-    private backendName: string,
-    private backendClient: DeployedBackendClient,
-    private namespace: string = 'amplify-backend', // Add namespace parameter with default
-    private regionFetcher: RegionFetcher = new RegionFetcher(), // Add regionFetcher with default
+    private readonly backendName: string,
+    private readonly backendClient: DeployedBackendClient,
+    private readonly namespace: string = 'amplify-backend', // Add namespace parameter with default
+    private readonly regionFetcher: RegionFetcher = new RegionFetcher(),
+    private readonly printer: Printer = printerUtil,
   ) {}
 
   /**
@@ -42,7 +47,7 @@ export class ResourceService {
   public async getDeployedBackendResources(): Promise<DeployedBackendResources> {
     try {
       try {
-        printer.log('Fetching backend metadata...', LogLevel.DEBUG);
+        this.printer.log('Fetching backend metadata...', LogLevel.DEBUG);
         // Create a BackendIdentifier object for the sandbox
         const backendId: BackendIdentifier = {
           namespace: this.namespace, // Use the provided namespace
@@ -50,14 +55,17 @@ export class ResourceService {
           type: 'sandbox',
         };
         const data = await this.backendClient.getBackendMetadata(backendId);
-        printer.log('Successfully fetched backend metadata', LogLevel.DEBUG);
+        this.printer.log(
+          'Successfully fetched backend metadata',
+          LogLevel.DEBUG,
+        );
 
         // Get the AWS region using RegionFetcher
         let region: string | null = null;
         try {
           region = (await this.regionFetcher.fetch()) ?? null;
         } catch (error) {
-          printer.log('Error getting region: ' + error, LogLevel.ERROR);
+          this.printer.log('Error getting region: ' + error, LogLevel.ERROR);
           region = null;
         }
 
@@ -118,7 +126,7 @@ export class ResourceService {
         return enhancedData;
       } catch (error) {
         const errorMessage = String(error);
-        printer.log(
+        this.printer.log(
           `Error getting backend resources: ${errorMessage}`,
           LogLevel.ERROR,
         );
@@ -147,7 +155,7 @@ export class ResourceService {
         throw error;
       }
     } catch (error) {
-      printer.log(
+      this.printer.log(
         `Error checking sandbox status: ${String(error)}`,
         LogLevel.ERROR,
       );

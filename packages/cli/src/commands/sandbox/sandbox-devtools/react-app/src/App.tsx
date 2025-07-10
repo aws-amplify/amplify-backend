@@ -241,7 +241,18 @@ function AppContent() {
       },
     );
 
-    // Log messages will be implemented in PR3
+    // Subscribe to log events from the server
+    const unsubscribeLog = sandboxClientService.onLog((logData) => {
+      setLogs((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          timestamp: logData.timestamp,
+          level: logData.level,
+          message: logData.message,
+        },
+      ]);
+    });
 
     // Handle disconnection
     const unsubscribeDisconnect = sandboxClientService.onDisconnect(
@@ -283,6 +294,7 @@ function AppContent() {
       unsubscribeReconnectError();
       unsubscribeReconnectFailed();
       unsubscribeDisconnect();
+      unsubscribeLog();
       stopPing();
       clearLogs();
       sandboxClientService.disconnect();

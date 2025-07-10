@@ -8,10 +8,12 @@ import { Server } from 'socket.io';
 import {
   LogLevel,
   format as formatUtil,
+  minimumLogLevel,
   printer as printerUtil,
 } from '@aws-amplify/cli-core';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { SDKProfileResolverProvider } from '../../../sdk_profile_resolver_provider.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { DeployedBackendClientFactory } from '@aws-amplify/deployed-backend-client';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -24,8 +26,8 @@ import { EOL } from 'os';
 import { ShutdownService } from './services/shutdown_service.js';
 import { SocketHandlerService } from './services/socket_handlers.js';
 import { ResourceService } from './services/resource_service.js';
-import stripAnsi from 'strip-ansi';
 import { PortChecker } from '../port_checker.js';
+import { DevToolsLogger } from './services/devtools_logger.js';
 
 /**
  * Type definition for sandbox status
@@ -51,15 +53,6 @@ type SandboxStatusData = {
 };
 
 /**
- * Type for log event data
- */
-type LogEventData = {
-  timestamp: string;
-  level: string;
-  message: string;
-};
-
-/**
  * Command to start devtools console.
  */
 export class SandboxDevToolsCommand implements CommandModule<object> {
@@ -76,7 +69,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
   /**
    * DevTools command constructor.
    * @param sandboxBackendIdResolver Resolver for sandbox backend ID
-   * @param sandboxFactory Factory for creating sandbox instances
    * @param awsClientProvider Provider for AWS clients
    * @param awsClientProvider.getS3Client Function to get S3 client
    * @param awsClientProvider.getAmplifyClient Function to get Amplify client
@@ -87,7 +79,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
    */
   constructor(
     private readonly sandboxBackendIdResolver: SandboxBackendIdResolver,
-    private readonly sandboxFactory: SandboxSingletonFactory,
     private readonly awsClientProvider: {
       getS3Client: () => S3Client;
       getAmplifyClient: () => AmplifyClient;
@@ -95,7 +86,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     },
     private readonly portChecker: PortChecker = new PortChecker(),
     private readonly format = formatUtil,
-    private readonly printer = printerUtil,
+    private printer = printerUtil,
   ) {
     this.command = 'devtools';
     this.describe = 'Starts a development console for Amplify sandbox';
@@ -140,8 +131,27 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       this.awsClientProvider,
     );
 
-    // Get the sandbox instance but don't start it automatically
-    const sandbox = await this.sandboxFactory.getInstance();
+    // Create a custom logger that forwards logs to Socket.IO clients
+    const devToolsLogger = new DevToolsLogger(
+      this.printer,
+      io,
+      minimumLogLevel,
+    );
+    this.printer = devToolsLogger; // Use the custom logger for all CLI output from now on
+
+    // Create a new SandboxSingletonFactory with our custom logger
+    // Our server, and thus logger, are only created at runtime, so we cannot use the
+    // SandboxSingletonFactory as an injected dependency.
+    const localSandboxFactory = new SandboxSingletonFactory(
+      this.sandboxBackendIdResolver.resolve,
+      new SDKProfileResolverProvider().resolve,
+      devToolsLogger,
+      this.format,
+    );
+
+    // Get the sandbox instance using our local factory
+    // which uses the devToolsLogger directly
+    const sandbox = await localSandboxFactory.getInstance();
 
     // Simple function to get sandbox state - only check AWS stack if sandbox state is unknown
     const getSandboxState = async () => {
@@ -176,6 +186,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       storageManager,
       sandbox,
       getSandboxState,
+      devToolsLogger,
     );
 
     // Initialize the resource service
@@ -183,6 +194,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendId.name,
       backendClient,
       backendId.namespace,
+      undefined, // Use default RegionFetcher
+      devToolsLogger, // Pass our custom logger
     );
 
     // Initialize the socket handler service
@@ -193,7 +206,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendId,
       shutdownService,
       resourceService,
-      backendClient,
+      devToolsLogger,
     );
 
     const port = 3333;
@@ -218,57 +231,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     // Open the browser
     const open = (await import('open')).default;
     await open(`http://localhost:${port}`);
-
-    // Flag to prevent duplicate processing of messages
-    let processingMessage = false;
-    // Store original printer methods
-    const originalPrint = this.printer.print;
-    const originalLog = this.printer.log;
-    let currentLogLevel: LogLevel | null = null;
-
-    // Override printer.log to capture the log level
-    this.printer.log = function (message: string, level?: LogLevel) {
-      currentLogLevel = level ? level : LogLevel.DEBUG;
-      const result = originalLog.call(this, message, currentLogLevel);
-      currentLogLevel = null;
-      return result;
-    };
-
-    // Override printer.print (the lower-level method)
-    this.printer.print = function (message: string) {
-      // Call the original print method
-      originalPrint.call(this, message);
-      // Avoid double processing if this is called from printer.log
-      if (processingMessage) {
-        return;
-      }
-
-      processingMessage = true;
-
-      const cleanMessage = stripAnsi(message);
-
-      // Remove timestamp prefix if present (to avoid duplicate timestamps)
-      let finalMessage = cleanMessage;
-      const timeRegex = /^\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+/;
-      if (timeRegex.test(finalMessage)) {
-        finalMessage = finalMessage.replace(timeRegex, '');
-      }
-
-      // Skip DEBUG level messages from being sent to client
-      if (currentLogLevel === LogLevel.DEBUG) {
-        processingMessage = false;
-        return;
-      }
-      // Emit regular messages to client
-      const logData: LogEventData = {
-        timestamp: new Date().toISOString(),
-        level: LogLevel[currentLogLevel ? currentLogLevel : LogLevel.INFO],
-        message: finalMessage,
-      };
-      io.emit('log', logData);
-
-      processingMessage = false;
-    };
 
     // Listen for resource configuration changes
     sandbox.on('resourceConfigChanged', (data) => {

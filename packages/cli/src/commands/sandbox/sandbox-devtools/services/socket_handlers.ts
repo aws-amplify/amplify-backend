@@ -1,4 +1,8 @@
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import {
+  LogLevel,
+  Printer,
+  printer as printerUtil,
+} from '@aws-amplify/cli-core';
 import { Server, Socket } from 'socket.io';
 import { Sandbox } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
@@ -65,7 +69,7 @@ export class SocketHandlerService {
     private backendId: { name: string },
     private shutdownService: ShutdownService,
     private resourceService: ResourceService,
-    private backendClient?: Record<string, unknown>,
+    private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
   ) {}
 
   /**
@@ -129,7 +133,7 @@ export class SocketHandlerService {
         identifier: this.backendId.name,
       });
     } catch (error) {
-      printer.log(
+      this.printer.log(
         `Error getting sandbox status on request: ${String(error)}`,
         LogLevel.ERROR,
       );
@@ -148,7 +152,7 @@ export class SocketHandlerService {
     socket: Socket,
   ): Promise<void> {
     try {
-      printer.log('Fetching deployed backend resources...', LogLevel.INFO);
+      this.printer.log('Fetching deployed backend resources...', LogLevel.INFO);
 
       // Get the current sandbox state
       const status = await this.getSandboxState();
@@ -163,7 +167,7 @@ export class SocketHandlerService {
           return;
         } catch (error) {
           const errorMessage = String(error);
-          printer.log(
+          this.printer.log(
             `Error getting backend resources: ${errorMessage}`,
             LogLevel.ERROR,
           );
@@ -212,7 +216,7 @@ export class SocketHandlerService {
             : `Sandbox is ${status}. Start the sandbox to see resources.`,
       });
     } catch (error) {
-      printer.log(
+      this.printer.log(
         `Error checking sandbox status: ${String(error)}`,
         LogLevel.ERROR,
       );
@@ -235,7 +239,7 @@ export class SocketHandlerService {
     options: SocketEvents['startSandboxWithOptions'],
   ): Promise<void> {
     try {
-      printer.log(
+      this.printer.log(
         `Starting sandbox with options: ${JSON.stringify(options)}`,
         LogLevel.INFO,
       );
@@ -266,9 +270,15 @@ export class SocketHandlerService {
       await this.sandbox.start(sandboxOptions);
 
       // The sandbox will emit events that update the UI status
-      printer.log('Sandbox start command issued successfully', LogLevel.DEBUG);
+      this.printer.log(
+        'Sandbox start command issued successfully',
+        LogLevel.DEBUG,
+      );
     } catch (error) {
-      printer.log(`Error starting sandbox: ${String(error)}`, LogLevel.ERROR);
+      this.printer.log(
+        `Error starting sandbox: ${String(error)}`,
+        LogLevel.ERROR,
+      );
       socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: options.identifier || this.backendId.name,
@@ -282,7 +292,7 @@ export class SocketHandlerService {
    */
   private async handleStopSandbox(socket: Socket): Promise<void> {
     try {
-      printer.log('Stopping sandbox...', LogLevel.INFO);
+      this.printer.log('Stopping sandbox...', LogLevel.INFO);
 
       await this.sandbox.stop();
 
@@ -292,9 +302,12 @@ export class SocketHandlerService {
         message: 'Sandbox stopped successfully',
       });
 
-      printer.log('Sandbox stopped successfully', LogLevel.INFO);
+      this.printer.log('Sandbox stopped successfully', LogLevel.INFO);
     } catch (error) {
-      printer.log(`Error stopping sandbox: ${String(error)}`, LogLevel.ERROR);
+      this.printer.log(
+        `Error stopping sandbox: ${String(error)}`,
+        LogLevel.ERROR,
+      );
       socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: this.backendId.name,
@@ -308,7 +321,7 @@ export class SocketHandlerService {
    */
   private async handleDeleteSandbox(socket: Socket): Promise<void> {
     try {
-      printer.log('Deleting sandbox...', LogLevel.INFO);
+      this.printer.log('Deleting sandbox...', LogLevel.INFO);
 
       socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'deleting',
@@ -318,9 +331,15 @@ export class SocketHandlerService {
 
       await this.sandbox.delete({ identifier: this.backendId.name });
 
-      printer.log('Sandbox delete command issued successfully', LogLevel.DEBUG);
+      this.printer.log(
+        'Sandbox delete command issued successfully',
+        LogLevel.DEBUG,
+      );
     } catch (error) {
-      printer.log(`Error deleting sandbox: ${String(error)}`, LogLevel.ERROR);
+      this.printer.log(
+        `Error deleting sandbox: ${String(error)}`,
+        LogLevel.ERROR,
+      );
       socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'error',
         identifier: this.backendId.name,
@@ -356,7 +375,7 @@ export class SocketHandlerService {
       friendlyName: data.friendlyName,
     });
 
-    printer.log(
+    this.printer.log(
       `Custom friendly name updated for ${data.resourceId}: ${data.friendlyName}`,
       LogLevel.INFO,
     );
@@ -379,7 +398,7 @@ export class SocketHandlerService {
       resourceId: data.resourceId,
     });
 
-    printer.log(
+    this.printer.log(
       `Custom friendly name removed for ${data.resourceId}`,
       LogLevel.INFO,
     );

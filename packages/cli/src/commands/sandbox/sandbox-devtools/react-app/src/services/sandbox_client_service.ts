@@ -107,4 +107,19 @@ export class SandboxClientService extends SocketClientService {
   public getLogSettings(): void {
     this.emit(SOCKET_EVENTS.GET_LOG_SETTINGS);
   }
+
+  /**
+   * Registers a handler for log events
+   * @param handler The event handler
+   * @returns A function to unsubscribe
+   */
+  public onLog(
+    handler: (data: {
+      timestamp: string;
+      level: string;
+      message: string;
+    }) => void,
+  ): () => void {
+    return this.on('log', handler);
+  }
 }

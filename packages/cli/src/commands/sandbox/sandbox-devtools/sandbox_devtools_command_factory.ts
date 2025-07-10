@@ -3,8 +3,6 @@ import { SandboxDevToolsCommand } from './sandbox_devtools_command.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-import { SDKProfileResolverProvider } from '../../../sdk_profile_resolver_provider.js';
 import { format, printer } from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
@@ -23,15 +21,6 @@ export const createSandboxDevToolsCommand = (): CommandModule<
   const sandboxBackendIdResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
   );
-
-  // Create the sandbox factory
-  const sandboxFactory = new SandboxSingletonFactory(
-    sandboxBackendIdResolver.resolve,
-    new SDKProfileResolverProvider().resolve,
-    printer,
-    format,
-  );
-
   // Create the AWS clients
   const s3Client = new S3Client();
   const amplifyClient = new AmplifyClient();
@@ -50,7 +39,6 @@ export const createSandboxDevToolsCommand = (): CommandModule<
   // Create and return the command
   return new SandboxDevToolsCommand(
     sandboxBackendIdResolver,
-    sandboxFactory,
     awsClientProvider,
     portChecker,
     format,
