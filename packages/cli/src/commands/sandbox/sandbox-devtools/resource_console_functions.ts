@@ -51,9 +51,9 @@ export const canProvideConsoleLink = (
   const supportedResourceTypes = [
     'AWS::Lambda::Function',
     'AWS::Lambda::LayerVersion',
-    // 'AWS::DynamoDB::Table', // COMMENT OUT (UNTESTED)
+    'AWS::DynamoDB::Table',
     'AWS::S3::Bucket',
-    // 'AWS::ApiGateway::RestApi', // COMMENT OUT (UNTESTED)
+    'AWS::ApiGateway::RestApi',
     'AWS::IAM::Role',
     'AWS::Cognito::UserPool',
     'AWS::Cognito::UserPoolGroup',
@@ -63,10 +63,10 @@ export const canProvideConsoleLink = (
     'AWS::AppSync::FunctionConfiguration',
     'AWS::AppSync::Resolver',
     'AWS::AppSync::ApiKey',
-    // 'AWS::CloudWatch::Alarm', // COMMENT OUT (UNTESTED)
+    'AWS::CloudWatch::Alarm',
     'AWS::StepFunctions::StateMachine',
-    // 'AWS::SecretsManager::Secret', // COMMENT OUT (UNTESTED)
-    // 'AWS::Logs::LogGroup', // COMMENT OUT (UNTESTED)
+    'AWS::SecretsManager::Secret',
+    'AWS::Logs::LogGroup',
     'Custom::AmplifyDynamoDBTable',
   ];
 
@@ -121,18 +121,18 @@ export const getAwsConsoleUrl = (
         : physicalId;
       return `${baseUrl}/lambda/home?region=${region}#/functions/${lambdaFunctionName}`;
 
-    // case 'AWS::DynamoDB::Table': // COMMENT OUT (UNTESTED)
-    //   // Check if physicalId is an ARN and extract table name if needed
-    //   const dynamoTableName = physicalId.includes(':table/')
-    //     ? physicalId.split(':table/')[1]
-    //     : physicalId;
-    //   return `${baseUrl}/dynamodb/home?region=${region}#/tables/view/${encodeURIComponent(dynamoTableName)}`;
+    case 'AWS::DynamoDB::Table':
+      // Check if physicalId is an ARN and extract table name if needed
+      const dynamoTableName = physicalId.includes(':table/')
+        ? physicalId.split(':table/')[1]
+        : physicalId;
+      return `${baseUrl}/dynamodbv2/home?region=${region}#table?name=${encodeURIComponent(dynamoTableName)}`;
 
     case 'AWS::S3::Bucket':
       return `${baseUrl}/s3/buckets/${encodeURIComponent(physicalId)}?region=${region}`;
 
-    // case 'AWS::ApiGateway::RestApi': // COMMENT OUT (UNTESTED)
-    //   return `${baseUrl}/apigateway/main/apis/${physicalId}/resources?api=${physicalId}&region=${region}`;
+    case 'AWS::ApiGateway::RestApi':
+      return `${baseUrl}/apigateway/main/apis/${physicalId}/resources?api=${physicalId}&region=${region}`;
 
     case 'AWS::IAM::Role':
       // For IAM roles, the physical ID is already the role name
@@ -164,17 +164,17 @@ export const getAwsConsoleUrl = (
       }
       return `${baseUrl}/appsync/home?region=${region}#/${physicalId}/v1/`;
 
-    // case 'AWS::CloudWatch::Alarm': // COMMENT OUT (UNTESTED)
-    //   return `${baseUrl}/cloudwatch/home?region=${region}#alarmsV2:alarm/${physicalId}`;
+    case 'AWS::CloudWatch::Alarm':
+      return `${baseUrl}/cloudwatch/home?region=${region}#alarmsV2:alarm/${physicalId}`;
 
     case 'AWS::StepFunctions::StateMachine':
       return `${baseUrl}/states/home?region=${region}#/statemachines/view/${physicalId}`;
 
-    // case 'AWS::SecretsManager::Secret': // COMMENT OUT (UNTESTED)
-    //   return `${baseUrl}/secretsmanager/home?region=${region}#/secret?name=${physicalId}`;
+    case 'AWS::SecretsManager::Secret':
+      return `${baseUrl}/secretsmanager/home?region=${region}#/secret?name=${physicalId}`;
 
-    // case 'AWS::Logs::LogGroup': // COMMENT OUT (UNTESTED)
-    //   return `${baseUrl}/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/${encodeURIComponent(physicalId)}`;
+    case 'AWS::Logs::LogGroup':
+      return `${baseUrl}/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/${encodeURIComponent(physicalId)}`;
 
     case 'AWS::Cognito::IdentityPool':
       // Check if physicalId is an ARN and extract identity pool ID if needed

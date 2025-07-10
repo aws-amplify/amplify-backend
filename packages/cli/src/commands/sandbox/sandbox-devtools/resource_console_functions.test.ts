@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
@@ -91,7 +92,9 @@ void describe('canProvideConsoleLink function', () => {
     const supportedTypes = [
       'AWS::Lambda::Function',
       'AWS::Lambda::LayerVersion',
+      'AWS::DynamoDB::Table',
       'AWS::S3::Bucket',
+      'AWS::ApiGateway::RestApi',
       'AWS::IAM::Role',
       'AWS::Cognito::UserPool',
       'AWS::Cognito::UserPoolGroup',
@@ -101,7 +104,10 @@ void describe('canProvideConsoleLink function', () => {
       'AWS::AppSync::FunctionConfiguration',
       'AWS::AppSync::Resolver',
       'AWS::AppSync::ApiKey',
+      'AWS::CloudWatch::Alarm',
       'AWS::StepFunctions::StateMachine',
+      'AWS::SecretsManager::Secret',
+      'AWS::Logs::LogGroup',
       'Custom::AmplifyDynamoDBTable',
     ];
 
@@ -114,8 +120,8 @@ void describe('canProvideConsoleLink function', () => {
     }
   });
 
-  void it('returns false for commented out resource types', () => {
-    const commentedOutTypes = [
+  void it('returns true for newly supported resource types', () => {
+    const previouslyCommentedOutTypes = [
       'AWS::DynamoDB::Table',
       'AWS::ApiGateway::RestApi',
       'AWS::CloudWatch::Alarm',
@@ -123,11 +129,11 @@ void describe('canProvideConsoleLink function', () => {
       'AWS::Logs::LogGroup',
     ];
 
-    for (const resourceType of commentedOutTypes) {
+    for (const resourceType of previouslyCommentedOutTypes) {
       assert.strictEqual(
         canProvideConsoleLink(resourceType, 'DEPLOYED'),
-        false,
-        `Expected ${resourceType} to be unsupported`,
+        true,
+        `Expected ${resourceType} to be supported`,
       );
     }
   });
@@ -198,6 +204,14 @@ void describe('getAwsConsoleUrl function', () => {
     );
   });
 
+  void it('generates correct URL for DynamoDB table', () => {
+    const url = getAwsConsoleUrl(testResources[1], testRegion);
+    assert.strictEqual(
+      url,
+      `https://${testRegion}.console.aws.amazon.com/dynamodbv2/home?region=${testRegion}#table?name=test-table`,
+    );
+  });
+
   void it('generates correct URL for S3 bucket', () => {
     const url = getAwsConsoleUrl(testResources[2], testRegion);
     assert.strictEqual(
@@ -258,5 +272,65 @@ void describe('getAwsConsoleUrl function', () => {
   void it('returns null for resources with non-DEPLOYED status', () => {
     const url = getAwsConsoleUrl(testResources[5], testRegion);
     assert.strictEqual(url, null);
+  });
+
+  void it('generates correct URL for ApiGateway RestApi', () => {
+    const apiGatewayResource = {
+      logicalResourceId: 'amplifyRestApi123ABC45',
+      physicalResourceId: 'abc123def456',
+      resourceType: 'AWS::ApiGateway::RestApi',
+      resourceStatus: 'DEPLOYED',
+      friendlyName: 'REST API',
+    };
+    const url = getAwsConsoleUrl(apiGatewayResource, testRegion);
+    assert.strictEqual(
+      url,
+      `https://${testRegion}.console.aws.amazon.com/apigateway/main/apis/abc123def456/resources?api=abc123def456&region=${testRegion}`,
+    );
+  });
+
+  void it('generates correct URL for CloudWatch Alarm', () => {
+    const cloudWatchAlarmResource = {
+      logicalResourceId: 'amplifyAlarm123ABC45',
+      physicalResourceId: 'TestAlarm',
+      resourceType: 'AWS::CloudWatch::Alarm',
+      resourceStatus: 'DEPLOYED',
+      friendlyName: 'CloudWatch Alarm',
+    };
+    const url = getAwsConsoleUrl(cloudWatchAlarmResource, testRegion);
+    assert.strictEqual(
+      url,
+      `https://${testRegion}.console.aws.amazon.com/cloudwatch/home?region=${testRegion}#alarmsV2:alarm/TestAlarm`,
+    );
+  });
+
+  void it('generates correct URL for SecretsManager Secret', () => {
+    const secretsManagerResource = {
+      logicalResourceId: 'amplifySecret123ABC45',
+      physicalResourceId: 'TestSecret',
+      resourceType: 'AWS::SecretsManager::Secret',
+      resourceStatus: 'DEPLOYED',
+      friendlyName: 'Secrets Manager Secret',
+    };
+    const url = getAwsConsoleUrl(secretsManagerResource, testRegion);
+    assert.strictEqual(
+      url,
+      `https://${testRegion}.console.aws.amazon.com/secretsmanager/home?region=${testRegion}#/secret?name=TestSecret`,
+    );
+  });
+
+  void it('generates correct URL for Logs LogGroup', () => {
+    const logsResource = {
+      logicalResourceId: 'amplifyLogGroup123ABC45',
+      physicalResourceId: '/aws/test/console-url-testing',
+      resourceType: 'AWS::Logs::LogGroup',
+      resourceStatus: 'DEPLOYED',
+      friendlyName: 'Log Group',
+    };
+    const url = getAwsConsoleUrl(logsResource, testRegion);
+    assert.strictEqual(
+      url,
+      `https://${testRegion}.console.aws.amazon.com/cloudwatch/home?region=${testRegion}#logsV2:log-groups/log-group/${encodeURIComponent('/aws/test/console-url-testing')}`,
+    );
   });
 });
