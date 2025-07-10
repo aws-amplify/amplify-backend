@@ -153,6 +153,7 @@ void describe('listDeployedResources', () => {
         resourceType: 'AWS::AppSync::API',
         physicalResourceId: 'apiSubStackAppSyncPhysicalResourceId',
         arn: undefined,
+        metadata: undefined,
       },
       {
         logicalResourceId: 'apiStackUserPoolLogicalResourceId',
@@ -162,6 +163,7 @@ void describe('listDeployedResources', () => {
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'apiStackUserPoolPhysicalResourceId',
         arn: undefined,
+        metadata: undefined,
       },
       {
         logicalResourceId: 'authStackUserPoolLogicalResourceId',
@@ -171,6 +173,7 @@ void describe('listDeployedResources', () => {
         resourceType: 'AWS::Cognito::UserPool',
         physicalResourceId: 'authStackUserPoolPhysicalResourceId',
         arn: undefined,
+        metadata: undefined,
       },
       {
         logicalResourceId: 'rootStackIamRoleLogicalResourceId',
@@ -180,6 +183,7 @@ void describe('listDeployedResources', () => {
         resourceType: 'AWS::IAM::Role',
         physicalResourceId: 'rootStackIamRolePhysicalResourceId',
         arn: undefined,
+        metadata: undefined,
       },
     ];
     assert.deepEqual(deployedResources, expectedResources);
