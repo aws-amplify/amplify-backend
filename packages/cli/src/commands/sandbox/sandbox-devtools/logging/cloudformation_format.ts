@@ -7,34 +7,45 @@ import { normalizeCDKConstructPath } from '@aws-amplify/cli-core';
  * @param metadata.constructPath Optional construct path from CDK metadata
  * @returns A user-friendly name for the resource
  *
+ * Examples of friendly names:
  *   - "TodoTable" → "Todo Table"
  *   - "TodoIAMRole2DA8E66E" → "Todo IAM Role"
  *   - "amplifyDataGraphQLAPI42A6FA33" → "Data GraphQLAPI"
  *   - "testNameBucketPolicyA5C458BB" → "test Name Bucket Policy"
+ *
+ * For construct paths:
+ * - amplify-amplify-identifier-sandbox-83e297d0db/data/GraphQLAPI/DefaultApiKey → "Default Api Key"
+ * - amplify-amplify-identifier-sandbox-83e297d0db/auth/amplifyAuth/authenticatedUserRole/Resource → "authenticated User Role"
  */
 export const createFriendlyName = (
   logicalId: string,
   metadata?: { constructPath?: string },
 ): string => {
-  // If we have CDK metadata with a construct path, use it
+  let name = logicalId;
   if (metadata?.constructPath) {
-    return normalizeCDKConstructPath(metadata.constructPath);
+    const normalizedPath = normalizeCDKConstructPath(metadata.constructPath);
+    const parts = normalizedPath.split('/');
+    let resourceName = parts.pop();
+    while (
+      (resourceName === 'Resource' || resourceName === 'Default') &&
+      parts.length > 0
+    ) {
+      resourceName = parts.pop();
+    }
+
+    name = resourceName || logicalId;
   }
 
   // Fall back to the basic transformation
-  let name = logicalId.replace(/^amplify/, '').replace(/^Amplify/, ''); // Remove 'amplify' prefix
+  name = name.replace(/^amplify/, '').replace(/^Amplify/, '');
 
-  // Improve readability by adding spaces between lowercase and uppercase transitions
   name = name.replace(/([a-z])([A-Z])/g, '$1 $2');
 
-  // Add spaces before uppercase letters that follow another uppercase
   name = name.replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
 
   // Remove CloudFormation resource IDs (alphanumeric suffixes)
   name = name.replace(/[0-9A-F]{6,}$/g, '');
 
-  // Clean up spacing and remove leftover single letters (like "A", "B", "C")
-  name = name.replace(/\s[A-Z]\s/g, ' ').replace(/\s[A-Z]$/g, '');
   name = name.replace(/\s+/g, ' ').trim();
 
   const result = name || logicalId;
