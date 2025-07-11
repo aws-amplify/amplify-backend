@@ -21,7 +21,7 @@ import {
   SelectProps,
   Modal,
 } from '@cloudscape-design/components';
-import { SandboxStatus } from '../services/sandbox_client_service';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 
 interface ResourceConsoleProps {
   sandboxStatus?: SandboxStatus;

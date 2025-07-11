@@ -7,7 +7,7 @@ import {
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
 import { useState, useEffect } from 'react';
-import { SandboxStatus } from '../services/sandbox_client_service';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 
 interface HeaderProps {
   connected: boolean;

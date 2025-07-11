@@ -7,10 +7,8 @@ import SandboxOptionsModal, {
 } from './components/SandboxOptionsModal';
 import { SocketClientProvider } from './contexts/socket_client_context';
 import { useSandboxClientService } from './contexts/socket_client_context';
-import {
-  SandboxStatus,
-  SandboxStatusData,
-} from './services/sandbox_client_service';
+import { SandboxStatusData } from './services/sandbox_client_service';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 
 // Define LogEntry interface for PR2 (will be replaced in PR3)
 interface LogEntry {

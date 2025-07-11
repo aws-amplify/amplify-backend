@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SandboxStatus } from '../services/sandbox_client_service';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 import { useResourceClientService } from '../contexts/socket_client_context';
 import {
   ResourceWithFriendlyName,
