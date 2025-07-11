@@ -90,6 +90,9 @@ export enum LogLevel {
 // @public (undocumented)
 export const minimumLogLevel: LogLevel;
 
+// @public
+export const normalizeCDKConstructPath: (constructPath: string) => string;
+
 // @public (undocumented)
 export type Notice = z.infer<typeof noticeSchema>;
 

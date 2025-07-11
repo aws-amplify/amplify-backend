@@ -6,3 +6,4 @@ export * from './package-manager-controller/package_manager_controller_factory.j
 export * from './loggers/amplify_io_events_bridge_singleton_factory.js';
 export * from './notices/notices.js';
 export * from './notices/notices_manifest_validator.js';
+export { normalizeCDKConstructPath } from './formatters/cdk_path_formatter.js';

@@ -3,6 +3,7 @@ import { StackEvent } from '@aws-sdk/client-cloudformation';
 import { RewritableBlock } from './rewritable_block.js';
 import { ColorName, format } from '../../format/format.js';
 import { EOL } from 'os';
+import { normalizeCDKConstructPath } from '../../formatters/cdk_path_formatter.js';
 
 /**
  * Collects events from CDK Toolkit about cfn deployment and structures them
@@ -58,6 +59,12 @@ export class CfnDeploymentProgressLogger {
   private statusWidth = 20;
   private resourceNameIndentation = 0;
   private readonly getBlockWidth: () => number;
+
+  /**
+   * Extract nested stack names
+   * @deprecated Use the shared normalizeCDKConstructPath function from formatters/cdk_path_formatter.js instead
+   */
+  private normalizeCDKConstructPath = normalizeCDKConstructPath;
 
   /**
    * Instantiate the CFN deployment progress builder
@@ -230,21 +237,6 @@ export class CfnDeploymentProgressLogger {
 
     await this.block.displayLines(lines);
   }
-
-  /**
-   * Extract nested stack names
-   */
-  private normalizeCDKConstructPath = (constructPath: string): string => {
-    // Don't run regex on long strings, they are most likely not valid and could cause DOS attach. See CodeQL's js/polynomial-redos
-    if (constructPath.length > 1000) return constructPath;
-    const nestedStackRegex =
-      /(?<nestedStack>[a-zA-Z0-9_]+)\.NestedStack\/\1\.NestedStackResource$/;
-
-    return constructPath
-      .replace(nestedStackRegex, '$<nestedStack>')
-      .replace('/amplifyAuth/', '/')
-      .replace('/amplifyData/', '/');
-  };
 
   /**
    * Extract the failure reason from stack events

@@ -94,6 +94,7 @@ void describe('sandbox command', () => {
         successfulDeployment: [clientConfigGenerationMock],
         successfulDeletion: [clientConfigDeletionMock],
         failedDeployment: [],
+        resourceConfigChanged: [],
       }),
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);

@@ -713,10 +713,10 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // of the two file change events, successfulDeployment event should only be fired once
-    assert.strictEqual(mockEmit.mock.callCount(), 2);
-    assert.strictEqual(mockEmit.mock.calls[0].arguments[0], 'failedDeployment');
+    assert.strictEqual(mockEmit.mock.callCount(), 4);
+    assert.strictEqual(mockEmit.mock.calls[1].arguments[0], 'failedDeployment');
     assert.strictEqual(
-      mockEmit.mock.calls[1].arguments[0],
+      mockEmit.mock.calls[3].arguments[0],
       'successfulDeployment',
     );
 
@@ -1025,7 +1025,7 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test1.ts' },
     ]);
 
-    assert.strictEqual(mockEmit.mock.callCount(), 1);
+    assert.strictEqual(mockEmit.mock.callCount(), 2);
   });
 
   void it('emits the successfulDeletion event after delete is finished', async () => {

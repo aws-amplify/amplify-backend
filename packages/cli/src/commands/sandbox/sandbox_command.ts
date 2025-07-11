@@ -44,6 +44,7 @@ export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
   failedDeployment: EventHandler[];
+  resourceConfigChanged: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {
@@ -117,6 +118,9 @@ export class SandboxCommand
         handlers.forEach((handler) => sandbox.on(event, handler));
       });
     }
+    sandbox.on('initializationError', (error) => {
+      printer.log(`Initialization error: ${String(error)}`, LogLevel.ERROR);
+    });
     const watchExclusions = args.exclude ?? [];
     const fileName = getClientConfigFileName(
       args.outputsVersion as ClientConfigVersion,

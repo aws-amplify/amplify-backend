@@ -5,6 +5,16 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
+ * Type definition for sandbox status
+ */
+export type SandboxStatus =
+  | 'running'
+  | 'stopped'
+  | 'nonexistent'
+  | 'unknown'
+  | 'deploying'
+  | 'deleting';
+/**
  * Interface for Sandbox.
  */
 export type Sandbox = {
@@ -23,12 +33,24 @@ export type Sandbox = {
    * Deletes this environment
    */
   delete: (options: SandboxDeleteOptions) => Promise<void>;
+
+  /**
+   * Gets the current state of the sandbox
+   * @returns The current state: 'running', 'stopped', 'deploying', 'deleting', 'nonexistent', or 'unknown'
+   */
+  getState: () => SandboxStatus;
 } & EventEmitter;
 
 export type SandboxEvents =
+  | 'deploymentStarted'
   | 'successfulDeployment'
   | 'failedDeployment'
-  | 'successfulDeletion';
+  | 'deletionStarted'
+  | 'successfulDeletion'
+  | 'failedDeletion'
+  | 'successfulStop'
+  | 'failedStop'
+  | 'initializationError';
 
 export type SandboxOptions = {
   dir?: string;

@@ -16,6 +16,7 @@ import { LogRetention } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Span } from '@opentelemetry/api';
 import { SpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { STSClient } from '@aws-sdk/client-sts';
 import z from 'zod';
 
 declare namespace __export__cdk {
@@ -223,6 +224,13 @@ export class ParameterPathConversions {
     static toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
     static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
+}
+
+// @public
+export class RegionFetcher {
+    constructor(stsClient?: STSClient);
+    // (undocumented)
+    fetch: () => Promise<string | undefined>;
 }
 
 // @public

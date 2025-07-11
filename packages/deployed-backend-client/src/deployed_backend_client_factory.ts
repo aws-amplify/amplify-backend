@@ -47,6 +47,7 @@ export type DeployedBackendResource = {
   resourceType?: string;
   physicalResourceId?: string;
   arn?: string;
+  metadata?: { constructPath?: string };
 };
 
 export type BackendMetadata = {

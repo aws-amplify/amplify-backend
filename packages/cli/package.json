@@ -72,6 +72,7 @@
     "semver": "^7.6.3",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "strip-ansi": "^7.1.0",
     "typescript": "^5.8.3",
     "ws": "^8.18.2",
     "yargs": "^17.7.2",
