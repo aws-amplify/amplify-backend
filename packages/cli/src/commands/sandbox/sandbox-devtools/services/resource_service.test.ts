@@ -91,10 +91,7 @@ void describe('ResourceService', () => {
       assert.strictEqual(result.name, 'test-backend');
       assert.strictEqual(result.region, 'us-east-1');
       assert.strictEqual(result.resources.length, 1);
-      assert.strictEqual(
-        result.resources[0].friendlyName,
-        'MyStack/MyFunction/Resource',
-      );
+      assert.strictEqual(result.resources[0].friendlyName, 'My Function');
       assert.strictEqual(
         result.resources[0].resourceType,
         'AWS::Lambda::Function',
