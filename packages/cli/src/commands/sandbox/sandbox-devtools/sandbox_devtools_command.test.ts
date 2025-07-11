@@ -7,6 +7,7 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { createServer } from 'node:http';
 
 void describe('SandboxDevToolsCommand', () => {
   let command: SandboxDevToolsCommand;
@@ -29,7 +30,12 @@ void describe('SandboxDevToolsCommand', () => {
 
     // Create mock for SandboxBackendIdResolver
     mockSandboxBackendIdResolver = {
-      resolve: () => Promise.resolve({ name: 'test-backend' }),
+      resolve: () =>
+        Promise.resolve({
+          name: 'test-backend',
+          namespace: 'test',
+          type: 'sandbox',
+        }),
     } as unknown as SandboxBackendIdResolver;
 
     // Create mock for AWS client provider
@@ -69,62 +75,140 @@ void describe('SandboxDevToolsCommand', () => {
     });
   });
 
-  void describe('handler', () => {
-    void it('prints server start message', async (contextual) => {
-      const printMock = contextual.mock.method(printer, 'print');
-
-      // Mock the handler to avoid full execution
-      command.handler = async () => {
-        printer.print('DevTools server started at http://localhost:3333');
-      };
-
-      await command.handler();
-
-      assert.strictEqual(printMock.mock.callCount(), 1);
-      assert.match(
-        printMock.mock.calls[0].arguments[0],
-        /DevTools server started at/,
+  void describe('checkPortAvailability', () => {
+    void it('does not throw when port is available', async (contextual) => {
+      // Mock port checker to report port is available
+      contextual.mock.method(mockPortChecker, 'isPortInUse', () =>
+        Promise.resolve(false),
       );
+
+      // This should not throw an error
+      await command.checkPortAvailability(3333);
+
+      // If we reach here, the test passes
+      assert.ok(true);
     });
 
-    void it('uses correct port when available', async (contextual) => {
-      const portCheckerMock = contextual.mock.method(
-        mockPortChecker,
-        'isPortInUse',
-        () => Promise.resolve(false),
+    void it('throws error when port is already in use', async (contextual) => {
+      // Mock port checker to report port is in use
+      contextual.mock.method(mockPortChecker, 'isPortInUse', () =>
+        Promise.resolve(true),
       );
 
-      const printMock = contextual.mock.method(printer, 'print');
+      // Mock printer.log to catch error message
+      const logMock = contextual.mock.method(printer, 'log');
 
-      // Simplified handler test
-      command.handler = async () => {
-        const isInUse = await mockPortChecker.isPortInUse(3333);
-        const port = isInUse ? 4444 : 3333;
-        printer.print(`DevTools server started at http://localhost:${port}`);
-      };
+      // This should throw an error
+      await assert.rejects(
+        () => command.checkPortAvailability(3333),
+        (error: Error) => {
+          assert.match(error.message, /Port .* is required for DevTools/);
+          return true;
+        },
+      );
 
-      await command.handler();
-
-      assert.strictEqual(portCheckerMock.mock.callCount(), 1);
-      assert.match(printMock.mock.calls[0].arguments[0], /localhost:3333/);
+      // Verify error was logged
+      assert.strictEqual(logMock.mock.callCount(), 1);
+      assert.match(
+        logMock.mock.calls[0].arguments[0],
+        /Port .* is already in use/,
+      );
     });
 
     void it('handles port checker errors', async (contextual) => {
+      // Mock port checker to throw an error
       contextual.mock.method(mockPortChecker, 'isPortInUse', () => {
         throw new Error('Port check failed');
       });
 
-      command.handler = async () => {
-        await mockPortChecker.isPortInUse(3333);
-      };
-
+      // This should throw the same error
       await assert.rejects(
-        () => command.handler(),
+        () => command.checkPortAvailability(3333),
         (error: Error) => {
           assert.strictEqual(error.message, 'Port check failed');
           return true;
         },
       );
     });
+  });
+
+  void describe('startServer', () => {
+    void it('starts the server and prints the start message', (contextual) => {
+      const mockServer = {
+        listen: contextual.mock.fn(),
+      };
+
+      const printMock = contextual.mock.method(printer, 'print');
+
+      // Start the server
+      command.startServer(
+        mockServer as unknown as ReturnType<typeof createServer>,
+        3333,
+      );
+
+      // Check that the server was started with the correct port
+      assert.strictEqual(mockServer.listen.mock.callCount(), 1);
+      assert.strictEqual(mockServer.listen.mock.calls[0].arguments[0], 3333);
+
+      // Check that the start message was printed
+      assert.strictEqual(printMock.mock.callCount(), 1);
+      assert.match(
+        printMock.mock.calls[0].arguments[0],
+        /DevTools server started at http:\/\/localhost:3333/,
+      );
+    });
+  });
+
+  void describe('setupProcessHandlers', () => {
+    void it('registers SIGINT and SIGTERM handlers', (contextual) => {
+      const processOnceMock = contextual.mock.method(process, 'once');
+
+      const mockShutdownService = {
+        shutdown: contextual.mock.fn(() => Promise.resolve()),
+      };
+
+      command.setupProcessHandlers(mockShutdownService);
+
+      assert.strictEqual(processOnceMock.mock.callCount(), 2);
+
+      const sigintCall = processOnceMock.mock.calls.find(
+        (call) => call.arguments[0] === 'SIGINT',
+      );
+      assert.ok(sigintCall, 'Should register SIGINT handler');
+
+      // Check SIGTERM is registered
+      // eslint-disable-next-line spellcheck/spell-checker
+      const sigtermCall = processOnceMock.mock.calls.find(
+        (call) => call.arguments[0] === 'SIGTERM',
+      );
+      // eslint-disable-next-line spellcheck/spell-checker
+      assert.ok(sigtermCall, 'Should register SIGTERM handler');
+
+      // Simulate SIGINT to verify shutdown is called
+      if (sigintCall) {
+        const sigintHandler = sigintCall.arguments[1];
+        sigintHandler();
+        // We can't easily assert async functions called inside an IIFE
+      }
+    });
+  });
+
+  void it('prints server start message when server starts', (contextual) => {
+    const printMock = contextual.mock.method(printer, 'print');
+
+    const mockServer = {
+      listen: contextual.mock.fn(),
+    };
+
+    command.startServer(
+      mockServer as unknown as ReturnType<typeof createServer>,
+      3333,
+    );
+
+    assert.strictEqual(printMock.mock.callCount(), 1);
+    assert.match(
+      printMock.mock.calls[0].arguments[0],
+      /DevTools server started at http:\/\/localhost:3333/,
+    );
   });
 });
