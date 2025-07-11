@@ -1,6 +1,6 @@
 {
   "name": "create-amplify",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "main": "lib/index.js",
   "publishConfig": {
