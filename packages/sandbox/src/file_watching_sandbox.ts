@@ -7,6 +7,7 @@ import {
   SandboxDeleteOptions,
   SandboxEvents,
   SandboxOptions,
+  SandboxStatus,
 } from './sandbox.js';
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
@@ -75,13 +76,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof _subscribe>>;
   private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
-  private state:
-    | 'running'
-    | 'stopped'
-    | 'deploying'
-    | 'deleting'
-    | 'nonexistent'
-    | 'unknown' = 'unknown';
+  private state: SandboxStatus = 'unknown';
 
   /**
    * Creates a watcher process for this instance
@@ -105,13 +100,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Gets the current state of the sandbox
    * @returns The current state: 'running', 'stopped', 'deploying', 'deleting', 'nonexistent', or 'unknown'
    */
-  getState = ():
-    | 'running'
-    | 'stopped'
-    | 'deploying'
-    | 'deleting'
-    | 'nonexistent'
-    | 'unknown' => {
+  getState = (): SandboxStatus => {
     return this.state;
   };
 

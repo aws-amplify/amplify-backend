@@ -1,17 +1,6 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-
-/**
- * Type definition for sandbox status
- */
-export type SandboxStatus =
-  | 'running'
-  | 'stopped'
-  | 'nonexistent'
-  | 'unknown'
-  | 'deploying'
-  | 'deleting'
-  | 'stopping';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 
 /**
  * Interface for sandbox status data

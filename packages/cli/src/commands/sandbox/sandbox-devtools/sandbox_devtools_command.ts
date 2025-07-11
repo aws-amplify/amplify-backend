@@ -12,7 +12,7 @@ import {
   printer as printerUtil,
 } from '@aws-amplify/cli-core';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { SandboxSingletonFactory, SandboxStatus } from '@aws-amplify/sandbox';
 import { SDKProfileResolverProvider } from '../../../sdk_profile_resolver_provider.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { DeployedBackendClientFactory } from '@aws-amplify/deployed-backend-client';
@@ -28,17 +28,6 @@ import { SocketHandlerService } from './services/socket_handlers.js';
 import { ResourceService } from './services/resource_service.js';
 import { PortChecker } from '../port_checker.js';
 import { DevToolsLogger } from './services/devtools_logger.js';
-
-/**
- * Type definition for sandbox status
- */
-export type SandboxStatus =
-  | 'running'
-  | 'stopped'
-  | 'nonexistent' // Sandbox does not exist
-  | 'unknown' // Status is unknown
-  | 'deploying' // Sandbox is being deployed
-  | 'deleting'; // Sandbox is being deleted
 
 /**
  * Type for sandbox status data
