@@ -27,17 +27,20 @@ export const useResourceManager = (
   const [backendName, setBackendName] = useState<string>('');
 
   useEffect(() => {
-    resourceClientService.getCustomFriendlyNames();
+    // Add a small random delay on initial load to prevent all tabs from requesting at the same time
+    const initialDelay = Math.random() * 2000; // Random delay between 0-2000ms
 
     const loadResources = () => {
       setIsLoading(true);
       setError(null);
 
+      resourceClientService.getCustomFriendlyNames();
       resourceClientService.getSavedResources();
       resourceClientService.getDeployedBackendResources();
     };
 
-    loadResources();
+    // Apply initial delay to prevent thundering herd problem when multiple tabs reconnect
+    setTimeout(loadResources, initialDelay);
 
     const handleSavedResources = (data: BackendResourcesData) => {
       if (data && data.resources) {
