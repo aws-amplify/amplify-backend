@@ -145,8 +145,9 @@ const Header = ({
     }
   };
 
-  // Check if the sandbox is in deploying state
+  // Check if the sandbox is in deploying or deleting state
   const isDeploying = sandboxStatus === 'deploying';
+  const isDeleting = sandboxStatus === 'deleting';
 
   return (
     <CloudscapeHeader
@@ -166,7 +167,7 @@ const Header = ({
               onClick={handleStopSandbox}
               iconName="close"
               loading={isLoading || isDeploying}
-              disabled={!connected || sandboxStatus !== 'running'}
+              disabled={!connected || sandboxStatus !== 'running' || isDeleting}
             >
               Stop Sandbox
             </Button>
@@ -176,7 +177,7 @@ const Header = ({
               iconName="add-plus"
               variant="primary"
               loading={isStartingLoading || isDeploying}
-              disabled={!connected || isDeploying}
+              disabled={!connected || isDeploying || isDeleting}
             >
               Start Sandbox
             </Button>
@@ -191,7 +192,8 @@ const Header = ({
                 !connected ||
                 sandboxStatus === 'nonexistent' ||
                 sandboxStatus === 'unknown' ||
-                isDeploying
+                isDeploying ||
+                isDeleting
               }
             >
               Delete Sandbox
