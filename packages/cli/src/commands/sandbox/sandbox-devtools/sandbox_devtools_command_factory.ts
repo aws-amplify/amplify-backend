@@ -17,26 +17,21 @@ export const createSandboxDevToolsCommand = (): CommandModule<
   object,
   object
 > => {
-  // Create the sandbox backend ID resolver
   const sandboxBackendIdResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader()),
   );
-  // Create the AWS clients
   const s3Client = new S3Client();
   const amplifyClient = new AmplifyClient();
   const cloudFormationClient = new CloudFormationClient();
 
-  // Create the AWS client provider
   const awsClientProvider = {
     getS3Client: () => s3Client,
     getAmplifyClient: () => amplifyClient,
     getCloudFormationClient: () => cloudFormationClient,
   };
 
-  // Create the port checker
   const portChecker = new PortChecker();
 
-  // Create and return the command
   return new SandboxDevToolsCommand(
     sandboxBackendIdResolver,
     awsClientProvider,

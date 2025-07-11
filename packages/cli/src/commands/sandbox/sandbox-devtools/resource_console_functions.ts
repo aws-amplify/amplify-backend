@@ -84,12 +84,16 @@ export const isGlobalService = (service?: string): boolean => {
 
 /**
  * Generates an AWS console URL for a given resource
+ * @param resource - The resource to generate the URL for
+ * @param region - The AWS region for the resource
+ * @returns The AWS console URL for the resource, or null if not applicable
  */
 export const getAwsConsoleUrl = (
   resource: ResourceWithFriendlyName,
   region: string | null,
 ): string | null => {
   // If region is not available, don't provide any links
+  // The front end handles null links gracefully (no display at all)
   if (!region) {
     return null;
   }
@@ -112,7 +116,6 @@ export const getAwsConsoleUrl = (
     ? 'https://console.aws.amazon.com'
     : `https://${region}.console.aws.amazon.com`;
 
-  // Generate URLs based on resource type
   switch (resourceType) {
     case 'AWS::Lambda::Function':
       // Check if physicalId is an ARN and extract function name if needed
@@ -156,7 +159,6 @@ export const getAwsConsoleUrl = (
       return `${baseUrl}/cognito/v2/idp/user-pools?region=${region}`;
 
     case 'AWS::AppSync::GraphQLApi':
-      //NOTE: whats up with the v1?
       // Extract API ID from ARN if available
       if (physicalId.includes(':apis/')) {
         const apiId = physicalId.split(':apis/')[1];
@@ -205,7 +207,6 @@ export const getAwsConsoleUrl = (
         const dataSourceName = physicalId.split('/datasources/')[1];
         return `${baseUrl}/appsync/home?region=${region}#/${apiId}/v1/datasources/${dataSourceName}/edit`;
       }
-      // If we can't extract the API ID and data source name, use the old logic
       if (physicalId.includes('/')) {
         const apiId = physicalId.split('/')[0];
         return `${baseUrl}/appsync/home?region=${region}#/${encodeURIComponent(apiId)}/v1/datasources`;
@@ -219,7 +220,6 @@ export const getAwsConsoleUrl = (
         const functionId = physicalId.split('/functions/')[1];
         return `${baseUrl}/appsync/home?region=${region}#/${apiId}/v1/functions/${functionId}/edit`;
       }
-      // If we can't extract the API ID and function ID, use the old logic
       if (physicalId.includes('/')) {
         const apiId = physicalId.split('/')[0];
         return `${baseUrl}/appsync/home?region=${region}#/${encodeURIComponent(apiId)}/v1/functions`;

@@ -175,7 +175,10 @@ export class DeployedResourcesEnumerator {
 
       return metadata;
     } catch {
-      // If we can't get template metadata, return empty object
+      // Silently handle failures when retrieving template metadata (like API errors,
+      // throttling, or malformed templates) since metadata is non-critical. Consumers
+      // of this API need a complete resource listing even when metadata can't be fetched,
+      // and will function properly with missing metadata fields.
       return {};
     }
   }

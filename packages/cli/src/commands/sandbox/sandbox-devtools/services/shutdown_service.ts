@@ -63,7 +63,6 @@ export class ShutdownService {
     // Clear all stored resources when devtools ends
     this.storageManager.clearAll();
 
-    // Close socket and server connections
     await this.io.close();
 
     // Properly wait for the HTTP server to close
@@ -71,7 +70,7 @@ export class ShutdownService {
       void this.server.close(() => resolve());
     });
 
-    // Exit the process if requested - no delay needed now that we properly await all closures
+    // Exit the process if requested
     if (exitProcess) {
       process.exit(0);
     }

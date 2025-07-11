@@ -172,7 +172,6 @@ export class SocketHandlerService {
             LogLevel.ERROR,
           );
 
-          // Check if this is a deployment in progress error
           if (errorMessage.includes('deployment is in progress')) {
             socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
               name: this.backendId.name,
