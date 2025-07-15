@@ -293,8 +293,8 @@ export class SocketHandlerService {
           // Find the latest log stream
           const streamResult = await this.findLatestLogStream(logGroupName);
 
-          // Set up log polling
-          this.setupLogPolling(
+          // Set up adaptive log polling
+          this.setupAdaptiveLogPolling(
             data.resourceId,
             logGroupName,
             streamResult.logStreamName!,
@@ -371,82 +371,6 @@ export class SocketHandlerService {
     return {
       logStreamName: describeStreamsResponse.logStreams[0].logStreamName,
     };
-  }
-
-  /**
-   * Sets up log polling for a resource
-   * @param resourceId The resource ID
-   * @param logGroupName The log group name
-   * @param logStreamName The log stream name
-   * @param socket Optional socket to emit errors to
-   */
-  private setupLogPolling(
-    resourceId: string,
-    logGroupName: string,
-    logStreamName: string,
-    socket?: Socket,
-  ): void {
-    let nextToken: string | undefined = undefined;
-
-    // Function to fetch and save logs
-    const fetchLogs = () => {
-      void (async () => {
-        try {
-          const getLogsResponse = await this.cwLogsClient.send(
-            new GetLogEventsCommand({
-              logGroupName,
-              logStreamName,
-              nextToken,
-              startFromHead: true,
-            }),
-          );
-
-          // Update next token for next poll
-          nextToken = getLogsResponse.nextForwardToken;
-
-          // Process and save logs
-          if (getLogsResponse.events && getLogsResponse.events.length > 0) {
-            // Get the toggle start time for this resource
-            const toggleStartTime = this.toggleStartTimes.get(resourceId) || 0;
-
-            // Filter logs based on toggle start time
-            const logs = getLogsResponse.events
-              .filter((event) => (event.timestamp || 0) > toggleStartTime)
-              .map((event) => ({
-                timestamp: event.timestamp || Date.now(),
-                message: event.message || '',
-              }));
-
-            // Only save and emit if we have logs after filtering
-            if (logs.length > 0) {
-              // Save logs to local storage
-              logs.forEach((log: { timestamp: number; message: string }) => {
-                this.storageManager.appendCloudWatchLog(resourceId, log);
-              });
-
-              // Emit logs to all clients
-              this.io.emit(SOCKET_EVENTS.RESOURCE_LOGS, {
-                resourceId,
-                logs,
-              });
-            }
-          }
-        } catch (error) {
-          try {
-            clearInterval(pollingInterval);
-            this.activeLogPollers.delete(resourceId);
-            this.handleResourceNotFoundException(resourceId, error, socket);
-          } catch {
-            this.handleLogError(resourceId, error, socket);
-          }
-        }
-      })();
-    };
-    // Set up polling interval with more frequent polling since we're only using this approach
-    const pollingInterval = setInterval(fetchLogs, 2000); // Poll every 2 seconds
-    this.activeLogPollers.set(resourceId, pollingInterval);
-    // fetch after setting up the interval to ensure that the error handler clears the interval in case fetch fails
-    fetchLogs();
   }
 
   /**
@@ -1017,6 +941,117 @@ export class SocketHandlerService {
     // Stop all active log pollers before shutting down
     this.stopAllLogPollers();
     await this.shutdownService.shutdown('user request', true);
+  }
+
+  /**
+   * Sets up adaptive log polling for a resource that adjusts frequency based on activity
+   * @param resourceId The resource ID
+   * @param logGroupName The log group name
+   * @param logStreamName The log stream name
+   * @param socket Optional socket to emit errors to
+   */
+  private setupAdaptiveLogPolling(
+    resourceId: string,
+    logGroupName: string,
+    logStreamName: string,
+    socket?: Socket,
+  ): void {
+    let nextToken: string | undefined = undefined;
+    let consecutiveEmptyPolls = 0;
+    let currentInterval = 2000; // Start with 2 seconds
+
+    const fetchLogs = () => {
+      void (async () => {
+        try {
+          const getLogsResponse = await this.cwLogsClient.send(
+            new GetLogEventsCommand({
+              logGroupName,
+              logStreamName,
+              nextToken,
+              startFromHead: true,
+            }),
+          );
+
+          // Update next token for next poll
+          nextToken = getLogsResponse.nextForwardToken;
+
+          // Process and save logs
+          if (getLogsResponse.events && getLogsResponse.events.length > 0) {
+            // Get the toggle start time for this resource
+            const toggleStartTime = this.toggleStartTimes.get(resourceId) || 0;
+
+            // Filter logs based on toggle start time
+            const logs = getLogsResponse.events
+              .filter((event) => (event.timestamp || 0) > toggleStartTime)
+              .map((event) => ({
+                timestamp: event.timestamp || Date.now(),
+                message: event.message || '',
+              }));
+
+            // Only save and emit if we have logs after filtering
+            if (logs.length > 0) {
+              // Save logs to local storage
+              logs.forEach((log: { timestamp: number; message: string }) => {
+                this.storageManager.appendCloudWatchLog(resourceId, log);
+              });
+
+              // Emit logs to all clients
+              this.io.emit(SOCKET_EVENTS.RESOURCE_LOGS, {
+                resourceId,
+                logs,
+              });
+
+              // Reset consecutive empty polls and speed up polling if needed
+              consecutiveEmptyPolls = 0;
+              if (currentInterval > 2000) {
+                // Speed up polling if we're getting logs
+                clearInterval(pollingInterval);
+                currentInterval = 2000;
+                pollingInterval = setInterval(fetchLogs, currentInterval);
+                this.activeLogPollers.set(resourceId, pollingInterval);
+              }
+            } else {
+              // No new logs after filtering
+              handleEmptyPoll();
+            }
+          } else {
+            // No logs at all
+            handleEmptyPoll();
+          }
+        } catch (error) {
+          try {
+            clearInterval(pollingInterval);
+            this.activeLogPollers.delete(resourceId);
+            this.handleResourceNotFoundException(resourceId, error, socket);
+          } catch {
+            this.handleLogError(resourceId, error, socket);
+          }
+        }
+      })();
+    };
+
+    // Helper function to handle empty poll results
+    const handleEmptyPoll = () => {
+      consecutiveEmptyPolls++;
+      if (consecutiveEmptyPolls > 3 && currentInterval < 10000) {
+        // Slow down polling after 3 empty polls
+        clearInterval(pollingInterval);
+        currentInterval = Math.min(currentInterval * 1.5, 10000);
+        pollingInterval = setInterval(fetchLogs, currentInterval);
+        this.activeLogPollers.set(resourceId, pollingInterval);
+
+        this.printer.log(
+          `Reduced polling frequency for ${resourceId} to ${currentInterval}ms after ${consecutiveEmptyPolls} empty polls`,
+          LogLevel.DEBUG,
+        );
+      }
+    };
+
+    let pollingInterval = setInterval(fetchLogs, currentInterval);
+    this.activeLogPollers.set(resourceId, pollingInterval);
+
+    // Fetch logs immediately after setting up the interval
+    fetchLogs();
   }
 
   /**
