@@ -16,9 +16,14 @@ export class SocketClientService {
 
   /**
    * Creates a new SocketClientService
+   * @param socketFactory Optional factory function to create the socket (useful for testing)
    */
-  constructor() {
-    this.initialize();
+  constructor(socketFactory?: () => Socket) {
+    if (socketFactory) {
+      this.socket = socketFactory();
+    } else {
+      this.initialize();
+    }
   }
 
   /**
@@ -152,7 +157,7 @@ export class SocketClientService {
 
     const pingInterval = setInterval(() => {
       if (this.socket?.connected) {
-        this.socket.emit('ping', {}, (response: any) => {
+        this.socket.emit('ping', {}, (response: { error?: string }) => {
           if (!response || response.error) {
             console.warn('Ping failed:', response?.error || 'No response');
           }
