@@ -7,12 +7,14 @@ import { DeployedBackendClient } from '@aws-amplify/deployed-backend-client';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { RegionFetcher } from '@aws-amplify/platform-core';
 import { createFriendlyName } from '../logging/cloudformation_format.js';
-
+import { LocalStorageManager } from '../local_storage_manager.js';
 import {
   ResourceWithFriendlyName,
   getAwsConsoleUrl,
   isCompleteResource,
 } from '../resource_console_functions.js';
+import { getLogGroupName } from '../logging/log_group_extractor.js';
+import { SandboxStatus } from '@aws-amplify/sandbox';
 
 /**
  * Type for deployed backend resources response
@@ -33,7 +35,9 @@ export class ResourceService {
    * Creates a new ResourceService
    */
   constructor(
+    private storageManager: LocalStorageManager,
     private readonly backendName: string,
+    private getSandboxState: () => Promise<SandboxStatus>,
     private readonly backendClient: DeployedBackendClient,
     private readonly namespace: string = 'amplify-backend', // Add namespace parameter with default
     private readonly regionFetcher: RegionFetcher = new RegionFetcher(),
@@ -46,6 +50,37 @@ export class ResourceService {
    */
   public async getDeployedBackendResources(): Promise<DeployedBackendResources> {
     try {
+      // Get the current sandbox state first
+      const sandboxState = await this.getSandboxState();
+
+      // Try to load saved resources first
+      const savedResources = this.storageManager.loadResources();
+      if (savedResources) {
+        this.printer.log(
+          'Found saved resources, returning them',
+          LogLevel.DEBUG,
+        );
+        return {
+          ...savedResources,
+          status: sandboxState,
+        } as DeployedBackendResources;
+      }
+
+      // Only proceed with fetching actual resources if sandbox is running or stopped
+      if (sandboxState !== 'running' && sandboxState !== 'stopped') {
+        // For non-running states, return appropriate status
+        return {
+          name: this.backendName,
+          status: sandboxState,
+          resources: [],
+          region: null,
+          message:
+            sandboxState === 'nonexistent'
+              ? 'No sandbox exists. Please create a sandbox first.'
+              : `Sandbox is ${sandboxState}. Resources can't be fetched at this time.`,
+        };
+      }
+
       try {
         this.printer.log('Fetching backend metadata...', LogLevel.DEBUG);
         // Create a BackendIdentifier object for the sandbox
@@ -113,6 +148,13 @@ export class ResourceService {
               region,
             );
 
+            // Add log group name (if this resource type supports logs)
+            const logGroupName = getLogGroupName(
+              resourceType,
+              resource.physicalResourceId,
+            );
+            resourceWithFriendlyName.logGroupName = logGroupName;
+
             return resourceWithFriendlyName;
           });
 
@@ -123,6 +165,8 @@ export class ResourceService {
           resources: resourcesWithFriendlyNames,
         };
 
+        this.storageManager.saveResources(enhancedData);
+
         return enhancedData;
       } catch (error) {
         const errorMessage = String(error);
@@ -130,7 +174,11 @@ export class ResourceService {
           `Error getting backend resources: ${errorMessage}`,
           LogLevel.ERROR,
         );
-
+        //NOTE: we should never actually reach here if the sandbox
+        // does a good job of handling its own state(because we only try if the sandbox is running or stopped)
+        // but if we do, we should handle the error gracefully
+        // and return an empty resources array with a message
+        // This could also help people with potential debugging issues
         // Check if this is a deployment in progress error
         if (errorMessage.includes('deployment is in progress')) {
           return {

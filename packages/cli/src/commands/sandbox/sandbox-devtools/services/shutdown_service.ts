@@ -1,7 +1,8 @@
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'node:http';
-import { Sandbox } from '@aws-amplify/sandbox';
+import { Sandbox, SandboxStatus } from '@aws-amplify/sandbox';
+import { LocalStorageManager } from '../local_storage_manager.js';
 
 /**
  * Service for handling the shutdown process of the DevTools server
@@ -20,9 +21,9 @@ export class ShutdownService {
   constructor(
     private readonly io: SocketIOServer,
     private readonly server: HttpServer,
-    private readonly storageManager: { clearAll: () => void },
+    private readonly storageManager: LocalStorageManager,
     private readonly sandbox: Sandbox,
-    private readonly getSandboxState: () => Promise<string>,
+    private readonly getSandboxState: () => Promise<SandboxStatus>,
     private readonly printer: Printer,
   ) {}
 

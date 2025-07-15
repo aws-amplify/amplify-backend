@@ -2,7 +2,7 @@ import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 import { NoticesRenderer } from '../../notices/notices_renderer.js';
 
 /**
@@ -25,23 +25,6 @@ export class SandboxEventHandlerFactory {
     clientConfigLifecycleHandler,
   }) => {
     return {
-      resourceConfigChanged: [
-        async () => {
-          try {
-            // Notify that resource configuration has changed
-            printer.log(
-              '[Sandbox] Resource configuration changed, updating resources...',
-              LogLevel.DEBUG,
-            );
-          } catch (error) {
-            printer.print(
-              `${format.error(
-                'Failed to handle resource configuration change.',
-              )} ${format.error(error)}`,
-            );
-          }
-        },
-      ],
       successfulDeployment: [
         async (...args: unknown[]) => {
           const backendIdentifier =

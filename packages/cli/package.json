@@ -51,6 +51,8 @@
     "@aws-amplify/schema-generator": "^1.4.0",
     "@aws-sdk/client-amplify": "^3.750.0",
     "@aws-sdk/client-cloudformation": "^3.750.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.844.0",
+    "@aws-sdk/client-lambda": "^3.844.0",
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-sts": "^3.750.0",
     "@aws-sdk/credential-provider-ini": "^3.750.0",

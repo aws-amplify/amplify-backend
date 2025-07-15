@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SandboxStatus } from '@aws-amplify/sandbox';
-import { useResourceClientService } from '../contexts/socket_client_context';
 import {
-  ResourceWithFriendlyName,
-  BackendResourcesData,
-} from '../services/resource_client_service';
+  useResourceClientService,
+  useLoggingClientService,
+} from '../contexts/socket_client_context';
+import { BackendResourcesData } from '../services/resource_client_service';
+import { LogStreamStatus } from '../services/logging_client_service';
+import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 
 /**
  * Hook for managing backend resources
@@ -17,6 +19,7 @@ export const useResourceManager = (
   sandboxStatus?: SandboxStatus,
 ) => {
   const resourceClientService = useResourceClientService();
+  const loggingClientService = useLoggingClientService();
   const [resources, setResources] = useState<ResourceWithFriendlyName[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,22 +28,54 @@ export const useResourceManager = (
   >({});
   const [region, setRegion] = useState<string | null>(null);
   const [backendName, setBackendName] = useState<string>('');
+  const [activeLogStreams, setActiveLogStreams] = useState<string[]>([]);
 
   useEffect(() => {
     // Add a small random delay on initial load to prevent all tabs from requesting at the same time
-    const initialDelay = Math.random() * 2000; // Random delay between 0-2000ms
+    const initialDelay = Math.random() * 500; // Random delay between 0-500ms
 
     const loadResources = () => {
       setIsLoading(true);
       setError(null);
 
       resourceClientService.getCustomFriendlyNames();
-      resourceClientService.getSavedResources();
       resourceClientService.getDeployedBackendResources();
     };
 
     // Apply initial delay to prevent thundering herd problem when multiple tabs reconnect
     setTimeout(loadResources, initialDelay);
+
+    // Get active log streams
+    loggingClientService.getActiveLogStreams();
+
+    // Listen for active log streams
+    const handleActiveLogStreams = (streams: string[]) => {
+      setActiveLogStreams(streams || []);
+    };
+
+    // Listen for log stream status changes for immediate UI updates
+    const handleLogStreamStatus = (data: {
+      resourceId: string;
+      status: string;
+    }) => {
+      if (data.status === 'active' || data.status === 'already-active') {
+        setActiveLogStreams((prev) =>
+          prev.includes(data.resourceId) ? prev : [...prev, data.resourceId],
+        );
+      } else if (data.status === 'stopped') {
+        setActiveLogStreams((prev) =>
+          prev.filter((id) => id !== data.resourceId),
+        );
+      }
+    };
+
+    // Listen for log stream errors to revert optimistic updates
+    const handleLogStreamError = (data: LogStreamStatus) => {
+      // Revert optimistic update on error
+      setActiveLogStreams((prev) =>
+        prev.filter((id) => id !== data.resourceId),
+      );
+    };
 
     const handleSavedResources = (data: BackendResourcesData) => {
       if (data && data.resources) {
@@ -120,6 +155,14 @@ export const useResourceManager = (
         handleCustomFriendlyNameRemoved,
       );
     const unsubscribeError = resourceClientService.onError(handleError);
+    const unsubscribeActiveLogStreams = loggingClientService.onActiveLogStreams(
+      handleActiveLogStreams,
+    );
+    const unsubscribeLogStreamStatus = loggingClientService.onLogStreamStatus(
+      handleLogStreamStatus,
+    );
+    const unsubscribeLogStreamError =
+      loggingClientService.onLogStreamError(handleLogStreamError);
 
     // Cleanup function to unsubscribe from events
     return () => {
@@ -129,8 +172,16 @@ export const useResourceManager = (
       unsubscribeCustomFriendlyNameUpdated();
       unsubscribeCustomFriendlyNameRemoved();
       unsubscribeError();
+      unsubscribeActiveLogStreams();
+      unsubscribeLogStreamStatus();
+      unsubscribeLogStreamError();
     };
-  }, [resourceClientService, sandboxStatus, onResourcesLoaded]);
+  }, [
+    resourceClientService,
+    loggingClientService,
+    sandboxStatus,
+    onResourcesLoaded,
+  ]);
 
   /**
    * Updates a custom friendly name for a resource
@@ -179,6 +230,49 @@ export const useResourceManager = (
     resourceClientService.getDeployedBackendResources();
   };
 
+  /**
+   * Checks if a resource has active logging
+   * @param resourceId The resource ID
+   * @returns True if logging is active for the resource, false otherwise
+   */
+  const isLoggingActiveForResource = useCallback(
+    (resourceId: string): boolean => {
+      return activeLogStreams.includes(resourceId);
+    },
+    [activeLogStreams],
+  );
+
+  /**
+   * Toggles logging for a resource
+   * @param resource The resource to toggle logging for
+   * @param startLogging Whether to start or stop logging
+   */
+  const toggleResourceLogging = (
+    resource: ResourceWithFriendlyName,
+    startLogging: boolean,
+  ) => {
+    if (resource.logGroupName) {
+      // Optimistic update for immediate UI feedback
+      if (startLogging) {
+        setActiveLogStreams((prev) =>
+          prev.includes(resource.physicalResourceId)
+            ? prev
+            : [...prev, resource.physicalResourceId],
+        );
+      } else {
+        setActiveLogStreams((prev) =>
+          prev.filter((id) => id !== resource.physicalResourceId),
+        );
+      }
+
+      loggingClientService.toggleResourceLogging(
+        resource.physicalResourceId,
+        resource.resourceType,
+        startLogging,
+      );
+    }
+  };
+
   return {
     resources,
     isLoading,
@@ -190,5 +284,8 @@ export const useResourceManager = (
     removeCustomFriendlyName,
     getResourceDisplayName,
     refreshResources,
+    isLoggingActiveForResource,
+    toggleResourceLogging,
+    activeLogStreams,
   };
 };

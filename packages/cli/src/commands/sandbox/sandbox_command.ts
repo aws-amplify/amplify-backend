@@ -44,7 +44,6 @@ export type SandboxEventHandlers = {
   successfulDeployment: EventHandler[];
   successfulDeletion: EventHandler[];
   failedDeployment: EventHandler[];
-  resourceConfigChanged: EventHandler[];
 };
 
 export type SandboxEventHandlerParams = {

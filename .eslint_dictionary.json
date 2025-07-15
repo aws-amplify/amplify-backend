@@ -147,6 +147,7 @@
   "pathname",
   "pipelined",
   "pnpm",
+  "poller",
   "pollers",
   "positionals",
   "posix",

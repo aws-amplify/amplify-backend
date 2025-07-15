@@ -16,6 +16,7 @@ export type ResourceWithFriendlyName = DeployedBackendResource & {
   resourceStatus: string;
   friendlyName?: string;
   consoleUrl?: string | null;
+  logGroupName?: string | null;
 };
 
 /**
