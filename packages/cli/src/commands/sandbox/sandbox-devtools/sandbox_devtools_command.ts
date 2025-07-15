@@ -179,6 +179,14 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         const currentState = await getSandboxState();
 
+        // Add a warning log if the state is not 'deploying'
+        if (currentState !== 'deploying') {
+          this.printer.log(
+            `WARNING: Sandbox state is '${currentState}' after deploymentStarted event, expected 'deploying'`,
+            LogLevel.WARN,
+          );
+        }
+
         const statusData: SandboxStatusData = {
           status: currentState, // This should be 'deploying' after deployment starts,
           identifier: backendId.name,
