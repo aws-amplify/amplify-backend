@@ -101,9 +101,8 @@ const Header = ({
   };
 
   const getSandboxStatusIndicator = () => {
-    const statusText = sandboxIdentifier
-      ? `Sandbox${sandboxStatus === 'nonexistent' ? '' : ` (${sandboxIdentifier})`}`
-      : 'Sandbox';
+    const statusText = sandboxIdentifier && sandboxStatus !== 'nonexistent' ?
+      `Sandbox (${sandboxIdentifier})` : 'Sandbox';
 
     switch (sandboxStatus) {
       case 'running':
