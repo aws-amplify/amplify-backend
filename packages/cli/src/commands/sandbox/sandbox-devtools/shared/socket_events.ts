@@ -100,11 +100,6 @@ export const SOCKET_EVENTS = {
   DEPLOYMENT_IN_PROGRESS: 'deploymentInProgress',
 
   /**
-   * Event received when resource configuration has changed
-   */
-  RESOURCE_CONFIG_CHANGED: 'resourceConfigChanged',
-
-  /**
    * Event received when a log message is sent from the server
    */
   LOG: 'log',

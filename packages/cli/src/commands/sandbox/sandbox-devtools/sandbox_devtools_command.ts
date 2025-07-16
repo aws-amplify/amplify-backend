@@ -172,12 +172,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     getSandboxState: () => Promise<SandboxStatus>,
     storageManager: { clearAll: () => void; clearResources: () => void },
   ): void {
-    // Listen for resource configuration changes
-    sandbox.on('resourceConfigChanged', (data) => {
-      this.printer.log('Resource configuration changed', LogLevel.DEBUG);
-      io.emit('resourceConfigChanged', data);
-    });
-
     // Listen for deployment started
     sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {
       this.printer.log('Deployment started', LogLevel.DEBUG);
