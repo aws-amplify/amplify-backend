@@ -7,9 +7,9 @@ import { dirname, join } from 'node:path';
 import { Server } from 'socket.io';
 import {
   LogLevel,
-  format as formatUtil,
+  format as defaultFormat,
   minimumLogLevel,
-  printer as printerUtil,
+  printer as defaultPrinter,
 } from '@aws-amplify/cli-core';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -96,11 +96,11 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     if (isInUse) {
       this.printer.log(
-        `Port ${port} is already in use. Please close any applications using this port and try again.`,
+        `Port ${port} is already in use. Close any applications using this port and try again.`,
         LogLevel.ERROR,
       );
       throw new Error(
-        `Port ${port} is required for DevTools. Please ensure it's available.`,
+        `Port ${port} is required for DevTools. Ensure it's available and no other instance of DevTools is already running`,
       );
     }
   }
