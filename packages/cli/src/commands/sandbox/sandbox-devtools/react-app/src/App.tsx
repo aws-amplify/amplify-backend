@@ -2,9 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import ConsoleViewer from './components/ConsoleViewer';
 import Header from './components/Header';
 import ResourceConsole from './components/ResourceConsole';
-import SandboxOptionsModal, {
-  SandboxOptions,
-} from './components/SandboxOptionsModal';
+import SandboxOptionsModal from './components/SandboxOptionsModal';
+import { DevToolsSandboxOptions } from '../../shared/socket_types';
 import { SocketClientProvider } from './contexts/socket_client_context';
 import { useSandboxClientService } from './contexts/socket_client_context';
 import { SandboxStatusData } from './services/sandbox_client_service';
@@ -344,7 +343,7 @@ function AppContent() {
     setShowOptionsModal(true);
   };
 
-  const handleStartSandboxWithOptions = (options: SandboxOptions) => {
+  const handleStartSandboxWithOptions = (options: DevToolsSandboxOptions) => {
     setShowOptionsModal(false);
 
     sandboxClientService.startSandboxWithOptions(options);

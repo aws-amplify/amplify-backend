@@ -4,11 +4,12 @@ import {
   printer as printerUtil,
 } from '@aws-amplify/cli-core';
 import { Server, Socket } from 'socket.io';
-import { Sandbox } from '@aws-amplify/sandbox';
+import { Sandbox, SandboxOptions } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { ShutdownService } from './shutdown_service.js';
+import { DevToolsSandboxOptions } from '../shared/socket_types.js';
 
 // Simple type definitions for PR 2
 export type ResourceWithFriendlyName = {
@@ -29,17 +30,7 @@ export type SocketEvents = {
     timestamp: string;
   };
   getDeployedBackendResources: void;
-  startSandboxWithOptions: {
-    identifier?: string;
-    once?: boolean;
-    dirToWatch?: string;
-    exclude?: string;
-    outputsFormat?: string;
-    streamFunctionLogs?: boolean;
-    logsFilter?: string;
-    logsOutFile?: string;
-    debugMode?: boolean;
-  };
+  startSandboxWithOptions: DevToolsSandboxOptions;
   stopSandbox: void;
   deleteSandbox: void;
   stopDevTools: void;
@@ -250,7 +241,14 @@ export class SocketHandlerService {
         message: 'Starting sandbox...',
       });
 
-      const sandboxOptions = {
+      // Converting from DevToolsSandboxOptions to the actual @aws-amplify/sandbox SandboxOptions type
+      // This conversion is necessary because:
+      // 1. The field names are different (dirToWatch -> dir)
+      // 2. The exclude and logsFilter fields need to be split from strings into string arrays
+      // 3. We need to handle the format as ClientConfigFormat, which can't be imported in the React app
+      // 4. The function streaming options need to be nested in a functionStreamingOptions object
+
+      const sandboxOptions: SandboxOptions = {
         dir: options.dirToWatch || './amplify',
         exclude: options.exclude ? options.exclude.split(',') : undefined,
         identifier: options.identifier,

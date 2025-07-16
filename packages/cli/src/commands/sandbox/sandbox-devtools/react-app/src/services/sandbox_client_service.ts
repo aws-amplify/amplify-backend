@@ -1,6 +1,7 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { SandboxStatus } from '@aws-amplify/sandbox';
+import { DevToolsSandboxOptions } from '../../../shared/socket_types';
 
 /**
  * Interface for sandbox status data
@@ -13,23 +14,6 @@ export interface SandboxStatusData {
   deploymentCompleted?: boolean;
   message?: string;
   timestamp?: string;
-}
-
-/**
- * Interface for sandbox options
- */
-export interface SandboxOptions {
-  identifier?: string;
-  once?: boolean;
-  dirToWatch?: string;
-  exclude?: string[];
-  outputsFormat?: string;
-  outputsOutDir?: string;
-  outputsVersion?: string;
-  streamFunctionLogs?: boolean;
-  logsFilter?: string[];
-  logsOutFile?: string;
-  debugMode?: boolean;
 }
 
 /**
@@ -47,7 +31,7 @@ export class SandboxClientService extends SocketClientService {
    * Starts the sandbox with the specified options
    * @param options The sandbox options
    */
-  public startSandboxWithOptions(options: SandboxOptions): void {
+  public startSandboxWithOptions(options: DevToolsSandboxOptions): void {
     this.emit(SOCKET_EVENTS.START_SANDBOX_WITH_OPTIONS, options);
   }
 
