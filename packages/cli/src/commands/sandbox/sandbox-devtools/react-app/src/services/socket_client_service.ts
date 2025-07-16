@@ -152,11 +152,15 @@ export class SocketClientService {
 
     const pingInterval = setInterval(() => {
       if (this.socket?.connected) {
-        this.socket.emit('ping', {}, (response: any) => {
-          if (!response || response.error) {
-            console.warn('Ping failed:', response?.error || 'No response');
-          }
-        });
+        this.socket.emit(
+          'ping',
+          {},
+          (response: { error?: string } | undefined) => {
+            if (!response || response.error) {
+              console.warn('Ping failed:', response?.error || 'No response');
+            }
+          },
+        );
       }
     }, interval);
 
@@ -221,7 +225,12 @@ export class SocketClientService {
    * @param data The event data
    */
   protected emit<T>(event: string, data?: T): void {
-    if (!this.socket) return;
+    if (!this.socket) {
+      console.error(
+        `[Tab ${this.tabId}] Cannot emit ${event}: Socket is not initialized`,
+      );
+      return;
+    }
 
     // Queue the emit request with exponential backoff
     this.queueRequest(() => {
