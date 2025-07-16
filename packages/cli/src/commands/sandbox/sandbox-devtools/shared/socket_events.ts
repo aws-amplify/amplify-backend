@@ -85,11 +85,6 @@ export const SOCKET_EVENTS = {
   STOP_DEV_TOOLS: 'stopDevTools',
 
   /**
-   * Event to get saved deployment progress
-   */
-  GET_SAVED_DEPLOYMENT_PROGRESS: 'getSavedDeploymentProgress',
-
-  /**
    * Event to get log settings
    */
   GET_LOG_SETTINGS: 'getLogSettings',
@@ -218,11 +213,6 @@ export const SOCKET_EVENTS = {
    * Event received when saved console logs are sent from the server
    */
   SAVED_CONSOLE_LOGS: 'savedConsoleLogs',
-
-  /**
-   * Event received when saved deployment progress is sent from the server
-   */
-  SAVED_DEPLOYMENT_PROGRESS: 'savedDeploymentProgress',
 
   /**
    * Event which triggers UI to show a deployment error

@@ -76,7 +76,6 @@ type SocketEvents = {
   stopSandbox: void;
   deleteSandbox: void;
   stopDevTools: void;
-  getSavedDeploymentProgress: void;
   getSavedResources: void;
   getSavedCloudFormationEvents: void;
   testLambdaFunction: {
@@ -223,12 +222,6 @@ export class SocketHandlerService {
     socket.on(
       SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
       this.handleLoadConsoleLogs.bind(this, socket),
-    );
-
-    // Deployment progress handler
-    socket.on(
-      SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS,
-      this.handleGetSavedDeploymentProgress.bind(this, socket),
     );
   }
 
@@ -1149,9 +1142,36 @@ export class SocketHandlerService {
         };
       });
 
-      // Always save events when we fetch them to preserve deployment/deletion history
+      // Merge with existing events and save to preserve complete deployment history
       if (formattedEvents.length > 0) {
-        this.storageManager.saveCloudFormationEvents(formattedEvents);
+        // Load existing events
+        const existingEvents =
+          this.storageManager.loadCloudFormationEvents() || [];
+
+        // Merge events (avoiding duplicates by using a Map with event ID or timestamp+message as key)
+        const eventMap = new Map();
+
+        // Add existing events to the map
+        existingEvents.forEach((event) => {
+          const key =
+            event.resourceStatus?.eventId ||
+            `${event.timestamp}-${event.message}`;
+          eventMap.set(key, event);
+        });
+
+        // Add new events to the map (will overwrite duplicates)
+        formattedEvents.forEach((event) => {
+          const key =
+            event.resourceStatus?.eventId ||
+            `${event.timestamp}-${event.message}`;
+          eventMap.set(key, event);
+        });
+
+        // Convert map back to array
+        const mergedEvents = Array.from(eventMap.values());
+
+        // Save the merged events
+        this.storageManager.saveCloudFormationEvents(mergedEvents);
       }
 
       socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, formattedEvents);
@@ -1259,22 +1279,6 @@ export class SocketHandlerService {
         LogLevel.ERROR,
       );
       socket.emit(SOCKET_EVENTS.SAVED_CONSOLE_LOGS, []);
-    }
-  }
-
-  /**
-   * Handles the getSavedDeploymentProgress event
-   */
-  private handleGetSavedDeploymentProgress(socket: Socket): void {
-    try {
-      const events = this.storageManager.loadDeploymentProgress();
-      socket.emit(SOCKET_EVENTS.SAVED_DEPLOYMENT_PROGRESS, events);
-    } catch (error) {
-      this.printer.log(
-        `Error loading deployment progress: ${String(error)}`,
-        LogLevel.ERROR,
-      );
-      socket.emit(SOCKET_EVENTS.SAVED_DEPLOYMENT_PROGRESS, []);
     }
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
@@ -143,70 +144,6 @@ void describe('LocalStorageManager', () => {
       const result = storageManager.getResourcesWithCloudWatchLogs();
 
       assert.deepStrictEqual(result, []);
-    });
-  });
-
-  void describe('Deployment progress operations', () => {
-    void it('saves and loads deployment progress events to/from actual files', () => {
-      const events = [
-        {
-          timestamp: '2023-01-01T00:00:00Z',
-          eventType: 'CREATE_IN_PROGRESS',
-          message: 'CREATE_IN_PROGRESS',
-        },
-        {
-          timestamp: '2023-01-01T00:01:00Z',
-          eventType: 'CREATE_COMPLETE',
-          message: 'CREATE_COMPLETE',
-        },
-      ];
-
-      storageManager.saveDeploymentProgress(events);
-      const result = storageManager.loadDeploymentProgress();
-
-      assert.deepStrictEqual(result, events);
-    });
-
-    void it('returns empty array if deployment progress file does not exist', () => {
-      const result = storageManager.loadDeploymentProgress();
-      assert.deepStrictEqual(result, []);
-    });
-
-    void it('appends deployment progress event to actual file', () => {
-      const existingEvents = [
-        {
-          timestamp: '2023-01-01T00:00:00Z',
-          eventType: 'CREATE_IN_PROGRESS',
-          message: 'CREATE_IN_PROGRESS',
-        },
-      ];
-      const newEvent = {
-        timestamp: '2023-01-01T00:01:00Z',
-        eventType: 'CREATE_COMPLETE',
-        message: 'CREATE_COMPLETE',
-      };
-
-      storageManager.saveDeploymentProgress(existingEvents);
-      storageManager.appendDeploymentProgressEvent(newEvent);
-      const savedEvents = storageManager.loadDeploymentProgress();
-
-      assert.strictEqual(savedEvents.length, 2);
-      assert.deepStrictEqual(savedEvents[1], newEvent);
-    });
-
-    void it('clears deployment progress from actual file', () => {
-      const events = [
-        {
-          timestamp: '2023-01-01T00:00:00Z',
-          eventType: 'CREATE_IN_PROGRESS',
-          message: 'CREATE_IN_PROGRESS',
-        },
-      ];
-
-      storageManager.saveDeploymentProgress(events);
-      storageManager.clearDeploymentProgress();
-
-      assert.deepStrictEqual(storageManager.loadDeploymentProgress(), []);
     });
   });
 
@@ -438,13 +375,6 @@ void describe('LocalStorageManager', () => {
 
       // Create all possible file types
       storageManager.saveResources({ test: 'data' });
-      storageManager.saveDeploymentProgress([
-        {
-          timestamp: '2023-01-01T00:00:00Z',
-          eventType: 'CREATE_IN_PROGRESS',
-          message: 'test',
-        },
-      ]);
       storageManager.saveResourceLoggingState('test-resource', true);
       storageManager.setMaxLogSize(100);
       storageManager.saveCustomFriendlyNames({
@@ -462,9 +392,6 @@ void describe('LocalStorageManager', () => {
 
       // Verify files exist
       assert.ok(fs.existsSync(path.join(expectedBaseDir, 'resources.json')));
-      assert.ok(
-        fs.existsSync(path.join(expectedBaseDir, 'deployment-progress.json')),
-      );
       assert.ok(
         fs.existsSync(
           path.join(expectedBaseDir, 'resource-logging-states.json'),
@@ -490,9 +417,6 @@ void describe('LocalStorageManager', () => {
 
       // Verify all files are deleted
       assert.ok(!fs.existsSync(path.join(expectedBaseDir, 'resources.json')));
-      assert.ok(
-        !fs.existsSync(path.join(expectedBaseDir, 'deployment-progress.json')),
-      );
       assert.ok(
         !fs.existsSync(
           path.join(expectedBaseDir, 'resource-logging-states.json'),
@@ -525,7 +449,6 @@ void describe('LocalStorageManager', () => {
 
       // Verify data access returns empty/null
       assert.strictEqual(storageManager.loadResources(), null);
-      assert.deepStrictEqual(storageManager.loadDeploymentProgress(), []);
       assert.strictEqual(storageManager.loadResourceLoggingStates(), null);
       assert.deepStrictEqual(storageManager.loadCustomFriendlyNames(), {});
       assert.deepStrictEqual(storageManager.loadCloudFormationEvents(), []);

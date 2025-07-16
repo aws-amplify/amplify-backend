@@ -6,18 +6,6 @@ import { tmpdir } from 'os';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
 
 /**
- * Represents a deployment progress event
- */
-export type DeploymentEvent = {
-  timestamp: string;
-  eventType: string;
-  resourceType?: string;
-  logicalResourceId?: string;
-  resourceStatus?: string;
-  message?: string;
-};
-
-/**
  * Represents a CloudFormation event
  */
 export type CloudFormationEvent = {
@@ -51,7 +39,7 @@ export type CloudWatchLogEntry = {
  */
 export class LocalStorageManager {
   private readonly baseDir: string;
-  private readonly deploymentProgressFile: string;
+  private readonly cloudFormationEventsFile: string;
   private readonly resourcesFile: string;
   private readonly logsDir: string;
   private readonly cloudWatchLogsDir: string;
@@ -75,10 +63,11 @@ export class LocalStorageManager {
       '.amplify',
       `amplify-devtools${dirSuffix}`,
     );
-    this.deploymentProgressFile = path.join(
+    this.cloudFormationEventsFile = path.join(
       this.baseDir,
-      'deployment-progress.json',
+      'cloudformation-events.json',
     );
+
     this.resourcesFile = path.join(this.baseDir, 'resources.json');
     this.logsDir = path.join(this.baseDir, 'logs');
     this.cloudWatchLogsDir = path.join(this.baseDir, 'cloudwatch-logs');
@@ -134,68 +123,6 @@ export class LocalStorageManager {
    */
   get storagePath(): string {
     return this.baseDir;
-  }
-
-  /**
-   * Saves deployment progress events to a file
-   * @param events The deployment events to save
-   */
-  saveDeploymentProgress(events: DeploymentEvent[]): void {
-    try {
-      printer.log(
-        `LocalStorageManager: Saving deployment progress to ${this.deploymentProgressFile}`,
-        LogLevel.DEBUG,
-      );
-      printer.log(
-        `LocalStorageManager: Number of events: ${events.length}`,
-        LogLevel.DEBUG,
-      );
-      fs.writeFileSync(
-        this.deploymentProgressFile,
-        JSON.stringify(events, null, 2),
-      );
-      printer.log(
-        `LocalStorageManager: Deployment progress saved successfully`,
-        LogLevel.DEBUG,
-      );
-    } catch (error) {
-      printer.log(
-        `LocalStorageManager: Error saving deployment progress: ${String(error)}`,
-        LogLevel.ERROR,
-      );
-      if (error instanceof Error) {
-        printer.log(
-          `LocalStorageManager: Error stack: ${error.stack}`,
-          LogLevel.ERROR,
-        );
-      }
-    }
-  }
-
-  /**
-   * Loads deployment progress events from a file
-   * @returns The saved deployment events or an empty array if none exist
-   */
-  loadDeploymentProgress(): DeploymentEvent[] {
-    try {
-      if (fs.existsSync(this.deploymentProgressFile)) {
-        const data = fs.readFileSync(this.deploymentProgressFile, 'utf8');
-        const events = JSON.parse(data);
-        return events;
-      }
-    } catch (error) {
-      printer.log(
-        `LocalStorageManager: Error loading deployment progress: ${String(error)}`,
-        LogLevel.ERROR,
-      );
-      if (error instanceof Error) {
-        printer.log(
-          `LocalStorageManager: Error stack: ${error.stack}`,
-          LogLevel.ERROR,
-        );
-      }
-    }
-    return [];
   }
 
   /**
@@ -452,44 +379,15 @@ export class LocalStorageManager {
   }
 
   /**
-   * Appends a deployment progress event
-   * @param event The event to append
-   */
-  appendDeploymentProgressEvent(event: DeploymentEvent): void {
-    try {
-      const events = this.loadDeploymentProgress();
-      events.push(event);
-      this.saveDeploymentProgress(events);
-    } catch (error) {
-      printer.log(
-        `Error appending deployment progress event: ${String(error)}`,
-        LogLevel.ERROR,
-      );
-    }
-  }
-
-  /**
-   * Clears all deployment progress events
-   */
-  clearDeploymentProgress(): void {
-    try {
-      this.saveDeploymentProgress([]);
-    } catch (error) {
-      printer.log(
-        `Error clearing deployment progress: ${String(error)}`,
-        LogLevel.ERROR,
-      );
-    }
-  }
-
-  /**
    * Saves CloudFormation events to a file
    * @param events The CloudFormation events to save
    */
   saveCloudFormationEvents(events: CloudFormationEvent[]): void {
     try {
-      const filePath = path.join(this.baseDir, 'cloudformation-events.json');
-      fs.writeFileSync(filePath, JSON.stringify(events, null, 2));
+      fs.writeFileSync(
+        this.cloudFormationEventsFile,
+        JSON.stringify(events, null, 2),
+      );
       printer.log(
         `LocalStorageManager: CloudFormation events saved successfully`,
         LogLevel.DEBUG,
@@ -508,9 +406,8 @@ export class LocalStorageManager {
    */
   loadCloudFormationEvents(): CloudFormationEvent[] {
     try {
-      const filePath = path.join(this.baseDir, 'cloudformation-events.json');
-      if (fs.existsSync(filePath)) {
-        const data = fs.readFileSync(filePath, 'utf8');
+      if (fs.existsSync(this.cloudFormationEventsFile)) {
+        const data = fs.readFileSync(this.cloudFormationEventsFile, 'utf8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -527,7 +424,13 @@ export class LocalStorageManager {
    */
   clearCloudFormationEvents(): void {
     try {
-      this.saveCloudFormationEvents([]);
+      if (fs.existsSync(this.cloudFormationEventsFile)) {
+        fs.unlinkSync(this.cloudFormationEventsFile);
+        printer.log(
+          `LocalStorageManager: Cleared CloudFormation events`,
+          LogLevel.INFO,
+        );
+      }
     } catch (error) {
       printer.log(
         `Error clearing CloudFormation events: ${String(error)}`,

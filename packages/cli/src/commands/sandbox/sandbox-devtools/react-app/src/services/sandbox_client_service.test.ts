@@ -1,6 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { SandboxClientService, SandboxOptions } from './sandbox_client_service';
+import { SandboxClientService } from './sandbox_client_service';
+import { DevToolsSandboxOptions } from '../../../shared/socket_types';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { createMockSocket } from './test_helpers';
 import { LogStreamStatus } from './logging_client_service';
@@ -30,11 +31,11 @@ void describe('SandboxClientService', () => {
 
   void describe('startSandboxWithOptions', () => {
     void it('emits START_SANDBOX_WITH_OPTIONS event with correct parameters', () => {
-      const options: SandboxOptions = {
+      const options: DevToolsSandboxOptions = {
         identifier: 'test-backend',
         once: true,
         dirToWatch: './amplify',
-        exclude: ['node_modules'],
+        exclude: 'node_modules',
         outputsFormat: 'typescript',
         streamFunctionLogs: true,
       };
@@ -89,14 +90,14 @@ void describe('SandboxClientService', () => {
     });
   });
 
-  void describe('getSavedDeploymentProgress', () => {
-    void it('emits GET_SAVED_DEPLOYMENT_PROGRESS event', () => {
-      service.getSavedDeploymentProgress();
+  void describe('getSavedCloudFormationEvents', () => {
+    void it('emits GET_SAVED_CLOUD_FORMATION_EVENTS event', () => {
+      service.getSavedCloudFormationEvents();
 
       assert.strictEqual(mockSocket.mockEmit.mock.callCount(), 1);
       assert.strictEqual(
         mockSocket.mockEmit.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS,
+        SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS,
       );
     });
   });
@@ -226,15 +227,15 @@ void describe('SandboxClientService', () => {
       );
     });
 
-    void it('registers onSavedDeploymentProgress handler correctly', () => {
+    void it('registers onSavedCloudFormationEvents handler correctly', () => {
       const mockHandler = mock.fn();
 
-      service.onSavedDeploymentProgress(mockHandler);
+      service.onSavedCloudFormationEvents(mockHandler);
 
       assert.strictEqual(mockSocket.mockOn.mock.callCount(), 1);
       assert.strictEqual(
         mockSocket.mockOn.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.SAVED_DEPLOYMENT_PROGRESS,
+        SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS,
       );
     });
   });

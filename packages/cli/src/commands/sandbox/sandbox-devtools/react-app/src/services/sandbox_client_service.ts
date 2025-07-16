@@ -77,10 +77,10 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
-   * Gets saved deployment progress
+   * Gets saved CloudFormation events
    */
-  public getSavedDeploymentProgress(): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS);
+  public getSavedCloudFormationEvents(): void {
+    this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
   }
 
   /**
@@ -149,13 +149,13 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
-   * Registers a handler for saved deployment progress events
+   * Registers a handler for saved CloudFormation events
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onSavedDeploymentProgress(
+  public onSavedCloudFormationEvents(
     handler: (events: DeploymentEvent[]) => void,
   ): () => void {
-    return this.on(SOCKET_EVENTS.SAVED_DEPLOYMENT_PROGRESS, handler);
+    return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 }

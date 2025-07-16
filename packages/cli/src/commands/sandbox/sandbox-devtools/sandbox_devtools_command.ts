@@ -199,7 +199,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         };
 
         io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
-      });
+      })();
     });
 
     sandbox.on('successfulDeployment', () => {
@@ -236,7 +236,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         };
 
         io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
-      });
+      })();
     });
 
     sandbox.on('successfulDeletion', () => {
@@ -253,7 +253,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         };
 
         io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
-      });
+      })();
     });
 
     sandbox.on('failedDeletion', (error: unknown) => {
@@ -335,7 +335,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           message: 'Sandbox stopped successfully',
           timestamp: new Date().toISOString(),
         });
-      });
+      })();
     });
 
     // Listen for failed stop

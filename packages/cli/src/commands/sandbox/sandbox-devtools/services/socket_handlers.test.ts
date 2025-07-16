@@ -140,7 +140,6 @@ void describe('SocketHandlerService', () => {
         SOCKET_EVENTS.STOP_DEV_TOOLS,
         SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
         SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
-        SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS,
       ];
 
       expectedHandlers.forEach((handler) => {
@@ -896,7 +895,6 @@ void describe('SocketHandlerService', () => {
 
       const statusData = mockEmitFn.mock.calls[0]
         .arguments[1] as SandboxStatusData;
-      // The implementation now uses the current sandbox state instead of hardcoding 'error'
       assert.strictEqual(statusData.status, 'running');
       assert.strictEqual(statusData.identifier, 'test-backend');
       assert.strictEqual(statusData.error, `Error: ${errorMessage}`);
@@ -1435,7 +1433,6 @@ void describe('SocketHandlerService', () => {
         SOCKET_EVENTS.STOP_DEV_TOOLS,
         SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
         SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
-        SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS,
       ];
 
       expectedHandlers.forEach((handler) => {
@@ -1505,41 +1502,6 @@ void describe('SocketHandlerService', () => {
         );
         assert.ok(savedLogsCall);
         assert.deepStrictEqual(savedLogsCall.arguments[1], mockLogs);
-      });
-    });
-  });
-
-  void describe('Deployment Progress Handlers', () => {
-    void describe('handleGetSavedDeploymentProgress', () => {
-      void it('loads and emits deployment progress', () => {
-        const mockEvents = [
-          {
-            timestamp: '2023-01-01',
-            eventType: 'CREATE_IN_PROGRESS',
-            message: 'test',
-          },
-        ];
-        (
-          mockStorageManager.loadDeploymentProgress as unknown as MockFn
-        ).mock.mockImplementation(() => mockEvents);
-
-        service.setupSocketHandlers(mockSocket);
-        const mockOnFn = mockSocket.on as unknown as MockFn;
-        const foundCall = mockOnFn.mock.calls.find(
-          (call: MockCall) =>
-            call.arguments[0] === SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS,
-        );
-
-        const handler = foundCall?.arguments[1] as EventHandler;
-        void handler();
-
-        const mockEmitFn = mockSocket.emit as unknown as MockFn;
-        const savedProgressCall = mockEmitFn.mock.calls.find(
-          (call: MockCall) =>
-            call.arguments[0] === SOCKET_EVENTS.SAVED_DEPLOYMENT_PROGRESS,
-        );
-        assert.ok(savedProgressCall);
-        assert.deepStrictEqual(savedProgressCall.arguments[1], mockEvents);
       });
     });
   });

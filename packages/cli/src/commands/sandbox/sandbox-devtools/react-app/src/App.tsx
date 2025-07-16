@@ -172,7 +172,6 @@ function AppContent() {
           ]);
         }
       }, 500); // 500ms delay
-      sandboxClientService.getSavedDeploymentProgress();
       sandboxClientService.getLogSettings();
     });
 
@@ -269,27 +268,6 @@ function AppContent() {
       },
     );
 
-    const unsubscribeSavedDeploymentProgress =
-      sandboxClientService.onSavedDeploymentProgress((deploymentEvents) => {
-        if (deploymentEvents.length > 0) {
-          console.log(
-            'Loaded',
-            deploymentEvents.length,
-            'saved deployment progress events',
-          );
-          // Add deployment events to console logs for visibility
-          const deploymentLogs = deploymentEvents.map(
-            (event: any, index: number) => ({
-              id: `deployment-${Date.now()}-${index}`,
-              timestamp: event.timestamp,
-              level: 'INFO',
-              message: `Deployment: ${event.message || event.eventType}`,
-            }),
-          );
-          setLogs((prev) => [...deploymentLogs, ...prev]);
-        }
-      });
-
     // Handle disconnection
     const unsubscribeDisconnect = sandboxClientService.onDisconnect(
       (reason) => {
@@ -333,7 +311,6 @@ function AppContent() {
       unsubscribeLog();
       unsubscribeLogSettings();
       unsubscribeSavedConsoleLogs();
-      unsubscribeSavedDeploymentProgress();
       stopPing();
       clearLogs();
       sandboxClientService.disconnect();
