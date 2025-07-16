@@ -102,30 +102,30 @@ const Header = ({
 
   const getSandboxStatusIndicator = () => {
     const statusText = sandboxIdentifier
-      ? `Sandbox ${sandboxStatus === 'nonexistent' ? '' : `(${sandboxIdentifier}) `}`
-      : 'Sandbox ';
+      ? `Sandbox${sandboxStatus === 'nonexistent' ? '' : ` (${sandboxIdentifier})`}`
+      : 'Sandbox';
 
     switch (sandboxStatus) {
       case 'running':
         return (
-          <StatusIndicator type="success">{statusText}Running</StatusIndicator>
+          <StatusIndicator type="success">{statusText} Running</StatusIndicator>
         );
       case 'stopped':
         return (
-          <StatusIndicator type="warning">{statusText}Stopped</StatusIndicator>
+          <StatusIndicator type="warning">{statusText} Stopped</StatusIndicator>
         );
       case 'nonexistent':
         return <StatusIndicator type="error">No Sandbox</StatusIndicator>;
       case 'deploying':
         return (
           <StatusIndicator type="in-progress">
-            {statusText}Deploying
+            {statusText} Deploying
           </StatusIndicator>
         );
       case 'deleting':
         return (
           <StatusIndicator type="in-progress">
-            {statusText}Deleting
+            {statusText} Deleting
           </StatusIndicator>
         );
       default:
