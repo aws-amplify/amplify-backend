@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { SandboxDevToolsCommand } from './sandbox_devtools_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 import { PortChecker } from '../port_checker.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -19,9 +20,22 @@ void describe('SandboxDevToolsCommand', () => {
     getCloudFormationClient: () => CloudFormationClient;
   };
   let mockPortChecker: PortChecker;
+  let mockDevToolsLoggerFactory: DevToolsLoggerFactory;
 
   beforeEach(() => {
     mock.reset();
+
+    // Mock DevToolsLoggerFactory
+    mockDevToolsLoggerFactory = {
+      createLogger: mock.fn(() => ({
+        log: () => {},
+        print: () => {},
+        startSpinner: () => {},
+        stopSpinner: () => {},
+        updateSpinner: () => {},
+        emitToClient: () => {},
+      })),
+    } as unknown as DevToolsLoggerFactory;
 
     // Mock printer methods
     mock.method(printer, 'print', () => {});
@@ -55,6 +69,7 @@ void describe('SandboxDevToolsCommand', () => {
       mockPortChecker,
       format,
       printer,
+      mockDevToolsLoggerFactory,
     );
     originalHandler = command.handler;
   });

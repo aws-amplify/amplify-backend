@@ -50,7 +50,7 @@ export type SandboxOptions = {
 // @public
 export class SandboxSingletonFactory {
     constructor(sandboxIdResolver: BackendIdSandboxResolver, sdkProfileResolver: SDKProfileResolver, printer: Printer, format: Format);
-    getInstance: () => Promise<Sandbox>;
+    getInstance: (logger?: Printer) => Promise<Sandbox>;
 }
 
 // @public

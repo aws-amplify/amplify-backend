@@ -32,6 +32,7 @@ import { SocketHandlerService } from './services/socket_handlers.js';
 import { ResourceService } from './services/resource_service.js';
 import { PortChecker } from '../port_checker.js';
 import { DevToolsLogger } from './services/devtools_logger.js';
+import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 /**
@@ -70,6 +71,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
    * @param portChecker Checker for port availability
    * @param format Formatter for console output
    * @param printer Printer for console output
+   * @param devToolsLoggerFactory Factory for creating DevToolsLogger instances
    */
   constructor(
     private readonly sandboxBackendIdResolver: SandboxBackendIdResolver,
@@ -81,6 +83,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     private readonly portChecker: PortChecker = new PortChecker(),
     private readonly format = defaultFormat,
     private printer = defaultPrinter,
+    private readonly devToolsLoggerFactory?: DevToolsLoggerFactory,
   ) {
     this.command = 'devtools';
     this.describe = 'Starts a development console for Amplify sandbox';
@@ -394,26 +397,24 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     );
 
     // Create a custom logger that forwards logs to Socket.IO clients
-    const devToolsLogger = new DevToolsLogger(
-      this.printer,
-      io,
-      minimumLogLevel,
-    );
+    // Either use the injected factory or create a logger directly
+    let devToolsLogger: DevToolsLogger;
+    if (this.devToolsLoggerFactory) {
+      devToolsLogger = this.devToolsLoggerFactory.createLogger(io);
+    } else {
+      // Fallback to direct instantiation for backward compatibility
+      devToolsLogger = new DevToolsLogger(this.printer, io, minimumLogLevel);
+    }
     this.printer = devToolsLogger; // Use the custom logger for all CLI output from now on
 
-    // Create a new SandboxSingletonFactory with our custom logger
-    // Our server, and thus logger, are only created at runtime, so we cannot use the
-    // SandboxSingletonFactory as an injected dependency.
-    const localSandboxFactory = new SandboxSingletonFactory(
+    // Get the sandbox instance from the injected sandbox factory
+    // Pass our custom logger to the getInstance method
+    const sandbox = await new SandboxSingletonFactory(
       this.sandboxBackendIdResolver.resolve,
       new SDKProfileResolverProvider().resolve,
-      devToolsLogger,
+      this.printer, // Original printer
       this.format,
-    );
-
-    // Get the sandbox instance using our local factory
-    // which uses the devToolsLogger directly
-    const sandbox = await localSandboxFactory.getInstance();
+    ).getInstance(devToolsLogger); // Pass the devToolsLogger as a parameter
 
     const getSandboxState = this.createGetSandboxStateFunction(
       sandbox,

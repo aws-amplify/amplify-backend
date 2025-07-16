@@ -34,13 +34,15 @@ export class SandboxSingletonFactory {
 
   /**
    * Returns a singleton instance of a Sandbox
+   * @param logger Optional logger to override the default printer
    */
-  getInstance = async (): Promise<Sandbox> => {
+  getInstance = async (logger?: Printer): Promise<Sandbox> => {
     if (!SandboxSingletonFactory.instance) {
+      const printerToUse = logger || this.printer;
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(process.cwd(), this.printer);
+        new PackageManagerControllerFactory(process.cwd(), printerToUse);
       const cdkEventsBridgeIoHost = new AmplifyIOEventsBridgeSingletonFactory(
-        this.printer,
+        printerToUse,
       ).getInstance();
 
       const backendDeployerFactory = new BackendDeployerFactory(
@@ -54,16 +56,16 @@ export class SandboxSingletonFactory {
         new AmplifySandboxExecutor(
           backendDeployerFactory.getInstance(),
           getSecretClientWithAmplifyErrorHandling(),
-          this.printer,
+          printerToUse,
         ),
         new SSMClient(),
         new LambdaFunctionLogStreamer(
           new LambdaClient(),
           new CloudWatchLogEventMonitor(new CloudWatchLogsClient()),
           BackendOutputClientFactory.getInstance(),
-          this.printer,
+          printerToUse,
         ),
-        this.printer,
+        printerToUse,
       );
     }
     return SandboxSingletonFactory.instance;
