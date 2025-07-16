@@ -8,6 +8,7 @@ import {
 import '@cloudscape-design/global-styles/index.css';
 import { useState, useEffect } from 'react';
 import { SandboxStatus } from '@aws-amplify/sandbox';
+import ConfirmationModal from './ConfirmationModal';
 
 interface HeaderProps {
   connected: boolean;
@@ -34,6 +35,9 @@ const Header = ({
 }: HeaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusCheckTimeout, setStatusCheckTimeout] = useState<number>(0);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showStopDevToolsConfirmation, setShowStopDevToolsConfirmation] =
+    useState(false);
 
   // Reset loading state when sandbox status changes
   useEffect(() => {
@@ -70,24 +74,30 @@ const Header = ({
   };
 
   const handleDeleteSandbox = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to delete the sandbox? This will remove all resources and cannot be undone.',
-      )
-    ) {
-      setIsLoading(true);
-      onDeleteSandbox?.();
-    }
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteSandbox = () => {
+    setShowDeleteConfirmation(false);
+    setIsLoading(true);
+    onDeleteSandbox?.();
+  };
+
+  const cancelDeleteSandbox = () => {
+    setShowDeleteConfirmation(false);
   };
 
   const handleStopDevTools = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to stop the DevTools process? This will close the DevTools interface.',
-      )
-    ) {
-      onStopDevTools?.();
-    }
+    setShowStopDevToolsConfirmation(true);
+  };
+
+  const confirmStopDevTools = () => {
+    setShowStopDevToolsConfirmation(false);
+    onStopDevTools?.();
+  };
+
+  const cancelStopDevTools = () => {
+    setShowStopDevToolsConfirmation(false);
   };
 
   const getSandboxStatusIndicator = () => {
@@ -150,81 +160,103 @@ const Header = ({
   const isDeleting = sandboxStatus === 'deleting';
 
   return (
-    <CloudscapeHeader
-      variant="h1"
-      description={
-        <SpaceBetween direction="horizontal" size="m">
-          <StatusIndicator type={connected ? 'success' : 'error'}>
-            {connected ? 'Connected' : 'Disconnected'}
-          </StatusIndicator>
-          {getSandboxStatusIndicator()}
-        </SpaceBetween>
-      }
-      actions={
-        <SpaceBetween direction="horizontal" size="m">
-          {sandboxStatus === 'running' ? (
-            <Button
-              onClick={handleStopSandbox}
-              iconName="close"
-              loading={isLoading || isDeploying}
-              disabled={!connected || sandboxStatus !== 'running' || isDeleting}
-            >
-              Stop Sandbox
-            </Button>
-          ) : (
-            <Button
-              onClick={handleStartSandbox}
-              iconName="add-plus"
-              variant="primary"
-              loading={isStartingLoading || isDeploying}
-              disabled={!connected || isDeploying || isDeleting}
-            >
-              Start Sandbox
-            </Button>
-          )}
-          {onDeleteSandbox && (
-            <Button
-              onClick={handleDeleteSandbox}
-              iconName="remove"
-              variant="link"
-              loading={isLoading}
-              disabled={
-                !connected ||
-                sandboxStatus === 'nonexistent' ||
-                sandboxStatus === 'unknown' ||
-                isDeploying ||
-                isDeleting
-              }
-            >
-              Delete Sandbox
-            </Button>
-          )}
-          {onOpenSettings && (
-            <Button
-              onClick={onOpenSettings}
-              iconName="settings"
-              variant="link"
-              disabled={!connected}
-            >
-              Settings
-            </Button>
-          )}
-          {/* <Button onClick={onClear} iconName="remove">Clear Logs</Button> */}
-          {onStopDevTools && (
-            <Button
-              onClick={handleStopDevTools}
-              iconName="status-stopped"
-              variant="link"
-              disabled={!connected}
-            >
-              Stop DevTools
-            </Button>
-          )}
-        </SpaceBetween>
-      }
-    >
-      Amplify Sandbox DevTools
-    </CloudscapeHeader>
+    <>
+      <ConfirmationModal
+        visible={showDeleteConfirmation}
+        title="Delete Sandbox"
+        message="Are you sure you want to delete the sandbox? This will remove all resources and cannot be undone."
+        confirmButtonText="Delete"
+        onConfirm={confirmDeleteSandbox}
+        onCancel={cancelDeleteSandbox}
+      />
+
+      <ConfirmationModal
+        visible={showStopDevToolsConfirmation}
+        title="Stop DevTools"
+        message="Are you sure you want to stop the DevTools process? This will close the DevTools interface."
+        confirmButtonText="Stop"
+        onConfirm={confirmStopDevTools}
+        onCancel={cancelStopDevTools}
+      />
+
+      <CloudscapeHeader
+        variant="h1"
+        description={
+          <SpaceBetween direction="horizontal" size="m">
+            <StatusIndicator type={connected ? 'success' : 'error'}>
+              {connected ? 'Connected' : 'Disconnected'}
+            </StatusIndicator>
+            {getSandboxStatusIndicator()}
+          </SpaceBetween>
+        }
+        actions={
+          <SpaceBetween direction="horizontal" size="m">
+            {sandboxStatus === 'running' ? (
+              <Button
+                onClick={handleStopSandbox}
+                iconName="close"
+                loading={isLoading || isDeploying}
+                disabled={
+                  !connected || sandboxStatus !== 'running' || isDeleting
+                }
+              >
+                Stop Sandbox
+              </Button>
+            ) : (
+              <Button
+                onClick={handleStartSandbox}
+                iconName="add-plus"
+                variant="primary"
+                loading={isStartingLoading || isDeploying}
+                disabled={!connected || isDeploying || isDeleting}
+              >
+                Start Sandbox
+              </Button>
+            )}
+            {onDeleteSandbox && (
+              <Button
+                onClick={handleDeleteSandbox}
+                iconName="remove"
+                variant="link"
+                loading={isLoading}
+                disabled={
+                  !connected ||
+                  sandboxStatus === 'nonexistent' ||
+                  sandboxStatus === 'unknown' ||
+                  isDeploying ||
+                  isDeleting
+                }
+              >
+                Delete Sandbox
+              </Button>
+            )}
+            {onOpenSettings && (
+              <Button
+                onClick={onOpenSettings}
+                iconName="settings"
+                variant="link"
+                disabled={!connected}
+              >
+                Settings
+              </Button>
+            )}
+            {/* <Button onClick={onClear} iconName="remove">Clear Logs</Button> */}
+            {onStopDevTools && (
+              <Button
+                onClick={handleStopDevTools}
+                iconName="status-stopped"
+                variant="link"
+                disabled={!connected}
+              >
+                Stop DevTools
+              </Button>
+            )}
+          </SpaceBetween>
+        }
+      >
+        Amplify Sandbox DevTools
+      </CloudscapeHeader>
+    </>
   );
 };
 
