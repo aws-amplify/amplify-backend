@@ -110,7 +110,7 @@ export class DeployedResourcesEnumerator {
           accountId,
         ),
         metadata:
-          templateMetadata[stackResourceSummary.LogicalResourceId || ''],
+          templateMetadata[stackResourceSummary.LogicalResourceId] || '',
       }),
     );
 
