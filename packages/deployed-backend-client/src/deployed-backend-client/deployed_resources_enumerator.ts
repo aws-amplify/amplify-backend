@@ -109,8 +109,9 @@ export class DeployedResourcesEnumerator {
           region,
           accountId,
         ),
-        metadata:
-          templateMetadata[stackResourceSummary.LogicalResourceId] || '',
+        metadata: stackResourceSummary.LogicalResourceId
+          ? templateMetadata[stackResourceSummary.LogicalResourceId]
+          : undefined,
       }),
     );
 
