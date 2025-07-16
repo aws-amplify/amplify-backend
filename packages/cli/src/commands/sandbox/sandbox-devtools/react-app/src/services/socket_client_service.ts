@@ -226,10 +226,7 @@ export class SocketClientService {
    */
   protected emit<T>(event: string, data?: T): void {
     if (!this.socket) {
-      console.error(
-        `[Tab ${this.tabId}] Cannot emit ${event}: Socket is not initialized`,
-      );
-      return;
+      throw new Error(`Cannot emit ${event}: Socket is not initialized`);
     }
 
     // Queue the emit request with exponential backoff
