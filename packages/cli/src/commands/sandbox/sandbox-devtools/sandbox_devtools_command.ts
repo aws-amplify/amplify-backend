@@ -8,8 +8,8 @@ import { Server } from 'socket.io';
 import {
   LogLevel,
   format as defaultFormat,
-  minimumLogLevel,
   printer as defaultPrinter,
+  minimumLogLevel,
 } from '@aws-amplify/cli-core';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -79,8 +79,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       getCloudFormationClient: () => CloudFormationClient;
     },
     private readonly portChecker: PortChecker = new PortChecker(),
-    private readonly format = formatUtil,
-    private printer = printerUtil,
+    private readonly format = defaultFormat,
+    private printer = defaultPrinter,
   ) {
     this.command = 'devtools';
     this.describe = 'Starts a development console for Amplify sandbox';
