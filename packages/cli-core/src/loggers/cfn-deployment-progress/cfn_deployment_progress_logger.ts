@@ -61,12 +61,6 @@ export class CfnDeploymentProgressLogger {
   private readonly getBlockWidth: () => number;
 
   /**
-   * Extract nested stack names
-   * @deprecated Use the shared normalizeCDKConstructPath function from formatters/cdk_path_formatter.js instead
-   */
-  private normalizeCDKConstructPath = normalizeCDKConstructPath;
-
-  /**
    * Instantiate the CFN deployment progress builder
    */
   constructor(props: PrinterProps) {
@@ -110,7 +104,7 @@ export class CfnDeploymentProgressLogger {
     if (metadata && metadata.constructPath) {
       if (!(event.LogicalResourceId in this.resourceNameCache)) {
         this.resourceNameCache[event.LogicalResourceId] =
-          this.normalizeCDKConstructPath(metadata.constructPath);
+          normalizeCDKConstructPath(metadata.constructPath);
       }
     }
     // Hydrate friendly name resource cache

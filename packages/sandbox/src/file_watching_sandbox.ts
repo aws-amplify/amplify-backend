@@ -141,9 +141,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       throw error;
     }
 
-    // Set state to running at the beginning of start
-    this.state = 'running';
-
     this.filesChangesTracker = await createFilesChangesTracker(watchDir);
     const bootstrapped = await this.isBootstrapped();
     // get region from an available sdk client;
@@ -175,6 +172,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       return;
     }
+
+    // Set state to running at the beginning of start
+    this.state = 'running';
 
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =

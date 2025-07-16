@@ -3,11 +3,12 @@ import { SandboxDevToolsCommand } from './sandbox_devtools_command.js';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
-import { format, printer } from '@aws-amplify/cli-core';
+import { format, minimumLogLevel, printer } from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { PortChecker } from '../port_checker.js';
+import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 
 /**
  * Creates a wired sandbox devtools command.
@@ -31,6 +32,10 @@ export const createSandboxDevToolsCommand = (): CommandModule<
   };
 
   const portChecker = new PortChecker();
+  const devToolsLoggerFactory = new DevToolsLoggerFactory(
+    printer,
+    minimumLogLevel,
+  );
 
   return new SandboxDevToolsCommand(
     sandboxBackendIdResolver,
@@ -38,5 +43,6 @@ export const createSandboxDevToolsCommand = (): CommandModule<
     portChecker,
     format,
     printer,
+    devToolsLoggerFactory,
   );
 };

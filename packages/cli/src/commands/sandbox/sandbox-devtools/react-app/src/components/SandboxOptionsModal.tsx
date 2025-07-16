@@ -9,28 +9,30 @@ import {
   Header,
   Checkbox,
   Select,
-  ColumnLayout,
 } from '@cloudscape-design/components';
+import { DevToolsSandboxOptions } from '../../../shared/socket_types';
 
 interface SandboxOptionsModalProps {
   visible: boolean;
   onDismiss: () => void;
-  onConfirm: (options: SandboxOptions) => void;
+  onConfirm: (options: DevToolsSandboxOptions) => void;
 }
 
-export interface SandboxOptions {
-  identifier?: string;
-  dirToWatch?: string;
-  exclude?: string[];
-  outputsFormat?: string;
-  outputsOutDir?: string;
-  outputsVersion?: string;
-  once?: boolean;
-  streamFunctionLogs?: boolean;
-  logsFilter?: string[];
-  logsOutFile?: string;
-}
-
+/**
+ * SandboxOptionsModal component allows users to configure sandbox settings
+ *
+ * NOTE: Type Handling
+ * This component uses DevToolsSandboxOptions from shared/socket_types.ts which is
+ * designed to be compatible with socket communication. The key differences from
+ * the actual @aws-amplify/sandbox SandboxOptions type are:
+ *
+ * 1. Different property names (e.g., 'dirToWatch' here vs 'dir' in the actual SandboxOptions)
+ * 2. The 'exclude' and 'logsFilter' are passed as strings rather than string arrays
+ * 3. We cannot use ClientConfigFormat directly in the React app
+ *
+ * The conversion between these types happens in the socket_handlers.ts file
+ * which processes these fields before passing them to the sandbox.
+ */
 const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
   visible,
   onDismiss,
@@ -40,15 +42,13 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
   const [dirToWatch, setDirToWatch] = useState<string>('./amplify');
   const [excludeInput, setExcludeInput] = useState<string>('');
   const [outputsFormat, setOutputsFormat] = useState<string>('');
-  const [outputsOutDir, setOutputsOutDir] = useState<string>('');
-  const [outputsVersion, setOutputsVersion] = useState<string>('');
   const [once, setOnce] = useState<boolean>(false);
   const [streamFunctionLogs, setStreamFunctionLogs] = useState<boolean>(false);
   const [logsFilterInput, setLogsFilterInput] = useState<string>('');
   const [logsOutFile, setLogsOutFile] = useState<string>('');
 
   const handleConfirm = () => {
-    const options: SandboxOptions = {};
+    const options: DevToolsSandboxOptions = {};
 
     if (identifier.trim()) {
       options.identifier = identifier.trim();
@@ -59,19 +59,11 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
     }
 
     if (excludeInput.trim()) {
-      options.exclude = excludeInput.split(',').map((item) => item.trim());
+      options.exclude = excludeInput.trim();
     }
 
     if (outputsFormat) {
       options.outputsFormat = outputsFormat;
-    }
-
-    if (outputsOutDir.trim()) {
-      options.outputsOutDir = outputsOutDir.trim();
-    }
-
-    if (outputsVersion) {
-      options.outputsVersion = outputsVersion;
     }
 
     if (once) {
@@ -82,9 +74,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
       options.streamFunctionLogs = true;
 
       if (logsFilterInput.trim()) {
-        options.logsFilter = logsFilterInput
-          .split(',')
-          .map((item) => item.trim());
+        options.logsFilter = logsFilterInput.trim();
       }
 
       if (logsOutFile.trim()) {
@@ -148,60 +138,28 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
           />
         </FormField>
 
-        <ColumnLayout columns={2}>
-          <FormField
-            label="Outputs Format"
-            description="amplify_outputs file format"
-          >
-            <Select
-              selectedOption={
-                outputsFormat
-                  ? { label: outputsFormat, value: outputsFormat }
-                  : null
-              }
-              onChange={({ detail }) =>
-                setOutputsFormat(detail.selectedOption?.value || '')
-              }
-              options={[
-                { label: 'Default', value: '' },
-                { label: 'JSON', value: 'json' },
-                { label: 'TypeScript', value: 'typescript' },
-              ]}
-              placeholder="Select format"
-            />
-          </FormField>
-
-          <FormField
-            label="Outputs Version"
-            description="Version of the configuration"
-          >
-            <Select
-              selectedOption={
-                outputsVersion
-                  ? { label: outputsVersion, value: outputsVersion }
-                  : null
-              }
-              onChange={({ detail }) =>
-                setOutputsVersion(detail.selectedOption?.value || '')
-              }
-              options={[
-                { label: 'Default', value: '' },
-                { label: 'v0', value: '0' },
-                { label: 'v1', value: '1' },
-              ]}
-              placeholder="Select version"
-            />
-          </FormField>
-        </ColumnLayout>
-
         <FormField
-          label="Outputs Directory"
-          description="Directory where amplify_outputs is written"
+          label="Outputs Format"
+          description="amplify_outputs file format"
         >
-          <Input
-            value={outputsOutDir}
-            onChange={({ detail }) => setOutputsOutDir(detail.value)}
-            placeholder="e.g., ./src"
+          <Select
+            selectedOption={
+              outputsFormat
+                ? { label: outputsFormat, value: outputsFormat }
+                : null
+            }
+            onChange={({ detail }) =>
+              setOutputsFormat(detail.selectedOption?.value || '')
+            }
+            options={[
+              { label: 'Default', value: undefined },
+              { label: 'JSON', value: 'json' },
+              { label: 'JSON Mobile', value: 'json-mobile' },
+              { label: 'TypeScript', value: 'ts' },
+              { label: 'DART', value: 'dart' },
+              { label: 'MJS', value: 'mjs' },
+            ]}
+            placeholder="Select format"
           />
         </FormField>
 
