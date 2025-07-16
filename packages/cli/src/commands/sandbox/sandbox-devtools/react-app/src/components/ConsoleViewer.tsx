@@ -29,18 +29,15 @@ interface ConsoleViewerProps {
 const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [selectedLogLevels, setSelectedLogLevels] = useState<string[]>([]);
-  const [availableLogLevels, setAvailableLogLevels] = useState<
-    { label: string; value: string }[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
 
   // Extract unique log levels from logs
-const uniqueLevels = [...new Set(logs.map((log) => log.level))];
-const availableLogLevels = uniqueLevels.map((level) => ({
-  label: level,
-  value: level,
-}));
+  const uniqueLevels = [...new Set(logs.map((log) => log.level))];
+  const availableLogLevels = uniqueLevels.map((level) => ({
+    label: level,
+    value: level,
+  }));
 
   const filteredLogs = logs.filter((log) => {
     const matchesLevel =
