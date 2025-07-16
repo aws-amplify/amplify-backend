@@ -301,40 +301,35 @@ function AppContent() {
 
   // Effect to periodically check sandbox status if unknown
   useEffect(() => {
-    if (!connected) return;
+    if (!connected || sandboxStatus !== 'unknown') return;
 
-    // If status is unknown, request it periodically
-    if (sandboxStatus === 'unknown') {
-      const statusCheckInterval = setInterval(() => {
-        console.log('Requesting sandbox status due to unknown state');
-        sandboxClientService.getSandboxStatus();
+    // Periodic status check
+    const statusCheckInterval = setInterval(() => {
+      console.log('Requesting sandbox status due to unknown state');
+      sandboxClientService.getSandboxStatus();
 
-        // Add a log entry to show we're still trying
-        setLogs((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            timestamp: new Date().toISOString(),
-            level: 'INFO',
-            message: 'Requesting sandbox status...',
-          },
-        ]);
-      }, 5000); // Check every 5 seconds
+      // Add a log entry to show we're still trying
+      setLogs((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          level: 'INFO',
+          message: 'Requesting sandbox status...',
+        },
+      ]);
+    }, 5000); // Check every 5 seconds
 
-      return () => clearInterval(statusCheckInterval);
-    }
-  }, [sandboxStatus, connected, sandboxClientService]);
+    // Force a status check after a short timeout
+    const forceStatusCheck = setTimeout(() => {
+      console.log('Forcing sandbox status check after timeout');
+      sandboxClientService.getSandboxStatus();
+    }, 2000); // Force a check after 2 seconds
 
-  // Force a status check if we've been in unknown state for too long
-  useEffect(() => {
-    if (sandboxStatus === 'unknown' && connected) {
-      const forceStatusCheck = setTimeout(() => {
-        console.log('Forcing sandbox status check after timeout');
-        sandboxClientService.getSandboxStatus();
-      }, 2000); // Force a check after 2 seconds
-
-      return () => clearTimeout(forceStatusCheck);
-    }
+    return () => {
+      clearInterval(statusCheckInterval);
+      clearTimeout(forceStatusCheck);
+    };
   }, [sandboxStatus, connected, sandboxClientService]);
 
   // Reset loading state when sandbox status changes
