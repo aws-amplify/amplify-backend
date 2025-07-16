@@ -367,111 +367,6 @@ export class SocketHandlerService {
   }
 
   /**
-   * Sets up log polling for a resource
-   * @param resourceId The resource ID
-   * @param logGroupName The log group name
-   * @param logStreamName The log stream name
-   * @param socket Optional socket to emit errors to
-   */
-  private setupLogPolling(
-    resourceId: string,
-    logGroupName: string,
-    logStreamName: string,
-    socket?: Socket,
-  ): void {
-    let nextToken: string | undefined = undefined;
-    let currentLogStreamName = logStreamName;
-    let lastStreamCheckTime = Date.now();
-    const STREAM_CHECK_INTERVAL = 30000; // Check for new streams every 30 seconds
-
-    // Function to fetch and save logs
-    const fetchLogs = () => {
-      void (async () => {
-        try {
-          // Periodically check for newer log streams
-          if (Date.now() - lastStreamCheckTime > STREAM_CHECK_INTERVAL) {
-            try {
-              const streamResult = await this.findLatestLogStream(logGroupName);
-              if (
-                streamResult.logStreamName &&
-                streamResult.logStreamName !== currentLogStreamName
-              ) {
-                this.printer.log(
-                  `Found newer log stream for ${resourceId}: ${streamResult.logStreamName}`,
-                  LogLevel.INFO,
-                );
-                currentLogStreamName = streamResult.logStreamName;
-                nextToken = undefined; // Reset token when switching to a new stream
-              }
-              lastStreamCheckTime = Date.now();
-            } catch (error) {
-              // Continue with current stream if there's an error finding a new one
-              this.printer.log(
-                `Error checking for new log streams: ${String(error)}`,
-                LogLevel.DEBUG,
-              );
-            }
-          }
-
-          const getLogsResponse = await this.cwLogsClient.send(
-            new GetLogEventsCommand({
-              logGroupName,
-              logStreamName: currentLogStreamName,
-              nextToken,
-              startFromHead: true,
-            }),
-          );
-
-          // Update next token for next poll
-          nextToken = getLogsResponse.nextForwardToken;
-
-          // Process and save logs
-          if (getLogsResponse.events && getLogsResponse.events.length > 0) {
-            // Get the toggle start time for this resource
-            const toggleStartTime = this.toggleStartTimes.get(resourceId) || 0;
-
-            // Filter logs based on toggle start time
-            const logs = getLogsResponse.events
-              .filter((event) => (event.timestamp || 0) > toggleStartTime)
-              .map((event) => ({
-                timestamp: event.timestamp || Date.now(),
-                message: event.message || '',
-              }));
-
-            // Only save and emit if we have logs after filtering
-            if (logs.length > 0) {
-              // Save logs to local storage
-              logs.forEach((log: { timestamp: number; message: string }) => {
-                this.storageManager.appendCloudWatchLog(resourceId, log);
-              });
-
-              // Emit logs to all clients
-              this.io.emit(SOCKET_EVENTS.RESOURCE_LOGS, {
-                resourceId,
-                logs,
-              });
-            }
-          }
-        } catch (error) {
-          try {
-            clearInterval(pollingInterval);
-            this.activeLogPollers.delete(resourceId);
-            this.handleResourceNotFoundException(resourceId, error, socket);
-          } catch {
-            this.handleLogError(resourceId, error, socket);
-          }
-        }
-      })();
-    };
-    // Set up polling interval with more frequent polling since we're only using this approach
-    const pollingInterval = setInterval(fetchLogs, 2000); // Poll every 2 seconds
-    this.activeLogPollers.set(resourceId, pollingInterval);
-    // fetch after setting up the interval to ensure that the error handler clears the interval in case fetch fails
-    fetchLogs();
-  }
-
-  /**
->>>>>>> b7502f414a (dynamic log stream selection)
    * Handles ResourceNotFoundException for log groups
    * @param resourceId The resource ID
    * @param error The error object
@@ -980,7 +875,7 @@ export class SocketHandlerService {
       await this.sandbox.stop();
 
       const statusData: SandboxStatusData = {
-        status: 'stopped', //This should match the sandbox state-- hardcoded for speed to avoid waiting for getSandboxState
+        status: 'stopped', //This should match the sandbox state-- hard coded for speed to avoid waiting for getSandboxState
         identifier: this.backendId.name,
         message: 'Sandbox stopped successfully',
       };
