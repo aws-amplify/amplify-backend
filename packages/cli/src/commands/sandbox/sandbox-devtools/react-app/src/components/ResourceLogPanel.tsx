@@ -39,11 +39,14 @@ const logCache: Record<string, LogEntry[]> = {};
 const errorCache: Record<string, string | null> = {};
 
 // Module-level cache for Lambda test state
-const testStateStore: Record<string, {
-  isLoading: boolean;
-  testInput: string;
-  testOutput: string;
-}> = {};
+const testStateStore: Record<
+  string,
+  {
+    isLoading: boolean;
+    testInput: string;
+    testOutput: string;
+  }
+> = {};
 
 const ResourceLogPanel: React.FC<ResourceLogPanelProps> = ({
   loggingClientService,
@@ -58,10 +61,12 @@ const ResourceLogPanel: React.FC<ResourceLogPanelProps> = ({
 }) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const isRecording = isLoggingActive;
-  const [error, setError] = useState<string | null>(errorCache[resourceId] || null);
+  const [error, setError] = useState<string | null>(
+    errorCache[resourceId] || null,
+  );
   const [searchQuery, setSearchQuery] = useState<string>('');
   const logContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Force a re-render when test state changes
   const [updateTrigger, setUpdateTrigger] = useState({});
   const forceUpdate = () => setUpdateTrigger({});
@@ -130,7 +135,7 @@ const ResourceLogPanel: React.FC<ResourceLogPanelProps> = ({
         errorCache[resourceId] = null;
         setError(null);
       }, 10000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [resourceId, error]);
@@ -180,7 +185,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       // Always update the cache for the resource in the data
       const currentCachedLogs = logCache[data.resourceId] || [];
       logCache[data.resourceId] = [...currentCachedLogs, ...data.logs];
-      
+
       // Only update the displayed logs if this is the active resource
       if (data.resourceId === resourceId) {
         setLogs(logCache[data.resourceId]);
@@ -193,7 +198,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     }) => {
       // Always update the cache for any resource
       logCache[data.resourceId] = data.logs;
-      
+
       // Only update the displayed logs if this is the active resource
       if (data.resourceId === resourceId) {
         setLogs(data.logs);
@@ -209,11 +214,11 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       // Store error in cache for the specific resource
       if (data.error) {
         errorCache[data.resourceId] = data.error;
-        
+
         // Only update UI if this is the active resource
         if (data.resourceId === resourceId) {
           setError(data.error);
-          
+
           // Auto-dismiss error after 10 seconds
           setTimeout(() => {
             errorCache[data.resourceId] = null;
@@ -232,7 +237,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       error?: string;
     }) => {
       setLoading(data.resourceId, false);
-      
+
       // Always save the output for this resource, regardless of which resource is currently displayed
       if (data.error) {
         setTestOutput(data.resourceId, `Error: ${data.error}`);
@@ -261,7 +266,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       // Clear the refresh interval
       clearInterval(refreshInterval);
     };
-  }, [loggingClientService, resourceId, updateTrigger]); 
+  }, [loggingClientService, resourceId, updateTrigger]);
 
   // Auto-scroll to bottom when new logs arrive
   useEffect(() => {
@@ -302,7 +307,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     // Clear errors when toggling recording state
     errorCache[resourceId] = null;
     setError(null);
-    
+
     toggleResourceLogging(resourceId, resourceType, !isRecording);
   };
 
@@ -312,7 +317,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     // Set loading state for this specific resource only
     setLoading(resourceId, true);
     setTestOutput(resourceId, '');
-    
+
     // Clear any previous errors when testing
     errorCache[resourceId] = null;
     setError(null);
