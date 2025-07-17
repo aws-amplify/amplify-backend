@@ -59,11 +59,11 @@ export class SandboxClientService extends SocketClientService {
   /**
    * Registers a handler for sandbox status events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onSandboxStatus(
-    handler: (data: SandboxStatusData) => void,
-  ): () => void {
+  public onSandboxStatus(handler: (data: SandboxStatusData) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.SANDBOX_STATUS, handler);
   }
 
@@ -84,7 +84,7 @@ export class SandboxClientService extends SocketClientService {
   /**
    * Registers a handler for log events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
   public onLog(
     handler: (data: {
@@ -92,7 +92,7 @@ export class SandboxClientService extends SocketClientService {
       level: string;
       message: string;
     }) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on('log', handler);
   }
 }

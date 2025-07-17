@@ -282,17 +282,17 @@ function AppContent() {
 
     // Clean up on unmount
     return () => {
-      unsubscribeSandboxStatus();
-      unsubscribeConnect();
-      unsubscribeConnectError();
-      unsubscribeConnectTimeout();
-      unsubscribeReconnect();
-      unsubscribeReconnectAttempt();
-      unsubscribeReconnectError();
-      unsubscribeReconnectFailed();
-      unsubscribeDisconnect();
-      unsubscribeLog();
-      stopPing();
+      unsubscribeSandboxStatus.unsubscribe();
+      unsubscribeConnect.unsubscribe();
+      unsubscribeConnectError.unsubscribe();
+      unsubscribeConnectTimeout.unsubscribe();
+      unsubscribeReconnect.unsubscribe();
+      unsubscribeReconnectAttempt.unsubscribe();
+      unsubscribeReconnectError.unsubscribe();
+      unsubscribeReconnectFailed.unsubscribe();
+      unsubscribeDisconnect.unsubscribe();
+      unsubscribeLog.unsubscribe();
+      stopPing.unsubscribe();
       clearLogs();
       sandboxClientService.disconnect();
     };

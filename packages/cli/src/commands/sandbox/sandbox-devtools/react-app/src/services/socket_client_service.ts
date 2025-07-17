@@ -59,10 +59,15 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onConnect(handler: ConnectionHandler): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for connection events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onConnect(handler: ConnectionHandler): { unsubscribe: () => void } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('connect', handler);
-    return () => this.socket?.off('connect', handler);
+    return { unsubscribe: () => this.socket?.off('connect', handler) };
   }
 
   /**
@@ -70,10 +75,17 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onDisconnect(handler: (reason: string) => void): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for disconnection events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onDisconnect(handler: (reason: string) => void): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('disconnect', handler);
-    return () => this.socket?.off('disconnect', handler);
+    return { unsubscribe: () => this.socket?.off('disconnect', handler) };
   }
 
   /**
@@ -81,10 +93,15 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onConnectError(handler: ErrorHandler): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for connection error events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onConnectError(handler: ErrorHandler): { unsubscribe: () => void } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('connect_error', handler);
-    return () => this.socket?.off('connect_error', handler);
+    return { unsubscribe: () => this.socket?.off('connect_error', handler) };
   }
 
   /**
@@ -92,10 +109,17 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onConnectTimeout(handler: ConnectionHandler): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for connection timeout events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onConnectTimeout(handler: ConnectionHandler): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('connect_timeout', handler);
-    return () => this.socket?.off('connect_timeout', handler);
+    return { unsubscribe: () => this.socket?.off('connect_timeout', handler) };
   }
 
   /**
@@ -103,10 +127,17 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onReconnect(handler: (attempt: number) => void): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for reconnection events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onReconnect(handler: (attempt: number) => void): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('reconnect', handler);
-    return () => this.socket?.off('reconnect', handler);
+    return { unsubscribe: () => this.socket?.off('reconnect', handler) };
   }
 
   /**
@@ -114,10 +145,19 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onReconnectAttempt(handler: (attempt: number) => void): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for reconnection attempt events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onReconnectAttempt(handler: (attempt: number) => void): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('reconnect_attempt', handler);
-    return () => this.socket?.off('reconnect_attempt', handler);
+    return {
+      unsubscribe: () => this.socket?.off('reconnect_attempt', handler),
+    };
   }
 
   /**
@@ -125,10 +165,15 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onReconnectError(handler: ErrorHandler): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for reconnection error events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onReconnectError(handler: ErrorHandler): { unsubscribe: () => void } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('reconnect_error', handler);
-    return () => this.socket?.off('reconnect_error', handler);
+    return { unsubscribe: () => this.socket?.off('reconnect_error', handler) };
   }
 
   /**
@@ -136,10 +181,17 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onReconnectFailed(handler: ConnectionHandler): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for reconnection failed events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onReconnectFailed(handler: ConnectionHandler): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('reconnect_failed', handler);
-    return () => this.socket?.off('reconnect_failed', handler);
+    return { unsubscribe: () => this.socket?.off('reconnect_failed', handler) };
   }
 
   /**
@@ -147,8 +199,15 @@ export class SocketClientService {
    * @param interval The ping interval in milliseconds
    * @returns A function to stop the ping
    */
-  public startPingInterval(interval: number = 30000): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Starts a periodic ping to check connection health
+   * @param interval The ping interval in milliseconds
+   * @returns An object with an unsubscribe method to stop the ping
+   */
+  public startPingInterval(interval: number = 30000): {
+    unsubscribe: () => void;
+  } {
+    if (!this.socket) return { unsubscribe: () => {} };
 
     const pingInterval = setInterval(() => {
       if (this.socket?.connected) {
@@ -164,7 +223,7 @@ export class SocketClientService {
       }
     }, interval);
 
-    return () => clearInterval(pingInterval);
+    return { unsubscribe: () => clearInterval(pingInterval) };
   }
 
   /**
@@ -242,9 +301,18 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  protected on<T>(event: string, handler: (data: T) => void): () => void {
-    if (!this.socket) return () => {};
+  /**
+   * Registers a handler for an event
+   * @param event The event name
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  protected on<T>(
+    event: string,
+    handler: (data: T) => void,
+  ): { unsubscribe: () => void } {
+    if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on(event, handler);
-    return () => this.socket?.off(event, handler);
+    return { unsubscribe: () => this.socket?.off(event, handler) };
   }
 }
