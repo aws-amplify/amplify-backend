@@ -39,7 +39,10 @@ runs:
     - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # version 4.2.0
       id: build-cache
       with:
-        path: '**/lib'
+        # cache build outputs and node_modules for bundled dependencies
+        path: |
+          **/lib
+          packages/form-generator/node_modules
         key: ${{ steps.get-current-commit-sha.outputs.current_commit_sha }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
         enableCrossOsArchive: true
     # only build if cache miss

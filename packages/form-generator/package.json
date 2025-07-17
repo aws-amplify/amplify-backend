@@ -15,9 +15,14 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "post:compile": "npm run copy:dependencies",
+    "copy:dependencies": "mkdir -p node_modules && cp -R ../../node_modules/@graphql-codegen node_modules/",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
+  "bundledDependencies": [
+    "@graphql-codegen/core"
+  ],
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.11.0",
     "@aws-amplify/codegen-ui": "^2.19.4",
