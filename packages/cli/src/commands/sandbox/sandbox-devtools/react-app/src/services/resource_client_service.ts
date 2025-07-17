@@ -66,9 +66,9 @@ export class ResourceClientService extends SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onSavedResources(
-    handler: (data: BackendResourcesData) => void,
-  ): () => void {
+  public onSavedResources(handler: (data: BackendResourcesData) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.SAVED_RESOURCES, handler);
   }
 
@@ -79,7 +79,7 @@ export class ResourceClientService extends SocketClientService {
    */
   public onDeployedBackendResources(
     handler: (data: BackendResourcesData) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, handler);
   }
 
@@ -90,7 +90,7 @@ export class ResourceClientService extends SocketClientService {
    */
   public onCustomFriendlyNames(
     handler: (data: Record<string, string>) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES, handler);
   }
 
@@ -101,7 +101,7 @@ export class ResourceClientService extends SocketClientService {
    */
   public onCustomFriendlyNameUpdated(
     handler: (data: { resourceId: string; friendlyName: string }) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_UPDATED, handler);
   }
 
@@ -112,7 +112,7 @@ export class ResourceClientService extends SocketClientService {
    */
   public onCustomFriendlyNameRemoved(
     handler: (data: { resourceId: string }) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_REMOVED, handler);
   }
 
@@ -121,7 +121,9 @@ export class ResourceClientService extends SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  public onError(handler: (data: { message: string }) => void): () => void {
+  public onError(handler: (data: { message: string }) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.ERROR, handler);
   }
 }

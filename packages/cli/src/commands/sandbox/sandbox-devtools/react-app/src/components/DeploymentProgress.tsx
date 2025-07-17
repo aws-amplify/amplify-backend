@@ -153,7 +153,9 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
         });
       });
 
-    return unsubscribeDeploymentError;
+    return () => {
+      unsubscribeDeploymentError.unsubscribe();
+    };
   }, [deploymentClientService]);
 
   // Set up stable event listeners
@@ -247,9 +249,9 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
       );
 
     return () => {
-      unsubscribeCloudFormationEvents();
-      unsubscribeCloudFormationEventsError();
-      unsubscribeSavedCloudFormationEvents();
+      unsubscribeCloudFormationEvents.unsubscribe();
+      unsubscribeCloudFormationEventsError.unsubscribe();
+      unsubscribeSavedCloudFormationEvents.unsubscribe();
     };
   }, [deploymentClientService, status, deploymentStartTime, events]);
 

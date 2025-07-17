@@ -166,15 +166,15 @@ export const useResourceManager = (
 
     // Cleanup function to unsubscribe from events
     return () => {
-      unsubscribeSavedResources();
-      unsubscribeDeployedBackendResources();
-      unsubscribeCustomFriendlyNames();
-      unsubscribeCustomFriendlyNameUpdated();
-      unsubscribeCustomFriendlyNameRemoved();
-      unsubscribeError();
-      unsubscribeActiveLogStreams();
-      unsubscribeLogStreamStatus();
-      unsubscribeLogStreamError();
+      unsubscribeSavedResources.unsubscribe();
+      unsubscribeDeployedBackendResources.unsubscribe();
+      unsubscribeCustomFriendlyNames.unsubscribe();
+      unsubscribeCustomFriendlyNameUpdated.unsubscribe();
+      unsubscribeCustomFriendlyNameRemoved.unsubscribe();
+      unsubscribeError.unsubscribe();
+      unsubscribeActiveLogStreams.unsubscribe();
+      unsubscribeLogStreamStatus.unsubscribe();
+      unsubscribeLogStreamError.unsubscribe();
     };
   }, [
     resourceClientService,

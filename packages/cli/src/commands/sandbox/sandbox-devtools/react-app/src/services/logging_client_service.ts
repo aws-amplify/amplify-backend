@@ -124,71 +124,77 @@ export class LoggingClientService extends SocketClientService {
   /**
    * Registers a handler for log stream status events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onLogStreamStatus(
-    handler: (data: LogStreamStatus) => void,
-  ): () => void {
+  public onLogStreamStatus(handler: (data: LogStreamStatus) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.LOG_STREAM_STATUS, handler);
   }
 
   /**
    * Registers a handler for active log streams events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onActiveLogStreams(handler: (streams: string[]) => void): () => void {
+  public onActiveLogStreams(handler: (streams: string[]) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.ACTIVE_LOG_STREAMS, handler);
   }
 
   /**
    * Registers a handler for resource logs events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onResourceLogs(handler: (data: ResourceLogs) => void): () => void {
+  public onResourceLogs(handler: (data: ResourceLogs) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.RESOURCE_LOGS, handler);
   }
 
   /**
    * Registers a handler for saved resource logs events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onSavedResourceLogs(
-    handler: (data: ResourceLogs) => void,
-  ): () => void {
+  public onSavedResourceLogs(handler: (data: ResourceLogs) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.SAVED_RESOURCE_LOGS, handler);
   }
 
   /**
    * Registers a handler for log stream error events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onLogStreamError(
-    handler: (data: LogStreamStatus) => void,
-  ): () => void {
+  public onLogStreamError(handler: (data: LogStreamStatus) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.LOG_STREAM_ERROR, handler);
   }
 
   /**
    * Registers a handler for Lambda test result events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onLambdaTestResult(
-    handler: (data: LambdaTestResult) => void,
-  ): () => void {
+  public onLambdaTestResult(handler: (data: LambdaTestResult) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.LAMBDA_TEST_RESULT, handler);
   }
 
   /**
    * Registers a handler for log settings events
    * @param handler The event handler
-   * @returns A function to unsubscribe
+   * @returns An object with an unsubscribe method
    */
-  public onLogSettings(handler: (data: LogSettings) => void): () => void {
+  public onLogSettings(handler: (data: LogSettings) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.LOG_SETTINGS, handler);
   }
 }

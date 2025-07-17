@@ -34,27 +34,27 @@ export class DeploymentClientService extends SocketClientService {
     this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
   }
 
-  public onCloudFormationEvents(
-    handler: (events: DeploymentEvent[]) => void,
-  ): () => void {
+  public onCloudFormationEvents(handler: (events: DeploymentEvent[]) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, handler);
   }
 
   public onSavedCloudFormationEvents(
     handler: (events: DeploymentEvent[]) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 
   public onCloudFormationEventsError(
     handler: (error: { error: string }) => void,
-  ): () => void {
+  ): { unsubscribe: () => void } {
     return this.on(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS_ERROR, handler);
   }
 
-  public onDeploymentError(
-    handler: (error: DeploymentError) => void,
-  ): () => void {
+  public onDeploymentError(handler: (error: DeploymentError) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on(SOCKET_EVENTS.DEPLOYMENT_ERROR, handler);
   }
 }

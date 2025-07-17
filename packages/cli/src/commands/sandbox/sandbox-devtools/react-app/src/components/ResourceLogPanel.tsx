@@ -253,10 +253,10 @@ ${JSON.stringify(parsed.body, null, 2)}`;
 
     return () => {
       // Clean up event listeners
-      unsubscribeResourceLogs();
-      unsubscribeSavedResourceLogs();
-      unsubscribeLogStreamError();
-      unsubscribeLambdaTestResult();
+      unsubscribeResourceLogs.unsubscribe();
+      unsubscribeSavedResourceLogs.unsubscribe();
+      unsubscribeLogStreamError.unsubscribe();
+      unsubscribeLambdaTestResult.unsubscribe();
 
       // Clear the refresh interval
       clearInterval(refreshInterval);
