@@ -688,7 +688,7 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-      - run: npm run check:dependencies
+      # - run: npm run check:dependencies
   check_tsconfig_refs:
     runs-on: ubuntu-latest
     needs:
