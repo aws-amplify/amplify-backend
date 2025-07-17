@@ -114,7 +114,6 @@
     "*.md": "prettier --write"
   },
   "overrides": {
-    "minimatch": "10.0.1",
-    "@graphql-tools/merge": "9.0.22"
+    "minimatch": "10.0.1"
   }
 }
