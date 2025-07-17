@@ -420,9 +420,14 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         try {
           const cfnClient = this.awsClientProvider.getCloudFormationClient();
           const stackName = BackendIdentifierConversions.toStackName(backendId);
-          await cfnClient.send(
+          const response = await cfnClient.send(
             new DescribeStacksCommand({ StackName: stackName }),
           );
+
+          if (!response || !response.Stacks || response.Stacks.length === 0) {
+            return 'nonexistent';
+          }
+
           return 'stopped'; // Stack exists, default to stopped
         } catch (error) {
           if (String(error).includes('does not exist')) {
