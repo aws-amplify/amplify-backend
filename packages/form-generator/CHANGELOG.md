@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.2.3
+
+### Patch Changes
+
+- 6fb5f91: Bundle graphql-tools/merge due to https://github.com/ardatan/graphql-tools/issues/7290
+
 ## 1.2.2
 
 ### Patch Changes
