@@ -51,11 +51,22 @@ void describe('SocketHandlerResources', () => {
     const mockBackendId = { name: 'test-backend' } as BackendIdentifier;
     const mockGetSandboxState = async () => 'running' as SandboxStatus;
 
+    // Create a mock Lambda client
+    const mockLambdaClient = {
+      send: mock.fn(() =>
+        Promise.resolve({
+          Payload: Buffer.from('{"result": "success"}'),
+        }),
+      ),
+      config: { region: 'us-east-1' },
+    } as unknown as LambdaClient;
+
     handler = new SocketHandlerResources(
       mockIo,
       mockStorageManager,
       mockBackendId,
       mockGetSandboxState,
+      mockLambdaClient,
       mockPrinter,
     );
 
@@ -245,11 +256,23 @@ void describe('SocketHandlerResources', () => {
     void it('fetches fresh events when deploying', async () => {
       // Create a new handler with getSandboxState returning 'deploying'
       const mockBackendId = { name: 'test-backend' } as BackendIdentifier;
+
+      // Create a mock Lambda client
+      const mockLambdaClient = {
+        send: mock.fn(() =>
+          Promise.resolve({
+            Payload: Buffer.from('{"result": "success"}'),
+          }),
+        ),
+        config: { region: 'us-east-1' },
+      } as unknown as LambdaClient;
+
       const deployingHandler = new SocketHandlerResources(
         mockIo,
         mockStorageManager,
         mockBackendId,
         async () => 'deploying',
+        mockLambdaClient,
         mockPrinter,
       );
 
@@ -307,15 +330,6 @@ void describe('SocketHandlerResources', () => {
 
   void describe('handleTestLambdaFunction', () => {
     void it('tests lambda function with valid input', async () => {
-      // Mock the Lambda client
-      handler['lambdaClient'] = {
-        send: mock.fn(() =>
-          Promise.resolve({
-            Payload: Buffer.from('{"result": "success"}'),
-          }),
-        ),
-      } as unknown as LambdaClient;
-
       await handler.handleTestLambdaFunction(mockSocket, {
         resourceId: 'test-resource',
         functionName: 'test-function',

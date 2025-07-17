@@ -19,10 +19,8 @@ import { SandboxStatus } from '@aws-amplify/sandbox';
  * Service for handling socket events related to resources
  */
 export class SocketHandlerResources {
-  private lambdaClient: LambdaClient;
   private cloudFormationEventsService: CloudFormationEventsService;
   private lastEventTimestamp: Record<string, Date> = {};
-  // backendId is now passed in constructor
 
   /**
    * Creates a new SocketHandlerResources
@@ -32,10 +30,9 @@ export class SocketHandlerResources {
     private storageManager: LocalStorageManager,
     private backendId: BackendIdentifier,
     private getSandboxState: () => Promise<SandboxStatus>,
+    private lambdaClient: LambdaClient,
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
   ) {
-    // Initialize AWS clients
-    this.lambdaClient = new LambdaClient({});
     this.cloudFormationEventsService = new CloudFormationEventsService();
   }
 

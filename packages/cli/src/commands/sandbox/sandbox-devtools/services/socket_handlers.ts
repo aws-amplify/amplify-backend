@@ -6,6 +6,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Sandbox, SandboxOptions, SandboxStatus } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { LambdaClient } from '@aws-sdk/client-lambda';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
@@ -104,6 +105,7 @@ export class SocketHandlerService {
     // Track when logging was toggled on for each resource
     private toggleStartTimes = new Map<string, number>(),
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
+    private lambdaClient: LambdaClient = new LambdaClient({}), // Default Lambda client with region
   ) {
     // Initialize specialized handlers
     this.loggingHandler = new SocketHandlerLogging(
@@ -119,6 +121,7 @@ export class SocketHandlerService {
       storageManager,
       backendId,
       getSandboxState,
+      lambdaClient,
       printer,
     );
   }
