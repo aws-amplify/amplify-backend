@@ -125,6 +125,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     app.use(express.static(publicPath));
 
     // Apply rate limiting to all routes
+    // DevTools runs locally on developers' machines, and developers are the sole users, so rate limiting is not strictly necessary
+    // Included to satisfy CodeQL rule on rate limiting: https://codeql.github.com/codeql-query-help/javascript/js-missing-rate-limiting/
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
       max: 100, // Limit each IP to 100 requests per windowMs
