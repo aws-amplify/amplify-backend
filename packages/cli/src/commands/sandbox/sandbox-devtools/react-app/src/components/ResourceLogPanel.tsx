@@ -32,6 +32,19 @@ interface ResourceLogPanelProps {
   ) => void;
 }
 
+// Module-level cache for logs to persist between component instances
+const logCache: Record<string, LogEntry[]> = {};
+
+// Module-level cache for errors to persist between component instances
+const errorCache: Record<string, string | null> = {};
+
+// Module-level cache for Lambda test state
+const testStateStore: Record<string, {
+  isLoading: boolean;
+  testInput: string;
+  testOutput: string;
+}> = {};
+
 const ResourceLogPanel: React.FC<ResourceLogPanelProps> = ({
   loggingClientService,
   resourceId,
@@ -45,15 +58,82 @@ const ResourceLogPanel: React.FC<ResourceLogPanelProps> = ({
 }) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const isRecording = isLoggingActive;
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(errorCache[resourceId] || null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [testInput, setTestInput] = useState<string>('{}');
-  const [testOutput, setTestOutput] = useState<string>('');
-  const [testing, setTesting] = useState<boolean>(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Force a re-render when test state changes
+  const [updateTrigger, setUpdateTrigger] = useState({});
+  const forceUpdate = () => setUpdateTrigger({});
+
+  // Initialize test state for this resource if needed
+  if (!testStateStore[resourceId]) {
+    testStateStore[resourceId] = {
+      isLoading: false,
+      testInput: '{}',
+      testOutput: '',
+    };
+  }
+
+  // Current resource's test state
+  const testing = testStateStore[resourceId].isLoading;
+  const testInput = testStateStore[resourceId].testInput;
+  const testOutput = testStateStore[resourceId].testOutput;
+
+  // State manipulation functions
+  const setLoading = (targetResourceId: string, isLoading: boolean) => {
+    if (testStateStore[targetResourceId]) {
+      testStateStore[targetResourceId].isLoading = isLoading;
+    } else {
+      testStateStore[targetResourceId] = {
+        isLoading,
+        testInput: '{}',
+        testOutput: '',
+      };
+    }
+    forceUpdate();
+  };
+
+  const setTestInput = (targetResourceId: string, input: string) => {
+    if (testStateStore[targetResourceId]) {
+      testStateStore[targetResourceId].testInput = input;
+    } else {
+      testStateStore[targetResourceId] = {
+        isLoading: false,
+        testInput: input,
+        testOutput: '',
+      };
+    }
+    forceUpdate();
+  };
+
+  const setTestOutput = (targetResourceId: string, output: string) => {
+    if (testStateStore[targetResourceId]) {
+      testStateStore[targetResourceId].testOutput = output;
+    } else {
+      testStateStore[targetResourceId] = {
+        isLoading: false,
+        testInput: '{}',
+        testOutput: output,
+      };
+    }
+    forceUpdate();
+  };
 
   const isLambdaFunction = resourceType === 'AWS::Lambda::Function';
   const isLogGroupNotFoundError = error?.includes("log group doesn't exist");
+
+  // Auto-dismiss cached error after 10 seconds on initial load
+  useEffect(() => {
+    if (error && errorCache[resourceId]) {
+      const timer = setTimeout(() => {
+        errorCache[resourceId] = null;
+        setError(null);
+      }, 10000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [resourceId, error]);
 
   const formatLambdaOutput = (output: string): string => {
     try {
@@ -82,9 +162,8 @@ ${JSON.stringify(parsed.body, null, 2)}`;
   };
 
   useEffect(() => {
-    // Clear logs
-    setLogs([]);
-    setTestOutput('');
+    // Use cached logs if available, otherwise use empty array
+    setLogs(logCache[resourceId] || []);
 
     // Request saved logs when panel opens
     loggingClientService.viewResourceLogs(resourceId);
@@ -94,38 +173,55 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       loggingClientService.getSavedResourceLogs(resourceId);
     }, 2000); // Refresh every 2 seconds to match server-side polling
 
-    // Listen for log entries
     const handleResourceLogs = (data: {
       resourceId: string;
       logs: LogEntry[];
     }) => {
+      // Always update the cache for the resource in the data
+      const currentCachedLogs = logCache[data.resourceId] || [];
+      logCache[data.resourceId] = [...currentCachedLogs, ...data.logs];
+      
+      // Only update the displayed logs if this is the active resource
       if (data.resourceId === resourceId) {
-        // Add new logs to the existing logs
-        setLogs((prevLogs) => [...prevLogs, ...data.logs]);
+        setLogs(logCache[data.resourceId]);
       }
     };
 
-    // Listen for saved logs
     const handleSavedResourceLogs = (data: {
       resourceId: string;
       logs: LogEntry[];
     }) => {
+      // Always update the cache for any resource
+      logCache[data.resourceId] = data.logs;
+      
+      // Only update the displayed logs if this is the active resource
       if (data.resourceId === resourceId) {
         setLogs(data.logs);
       }
     };
 
-    // Listen for errors
+    // Listen for errors - always cache errors regardless of active resource
     const handleLogStreamError = (data: {
       resourceId: string;
       error?: string;
       status: string;
     }) => {
-      if (data.resourceId === resourceId && data.error) {
-        setError(data.error);
-        setTimeout(() => {
-          setError(null);
-        }, 10000);
+      // Store error in cache for the specific resource
+      if (data.error) {
+        errorCache[data.resourceId] = data.error;
+        
+        // Only update UI if this is the active resource
+        if (data.resourceId === resourceId) {
+          setError(data.error);
+          
+          // Auto-dismiss error after 10 seconds
+          setTimeout(() => {
+            errorCache[data.resourceId] = null;
+            if (data.resourceId === resourceId) {
+              setError(null);
+            }
+          }, 10000);
+        }
       }
     };
 
@@ -135,13 +231,13 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       result?: string;
       error?: string;
     }) => {
-      if (data.resourceId === resourceId) {
-        setTesting(false);
-        if (data.error) {
-          setTestOutput(`Error: ${data.error}`);
-        } else {
-          setTestOutput(data.result || 'No output');
-        }
+      setLoading(data.resourceId, false);
+      
+      // Always save the output for this resource, regardless of which resource is currently displayed
+      if (data.error) {
+        setTestOutput(data.resourceId, `Error: ${data.error}`);
+      } else {
+        setTestOutput(data.resourceId, data.result || 'No output');
       }
     };
 
@@ -157,7 +253,6 @@ ${JSON.stringify(parsed.body, null, 2)}`;
 
     return () => {
       // Clean up event listeners
-
       unsubscribeResourceLogs();
       unsubscribeSavedResourceLogs();
       unsubscribeLogStreamError();
@@ -166,7 +261,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       // Clear the refresh interval
       clearInterval(refreshInterval);
     };
-  }, [loggingClientService, resourceId]);
+  }, [loggingClientService, resourceId, updateTrigger]); 
 
   // Auto-scroll to bottom when new logs arrive
   useEffect(() => {
@@ -204,14 +299,23 @@ ${JSON.stringify(parsed.body, null, 2)}`;
   });
 
   const toggleRecording = () => {
+    // Clear errors when toggling recording state
+    errorCache[resourceId] = null;
+    setError(null);
+    
     toggleResourceLogging(resourceId, resourceType, !isRecording);
   };
 
   const handleTestFunction = () => {
     if (!isLambdaFunction) return;
 
-    setTesting(true);
-    setTestOutput('');
+    // Set loading state for this specific resource only
+    setLoading(resourceId, true);
+    setTestOutput(resourceId, '');
+    
+    // Clear any previous errors when testing
+    errorCache[resourceId] = null;
+    setError(null);
 
     loggingClientService.testLambdaFunction(resourceId, resourceId, testInput);
   };
@@ -260,7 +364,11 @@ ${JSON.stringify(parsed.body, null, 2)}`;
             type="info"
             header="Log group not found"
             dismissible
-            onDismiss={() => setError(null)}
+            onDismiss={() => {
+              // Clear error from cache when dismissed
+              errorCache[resourceId] = null;
+              setError(null);
+            }}
           >
             This resource hasn't produced any logs yet. Try using the resource
             first, then turn on logging again.
@@ -281,8 +389,10 @@ ${JSON.stringify(parsed.body, null, 2)}`;
           <SpaceBetween direction="vertical" size="s">
             <FormField label="Test Input (JSON)">
               <Input
-                value={testInput}
-                onChange={({ detail }) => setTestInput(detail.value)}
+                value={testInput || '{}'}
+                onChange={({ detail }) =>
+                  setTestInput(resourceId, detail.value)
+                }
                 placeholder='{"key": "value"}'
                 disabled={testing || deploymentInProgress}
               />
