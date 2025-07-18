@@ -365,6 +365,8 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
           type="error"
           header={errorState.name || 'Error'}
           dismissible
+          data-testid="error-alert"
+          data-error-name={errorState.name}
           onDismiss={() =>
             setErrorState({
               hasError: false,
@@ -412,6 +414,7 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
         {showContent && (
           <div
             ref={containerRef}
+            data-testid="deployment-events-container"
             style={{
               overflow: 'auto',
               maxHeight: '500px',

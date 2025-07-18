@@ -227,8 +227,21 @@ vi.mock('@cloudscape-design/components', () => {
         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
           onChange({ detail: { checked: e.target.checked } }),
       }),
-    Alert: ({ type, children }: any) =>
-      React.createElement('div', { 'data-alert-type': type }, children),
+    Alert: ({ type, children, dismissible, onDismiss, header }: any) =>
+      React.createElement('div', { 'data-alert-type': type }, [
+        React.createElement('div', { className: 'alert-header' }, header),
+        React.createElement('div', { className: 'alert-content' }, children),
+        dismissible &&
+          React.createElement(
+            'button',
+            {
+              onClick: onDismiss,
+              'aria-label': 'Dismiss',
+              className: 'dismiss-button',
+            },
+            'Dismiss',
+          ),
+      ]),
     EmptyState: ({ header, title, children, actions }: any) => {
       return React.createElement('div', { className: 'empty-state' }, [
         React.createElement(
