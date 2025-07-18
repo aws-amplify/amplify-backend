@@ -108,6 +108,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Sandbox Identifier"
           description="A unique identifier for the sandbox (1-15 characters, alphanumeric and hyphens only)"
+          controlId="sandbox-identifier"
         >
           <Input
             value={identifier}
@@ -119,6 +120,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Directory to Watch"
           description="Directory to watch for file changes (defaults to ./amplify)"
+          controlId="dir-to-watch"
         >
           <Input
             value={dirToWatch}
@@ -130,6 +132,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Exclude Paths"
           description="Comma-separated list of paths or glob patterns to ignore"
+          controlId = "exclude-paths"
         >
           <Input
             value={excludeInput}
@@ -141,6 +144,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Outputs Format"
           description="amplify_outputs file format"
+          controlId = "outputs-format"
         >
           <Select
             selectedOption={
@@ -188,6 +192,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
             <FormField
               label="Logs Filter"
               description="Comma-separated regex patterns to filter logs from matched functions"
+              controlId = "logs-filter"
             >
               <Input
                 value={logsFilterInput}
