@@ -8,21 +8,18 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "import": "./lib/bundled/index.js",
+      "require": "./lib/bundled/index.js"
     }
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "post:compile": "npm run copy:dependencies",
-    "copy:dependencies": "mkdir -p node_modules && cp -R ../../node_modules/@graphql-codegen node_modules/",
+    "post:compile": "npm run bundle",
+    "bundle": "node bundle.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
-  "bundledDependencies": [
-    "@graphql-codegen/core"
-  ],
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.11.0",
     "@aws-amplify/codegen-ui": "^2.19.4",
@@ -32,14 +29,9 @@
     "@aws-sdk/client-amplifyuibuilder": "^3.750.0",
     "@aws-sdk/client-appsync": "^3.750.0",
     "@aws-sdk/client-s3": "^3.750.0",
-    "@graphql-codegen/core": "^4.0.0",
     "@graphql-codegen/typescript": "^4.1.5",
-    "@graphql-tools/merge": "9.0.22",
     "graphql": "^15.8.0",
     "node-fetch": "^3.3.2",
     "prettier": "^3.5.3"
-  },
-  "overrides": {
-    "@graphql-tools/merge": "9.0.22"
   }
 }
