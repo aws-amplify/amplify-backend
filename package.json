@@ -117,5 +117,8 @@
   "overrides": {
     "minimatch": "10.0.1",
     "@graphql-tools/merge": "9.0.22"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-location-alpha": "^2.206.0-alpha.0"
   }
 }
