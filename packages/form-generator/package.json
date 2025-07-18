@@ -8,21 +8,18 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "import": "./lib/bundled/index.js",
+      "require": "./lib/bundled/index.js"
     }
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "post:compile": "npm run copy:dependencies",
-    "copy:dependencies": "mkdir -p node_modules && cp -R ../../node_modules/@graphql-codegen node_modules/",
+    "post:compile": "npm run bundle:index",
+    "bundle:index": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=lib/bundled/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
-  "bundledDependencies": [
-    "@graphql-codegen/core"
-  ],
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.11.0",
     "@aws-amplify/codegen-ui": "^2.19.4",
