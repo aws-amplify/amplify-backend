@@ -7,6 +7,7 @@ import {
   SandboxDeleteOptions,
   SandboxEvents,
   SandboxOptions,
+  SandboxStatus,
 } from './sandbox.js';
 import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
@@ -75,6 +76,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof _subscribe>>;
   private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
+  private state: SandboxStatus = 'unknown';
 
   /**
    * Creates a watcher process for this instance
@@ -93,6 +95,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     super();
     this.interceptStderr();
   }
+
+  /**
+   * Gets the current state of the sandbox
+   * @returns The current state: 'running', 'stopped', 'deploying', 'deleting', 'nonexistent', or 'unknown'
+   */
+  getState = (): SandboxStatus => {
+    return this.state;
+  };
 
   /**
    * @inheritdoc
@@ -119,11 +129,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const watchForChanges = options.watchForChanges ?? true;
 
     if (!fs.existsSync(watchDir)) {
-      throw new AmplifyUserError('PathNotFoundError', {
+      const error = new AmplifyUserError('PathNotFoundError', {
         message: `${watchDir} does not exist.`,
         resolution:
           'Make sure you are running this command from your project root directory.',
       });
+
+      // Emit initialization error event before throwing
+      this.emit('initializationError', error);
+
+      throw error;
     }
 
     this.filesChangesTracker = await createFilesChangesTracker(watchDir);
@@ -157,6 +172,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       return;
     }
+
+    // Set state to running at the beginning of start
+    this.state = 'running';
 
     const ignoredPaths = this.getGitIgnoredPaths();
     this.outputFilesExcludedFromWatch =
@@ -259,10 +277,37 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   stop = async () => {
-    this.printer.log(`[Sandbox] Shutting down`, LogLevel.DEBUG);
-    this.functionsLogStreamer?.stopStreamingLogs();
-    // can be undefined if command exits before subscription
-    await this.watcherSubscription?.unsubscribe();
+    this.printer.log(`[Sandbox] Stop operation initiated`, LogLevel.DEBUG);
+
+    try {
+      // Stop function log streaming
+      this.functionsLogStreamer?.stopStreamingLogs();
+      this.printer.log(
+        `[Sandbox] Function log streaming stopped successfully`,
+        LogLevel.DEBUG,
+      );
+
+      // Unsubscribe from watcher
+      if (this.watcherSubscription) {
+        await this.watcherSubscription.unsubscribe();
+      }
+
+      // Update state to stopped
+      this.state = 'stopped';
+      this.printer.log(`[Sandbox] Stop operation completed`, LogLevel.DEBUG);
+
+      // Emit successful stop event
+      this.emit('successfulStop');
+    } catch (error) {
+      this.printer.log(
+        `[Sandbox] Error during stop operation: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+
+      // Emit failed stop event
+      this.emit('failedStop', error);
+      throw error;
+    }
   };
 
   /**
@@ -272,11 +317,43 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.printer.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...',
     );
-    await this.executor.destroy(
-      await this.backendIdSandboxResolver(options.identifier),
-    );
-    this.emit('successfulDeletion');
-    this.printer.log('[Sandbox] Finished deleting.');
+
+    // Update state to deleting
+    this.state = 'deleting';
+
+    // Emit deletionStarted event with relevant info
+    this.emit('deletionStarted', {
+      identifier: options.identifier,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      const backendId = await this.backendIdSandboxResolver(options.identifier);
+
+      await this.executor.destroy(backendId);
+
+      // Update state to nonexistent
+      this.state = 'nonexistent';
+
+      this.emit('successfulDeletion');
+      this.printer.log('[Sandbox] Finished deleting.');
+    } catch (error) {
+      this.printer.log(
+        `[Sandbox] Error during deletion: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+      if (error instanceof Error && error.stack) {
+        this.printer.log(
+          `[Sandbox] Error stack: ${error.stack}`,
+          LogLevel.DEBUG,
+        );
+      }
+
+      // Emit failedDeletion event
+      this.emit('failedDeletion', error);
+
+      throw error;
+    }
   };
 
   private shouldValidateAppSources = (): boolean => {
@@ -295,11 +372,20 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const tracer = openTelemetryTrace.getTracer('amplify-backend');
     await tracer.startActiveSpan('sandbox', async (span: Span) => {
       const startTime = Date.now();
+      // Track state before deployment for error handling
+      const stateBeforeDeployment = this.state;
       try {
+        // Set state to deploying
+        this.state = 'deploying';
+
+        // Emit deploymentStarted event with relevant info
+        this.emit('deploymentStarted', {
+          identifier: options.identifier,
+          timestamp: new Date().toISOString(),
+        });
+
         const deployResult = await this.executor.deploy(
           await this.backendIdSandboxResolver(options.identifier),
-          // It's important to pass this as callback so that debounce does
-          // not reset tracker prematurely
           this.shouldValidateAppSources,
         );
         const data: DeepPartial<TelemetryPayload> = {
@@ -321,7 +407,17 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         };
         setSpanAttributes(span, data);
         span.end();
+
         this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
+
+        // Set state based on watchForChanges option
+        if (options.watchForChanges === false) {
+          // If --once flag was used, set state to stopped
+          this.state = 'stopped';
+        } else {
+          // Otherwise set state to running
+          this.state = 'running';
+        }
         this.emit('successfulDeployment', deployResult);
       } catch (error) {
         const amplifyError = AmplifyError.isAmplifyError(error)
@@ -362,6 +458,18 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
             errorToDisplayStackTrace.cause instanceof Error
               ? errorToDisplayStackTrace.cause
               : undefined;
+        }
+
+        // Update state based on error type and state before deployment
+        if (stateBeforeDeployment === 'nonexistent') {
+          // If this was an initial creation attempt, stay nonexistent
+          this.state = 'nonexistent';
+        } else if (options.watchForChanges === false) {
+          // If --once flag was used, set to stopped on error
+          this.state = 'stopped';
+        } else {
+          // For watch mode, keep running to allow fixes
+          this.state = 'running';
         }
 
         this.emit('failedDeployment', error);
@@ -454,7 +562,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           'InvalidSignatureException',
         ].includes(e.name)
       ) {
-        throw new AmplifyUserError(
+        const error = new AmplifyUserError(
           'SSMCredentialsError',
           {
             message: `${e.name}: ${e.message}`,
@@ -463,6 +571,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           },
           e,
         );
+
+        // Emit initialization error event before throwing
+        this.emit('initializationError', error);
+
+        throw error;
       }
 
       // If we are unable to retrieve bootstrap version parameter due to other reasons, we fail fast.

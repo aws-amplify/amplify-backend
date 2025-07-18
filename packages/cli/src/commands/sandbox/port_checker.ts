@@ -1,10 +1,14 @@
 import net from 'net';
 
 /**
- * Port checker class. Provides utilities for checking if ports are in use
- * and if specific services are running.
+ * Port checker class. Provides utilities for checking if ports are in use.
  */
 export class PortChecker {
+  /**
+   * Default DevTools port
+   */
+  private static readonly defaultDevtoolsPort = 3333;
+
   /**
    * Checks if a port is in use
    * @param port The port to check

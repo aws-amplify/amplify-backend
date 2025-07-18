@@ -26,3 +26,4 @@ export {
   TELEMETRY_ENABLED,
   telemetrySpanAttributeCountLimit,
 } from './telemetry/constants.js';
+export { RegionFetcher } from './telemetry/region_fetcher.js';

@@ -183,7 +183,9 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     printer.print.mock.resetCalls();
   });
 
-  void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
+  void it('when region has not bootstrapped, then opens console to initiate bootstrap and state remains unknown', async () => {
+    // Initial state should be unknown
+    assert.strictEqual(sandboxInstance.getState(), 'unknown');
     ssmClientSendMock.mock.mockImplementationOnce(() => {
       throw new ParameterNotFound({
         $metadata: {},
@@ -212,6 +214,9 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       )} to specify a profile with the correct region.`,
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
+
+    // State should remain unknown when bootstrap fails
+    assert.strictEqual(sandboxInstance.getState(), 'unknown');
   });
 
   void it('when region has not bootstrapped, and opening console url fails prints url to initiate bootstrap', async () => {
@@ -308,7 +313,9 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     );
   });
 
-  void it('when region has bootstrapped, resumes sandbox command successfully', async () => {
+  void it('when region has bootstrapped, resumes sandbox command successfully and transitions to running state', async () => {
+    // Initial state should be unknown
+    assert.strictEqual(sandboxInstance.getState(), 'unknown');
     await sandboxInstance.start({
       dir: 'testDir',
       exclude: ['exclude1', 'exclude2'],
@@ -316,6 +323,9 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 
     assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 0);
+
+    // State should be running after successful bootstrap and deployment
+    assert.strictEqual(sandboxInstance.getState(), 'running');
   });
 });
 
@@ -612,15 +622,20 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
   });
 
-  void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
+  void it('queues deployment if a file change is detected during an ongoing deployment and maintains correct state transitions', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
       functionsLogStreamer:
         functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
-    // Mimic BackendDeployer taking 200 ms.
+    // Initial state should be running
+    assert.strictEqual(sandboxInstance.getState(), 'running');
+
+    // Mimic BackendDeployer taking 200 ms and capture state during deployment
+    let stateCheck: string | null = null;
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
+      stateCheck = sandboxInstance.getState();
       await new Promise((resolve) => setTimeout(resolve, 200));
       return { deploymentTimes: {}, stdout: '', stderr: '' };
     });
@@ -639,6 +654,12 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     await Promise.all([firstFileChange, secondFileChange]);
+
+    // Verify state was deploying during deployment
+    assert.strictEqual(stateCheck, 'deploying');
+
+    // State should return to running after deployment
+    assert.strictEqual(sandboxInstance.getState(), 'running');
 
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 2);
     // BackendDeployer should be called with the right params
@@ -659,14 +680,25 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
   });
 
-  void it('calls BackendDeployer destroy when delete is called', async () => {
+  void it('calls BackendDeployer destroy when delete is called and transitions state correctly', async () => {
     ({ sandboxInstance } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
       functionsLogStreamer:
         functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
-    await sandboxInstance.delete({});
+
+    // Initial state should be running after setup
+    assert.strictEqual(sandboxInstance.getState(), 'running');
+
+    // Start the delete operation
+    const deletePromise = sandboxInstance.delete({});
+
+    // State should be deleting during operation
+    assert.strictEqual(sandboxInstance.getState(), 'deleting');
+
+    // Wait for delete to complete
+    await deletePromise;
 
     // BackendDeployer should be called once to destroy
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
@@ -675,9 +707,12 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       testSandboxBackendId,
     ]);
+
+    // State should be nonexistent after deletion
+    assert.strictEqual(sandboxInstance.getState(), 'nonexistent');
   });
 
-  void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
+  void it('handles error thrown by BackendDeployer and does not crash while deploying, maintaining proper state', async (contextual) => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
@@ -686,10 +721,18 @@ void describe('Sandbox using local project name resolver', () => {
     }));
     const mockEmit = mock.fn();
     contextual.mock.method(sandboxInstance, 'emit', mockEmit);
+    // Initial state should be running
+    assert.strictEqual(sandboxInstance.getState(), 'running');
+
+    // Mock deployment to fail but capture state during deployment
+    let stateCheck: string | null = null;
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'deploy',
-      () => Promise.reject(new Error('random BackendDeployer error')),
+      async () => {
+        stateCheck = sandboxInstance.getState();
+        throw new Error('random BackendDeployer error');
+      },
       { times: 1 },
     );
 
@@ -713,10 +756,10 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
 
     // of the two file change events, successfulDeployment event should only be fired once
-    assert.strictEqual(mockEmit.mock.callCount(), 2);
-    assert.strictEqual(mockEmit.mock.calls[0].arguments[0], 'failedDeployment');
+    assert.strictEqual(mockEmit.mock.callCount(), 4);
+    assert.strictEqual(mockEmit.mock.calls[1].arguments[0], 'failedDeployment');
     assert.strictEqual(
-      mockEmit.mock.calls[1].arguments[0],
+      mockEmit.mock.calls[3].arguments[0],
       'successfulDeployment',
     );
 
@@ -737,9 +780,15 @@ void describe('Sandbox using local project name resolver', () => {
       /file_watching_sandbox.ts/,
     );
     assert.strictEqual(printer.log.mock.calls[7].arguments[1], LogLevel.DEBUG);
+
+    // Verify state was deploying during deployment
+    assert.strictEqual(stateCheck, 'deploying');
+
+    // State should return to running after failed deployment in watch mode
+    assert.strictEqual(sandboxInstance.getState(), 'running');
   });
 
-  void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes', async (contextual) => {
+  void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes, with proper state transitions', async (contextual) => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
@@ -1025,7 +1074,7 @@ void describe('Sandbox using local project name resolver', () => {
       { type: 'update', path: 'foo/test1.ts' },
     ]);
 
-    assert.strictEqual(mockEmit.mock.callCount(), 1);
+    assert.strictEqual(mockEmit.mock.callCount(), 2);
   });
 
   void it('emits the successfulDeletion event after delete is finished', async () => {
@@ -1056,6 +1105,58 @@ void describe('Sandbox using local project name resolver', () => {
     );
 
     assert.strictEqual(subscribeMock.mock.callCount(), 0);
+  });
+
+  void it('properly tracks state transitions during sandbox lifecycle', async () => {
+    // Create a new sandbox instance
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      { watchForChanges: true },
+      false,
+    ));
+
+    // Initial state should be running with watchForChanges=true
+    assert.strictEqual(sandboxInstance.getState(), 'running');
+
+    // Create another sandbox with watchForChanges=false
+    const sandboxWithoutWatch = new FileWatchingSandbox(
+      async () => testSandboxBackendId,
+      sandboxExecutor,
+      ssmClientMock,
+      functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      printer as unknown as Printer,
+      openMock as never,
+      subscribeMock as never,
+    );
+
+    // Initial state should be unknown
+    assert.strictEqual(sandboxWithoutWatch.getState(), 'unknown');
+
+    // Start with watchForChanges=false
+    await sandboxWithoutWatch.start({ watchForChanges: false });
+
+    // State should be stopped with watchForChanges=false
+    assert.strictEqual(sandboxWithoutWatch.getState(), 'stopped');
+
+    // Start delete operation
+    const deletePromise = sandboxWithoutWatch.delete({});
+
+    // State should be deleting during operation
+    assert.strictEqual(sandboxWithoutWatch.getState(), 'deleting');
+
+    // Wait for delete to complete
+    await deletePromise;
+
+    // State should be nonexistent after deletion
+    assert.strictEqual(sandboxWithoutWatch.getState(), 'nonexistent');
+
+    // Clean up
+    await sandboxWithoutWatch.stop();
   });
 
   void it('start lambda function log watcher regardless if asked to in sandbox options', async () => {
