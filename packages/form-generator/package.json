@@ -16,7 +16,7 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "post:compile": "npm run bundle:index",
-    "bundle:index": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=lib/bundled/index.js",
+    "bundle:index": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=lib/bundled/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
