@@ -67,6 +67,12 @@ export type FunctionOutput = z.infer<typeof versionedFunctionOutputSchema>;
 export const functionOutputKey = "AWS::Amplify::Function";
 
 // @public (undocumented)
+export type GeoOutput = z.infer<typeof versionedGeoOutputSchema>;
+
+// @public
+export const geoOutputKey = "AWS::Amplify::Geo";
+
+// @public (undocumented)
 export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 
 // @public
@@ -371,6 +377,36 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedConversationHandlers: string;
         };
     }>]>>;
+    "AWS::Amplify::Geo": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            defaultCollection: z.ZodString;
+            geoRegion: z.ZodString;
+            collections: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
+        }, {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
+        };
+    }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -443,6 +479,14 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedConversationHandlers: string;
         };
     } | undefined;
+    "AWS::Amplify::Geo"?: {
+        version: "1";
+        payload: {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
+        };
+    } | undefined;
 }, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -513,6 +557,14 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             definedConversationHandlers: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Geo"?: {
+        version: "1";
+        payload: {
+            defaultCollection: string;
+            geoRegion: string;
+            collections: string;
         };
     } | undefined;
 }>;
@@ -697,6 +749,38 @@ export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [
     version: "1";
     payload: {
         definedFunctions: string;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedGeoOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        defaultCollection: z.ZodString;
+        geoRegion: z.ZodString;
+        collections: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        defaultCollection: string;
+        geoRegion: string;
+        collections: string;
+    }, {
+        defaultCollection: string;
+        geoRegion: string;
+        collections: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        defaultCollection: string;
+        geoRegion: string;
+        collections: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        defaultCollection: string;
+        geoRegion: string;
+        collections: string;
     };
 }>]>;
 
