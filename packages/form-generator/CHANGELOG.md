@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.2.4
+
+### Patch Changes
+
+- b9222fc: Ensure that @graphql-tools/merge pinning works for Yarn 4.x
+
 ## 1.2.3
 
 ### Patch Changes
