@@ -487,7 +487,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
             }
           >
             {/* Left side - Resources */}
-            <div>
+            <div style={{ overflowY: 'auto', maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto' }}>
               {/* Show resources if available, even during deployment */}
               {resources && resources.length > 0 && (
                 <ResourceDisplay
@@ -633,7 +633,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
           }
         >
           {/* Left side - Resources */}
-          <div>
+          <div style={{ overflowY: 'auto', maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto' }}>
             <SpaceBetween direction="vertical" size="s">
               <FormField label="Search resources">
                 <Input

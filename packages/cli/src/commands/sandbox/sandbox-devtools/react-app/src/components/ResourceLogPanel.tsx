@@ -444,8 +444,8 @@ ${JSON.stringify(parsed.body, null, 2)}`;
         <div
           ref={logContainerRef}
           style={{
-            height: '650px',
-            maxHeight: '650px',
+            height: '600px',
+            maxHeight: '600px',
             overflowY: 'auto',
             fontFamily: 'monospace',
             whiteSpace: 'pre-wrap',
@@ -455,6 +455,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
             padding: '10px',
             borderRadius: '4px',
             display: 'block',
+            position: 'relative',
           }}
         >
           {filteredLogs.length === 0 ? (
