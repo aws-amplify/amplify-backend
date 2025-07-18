@@ -332,18 +332,24 @@ ${JSON.stringify(parsed.body, null, 2)}`;
           variant="h2"
           actions={
             <SpaceBetween direction="horizontal" size="xs">
-              {consoleUrl && !deploymentInProgress && (
-                <Link href={consoleUrl} external>
-                  View in AWS Console
-                </Link>
+              {consoleUrl && (
+                deploymentInProgress ? (
+                  <span style={{ color: '#888' }}>
+                    View in AWS Console
+                  </span>
+                ) : (
+                  <Link href={consoleUrl} external>
+                    View in AWS Console
+                  </Link>
+                )
               )}
               <Button
                 onClick={toggleRecording}
                 variant={isRecording ? 'normal' : 'primary'}
                 disabled={!!deploymentInProgress}
+                data-testid="toggle-recording-button"
               >
                 {isRecording ? 'Stop Recording' : 'Start Recording'}
-                {deploymentInProgress && ' (disabled during deployment)'}
               </Button>
               <Button onClick={onClose} variant="link">
                 Close
@@ -358,7 +364,9 @@ ${JSON.stringify(parsed.body, null, 2)}`;
       fitHeight
     >
       <SpaceBetween direction="vertical" size="m">
-        {isRecording ? (
+        {deploymentInProgress ? (
+          <StatusIndicator type="in-progress">Deployment in progress - logging operations disabled</StatusIndicator>
+        ) : isRecording ? (
           <StatusIndicator type="success">Recording logs</StatusIndicator>
         ) : (
           <StatusIndicator type="info">Not recording logs</StatusIndicator>

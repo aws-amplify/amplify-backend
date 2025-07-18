@@ -192,7 +192,6 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
                       setSelectedLogResource(item);
                       setShowLogViewer(true);
                     }}
-                    disabled={deploymentInProgress}
                   >
                     View Logs
                   </Button>
@@ -481,16 +480,47 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
             <Button onClick={refreshResources}>Refresh Resources</Button>
           </Box>
 
-          {/* Show resources if available, even during deployment */}
-          {resources && resources.length > 0 && (
-            <ResourceDisplay
-              groupedResources={groupedResources}
-              columnDefinitions={columnDefinitions}
-              emptyState={emptyState}
-              refreshResources={refreshResources}
-              regionAvailable={regionAvailable}
-            />
-          )}
+          {/* Split view layout - show resources on left and logs on right when a log is being viewed */}
+          <Grid
+            gridDefinition={
+              showLogViewer ? [{ colspan: 6 }, { colspan: 6 }] : [{ colspan: 12 }]
+            }
+          >
+            {/* Left side - Resources */}
+            <div>
+              {/* Show resources if available, even during deployment */}
+              {resources && resources.length > 0 && (
+                <ResourceDisplay
+                  groupedResources={groupedResources}
+                  columnDefinitions={columnDefinitions}
+                  emptyState={emptyState}
+                  refreshResources={refreshResources}
+                  regionAvailable={regionAvailable}
+                />
+              )}
+            </div>
+
+            {/* Right side - Log Viewer */}
+            {showLogViewer && selectedLogResource && (
+              <ResourceLogPanel
+                loggingClientService={loggingClientService}
+                resourceId={selectedLogResource.physicalResourceId}
+                resourceName={getResourceDisplayName(selectedLogResource)}
+                resourceType={selectedLogResource.resourceType}
+                onClose={() => {
+                  setShowLogViewer(false);
+                }}
+                deploymentInProgress={deploymentInProgress}
+                consoleUrl={selectedLogResource.consoleUrl}
+                isLoggingActive={isLoggingActiveForResource(
+                  selectedLogResource.physicalResourceId,
+                )}
+                toggleResourceLogging={(_, __, startLogging) =>
+                  toggleResourceLogging(selectedLogResource, startLogging)
+                }
+              />
+            )}
+          </Grid>
         </SpaceBetween>
       </Container>
     );
