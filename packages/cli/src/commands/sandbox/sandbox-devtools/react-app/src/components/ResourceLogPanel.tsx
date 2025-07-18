@@ -443,6 +443,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
 
         <div
           ref={logContainerRef}
+          data-testid="log-container"
           style={{
             height: '600px',
             maxHeight: '600px',
@@ -457,7 +458,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
             display: 'block',
             position: 'relative',
           }}
-        >
+          >
           {filteredLogs.length === 0 ? (
             <TextContent>
               <p style={{ color: '#888' }}>
