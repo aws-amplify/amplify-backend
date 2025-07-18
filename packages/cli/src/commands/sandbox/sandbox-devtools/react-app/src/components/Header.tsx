@@ -3,7 +3,6 @@ import {
   Button,
   StatusIndicator,
   SpaceBetween,
-  Spinner,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
 import { useState, useEffect } from 'react';
@@ -34,34 +33,13 @@ const Header = ({
   isStartingLoading = false,
 }: HeaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [statusCheckTimeout, setStatusCheckTimeout] = useState<number>(0);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showStopDevToolsConfirmation, setShowStopDevToolsConfirmation] =
     useState(false);
 
   // Reset loading state when sandbox status changes
   useEffect(() => {
-    console.log(
-      `[CLIENT] Header: sandboxStatus prop changed to ${sandboxStatus}`,
-    );
-
-    // Always reset loading state when status changes, regardless of the new state
-    console.log(
-      `[CLIENT] Header: Resetting isLoading to false due to status change: ${sandboxStatus}`,
-    );
     setIsLoading(false);
-
-    // If status is still unknown after a delay, increment the timeout counter
-    // to show a more informative message
-    if (sandboxStatus === 'unknown') {
-      const timer = setTimeout(() => {
-        setStatusCheckTimeout((prev) => prev + 1);
-      }, 3000);
-      return () => clearTimeout(timer);
-    } else {
-      // Reset timeout counter when we get a definitive status
-      setStatusCheckTimeout(0);
-    }
   }, [sandboxStatus]);
 
   const handleStartSandbox = () => {
@@ -130,29 +108,11 @@ const Header = ({
           </StatusIndicator>
         );
       default:
-        // Show different messages based on how long we've been checking
-        if (statusCheckTimeout === 0) {
-          return (
-            <StatusIndicator type="pending">
-              Checking Sandbox Status
-            </StatusIndicator>
-          );
-        } else if (statusCheckTimeout === 1) {
-          return (
-            <StatusIndicator type="pending">
-              Still checking status...
-            </StatusIndicator>
-          );
-        } else {
-          return (
-            <SpaceBetween direction="horizontal" size="xs">
-              <Spinner size="normal" />
-              <StatusIndicator type="pending">
-                Status check taking longer than expected
-              </StatusIndicator>
-            </SpaceBetween>
-          );
-        }
+        return (
+          <StatusIndicator type="pending">
+            Waiting for status...
+          </StatusIndicator>
+        );
     }
   };
 
