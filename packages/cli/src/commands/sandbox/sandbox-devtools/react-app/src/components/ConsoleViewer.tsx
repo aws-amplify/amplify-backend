@@ -106,7 +106,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
   };
 
   // Map log level to StatusIndicator type
-  const getStatusType = (
+  const getStatusIndicatorIconForLogLevel = (
     level: string,
   ): 'success' | 'info' | 'warning' | 'error' | 'pending' => {
     const normalizedLevel =
@@ -141,7 +141,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
       id: 'level',
       header: 'Level',
       cell: (item: ConsoleLogEntry) => (
-        <StatusIndicator type={getStatusType(item.level)}>
+        <StatusIndicator type={getStatusIndicatorIconForLogLevel(item.level)}>
           {item.level}
         </StatusIndicator>
       ),
