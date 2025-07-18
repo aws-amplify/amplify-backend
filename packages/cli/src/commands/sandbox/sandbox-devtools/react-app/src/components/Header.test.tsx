@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Header from './Header';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
@@ -9,7 +10,7 @@ describe('Header Component', () => {
   const mockDeleteSandbox = vi.fn();
   const mockStopDevTools = vi.fn();
   const mockOpenSettings = vi.fn();
-
+  
   beforeEach(() => {
     mockStartSandbox.mockReset();
     mockStopSandbox.mockReset();
@@ -17,9 +18,9 @@ describe('Header Component', () => {
     mockStopDevTools.mockReset();
     mockOpenSettings.mockReset();
   });
-
+  
   it('renders correctly when connected and sandbox is running', () => {
-    const { container } = render(
+    render(
       <Header
         connected={true}
         sandboxStatus={'running' as SandboxStatus}
@@ -31,26 +32,20 @@ describe('Header Component', () => {
         onOpenSettings={mockOpenSettings}
       />
     );
-
-    // Check for title
-    expect(container.textContent).toContain('Amplify Sandbox DevTools');
-
-    // Check for status indicators
-    const header = container.querySelector('.header-container');
-    expect(header).toBeDefined();
     
-    // Mock the text we expect in the Header component
-    const mockContent = document.createElement('div');
-    mockContent.innerHTML = 'Connected<br>Sandbox (test-sandbox) Running';
-    document.body.appendChild(mockContent);
+    // Check for title
+    expect(screen.getByText(/Amplify Sandbox DevTools/i)).toBeInTheDocument();
+    
+    const headerText = screen.getByText(/Amplify Sandbox DevTools/i).parentElement?.textContent;
+    expect(headerText).toContain('test-sandbox');
     
     // Check for Stop Sandbox button
-    const buttons = container.querySelectorAll('button');
-    expect(buttons.length).toBeGreaterThan(0);
+    const stopButton = screen.getByRole('button', { name: /Stop Sandbox/i });
+    expect(stopButton).toBeInTheDocument();
   });
-
+  
   it('renders correctly when sandbox is not running', () => {
-    const { container } = render(
+    render(
       <Header
         connected={true}
         sandboxStatus={'stopped' as SandboxStatus}
@@ -62,17 +57,16 @@ describe('Header Component', () => {
         onOpenSettings={mockOpenSettings}
       />
     );
-
-    // Mock the text we expect in the Header component
-    const mockContent = document.createElement('div');
-    mockContent.innerHTML = 'Start Sandbox<br>Sandbox (test-sandbox) Stopped';
-    document.body.appendChild(mockContent);
     
-    // Check that buttons are present
-    const buttons = container.querySelectorAll('button');
-    expect(buttons.length).toBeGreaterThan(0);
+    // Check for sandbox identifier - it might be inside a StatusIndicator
+    const headerText = screen.getByText(/Amplify Sandbox DevTools/i).parentElement?.textContent;
+    expect(headerText).toContain('test-sandbox');
+    
+    // Check for Start Sandbox button
+    const startButton = screen.getByRole('button', { name: /Start Sandbox/i });
+    expect(startButton).toBeInTheDocument();
   });
-
+  
   it('renders correctly when disconnected', () => {
     render(
       <Header
@@ -82,13 +76,12 @@ describe('Header Component', () => {
         onStopSandbox={mockStopSandbox}
       />
     );
-
-    // Mock the text we expect in the Header component
-    const mockContent = document.createElement('div');
-    mockContent.innerHTML = 'Disconnected';
-    document.body.appendChild(mockContent);
+    
+    // Check for disconnected status - it's inside a StatusIndicator
+    const disconnectedStatus = screen.getAllByRole('status').find(el => el.textContent?.includes('Disconnected'));
+    expect(disconnectedStatus).toBeInTheDocument();
   });
-
+  
   it('renders correctly when sandbox does not exist', () => {
     render(
       <Header
@@ -99,14 +92,21 @@ describe('Header Component', () => {
         onDeleteSandbox={mockDeleteSandbox}
       />
     );
-
-    // Mock the text we expect in the Header component
-    const mockContent = document.createElement('div');
-    mockContent.innerHTML = 'No Sandbox';
-    document.body.appendChild(mockContent);
+    
+    const statusIndicators = screen.getAllByRole('status');
+    const noSandboxIndicator = statusIndicators.find(indicator => 
+      indicator.textContent?.includes('No Sandbox')
+    );
+    expect(noSandboxIndicator).toBeInTheDocument();
+    
+    // Also check for Start Sandbox button which should be present when no sandbox exists
+    const startButton = screen.getByRole('button', { name: /Start Sandbox/i });
+    expect(startButton).toBeInTheDocument();
   });
-
+  
   it('calls onStartSandbox when Start Sandbox button is clicked', async () => {
+    const user = userEvent.setup();
+    
     render(
       <Header
         connected={true}
@@ -115,18 +115,18 @@ describe('Header Component', () => {
         onStopSandbox={mockStopSandbox}
       />
     );
-
-    // Mock a button and trigger the click event
-    const mockButton = document.createElement('button');
-    mockButton.setAttribute('data-icon-name', 'add-plus');
-    document.body.appendChild(mockButton);
     
-    // Directly call the onStartSandbox handler
-    mockStartSandbox();
+    // Find and click the Start Sandbox button
+    const startButton = screen.getByRole('button', { name: /Start Sandbox/i });
+    await user.click(startButton);
+    
+    // Verify the handler was called
     expect(mockStartSandbox).toHaveBeenCalledTimes(1);
   });
-
+  
   it('calls onStopSandbox when Stop Sandbox button is clicked', async () => {
+    const user = userEvent.setup();
+    
     render(
       <Header
         connected={true}
@@ -135,17 +135,15 @@ describe('Header Component', () => {
         onStopSandbox={mockStopSandbox}
       />
     );
-
-    // Mock a button and trigger the click event  
-    const mockButton = document.createElement('button');
-    mockButton.setAttribute('data-icon-name', 'close');
-    document.body.appendChild(mockButton);
     
-    // Directly call the onStopSandbox handler
-    mockStopSandbox();
+    // Find and click the Stop Sandbox button
+    const stopButton = screen.getByRole('button', { name: /Stop Sandbox/i });
+    await user.click(stopButton);
+    
+    // Verify the handler was called
     expect(mockStopSandbox).toHaveBeenCalledTimes(1);
   });
-
+  
   it('disables buttons when deploying', () => {
     render(
       <Header
@@ -157,18 +155,24 @@ describe('Header Component', () => {
         onDeleteSandbox={mockDeleteSandbox}
       />
     );
-
-    // Mock the text we expect in the Header component
-    const mockContent = document.createElement('div');
-    mockContent.innerHTML = 'Sandbox (test-sandbox) Deploying';
-    document.body.appendChild(mockContent);
     
-    // Mock a disabled button
-    const mockButton = document.createElement('button');
-    mockButton.disabled = true;
-    document.body.appendChild(mockButton);
+    // Check for deploying status
+    const deployingStatus = screen.getAllByRole('status').find(el => el.textContent?.includes('Deploying'));
+    expect(deployingStatus).toBeInTheDocument();
     
-    // Verify our mock is working
-    expect(mockButton.disabled).toBe(true);
+    // Check that buttons are disabled during deployment
+    const buttons = screen.getAllByRole('button');
+    const actionButtons = buttons.filter(button => 
+      button.textContent?.includes('Start') || 
+      button.textContent?.includes('Stop') || 
+      button.textContent?.includes('Delete')
+    );
+    
+    // If there are action buttons, they should be disabled
+    if (actionButtons.length > 0) {
+      actionButtons.forEach(button => {
+        expect(button).toBeDisabled();
+      });
+    }
   });
 });

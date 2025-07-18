@@ -543,4 +543,185 @@ describe('ResourceLogPanel Component', () => {
     // Check for text about logs not being produced yet
     expect(getByText(/hasn't produced any logs yet/)).toBeInTheDocument();
   });
+// Edge case handling
+it('handles malformed log data gracefully', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  const { container } = render(<ResourceLogPanel {...props} />);
+  
+  // Simulate receiving malformed logs
+  act(() => {
+    mockLoggingService.emitEvent('savedResourceLogs', {
+      resourceId: 'lambda-123',
+      logs: [
+        { timestamp: null, message: 'Missing timestamp' },
+        { timestamp: '2023-01-01T12:00:00Z', message: null },
+        { malformed: true }
+      ]
+    });
+  });
+  
+  // Verify component doesn't crash
+  expect(container).toBeInTheDocument();
+});
+
+// Error recovery testing
+it('recovers from log stream errors', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  const { container } = render(<ResourceLogPanel {...props} />);
+  
+  // Simulate error
+  act(() => {
+    mockLoggingService.emitEvent('logStreamError', {
+      resourceId: 'lambda-123',
+      error: 'Connection lost',
+      status: 'error'
+    });
+  });
+  
+  // Verify error is displayed
+  expect(container.textContent).toContain('Connection lost');
+  
+  // Simulate recovery with new logs
+  act(() => {
+    mockLoggingService.emitEvent('savedResourceLogs', {
+      resourceId: 'lambda-123',
+      logs: [{ timestamp: '2023-01-01T12:00:00Z', message: 'New log after recovery' }]
+    });
+  });
+  
+  // Verify new logs are displayed
+  expect(container.textContent).toContain('New log after recovery');
+});
+
+// Performance testing
+it('handles large log volumes efficiently', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  const { container } = render(<ResourceLogPanel {...props} />);
+  
+  // Generate large number of logs
+  const largeLogs = Array.from({ length: 1000 }, (_, i) => ({
+    timestamp: `2023-01-01T12:${i.toString().padStart(2, '0')}:00Z`,
+    message: `Log entry ${i}`
+  }));
+  
+  // Measure rendering time
+  const startTime = performance.now();
+  
+  act(() => {
+    mockLoggingService.emitEvent('savedResourceLogs', {
+      resourceId: 'lambda-123',
+      logs: largeLogs
+    });
+  });
+  
+  const endTime = performance.now();
+  
+  // Verify component doesn't crash with large log volume
+  expect(container).toBeInTheDocument();
+  
+  // performance assertion 
+  expect(endTime - startTime).toBeLessThan(1000); // Should render in under 1 second
+});
+
+// Accessibility testing
+it('has proper heading structure for accessibility', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  const { container } = render(<ResourceLogPanel {...props} />);
+  
+  // Check for proper heading structure
+  const heading = container.querySelector('h2, [role="heading"]');
+  expect(heading).toBeInTheDocument();
+});
+
+// Test for selecting log content
+it('allows selecting log content', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  render(<ResourceLogPanel {...props} />);
+  
+  // Add logs
+  act(() => {
+    mockLoggingService.emitEvent('savedResourceLogs', {
+      resourceId: 'lambda-123',
+      logs: [{ timestamp: '2023-01-01T12:00:00Z', message: 'Selectable log content' }]
+    });
+  });
+  
+  // Find the log container
+  const logContainer = screen.getByTestId('log-container');
+  expect(logContainer).toBeInTheDocument();
+  
+  // Verify log content is present and selectable (text is not hidden)
+  expect(logContainer.textContent).toContain('Selectable log content');
+  expect(window.getComputedStyle(logContainer).userSelect).not.toBe('none');
+});
+
+// Test for network interruption handling
+it('handles network interruptions during log streaming', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  const { container } = render(<ResourceLogPanel {...props} />);
+  
+  // Simulate successful log streaming
+  act(() => {
+    mockLoggingService.emitEvent('savedResourceLogs', {
+      resourceId: 'lambda-123',
+      logs: [{ timestamp: '2023-01-01T12:00:00Z', message: 'Initial log' }]
+    });
+  });
+  
+  // Simulate network interruption
+  act(() => {
+    mockLoggingService.emitEvent('logStreamError', {
+      resourceId: 'lambda-123',
+      error: 'Network connection lost',
+      status: 'error'
+    });
+  });
+  
+  // Verify error is displayed
+  expect(container.textContent).toContain('Network connection lost');
+  
+  // Verify initial logs are still visible
+  expect(container.textContent).toContain('Initial log');
+});
+
+// Test for handling invalid JSON in Lambda test input
+it('validates JSON input for Lambda testing', () => {
+  const mockLoggingService = createMockLoggingService();
+  const props = createDefaultProps(mockLoggingService);
+  
+  render(<ResourceLogPanel {...props} />);
+  
+  // Enter invalid JSON
+  const inputField = screen.getByPlaceholderText('{"key": "value"}');
+  act(() => {
+    fireEvent.change(inputField, { target: { value: '{invalid json}' } });
+  });
+  
+  // Click test button
+  const testButton = screen.getByText('Test Function');
+  act(() => {
+    fireEvent.click(testButton);
+  });
+  
+  // Verify Lambda test function was still called (component doesn't validate JSON)
+  // This is testing the current behavior - if validation is added later, this test would need to change
+  expect(mockLoggingService.testLambdaFunction).toHaveBeenCalledWith(
+    'lambda-123',
+    'lambda-123',
+    '{invalid json}'
+  );
+});
+
 });

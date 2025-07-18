@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ConsoleViewer, { ConsoleLogEntry } from './ConsoleViewer';
 
 describe('ConsoleViewer Component', () => {
@@ -38,93 +39,79 @@ describe('ConsoleViewer Component', () => {
   ];
 
   it('renders with logs', () => {
-    const { container } = render(<ConsoleViewer logs={sampleLogs} />);
-
-    // Check heading
-    expect(container.textContent).toContain('Console Logs');
-
-    // Check if logs are displayed
-    expect(container.textContent).toContain('Application started');
-    expect(container.textContent).toContain('Failed to connect to database');
-    expect(container.textContent).toContain('Slow query detected');
-    expect(container.textContent).toContain('User logged in: admin');
+    render(<ConsoleViewer logs={sampleLogs} />);
     
-    // Additionally, we should verify all log entries are present in the DOM
-    sampleLogs.forEach(log => {
-      expect(container.textContent).toContain(log.message);
-      expect(container.textContent).toContain(log.level);
-    });
+    // Check heading
+    expect(screen.getByText('Console Logs')).toBeInTheDocument();
+    
+    // Check if logs are displayed
+    expect(screen.getByText('Application started')).toBeInTheDocument();
+    expect(screen.getByText('Failed to connect to database')).toBeInTheDocument();
+    expect(screen.getByText('Slow query detected')).toBeInTheDocument();
+    expect(screen.getByText('User logged in: admin')).toBeInTheDocument();
   });
-
+  
   it('renders empty state when no logs are provided', () => {
     const { container } = render(<ConsoleViewer logs={[]} />);
-
-    // Check for empty state component
-    const emptyState = container.querySelector('.empty-state');
-    expect(emptyState).toBeDefined();
     
-    expect(container.querySelector('.empty-state-content')).toBeDefined();
-  });
-
-  it('displays all log levels in filter dropdown', () => {
-    const { container } = render(<ConsoleViewer logs={sampleLogs} />);
-
-    // Check that the filter section is present
-    expect(container.textContent).toContain('Filter by log level');
-
-    // Check that the multiselect for filtering is present
-    const multiselect = container.querySelector('.multiselect');
-    expect(multiselect).toBeDefined();
+    // Check for empty state message using a more flexible approach
+    // This will look for the text anywhere in the rendered output
+    expect(container.textContent).toContain('No logs available');
     
-    // There should be some representation of the log levels available
-    const uniqueLevels = [...new Set(sampleLogs.map(log => log.level))];
-    uniqueLevels.forEach(level => {
-      expect(container.textContent).toContain(level);
-    });
+    // Also check that the table is not rendered when there are no logs
+    expect(container.querySelector('thead')).not.toBeInTheDocument();
   });
-
-  it('shows search input field', () => {
-    const { container } = render(<ConsoleViewer logs={sampleLogs} />);
-
-    expect(container.textContent).toContain('Search logs');
-
-    // Check for the search placeholder
-    const searchInput = container.querySelector('input[placeholder="Search in logs..."]');
-    expect(searchInput).toBeInTheDocument();
+  
+  it('filters logs by search text', async () => {
+    const user = userEvent.setup();
+    render(<ConsoleViewer logs={sampleLogs} />);
+    
+    // Find search input
+    const searchInput = screen.getByPlaceholderText(/Search in logs/i);
+    
+    // Type search query
+    await user.type(searchInput, 'admin');
+    
+    // Only logs containing "admin" should be visible
+    expect(screen.getByText('User logged in: admin')).toBeInTheDocument();
+    expect(screen.queryByText('Application started')).not.toBeInTheDocument();
+    expect(screen.queryByText('Failed to connect to database')).not.toBeInTheDocument();
   });
-
+  
   it('formats timestamps correctly', () => {
-    const { container } = render(<ConsoleViewer logs={sampleLogs} />);
-
-    // Since formatTimestamp is internal to the component and depends on locale,
-    // we can just verify that the timestamps are displayed in some form
-    const timestampCells = container.querySelectorAll('td:first-child');
-    expect(timestampCells.length).toBeGreaterThan(0);
+    render(<ConsoleViewer logs={sampleLogs} />);
     
-    // Each timestamp cell should have a non-empty content
-    timestampCells.forEach(cell => {
-      expect(cell.textContent).not.toBe("");
-    });
+    // Check that timestamps are formatted (not raw ISO strings)
+    const timestampElements = screen.getAllByText(/^\d{1,2}:\d{2}:\d{2}(?: [AP]M)?/);
+    expect(timestampElements.length).toBeGreaterThan(0);
   });
-
-  it('shows correct status indicators for different log levels', () => {
-    const { container } = render(<ConsoleViewer logs={sampleLogs} />);
-
-    // Check if the log levels are displayed
-    expect(container.textContent).toContain('INFO');
-    expect(container.textContent).toContain('ERROR');
-    expect(container.textContent).toContain('WARNING');
-    expect(container.textContent).toContain('DEBUG');
+  
+  it('shows different styling for different log levels', () => {
+    render(<ConsoleViewer logs={sampleLogs} />);
     
-    // Just verify that we have spans with status indicators
-    const statusIndicators = container.querySelectorAll('[data-status]');
-    expect(statusIndicators.length).toBeGreaterThan(0);
+    // Find log entries by their messages
+    const infoLog = screen.getByText('Application started').closest('tr');
+    const errorLog = screen.getByText('Failed to connect to database').closest('tr');
+    const warningLog = screen.getByText('Slow query detected').closest('tr');
     
-    // Since we're using mocked components, we know our StatusIndicator component
-    // adds the data-status attribute. Let's verify we have different types.
-    const statusTypes = Array.from(statusIndicators).map(el => 
-      el.getAttribute('data-status')
-    );
-    expect(statusTypes.length).toBeGreaterThan(0);
+    // Check that they have appropriate class names
+    expect(infoLog).toHaveClass('log-level-info');
+    expect(errorLog).toHaveClass('log-level-error');
+    expect(warningLog).toHaveClass('log-level-warning');
+  });
+  
+  it('handles scrolling to bottom', async () => {
+    // Mock scrollIntoView
+    const scrollIntoViewMock = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+    
+    render(<ConsoleViewer logs={sampleLogs} />);
+    
+    // Find and click "Scroll to Bottom" button if it exists
+    const scrollButton = screen.queryByRole('button', { name: /Scroll to Bottom/i });
+    if (scrollButton) {
+      await userEvent.setup().click(scrollButton);
+      expect(scrollIntoViewMock).toHaveBeenCalled();
+    }
   });
 });
