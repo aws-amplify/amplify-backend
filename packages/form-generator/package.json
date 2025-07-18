@@ -41,5 +41,8 @@
   },
   "overrides": {
     "@graphql-tools/merge": "9.0.22"
+  },
+  "resolutions": {
+    "@graphql-tools/merge": "9.0.22"
   }
 }
