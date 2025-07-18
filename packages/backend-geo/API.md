@@ -4,31 +4,17 @@
 
 ```ts
 
-import { AddToPrincipalPolicyResult } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
 import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import { IRole } from 'aws-cdk-lib/aws-iam';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
-
-// @public
-export class AmplifyGeoFactory implements ConstructFactory<ResourceProvider<GeoResources>> {
-    // Warning: (ae-forgotten-export) The symbol "GeoAccessOrchestratorFactory" needs to be exported by the entry point index.d.ts
-    constructor(props: AmplifyGeoFactoryProps, geoAccessOrchestratorFactory?: GeoAccessOrchestratorFactory);
-    // Warning: (ae-forgotten-export) The symbol "AmplifyGeo" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyGeo;
-}
 
 // @public (undocumented)
 export type AmplifyGeoFactoryProps = Omit<AmplifyGeoProps, 'outputStorageStrategy'> & {
@@ -48,16 +34,13 @@ export type AmplifyGeoProps = {
 export type CollectionAction = 'create' | 'read' | 'update' | 'delete' | 'list';
 
 // @public
-export const defineCollection: (// returns resources and any stack errors
-props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
+export const defineCollection: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
 
 // @public
-export const defineMap: (// doesn't return anything because it only configures access
-props: AmplifyGeoFactoryProps) => AmplifyGeoFactory;
+export const defineMap: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
 
 // @public
-export const definePlace: (// doesn't return anything because it only configures access
-props: AmplifyGeoFactoryProps) => AmplifyGeoFactory;
+export const definePlace: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
 
 // @public (undocumented)
 export type GeoAccessBuilder = {
