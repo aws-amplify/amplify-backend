@@ -119,6 +119,8 @@
     "@graphql-tools/merge": "9.0.22"
   },
   "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^1.7.0",
+    "@aws-amplify/platform-core": "^1.10.0",
     "@aws-cdk/aws-location-alpha": "^2.206.0-alpha.0"
   }
 }
