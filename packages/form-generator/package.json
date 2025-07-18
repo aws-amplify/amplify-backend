@@ -21,8 +21,7 @@
   },
   "license": "Apache-2.0",
   "bundledDependencies": [
-    "@graphql-codegen/core",
-    "@graphql-tools/merge"
+    "@graphql-codegen/core"
   ],
   "dependencies": {
     "@aws-amplify/appsync-modelgen-plugin": "^2.11.0",
@@ -39,8 +38,7 @@
     "prettier": "^3.5.3"
   },
   "devDependencies": {
-    "@graphql-codegen/core": "^4.0.0",
-    "@graphql-tools/merge": "9.0.22"
+    "@graphql-codegen/core": "^4.0.0"
   },
   "overrides": {
     "@graphql-tools/merge": "9.0.22"
