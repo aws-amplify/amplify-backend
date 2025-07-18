@@ -24,17 +24,15 @@ export class AmplifyGeoFactory
   implements ConstructFactory<ResourceProvider<GeoResources>>
 {
   private geoGenerator: ConstructContainerEntryGenerator;
+  private geoAccessOrchestratorFactory: GeoAccessOrchestratorFactory =
+    new GeoAccessOrchestratorFactory();
 
   // define constructor for class
   /**
    * Constructs a new AmplifyGeoFactory instance
    * @param props - properties for the geo factory
-   * @param geoAccessOrchestratorFactory - instance of the access orchestrator factory (lazy initialization)
    */
-  constructor(
-    private readonly props: AmplifyGeoFactoryProps,
-    private readonly geoAccessOrchestratorFactory: GeoAccessOrchestratorFactory = new GeoAccessOrchestratorFactory(),
-  ) {}
+  constructor(private readonly props: AmplifyGeoFactoryProps) {}
 
   // define GetInstance function
   getInstance = (
@@ -135,7 +133,7 @@ export class AmplifyGeoGenerator implements ConstructContainerEntryGenerator {
 export const defineMap = (
   // doesn't return anything because it only configures access
   props: AmplifyGeoFactoryProps,
-) =>
+): ConstructFactory<ResourceProvider<GeoResources> & StackProvider> =>
   new AmplifyGeoFactory({
     ...props,
     resourceIdentifier: 'map',
@@ -147,7 +145,7 @@ export const defineMap = (
 export const definePlace = (
   // doesn't return anything because it only configures access
   props: AmplifyGeoFactoryProps,
-) =>
+): ConstructFactory<ResourceProvider<GeoResources> & StackProvider> =>
   new AmplifyGeoFactory({
     ...props,
     resourceIdentifier: 'place',
