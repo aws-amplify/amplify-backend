@@ -79,6 +79,7 @@ const LogSettingsModal: React.FC<LogSettingsModalProps> = ({
             min={10}
             max={500}
             step={10}
+            data-testid="log-size-slider"
           />
         </FormField>
         <Button onClick={onClear} iconName="remove">
