@@ -151,10 +151,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
     {
       id: 'message',
       header: 'Message',
-      cell: (item: LogEntry) => {
-        const cleanedMessage = stripAnsi(item.message);
-        return cleanedMessage;
-      },
+      cell: (item: LogEntry) => stripAnsi(item.message),
       width: 'auto',
     },
   ];
