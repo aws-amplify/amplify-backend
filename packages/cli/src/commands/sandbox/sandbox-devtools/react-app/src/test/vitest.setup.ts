@@ -19,14 +19,22 @@ vi.mock('@cloudscape-design/components', () => {
         footer,
       ]);
     },
-    Box: ({ children, float }: any) =>
-      React.createElement('div', { 'data-float': float }, children),
-    SpaceBetween: ({ children, direction, size }: any) =>
-      React.createElement(
+    SpaceBetween: ({ children, direction, size }: any) => {
+      // If children is an array, render each child
+      if (Array.isArray(children)) {
+        return React.createElement(
+          'div',
+          { 'data-direction': direction, 'data-size': size },
+          children,
+        );
+      }
+      // Otherwise, just render the single child
+      return React.createElement(
         'div',
         { 'data-direction': direction, 'data-size': size },
         children,
-      ),
+      );
+    },
     Button: ({
       children,
       variant,
@@ -51,23 +59,32 @@ vi.mock('@cloudscape-design/components', () => {
         },
         children,
       ),
-    FormField: ({ label, description, children }: any) =>
+    FormField: ({ label, description, children, controlId }: any) =>
       React.createElement('div', { className: 'form-field' }, [
-        React.createElement('label', {}, label),
+        React.createElement('label', { htmlFor: controlId }, label),
         description &&
           React.createElement('div', { className: 'description' }, description),
-        children,
+        React.cloneElement(children, { id: controlId }),
       ]),
-    Input: ({ value, onChange, placeholder }: any) =>
+
+    Input: ({ value, onChange, placeholder, id }: any) =>
       React.createElement('input', {
         value: value || '',
         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
           onChange({ detail: { value: e.target.value } }),
         placeholder,
+        id,
       }),
-    Header: ({ children, actions }: any) => {
+
+    Header: ({ children, actions, description }: any) => {
       return React.createElement('div', { className: 'header-container' }, [
         React.createElement('h2', { className: 'header' }, children),
+        description &&
+          React.createElement(
+            'div',
+            { className: 'header-description' },
+            description,
+          ),
         actions &&
           React.createElement('div', { className: 'header-actions' }, actions),
       ]);
@@ -134,11 +151,18 @@ vi.mock('@cloudscape-design/components', () => {
         ),
       ),
     StatusIndicator: ({ type, children }: any) =>
-      React.createElement('span', { 'data-status': type || 'info' }, children),
-    TextContent: ({ children }: any) =>
-      React.createElement('div', { className: 'text-content' }, children),
-    Table: ({ items, columnDefinitions }: any) =>
-      React.createElement('table', {}, [
+      React.createElement(
+        'span',
+        { 'data-status': type || 'info', role: 'status' },
+        children,
+      ),
+    Table: ({ items, columnDefinitions, empty }: any) => {
+      // If there are no items and an empty state is provided, render the empty state
+      if ((items || []).length === 0 && empty) {
+        return empty;
+      }
+
+      return React.createElement('table', {}, [
         React.createElement(
           'thead',
           {},
@@ -153,10 +177,14 @@ vi.mock('@cloudscape-design/components', () => {
         React.createElement(
           'tbody',
           {},
-          (items || []).map((item: any, i: number) =>
-            React.createElement(
+          (items || []).map((item: any, i: number) => {
+            // Add a className based on the log level if it exists
+            const className = item.level
+              ? `log-level-${item.level.toLowerCase()}`
+              : '';
+            return React.createElement(
               'tr',
-              { key: i },
+              { key: i, className },
               (columnDefinitions || []).map((col: any, j: number) =>
                 React.createElement(
                   'td',
@@ -164,10 +192,11 @@ vi.mock('@cloudscape-design/components', () => {
                   col.cell ? col.cell(item) : item[col.id],
                 ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
-      ]),
+      ]);
+    },
     Tabs: ({ tabs, activeTabId, onChange }: any) =>
       React.createElement('div', { className: 'tabs' }, [
         React.createElement(
@@ -221,6 +250,26 @@ vi.mock('@cloudscape-design/components', () => {
           ),
       ]);
     },
+    TextContent: ({ children }: any) => {
+      return React.createElement(
+        'div',
+        { className: 'text-content' },
+        children,
+      );
+    },
+
+    // Add Box mock to properly render box content
+    Box: ({ children, textAlign, padding }: any) => {
+      return React.createElement(
+        'div',
+        {
+          className: 'box',
+          'data-text-align': textAlign,
+          'data-padding': padding,
+        },
+        children,
+      );
+    },
     Spinner: ({ size }: any) =>
       React.createElement(
         'div',
@@ -260,6 +309,28 @@ vi.mock('@cloudscape-design/components', () => {
         { href, 'data-external': external, onClick },
         children,
       ),
+    Slider: ({
+      value,
+      onChange,
+      min,
+      max,
+      step,
+      'data-testid': dataTestId,
+    }: any) =>
+      React.createElement('input', {
+        type: 'range',
+        value,
+        min,
+        max,
+        step,
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange({ detail: { value: Number(e.target.value) } }),
+        role: 'slider',
+        'aria-valuemin': min,
+        'aria-valuemax': max,
+        'aria-valuenow': value,
+        'data-testid': dataTestId,
+      }),
     Grid: ({ gridDefinition, children }: any) => {
       if (Array.isArray(children)) {
         return React.createElement(
