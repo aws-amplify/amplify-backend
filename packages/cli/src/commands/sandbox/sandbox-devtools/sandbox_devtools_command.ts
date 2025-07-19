@@ -34,6 +34,8 @@ import { PortChecker } from '../port_checker.js';
 import { DevToolsLogger } from './services/devtools_logger.js';
 import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { extractErrorInfo } from './error-handling/error_extractor.js';
+import { SOCKET_EVENTS } from './shared/socket_events.js';
 
 /**
  * Type for sandbox status data
@@ -179,16 +181,28 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
   ): void {
     // Listen for deployment started
     sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {
-      this.printer.log('Deployment started', LogLevel.DEBUG);
+      void (async () => {
+        this.printer.log('Deployment started', LogLevel.DEBUG);
 
-      const statusData: SandboxStatusData = {
-        status: sandbox.getState(), // This should be 'deploying' after deployment starts,
-        identifier: backendId.name,
-        message: 'Deployment started',
-        timestamp: data.timestamp || new Date().toISOString(),
-      };
+        const currentState = await getSandboxState();
 
-      io.emit('sandboxStatus', statusData);
+        // Add a warning log if the state is not 'deploying'
+        if (currentState !== 'deploying') {
+          this.printer.log(
+            `WARNING: Sandbox state is '${currentState}' after deploymentStarted event, expected 'deploying'`,
+            LogLevel.WARN,
+          );
+        }
+
+        const statusData: SandboxStatusData = {
+          status: currentState, // This should be 'deploying' after deployment starts,
+          identifier: backendId.name,
+          message: 'Deployment started',
+          timestamp: data.timestamp || new Date().toISOString(),
+        };
+
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      })();
     });
 
     sandbox.on('successfulDeployment', () => {
@@ -206,56 +220,70 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           timestamp: new Date().toISOString(),
           deploymentCompleted: true,
         };
-        io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
       })();
     });
 
     sandbox.on('deletionStarted', (data: { timestamp?: string }) => {
-      this.printer.log('Deletion started', LogLevel.DEBUG);
+      void (async () => {
+        this.printer.log('Deletion started', LogLevel.DEBUG);
 
-      const statusData: SandboxStatusData = {
-        status: sandbox.getState(), // This should be 'deleting' after deletion starts
-        identifier: backendId.name,
-        message: 'Deletion started',
-        timestamp: data.timestamp || new Date().toISOString(),
-      };
+        const currentState = await getSandboxState();
+        const statusData: SandboxStatusData = {
+          status: currentState, // This should be 'deleting' after deletion starts
+          identifier: backendId.name,
+          message: 'Deletion started',
+          timestamp: data.timestamp || new Date().toISOString(),
+        };
 
-      io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      })();
     });
 
     sandbox.on('successfulDeletion', () => {
-      this.printer.log('Successful deletion detected', LogLevel.DEBUG);
+      void (async () => {
+        this.printer.log('Successful deletion detected', LogLevel.DEBUG);
 
-      const statusData: SandboxStatusData = {
-        status: sandbox.getState(), // This should be 'nonexistent' after deletion
-        identifier: backendId.name,
-        message: 'Sandbox deleted successfully',
-        timestamp: new Date().toISOString(),
-        deploymentCompleted: true,
-      };
+        const currentState = await getSandboxState();
+        const statusData: SandboxStatusData = {
+          status: currentState, // This should be 'nonexistent' after deletion
+          identifier: backendId.name,
+          message: 'Sandbox deleted successfully',
+          timestamp: new Date().toISOString(),
+          deploymentCompleted: true,
+        };
 
-      io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      })();
     });
 
     sandbox.on('failedDeletion', (error: unknown) => {
       void (async () => {
         this.printer.log('Failed deletion detected', LogLevel.DEBUG);
 
-        // Get the current sandbox state
         const currentState = await getSandboxState();
 
-        // Emit sandbox status update with deletion failure information
+        // Extract error info for UI display
+        const errorInfo = extractErrorInfo(error);
+
         const statusData: SandboxStatusData = {
           status: currentState as SandboxStatus,
           identifier: backendId.name,
           error: true,
-          message: `Deletion failed: ${error as Error}`,
+          message: `Deletion failed: ${errorInfo.message}`,
           timestamp: new Date().toISOString(),
           deploymentCompleted: true,
         };
 
-        // Emit to all connected clients
-        io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+
+        // Emit simple error event
+        io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
+          name: errorInfo.name,
+          message: errorInfo.message,
+          resolution: errorInfo.resolution,
+          timestamp: new Date().toISOString(),
+        });
       })();
     });
 
@@ -267,21 +295,29 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           LogLevel.DEBUG,
         );
 
-        // Get the current sandbox state
         const currentState = await getSandboxState();
 
-        // Emit sandbox status update with deployment failure information
+        // Extract error info for UI display
+        const errorInfo = extractErrorInfo(error);
+
         const statusData: SandboxStatusData = {
           status: currentState as SandboxStatus,
           identifier: backendId.name,
           error: true,
-          message: `Deployment failed: ${error as Error}`,
+          message: `Deployment failed: ${errorInfo.message}`,
           timestamp: new Date().toISOString(),
           deploymentCompleted: true,
         };
 
         // Emit to all connected clients
-        io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+        // Emit simple error event
+        io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
+          name: errorInfo.name,
+          message: errorInfo.message,
+          resolution: errorInfo.resolution,
+          timestamp: new Date().toISOString(),
+        });
 
         this.printer.log(
           `Emitted status '${currentState}' and deployment failure info`,
@@ -292,21 +328,26 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Listen for successful stop
     sandbox.on('successfulStop', () => {
-      io.emit('sandboxStatus', {
-        status: 'stopped',
-        identifier: backendId.name,
-        message: 'Sandbox stopped successfully',
-        timestamp: new Date().toISOString(),
-      });
+      void (async () => {
+        const currentState = await getSandboxState();
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+          status: currentState, // This should be 'stopped' after a successful stop,
+          identifier: backendId.name,
+          message: 'Sandbox stopped successfully',
+          timestamp: new Date().toISOString(),
+        });
+      })();
     });
 
     // Listen for failed stop
     sandbox.on('failedStop', (error: unknown) => {
-      io.emit('sandboxStatus', {
-        status: sandbox.getState(),
+      const errorInfo = extractErrorInfo(error);
+      const currentState = getSandboxState();
+      io.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+        status: currentState, // This should be 'running' after a failed stop
         identifier: backendId.name,
         error: true,
-        message: `Error stopping sandbox: ${String(error)}`,
+        message: `Error stopping sandbox: ${errorInfo.message}`,
         timestamp: new Date().toISOString(),
       });
     });
@@ -316,17 +357,28 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       void (async () => {
         this.printer.log('Initialization error detected', LogLevel.DEBUG);
 
+        // Extract error info for UI display
+        const errorInfo = extractErrorInfo(error);
+        const currentState = await getSandboxState();
+
         // Emit sandbox status update with initialization failure information
         const statusData: SandboxStatusData = {
-          status: sandbox.getState() as SandboxStatus,
+          status: currentState, // This should be 'stopped' or 'nonexistent'
           identifier: backendId.name,
           error: true,
-          message: `Initialization failed: ${String(error)}`,
+          message: `Initialization failed: ${errorInfo.message}`,
           timestamp: new Date().toISOString(),
         };
 
         // Emit to all connected clients
-        io.emit('sandboxStatus', statusData);
+        io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+        // Emit simple error event
+        io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
+          name: errorInfo.name,
+          message: errorInfo.message,
+          resolution: errorInfo.resolution,
+          timestamp: new Date().toISOString(),
+        });
       })();
     });
   }
