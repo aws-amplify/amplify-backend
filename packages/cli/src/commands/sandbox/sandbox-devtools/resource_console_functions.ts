@@ -1,5 +1,3 @@
-/* eslint-disable no-case-declarations */
-/* eslint-disable spellcheck/spell-checker */
 /**
  * Utility functions for AWS console resource handling
  * These functions are used by both the React component and test files
@@ -80,6 +78,7 @@ export const canProvideConsoleLink = (
  */
 export const isGlobalService = (service?: string): boolean => {
   if (!service) return false;
+  // eslint-disable-next-line spellcheck/spell-checker
   return ['iam', 'cloudfront', 'route53'].includes(service.toLowerCase());
 };
 
@@ -118,24 +117,28 @@ export const getAwsConsoleUrl = (
     : `https://${region}.console.aws.amazon.com`;
 
   switch (resourceType) {
-    case 'AWS::Lambda::Function':
+    case 'AWS::Lambda::Function': {
       // Check if physicalId is an ARN and extract function name if needed
       const lambdaFunctionName = physicalId.includes(':function:')
         ? physicalId.split(':function:')[1]
         : physicalId;
       return `${baseUrl}/lambda/home?region=${region}#/functions/${lambdaFunctionName}`;
+    }
 
-    case 'AWS::DynamoDB::Table':
+    case 'AWS::DynamoDB::Table': {
       // Check if physicalId is an ARN and extract table name if needed
       const dynamoTableName = physicalId.includes(':table/')
         ? physicalId.split(':table/')[1]
         : physicalId;
+      // eslint-disable-next-line spellcheck/spell-checker
       return `${baseUrl}/dynamodbv2/home?region=${region}#table?name=${encodeURIComponent(dynamoTableName)}`;
+    }
 
     case 'AWS::S3::Bucket':
       return `${baseUrl}/s3/buckets/${encodeURIComponent(physicalId)}?region=${region}`;
 
     case 'AWS::ApiGateway::RestApi':
+      // eslint-disable-next-line spellcheck/spell-checker
       return `${baseUrl}/apigateway/main/apis/${physicalId}/resources?api=${physicalId}&region=${region}`;
 
     case 'AWS::IAM::Role':
@@ -143,12 +146,13 @@ export const getAwsConsoleUrl = (
       // Even though IAM is a global service, the console URL includes the region (why?)
       return `https://${region}.console.aws.amazon.com/iam/home#/roles/details/${encodeURIComponent(physicalId)}?section=permissions`;
 
-    case 'AWS::Cognito::UserPool':
+    case 'AWS::Cognito::UserPool': {
       // Check if physicalId is an ARN and extract pool ID if needed
       const userPoolId = physicalId.includes(':userpool/')
         ? physicalId.split(':userpool/')[1]
         : physicalId;
       return `${baseUrl}/cognito/v2/idp/user-pools/${userPoolId}/users?region=${region}`;
+    }
 
     case 'AWS::Cognito::UserPoolGroup':
       // For Cognito user pool groups, we need both the user pool ID and group name
@@ -161,7 +165,9 @@ export const getAwsConsoleUrl = (
 
     case 'AWS::AppSync::GraphQLApi':
       // Extract API ID from ARN if available
+      // eslint-disable-next-line spellcheck/spell-checker
       if (physicalId.includes(':apis/')) {
+        // eslint-disable-next-line spellcheck/spell-checker
         const apiId = physicalId.split(':apis/')[1];
         return `${baseUrl}/appsync/home?region=${region}#/${apiId}/v1/`;
       }
@@ -171,20 +177,23 @@ export const getAwsConsoleUrl = (
       return `${baseUrl}/cloudwatch/home?region=${region}#alarmsV2:alarm/${physicalId}`;
 
     case 'AWS::StepFunctions::StateMachine':
+      // eslint-disable-next-line spellcheck/spell-checker
       return `${baseUrl}/states/home?region=${region}#/statemachines/view/${physicalId}`;
 
     case 'AWS::SecretsManager::Secret':
+      // eslint-disable-next-line spellcheck/spell-checker
       return `${baseUrl}/secretsmanager/home?region=${region}#/secret?name=${physicalId}`;
 
     case 'AWS::Logs::LogGroup':
       return `${baseUrl}/cloudwatch/home?region=${region}#logsV2:log-groups/log-group/${encodeURIComponent(physicalId)}`;
 
-    case 'AWS::Cognito::IdentityPool':
+    case 'AWS::Cognito::IdentityPool': {
       // Check if physicalId is an ARN and extract identity pool ID if needed
       const identityPoolId = physicalId.includes(':identitypool/')
         ? physicalId.split(':identitypool/')[1]
         : physicalId;
       return `${baseUrl}/cognito/v2/identity/identity-pools/${encodeURIComponent(identityPoolId)}/?region=${region}`;
+    }
 
     case 'AWS::Lambda::LayerVersion':
       // For Lambda layers, the physical ID is typically the layer ARN
@@ -256,6 +265,7 @@ export const getAwsConsoleUrl = (
 
     case 'Custom::AmplifyDynamoDBTable':
       //For the amplify specific dynamo DB table
+      // eslint-disable-next-line spellcheck/spell-checker
       return `${baseUrl}/dynamodbv2/home?region=${region}#table?name=${encodeURIComponent(physicalId)}`;
 
     default:

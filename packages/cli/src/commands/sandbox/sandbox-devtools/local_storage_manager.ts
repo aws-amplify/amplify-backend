@@ -1,5 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
-/* eslint-disable jsdoc/check-param-names */
 import fs from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
@@ -682,6 +680,7 @@ export class LocalStorageManager {
   /**
    * Saves settings to a file
    * @param settings The maximum log size in MB
+   * @param settings.maxLogSizeMB The maximum log size in MB
    */
   private saveSettings(settings: { maxLogSizeMB: number }): void {
     try {

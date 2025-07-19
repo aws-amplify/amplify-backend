@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
@@ -208,6 +207,7 @@ void describe('getAwsConsoleUrl function', () => {
     const url = getAwsConsoleUrl(testResources[1], testRegion);
     assert.strictEqual(
       url,
+      // eslint-disable-next-line spellcheck/spell-checker
       `https://${testRegion}.console.aws.amazon.com/dynamodbv2/home?region=${testRegion}#table?name=test-table`,
     );
   });
@@ -285,6 +285,7 @@ void describe('getAwsConsoleUrl function', () => {
     const url = getAwsConsoleUrl(apiGatewayResource, testRegion);
     assert.strictEqual(
       url,
+      // eslint-disable-next-line spellcheck/spell-checker
       `https://${testRegion}.console.aws.amazon.com/apigateway/main/apis/abc123def456/resources?api=abc123def456&region=${testRegion}`,
     );
   });
@@ -315,6 +316,7 @@ void describe('getAwsConsoleUrl function', () => {
     const url = getAwsConsoleUrl(secretsManagerResource, testRegion);
     assert.strictEqual(
       url,
+      // eslint-disable-next-line spellcheck/spell-checker
       `https://${testRegion}.console.aws.amazon.com/secretsmanager/home?region=${testRegion}#/secret?name=TestSecret`,
     );
   });

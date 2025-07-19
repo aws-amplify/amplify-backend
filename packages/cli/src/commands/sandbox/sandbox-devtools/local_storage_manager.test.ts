@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';

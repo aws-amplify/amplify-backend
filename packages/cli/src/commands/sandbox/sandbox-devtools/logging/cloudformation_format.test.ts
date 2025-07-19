@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createFriendlyName } from './cloudformation_format.js';
@@ -91,9 +90,10 @@ void describe('createFriendlyName function', () => {
   });
 
   void it('handles CDK construct path example', () => {
-    const logicalId = 'somelogicalId';
+    const logicalId = 'someLogicalId';
     const metadata = {
       constructPath:
+        // eslint-disable-next-line spellcheck/spell-checker
         'amplify-amplifyvitereacttemplate-meghabit-sandbox-83e297d0db/data/modelIntrospectionSchemaBucket/Resource',
     };
     assert.strictEqual(
@@ -106,6 +106,7 @@ void describe('createFriendlyName function', () => {
     const logicalId = 'someLogicalId';
     const metadata = {
       constructPath:
+        // eslint-disable-next-line spellcheck/spell-checker
         'amplify-amplifyvitereacttemplate-meghabit-sandbox-83e297d0db/data/GraphQLAPI/DefaultApiKey',
     };
     assert.strictEqual(

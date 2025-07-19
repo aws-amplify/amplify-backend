@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { getLogGroupName } from './log_group_extractor.js';
@@ -18,15 +17,18 @@ void describe('getLogGroupName function', () => {
     const resourceId = 'abc123def';
     assert.strictEqual(
       getLogGroupName(resourceType, resourceId),
+      // eslint-disable-next-line spellcheck/spell-checker
       'API-Gateway-Execution-Logs_abc123def',
     );
   });
 
   void it('returns correct log group name for AppSync APIs', () => {
     const resourceType = 'AWS::AppSync::GraphQLApi';
+    // eslint-disable-next-line spellcheck/spell-checker
     const resourceId = 'xyz789';
     assert.strictEqual(
       getLogGroupName(resourceType, resourceId),
+      // eslint-disable-next-line spellcheck/spell-checker
       '/aws/appsync/apis/xyz789',
     );
   });
