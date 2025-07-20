@@ -7,6 +7,7 @@ import {
   GeofenceCollectionProps,
 } from '@aws-cdk/aws-location-alpha';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
+import { geoOutputKey } from '@aws-amplify/backend-output-schemas';
 
 /**
  * Amplify Geo CDK Construct
@@ -51,6 +52,15 @@ export class AmplifyGeo
           ) as CfnGeofenceCollection, // getting L1 child instance
         },
       };
+
+      props.outputStorageStrategy?.addBackendOutputEntry(geoOutputKey, {
+        version: '1',
+        payload: {
+          defaultCollection: this.resources.collection.geofenceCollectionName,
+          geoRegion: this.stack.region,
+          collections: `["${this.resources.collection.geofenceCollectionName}"]`,
+        },
+      });
     }
   }
 }
