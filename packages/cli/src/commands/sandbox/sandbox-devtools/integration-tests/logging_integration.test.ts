@@ -137,12 +137,11 @@ void describe('Logging System Integration Test', () => {
         loggingHandler.handleSaveLogSettings.bind(loggingHandler, socket),
       );
       socket.on(
-        SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
-        loggingHandler.handleSaveConsoleLogs.bind(loggingHandler, socket),
-      );
-      socket.on(
         SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
         loggingHandler.handleLoadConsoleLogs.bind(loggingHandler, socket),
+      );
+      socket.on(SOCKET_EVENTS.SAVE_CONSOLE_LOGS, (data) =>
+        loggingHandler.handleSaveConsoleLogs(data),
       );
     });
 
@@ -284,7 +283,7 @@ void describe('Logging System Integration Test', () => {
 
     // Wait a bit for the operation to complete
     await new Promise<void>((resolve) => {
-      setTimeout(resolve, 100);
+      setTimeout(resolve, 500);
     });
 
     // Verify the logs were saved to the storage manager
@@ -331,14 +330,21 @@ void describe('Logging System Integration Test', () => {
     assert.strictEqual(startLoggingState.isActive, true);
 
     // Now verify we can stop logging
-    // Set up a new promise for the stop status
+    // Set up a new promise for the stop status that specifically waits for 'stopped' status
     const stopStatusReceived = new Promise<{
       resourceId: string;
       status: string;
     }>((resolve) => {
-      clientSocket.on(SOCKET_EVENTS.LOG_STREAM_STATUS, (data) => {
+      // We need to wait specifically for the 'stopped' status for this resource
+      const handleStatus = (data: { resourceId: string; status: string }) => {
+        if (data.resourceId !== resourceId || data.status !== 'stopped') {
+          return;
+        }
+        // Once we get the correct status, remove the listener and resolve
+        clientSocket.off(SOCKET_EVENTS.LOG_STREAM_STATUS, handleStatus);
         resolve(data);
-      });
+      };
+      clientSocket.on(SOCKET_EVENTS.LOG_STREAM_STATUS, handleStatus);
     });
 
     // Request to stop logging
