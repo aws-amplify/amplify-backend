@@ -52,6 +52,8 @@ function AppContent() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const statusRequestedRef = useRef<boolean>(false);
   const [isStartingLoading, setIsStartingLoading] = useState(false);
+  const [isStoppingLoading, setIsStoppingLoading] = useState(false);
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
 
   const sandboxClientService = useSandboxClientService();
 
@@ -331,10 +333,26 @@ function AppContent() {
     };
   }, [sandboxStatus, connected, sandboxClientService]);
 
-  // Reset loading state when sandbox status changes
+  // Reset loading states when sandbox status changes
   useEffect(() => {
     if (sandboxStatus !== 'unknown') {
       setIsStartingLoading(false);
+    }
+
+    // Reset stopping loading state when status changes from running to stopped
+    if (sandboxStatus === 'stopped') {
+      setIsStoppingLoading(false);
+    }
+
+    // Reset deleting loading state when status changes from deleting to nonexistent
+    if (sandboxStatus === 'nonexistent') {
+      setIsDeletingLoading(false);
+    }
+
+    // Reset all loading states if there was an error (status didn't change as expected)
+    if (sandboxStatus !== 'deploying' && sandboxStatus !== 'deleting') {
+      setIsStoppingLoading(false);
+      setIsDeletingLoading(false);
     }
   }, [sandboxStatus]);
 
@@ -365,6 +383,7 @@ function AppContent() {
   };
 
   const stopSandbox = () => {
+    setIsStoppingLoading(true);
     sandboxClientService.stopSandbox();
     setLogs((prev) => [
       ...prev,
@@ -378,6 +397,7 @@ function AppContent() {
   };
 
   const deleteSandbox = () => {
+    setIsDeletingLoading(true);
     sandboxClientService.deleteSandbox();
     setLogs((prev) => [
       ...prev,
@@ -416,6 +436,8 @@ function AppContent() {
           onStopDevTools={stopDevTools}
           onOpenSettings={() => {}}
           isStartingLoading={isStartingLoading}
+          isStoppingLoading={isStoppingLoading}
+          isDeletingLoading={isDeletingLoading}
         />
       }
     >
