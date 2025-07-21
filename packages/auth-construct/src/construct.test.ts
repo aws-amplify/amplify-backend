@@ -547,6 +547,51 @@ void describe('Auth construct', () => {
     );
   });
 
+  void it('creates email MFA when enabled', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        email: true,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      MfaConfiguration: 'OPTIONAL',
+      EnabledMfas: ['EMAIL_OTP'],
+    });
+  });
+
+  void it('creates combined MFA with SMS and email', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+        phone: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        sms: true,
+        email: true,
+        totp: true,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      MfaConfiguration: 'OPTIONAL',
+      EnabledMfas: ['SMS_MFA', 'EMAIL_OTP', 'SOFTWARE_TOKEN_MFA'],
+    });
+  });
+
   void it('configures Cognito to send emails with SES when email senders field is populated', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -1166,6 +1211,35 @@ void describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       const outputs = template.findOutputs('*');
       assert.equal(outputs['mfaTypes']['Value'], '["TOTP"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
+    });
+
+    void it('updates mfaConfiguration & mfaTypes when email MFA is enabled', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'OPTIONAL', email: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["EMAIL"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'OPTIONAL');
+    });
+
+    void it('updates mfaConfiguration & mfaTypes when all MFA types are enabled', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phone: true,
+        },
+        multifactor: { mode: 'REQUIRED', sms: true, totp: true, email: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["SMS","TOTP","EMAIL"]');
       assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
 

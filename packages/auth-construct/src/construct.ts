@@ -231,6 +231,16 @@ export class AmplifyAuth
     if (!(cfnUserPool instanceof CfnUserPool)) {
       throw Error('Could not find CfnUserPool resource in stack.');
     }
+
+    // Configure email MFA if enabled
+    const mfaType = this.getMFAType(props.multifactor);
+    if (mfaType?.email) {
+      // Add EMAIL_OTP to enabled MFA methods
+      const currentEnabledMfas = cfnUserPool.enabledMfas || [];
+      if (!currentEnabledMfas.includes('EMAIL_OTP')) {
+        cfnUserPool.enabledMfas = [...currentEnabledMfas, 'EMAIL_OTP'];
+      }
+    }
     const cfnUserPoolClient = userPoolClient.node.findChild(
       'Resource',
     ) as CfnUserPoolClient;
@@ -493,6 +503,20 @@ export class AmplifyAuth
     if (phoneEnabled && mfaMode && mfaMode !== 'OFF' && !mfaType?.sms) {
       throw Error(
         'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
+      );
+    }
+
+    // If email login is enabled along with MFA, we should recommend enabling email MFA type.
+    if (
+      emailEnabled &&
+      mfaMode &&
+      mfaMode !== 'OFF' &&
+      !mfaType?.email &&
+      !mfaType?.sms &&
+      !mfaType?.otp
+    ) {
+      throw Error(
+        'Invalid MFA settings. At least one MFA method (email, sms, or totp) must be enabled when MFA is configured',
       );
     }
 
@@ -810,7 +834,7 @@ export class AmplifyAuth
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
-   * @returns cognito MFA type (sms or totp)
+   * @returns cognito MFA type (sms, totp, or email)
    */
   private getMFAType = (
     mfa: AuthProps['multifactor'],
@@ -819,6 +843,7 @@ export class AmplifyAuth
       ? {
           sms: mfa.sms ? true : false,
           otp: mfa.totp ? true : false,
+          email: mfa.email ? true : false,
         }
       : undefined;
   };
@@ -1229,6 +1254,9 @@ export class AmplifyAuth
           }
           if (type === 'SOFTWARE_TOKEN_MFA') {
             mfaTypes.push('TOTP');
+          }
+          if (type === 'EMAIL_OTP') {
+            mfaTypes.push('EMAIL');
           }
         });
         return JSON.stringify(mfaTypes);

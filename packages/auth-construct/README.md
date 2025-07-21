@@ -40,9 +40,59 @@ new AmplifyAuth(stack, 'Auth', {
   multifactor: {
     mode: 'OPTIONAL',
     sms: {
-      smsMessage: (code: string) => `Your verification code is ${code}`,
+      smsMessage: (code: () => string) => `Your verification code is ${code()}`,
     },
     totp: false,
+  },
+});
+```
+
+### Email login with email-based MFA
+
+In this example, you will create a stack with email login and email-based MFA enabled. This uses AWS Cognito's EMAIL_OTP feature for multi-factor authentication.
+
+```ts
+import { App, Stack } from 'aws-cdk-lib';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
+
+const app = new App();
+const stack = new Stack(app, 'AuthStack');
+
+new AmplifyAuth(stack, 'Auth', {
+  loginWith: {
+    email: true,
+  },
+  multifactor: {
+    mode: 'OPTIONAL',
+    email: true,
+  },
+});
+```
+
+### Email login with multiple MFA options
+
+In this example, you will create a stack with email login and multiple MFA options (SMS, TOTP, and email) to give users flexibility in choosing their preferred authentication method.
+
+```ts
+import { App, Stack } from 'aws-cdk-lib';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
+
+const app = new App();
+const stack = new Stack(app, 'AuthStack');
+
+new AmplifyAuth(stack, 'Auth', {
+  loginWith: {
+    email: true,
+    phone: true,
+  },
+  multifactor: {
+    mode: 'OPTIONAL',
+    sms: {
+      smsMessage: (code: () => string) =>
+        `Your SMS verification code is ${code()}`,
+    },
+    totp: true,
+    email: true,
   },
 });
 ```
