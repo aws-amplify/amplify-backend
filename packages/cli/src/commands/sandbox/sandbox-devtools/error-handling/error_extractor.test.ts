@@ -29,8 +29,8 @@ void describe('Error Extractor', () => {
 
     const result = extractErrorInfo(error);
 
-    assert.strictEqual(result.name, 'CustomError');
-    assert.strictEqual(result.message, 'Something went wrong');
+    assert.strictEqual(result.name, 'UnknownFault');
+    assert.strictEqual(result.message, 'CustomError: Something went wrong');
     assert.strictEqual(result.resolution, undefined);
   });
 
@@ -39,8 +39,11 @@ void describe('Error Extractor', () => {
 
     const result = extractErrorInfo(error);
 
-    assert.strictEqual(result.name, 'UnknownError');
-    assert.strictEqual(result.message, 'String error');
+    assert.strictEqual(result.name, 'UnknownFault');
+    assert.strictEqual(
+      result.message,
+      'An unknown error happened. Check downstream error',
+    );
     assert.strictEqual(result.resolution, undefined);
   });
 });
