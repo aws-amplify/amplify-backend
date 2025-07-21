@@ -4,18 +4,11 @@ import Header from './components/Header';
 import ResourceConsole from './components/ResourceConsole';
 import SandboxOptionsModal from './components/SandboxOptionsModal';
 import { DevToolsSandboxOptions } from '../../shared/socket_types';
+import LogSettingsModal, { LogSettings } from './components/LogSettingsModal';
 import { SocketClientProvider } from './contexts/socket_client_context';
 import { useSandboxClientService } from './contexts/socket_client_context';
 import { SandboxStatusData } from '../../shared/socket_types';
 import { SandboxStatus } from '@aws-amplify/sandbox';
-
-// Define LogEntry interface for PR2 (will be replaced in PR3)
-interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: string;
-  message: string;
-}
 
 import {
   AppLayout,
@@ -25,6 +18,7 @@ import {
   Alert,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
+import { ConsoleLogEntry } from '../../shared/socket_types';
 
 /**
  * Main App component that wraps the application with the socket client provider
@@ -41,7 +35,7 @@ function App() {
  * Inner App component that uses the services
  */
 function AppContent() {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<ConsoleLogEntry[]>([]);
   const [connected, setConnected] = useState(false);
   const [activeTabId, setActiveTabId] = useState('logs');
   const [sandboxStatus, setSandboxStatus] = useState<SandboxStatus>('unknown');
@@ -49,6 +43,13 @@ function AppContent() {
     string | undefined
   >(undefined);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [logSettings, setLogSettings] = useState<LogSettings>({
+    maxLogSizeMB: 50,
+  });
+  const [currentLogSizeMB, setCurrentLogSizeMB] = useState<number | undefined>(
+    undefined,
+  );
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const statusRequestedRef = useRef<boolean>(false);
   const [isStartingLoading, setIsStartingLoading] = useState(false);
@@ -61,7 +62,22 @@ function AppContent() {
 
   const clearLogs = () => {
     setLogs([]);
+    sandboxClientService.saveConsoleLogs([]);
   };
+
+  // Load saved logs on mount
+  useEffect(() => {
+    if (connected) {
+      sandboxClientService.loadConsoleLogs();
+    }
+  }, [connected, sandboxClientService]);
+
+  // Save logs whenever they change
+  useEffect(() => {
+    if (logs.length > 0) {
+      sandboxClientService.saveConsoleLogs(logs);
+    }
+  }, [logs, sandboxClientService]);
 
   useEffect(() => {
     // Register for sandbox status updates
@@ -81,21 +97,22 @@ function AppContent() {
             console.log(
               `[CLIENT] Updating sandboxIdentifier from ${prevId} to ${data.identifier}`,
             );
+            // Store the identifier in localStorage for other components to use
+            if (data.identifier) {
+              window.localStorage.setItem('sandboxIdentifier', data.identifier);
+            }
             return data.identifier;
           });
         } else if (data.status === 'nonexistent') {
           setSandboxIdentifier((prevId) => {
             console.log(`[CLIENT] Clearing sandboxIdentifier from ${prevId}`);
+            // Remove the identifier from localStorage
+            window.localStorage.removeItem('sandboxIdentifier');
             return undefined;
           });
         }
 
         if (data.deploymentCompleted) {
-          console.log(
-            '[CLIENT] Deployment completed event received via sandboxStatus:',
-            data,
-          );
-
           // Add deployment completion log
           setLogs((prev) => [
             ...prev,
@@ -110,32 +127,6 @@ function AppContent() {
                   : 'Deployment completed successfully'),
             },
           ]);
-        }
-
-        if (data.error) {
-          setLogs((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              level: 'ERROR',
-              message: `Sandbox error: ${data.error}`,
-            },
-          ]);
-        } else {
-          if (!data.deploymentCompleted) {
-            setLogs((prev) => [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                timestamp: new Date().toISOString(),
-                level: 'INFO',
-                message: data.identifier
-                  ? `Sandbox status: ${data.status} (identifier: ${data.identifier})`
-                  : `Sandbox status: ${data.status}`,
-              },
-            ]);
-          }
         }
 
         // Force a re-render by updating a dummy state
@@ -178,6 +169,7 @@ function AppContent() {
           ]);
         }
       }, 500); // 500ms delay
+      sandboxClientService.getLogSettings();
     });
 
     // Handle connection errors
@@ -253,6 +245,26 @@ function AppContent() {
       ]);
     });
 
+    const unsubscribeLogSettings = sandboxClientService.onLogSettings(
+      (data) => {
+        console.log('Received log settings:', data);
+        if (data.maxLogSizeMB) {
+          setLogSettings({ maxLogSizeMB: data.maxLogSizeMB });
+        }
+        if (data.currentSizeMB !== undefined) {
+          setCurrentLogSizeMB(data.currentSizeMB);
+        }
+      },
+    );
+
+    const unsubscribeSavedConsoleLogs = sandboxClientService.onSavedConsoleLogs(
+      (savedLogs) => {
+        if (savedLogs.length > 0) {
+          setLogs(savedLogs as ConsoleLogEntry[]);
+        }
+      },
+    );
+
     // Handle disconnection
     const unsubscribeDisconnect = sandboxClientService.onDisconnect(
       (reason) => {
@@ -294,6 +306,8 @@ function AppContent() {
       unsubscribeReconnectFailed.unsubscribe();
       unsubscribeDisconnect.unsubscribe();
       unsubscribeLog.unsubscribe();
+      unsubscribeLogSettings.unsubscribe();
+      unsubscribeSavedConsoleLogs.unsubscribe();
       stopPing.unsubscribe();
       clearLogs();
       sandboxClientService.disconnect();
@@ -355,6 +369,19 @@ function AppContent() {
       setIsDeletingLoading(false);
     }
   }, [sandboxStatus]);
+
+  // Add a timeout to reset loading state if sandbox initialization takes too long
+  // This is to prevent the UI from being stuck in loading state indefinitely if we have sandbox errors that
+  // do not cause a state change
+  useEffect(() => {
+    if (isStartingLoading) {
+      const timeout = setTimeout(() => {
+        setIsStartingLoading(false);
+      }, 15000); // 15 seconds timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isStartingLoading]);
 
   const startSandbox = () => {
     setIsStartingLoading(true);
@@ -423,6 +450,27 @@ function AppContent() {
     ]);
   };
 
+  const handleOpenSettings = () => {
+    sandboxClientService.getLogSettings();
+    setShowSettingsModal(true);
+  };
+
+  const handleSaveSettings = (settings: LogSettings) => {
+    sandboxClientService.saveLogSettings(settings);
+    setLogSettings(settings);
+    setShowSettingsModal(false);
+
+    setLogs((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        level: 'INFO',
+        message: `Log settings updated: Max size set to ${settings.maxLogSizeMB} MB`,
+      },
+    ]);
+  };
+
   const mainContent = (
     <ContentLayout
       header={
@@ -434,7 +482,7 @@ function AppContent() {
           onStopSandbox={stopSandbox}
           onDeleteSandbox={deleteSandbox}
           onStopDevTools={stopDevTools}
-          onOpenSettings={() => {}}
+          onOpenSettings={handleOpenSettings}
           isStartingLoading={isStartingLoading}
           isStoppingLoading={isStoppingLoading}
           isDeletingLoading={isDeletingLoading}
@@ -491,7 +539,7 @@ function AppContent() {
         content={mainContent}
         navigationHide={true}
         toolsHide={true}
-        maxContentWidth={2000}
+        maxContentWidth={2300}
         contentType="default"
         headerSelector="#header"
       />
@@ -503,6 +551,15 @@ function AppContent() {
           setIsStartingLoading(false);
         }}
         onConfirm={handleStartSandboxWithOptions}
+      />
+
+      <LogSettingsModal
+        visible={showSettingsModal}
+        onDismiss={() => setShowSettingsModal(false)}
+        onSave={handleSaveSettings}
+        onClear={clearLogs}
+        initialSettings={logSettings}
+        currentSizeMB={currentLogSizeMB}
       />
     </>
   );

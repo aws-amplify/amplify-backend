@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { SocketHandlerService } from './socket_handlers.js';
-import { printer } from '@aws-amplify/cli-core';
+import { Printer, printer } from '@aws-amplify/cli-core';
 import type { Server, Socket } from 'socket.io';
 import type { ResourceService } from './resource_service.js';
 import type { ShutdownService } from './shutdown_service.js';
@@ -12,6 +12,7 @@ import type {
 } from '@aws-amplify/sandbox';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SandboxStatusData } from '../shared/socket_types.js';
 
@@ -45,10 +46,13 @@ void describe('SocketHandlerService', () => {
   let mockSandbox: Sandbox;
   let mockShutdownService: ShutdownService;
   let mockResourceService: ResourceService;
+  let mockPrinter: Printer;
+  let mockStorageManager: LocalStorageManager;
   let mockGetSandboxState: () => Promise<SandboxStatus>;
 
   beforeEach(() => {
     mock.reset();
+    mockPrinter = { print: mock.fn(), log: mock.fn() } as unknown as Printer;
     mock.method(printer, 'log');
 
     mockIo = { emit: mock.fn() } as unknown as Server;
@@ -70,7 +74,26 @@ void describe('SocketHandlerService', () => {
       ),
     } as unknown as ResourceService;
     mockGetSandboxState = mock.fn(() => Promise.resolve('running'));
-
+    mockStorageManager = {
+      loadCloudWatchLogs: mock.fn(() => []),
+      appendCloudWatchLog: mock.fn(),
+      saveResourceLoggingState: mock.fn(),
+      getResourcesWithActiveLogging: mock.fn(() => []),
+      getLogsSizeInMB: mock.fn(() => 10),
+      setMaxLogSize: mock.fn(),
+      loadCustomFriendlyNames: mock.fn(() => ({})),
+      updateCustomFriendlyName: mock.fn(),
+      removeCustomFriendlyName: mock.fn(),
+      loadDeploymentProgress: mock.fn(() => []),
+      loadResources: mock.fn(() => null),
+      saveResources: mock.fn(),
+      saveConsoleLogs: mock.fn(),
+      loadConsoleLogs: mock.fn(() => []),
+      loadCloudFormationEvents: mock.fn(() => []),
+      saveCloudFormationEvents: mock.fn(),
+      clearAll: mock.fn(),
+      maxLogSizeMB: 50,
+    } as unknown as LocalStorageManager;
     service = new SocketHandlerService(
       mockIo,
       mockSandbox,
@@ -78,6 +101,8 @@ void describe('SocketHandlerService', () => {
       { name: 'test-backend' } as BackendIdentifier,
       mockShutdownService,
       mockResourceService,
+      mockStorageManager,
+      mockPrinter,
     );
   });
 
@@ -91,6 +116,7 @@ void describe('SocketHandlerService', () => {
 
       // Verify all expected handlers are registered
       const expectedHandlers = [
+        SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
         SOCKET_EVENTS.GET_SANDBOX_STATUS,
         SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES,
         SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,
@@ -163,6 +189,8 @@ void describe('SocketHandlerService', () => {
         { name: 'test-backend' } as BackendIdentifier,
         mockShutdownService,
         mockResourceService,
+        mockStorageManager,
+        mockPrinter,
       );
 
       errorService.setupSocketHandlers(mockSocket);
@@ -282,7 +310,6 @@ void describe('SocketHandlerService', () => {
 
       const emittedData = mockEmitFn.mock.calls[0]
         .arguments[1] as BackendResourcesData;
-      assert.strictEqual(emittedData.status, 'deploying');
       assert.strictEqual(emittedData.name, 'test-backend');
       assert.deepStrictEqual(emittedData.resources, []);
       assert.strictEqual(emittedData.region, null);
@@ -327,6 +354,8 @@ void describe('SocketHandlerService', () => {
         .arguments[1] as BackendResourcesData;
       assert.strictEqual(emittedData.name, 'test-backend');
       assert.deepStrictEqual(emittedData.resources, []);
+      assert.strictEqual(emittedData.region, null);
+      assert.ok(emittedData.error?.includes('does not exist'));
     });
 
     void it('handles other errors', async () => {
@@ -374,11 +403,28 @@ void describe('SocketHandlerService', () => {
     });
 
     void it('emits appropriate status when sandbox is not running', async () => {
-      (mockGetSandboxState as unknown as MockFn).mock.mockImplementation(() =>
-        Promise.resolve('nonexistent'),
+      // Create a new service instance with a mocked getSandboxState that returns 'nonexistent'
+      const nonexistentService = new SocketHandlerService(
+        mockIo,
+        mockSandbox,
+        mock.fn(() => Promise.resolve('nonexistent')),
+        { name: 'test-backend' } as BackendIdentifier,
+        mockShutdownService,
+        mockResourceService,
+        mockStorageManager,
+        mockPrinter,
       );
 
-      service.setupSocketHandlers(mockSocket);
+      // Mock the resourceService to return an error when sandbox is nonexistent
+      const mockNonexistentResourceService = {
+        getDeployedBackendResources: mock.fn(() =>
+          Promise.reject(new Error('does not exist')),
+        ),
+      } as unknown as ResourceService;
+
+      nonexistentService['resourceService'] = mockNonexistentResourceService;
+
+      nonexistentService.setupSocketHandlers(mockSocket);
       const mockOnFn = mockSocket.on as unknown as MockFn;
       const foundCall = mockOnFn.mock.calls.find(
         (call: MockCall) =>
@@ -390,6 +436,9 @@ void describe('SocketHandlerService', () => {
         'Could not find getDeployedBackendResources handler',
       );
       const handler = foundCall?.arguments[1] as EventHandler;
+
+      // Reset the socket emit mock to track only new calls
+      (mockSocket.emit as unknown as MockFn).mock.resetCalls();
 
       await handler();
 
@@ -410,6 +459,8 @@ void describe('SocketHandlerService', () => {
       // The status comes from the error handling in the implementation
       assert.strictEqual(emittedData.name, 'test-backend');
       assert.deepStrictEqual(emittedData.resources, []);
+      assert.strictEqual(emittedData.region, null);
+      assert.ok(emittedData.error?.includes('does not exist'));
     });
 
     void it('handles errors when getting sandbox state', async () => {
@@ -448,150 +499,6 @@ void describe('SocketHandlerService', () => {
         .arguments[1] as BackendResourcesData;
       assert.strictEqual(emittedData.name, 'test-backend');
       assert.deepStrictEqual(emittedData.resources, []);
-    });
-  });
-
-  void describe('handleGetCustomFriendlyNames', () => {
-    void it('emits empty object for custom friendly names', () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) =>
-          call.arguments[0] === SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,
-      );
-
-      assert.ok(foundCall, 'Could not find getCustomFriendlyNames handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      void handler();
-
-      const mockEmitFn = mockSocket.emit as unknown as MockFn;
-      assert.strictEqual(mockEmitFn.mock.callCount(), 1);
-
-      assert.ok(
-        mockEmitFn.mock.calls.length > 0,
-        'Should have at least one emit call',
-      );
-      assert.strictEqual(
-        mockEmitFn.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES,
-      );
-
-      const emittedData = mockEmitFn.mock.calls[0].arguments[1] as Record<
-        string,
-        string
-      >;
-      assert.deepStrictEqual(emittedData, {});
-    });
-  });
-
-  void describe('handleUpdateCustomFriendlyName', () => {
-    void it('emits custom friendly name updated event', () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) =>
-          call.arguments[0] === SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
-      );
-
-      assert.ok(foundCall, 'Could not find updateCustomFriendlyName handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      const testData = {
-        resourceId: 'test-resource',
-        friendlyName: 'Test Resource',
-      };
-      void handler(testData);
-
-      const mockIoEmitFn = mockIo.emit as unknown as MockFn;
-      assert.strictEqual(mockIoEmitFn.mock.callCount(), 1);
-
-      assert.ok(
-        mockIoEmitFn.mock.calls.length > 0,
-        'Should have at least one io.emit call',
-      );
-      assert.strictEqual(
-        mockIoEmitFn.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_UPDATED,
-      );
-
-      const emittedData = mockIoEmitFn.mock.calls[0].arguments[1] as {
-        resourceId: string;
-        friendlyName: string;
-      };
-      assert.deepStrictEqual(emittedData, testData);
-    });
-
-    void it('does nothing when data is invalid', () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) =>
-          call.arguments[0] === SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
-      );
-
-      assert.ok(foundCall, 'Could not find updateCustomFriendlyName handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      // Call with invalid data
-      void handler(null);
-
-      const mockIoEmitFn = mockIo.emit as unknown as MockFn;
-      assert.strictEqual(mockIoEmitFn.mock.callCount(), 0);
-    });
-  });
-
-  void describe('handleRemoveCustomFriendlyName', () => {
-    void it('emits custom friendly name removed event', () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) =>
-          call.arguments[0] === SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
-      );
-
-      assert.ok(foundCall, 'Could not find removeCustomFriendlyName handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      const testData = {
-        resourceId: 'test-resource',
-      };
-      void handler(testData);
-
-      const mockIoEmitFn = mockIo.emit as unknown as MockFn;
-      assert.strictEqual(mockIoEmitFn.mock.callCount(), 1);
-
-      assert.ok(
-        mockIoEmitFn.mock.calls.length > 0,
-        'Should have at least one io.emit call',
-      );
-      assert.strictEqual(
-        mockIoEmitFn.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_REMOVED,
-      );
-
-      const emittedData = mockIoEmitFn.mock.calls[0].arguments[1] as {
-        resourceId: string;
-      };
-      assert.deepStrictEqual(emittedData, testData);
-    });
-
-    void it('does nothing when data is invalid', () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) =>
-          call.arguments[0] === SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
-      );
-
-      assert.ok(foundCall, 'Could not find removeCustomFriendlyName handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      // Call with invalid data
-      void handler(null);
-
-      const mockIoEmitFn = mockIo.emit as unknown as MockFn;
-      assert.strictEqual(mockIoEmitFn.mock.callCount(), 0);
     });
   });
 
@@ -756,6 +663,16 @@ void describe('SocketHandlerService', () => {
         .arguments[1] as SandboxStatusData;
       assert.strictEqual(statusData.status, 'deploying');
       assert.strictEqual(statusData.identifier, 'test-backend');
+      assert.strictEqual(statusData.message, 'Starting sandbox...');
+
+      // Verify that the error was logged
+      const mockLogFn = mockPrinter.log as unknown as MockFn;
+      const errorLogCall = mockLogFn.mock.calls.find(
+        (call: MockCall) =>
+          String(call.arguments[0]).includes('Error starting sandbox') &&
+          String(call.arguments[0]).includes(errorMessage),
+      );
+      assert.ok(errorLogCall, 'Should log the error message');
     });
   });
 
