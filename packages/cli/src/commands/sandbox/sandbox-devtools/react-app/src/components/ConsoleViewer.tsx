@@ -14,7 +14,8 @@ import {
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
 import stripAnsi from 'strip-ansi';
-export interface ConsoleLogEntry {
+
+interface LogEntry {
   id: string;
   timestamp: string;
   level: string;
@@ -22,7 +23,7 @@ export interface ConsoleLogEntry {
 }
 
 interface ConsoleViewerProps {
-  logs: ConsoleLogEntry[];
+  logs: LogEntry[];
 }
 
 const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
@@ -134,13 +135,13 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
     {
       id: 'timestamp',
       header: 'Time',
-      cell: (item: ConsoleLogEntry) => formatTimestamp(item.timestamp),
+      cell: (item: LogEntry) => formatTimestamp(item.timestamp),
       width: 100,
     },
     {
       id: 'level',
       header: 'Level',
-      cell: (item: ConsoleLogEntry) => (
+      cell: (item: LogEntry) => (
         <StatusIndicator type={getStatusIndicatorIconForLogLevel(item.level)}>
           {item.level}
         </StatusIndicator>
@@ -150,7 +151,7 @@ const ConsoleViewer = ({ logs }: ConsoleViewerProps) => {
     {
       id: 'message',
       header: 'Message',
-      cell: (item: ConsoleLogEntry) => stripAnsi(item.message),
+      cell: (item: LogEntry) => stripAnsi(item.message),
       width: 'auto',
     },
   ];
