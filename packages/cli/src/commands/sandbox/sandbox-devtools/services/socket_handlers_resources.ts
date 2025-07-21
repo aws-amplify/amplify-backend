@@ -283,7 +283,6 @@ export class SocketHandlerResources {
    * Handles the updateCustomFriendlyName event
    */
   public handleUpdateCustomFriendlyName(
-    socket: Socket,
     data: SocketEvents['updateCustomFriendlyName'],
   ): void {
     if (!data || !data.resourceId || !data.friendlyName) {
@@ -312,7 +311,6 @@ export class SocketHandlerResources {
    * Handles the removeCustomFriendlyName event
    */
   public handleRemoveCustomFriendlyName(
-    socket: Socket,
     data: SocketEvents['removeCustomFriendlyName'],
   ): void {
     if (!data || !data.resourceId) {

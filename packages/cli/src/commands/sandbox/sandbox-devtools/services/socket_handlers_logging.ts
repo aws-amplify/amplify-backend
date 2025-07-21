@@ -628,10 +628,7 @@ export class SocketHandlerLogging {
   /**
    * Handles the saveConsoleLogs event
    */
-  public handleSaveConsoleLogs(
-    socket: Socket,
-    data: SocketEvents['saveConsoleLogs'],
-  ): void {
+  public handleSaveConsoleLogs(data: SocketEvents['saveConsoleLogs']): void {
     try {
       this.storageManager.saveConsoleLogs(data.logs);
     } catch (error) {

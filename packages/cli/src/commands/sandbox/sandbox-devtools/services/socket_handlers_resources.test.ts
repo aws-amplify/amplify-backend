@@ -104,7 +104,7 @@ void describe('SocketHandlerResources', () => {
         resourceId: 'test-resource',
         friendlyName: 'Test Resource',
       };
-      handler.handleUpdateCustomFriendlyName(mockSocket, testData);
+      handler.handleUpdateCustomFriendlyName(testData);
 
       const mockIoEmitFn = mockIo.emit as unknown as MockFn;
       assert.strictEqual(mockIoEmitFn.mock.callCount(), 1);
@@ -127,7 +127,6 @@ void describe('SocketHandlerResources', () => {
 
     void it('does nothing when data is invalid', () => {
       handler.handleUpdateCustomFriendlyName(
-        mockSocket,
         null as unknown as { resourceId: string; friendlyName: string },
       );
 
@@ -141,7 +140,7 @@ void describe('SocketHandlerResources', () => {
       const testData = {
         resourceId: 'test-resource',
       };
-      handler.handleRemoveCustomFriendlyName(mockSocket, testData);
+      handler.handleRemoveCustomFriendlyName(testData);
 
       const mockIoEmitFn = mockIo.emit as unknown as MockFn;
       assert.strictEqual(mockIoEmitFn.mock.callCount(), 1);
@@ -163,7 +162,6 @@ void describe('SocketHandlerResources', () => {
 
     void it('does nothing when data is invalid', () => {
       handler.handleRemoveCustomFriendlyName(
-        mockSocket,
         null as unknown as { resourceId: string; friendlyName: string },
       );
 

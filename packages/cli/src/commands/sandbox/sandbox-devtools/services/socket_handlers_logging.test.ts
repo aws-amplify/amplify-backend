@@ -321,7 +321,7 @@ void describe('SocketHandlerLogging', () => {
         const testLogs = [
           { id: '1', timestamp: '2023-01-01', level: 'INFO', message: 'test' },
         ];
-        handler.handleSaveConsoleLogs(mockSocket, { logs: testLogs });
+        handler.handleSaveConsoleLogs({ logs: testLogs });
 
         const mockSaveConsoleLogs =
           mockStorageManager.saveConsoleLogs as unknown as MockFn;

@@ -93,19 +93,19 @@ export class SocketHandlerService {
    * Creates a new SocketHandlerService
    */
   constructor(
-    private io: Server,
+    io: Server,
     private sandbox: Sandbox,
     private getSandboxState: () => Promise<SandboxStatus>,
     private backendId: BackendIdentifier,
     private shutdownService: ShutdownService,
     private resourceService: ResourceService,
-    private storageManager: LocalStorageManager,
+    storageManager: LocalStorageManager,
     // eslint-disable-next-line spellcheck/spell-checker
-    private activeLogPollers = new Map<string, NodeJS.Timeout>(),
+    activeLogPollers = new Map<string, NodeJS.Timeout>(),
     // Track when logging was toggled on for each resource
-    private toggleStartTimes = new Map<string, number>(),
+    toggleStartTimes = new Map<string, number>(),
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
-    private lambdaClient: LambdaClient = new LambdaClient({}), // Default Lambda client with region
+    lambdaClient: LambdaClient = new LambdaClient({}),
   ) {
     // Initialize specialized handlers
     this.loggingHandler = new SocketHandlerLogging(
@@ -229,14 +229,12 @@ export class SocketHandlerService {
       SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
       this.resourcesHandler.handleUpdateCustomFriendlyName.bind(
         this.resourcesHandler,
-        socket,
       ),
     );
     socket.on(
       SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
       this.resourcesHandler.handleRemoveCustomFriendlyName.bind(
         this.resourcesHandler,
-        socket,
       ),
     );
 
@@ -260,10 +258,7 @@ export class SocketHandlerService {
     // Console logs handlers
     socket.on(
       SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
-      this.loggingHandler.handleSaveConsoleLogs.bind(
-        this.loggingHandler,
-        socket,
-      ),
+      this.loggingHandler.handleSaveConsoleLogs.bind(this.loggingHandler),
     );
     socket.on(
       SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
