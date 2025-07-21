@@ -454,8 +454,6 @@ describe('DeploymentProgress Component', () => {
       />,
     );
 
-    // Initially not expanded (we can't easily check this with the mock)
-
     // Change status to deploying
     rerender(
       <DeploymentProgress

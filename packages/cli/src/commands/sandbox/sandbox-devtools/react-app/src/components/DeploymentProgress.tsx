@@ -71,6 +71,13 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
   useEffect(() => {
     if (status === 'deploying' || status === 'deleting') {
       setExpanded(true);
+    } else if (
+      status === 'running' ||
+      status === 'stopped' ||
+      status === 'nonexistent'
+    ) {
+      // Close the expandable section when the operation is no longer in progress
+      setExpanded(false);
     }
   }, [status]);
 
