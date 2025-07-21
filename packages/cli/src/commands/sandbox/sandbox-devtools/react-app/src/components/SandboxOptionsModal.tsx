@@ -132,7 +132,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Exclude Paths"
           description="Comma-separated list of paths or glob patterns to ignore"
-          controlId = "exclude-paths"
+          controlId="exclude-paths"
         >
           <Input
             value={excludeInput}
@@ -144,7 +144,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
         <FormField
           label="Outputs Format"
           description="amplify_outputs file format"
-          controlId = "outputs-format"
+          controlId="outputs-format"
         >
           <Select
             selectedOption={
@@ -192,7 +192,7 @@ const SandboxOptionsModal: React.FC<SandboxOptionsModalProps> = ({
             <FormField
               label="Logs Filter"
               description="Comma-separated regex patterns to filter logs from matched functions"
-              controlId = "logs-filter"
+              controlId="logs-filter"
             >
               <Input
                 value={logsFilterInput}

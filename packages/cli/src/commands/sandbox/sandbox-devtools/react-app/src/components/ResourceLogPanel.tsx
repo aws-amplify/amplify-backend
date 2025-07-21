@@ -332,17 +332,14 @@ ${JSON.stringify(parsed.body, null, 2)}`;
           variant="h2"
           actions={
             <SpaceBetween direction="horizontal" size="xs">
-              {consoleUrl && (
-                deploymentInProgress ? (
-                  <span style={{ color: '#888' }}>
-                    View in AWS Console
-                  </span>
+              {consoleUrl &&
+                (deploymentInProgress ? (
+                  <span style={{ color: '#888' }}>View in AWS Console</span>
                 ) : (
                   <Link href={consoleUrl} external>
                     View in AWS Console
                   </Link>
-                )
-              )}
+                ))}
               <Button
                 onClick={toggleRecording}
                 variant={isRecording ? 'normal' : 'primary'}
@@ -365,7 +362,9 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     >
       <SpaceBetween direction="vertical" size="m">
         {deploymentInProgress ? (
-          <StatusIndicator type="in-progress">Deployment in progress - logging operations disabled</StatusIndicator>
+          <StatusIndicator type="in-progress">
+            Deployment in progress - logging operations disabled
+          </StatusIndicator>
         ) : isRecording ? (
           <StatusIndicator type="success">Recording logs</StatusIndicator>
         ) : (
@@ -458,7 +457,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
             display: 'block',
             position: 'relative',
           }}
-          >
+        >
           {filteredLogs.length === 0 ? (
             <TextContent>
               <p style={{ color: '#888' }}>

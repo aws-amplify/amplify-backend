@@ -22,7 +22,7 @@ describe('ConfirmationModal Component', () => {
         message="Test content"
         confirmButtonText="Confirm"
         cancelButtonText="Cancel"
-      />
+      />,
     );
 
     // Check if modal content is not in the document
@@ -39,7 +39,7 @@ describe('ConfirmationModal Component', () => {
         message="Test content"
         confirmButtonText="Confirm"
         cancelButtonText="Cancel"
-      />
+      />,
     );
 
     // We should check for modal content in the document
@@ -57,7 +57,7 @@ describe('ConfirmationModal Component', () => {
         message="Test content"
         confirmButtonText="Confirm"
         cancelButtonText="Cancel"
-      />
+      />,
     );
 
     // Find and click the cancel button
@@ -81,11 +81,13 @@ describe('ConfirmationModal Component', () => {
         message="Test content"
         confirmButtonText="Confirm"
         cancelButtonText="Cancel"
-      />
+      />,
     );
 
     // Find and click the confirm button - it's the primary button
-    const confirmButton = document.querySelector('button[data-variant="primary"]');
+    const confirmButton = document.querySelector(
+      'button[data-variant="primary"]',
+    );
     expect(confirmButton).not.toBeNull();
 
     if (confirmButton) {

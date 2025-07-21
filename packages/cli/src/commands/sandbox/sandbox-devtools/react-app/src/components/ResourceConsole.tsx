@@ -483,11 +483,18 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
           {/* Split view layout - show resources on left and logs on right when a log is being viewed */}
           <Grid
             gridDefinition={
-              showLogViewer ? [{ colspan: 6 }, { colspan: 6 }] : [{ colspan: 12 }]
+              showLogViewer
+                ? [{ colspan: 6 }, { colspan: 6 }]
+                : [{ colspan: 12 }]
             }
           >
             {/* Left side - Resources */}
-            <div style={{ overflowY: 'auto', maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto' }}>
+            <div
+              style={{
+                overflowY: 'auto',
+                maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto',
+              }}
+            >
               {/* Show resources if available, even during deployment */}
               {resources && resources.length > 0 && (
                 <ResourceDisplay
@@ -633,7 +640,12 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
           }
         >
           {/* Left side - Resources */}
-          <div style={{ overflowY: 'auto', maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto' }}>
+          <div
+            style={{
+              overflowY: 'auto',
+              maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto',
+            }}
+          >
             <SpaceBetween direction="vertical" size="s">
               <FormField label="Search resources">
                 <Input
