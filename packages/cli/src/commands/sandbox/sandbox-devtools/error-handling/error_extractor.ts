@@ -15,26 +15,12 @@ export type SimpleErrorInfo = {
  * @returns Simple error information with name, message, and optional resolution
  */
 export const extractErrorInfo = (error: unknown): SimpleErrorInfo => {
-  // Handle AmplifyError objects (which have structured resolution info)
-  if (AmplifyError.isAmplifyError(error)) {
-    return {
-      name: error.name,
-      message: error.message,
-      resolution: error.resolution,
-    };
-  }
+  // Use AmplifyError.fromError() to guarantee an AmplifyError
+  const amplifyError = AmplifyError.fromError(error);
 
-  // Handle regular Error objects
-  if (error instanceof Error) {
-    return {
-      name: error.name,
-      message: error.message,
-    };
-  }
-
-  // Handle everything else
   return {
-    name: 'UnknownError',
-    message: String(error),
+    name: amplifyError.name,
+    message: amplifyError.message,
+    resolution: amplifyError.resolution,
   };
 };
