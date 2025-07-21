@@ -857,7 +857,7 @@ jobs:
     if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
     needs:
       - test_with_coverage
-      # - e2e_package_manager
+      - e2e_package_manager
       - e2e_deployment
       - e2e_sandbox
       - e2e_notices
