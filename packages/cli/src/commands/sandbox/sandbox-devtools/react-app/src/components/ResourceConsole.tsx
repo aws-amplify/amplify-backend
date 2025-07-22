@@ -1,7 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useResourceManager } from '../hooks/useResourceManager';
 import { ResourceWithFriendlyName } from '../../../resource_console_functions';
-import { useResourceClientService } from '../contexts/socket_client_context';
+import {
+  useResourceClientService,
+  useLoggingClientService,
+} from '../contexts/socket_client_context';
+import ResourceLogPanel from './ResourceLogPanel';
 import '@cloudscape-design/global-styles/index.css';
 import {
   Button,
@@ -14,11 +18,13 @@ import {
   SpaceBetween,
   ExpandableSection,
   StatusIndicator,
+  Link,
   Input,
   FormField,
   Grid,
   Multiselect,
   SelectProps,
+  Badge,
   Modal,
 } from '@cloudscape-design/components';
 import { SandboxStatus } from '@aws-amplify/sandbox';
@@ -42,10 +48,13 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
   const deploymentInProgress = sandboxStatus === 'deploying';
   const [initializing, setInitializing] = useState<boolean>(true);
+  const [selectedLogResource, setSelectedLogResource] =
+    useState<ResourceWithFriendlyName | null>(null);
+  const [showLogViewer, setShowLogViewer] = useState<boolean>(false);
   const [editingResource, setEditingResource] =
     useState<ResourceWithFriendlyName | null>(null);
   const [editingFriendlyName, setEditingFriendlyName] = useState<string>('');
-  const REFRESH_COOLDOWN_MS = 5000; // 5 seconds minimum between refreshes
+  const REFRESH_COOLDOWN_MS = 2000; // 2 seconds minimum between refreshes
 
   // Use the resource manager hook
   const {
@@ -56,19 +65,32 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
     updateCustomFriendlyName,
     removeCustomFriendlyName,
     getResourceDisplayName,
+    toggleResourceLogging,
+    isLoggingActiveForResource,
     refreshResources: originalRefreshResources,
   } = useResourceManager(undefined, sandboxStatus);
 
-  // Get the resource client service
+  // Get the client services
   const resourceClientService = useResourceClientService();
+  const loggingClientService = useLoggingClientService();
 
-  // Define column definitions for all tables
+  // Helper function to check if a resource supports logs
+  const supportsLogs = (resource: ResourceWithFriendlyName): boolean => {
+    return !!resource.logGroupName;
+  };
+
+  const handleEditFriendlyName = (resource: ResourceWithFriendlyName) => {
+    setEditingResource(resource);
+    setEditingFriendlyName(getResourceDisplayName(resource));
+  };
+
   const columnDefinitions = React.useMemo<ColumnDefinition[]>(
     () => [
       {
         id: 'name',
         header: 'Resource Name',
         cell: (item: ResourceWithFriendlyName) => {
+          const isLogging = isLoggingActiveForResource(item.physicalResourceId);
           return (
             <SpaceBetween direction="horizontal" size="xs">
               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -84,6 +106,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
                   ariaLabel="Edit friendly name"
                 />
               </div>
+              {isLogging && <Badge color="green">Logging</Badge>}
             </SpaceBetween>
           );
         },
@@ -124,6 +147,7 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
         header: 'Actions',
         cell: (item: ResourceWithFriendlyName) => {
           const url = item.consoleUrl;
+          const isLogging = isLoggingActiveForResource(item.physicalResourceId);
 
           return (
             <SpaceBetween direction="horizontal" size="xs">
@@ -133,16 +157,46 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
                     View in AWS Console (disabled during deployment)
                   </span>
                 ) : (
+                  <Link href={url} external>
+                    View in AWS Console
+                  </Link>
+                ))}
+              {supportsLogs(item) && (
+                <SpaceBetween direction="horizontal" size="xs">
+                  {/* Toggle button for starting/stopping log recording */}
                   <Button
                     variant="link"
-                    href={url}
-                    target="_blank"
-                    iconAlign="right"
-                    iconName="external"
+                    onClick={() => {
+                      toggleResourceLogging(item, !isLogging);
+                    }}
+                    disabled={
+                      deploymentInProgress ||
+                      !!(
+                        showLogViewer &&
+                        selectedLogResource &&
+                        selectedLogResource.physicalResourceId ===
+                          item.physicalResourceId
+                      )
+                    }
                   >
-                    View in AWS Console
+                    {isLogging ? 'Stop Logs' : 'Start Logs'}
                   </Button>
-                ))}
+
+                  {}
+                  <Button
+                    variant="link"
+                    onClick={() => {
+                      loggingClientService.viewResourceLogs(
+                        item.physicalResourceId,
+                      );
+                      setSelectedLogResource(item);
+                      setShowLogViewer(true);
+                    }}
+                  >
+                    View Logs
+                  </Button>
+                </SpaceBetween>
+              )}
             </SpaceBetween>
           );
         },
@@ -150,7 +204,16 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
         minWidth: 250,
       },
     ],
-    [deploymentInProgress],
+    [
+      isLoggingActiveForResource,
+      getResourceDisplayName,
+      deploymentInProgress,
+      handleEditFriendlyName,
+      showLogViewer,
+      selectedLogResource,
+      toggleResourceLogging,
+      loggingClientService,
+    ],
   );
 
   // Empty state for tables
@@ -242,12 +305,6 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
       return `${parts[1]} ${parts[2]} ${parts[3]}`;
     }
     return resourceType;
-  };
-
-  // Handle editing a resource's friendly name
-  const handleEditFriendlyName = (resource: ResourceWithFriendlyName) => {
-    setEditingResource(resource);
-    setEditingFriendlyName(getResourceDisplayName(resource));
   };
 
   const refreshFriendlyNames = () => {
@@ -423,16 +480,54 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
             <Button onClick={refreshResources}>Refresh Resources</Button>
           </Box>
 
-          {/* Show resources if available, even during deployment */}
-          {resources && resources.length > 0 && (
-            <ResourceDisplay
-              groupedResources={groupedResources}
-              columnDefinitions={columnDefinitions}
-              emptyState={emptyState}
-              refreshResources={refreshResources}
-              regionAvailable={regionAvailable}
-            />
-          )}
+          {/* Split view layout - show resources on left and logs on right when a log is being viewed */}
+          <Grid
+            gridDefinition={
+              showLogViewer
+                ? [{ colspan: 6 }, { colspan: 6 }]
+                : [{ colspan: 12 }]
+            }
+          >
+            {/* Left side - Resources */}
+            <div
+              style={{
+                overflowY: 'auto',
+                maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto',
+              }}
+            >
+              {/* Show resources if available, even during deployment */}
+              {resources && resources.length > 0 && (
+                <ResourceDisplay
+                  groupedResources={groupedResources}
+                  columnDefinitions={columnDefinitions}
+                  emptyState={emptyState}
+                  refreshResources={refreshResources}
+                  regionAvailable={regionAvailable}
+                />
+              )}
+            </div>
+
+            {/* Right side - Log Viewer */}
+            {showLogViewer && selectedLogResource && (
+              <ResourceLogPanel
+                loggingClientService={loggingClientService}
+                resourceId={selectedLogResource.physicalResourceId}
+                resourceName={getResourceDisplayName(selectedLogResource)}
+                resourceType={selectedLogResource.resourceType}
+                onClose={() => {
+                  setShowLogViewer(false);
+                }}
+                deploymentInProgress={deploymentInProgress}
+                consoleUrl={selectedLogResource.consoleUrl}
+                isLoggingActive={isLoggingActiveForResource(
+                  selectedLogResource.physicalResourceId,
+                )}
+                toggleResourceLogging={(_, __, startLogging) =>
+                  toggleResourceLogging(selectedLogResource, startLogging)
+                }
+              />
+            )}
+          </Grid>
         </SpaceBetween>
       </Container>
     );
@@ -538,10 +633,19 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
           </Box>
         )}
 
-        {/* Full width layout for resources */}
-        <Grid gridDefinition={[{ colspan: 12 }]}>
+        {/* Split view layout - show resources on left and logs on right when a log is being viewed */}
+        <Grid
+          gridDefinition={
+            showLogViewer ? [{ colspan: 6 }, { colspan: 6 }] : [{ colspan: 12 }]
+          }
+        >
           {/* Left side - Resources */}
-          <div>
+          <div
+            style={{
+              overflowY: 'auto',
+              maxHeight: showLogViewer ? 'calc(100vh - 200px)' : 'auto',
+            }}
+          >
             <SpaceBetween direction="vertical" size="s">
               <FormField label="Search resources">
                 <Input
@@ -612,7 +716,26 @@ const ResourceConsole: React.FC<ResourceConsoleProps> = ({
             )}
           </div>
 
-          {/* Log viewer will be added in PR 3 */}
+          {/* Right side - Log Viewer */}
+          {showLogViewer && selectedLogResource && (
+            <ResourceLogPanel
+              loggingClientService={loggingClientService}
+              resourceId={selectedLogResource.physicalResourceId}
+              resourceName={getResourceDisplayName(selectedLogResource)}
+              resourceType={selectedLogResource.resourceType}
+              onClose={() => {
+                setShowLogViewer(false);
+              }}
+              deploymentInProgress={deploymentInProgress}
+              consoleUrl={selectedLogResource.consoleUrl}
+              isLoggingActive={isLoggingActiveForResource(
+                selectedLogResource.physicalResourceId,
+              )}
+              toggleResourceLogging={(_, __, startLogging) =>
+                toggleResourceLogging(selectedLogResource, startLogging)
+              }
+            />
+          )}
         </Grid>
       </SpaceBetween>
     </Container>
