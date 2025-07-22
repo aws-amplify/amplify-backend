@@ -8,22 +8,41 @@ import { Sandbox, SandboxOptions } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
-import { ShutdownService } from './shutdown_service.js';
 import { DevToolsSandboxOptions } from '../shared/socket_types.js';
+import { ShutdownService } from './shutdown_service.js';
+import { SocketHandlerLogging } from './socket_handlers_logging.js';
+import { mockStorageManager } from './mock/mock_storage_manager.js';
 
-// Simple type definitions for PR 2
-export type ResourceWithFriendlyName = {
-  logicalResourceId: string;
-  physicalResourceId: string;
-  resourceType: string;
-  resourceStatus: string;
-  friendlyName?: string;
+/**
+ * Console log entry interface
+ */
+export type ConsoleLogEntry = {
+  id: string;
+  timestamp: string;
+  level: string;
+  message: string;
 };
 
 /**
  * Interface for socket event data types
  */
 export type SocketEvents = {
+  toggleResourceLogging: {
+    resourceId: string;
+    resourceType: string;
+    startLogging: boolean;
+  };
+  viewResourceLogs: {
+    resourceId: string;
+  };
+  getSavedResourceLogs: {
+    resourceId: string;
+  };
+  getActiveLogStreams: void;
+  getLogSettings: void;
+  saveLogSettings: {
+    maxLogSizeMB: number;
+  };
   getSandboxStatus: void;
   deploymentInProgress: {
     message: string;
@@ -44,12 +63,17 @@ export type SocketEvents = {
   removeCustomFriendlyName: {
     resourceId: string;
   };
+  saveConsoleLogs: {
+    logs: ConsoleLogEntry[];
+  };
+  loadConsoleLogs: void;
 };
 
 /**
  * Service for handling socket events
  */
 export class SocketHandlerService {
+  private loggingHandler: SocketHandlerLogging;
   /**
    * Creates a new SocketHandlerService
    */
@@ -60,14 +84,71 @@ export class SocketHandlerService {
     private backendId: { name: string },
     private shutdownService: ShutdownService,
     private resourceService: ResourceService,
+    // eslint-disable-next-line spellcheck/spell-checker
+    activeLogPollers = new Map<string, NodeJS.Timeout>(),
+    // Track when logging was toggled on for each resource
+    toggleStartTimes = new Map<string, number>(),
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
-  ) {}
+  ) {
+    // Initialize specialized handlers
+    this.loggingHandler = new SocketHandlerLogging(
+      io,
+      mockStorageManager,
+      activeLogPollers,
+      toggleStartTimes,
+      printer,
+    );
+  }
 
   /**
    * Sets up all socket event handlers
    * @param socket The socket connection
    */
   public setupSocketHandlers(socket: Socket): void {
+    // Resource logs handlers
+    socket.on(
+      SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING,
+      this.loggingHandler.handleToggleResourceLogging.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.VIEW_RESOURCE_LOGS,
+      this.loggingHandler.handleViewResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS,
+      this.loggingHandler.handleGetSavedResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_ACTIVE_LOG_STREAMS,
+      this.loggingHandler.handleGetActiveLogStreams.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_LOG_SETTINGS,
+      this.loggingHandler.handleGetLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.SAVE_LOG_SETTINGS,
+      this.loggingHandler.handleSaveLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+
     // Sandbox status handlers
     socket.on(
       SOCKET_EVENTS.GET_SANDBOX_STATUS,
@@ -110,6 +191,19 @@ export class SocketHandlerService {
 
     // DevTools handlers
     socket.on(SOCKET_EVENTS.STOP_DEV_TOOLS, this.handleStopDevTools.bind(this));
+
+    // Console logs handlers
+    socket.on(
+      SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
+      this.loggingHandler.handleSaveConsoleLogs.bind(this.loggingHandler),
+    );
+    socket.on(
+      SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
+      this.loggingHandler.handleLoadConsoleLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
   }
 
   /**
@@ -405,6 +499,8 @@ export class SocketHandlerService {
    * Handles the stopDevTools event
    */
   private async handleStopDevTools(): Promise<void> {
+    // Stop all active log pollers before shutting down
+    this.loggingHandler.stopAllLogPollers();
     await this.shutdownService.shutdown('user request', true);
   }
 }

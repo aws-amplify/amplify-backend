@@ -461,6 +461,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendId,
       shutdownService,
       resourceService,
+      undefined,
+      undefined,
       devToolsLogger,
     );
 
