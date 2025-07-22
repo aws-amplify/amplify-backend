@@ -11,7 +11,10 @@ import {
   printer as defaultPrinter,
   minimumLogLevel,
 } from '@aws-amplify/cli-core';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
 import {
   Sandbox,
   SandboxSingletonFactory,
@@ -35,7 +38,6 @@ import { DevToolsLogger } from './services/devtools_logger.js';
 import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { LocalStorageManager } from './local_storage_manager.js';
-import { extractErrorInfo } from './error-handling/error_extractor.js';
 import { SOCKET_EVENTS } from './shared/socket_events.js';
 
 /**
@@ -265,13 +267,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         const currentState = await getSandboxState();
 
         // Extract error info for UI display
-        const errorInfo = extractErrorInfo(error);
+        const amplifyError = AmplifyError.fromError(error);
 
         const statusData: SandboxStatusData = {
           status: currentState as SandboxStatus,
           identifier: backendId.name,
           error: true,
-          message: `Deletion failed: ${errorInfo.message}`,
+          message: `Deletion failed: ${amplifyError.message}`,
           timestamp: new Date().toISOString(),
           deploymentCompleted: true,
         };
@@ -280,9 +282,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         // Emit simple error event
         io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
-          name: errorInfo.name,
-          message: errorInfo.message,
-          resolution: errorInfo.resolution,
+          name: amplifyError.name,
+          message: amplifyError.message,
+          resolution: amplifyError.resolution,
           timestamp: new Date().toISOString(),
         });
       })();
@@ -299,13 +301,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         const currentState = await getSandboxState();
 
         // Extract error info for UI display
-        const errorInfo = extractErrorInfo(error);
+        const amplifyError = AmplifyError.fromError(error);
 
         const statusData: SandboxStatusData = {
           status: currentState as SandboxStatus,
           identifier: backendId.name,
           error: true,
-          message: `Deployment failed: ${errorInfo.message}`,
+          message: `Deployment failed: ${amplifyError.message}`,
           timestamp: new Date().toISOString(),
           deploymentCompleted: true,
         };
@@ -314,9 +316,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
         // Emit simple error event
         io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
-          name: errorInfo.name,
-          message: errorInfo.message,
-          resolution: errorInfo.resolution,
+          name: amplifyError.name,
+          message: amplifyError.message,
+          resolution: amplifyError.resolution,
           timestamp: new Date().toISOString(),
         });
 
@@ -342,13 +344,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Listen for failed stop
     sandbox.on('failedStop', (error: unknown) => {
-      const errorInfo = extractErrorInfo(error);
+      const amplifyError = AmplifyError.fromError(error);
       const currentState = getSandboxState();
       io.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: currentState, // This should be 'running' after a failed stop
         identifier: backendId.name,
         error: true,
-        message: `Error stopping sandbox: ${errorInfo.message}`,
+        message: `Error stopping sandbox: ${amplifyError.message}`,
         timestamp: new Date().toISOString(),
       });
     });
@@ -359,7 +361,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         this.printer.log('Initialization error detected', LogLevel.DEBUG);
 
         // Extract error info for UI display
-        const errorInfo = extractErrorInfo(error);
+        const amplifyError = AmplifyError.fromError(error);
         const currentState = await getSandboxState();
 
         // Emit sandbox status update with initialization failure information
@@ -367,7 +369,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           status: currentState, // This should be 'stopped' or 'nonexistent'
           identifier: backendId.name,
           error: true,
-          message: `Initialization failed: ${errorInfo.message}`,
+          message: `Initialization failed: ${amplifyError.message}`,
           timestamp: new Date().toISOString(),
         };
 
@@ -375,9 +377,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         io.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
         // Emit simple error event
         io.emit(SOCKET_EVENTS.DEPLOYMENT_ERROR, {
-          name: errorInfo.name,
-          message: errorInfo.message,
-          resolution: errorInfo.resolution,
+          name: amplifyError.name,
+          message: amplifyError.message,
+          resolution: amplifyError.resolution,
           timestamp: new Date().toISOString(),
         });
       })();
