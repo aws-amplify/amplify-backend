@@ -11,6 +11,7 @@ import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { DevToolsLogger } from '../../../services/devtools_logger';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { DeployedBackendClient } from '@aws-amplify/deployed-backend-client';
+import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 
 /**
  * Mock Sandbox implementation for testing
@@ -254,6 +255,86 @@ export class TestDevToolsServer {
    */
   public getStorageManager(): LocalStorageManager {
     return this.storageManager;
+  }
+
+  /**
+   * Emit cloud formation events
+   */
+  public emitCloudFormationEvent(event: {
+    message: string;
+    timestamp: string;
+    resourceStatus?: {
+      resourceType: string;
+      resourceName: string;
+      status: string;
+      timestamp: string;
+      key: string;
+      eventId: string;
+    };
+  }): void {
+    // Need to emit as an array with the correct event name
+    this.io.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, [event]);
+  }
+
+  /**
+   * Set resources for the backend
+   */
+  public setResources(
+    resources: Array<Partial<ResourceWithFriendlyName>>,
+  ): void {
+    // Ensure resources have all required fields properly populated for the UI
+    const fullResources = resources.map((resource) => ({
+      logicalResourceId: resource.logicalResourceId || 'Unknown',
+      physicalResourceId: resource.physicalResourceId || 'unknown-id',
+      resourceType: resource.resourceType || 'Unknown::Resource::Type',
+      resourceStatus: resource.resourceStatus || 'CREATE_COMPLETE',
+      friendlyName: resource.friendlyName || resource.logicalResourceId,
+      consoleUrl: resource.consoleUrl || null,
+      logGroupName: resource.logGroupName || null,
+    }));
+
+    const resourceData = {
+      name: this.backendId.name,
+      status: 'running',
+      resources: fullResources,
+      region: 'us-east-1',
+    };
+
+    // Set resources in test server
+
+    // Save resources to storage
+    this.storageManager.saveResources(resourceData);
+
+    // Emit both events that ResourceManager listens for
+    this.io.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, resourceData);
+    this.io.emit(SOCKET_EVENTS.SAVED_RESOURCES, resourceData);
+
+    // Also emit custom friendly names if needed
+    const friendlyNames: Record<string, string> = {};
+    fullResources.forEach((resource) => {
+      if (resource.friendlyName) {
+        friendlyNames[resource.physicalResourceId] = resource.friendlyName;
+      }
+    });
+    this.io.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES, friendlyNames);
+
+    // Emit a log to confirm resources were sent
+    this.emitLog(
+      LogLevel.INFO,
+      `Resources sent: ${fullResources.length} resources available`,
+    );
+  }
+
+  /**
+   * Emit function test error
+   */
+  public emitFunctionTestError(functionId: string, errorMessage: string): void {
+    this.io.emit(SOCKET_EVENTS.LAMBDA_TEST_RESULT, {
+      functionId,
+      success: false,
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   /**

@@ -138,6 +138,7 @@ const Header = ({
       />
 
       <CloudscapeHeader
+        data-testid="header-component"
         variant="h1"
         description={
           <SpaceBetween direction="horizontal" size="m">

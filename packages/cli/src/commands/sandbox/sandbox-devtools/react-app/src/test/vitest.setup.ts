@@ -14,9 +14,9 @@ vi.mock('@cloudscape-design/components', () => {
     Modal: ({ visible, children, header, footer }: any) => {
       if (!visible) return null;
       return React.createElement('div', { 'data-testid': 'modal' }, [
-        header,
-        children,
-        footer,
+        React.createElement('div', { className: 'modal-header' }, header),
+        React.createElement('div', { className: 'modal-content' }, children),
+        React.createElement('div', { className: 'modal-footer' }, footer),
       ]);
     },
     SpaceBetween: ({ children, direction, size }: any) => {
@@ -79,18 +79,31 @@ vi.mock('@cloudscape-design/components', () => {
         id,
       }),
 
-    Header: ({ children, actions, description }: any) => {
-      return React.createElement('div', { className: 'header-container' }, [
-        React.createElement('h2', { className: 'header' }, children),
-        description &&
-          React.createElement(
-            'div',
-            { className: 'header-description' },
-            description,
-          ),
-        actions &&
-          React.createElement('div', { className: 'header-actions' }, actions),
-      ]);
+    Header: ({
+      children,
+      actions,
+      description,
+      'data-testid': dataTestId,
+    }: any) => {
+      return React.createElement(
+        'div',
+        { className: 'header-container', 'data-testid': dataTestId },
+        [
+          React.createElement('h2', { className: 'header' }, children),
+          description &&
+            React.createElement(
+              'div',
+              { className: 'header-description' },
+              description,
+            ),
+          actions &&
+            React.createElement(
+              'div',
+              { className: 'header-actions' },
+              actions,
+            ),
+        ],
+      );
     },
     Checkbox: ({ checked, onChange, disabled, children }: any) =>
       React.createElement('label', {}, [
