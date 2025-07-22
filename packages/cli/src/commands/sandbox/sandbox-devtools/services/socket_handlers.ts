@@ -23,18 +23,6 @@ import { SocketHandlerResources } from './socket_handlers_resources.js';
  * Interface for socket event data types
  */
 export type SocketEvents = {
-  toggleResourceLogging: {
-    resourceId: string;
-    resourceType: string;
-    startLogging: boolean;
-  };
-  viewResourceLogs: {
-    resourceId: string;
-  };
-  getSavedResourceLogs: {
-    resourceId: string;
-  };
-  getActiveLogStreams: void;
   getLogSettings: void;
   saveLogSettings: {
     maxLogSizeMB: number;
@@ -173,25 +161,20 @@ export class SocketHandlerService {
     try {
       const status = await this.getSandboxState();
 
-      const statusData: SandboxStatusData = {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status,
         identifier: this.backendId.name,
-      };
-
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      });
     } catch (error) {
       this.printer.log(
         `Error getting sandbox status on request: ${String(error)}`,
         LogLevel.ERROR,
       );
-
-      const errorStatusData: SandboxStatusData = {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'unknown',
         error: `${String(error)}`,
         identifier: this.backendId.name,
-      };
-
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, errorStatusData);
+      });
     }
   }
 
@@ -227,7 +210,7 @@ export class SocketHandlerService {
       }
     } catch (error) {
       this.printer.log(
-        `Error in handleGetDeployedBackendResources: ${String(error)}`,
+        `Error checking sandbox status: ${String(error)}`,
         LogLevel.ERROR,
       );
       socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
@@ -251,16 +234,15 @@ export class SocketHandlerService {
     try {
       this.printer.log(
         `Starting sandbox with options: ${JSON.stringify(options)}`,
-        LogLevel.DEBUG,
+        LogLevel.INFO,
       );
 
       // Emit status update to indicate we're starting
-      const statusData: SandboxStatusData = {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'deploying',
         identifier: options.identifier || this.backendId.name,
         message: 'Starting sandbox...',
-      };
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      });
 
       // Converting from DevToolsSandboxOptions to the actual @aws-amplify/sandbox SandboxOptions type
       // This conversion is necessary because:
@@ -297,6 +279,11 @@ export class SocketHandlerService {
         `Error starting sandbox: ${String(error)}`,
         LogLevel.ERROR,
       );
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+        status: 'error',
+        identifier: options.identifier || this.backendId.name,
+        error: `${String(error)}`,
+      });
     }
   }
 
@@ -309,12 +296,11 @@ export class SocketHandlerService {
 
       await this.sandbox.stop();
 
-      const statusData: SandboxStatusData = {
-        status: 'stopped', //This should match the sandbox state-- hard coded for speed to avoid waiting for getSandboxState
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+        status: 'stopped',
         identifier: this.backendId.name,
         message: 'Sandbox stopped successfully',
-      };
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      });
 
       this.printer.log('Sandbox stopped successfully', LogLevel.INFO);
     } catch (error) {
@@ -322,13 +308,11 @@ export class SocketHandlerService {
         `Error stopping sandbox: ${String(error)}`,
         LogLevel.ERROR,
       );
-      const currentState = await this.getSandboxState();
-      const errorStatusData: SandboxStatusData = {
-        status: currentState,
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+        status: 'error',
         identifier: this.backendId.name,
         error: `${String(error)}`,
-      };
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, errorStatusData);
+      });
     }
   }
 
@@ -339,17 +323,14 @@ export class SocketHandlerService {
     try {
       this.printer.log('Deleting sandbox...', LogLevel.INFO);
 
-      const statusData: SandboxStatusData = {
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
         status: 'deleting',
         identifier: this.backendId.name,
         message: 'Deleting sandbox...',
-      };
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, statusData);
+      });
 
       await this.sandbox.delete({ identifier: this.backendId.name });
 
-      // After a successful delete, the sandbox state should be updated by
-      // the successful deletion handler in sandbox_devtools_command.ts
       this.printer.log(
         'Sandbox delete command issued successfully',
         LogLevel.DEBUG,
@@ -359,13 +340,11 @@ export class SocketHandlerService {
         `Error deleting sandbox: ${String(error)}`,
         LogLevel.ERROR,
       );
-      const currentState = await this.getSandboxState();
-      const errorStatusData: SandboxStatusData = {
-        status: currentState,
+      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, {
+        status: 'error',
         identifier: this.backendId.name,
         error: `${String(error)}`,
-      };
-      socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, errorStatusData);
+      });
     }
   }
 
