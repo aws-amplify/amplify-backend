@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { SocketClientProvider } from '../contexts/socket_client_context';
-import App from '../App';
-import { TestDevToolsServer } from '../test/test-devtools-server';
+import { SocketClientProvider } from '../contexts/socket_client_context.js';
+import App from '../App.js';
+import { TestDevToolsServer } from '../test/test-devtools-server.js';
 import { tmpdir } from 'os';
 import { mkdtempSync, rmdirSync } from 'fs';
 import { join } from 'path';
