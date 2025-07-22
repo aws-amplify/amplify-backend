@@ -85,19 +85,34 @@ export const SOCKET_EVENTS = {
   STOP_DEV_TOOLS: 'stopDevTools',
 
   /**
-   * Event to get saved deployment progress
-   */
-  GET_SAVED_DEPLOYMENT_PROGRESS: 'getSavedDeploymentProgress',
-
-  /**
    * Event to get log settings
    */
   GET_LOG_SETTINGS: 'getLogSettings',
 
   /**
-   * Event received when deployment is in progress
+   * Event to request CloudFormation events from the server
    */
-  DEPLOYMENT_IN_PROGRESS: 'deploymentInProgress',
+  GET_CLOUD_FORMATION_EVENTS: 'getCloudFormationEvents',
+
+  /**
+   * Event received when CloudFormation events are sent from the server
+   */
+  CLOUD_FORMATION_EVENTS: 'cloudFormationEvents',
+
+  /**
+   * Event to request saved CloudFormation events from the server
+   */
+  GET_SAVED_CLOUD_FORMATION_EVENTS: 'getSavedCloudFormationEvents',
+
+  /**
+   * Event received when saved CloudFormation events are sent from the server
+   */
+  SAVED_CLOUD_FORMATION_EVENTS: 'savedCloudFormationEvents',
+
+  /**
+   * Event received when a CloudFormation events error occurs
+   */
+  CLOUD_FORMATION_EVENTS_ERROR: 'cloudFormationEventsError',
 
   /**
    * Event received when a log message is sent from the server
@@ -108,4 +123,9 @@ export const SOCKET_EVENTS = {
    * Event received when an error occurs
    */
   ERROR: 'error',
+  /**
+   * Event which triggers UI to show a deployment error
+   * Contains error details like name, message, resolution, and timestamp.
+   */
+  DEPLOYMENT_ERROR: 'deploymentError',
 } as const;
