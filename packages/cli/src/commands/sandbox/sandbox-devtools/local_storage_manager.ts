@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
+import writeFileAtomic from 'write-file-atomic';
 
 /**
  * Represents a CloudFormation event
@@ -129,7 +130,11 @@ export class LocalStorageManager {
    */
   saveResources(resources: Record<string, unknown>): void {
     try {
-      fs.writeFileSync(this.resourcesFile, JSON.stringify(resources, null, 2));
+      writeFileAtomic.sync(
+        this.resourcesFile,
+        JSON.stringify(resources, null, 2),
+        { mode: 0o600 },
+      );
     } catch (error) {
       printer.log(`Error saving resources: ${String(error)}`, LogLevel.ERROR);
     }
@@ -178,8 +183,12 @@ export class LocalStorageManager {
     filename = 'console-logs.json',
   ): void {
     try {
-      const filePath = path.join(this.logsDir, filename);
-      fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+      // Sanitize the filename to prevent path traversal
+      const sanitizedFilename = path.basename(filename);
+      const filePath = path.join(this.logsDir, sanitizedFilename);
+      writeFileAtomic.sync(filePath, JSON.stringify(logs, null, 2), {
+        mode: 0o600,
+      });
     } catch (error) {
       printer.log(
         `Error saving console logs: ${String(error)}`,
@@ -281,7 +290,9 @@ export class LocalStorageManager {
       }
 
       const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.json`);
-      fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+      writeFileAtomic.sync(filePath, JSON.stringify(logs, null, 2), {
+        mode: 0o600,
+      });
     } catch (error) {
       printer.log(
         `LocalStorageManager: Error saving CloudWatch logs for resource ${resourceId}: ${String(error)}`,
@@ -382,13 +393,10 @@ export class LocalStorageManager {
    */
   saveCloudFormationEvents(events: CloudFormationEvent[]): void {
     try {
-      fs.writeFileSync(
+      writeFileAtomic.sync(
         this.cloudFormationEventsFile,
         JSON.stringify(events, null, 2),
-      );
-      printer.log(
-        `LocalStorageManager: CloudFormation events saved successfully`,
-        LogLevel.DEBUG,
+        { mode: 0o600 },
       );
     } catch (error) {
       printer.log(
@@ -450,20 +458,26 @@ export class LocalStorageManager {
             fs.unlinkSync(filePath);
           }
         });
+      }
 
-        // Remove all files in the logs directory
-        if (fs.existsSync(this.logsDir)) {
-          fs.readdirSync(this.logsDir).forEach((file) => {
-            fs.unlinkSync(path.join(this.logsDir, file));
-          });
-        }
+      // Clear all files in the logs directory
+      if (fs.existsSync(this.logsDir)) {
+        fs.readdirSync(this.logsDir).forEach((file) => {
+          const filePath = path.join(this.logsDir, file);
+          if (fs.lstatSync(filePath).isFile()) {
+            fs.unlinkSync(filePath);
+          }
+        });
+      }
 
-        // Remove all files in the CloudWatch logs directory
-        if (fs.existsSync(this.cloudWatchLogsDir)) {
-          fs.readdirSync(this.cloudWatchLogsDir).forEach((file) => {
-            fs.unlinkSync(path.join(this.cloudWatchLogsDir, file));
-          });
-        }
+      // Clear all files in the CloudWatch logs directory
+      if (fs.existsSync(this.cloudWatchLogsDir)) {
+        fs.readdirSync(this.cloudWatchLogsDir).forEach((file) => {
+          const filePath = path.join(this.cloudWatchLogsDir, file);
+          if (fs.lstatSync(filePath).isFile()) {
+            fs.unlinkSync(filePath);
+          }
+        });
       }
     } catch (error) {
       printer.log(`Error clearing all data: ${String(error)}`, LogLevel.ERROR);
@@ -485,12 +499,10 @@ export class LocalStorageManager {
         isActive,
         lastUpdated: new Date().toISOString(),
       };
-
-      // Save the updated states
-      fs.writeFileSync(
+      writeFileAtomic.sync(
         this.resourceLoggingStateFile,
         JSON.stringify(loggingStates, null, 2),
-        'utf8',
+        { mode: 0o600 },
       );
     } catch (error) {
       printer.log(
@@ -553,10 +565,10 @@ export class LocalStorageManager {
    */
   saveCustomFriendlyNames(friendlyNames: Record<string, string>): void {
     try {
-      fs.writeFileSync(
+      writeFileAtomic.sync(
         this.customFriendlyNamesFile,
         JSON.stringify(friendlyNames, null, 2),
-        'utf8',
+        { mode: 0o600 },
       );
     } catch (error) {
       printer.log(
@@ -614,10 +626,8 @@ export class LocalStorageManager {
   removeCustomFriendlyName(resourceId: string): void {
     try {
       const friendlyNames = this.loadCustomFriendlyNames();
-      if (friendlyNames[resourceId]) {
-        delete friendlyNames[resourceId];
-        this.saveCustomFriendlyNames(friendlyNames);
-      }
+      delete friendlyNames[resourceId];
+      this.saveCustomFriendlyNames(friendlyNames);
     } catch (error) {
       printer.log(
         `Error removing custom friendly name: ${String(error)}`,
@@ -665,7 +675,7 @@ export class LocalStorageManager {
       }
     } catch (error) {
       printer.log(
-        `LocalStorageManager: Error creating directories: ${String(error)}`,
+        `LocalStorageManager: Error ensuring directories: ${String(error)}`,
         LogLevel.ERROR,
       );
       if (error instanceof Error) {
@@ -684,7 +694,11 @@ export class LocalStorageManager {
    */
   private saveSettings(settings: { maxLogSizeMB: number }): void {
     try {
-      fs.writeFileSync(this.settingsFile, JSON.stringify(settings, null, 2));
+      writeFileAtomic.sync(
+        this.settingsFile,
+        JSON.stringify(settings, null, 2),
+        { mode: 0o600 },
+      );
     } catch (error) {
       printer.log(`Error saving settings: ${String(error)}`, LogLevel.ERROR);
     }
