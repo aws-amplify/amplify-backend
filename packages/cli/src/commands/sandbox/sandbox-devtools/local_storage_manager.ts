@@ -659,7 +659,9 @@ export class LocalStorageManager {
         'test-write-permissions.txt',
       );
       try {
-        fs.writeFileSync(testFilePath, 'Test write permissions');
+        writeFileAtomic.sync(testFilePath, 'Test write permissions', {
+          mode: 0o600,
+        });
         printer.log(
           `LocalStorageManager: Write permissions test successful`,
           LogLevel.DEBUG,
