@@ -14,7 +14,9 @@ export function createMockSocket(): {
     off: mock.fn(),
     emit: mockEmit,
     connected: true,
-    disconnect: mock.fn(),
+    disconnect: mock.fn(() => {
+      socket.connected = false;
+    }),
   } as unknown as Socket;
 
   return { socket, mockOn, mockEmit };

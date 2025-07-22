@@ -29,6 +29,7 @@ void describe('SocketClientService', () => {
         (mockSocket.socket.disconnect as any).mock.callCount(),
         1,
       );
+      assert.strictEqual(service.isConnected(), false);
     });
   });
 
