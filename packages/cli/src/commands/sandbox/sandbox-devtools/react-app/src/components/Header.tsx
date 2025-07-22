@@ -36,7 +36,6 @@ const Header = ({
   isStoppingLoading = false,
   isDeletingLoading = false,
 }: HeaderProps) => {
-  // No longer need local loading state, using props from parent component
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showStopDevToolsConfirmation, setShowStopDevToolsConfirmation] =
     useState(false);
