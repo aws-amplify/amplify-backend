@@ -9,6 +9,10 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
+  CloudFormationEventDetails,
+  CloudFormationEventsService,
+} from '../logging/cloudformation_format.js';
+import {
   FriendlyNameUpdate,
   ResourceIdentifier,
 } from '../shared/socket_types.js';
@@ -19,7 +23,7 @@ import { SandboxStatus } from '@aws-amplify/sandbox';
  * Service for handling socket events related to resources
  */
 export class SocketHandlerResources {
-  private lastEventTimestamp: Record<string, Date> = {};
+  private cloudFormationEventsService: CloudFormationEventsService;
 
   /**
    * Creates a new SocketHandlerResources
@@ -31,7 +35,22 @@ export class SocketHandlerResources {
     private getSandboxState: () => Promise<SandboxStatus>,
     private lambdaClient: LambdaClient,
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
-  ) {}
+  ) {
+    this.cloudFormationEventsService = new CloudFormationEventsService();
+  }
+
+  /**
+   * Reset the last event timestamp to the current time
+   * This is used when starting a new deployment to avoid showing old events
+   */
+  public resetLastEventTimestamp(): void {
+    const now = new Date();
+    this.storageManager.saveLastCloudFormationTimestamp(now);
+    this.printer.log(
+      `Reset last CloudFormation timestamp for ${this.backendId.name} to ${now.toISOString()}`,
+      LogLevel.DEBUG,
+    );
+  }
 
   /**
    * Handles the testLambdaFunction event
@@ -96,11 +115,187 @@ export class SocketHandlerResources {
   }
 
   /**
-   * Handles the getSavedResources event
+   * Handles ResourceNotFoundException for log groups
+   * @param resourceId The resource ID
+   * @param error The error object
+   * @param socket Optional socket to emit errors to
    */
-  public handleGetSavedResources(socket: Socket): void {
-    const resources = this.storageManager.loadResources();
-    socket.emit(SOCKET_EVENTS.SAVED_RESOURCES, resources || []);
+  public handleResourceNotFoundException(
+    resourceId: string,
+    error: unknown,
+    socket?: Socket,
+  ): void {
+    // Check if this is a ResourceNotFoundException for missing log group
+    if (
+      String(error).includes('ResourceNotFoundException') &&
+      String(error).includes('log group does not exist')
+    ) {
+      this.printer.log(
+        `Log group does not exist yet for ${resourceId}`,
+        LogLevel.INFO,
+      );
+
+      if (socket) {
+        // Then send the error message
+        socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {
+          resourceId,
+          error: `The log group doesn't exist yet. Try turning on logs again after the resource has produced some logs.`,
+        });
+      }
+    } else {
+      throw error; // Re-throw other errors for further handling
+    }
+  }
+
+  /**
+   * Handles the getSavedCloudFormationEvents event
+   */
+  public handleGetSavedCloudFormationEvents(socket: Socket): void {
+    const events = this.storageManager.loadCloudFormationEvents();
+    socket.emit(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, events);
+  }
+
+  /**
+   * Handles the getCloudFormationEvents event
+   */
+  public async handleGetCloudFormationEvents(socket: Socket): Promise<void> {
+    if (!this.backendId) {
+      this.printer.log(
+        'Backend ID not set, cannot fetch CloudFormation events',
+        LogLevel.ERROR,
+      );
+      socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS_ERROR, {
+        error: 'Backend ID not set',
+      });
+      return;
+    }
+
+    try {
+      // Get current sandbox state
+      const sandboxState = await this.getSandboxState();
+
+      // Don't fetch events if sandbox doesn't exist
+      if (sandboxState === 'nonexistent' || sandboxState === 'unknown') {
+        return;
+      }
+
+      // If not deploying or deleting, we can return a cached version if available
+      const shouldUseCachedEvents =
+        sandboxState !== 'deploying' && sandboxState !== 'deleting';
+
+      if (shouldUseCachedEvents) {
+        // Try to get cached events first
+        const cachedEvents = this.storageManager.loadCloudFormationEvents();
+
+        if (cachedEvents && cachedEvents.length > 0) {
+          socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, cachedEvents);
+          return;
+        }
+        // No cached events and we're not in a deployment state,
+        // so don't fetch anything - just return
+        socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, []);
+        return;
+      }
+
+      // We only reach this code if we're in a deploying or deleting state
+
+      // If this is the first time we're fetching events for this backend,
+      // initialize the timestamp to now to avoid fetching old events
+      let sinceTimestamp =
+        this.storageManager.loadLastCloudFormationTimestamp();
+      if (!sinceTimestamp) {
+        const now = new Date();
+        this.storageManager.saveLastCloudFormationTimestamp(now);
+        sinceTimestamp = now;
+      }
+
+      // Fetch fresh events from CloudFormation API
+      const events = await this.cloudFormationEventsService.getStackEvents(
+        this.backendId,
+        sinceTimestamp,
+      );
+
+      // Only proceed if we have new events
+      if (events.length === 0) {
+        return;
+      }
+
+      // Update the last event timestamp if we got any events
+      const latestEvent = events.reduce(
+        (latest, event) =>
+          !latest || event.timestamp > latest.timestamp ? event : latest,
+        null as unknown as CloudFormationEventDetails,
+      );
+
+      if (latestEvent) {
+        this.storageManager.saveLastCloudFormationTimestamp(
+          latestEvent.timestamp,
+        );
+      }
+
+      // Map events to the format expected by the frontend
+      const formattedEvents = events.map((event) => {
+        const resourceStatus =
+          this.cloudFormationEventsService.convertToResourceStatus(event);
+        return {
+          message: `${event.timestamp.toLocaleTimeString()} | ${event.status} | ${event.resourceType} | ${event.logicalId}`,
+          timestamp: event.timestamp.toISOString(),
+          resourceStatus,
+        };
+      });
+
+      // Merge with existing events and save to preserve complete deployment history
+      if (formattedEvents.length > 0) {
+        // Load existing events
+        const existingEvents =
+          this.storageManager.loadCloudFormationEvents() || [];
+
+        // Merge events (avoiding duplicates by using a Map with event ID or timestamp+message as key)
+        const eventMap = new Map();
+
+        // Add existing events to the map
+        existingEvents.forEach((event) => {
+          const key =
+            event.resourceStatus?.eventId ||
+            `${event.timestamp}-${event.message}`;
+          eventMap.set(key, event);
+        });
+
+        // Add new events to the map (will overwrite duplicates)
+        formattedEvents.forEach((event) => {
+          const key =
+            event.resourceStatus?.eventId ||
+            `${event.timestamp}-${event.message}`;
+          eventMap.set(key, event);
+        });
+
+        // Convert map back to array
+        const mergedEvents = Array.from(eventMap.values());
+
+        // Save the merged events
+        this.storageManager.saveCloudFormationEvents(mergedEvents);
+
+        // During active deployments, send ALL merged events to ensure complete history
+        // Otherwise just send the new events we just fetched
+        const isActiveDeployment =
+          sandboxState === 'deploying' || sandboxState === 'deleting';
+        socket.emit(
+          SOCKET_EVENTS.CLOUD_FORMATION_EVENTS,
+          isActiveDeployment ? mergedEvents : formattedEvents,
+        );
+      } else {
+        // If no new events were merged, just send whatever we fetched
+        socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, formattedEvents);
+      }
+    } catch (error) {
+      this.printer.log(
+        `Error fetching CloudFormation events: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+      socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS_ERROR, {
+        error: String(error),
+      });
+    }
   }
 
   /**

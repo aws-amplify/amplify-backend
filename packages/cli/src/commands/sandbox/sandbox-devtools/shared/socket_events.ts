@@ -93,7 +93,6 @@ export const SOCKET_EVENTS = {
    * Event received when log settings are sent from the server
    */
   LOG_SETTINGS: 'logSettings',
-
   /**
    * Event to test a Lambda function
    */
@@ -103,6 +102,31 @@ export const SOCKET_EVENTS = {
    * Event received when Lambda test results are sent from the server
    */
   LAMBDA_TEST_RESULT: 'lambdaTestResult',
+
+  /**
+   * Event to request CloudFormation events from the server
+   */
+  GET_CLOUD_FORMATION_EVENTS: 'getCloudFormationEvents',
+
+  /**
+   * Event received when CloudFormation events are sent from the server
+   */
+  CLOUD_FORMATION_EVENTS: 'cloudFormationEvents',
+
+  /**
+   * Event to request saved CloudFormation events from the server
+   */
+  GET_SAVED_CLOUD_FORMATION_EVENTS: 'getSavedCloudFormationEvents',
+
+  /**
+   * Event received when saved CloudFormation events are sent from the server
+   */
+  SAVED_CLOUD_FORMATION_EVENTS: 'savedCloudFormationEvents',
+
+  /**
+   * Event received when a CloudFormation events error occurs
+   */
+  CLOUD_FORMATION_EVENTS_ERROR: 'cloudFormationEventsError',
 
   /**
    * Event received when a log message is sent from the server
@@ -128,7 +152,6 @@ export const SOCKET_EVENTS = {
    * Event received when saved console logs are sent from the server
    */
   SAVED_CONSOLE_LOGS: 'savedConsoleLogs',
-
   /**
    * Event which triggers UI to show a deployment error
    * Contains error details like name, message, resolution, and timestamp.
