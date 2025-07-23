@@ -1,6 +1,7 @@
 import {
   BackendOutputStorageStrategy,
   ConstructFactoryGetInstanceProps,
+  ResourceAccessAcceptor,
 } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import {
@@ -8,30 +9,110 @@ import {
   GeofenceCollectionProps,
 } from '@aws-cdk/aws-location-alpha';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
-import { IRole } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 
 // ----------------------------------- factory properties ----------------------------------------------
 
-// factory properties include construct properties without output strategy (because that's loaded inside factory)
-export type AmplifyGeoFactoryProps = Omit<
-  AmplifyGeoProps,
+/**
+ * Properties of AmplifyMap
+ */
+export type AmplifyMapFactoryProps = Omit<
+  AmplifyMapProps,
   'outputStorageStrategy'
 > & {
-  region: string;
+  /**
+   *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
+   * @example
+   * const map = defineMap({
+   *  access: (allow) => (
+   *      allow.authenticated.to(["get"])
+   *  )
+   * })
+   */
   access: GeoAccessGenerator;
-  resourceIdentifier?: GeoResourceType;
 };
 
-export type AmplifyGeoProps = {
-  name: string;
-  collectionProps?: GeofenceCollectionProps;
+/**
+ * Properties of AmplifyPlace
+ */
+export type AmplifyPlaceFactoryProps = Omit<
+  AmplifyPlaceProps,
+  'outputStorageStrategy'
+> & {
+  /**
+   *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
+   * @example
+   * const index = definePlace({
+   *  access: (allow) => (
+   *      allow.authenticated.to(["geocode"])
+   *  )
+   * })
+   */
+  access: GeoAccessGenerator;
+};
 
+/**
+ * Properties of AmplifyCollection
+ */
+export type AmplifyCollectionFactoryProps = Omit<
+  AmplifyCollectionProps,
+  'outputStorageStrategy'
+> & {
+  /**
+   *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
+   * @example
+   * const collection = defineCollection({
+   *  access: (allow) => (
+   *      allow.authenticated.to(["create"])
+   *  )
+   * })
+   */
+  access: GeoAccessGenerator;
+};
+
+export type AmplifyMapProps = {
+  name: string;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
 
-export type GeoResources = {
+export type AmplifyPlaceProps = {
+  name: string;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
+
+export type AmplifyCollectionProps = {
+  name: string;
+  collectionProps: GeofenceCollectionProps;
+  isDefault: boolean;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
+
+/**
+ * Backend-accessible resources from AmplifyMap
+ * @param policies - access policies of the frontend-accessible map resource
+ */
+export type MapResources = {
+  policies: Policy[];
+};
+
+/**
+ * Backend-accessible resources from AmplifyPlace
+ * @param policies - access policies of the frontend-accessible place resource
+ */
+export type PlaceResources = {
+  policies: Policy[];
+};
+
+/**
+ * Backend-accessible resources from AmplifyCollection
+ * @param collection - provisioned geofence collection resource
+ * @param policies - access policies of the provisioned collection resource
+ * @param cfnResources - cloudformation resources exposed from the abstracted collection provisioned from collection
+ */
+export type CollectionResources = {
   collection: GeofenceCollection;
+  policies: Policy[];
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };
@@ -50,13 +131,14 @@ export type GeoAccessBuilder = {
 };
 
 export type GeoActionBuilder = {
-  // access builder (within defineX())
-  to: (actions: GeoAction[]) => GeoAccessDefinition;
+  to: (actions: string[]) => GeoAccessDefinition;
 };
 
 export type GeoAccessDefinition = {
-  userRoles: ((getInstanceProps: ConstructFactoryGetInstanceProps) => IRole)[];
-  actions: GeoAction[];
+  getAccessAcceptors: ((
+    getInstanceProps: ConstructFactoryGetInstanceProps,
+  ) => ResourceAccessAcceptor)[];
+  actions: string[];
   uniqueDefinitionValidators: {
     uniqueRoleToken: string;
     validationErrorOptions: AmplifyUserErrorOptions;
@@ -65,16 +147,8 @@ export type GeoAccessDefinition = {
 
 // ----------------------------------- misc. types ----------------------------------------------
 
-export type MapAction = 'get';
-
-export type IndexAction = 'autocomplete' | 'geocode' | 'search';
-
-export type CollectionAction = 'create' | 'read' | 'update' | 'delete' | 'list';
-
-export type GeoAction = MapAction | IndexAction | CollectionAction;
-
-export const geoCfnResourceTypes = ['collection'];
-
-export const geoManagedResourceTypes = ['map', 'place'];
-
-export type GeoResourceType = 'map' | 'place' | 'collection';
+export const resourceActionRecord: Record<string, string[]> = {
+  map: ['get'],
+  place: ['autocomplete', 'geocode', 'search'],
+  collection: ['create', 'read', 'update', 'delete', 'list'],
+};

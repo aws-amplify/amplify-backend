@@ -1,2 +1,2 @@
-export { defineMap, definePlace, defineCollection } from './factory.js';
+export { defineCollection } from './collection_factory.js';
 export * from './types.js';
