@@ -1,6 +1,6 @@
-import { IRole, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { GeoAction } from './types.js';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyFault } from '@aws-amplify/platform-core';
+import { Stack } from 'aws-cdk-lib';
 
 /**
  * Geo Access Policy Factory
@@ -8,11 +8,12 @@ import { AmplifyFault } from '@aws-amplify/platform-core';
  * Responsible for policy statement generation and policy-role attachment.
  */
 export class GeoAccessPolicyFactory {
-  //  creating a singular IAM policy
-  createPolicyStatement = (
-    permissions: GeoAction[], // organize create policy such that one resource type maps to the actions
+  createPolicy = (
+    permissions: string[], // organize create policy such that one resource type maps to the actions
     resourceArn: string,
-  ): PolicyStatement => {
+    roleToken: string,
+    stack: Stack,
+  ) => {
     if (permissions.length === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
         message: 'At least one permission must be specified',
@@ -28,14 +29,14 @@ export class GeoAccessPolicyFactory {
 
     policyStatement.addResources(resourceArn);
 
-    return policyStatement; // returns policy statement with all policies
+    return new Policy(stack, `geo-access-policy`, {
+      policyName: `geo-${roleToken}-access-policy`,
+      statements: [policyStatement],
+    }); // returns policy with policy statement of all actions
   };
-
-  attachPolicy = (userRole: IRole, statement: PolicyStatement) =>
-    userRole.addToPrincipalPolicy(statement);
 }
 
-const actionDirectory: Record<GeoAction, string[]> = {
+const actionDirectory: Record<string, string[]> = {
   get: ['geo-maps:GetStaticMap', 'geo-maps:GetTile'],
   autocomplete: ['geo-places:Autocomplete'],
   geocode: ['geo-places:Geocode', 'geo-places:ReverseGeocode'],
