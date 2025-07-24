@@ -14,8 +14,6 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 
-// this file is responsible for implementing the following:
-// 1. access orchestrator for geo
 /**
  * Access Orchestrator for Amplify Geo
  *
