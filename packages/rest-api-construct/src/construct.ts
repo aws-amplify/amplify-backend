@@ -1,7 +1,13 @@
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { RestApiConstructProps } from './types.js';
+import {
+  ExistingDirectory,
+  ExistingLambda,
+  NewFromCode,
+  NewFromTemplate,
+  RestApiConstructProps,
+} from './types.js';
 
 /**
  * Rest API construct for Amplify Backend
@@ -14,12 +20,35 @@ export class RestApiConstruct extends Construct {
   constructor(scope: Construct, id: string, props: RestApiConstructProps) {
     super(scope, id);
 
-    // Create a new Lambda function for the API Gateway
-    const handler = new lambda.Function(this, 'handler', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(props.lambdaEntry),
-    });
+    let code: lambda.AssetCode | lambda.InlineCode = lambda.Code.fromInline('');
+    const src = props.lambdaEntry.source;
+    if ('path' in src) {
+      const lamb = src as ExistingDirectory;
+      code = lambda.Code.fromAsset(lamb.path);
+    } else if ('code' in src) {
+      const lamb = src as NewFromCode;
+      code = lambda.Code.fromInline(lamb.code);
+    } else if ('template' in src) {
+      //TODO: Implement use of templates (which ones to support, and how - cli version is complex). The available templates depend on the runtime
+      const lamb = src as NewFromTemplate;
+      if (lamb.template === 'Hello World') {
+        code = lambda.Code.fromInline(
+          "function handler() {console.log('Hello World!');}",
+        );
+      }
+    }
+
+    let handler: lambda.IFunction;
+    if ('id' in src) {
+      const lamb = src as ExistingLambda;
+      handler = lambda.Function.fromFunctionName(this, lamb.id, lamb.name);
+    } else {
+      handler = new lambda.Function(this, 'handler', {
+        runtime: props.lambdaEntry.runtime,
+        handler: 'index.handler',
+        code: code,
+      });
+    }
 
     // Create a new API Gateway REST API with the specified name
     this.api = new apigateway.RestApi(this, 'RestApi', {
