@@ -1,0 +1,482 @@
+import { App, Stack } from 'aws-cdk-lib';
+import { beforeEach, describe, it } from 'node:test';
+import { GeoAccessPolicyFactory } from './geo_access_policy_factory.js';
+import assert from 'node:assert';
+import { Template } from 'aws-cdk-lib/assertions';
+import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
+
+void describe('GeoAccessPolicyFactory', () => {
+  let stack: Stack;
+  let geoAccessPolicyFactory: GeoAccessPolicyFactory;
+  const testResourceArn =
+    'arn:aws:geo:us-east-1:123456789012:geofence-collection/test-collection';
+
+  beforeEach(() => {
+    const app = new App();
+    stack = new Stack(app);
+    geoAccessPolicyFactory = new GeoAccessPolicyFactory();
+  });
+
+  void it('throws if no permissions are specified', () => {
+    assert.throws(() =>
+      geoAccessPolicyFactory.createPolicy(
+        [],
+        testResourceArn,
+        'test-role',
+        stack,
+      ),
+    );
+  });
+
+  void it('returns policy with get actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['get'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: ['geo-maps:GetStaticMap', 'geo-maps:GetTile'],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with autocomplete actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['autocomplete'],
+      testResourceArn,
+      'guest',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-guest-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 'geo-places:Autocomplete',
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with geocode actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['geocode'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: ['geo-places:Geocode', 'geo-places:ReverseGeocode'],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with search actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['search'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo-places:GetPlace',
+              'geo-places:SearchNearby',
+              'geo-places:SearchText',
+              'geo-places:Suggest',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with create actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['create'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 'geo:CreateGeofenceCollection',
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with read actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['read'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo:DescribeGeofenceCollection',
+              'geo:BatchEvaluateGeofences',
+              'geo:ForecastGeofenceEvents',
+              'geo:GetGeofence',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with update actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['update'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo:BatchPutGeofence',
+              'geo:PutGeofence',
+              'geo:UpdateGeofenceCollection',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with delete actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['delete'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: ['geo:BatchDeleteGeofence', 'geo:DeleteGeofenceCollection'],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('returns policy with list actions', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['list'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: ['geo:ListGeofences', 'geo:ListGeofenceCollections'],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles multiple actions in single policy', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['read', 'create', 'update'],
+      testResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo:DescribeGeofenceCollection',
+              'geo:BatchEvaluateGeofences',
+              'geo:ForecastGeofenceEvents',
+              'geo:GetGeofence',
+              'geo:CreateGeofenceCollection',
+              'geo:BatchPutGeofence',
+              'geo:PutGeofence',
+              'geo:UpdateGeofenceCollection',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('creates policy with custom role token', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['read'],
+      testResourceArn,
+      'custom-role-token',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-custom-role-token-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo:DescribeGeofenceCollection',
+              'geo:BatchEvaluateGeofences',
+              'geo:ForecastGeofenceEvents',
+              'geo:GetGeofence',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles different resource ARNs', () => {
+    const mapResourceArn = 'arn:aws:geo:us-east-1:123456789012:map/test-map';
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['get'],
+      mapResourceArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: ['geo-maps:GetStaticMap', 'geo-maps:GetTile'],
+            Resource: mapResourceArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('creates policy with place index resource for search actions', () => {
+    const placeIndexArn =
+      'arn:aws:geo:us-east-1:123456789012:place-index/test-place-index';
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['search', 'geocode'],
+      placeIndexArn,
+      'authenticated',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-authenticated-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo-places:GetPlace',
+              'geo-places:SearchNearby',
+              'geo-places:SearchText',
+              'geo-places:Suggest',
+              'geo-places:Geocode',
+              'geo-places:ReverseGeocode',
+            ],
+            Resource: placeIndexArn,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles group role tokens', () => {
+    const policy = geoAccessPolicyFactory.createPolicy(
+      ['read', 'update'],
+      testResourceArn,
+      'group-admin',
+      stack,
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') }),
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyName: 'geo-group-admin-access-policy',
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: [
+              'geo:DescribeGeofenceCollection',
+              'geo:BatchEvaluateGeofences',
+              'geo:ForecastGeofenceEvents',
+              'geo:GetGeofence',
+              'geo:BatchPutGeofence',
+              'geo:PutGeofence',
+              'geo:UpdateGeofenceCollection',
+            ],
+            Resource: testResourceArn,
+          },
+        ],
+      },
+    });
+  });
+});
