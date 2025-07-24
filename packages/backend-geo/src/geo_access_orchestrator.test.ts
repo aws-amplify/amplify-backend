@@ -12,9 +12,7 @@ void describe('GeoAccessOrchestrator', () => {
   void describe('orchestrateGeoAccess', () => {
     let stack: Stack;
 
-    const ssmEnvironmentEntriesStub: SsmEnvironmentEntry[] = [
-      { name: 'TEST_GEO_RESOURCE_NAME', path: 'test/ssm/path/to/geo/resource' },
-    ];
+    const ssmEnvironmentEntriesStub: SsmEnvironmentEntry[] = [];
 
     const testResourceArn =
       'arn:aws:geo:us-east-1:123456789012:geofence-collection/test-collection';

@@ -71,7 +71,7 @@ void describe('AmplifyMap', () => {
     const arn = map.getResourceArn();
     assert.ok(
       arn.match(
-        /^arn:\$\{Token\[AWS\.Partition\.[^\]]+\]\}:geo-maps:*::provider\/default$/,
+        /^arn:\$\{Token\[AWS\.Partition\.[^\]]+\]\}:geo-maps:[^:]*::provider\/default$/,
       ),
     );
   });
