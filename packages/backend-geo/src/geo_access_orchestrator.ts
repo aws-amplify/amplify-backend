@@ -5,6 +5,7 @@ import {
 import {
   GeoAccessBuilder,
   GeoAccessGenerator,
+  GeoResourceType,
   resourceActionRecord,
 } from './types.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
@@ -29,8 +30,8 @@ export class GeoAccessOrchestrator {
    * @param getInstanceProps - instance properties of a specific construct factory
    * @param geoStack - instance of GeoAccessPolicyFactory to generate policyStatements
    * @param ssmEnvironmentEntries - permission reader and processor
-   * @param geoPolicyFactory -
-   * @param roleAccessBuilder -
+   * @param geoPolicyFactory - instance of the GeoAccessPolicyFactory for policy generation
+   * @param roleAccessBuilder - instance of the GeoAccessBuilder for access definition transformation
    */
   constructor(
     private readonly geoAccessGenerator: GeoAccessGenerator,
@@ -45,11 +46,12 @@ export class GeoAccessOrchestrator {
 
   /**
    * Orchestrates the process of translating the customer-provided storage access rules into IAM policies and attaching those policies to the appropriate roles.
-   *
+   * @param resourceArn - Amazon Resource Name (ARN) for the resource with access permissions
+   * @param resourceIdentifier - type of resource being defined
    */
   orchestrateGeoAccess = (
     resourceArn: string,
-    resourceIdentifier: string,
+    resourceIdentifier: GeoResourceType,
   ): Policy[] => {
     // getting access definitions from allow calls
     const geoAccessDefinitions = this.geoAccessGenerator(
@@ -57,7 +59,6 @@ export class GeoAccessOrchestrator {
     );
 
     geoAccessDefinitions.forEach((definition) => {
-      // get all user roles for each definition
       const uniqueRoleTokenSet = new Set<string>();
 
       definition.uniqueDefinitionValidators.forEach(
@@ -83,16 +84,12 @@ export class GeoAccessOrchestrator {
         }
       });
 
-      const roleTokens = Array.from(uniqueRoleTokenSet);
-
-      let roleIndex: number = 0; // need respective roleToken for policy generation
       definition.getAccessAcceptors.forEach((acceptor) => {
         // for each acceptor within auth, guest, or user groups
-
         const policy: Policy = this.geoPolicyFactory.createPolicy(
           definition.actions,
           resourceArn,
-          roleTokens[roleIndex],
+          acceptor(this.getInstanceProps).identifier,
           this.resourceStack,
         );
         acceptor(this.getInstanceProps).acceptResourceAccess(
@@ -100,7 +97,6 @@ export class GeoAccessOrchestrator {
           this.ssmEnvironmentEntries,
         );
         this.policies.push(policy);
-        roleIndex += 1;
       });
     });
 
@@ -108,7 +104,6 @@ export class GeoAccessOrchestrator {
   };
 }
 
-// needed for test mocking
 /**
  * Instance Manager for Geo Access Orchestration
  */

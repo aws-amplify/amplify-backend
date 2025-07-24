@@ -5,6 +5,10 @@ import { Stack } from 'aws-cdk-lib';
 import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { fileURLToPath } from 'node:url';
+
+const geoStackType = 'geo-GeofenceCollection';
 
 /**
  * Amplify Collection CDK Construct
@@ -34,6 +38,7 @@ export class AmplifyCollection
     this.name = props.name;
     this.id = id;
     this.isDefault = props.isDefault || false;
+    this.stack = Stack.of(scope);
 
     const geofenceCollection = new GeofenceCollection(
       this,
@@ -49,5 +54,11 @@ export class AmplifyCollection
         ) as CfnGeofenceCollection,
       },
     };
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      geoStackType,
+      fileURLToPath(new URL('../package.json', import.meta.url)),
+    );
   }
 }

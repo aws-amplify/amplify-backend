@@ -30,7 +30,7 @@ export type AmplifyMapFactoryProps = Omit<
    *  )
    * })
    */
-  access: GeoAccessGenerator;
+  access?: GeoAccessGenerator;
 };
 
 /**
@@ -49,7 +49,7 @@ export type AmplifyPlaceFactoryProps = Omit<
    *  )
    * })
    */
-  access: GeoAccessGenerator;
+  access?: GeoAccessGenerator;
 };
 
 /**
@@ -68,23 +68,23 @@ export type AmplifyCollectionFactoryProps = Omit<
    *  )
    * })
    */
-  access: GeoAccessGenerator;
+  access?: GeoAccessGenerator;
 };
 
-export type AmplifyMapProps = {
-  name: string;
-  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
-};
+export type AmplifyMapProps = Omit<
+  AmplifyCollectionProps,
+  'collectionProps' | 'isDefault'
+>;
 
-export type AmplifyPlaceProps = {
-  name: string;
-  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
-};
+export type AmplifyPlaceProps = Omit<
+  AmplifyCollectionProps,
+  'collectionProps' | 'isDefault'
+>;
 
 export type AmplifyCollectionProps = {
   name: string;
   collectionProps: GeofenceCollectionProps;
-  isDefault: boolean;
+  isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
 
@@ -94,6 +94,7 @@ export type AmplifyCollectionProps = {
  */
 export type MapResources = {
   policies: Policy[];
+  region: string;
 };
 
 /**
@@ -102,6 +103,7 @@ export type MapResources = {
  */
 export type PlaceResources = {
   policies: Policy[];
+  region: string;
 };
 
 /**
@@ -111,8 +113,8 @@ export type PlaceResources = {
  * @param cfnResources - cloudformation resources exposed from the abstracted collection provisioned from collection
  */
 export type CollectionResources = {
-  collection: GeofenceCollection;
   policies: Policy[];
+  collection: GeofenceCollection;
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };
@@ -152,3 +154,5 @@ export const resourceActionRecord: Record<string, string[]> = {
   place: ['autocomplete', 'geocode', 'search'],
   collection: ['create', 'read', 'update', 'delete', 'list'],
 };
+
+export type GeoResourceType = 'map' | 'place' | 'collection';

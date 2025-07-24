@@ -34,9 +34,9 @@ export class AmplifyGeoOutputsAspect implements IAspect {
    */
   public visit(node: IConstruct): void {
     if (
-      !(node instanceof AmplifyMap) ||
-      !(node instanceof AmplifyPlace) ||
-      !(node instanceof AmplifyCollection) ||
+      !(node instanceof AmplifyMap) &&
+      !(node instanceof AmplifyPlace) &&
+      !(node instanceof AmplifyCollection) &&
       this.isGeoOutputProcessed
     ) {
       return;
@@ -69,11 +69,11 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     }
   }
 
-  private findDefaultCollectionName = (
+  private validateDefaultCollection = (
     nodes: AmplifyCollection[],
     currentNode: AmplifyCollection,
-  ): string | undefined => {
-    const geoCount = nodes.length;
+  ) => {
+    const collectionCount = nodes.length;
 
     let defaultCollectionName: string | undefined = undefined;
 
@@ -94,11 +94,11 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       }
     });
 
-    if (geoCount === 1 && !defaultCollectionName) {
+    if (collectionCount === 1 && !defaultCollectionName) {
       // if no defaults and only one construct, instance assumed to be default
       defaultCollectionName =
         currentNode.resources.collection?.geofenceCollectionName;
-    } else if (geoCount > 1 && !defaultCollectionName) {
+    } else if (collectionCount > 1 && !defaultCollectionName) {
       // if multiple constructs with default collection, throw error
       throw new AmplifyUserError('NoDefaultCollectionError', {
         message:
@@ -115,29 +115,34 @@ export class AmplifyGeoOutputsAspect implements IAspect {
    * Function responsible for add all collection outputs (with defaults)
    * @param collections - all construct instances of AmplifyGeo
    * @param outputStorageStrategy - backend output schema of type GeoOutput
-   * @param region -
+   * @param region - region of geo resources
    */
   private addBackendOutput(
     collections: AmplifyCollection[],
     outputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>,
     region: string,
   ) {
-    const defaultCollectionName: string | undefined =
-      this.findDefaultCollectionName(collections, collections[0]);
+    this.validateDefaultCollection(collections, collections[0]);
 
     outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
       version: '1',
       payload: {
         aws_region: region,
-        geofence_collections: JSON.stringify({
-          default: defaultCollectionName,
-          items: defaultCollectionName,
-        }),
       },
     });
 
     collections.forEach((collection) => {
-      if (!collection.isDefault) {
+      if (collection.isDefault) {
+        outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
+          version: '1',
+          payload: {
+            geofence_collections: JSON.stringify({
+              default: collection.resources.collection.geofenceCollectionName,
+              items: collection.resources.collection.geofenceCollectionName,
+            }),
+          },
+        });
+      } else {
         outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
           version: '1',
           payload: {

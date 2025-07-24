@@ -21,6 +21,12 @@ export class AmplifyPlace
     super(scope, id);
 
     this.name = props.name;
+    this.id = id;
+
+    this.resources = {
+      region: this.stack.region,
+      policies: [],
+    };
   }
 
   getResourceArn = (): string => {

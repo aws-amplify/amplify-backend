@@ -20,7 +20,7 @@ import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
 export class AmplifyPlaceFactory
   implements ConstructFactory<ResourceProvider<PlaceResources>>
 {
-  static mapCount: number = 0;
+  static placeCount: number = 0;
 
   private geoGenerator: ConstructContainerEntryGenerator;
   private geoAccessOrchestratorFactory: GeoAccessOrchestratorFactory =
@@ -31,14 +31,14 @@ export class AmplifyPlaceFactory
    * @param props - place resource properties
    */
   constructor(private readonly props: AmplifyPlaceFactoryProps) {
-    if (AmplifyPlaceFactory.mapCount > 0) {
+    if (AmplifyPlaceFactory.placeCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
           'Multiple `definePlace` calls not permitted within an Amplify backend',
         resolution: 'Maintain one `definePlace` call',
       });
     }
-    AmplifyPlaceFactory.mapCount++;
+    AmplifyPlaceFactory.placeCount++;
   }
 
   getInstance = (
@@ -81,13 +81,6 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<PlaceResources> => {
-    const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
-      this.props.access,
-      this.getInstanceProps,
-      Stack.of(scope),
-      [],
-    );
-
     const amplifyPlace = new AmplifyPlace(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
@@ -95,10 +88,21 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
 
     Tags.of(amplifyPlace).add(TagName.FRIENDLY_NAME, this.props.name);
 
+    if (!this.props.access) {
+      return amplifyPlace;
+    }
+
+    const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
+      this.props.access,
+      this.getInstanceProps,
+      Stack.of(scope),
+      [],
+    );
+
     amplifyPlace.resources.policies =
       geoAccessOrchestrator.orchestrateGeoAccess(
         amplifyPlace.getResourceArn(),
-        'map',
+        'place',
       );
 
     const geoAspects = Aspects.of(Stack.of(amplifyPlace));

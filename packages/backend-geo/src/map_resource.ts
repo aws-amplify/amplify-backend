@@ -19,15 +19,16 @@ export class AmplifyMap
    */
   constructor(scope: Construct, id: string, props: AmplifyMapProps) {
     super(scope, id);
-
     this.name = props.name;
+    this.id = id;
+
+    this.resources = {
+      region: this.stack.region,
+      policies: [],
+    };
   }
 
   getResourceArn = (): string => {
     return `arn:${Aws.PARTITION}:geo-maps:${this.stack.region}::provider/default`;
-  };
-
-  getResourceName = (): string => {
-    return this.name;
   };
 }
