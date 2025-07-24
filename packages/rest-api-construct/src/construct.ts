@@ -5,7 +5,6 @@ import {
   ExistingDirectory,
   ExistingLambda,
   NewFromCode,
-  NewFromTemplate,
   RestApiConstructProps,
 } from './types.js';
 
@@ -30,8 +29,7 @@ export class RestApiConstruct extends Construct {
       const { path, routes, lambdaEntry } = pathConfig;
       const source = lambdaEntry.source;
 
-      // Determine Lambda code source - either ExistingDirectory, NewFromCode, NewFromTemplate,
-      // or ExistingLambda (function already exists in aws and does not need to be constructed)
+      // Determine Lambda code source - either ExistingDirectory, NewFromCode, or ExistingLambda (function already exists in aws and does not need to be constructed)
       let code: lambda.AssetCode | lambda.InlineCode =
         lambda.Code.fromInline('');
       if ('path' in source) {
@@ -40,14 +38,6 @@ export class RestApiConstruct extends Construct {
       } else if ('code' in source) {
         const src = source as NewFromCode;
         code = lambda.Code.fromInline(src.code);
-      } else if ('template' in source) {
-        //TODO: Expand supported templates later
-        const src = source as NewFromTemplate;
-        if (src.template === 'Hello World') {
-          code = lambda.Code.fromInline(
-            "exports.handler = () => { console.log('Hello World'); };",
-          );
-        }
       }
       //if none of these are true, it's a ExistingLambda type, handled below
 
