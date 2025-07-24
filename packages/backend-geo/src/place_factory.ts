@@ -44,13 +44,10 @@ export class AmplifyPlaceFactory
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps,
   ): AmplifyPlace => {
-    // get construct factory instance properties
     const { constructContainer, resourceNameValidator } = getInstanceProps;
 
-    // validates the user-entered resource name (according to CDK naming regulations)
     resourceNameValidator?.validate(this.props.name);
 
-    // generates a singleton container entry for this construct factory
     if (!this.geoGenerator) {
       this.geoGenerator = new AmplifyPlaceGenerator(
         this.props,
@@ -58,7 +55,6 @@ export class AmplifyPlaceFactory
       );
     }
 
-    // this getOrCompute accesses the internal construct container cache
     return constructContainer.getOrCompute(this.geoGenerator) as AmplifyPlace;
   };
 }

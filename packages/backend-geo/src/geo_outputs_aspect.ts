@@ -42,7 +42,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       return;
     }
 
-    this.isGeoOutputProcessed = true; // once this is visited, this no longer remains false
+    this.isGeoOutputProcessed = true; // once this is visited, shouldn't process geo outputs again
 
     const mapInstances = Stack.of(node).node.children.filter(
       (el) => el instanceof AmplifyMap,
