@@ -4,18 +4,6 @@
 
 ```ts
 
-import { Construct } from 'constructs';
-
-// @public
-export class AmplifyConstruct extends Construct {
-    constructor(scope: Construct, id: string, props?: ConstructCognitoProps);
-}
-
-// @public (undocumented)
-export type ConstructCognitoProps = {
-    includeQueue?: boolean;
-};
-
 // (No @packageDocumentation comment for this package)
 
 ```
