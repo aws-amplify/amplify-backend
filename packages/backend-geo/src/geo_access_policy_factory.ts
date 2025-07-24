@@ -29,10 +29,11 @@ export class GeoAccessPolicyFactory {
 
     policyStatement.addResources(resourceArn);
 
-    return new Policy(stack, `geo-access-policy`, {
-      policyName: `geo-${roleToken}-access-policy`,
+    const policyIDName: string = `geo-${roleToken}-access-policy`;
+    return new Policy(stack, policyIDName, {
+      policyName: policyIDName,
       statements: [policyStatement],
-    }); // returns policy with policy statement of all actions
+    });
   };
 }
 

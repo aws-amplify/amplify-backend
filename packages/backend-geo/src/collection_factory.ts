@@ -70,19 +70,23 @@ export class AmplifyCollectionGenerator
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<CollectionResources> => {
-    const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
-      this.props.access,
-      this.getInstanceProps,
-      Stack.of(scope),
-      [],
-    );
-
     const amplifyCollection = new AmplifyCollection(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
 
     Tags.of(amplifyCollection).add(TagName.FRIENDLY_NAME, this.props.name);
+
+    if (!this.props.access) {
+      return amplifyCollection;
+    }
+
+    const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
+      this.props.access,
+      this.getInstanceProps,
+      Stack.of(scope),
+      [],
+    );
 
     amplifyCollection.resources.policies =
       geoAccessOrchestrator.orchestrateGeoAccess(

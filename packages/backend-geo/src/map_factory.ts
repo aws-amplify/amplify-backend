@@ -78,17 +78,21 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<MapResources> => {
+    const amplifyMap = new AmplifyMap(scope, this.props.name, {
+      ...this.props,
+      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
+    });
+
+    if (!this.props.access) {
+      return amplifyMap;
+    }
+
     const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
       this.props.access,
       this.getInstanceProps,
       Stack.of(scope),
       [],
     );
-
-    const amplifyMap = new AmplifyMap(scope, this.props.name, {
-      ...this.props,
-      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
-    });
 
     Tags.of(amplifyMap).add(TagName.FRIENDLY_NAME, this.props.name);
 
