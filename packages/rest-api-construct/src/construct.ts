@@ -5,7 +5,7 @@ import {
   ExistingDirectory,
   ExistingLambda,
   NewFromCode,
-  // NewFromTemplate,
+  NewFromTemplate,
   RestApiConstructProps,
 } from './types.js';
 
@@ -30,7 +30,8 @@ export class RestApiConstruct extends Construct {
       const { path, routes, lambdaEntry } = pathConfig;
       const source = lambdaEntry.source;
 
-      // Determine Lambda code source
+      // Determine Lambda code source - either ExistingDirectory, NewFromCode, NewFromTemplate,
+      // or ExistingLambda (function already exists in aws and does not need to be constructed)
       let code: lambda.AssetCode | lambda.InlineCode =
         lambda.Code.fromInline('');
       if ('path' in source) {
@@ -40,15 +41,15 @@ export class RestApiConstruct extends Construct {
         const src = source as NewFromCode;
         code = lambda.Code.fromInline(src.code);
       } else if ('template' in source) {
-        // const src = source as NewFromTemplate;
-        // NOTE: You may expand supported templates later
-        code = lambda.Code.fromInline(
-          "exports.handler = () => { console.log('Hello World'); };",
-        );
-      } else {
-        // fallback to dummy if none matched — should never happen if typing is correct
-        code = lambda.Code.fromInline('exports.handler = () => {};');
+        //TODO: Expand supported templates later
+        const src = source as NewFromTemplate;
+        if (src.template === 'Hello World') {
+          code = lambda.Code.fromInline(
+            "exports.handler = () => { console.log('Hello World'); };",
+          );
+        }
       }
+      //if none of these are true, it's a ExistingLambda type, handled below
 
       // Create or reference Lambda function
       let handler: lambda.IFunction;
@@ -59,7 +60,7 @@ export class RestApiConstruct extends Construct {
         handler = new lambda.Function(this, `LambdaHandler-${index}`, {
           runtime: lambdaEntry.runtime,
           handler: 'index.handler',
-          code,
+          code: code,
         });
       }
 
