@@ -380,31 +380,26 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
-            defaultCollection: z.ZodString;
-            geoRegion: z.ZodString;
-            collections: z.ZodString;
+            aws_region: z.ZodString;
+            geofence_collections: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         }, {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
@@ -482,9 +477,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo"?: {
         version: "1";
         payload: {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         };
     } | undefined;
 }, {
@@ -562,9 +556,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo"?: {
         version: "1";
         payload: {
-            defaultCollection: string;
-            geoRegion: string;
-            collections: string;
+            aws_region: string;
+            geofence_collections?: string | undefined;
         };
     } | undefined;
 }>;
@@ -756,31 +749,26 @@ export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [
 export const versionedGeoOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
-        defaultCollection: z.ZodString;
-        geoRegion: z.ZodString;
-        collections: z.ZodString;
+        aws_region: z.ZodString;
+        geofence_collections: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        defaultCollection: string;
-        geoRegion: string;
-        collections: string;
+        aws_region: string;
+        geofence_collections?: string | undefined;
     }, {
-        defaultCollection: string;
-        geoRegion: string;
-        collections: string;
+        aws_region: string;
+        geofence_collections?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
-        defaultCollection: string;
-        geoRegion: string;
-        collections: string;
+        aws_region: string;
+        geofence_collections?: string | undefined;
     };
 }, {
     version: "1";
     payload: {
-        defaultCollection: string;
-        geoRegion: string;
-        collections: string;
+        aws_region: string;
+        geofence_collections?: string | undefined;
     };
 }>]>;
 
