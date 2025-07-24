@@ -14,6 +14,10 @@ type LambdaSource = {
 
 export type RestApiConstructProps = {
   apiName: string;
+  apiProps: RestApiPathConfig[];
+};
+
+export type RestApiPathConfig = {
   path: string;
   routes: HttpMethod[];
   lambdaEntry: LambdaSource;

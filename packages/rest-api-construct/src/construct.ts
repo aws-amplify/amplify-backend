@@ -1,11 +1,11 @@
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import {
   ExistingDirectory,
   ExistingLambda,
   NewFromCode,
-  NewFromTemplate,
+  // NewFromTemplate,
   RestApiConstructProps,
 } from './types.js';
 
@@ -13,54 +13,61 @@ import {
  * Rest API construct for Amplify Backend
  */
 export class RestApiConstruct extends Construct {
-  public readonly api: apigateway.RestApi;
+  public readonly api: apiGateway.RestApi;
   /**
    * Create a new RestApiConstruct
    */
   constructor(scope: Construct, id: string, props: RestApiConstructProps) {
     super(scope, id);
 
-    let code: lambda.AssetCode | lambda.InlineCode = lambda.Code.fromInline('');
-    const src = props.lambdaEntry.source;
-    if ('path' in src) {
-      const lamb = src as ExistingDirectory;
-      code = lambda.Code.fromAsset(lamb.path);
-    } else if ('code' in src) {
-      const lamb = src as NewFromCode;
-      code = lambda.Code.fromInline(lamb.code);
-    } else if ('template' in src) {
-      //TODO: Implement use of templates (which ones to support, and how - cli version is complex). The available templates depend on the runtime
-      const lamb = src as NewFromTemplate;
-      if (lamb.template === 'Hello World') {
-        code = lambda.Code.fromInline(
-          "function handler() {console.log('Hello World!');}",
-        );
-      }
-    }
-
-    let handler: lambda.IFunction;
-    if ('id' in src) {
-      const lamb = src as ExistingLambda;
-      handler = lambda.Function.fromFunctionName(this, lamb.id, lamb.name);
-    } else {
-      handler = new lambda.Function(this, 'handler', {
-        runtime: props.lambdaEntry.runtime,
-        handler: 'index.handler',
-        code: code,
-      });
-    }
-
     // Create a new API Gateway REST API with the specified name
-    this.api = new apigateway.RestApi(this, 'RestApi', {
+    this.api = new apiGateway.RestApi(this, 'RestApi', {
       restApiName: props.apiName,
     });
 
-    // Create a resource for the specified path
-    const resource = this.addNestedResource(this.api.root, props.path);
+    // Iterate over each path configuration
+    for (const [index, pathConfig] of Object.entries(props.apiProps)) {
+      const { path, routes, lambdaEntry } = pathConfig;
+      const source = lambdaEntry.source;
 
-    // Add methods to the resource for each HTTP method specified in props.routes
-    for (const method of props.routes) {
-      resource.addMethod(method, new apigateway.LambdaIntegration(handler));
+      // Determine Lambda code source
+      let code: lambda.AssetCode | lambda.InlineCode =
+        lambda.Code.fromInline('');
+      if ('path' in source) {
+        const src = source as ExistingDirectory;
+        code = lambda.Code.fromAsset(src.path);
+      } else if ('code' in source) {
+        const src = source as NewFromCode;
+        code = lambda.Code.fromInline(src.code);
+      } else if ('template' in source) {
+        // const src = source as NewFromTemplate;
+        // NOTE: You may expand supported templates later
+        code = lambda.Code.fromInline(
+          "exports.handler = () => { console.log('Hello World'); };",
+        );
+      } else {
+        // fallback to dummy if none matched — should never happen if typing is correct
+        code = lambda.Code.fromInline('exports.handler = () => {};');
+      }
+
+      // Create or reference Lambda function
+      let handler: lambda.IFunction;
+      if ('id' in source) {
+        const src = source as ExistingLambda;
+        handler = lambda.Function.fromFunctionName(this, src.id, src.name);
+      } else {
+        handler = new lambda.Function(this, `LambdaHandler-${index}`, {
+          runtime: lambdaEntry.runtime,
+          handler: 'index.handler',
+          code,
+        });
+      }
+
+      // Add resource and methods for this route
+      const resource = this.addNestedResource(this.api.root, path);
+      for (const method of routes) {
+        resource.addMethod(method, new apiGateway.LambdaIntegration(handler));
+      }
     }
   }
 
@@ -68,9 +75,9 @@ export class RestApiConstruct extends Construct {
    * Adds nested resources to the API based on the provided path.
    */
   private addNestedResource(
-    root: apigateway.IResource,
+    root: apiGateway.IResource,
     path: string,
-  ): apigateway.IResource {
+  ): apiGateway.IResource {
     return path.split('/').reduce((resource, part) => {
       return resource.getResource(part) ?? resource.addResource(part);
     }, root);
