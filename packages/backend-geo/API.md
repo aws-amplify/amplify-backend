@@ -12,35 +12,57 @@ import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
 import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
-import { IRole } from 'aws-cdk-lib/aws-iam';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
 
-// @public (undocumented)
-export type AmplifyGeoFactoryProps = Omit<AmplifyGeoProps, 'outputStorageStrategy'> & {
-    region: string;
-    access: GeoAccessGenerator;
-    resourceIdentifier?: GeoResourceType;
+// @public
+export type AmplifyCollectionFactoryProps = Omit<AmplifyCollectionProps, 'outputStorageStrategy'> & {
+    access?: GeoAccessGenerator;
 };
 
 // @public (undocumented)
-export type AmplifyGeoProps = {
+export type AmplifyCollectionProps = {
     name: string;
-    collectionProps?: GeofenceCollectionProps;
+    collectionProps: GeofenceCollectionProps;
+    isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
 
+// @public
+export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrategy'> & {
+    access?: GeoAccessGenerator;
+};
+
 // @public (undocumented)
-export type CollectionAction = 'create' | 'read' | 'update' | 'delete' | 'list';
+export type AmplifyMapProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
 
 // @public
-export const defineCollection: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
+export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStrategy'> & {
+    access?: GeoAccessGenerator;
+};
+
+// @public (undocumented)
+export type AmplifyPlaceProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
 
 // @public
-export const defineMap: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
+export type CollectionResources = {
+    policies: Policy[];
+    collection: GeofenceCollection;
+    cfnResources: {
+        cfnCollection: CfnGeofenceCollection;
+    };
+};
 
 // @public
-export const definePlace: (props: AmplifyGeoFactoryProps) => ConstructFactory<ResourceProvider<GeoResources> & StackProvider>;
+export const defineCollection: (props: AmplifyCollectionFactoryProps) => ConstructFactory<ResourceProvider<CollectionResources> & StackProvider>;
+
+// @public
+export const defineMap: (props: AmplifyMapFactoryProps) => ConstructFactory<ResourceProvider<MapResources> & StackProvider>;
+
+// @public
+export const definePlace: (props: AmplifyPlaceFactoryProps) => ConstructFactory<ResourceProvider<PlaceResources> & StackProvider>;
 
 // @public (undocumented)
 export type GeoAccessBuilder = {
@@ -51,8 +73,8 @@ export type GeoAccessBuilder = {
 
 // @public (undocumented)
 export type GeoAccessDefinition = {
-    userRoles: ((getInstanceProps: ConstructFactoryGetInstanceProps) => IRole)[];
-    actions: GeoAction[];
+    getAccessAcceptors: ((getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor)[];
+    actions: string[];
     uniqueDefinitionValidators: {
         uniqueRoleToken: string;
         validationErrorOptions: AmplifyUserErrorOptions;
@@ -63,35 +85,27 @@ export type GeoAccessDefinition = {
 export type GeoAccessGenerator = (allow: GeoAccessBuilder) => GeoAccessDefinition[];
 
 // @public (undocumented)
-export type GeoAction = MapAction | IndexAction | CollectionAction;
-
-// @public (undocumented)
 export type GeoActionBuilder = {
-    to: (actions: GeoAction[]) => GeoAccessDefinition;
-};
-
-// @public (undocumented)
-export const geoCfnResourceTypes: string[];
-
-// @public (undocumented)
-export const geoManagedResourceTypes: string[];
-
-// @public (undocumented)
-export type GeoResources = {
-    collection: GeofenceCollection;
-    cfnResources: {
-        cfnCollection: CfnGeofenceCollection;
-    };
+    to: (actions: string[]) => GeoAccessDefinition;
 };
 
 // @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
 
-// @public (undocumented)
-export type IndexAction = 'autocomplete' | 'geocode' | 'search';
+// @public
+export type MapResources = {
+    policies: Policy[];
+    region: string;
+};
+
+// @public
+export type PlaceResources = {
+    policies: Policy[];
+    region: string;
+};
 
 // @public (undocumented)
-export type MapAction = 'get';
+export const resourceActionRecord: Record<string, string[]>;
 
 // (No @packageDocumentation comment for this package)
 
