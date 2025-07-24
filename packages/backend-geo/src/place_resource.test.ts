@@ -71,7 +71,7 @@ void describe('AmplifyPlace', () => {
     const arn = place.getResourceArn();
     assert.ok(
       arn.match(
-        /^arn:\$\{Token\[AWS\.Partition\.[^\]]+\]\}:geo-places:*::provider\/default$/,
+        /^arn:\$\{Token\[AWS\.Partition\.[^\]]+\]\}:geo-places:[^:]*::provider\/default$/,
       ),
     );
   });
