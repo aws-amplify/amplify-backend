@@ -14,7 +14,10 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxStatusData } from '../shared/socket_types.js';
+import {
+  BackendResourcesData,
+  SandboxStatusData,
+} from '../shared/socket_types.js';
 
 // Define the return type of mock.fn()
 type MockFn = ReturnType<typeof mock.fn>;
@@ -22,16 +25,6 @@ type MockFn = ReturnType<typeof mock.fn>;
 // Type for handler functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventHandler = (...args: any[]) => void | Promise<void>;
-
-// Type for backend resources data
-type BackendResourcesData = {
-  name: string;
-  status: string;
-  resources: unknown[];
-  region: string | null;
-  message?: string;
-  error?: string;
-};
 
 // Mock call type with more specific typing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,7 +120,7 @@ void describe('SocketHandlerService', () => {
         SOCKET_EVENTS.GET_SANDBOX_STATUS,
         SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES,
         SOCKET_EVENTS.GET_ACTIVE_LOG_STREAMS,
-        SOCKET_EVENTS.GET_SAVED_RESOURCES,
+
         SOCKET_EVENTS.GET_CLOUD_FORMATION_EVENTS,
         SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS,
         SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,

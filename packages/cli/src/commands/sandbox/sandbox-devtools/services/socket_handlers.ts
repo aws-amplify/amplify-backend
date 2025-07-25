@@ -10,6 +10,7 @@ import { LambdaClient } from '@aws-sdk/client-lambda';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
+  BackendResourcesData,
   DevToolsSandboxOptions,
   SandboxStatusData,
 } from '../shared/socket_types.js';
@@ -68,7 +69,7 @@ export type SocketEvents = {
   stopSandbox: void;
   deleteSandbox: void;
   stopDevTools: void;
-  getSavedResources: void;
+
   getSavedCloudFormationEvents: void;
   testLambdaFunction: {
     resourceId: string;
@@ -193,13 +194,6 @@ export class SocketHandlerService {
       SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES,
       this.handleGetDeployedBackendResources.bind(this, socket),
     );
-    socket.on(
-      SOCKET_EVENTS.GET_SAVED_RESOURCES,
-      this.resourcesHandler.handleGetSavedResources.bind(
-        this.resourcesHandler,
-        socket,
-      ),
-    );
 
     // CloudFormation events handlers
     socket.on(
@@ -319,28 +313,28 @@ export class SocketHandlerService {
           LogLevel.ERROR,
         );
 
-        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
+        const errorResponse: BackendResourcesData = {
           name: this.backendId.name,
           status: 'error',
           resources: [],
           region: null,
           message: `Error fetching resources: ${errorMessage}`,
-          error: errorMessage,
-        });
+        };
+        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
       }
     } catch (error) {
       this.printer.log(
         `Error in handleGetDeployedBackendResources: ${String(error)}`,
         LogLevel.ERROR,
       );
-      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
+      const errorResponse: BackendResourcesData = {
         name: this.backendId.name,
         status: 'error',
         resources: [],
         region: null,
         message: `Error checking sandbox status: ${String(error)}`,
-        error: String(error),
-      });
+      };
+      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
     }
   }
 

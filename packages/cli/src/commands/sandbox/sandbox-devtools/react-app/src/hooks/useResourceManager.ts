@@ -4,7 +4,7 @@ import {
   useResourceClientService,
   useLoggingClientService,
 } from '../contexts/socket_client_context';
-import { BackendResourcesData } from '../services/resource_client_service';
+import { BackendResourcesData } from '../../../shared/socket_types';
 import { LogStreamStatus } from '../services/logging_client_service';
 import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 

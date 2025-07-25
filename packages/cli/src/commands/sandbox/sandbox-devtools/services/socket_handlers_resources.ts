@@ -100,14 +100,6 @@ export class SocketHandlerResources {
   }
 
   /**
-   * Handles the getSavedResources event
-   */
-  public handleGetSavedResources(socket: Socket): void {
-    const resources = this.storageManager.loadResources();
-    socket.emit(SOCKET_EVENTS.SAVED_RESOURCES, resources || []);
-  }
-
-  /**
    * Handles ResourceNotFoundException for log groups
    * @param resourceId The resource ID
    * @param error The error object

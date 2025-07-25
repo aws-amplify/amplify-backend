@@ -3,6 +3,7 @@ import path from 'path';
 import { tmpdir } from 'os';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
 import writeFileAtomic from 'write-file-atomic';
+import { BackendResourcesData } from './shared/socket_types.js';
 
 /**
  * Represents a CloudFormation event
@@ -128,7 +129,7 @@ export class LocalStorageManager {
    * Saves resources to a file
    * @param resources The resources to save
    */
-  saveResources(resources: Record<string, unknown>): void {
+  saveResources(resources: BackendResourcesData): void {
     try {
       writeFileAtomic.sync(
         this.resourcesFile,
@@ -144,7 +145,7 @@ export class LocalStorageManager {
    * Loads resources from a file
    * @returns The saved resources or null if none exist
    */
-  loadResources(): Record<string, unknown> | null {
+  loadResources(): BackendResourcesData | null {
     try {
       if (fs.existsSync(this.resourcesFile)) {
         const data = fs.readFileSync(this.resourcesFile, 'utf8');

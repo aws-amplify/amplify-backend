@@ -1,7 +1,20 @@
 import { SandboxStatus } from '@aws-amplify/sandbox';
+import { ResourceWithFriendlyName } from '../resource_console_functions.js';
 /**
  * Shared types for socket communication between client and server
  */
+
+/**
+ * Type for backend resources data
+ */
+export type BackendResourcesData = {
+  name: string;
+  status: string;
+  resources: ResourceWithFriendlyName[];
+  region: string | null;
+  message?: string;
+  error?: string;
+};
 
 /**
  * Type for sandbox status data sent with SANDBOX_STATUS events

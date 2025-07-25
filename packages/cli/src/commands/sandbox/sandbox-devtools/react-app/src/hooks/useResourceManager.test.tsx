@@ -1,10 +1,8 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useResourceManager } from './useResourceManager';
-import {
-  BackendResourcesData,
-  ResourceClientService,
-} from '../services/resource_client_service';
+import { BackendResourcesData } from '../../../shared/socket_types';
+import { ResourceClientService } from '../services/resource_client_service';
 import { LoggingClientService } from '../services/logging_client_service';
 
 // Mock the context hooks

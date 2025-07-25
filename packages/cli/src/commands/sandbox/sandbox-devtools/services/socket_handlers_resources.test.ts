@@ -170,39 +170,6 @@ void describe('SocketHandlerResources', () => {
     });
   });
 
-  void describe('handleGetSavedResources', () => {
-    void it('returns saved resources', () => {
-      const mockResources = [{ id: 'resource1' }, { id: 'resource2' }];
-      (
-        mockStorageManager.loadResources as unknown as MockFn
-      ).mock.mockImplementation(() => mockResources);
-
-      handler.handleGetSavedResources(mockSocket);
-
-      const mockEmitFn = mockSocket.emit as unknown as MockFn;
-      const savedResourcesCall = mockEmitFn.mock.calls.find(
-        (call: MockCall) => call.arguments[0] === SOCKET_EVENTS.SAVED_RESOURCES,
-      );
-      assert.ok(savedResourcesCall);
-      assert.deepStrictEqual(savedResourcesCall.arguments[1], mockResources);
-    });
-
-    void it('returns empty array when no saved resources', () => {
-      (
-        mockStorageManager.loadResources as unknown as MockFn
-      ).mock.mockImplementation(() => null);
-
-      handler.handleGetSavedResources(mockSocket);
-
-      const mockEmitFn = mockSocket.emit as unknown as MockFn;
-      const savedResourcesCall = mockEmitFn.mock.calls.find(
-        (call: MockCall) => call.arguments[0] === SOCKET_EVENTS.SAVED_RESOURCES,
-      );
-      assert.ok(savedResourcesCall);
-      assert.deepStrictEqual(savedResourcesCall.arguments[1], []);
-    });
-  });
-
   void describe('handleGetSavedCloudFormationEvents', () => {
     void it('returns saved CloudFormation events', () => {
       const mockEvents = [

@@ -14,11 +14,6 @@ export const SOCKET_EVENTS = {
   CUSTOM_FRIENDLY_NAMES: 'customFriendlyNames',
 
   /**
-   * Event to request saved resources from the server
-   */
-  GET_SAVED_RESOURCES: 'getSavedResources',
-
-  /**
    * Event received when saved resources are sent from the server
    */
   SAVED_RESOURCES: 'savedResources',
