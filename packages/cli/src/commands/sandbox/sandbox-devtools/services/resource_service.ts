@@ -13,6 +13,7 @@ import {
   getAwsConsoleUrl,
   isCompleteResource,
 } from '../resource_console_functions.js';
+import { getLogGroupName } from '../logging/log_group_extractor.js';
 
 /**
  * Type for deployed backend resources response
@@ -112,6 +113,13 @@ export class ResourceService {
               resourceWithFriendlyName,
               region,
             );
+
+            // Add log group name (if this resource type supports logs)
+            const logGroupName = getLogGroupName(
+              resourceType,
+              resource.physicalResourceId,
+            );
+            resourceWithFriendlyName.logGroupName = logGroupName;
 
             return resourceWithFriendlyName;
           });

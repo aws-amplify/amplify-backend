@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { SocketClientService } from '../services/socket_client_service';
 import { SandboxClientService } from '../services/sandbox_client_service';
 import { ResourceClientService } from '../services/resource_client_service';
+import { LoggingClientService } from '../services/logging_client_service';
 
 /**
  * Interface for socket client services
@@ -10,6 +11,7 @@ interface SocketClientServices {
   socketClientService: SocketClientService;
   sandboxClientService: SandboxClientService;
   resourceClientService: ResourceClientService;
+  loggingClientService: LoggingClientService;
 }
 
 /**
@@ -34,11 +36,13 @@ export const SocketClientProvider: React.FC<SocketClientProviderProps> = ({
   const socketClientService = new SocketClientService();
   const sandboxClientService = new SandboxClientService();
   const resourceClientService = new ResourceClientService();
+  const loggingClientService = new LoggingClientService();
 
   const services: SocketClientServices = {
     socketClientService,
     sandboxClientService,
     resourceClientService,
+    loggingClientService,
   };
 
   return (
@@ -88,4 +92,18 @@ export const useResourceClientService = (): ResourceClientService => {
     );
   }
   return context.resourceClientService;
+};
+
+/**
+ * Hook to access the logging client service
+ * @returns The logging client service
+ */
+export const useLoggingClientService = (): LoggingClientService => {
+  const context = useContext(SocketClientContext);
+  if (!context) {
+    throw new Error(
+      'useLoggingClientService must be used within a SocketClientProvider',
+    );
+  }
+  return context.loggingClientService;
 };
