@@ -52,9 +52,6 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
   const [resourceStatuses, setResourceStatuses] = useState<
     Record<string, ResourceStatus>
   >({});
-  const [deploymentStartTime, setDeploymentStartTime] = useState<Date | null>(
-    null,
-  );
   const containerRef = useRef<HTMLDivElement>(null);
   const [errorState, setErrorState] = useState<ErrorState>({
     hasError: false,
@@ -97,30 +94,6 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
     const existingTime = new Date(existingEvent.timestamp).getTime();
 
     return newTime > existingTime;
-  };
-
-  // Helper function to merge and deduplicate events
-  const mergeEvents = (
-    existingEvents: DeploymentEvent[],
-    newEvents: DeploymentEvent[],
-  ): DeploymentEvent[] => {
-    const eventMap = new Map<string, DeploymentEvent>();
-
-    // Add existing events
-    existingEvents.forEach((event) => {
-      const key =
-        event.resourceStatus?.eventId || `${event.timestamp}-${event.message}`;
-      eventMap.set(key, event);
-    });
-
-    // Add new events (will overwrite duplicates)
-    newEvents.forEach((event) => {
-      const key =
-        event.resourceStatus?.eventId || `${event.timestamp}-${event.message}`;
-      eventMap.set(key, event);
-    });
-
-    return Array.from(eventMap.values());
   };
 
   // Helper function to get latest status for each resource
@@ -173,25 +146,15 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
     ) => {
       console.log('Received saved CloudFormation events:', savedEvents.length);
 
-      // Don't process saved events during deployment OR deletion
-      if (status !== 'deploying' && status !== 'deleting') {
-        // Sort events by timestamp (newest first)
-        const sortedEvents = savedEvents.sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-        );
+      const sortedEvents = savedEvents.sort(
+        (a: DeploymentEvent, b: DeploymentEvent) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
 
-        // Get latest status for each resource
-        const latestResourceStatuses = getLatestResourceStatuses(sortedEvents);
+      const latestResourceStatuses = getLatestResourceStatuses(sortedEvents);
 
-        // Update state
-        setEvents(sortedEvents);
-        setResourceStatuses(latestResourceStatuses);
-      } else {
-        console.log(
-          'Ignoring saved CloudFormation events because deployment or deletion is in progress',
-        );
-      }
+      setEvents(sortedEvents);
+      setResourceStatuses(latestResourceStatuses);
     };
 
     // Handle CloudFormation events from the API
@@ -205,27 +168,9 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
         return;
       }
 
-      // Filter events based on deployment start time during active deployment
-      let filteredEvents = cfnEvents;
-      if (
-        (status === 'deploying' || status === 'deleting') &&
-        deploymentStartTime
-      ) {
-        filteredEvents = cfnEvents.filter((event) => {
-          const eventTime = new Date(event.timestamp);
-          return eventTime >= deploymentStartTime;
-        });
-        console.log(
-          `Filtered events from ${cfnEvents.length} to ${filteredEvents.length} (since deployment start)`,
-        );
-      }
-
-      // Merge with existing events and deduplicate
-      const mergedEvents = mergeEvents(events, filteredEvents);
-
       // Sort events by timestamp (newest first)
-      const sortedEvents = mergedEvents.sort(
-        (a, b) =>
+      const sortedEvents = cfnEvents.sort(
+        (a: DeploymentEvent, b: DeploymentEvent) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
@@ -260,13 +205,11 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
       unsubscribeCloudFormationEventsError.unsubscribe();
       unsubscribeSavedCloudFormationEvents.unsubscribe();
     };
-  }, [deploymentClientService, status, deploymentStartTime, events]);
+  }, [deploymentClientService, status]);
 
   // Separate useEffect for requesting events and polling
   useEffect(() => {
     if (status === 'deploying' || status === 'deleting') {
-      // Record deployment start time and clear previous events
-      setDeploymentStartTime(new Date());
       setEvents([]);
       setResourceStatuses({});
       setErrorState({
@@ -281,17 +224,16 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
         `DeploymentProgress: Requesting CloudFormation events, status: ${status}`,
       );
       deploymentClientService.getCloudFormationEvents();
-    } else {
-      // Only request saved CloudFormation events when not deploying or deleting
-      console.log('DeploymentProgress: Requesting saved CloudFormation events');
-      deploymentClientService.getSavedCloudFormationEvents();
-
-      // Also request current CloudFormation events for non-deployment states
-      console.log(
-        `DeploymentProgress: Requesting CloudFormation events, status: ${status}`,
-      );
-      deploymentClientService.getCloudFormationEvents();
     }
+    // Only request saved CloudFormation events when not deploying or deleting
+    console.log('DeploymentProgress: Requesting saved CloudFormation events');
+    deploymentClientService.getSavedCloudFormationEvents();
+
+    // Also request current CloudFormation events for non-deployment states
+    console.log(
+      `DeploymentProgress: Requesting CloudFormation events, status: ${status}`,
+    );
+    deploymentClientService.getCloudFormationEvents();
 
     // Set up polling for CloudFormation events during deployment or deletion
     let cfnEventsInterval: NodeJS.Timeout | null = null;

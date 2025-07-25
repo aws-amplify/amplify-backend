@@ -181,8 +181,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     storageManager: LocalStorageManager,
   ): void {
     // Listen for deployment started
-    sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {
-      void (async () => {
+    sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {      void (async () => {
         this.printer.log('Deployment started', LogLevel.DEBUG);
 
         const currentState = await getSandboxState();
@@ -195,6 +194,12 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           );
         }
 
+      // Clear CloudFormation events when a new deployment starts
+      storageManager.clearCloudFormationEvents();
+      this.printer.log(
+        'Cleared previous CloudFormation events',
+        LogLevel.DEBUG,
+      );
         const statusData: SandboxStatusData = {
           status: currentState, // This should be 'deploying' after deployment starts,
           identifier: backendId.name,
@@ -232,7 +237,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
         this.printer.log('Deletion started', LogLevel.DEBUG);
 
         const currentState = await getSandboxState();
-        const statusData: SandboxStatusData = {
+        // Clear CloudFormation events when a new deletion starts
+      storageManager.clearCloudFormationEvents();
+      this.printer.log(
+        'Cleared previous CloudFormation events',
+        LogLevel.DEBUG,
+      );
+      const statusData: SandboxStatusData = {
           status: currentState, // This should be 'deleting' after deletion starts
           identifier: backendId.name,
           message: 'Deletion started',
