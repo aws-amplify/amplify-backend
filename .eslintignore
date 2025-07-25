@@ -1,18 +1,20 @@
-# Ignore artifacts:
-build
-coverage
-bin
-lib
-docs
-temp
-API.md
-examples
-verdaccio-cache
-expected-cdk-out
-test-projects
-
-#auto generated files
-packages/client-config/src/client-config-schema
+node_modules/
+dist/
+cdk.out/
+*.js.map
+*.d.ts
+!packages/backend-secret/src/lib/crypto.d.ts
+coverage/
+.rush/
+.eslintrc.js
+userOutDir/
+generated/
+packages/cli/lib/
+templates/
+.next/
+.swc/
+test-out/
+packages/client-config/src/client-config.json
 
 # Directory below is git-ignored. We create and delete test projects in e2e tests there.
 packages/integration-tests/src/e2e-tests
@@ -20,3 +22,6 @@ packages/integration-tests/src/e2e-tests
 # Frontend code
 packages/cli/src/commands/sandbox/sandbox-devtools/react-app/**
 !packages/cli/src/commands/sandbox/sandbox-devtools/react-app/package.json
+
+# This causes OOM
+packages/form-generator/bundle.js
