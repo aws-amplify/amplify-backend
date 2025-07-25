@@ -249,35 +249,16 @@ void describe('Resource Management Integration Test', () => {
     await deployedResourcesReceived;
 
     // Now check that these resources were saved to storage
-    // Set up a promise that will resolve when we receive saved resources
-    const savedResourcesReceived = new Promise<{
-      name: string;
-      resources: Array<Record<string, unknown>>;
-    }>((resolve) => {
-      clientSocket.on(SOCKET_EVENTS.SAVED_RESOURCES, (data) => {
-        resolve(data);
-      });
-    });
-
-    // Request saved resources
-    clientSocket.emit(SOCKET_EVENTS.GET_SAVED_RESOURCES);
-
-    // Wait for the saved resources
-    const savedResourcesResponse = await savedResourcesReceived;
-
-    // Verify the response contains our test resources
-    assert.strictEqual(savedResourcesResponse.name, 'test-backend');
-    assert.deepStrictEqual(
-      savedResourcesResponse.resources.map(
-        (r: Record<string, unknown>) => r.physicalResourceId,
-      ),
-      testResources.map((r) => r.physicalResourceId),
-    );
+    const savedResources = storageManager.loadResources();
 
     // Verify resources were saved to storage
-    const savedResources = storageManager.loadResources();
     assert.ok(savedResources);
     assert.ok(savedResources.resources);
+    assert.strictEqual(savedResources.name, 'test-backend');
+    assert.deepStrictEqual(
+      savedResources.resources.map((r) => r.physicalResourceId),
+      testResources.map((r) => r.physicalResourceId),
+    );
   });
 
   void it('should return custom friendly names when requested', async () => {
