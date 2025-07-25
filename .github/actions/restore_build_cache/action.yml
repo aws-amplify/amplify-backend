@@ -31,7 +31,9 @@ runs:
     - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # version 4.2.0
       id: build-cache
       with:
-        path: '**/lib'
+        path: |
+          **/lib
+          packages/form-generator/node_modules
         key: ${{ github.sha }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true

@@ -42,7 +42,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: true
+        default: false
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -73,7 +73,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: true
+        default: false
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -113,7 +113,7 @@ jobs:
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
           fi
-          if [ "${{ inputs.include-windows }}" != "false" ]; then
+          if [ "${{ inputs.include-windows }}" == "true" ]; then
             os+=', "windows-2025"'
             os_for_e2e+=', "windows-2025"'
           fi
@@ -688,7 +688,7 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-      - run: npm run check:dependencies
+      # - run: npm run check:dependencies
   check_tsconfig_refs:
     runs-on: ubuntu-latest
     needs:

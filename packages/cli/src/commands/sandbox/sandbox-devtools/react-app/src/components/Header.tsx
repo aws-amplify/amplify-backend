@@ -5,7 +5,7 @@ import {
   SpaceBetween,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -36,11 +36,6 @@ const Header = ({
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showStopDevToolsConfirmation, setShowStopDevToolsConfirmation] =
     useState(false);
-
-  // Reset loading state when sandbox status changes
-  useEffect(() => {
-    setIsLoading(false);
-  }, [sandboxStatus]);
 
   const handleStartSandbox = () => {
     onStartSandbox();
