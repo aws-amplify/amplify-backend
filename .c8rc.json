@@ -8,6 +8,7 @@
     "templates",
     "**/*.test.ts",
     "packages/ai-constructs/lib/conversation/runtime/default_handler_bundled",
+    "packages/form-generator/lib/bundled",
     "packages/plugin-types",
     "packages/integration-tests"
   ],
