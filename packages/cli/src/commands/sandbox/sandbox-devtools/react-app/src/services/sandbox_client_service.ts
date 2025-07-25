@@ -2,6 +2,7 @@ import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 import { DevToolsSandboxOptions } from '../../../shared/socket_types';
+import { ConsoleLogEntry } from '../components/ConsoleViewer';
 
 /**
  * Interface for sandbox status data
@@ -16,6 +17,13 @@ export interface SandboxStatusData {
   timestamp?: string;
 }
 
+/**
+ * Interface for log settings data
+ */
+export interface LogSettings {
+  maxLogSizeMB: number;
+  currentSizeMB?: number;
+}
 /**
  * Service for handling sandbox-related socket communication
  */
@@ -68,10 +76,22 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
-   * Gets saved deployment progress
+   * Saves log settings
+   * @param settings The log settings to save
    */
-  public getSavedDeploymentProgress(): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS);
+  public saveLogSettings(settings: LogSettings): void {
+    this.emit(SOCKET_EVENTS.SAVE_LOG_SETTINGS, settings);
+  }
+
+  /**
+   * Registers a handler for log settings events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onLogSettings(handler: (data: LogSettings) => void): {
+    unsubscribe: () => void;
+  } {
+    return this.on(SOCKET_EVENTS.LOG_SETTINGS, handler);
   }
 
   /**
@@ -94,5 +114,31 @@ export class SandboxClientService extends SocketClientService {
     }) => void,
   ): { unsubscribe: () => void } {
     return this.on('log', handler);
+  }
+
+  /**
+   * Saves console logs
+   * @param logs The console logs to save
+   */
+  public saveConsoleLogs(logs: ConsoleLogEntry[]): void {
+    this.emit(SOCKET_EVENTS.SAVE_CONSOLE_LOGS, { logs });
+  }
+
+  /**
+   * Loads saved console logs
+   */
+  public loadConsoleLogs(): void {
+    this.emit(SOCKET_EVENTS.LOAD_CONSOLE_LOGS);
+  }
+
+  /**
+   * Registers a handler for saved console logs events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onSavedConsoleLogs(handler: (logs: ConsoleLogEntry[]) => void): {
+    unsubscribe: () => void;
+  } {
+    return this.on(SOCKET_EVENTS.SAVED_CONSOLE_LOGS, handler);
   }
 }
