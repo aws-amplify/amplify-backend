@@ -12,8 +12,8 @@ describe('Resource Management and Error Recovery Flow', () => {
 
   // Set up the test server before each test
   beforeEach(async () => {
-    // Start the DevTools server
-    devToolsServer = new TestDevToolsServer();
+    // Start the DevTools server with a unique storage identifier for this test file
+    devToolsServer = new TestDevToolsServer('resource-management-test-storage');
 
     // Clear any stored data to prevent test contamination
     const storageManager = devToolsServer.getStorageManager();
