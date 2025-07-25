@@ -23,6 +23,15 @@ export type ResourceIdentifier = {
 };
 
 /**
+ * Type for updating a friendly name for a resource
+ * used in updateCustomFriendlyName events
+ */
+export type FriendlyNameUpdate = {
+  resourceId: string;
+  friendlyName: string;
+};
+
+/**
  * Type for backend resources data
  */
 export type BackendResourcesData = {

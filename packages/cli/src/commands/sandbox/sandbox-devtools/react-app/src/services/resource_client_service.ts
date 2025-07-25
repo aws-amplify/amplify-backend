@@ -2,6 +2,7 @@ import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import {
   BackendResourcesData,
+  FriendlyNameUpdate,
   ResourceIdentifier,
 } from '../../../shared/socket_types';
 
@@ -32,10 +33,11 @@ export class ResourceClientService extends SocketClientService {
     resourceId: string,
     friendlyName: string,
   ): void {
-    this.emit(SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME, {
+    const payload: FriendlyNameUpdate = {
       resourceId,
       friendlyName,
-    });
+    };
+    this.emit(SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME, payload);
   }
 
   /**

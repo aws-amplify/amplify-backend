@@ -12,7 +12,10 @@ import {
   CloudFormationEventDetails,
   CloudFormationEventsService,
 } from '../logging/cloudformation_format.js';
-import { ResourceIdentifier } from '../shared/socket_types.js';
+import {
+  FriendlyNameUpdate,
+  ResourceIdentifier,
+} from '../shared/socket_types.js';
 import { SocketEvents } from './socket_handlers.js';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
@@ -285,9 +288,7 @@ export class SocketHandlerResources {
   /**
    * Handles the updateCustomFriendlyName event
    */
-  public handleUpdateCustomFriendlyName(
-    data: SocketEvents['updateCustomFriendlyName'],
-  ): void {
+  public handleUpdateCustomFriendlyName(data: FriendlyNameUpdate): void {
     if (!data || !data.resourceId || !data.friendlyName) {
       return;
     }

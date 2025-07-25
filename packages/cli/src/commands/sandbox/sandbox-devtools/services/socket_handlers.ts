@@ -12,6 +12,7 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
   BackendResourcesData,
   DevToolsSandboxOptions,
+  FriendlyNameUpdate,
   ResourceIdentifier,
   ResourceLoggingToggle,
   SandboxStatusData,
@@ -45,10 +46,7 @@ export type SocketEvents = {
     maxLogSizeMB: number;
   };
   getCustomFriendlyNames: void;
-  updateCustomFriendlyName: {
-    resourceId: string;
-    friendlyName: string;
-  };
+  updateCustomFriendlyName: FriendlyNameUpdate;
   removeCustomFriendlyName: ResourceIdentifier;
 
   getSandboxStatus: void;
