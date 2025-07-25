@@ -13,6 +13,7 @@ import {
   BackendResourcesData,
   DevToolsSandboxOptions,
   FriendlyNameUpdate,
+  LogSettings,
   ResourceIdentifier,
   ResourceLoggingToggle,
   SandboxStatusData,
@@ -42,9 +43,7 @@ export type SocketEvents = {
   getSavedResourceLogs: ResourceIdentifier;
   getActiveLogStreams: void;
   getLogSettings: void;
-  saveLogSettings: {
-    maxLogSizeMB: number;
-  };
+  saveLogSettings: LogSettings;
   getCustomFriendlyNames: void;
   updateCustomFriendlyName: FriendlyNameUpdate;
   removeCustomFriendlyName: ResourceIdentifier;

@@ -44,6 +44,15 @@ export type BackendResourcesData = {
 };
 
 /**
+ * Type for log settings configuration
+ * used in saveLogSettings and getLogSettings events
+ */
+export type LogSettings = {
+  maxLogSizeMB: number;
+  currentSizeMB?: number;
+};
+
+/**
  * Type for sandbox status data sent with SANDBOX_STATUS events
  */
 export type SandboxStatusData = {

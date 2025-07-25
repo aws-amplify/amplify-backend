@@ -1,6 +1,7 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import {
+  LogSettings,
   ResourceIdentifier,
   ResourceLoggingToggle,
 } from '../../../shared/socket_types';
@@ -37,14 +38,6 @@ export interface LambdaTestResult {
   resourceId: string;
   result?: string;
   error?: string;
-}
-
-/**
- * Interface for log settings
- */
-export interface LogSettings {
-  maxLogSizeMB: number;
-  currentSizeMB?: number;
 }
 
 /**
