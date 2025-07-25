@@ -1,6 +1,9 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-import { ResourceLoggingToggle } from '../../../shared/socket_types';
+import {
+  ResourceIdentifier,
+  ResourceLoggingToggle,
+} from '../../../shared/socket_types';
 
 /**
  * Interface for log entry data
@@ -72,7 +75,8 @@ export class LoggingClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public viewResourceLogs(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.VIEW_RESOURCE_LOGS, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.VIEW_RESOURCE_LOGS, payload);
   }
 
   /**
@@ -80,7 +84,8 @@ export class LoggingClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public getSavedResourceLogs(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS, payload);
   }
 
   /**

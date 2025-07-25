@@ -12,7 +12,10 @@ import {
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { getLogGroupName } from '../logging/log_group_extractor.js';
-import { ResourceLoggingToggle } from '../shared/socket_types.js';
+import {
+  ResourceIdentifier,
+  ResourceLoggingToggle,
+} from '../shared/socket_types.js';
 import { SocketEvents } from './socket_handlers.js';
 
 /**
@@ -320,7 +323,7 @@ export class SocketHandlerLogging {
    */
   public handleViewResourceLogs(
     socket: Socket,
-    data: SocketEvents['viewResourceLogs'],
+    data: ResourceIdentifier,
   ): void {
     this.printer.log(
       `Viewing logs for resource ${data.resourceId}`,
@@ -368,7 +371,7 @@ export class SocketHandlerLogging {
    */
   public handleGetSavedResourceLogs(
     socket: Socket,
-    data: SocketEvents['getSavedResourceLogs'],
+    data: ResourceIdentifier,
   ): void {
     if (!data?.resourceId) {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {

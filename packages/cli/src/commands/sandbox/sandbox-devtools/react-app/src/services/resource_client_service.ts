@@ -1,6 +1,9 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-import { BackendResourcesData } from '../../../shared/socket_types';
+import {
+  BackendResourcesData,
+  ResourceIdentifier,
+} from '../../../shared/socket_types';
 
 /**
  * Service for handling resource-related socket communication
@@ -40,7 +43,8 @@ export class ResourceClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public removeCustomFriendlyName(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME, payload);
   }
 
   /**

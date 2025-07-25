@@ -12,6 +12,7 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
   BackendResourcesData,
   DevToolsSandboxOptions,
+  ResourceIdentifier,
   ResourceLoggingToggle,
   SandboxStatusData,
 } from '../shared/socket_types.js';
@@ -36,12 +37,8 @@ export type ConsoleLogEntry = {
  */
 export type SocketEvents = {
   toggleResourceLogging: ResourceLoggingToggle;
-  viewResourceLogs: {
-    resourceId: string;
-  };
-  getSavedResourceLogs: {
-    resourceId: string;
-  };
+  viewResourceLogs: ResourceIdentifier;
+  getSavedResourceLogs: ResourceIdentifier;
   getActiveLogStreams: void;
   getLogSettings: void;
   saveLogSettings: {
@@ -52,9 +49,7 @@ export type SocketEvents = {
     resourceId: string;
     friendlyName: string;
   };
-  removeCustomFriendlyName: {
-    resourceId: string;
-  };
+  removeCustomFriendlyName: ResourceIdentifier;
 
   getSandboxStatus: void;
   deploymentInProgress: {

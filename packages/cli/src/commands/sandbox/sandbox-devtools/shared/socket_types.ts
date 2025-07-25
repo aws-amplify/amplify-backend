@@ -15,6 +15,14 @@ export type ResourceLoggingToggle = {
 };
 
 /**
+ * Type for identifying a specific resource - used in multiple events
+ * like viewResourceLogs, getSavedResourceLogs, and removeCustomFriendlyName
+ */
+export type ResourceIdentifier = {
+  resourceId: string;
+};
+
+/**
  * Type for backend resources data
  */
 export type BackendResourcesData = {
