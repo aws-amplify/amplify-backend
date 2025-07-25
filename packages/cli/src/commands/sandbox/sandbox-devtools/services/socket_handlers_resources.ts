@@ -180,13 +180,15 @@ export class SocketHandlerResources {
           socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, cachedEvents);
           return;
         }
+        // No cached events and we're not in a deployment state,
+        // so don't fetch anything - just return
+        socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, []);
+        return;
       }
 
-      // Only get events since the last one we've seen if we're in an active deployment or deletion
-      const sinceTimestamp =
-        sandboxState === 'deploying' || sandboxState === 'deleting'
-          ? this.lastEventTimestamp[this.backendId.name]
-          : undefined;
+      // We only reach this code if we're in a deploying or deleting state
+      // Get events since the last one we've seen
+      const sinceTimestamp = this.lastEventTimestamp[this.backendId.name];
 
       // Fetch fresh events from CloudFormation API
       const events = await this.cloudFormationEventsService.getStackEvents(
