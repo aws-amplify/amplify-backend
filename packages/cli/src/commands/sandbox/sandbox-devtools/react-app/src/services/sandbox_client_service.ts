@@ -2,6 +2,7 @@ import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 import { DevToolsSandboxOptions } from '../../../shared/socket_types';
+import { DeploymentEvent } from './deployment_client_service';
 
 /**
  * Interface for sandbox status data
@@ -68,10 +69,10 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
-   * Gets saved deployment progress
+   * Gets saved CloudFormation events
    */
-  public getSavedDeploymentProgress(): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_DEPLOYMENT_PROGRESS);
+  public getSavedCloudFormationEvents(): void {
+    this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
   }
 
   /**
@@ -94,5 +95,16 @@ export class SandboxClientService extends SocketClientService {
     }) => void,
   ): { unsubscribe: () => void } {
     return this.on('log', handler);
+  }
+
+  /**
+   * Registers a handler for saved CloudFormation events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onSavedCloudFormationEvents(
+    handler: (events: DeploymentEvent[]) => void,
+  ): { unsubscribe: () => void } {
+    return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 }

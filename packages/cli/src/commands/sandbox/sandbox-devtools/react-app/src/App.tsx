@@ -2,10 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import ConsoleViewer from './components/ConsoleViewer';
 import Header from './components/Header';
 import ResourceConsole from './components/ResourceConsole';
+import DeploymentProgress from './components/DeploymentProgress';
 import SandboxOptionsModal from './components/SandboxOptionsModal';
 import { DevToolsSandboxOptions } from '../../shared/socket_types';
 import { SocketClientProvider } from './contexts/socket_client_context';
-import { useSandboxClientService } from './contexts/socket_client_context';
+import {
+  useSandboxClientService,
+  useDeploymentClientService,
+} from './contexts/socket_client_context';
 import { SandboxStatusData } from './services/sandbox_client_service';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
@@ -54,6 +58,7 @@ function AppContent() {
   const [isStartingLoading, setIsStartingLoading] = useState(false);
 
   const sandboxClientService = useSandboxClientService();
+  const deploymentClientService = useDeploymentClientService();
 
   const deploymentInProgress = sandboxStatus === 'deploying';
 
@@ -89,11 +94,6 @@ function AppContent() {
         }
 
         if (data.deploymentCompleted) {
-          console.log(
-            '[CLIENT] Deployment completed event received via sandboxStatus:',
-            data,
-          );
-
           // Add deployment completion log
           setLogs((prev) => [
             ...prev,
@@ -450,7 +450,16 @@ function AppContent() {
             {
               id: 'logs',
               label: 'Console Logs',
-              content: <ConsoleViewer logs={logs} />,
+              content: (
+                <SpaceBetween size="l">
+                  <DeploymentProgress
+                    deploymentClientService={deploymentClientService}
+                    visible={true}
+                    status={sandboxStatus}
+                  />
+                  <ConsoleViewer logs={logs} />
+                </SpaceBetween>
+              ),
             },
             {
               id: 'resources',
