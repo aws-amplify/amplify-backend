@@ -171,25 +171,29 @@ void describe('Complex Error Scenarios Integration Test', () => {
   });
 
   void it('should recover from storage corruption', async () => {
-    // Simulate corrupted storage by mocking loadResources to throw an error
+    // Simulate corrupted storage by making loadResources throw
     const originalLoadResources = storageManager.loadResources;
-    storageManager.loadResources = () => null;
+    storageManager.loadResources = () => {
+      throw new Error('Storage corrupted');
+    };
 
-    // Set up a promise that will resolve when we receive resources
-    const resourcesReceived = new Promise<unknown>((resolve) => {
-      clientSocket.on(SOCKET_EVENTS.SAVED_RESOURCES, (data) => {
+    // Set up promise to capture the response
+    const responseReceived = new Promise<{
+      status: string;
+      error?: string;
+    }>((resolve) => {
+      clientSocket.on(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, (data) => {
         resolve(data);
       });
     });
 
-    // Request saved resources
-    clientSocket.emit(SOCKET_EVENTS.GET_SAVED_RESOURCES);
+    // Trigger operation that uses storage
+    clientSocket.emit(SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES);
 
-    // Wait for the response
-    const resources = await resourcesReceived;
+    const response = await responseReceived;
 
-    // Should recover by returning an empty array instead of crashing
-    assert.deepStrictEqual(resources, []);
+    // Should handle corruption gracefully
+    assert.strictEqual(response.status, 'success');
 
     // Restore the original method
     storageManager.loadResources = originalLoadResources;
@@ -297,7 +301,6 @@ void describe('Complex Error Scenarios Integration Test', () => {
     // Request multiple things simultaneously
     clientSocket.emit(SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES);
     clientSocket.emit(SOCKET_EVENTS.GET_SANDBOX_STATUS);
-    clientSocket.emit(SOCKET_EVENTS.GET_SAVED_RESOURCES);
 
     // Wait for responses
     const resourcesResponse = await resourcesResponseReceived;
