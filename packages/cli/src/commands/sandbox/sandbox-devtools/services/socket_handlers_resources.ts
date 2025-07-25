@@ -248,9 +248,19 @@ export class SocketHandlerResources {
 
         // Save the merged events
         this.storageManager.saveCloudFormationEvents(mergedEvents);
-      }
 
-      socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, formattedEvents);
+        // During active deployments, send ALL merged events to ensure complete history
+        // Otherwise just send the new events we just fetched
+        const isActiveDeployment =
+          sandboxState === 'deploying' || sandboxState === 'deleting';
+        socket.emit(
+          SOCKET_EVENTS.CLOUD_FORMATION_EVENTS,
+          isActiveDeployment ? mergedEvents : formattedEvents,
+        );
+      } else {
+        // If no new events were merged, just send whatever we fetched
+        socket.emit(SOCKET_EVENTS.CLOUD_FORMATION_EVENTS, formattedEvents);
+      }
     } catch (error) {
       this.printer.log(
         `Error fetching CloudFormation events: ${String(error)}`,

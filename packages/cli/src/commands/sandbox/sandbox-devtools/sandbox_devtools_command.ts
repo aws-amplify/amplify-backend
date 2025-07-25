@@ -185,6 +185,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       void (async () => {
         this.printer.log('Deployment started', LogLevel.DEBUG);
 
+        // Clear CloudFormation events when a new deployment starts
+        storageManager.clearCloudFormationEvents();
+        this.printer.log(
+          'Cleared previous CloudFormation events',
+          LogLevel.DEBUG,
+        );
+
         const currentState = await getSandboxState();
 
         // Add a warning log if the state is not 'deploying'
@@ -230,6 +237,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     sandbox.on('deletionStarted', (data: { timestamp?: string }) => {
       void (async () => {
         this.printer.log('Deletion started', LogLevel.DEBUG);
+
+        // Clear CloudFormation events when a new deletion starts
+        storageManager.clearCloudFormationEvents();
+        this.printer.log(
+          'Cleared previous CloudFormation events',
+          LogLevel.DEBUG,
+        );
 
         const currentState = await getSandboxState();
         const statusData: SandboxStatusData = {

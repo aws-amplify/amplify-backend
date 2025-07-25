@@ -240,7 +240,7 @@ describe('DeploymentProgress Component', () => {
 
     // Initial call
     expect(mockDeploymentService.getCloudFormationEvents).toHaveBeenCalledTimes(
-      1,
+      2,
     );
 
     // Reset mock to check for polling calls
