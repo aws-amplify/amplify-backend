@@ -1,17 +1,6 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-
-/**
- * Type for a resource with friendly name
- */
-export interface ResourceWithFriendlyName {
-  logicalResourceId: string;
-  physicalResourceId: string;
-  resourceType: string;
-  resourceStatus: string;
-  friendlyName?: string;
-  consoleUrl?: string | null;
-}
+import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 
 /**
  * Type for backend resources data

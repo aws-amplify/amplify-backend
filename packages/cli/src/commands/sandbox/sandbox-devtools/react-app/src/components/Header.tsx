@@ -19,6 +19,8 @@ interface HeaderProps {
   onStopDevTools?: () => void;
   onOpenSettings?: () => void;
   isStartingLoading?: boolean;
+  isStoppingLoading?: boolean;
+  isDeletingLoading?: boolean;
 }
 
 const Header = ({
@@ -31,8 +33,9 @@ const Header = ({
   onStopDevTools,
   onOpenSettings,
   isStartingLoading = false,
+  isStoppingLoading = false,
+  isDeletingLoading = false,
 }: HeaderProps) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showStopDevToolsConfirmation, setShowStopDevToolsConfirmation] =
     useState(false);
@@ -42,7 +45,6 @@ const Header = ({
   };
 
   const handleStopSandbox = () => {
-    setIsLoading(true);
     onStopSandbox();
   };
 
@@ -52,7 +54,6 @@ const Header = ({
 
   const confirmDeleteSandbox = () => {
     setShowDeleteConfirmation(false);
-    setIsLoading(true);
     onDeleteSandbox?.();
   };
 
@@ -151,7 +152,7 @@ const Header = ({
               <Button
                 onClick={handleStopSandbox}
                 iconName="close"
-                loading={isLoading || isDeploying}
+                loading={isStoppingLoading || isDeploying}
                 disabled={
                   !connected || sandboxStatus !== 'running' || isDeleting
                 }
@@ -174,7 +175,7 @@ const Header = ({
                 onClick={handleDeleteSandbox}
                 iconName="remove"
                 variant="link"
-                loading={isLoading}
+                loading={isDeletingLoading}
                 disabled={
                   !connected ||
                   sandboxStatus === 'nonexistent' ||

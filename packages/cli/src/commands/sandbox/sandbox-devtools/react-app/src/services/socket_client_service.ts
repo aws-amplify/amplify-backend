@@ -16,9 +16,14 @@ export class SocketClientService {
 
   /**
    * Creates a new SocketClientService
+   * @param socketFactory Optional factory function to create the socket (useful for testing)
    */
-  constructor() {
-    this.initialize();
+  constructor(socketFactory?: () => Socket) {
+    if (socketFactory) {
+      this.socket = socketFactory();
+    } else {
+      this.initialize();
+    }
   }
 
   /**
@@ -57,11 +62,6 @@ export class SocketClientService {
   /**
    * Registers a handler for connection events
    * @param handler The event handler
-   * @returns A function to unsubscribe
-   */
-  /**
-   * Registers a handler for connection events
-   * @param handler The event handler
    * @returns An object with an unsubscribe method
    */
   public onConnect(handler: ConnectionHandler): { unsubscribe: () => void } {
@@ -70,11 +70,6 @@ export class SocketClientService {
     return { unsubscribe: () => this.socket?.off('connect', handler) };
   }
 
-  /**
-   * Registers a handler for disconnection events
-   * @param handler The event handler
-   * @returns A function to unsubscribe
-   */
   /**
    * Registers a handler for disconnection events
    * @param handler The event handler
@@ -91,11 +86,6 @@ export class SocketClientService {
   /**
    * Registers a handler for connection error events
    * @param handler The event handler
-   * @returns A function to unsubscribe
-   */
-  /**
-   * Registers a handler for connection error events
-   * @param handler The event handler
    * @returns An object with an unsubscribe method
    */
   public onConnectError(handler: ErrorHandler): { unsubscribe: () => void } {
@@ -108,11 +98,6 @@ export class SocketClientService {
    * Registers a handler for connection timeout events
    * @param handler The event handler
    * @returns A function to unsubscribe
-   */
-  /**
-   * Registers a handler for connection timeout events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
    */
   public onConnectTimeout(handler: ConnectionHandler): {
     unsubscribe: () => void;
@@ -127,11 +112,6 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  /**
-   * Registers a handler for reconnection events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
-   */
   public onReconnect(handler: (attempt: number) => void): {
     unsubscribe: () => void;
   } {
@@ -144,11 +124,6 @@ export class SocketClientService {
    * Registers a handler for reconnection attempt events
    * @param handler The event handler
    * @returns A function to unsubscribe
-   */
-  /**
-   * Registers a handler for reconnection attempt events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
    */
   public onReconnectAttempt(handler: (attempt: number) => void): {
     unsubscribe: () => void;
@@ -165,11 +140,6 @@ export class SocketClientService {
    * @param handler The event handler
    * @returns A function to unsubscribe
    */
-  /**
-   * Registers a handler for reconnection error events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
-   */
   public onReconnectError(handler: ErrorHandler): { unsubscribe: () => void } {
     if (!this.socket) return { unsubscribe: () => {} };
     this.socket.on('reconnect_error', handler);
@@ -180,11 +150,6 @@ export class SocketClientService {
    * Registers a handler for reconnection failed events
    * @param handler The event handler
    * @returns A function to unsubscribe
-   */
-  /**
-   * Registers a handler for reconnection failed events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
    */
   public onReconnectFailed(handler: ConnectionHandler): {
     unsubscribe: () => void;
@@ -198,11 +163,6 @@ export class SocketClientService {
    * Starts a periodic ping to check connection health
    * @param interval The ping interval in milliseconds
    * @returns A function to stop the ping
-   */
-  /**
-   * Starts a periodic ping to check connection health
-   * @param interval The ping interval in milliseconds
-   * @returns An object with an unsubscribe method to stop the ping
    */
   public startPingInterval(interval: number = 30000): {
     unsubscribe: () => void;
@@ -295,12 +255,6 @@ export class SocketClientService {
     });
   }
 
-  /**
-   * Registers a handler for an event
-   * @param event The event name
-   * @param handler The event handler
-   * @returns A function to unsubscribe
-   */
   /**
    * Registers a handler for an event
    * @param event The event name
