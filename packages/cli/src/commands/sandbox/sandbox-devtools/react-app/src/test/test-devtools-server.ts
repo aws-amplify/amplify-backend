@@ -99,7 +99,7 @@ export class TestDevToolsServer {
   } as BackendIdentifier;
   private logger: DevToolsLogger;
 
-  constructor() {
+  constructor(storageIdentifier?: string) {
     // Create Socket.IO server
     this.io = new SocketIOServer(this.httpServer, {
       cors: { origin: '*', methods: ['GET', 'POST'] },
@@ -108,8 +108,15 @@ export class TestDevToolsServer {
     // Create mock sandbox
     this.sandbox = new MockSandbox();
 
-    // Create storage manager with test identifier
-    this.storageManager = new LocalStorageManager('test-devtools', {
+    // Create storage manager with unique test identifier
+    const uniqueId =
+      storageIdentifier ||
+      `test-devtools-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log(
+      `TEST DEBUG: Creating TestDevToolsServer with storage ID: ${uniqueId}`,
+    );
+
+    this.storageManager = new LocalStorageManager(uniqueId, {
       maxLogSizeMB: 10,
     });
 
@@ -142,12 +149,24 @@ export class TestDevToolsServer {
       this.logger,
     );
 
-    // Create resource service with minimal mocking
+    // Create resource service with properly mocked backend client
+    const mockBackendClient = {
+      getBackendMetadata: () => {
+        // Return the stored resources when called
+        const storedData = this.storageManager.loadResources();
+        return Promise.resolve({
+          name: this.backendId.name,
+          status: 'deployed',
+          resources: storedData?.resources || [],
+        });
+      },
+    } as unknown as DeployedBackendClient;
+
     const resourceService = new ResourceService(
       this.storageManager,
       this.backendId.name,
       getSandboxState,
-      {} as unknown as DeployedBackendClient, // Mock backend client
+      mockBackendClient,
       undefined,
       undefined,
       this.logger,
@@ -255,6 +274,21 @@ export class TestDevToolsServer {
    */
   public getStorageManager(): LocalStorageManager {
     return this.storageManager;
+  }
+
+  /**
+   * Get the socket server for debugging
+   */
+  public getSocketServer(): SocketIOServer {
+    return this.io;
+  }
+
+  /**
+   * Get current resources from storage
+   */
+  public getResources(): Array<Partial<ResourceWithFriendlyName>> | null {
+    const storedData = this.storageManager.loadResources();
+    return storedData?.resources || null;
   }
 
   /**
