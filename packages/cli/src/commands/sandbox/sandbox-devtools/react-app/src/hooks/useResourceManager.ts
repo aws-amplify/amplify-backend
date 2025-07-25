@@ -21,7 +21,7 @@ export const useResourceManager = (
   const resourceClientService = useResourceClientService();
   const loggingClientService = useLoggingClientService();
   const [resources, setResources] = useState<ResourceWithFriendlyName[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [customFriendlyNames, setCustomFriendlyNames] = useState<
     Record<string, string>

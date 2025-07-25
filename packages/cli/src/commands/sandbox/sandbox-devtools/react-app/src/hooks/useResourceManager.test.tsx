@@ -97,7 +97,7 @@ describe('useResourceManager hook', () => {
     const { result } = renderHook(() => useResourceManager());
 
     expect(result.current.resources).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
     expect(result.current.region).toBeNull();
     expect(result.current.customFriendlyNames).toEqual({});
