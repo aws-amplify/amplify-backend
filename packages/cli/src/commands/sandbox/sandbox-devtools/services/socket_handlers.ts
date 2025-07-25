@@ -319,6 +319,7 @@ export class SocketHandlerService {
           resources: [],
           region: null,
           message: `Error fetching resources: ${errorMessage}`,
+          error: errorMessage,
         };
         socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
       }
@@ -327,12 +328,14 @@ export class SocketHandlerService {
         `Error in handleGetDeployedBackendResources: ${String(error)}`,
         LogLevel.ERROR,
       );
+      const errorMessage = String(error);
       const errorResponse: BackendResourcesData = {
         name: this.backendId.name,
         status: 'error',
         resources: [],
         region: null,
-        message: `Error checking sandbox status: ${String(error)}`,
+        message: `Error checking sandbox status: ${errorMessage}`,
+        error: errorMessage,
       };
       socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
     }
