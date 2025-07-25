@@ -13,6 +13,7 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { getLogGroupName } from '../logging/log_group_extractor.js';
 import {
+  LogStreamStatus,
   ResourceIdentifier,
   ResourceLoggingToggle,
 } from '../shared/socket_types.js';
@@ -259,7 +260,7 @@ export class SocketHandlerLogging {
     status: 'starting' | 'active' | 'already-active' | 'stopped',
     socket?: Socket,
   ): void {
-    const statusPayload = {
+    const statusPayload: LogStreamStatus = {
       resourceId,
       status,
     };
@@ -334,7 +335,7 @@ export class SocketHandlerLogging {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {
         resourceId: 'unknown',
         error: 'Invalid resource ID provided',
-      });
+      } as LogStreamStatus);
       return;
     }
 
@@ -362,7 +363,7 @@ export class SocketHandlerLogging {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {
         resourceId: data.resourceId,
         error: `Error loading logs: ${String(error)}`,
-      });
+      } as LogStreamStatus);
     }
   }
 

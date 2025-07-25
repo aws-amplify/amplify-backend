@@ -19,15 +19,10 @@ import {
   SandboxStatusData,
 } from '../shared/socket_types.js';
 
-// Define the return type of mock.fn()
 type MockFn = ReturnType<typeof mock.fn>;
 
-// Type for handler functions
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EventHandler = (...args: any[]) => void | Promise<void>;
+type EventHandler<T = unknown> = (data?: T) => void | Promise<void>;
 
-// Mock call type with more specific typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockCall = {
   arguments: readonly unknown[];
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  LogEntry,
   LoggingClientService,
 } from '../services/logging_client_service';
 import {
@@ -15,6 +14,7 @@ import {
   Link,
   Alert,
 } from '@cloudscape-design/components';
+import { LambdaTestResult, LogEntry, LogStreamStatus } from '../../../shared/socket_types';
 
 interface ResourceLogPanelProps {
   loggingClientService: LoggingClientService;
@@ -206,11 +206,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     };
 
     // Listen for errors - always cache errors regardless of active resource
-    const handleLogStreamError = (data: {
-      resourceId: string;
-      error?: string;
-      status: string;
-    }) => {
+    const handleLogStreamError = (data: LogStreamStatus) => {
       // Store error in cache for the specific resource
       if (data.error) {
         errorCache[data.resourceId] = data.error;
@@ -231,11 +227,7 @@ ${JSON.stringify(parsed.body, null, 2)}`;
     };
 
     // Listen for Lambda test results
-    const handleLambdaTestResult = (data: {
-      resourceId: string;
-      result?: string;
-      error?: string;
-    }) => {
+    const handleLambdaTestResult = (data: LambdaTestResult) => {
       setLoading(data.resourceId, false);
 
       // Always save the output for this resource, regardless of which resource is currently displayed

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ConsoleViewer, { ConsoleLogEntry } from './ConsoleViewer';
+import ConsoleViewer from './ConsoleViewer';
+import { ConsoleLogEntry } from '../../../shared/socket_types';
 
 describe('ConsoleViewer Component', () => {
   // Sample log entries for testing

@@ -2,43 +2,12 @@ import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import {
   LogSettings,
+  LogStreamStatus,
+  LambdaTestResult,
   ResourceIdentifier,
+  ResourceLogs,
   ResourceLoggingToggle,
 } from '../../../shared/socket_types';
-
-/**
- * Interface for log entry data
- */
-export interface LogEntry {
-  timestamp: string;
-  message: string;
-}
-
-/**
- * Interface for log stream status
- */
-export interface LogStreamStatus {
-  resourceId: string;
-  status: string;
-  error?: string;
-}
-
-/**
- * Interface for resource logs
- */
-export interface ResourceLogs {
-  resourceId: string;
-  logs: LogEntry[];
-}
-
-/**
- * Interface for Lambda test result
- */
-export interface LambdaTestResult {
-  resourceId: string;
-  result?: string;
-  error?: string;
-}
 
 /**
  * Service for handling logging-related socket communication

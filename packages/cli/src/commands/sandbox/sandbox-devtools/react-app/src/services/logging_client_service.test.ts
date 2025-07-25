@@ -1,11 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import {
-  LoggingClientService,
-  LogStreamStatus,
-} from './logging_client_service';
+import { LoggingClientService } from './logging_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { createMockSocket } from './test_helpers';
+import { LogStreamStatus } from '../../../shared/socket_types';
 
 void describe('LoggingClientService', () => {
   let service: LoggingClientService;

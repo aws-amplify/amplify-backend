@@ -4,14 +4,13 @@ import Header from './components/Header';
 import ResourceConsole from './components/ResourceConsole';
 import DeploymentProgress from './components/DeploymentProgress';
 import SandboxOptionsModal from './components/SandboxOptionsModal';
-import { DevToolsSandboxOptions } from '../../shared/socket_types';
+import { DevToolsSandboxOptions, SandboxStatusData } from '../../shared/socket_types';
 import LogSettingsModal, { LogSettings } from './components/LogSettingsModal';
 import { SocketClientProvider } from './contexts/socket_client_context';
 import {
   useSandboxClientService,
   useDeploymentClientService,
 } from './contexts/socket_client_context';
-import { SandboxStatusData } from './services/sandbox_client_service';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
 import {
@@ -22,7 +21,7 @@ import {
   Alert,
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
-import { ConsoleLogEntry } from './components/ConsoleViewer';
+import { ConsoleLogEntry } from '../../shared/socket_types';
 
 /**
  * Main App component that wraps the application with the socket client provider

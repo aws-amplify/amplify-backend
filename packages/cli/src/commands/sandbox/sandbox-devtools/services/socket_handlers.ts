@@ -11,6 +11,7 @@ import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
   BackendResourcesData,
+  ConsoleLogEntry,
   DevToolsSandboxOptions,
   FriendlyNameUpdate,
   LogSettings,
@@ -23,16 +24,6 @@ import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SocketHandlerLogging } from './socket_handlers_logging.js';
 import { SocketHandlerResources } from './socket_handlers_resources.js';
-
-/**
- * Console log entry interface
- */
-export type ConsoleLogEntry = {
-  id: string;
-  timestamp: string;
-  level: string;
-  message: string;
-};
 
 /**
  * Interface for socket event data types

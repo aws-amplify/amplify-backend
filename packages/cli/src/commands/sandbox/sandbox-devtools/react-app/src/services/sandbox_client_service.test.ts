@@ -1,10 +1,12 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
 import { SandboxClientService } from './sandbox_client_service';
-import { DevToolsSandboxOptions } from '../../../shared/socket_types';
+import {
+  DevToolsSandboxOptions,
+  LogStreamStatus,
+} from '../../../shared/socket_types';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
 import { createMockSocket } from './test_helpers';
-import { LogStreamStatus } from './logging_client_service';
 
 void describe('SandboxClientService', () => {
   let service: SandboxClientService;

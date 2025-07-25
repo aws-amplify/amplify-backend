@@ -3,10 +3,15 @@ import { render, screen, act, within } from '@testing-library/react';
 import App from './App';
 import * as socketClientContext from './contexts/socket_client_context';
 import { SandboxStatus } from '@aws-amplify/sandbox';
-import { DevToolsSandboxOptions } from '../../shared/socket_types';
-import type { ConsoleLogEntry } from './components/ConsoleViewer';
+import { 
+  ConsoleLogEntry, 
+  DevToolsSandboxOptions,
+  LogEntry,
+  SandboxStatusData
+} from '../../shared/socket_types';
 import type { LogSettings } from './components/LogSettingsModal';
-import type { SandboxStatusData } from './services/sandbox_client_service';
+import type { SandboxClientService } from './services/sandbox_client_service';
+import { DeploymentClientService } from './services/deployment_client_service';
 
 // Mock the socket context
 vi.mock('./contexts/socket_client_context', async () => {
@@ -175,7 +180,7 @@ vi.mock('./components/DeploymentProgress', () => ({
       visible,
       status,
     }: {
-      deploymentClientService: any;
+      deploymentClientService: DeploymentClientService;
       visible: boolean;
       status: SandboxStatus;
     }) => (
@@ -264,10 +269,10 @@ describe('App Component', () => {
     const subscribers = {
       connect: [] as Array<() => void>,
       disconnect: [] as Array<(reason: string) => void>,
-      log: [] as Array<(data: any) => void>,
-      sandboxStatus: [] as Array<(data: any) => void>,
-      logSettings: [] as Array<(data: any) => void>,
-      savedConsoleLogs: [] as Array<(data: any) => void>,
+      log: [] as Array<(data: LogEntry) => void>,
+      sandboxStatus: [] as Array<(data: SandboxStatusData) => void>,
+      logSettings: [] as Array<(data: LogSettings) => void>,
+      savedConsoleLogs: [] as Array<(data: ConsoleLogEntry[]) => void>,
       connectError: [] as Array<(error: Error) => void>,
       connectTimeout: [] as Array<() => void>,
       reconnect: [] as Array<(attemptNumber: number) => void>,
@@ -409,7 +414,7 @@ describe('App Component', () => {
       emitDisconnect: (reason: string) => {
         subscribers.disconnect.forEach((handler) => handler(reason));
       },
-      emitLog: (logData: any) => {
+      emitLog: (logData: ConsoleLogEntry) => {
         // Ensure we have a unique ID if not provided
         const logWithId = {
           ...logData,
@@ -419,13 +424,13 @@ describe('App Component', () => {
         };
         subscribers.log.forEach((handler) => handler(logWithId));
       },
-      emitSandboxStatus: (statusData: any) => {
+      emitSandboxStatus: (statusData: SandboxStatusData) => {
         subscribers.sandboxStatus.forEach((handler) => handler(statusData));
       },
-      emitLogSettings: (settingsData: any) => {
+      emitLogSettings: (settingsData: LogSettings) => {
         subscribers.logSettings.forEach((handler) => handler(settingsData));
       },
-      emitSavedConsoleLogs: (logs: any[]) => {
+      emitSavedConsoleLogs: (logs: ConsoleLogEntry[]) => {
         subscribers.savedConsoleLogs.forEach((handler) => handler(logs));
       },
       emitConnectError: (error: Error) => {
@@ -470,10 +475,10 @@ describe('App Component', () => {
     mockDeploymentService = createMockDeploymentService();
 
     vi.mocked(socketClientContext.useSandboxClientService).mockReturnValue(
-      mockSandboxService as any,
+      mockSandboxService as unknown as SandboxClientService,
     );
     vi.mocked(socketClientContext.useDeploymentClientService).mockReturnValue(
-      mockDeploymentService as any,
+      mockDeploymentService as unknown as DeploymentClientService,
     );
 
     // Mock localStorage

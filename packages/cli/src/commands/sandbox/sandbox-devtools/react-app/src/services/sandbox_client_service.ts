@@ -1,30 +1,13 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-import { SandboxStatus } from '@aws-amplify/sandbox';
-import { DevToolsSandboxOptions } from '../../../shared/socket_types';
-import { ConsoleLogEntry } from '../components/ConsoleViewer';
+import {
+  LogSettings,
+  SandboxStatusData,
+  ConsoleLogEntry,
+  DevToolsSandboxOptions,
+} from '../../../shared/socket_types';
 import { DeploymentEvent } from './deployment_client_service';
 
-/**
- * Interface for sandbox status data
- */
-export interface SandboxStatusData {
-  status: SandboxStatus;
-  error?: string;
-  identifier?: string;
-  stackStatus?: string;
-  deploymentCompleted?: boolean;
-  message?: string;
-  timestamp?: string;
-}
-
-/**
- * Interface for log settings data
- */
-export interface LogSettings {
-  maxLogSizeMB: number;
-  currentSizeMB?: number;
-}
 /**
  * Service for handling sandbox-related socket communication
  */
@@ -114,13 +97,9 @@ export class SandboxClientService extends SocketClientService {
    * @param handler The event handler
    * @returns An object with an unsubscribe method
    */
-  public onLog(
-    handler: (data: {
-      timestamp: string;
-      level: string;
-      message: string;
-    }) => void,
-  ): { unsubscribe: () => void } {
+  public onLog(handler: (data: ConsoleLogEntry) => void): {
+    unsubscribe: () => void;
+  } {
     return this.on('log', handler);
   }
 

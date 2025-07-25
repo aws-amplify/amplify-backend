@@ -53,6 +53,16 @@ export type LogSettings = {
 };
 
 /**
+ * Type for console log entries used in both the frontend and backend
+ */
+export type ConsoleLogEntry = {
+  id: string;
+  timestamp: string;
+  level: string;
+  message: string;
+};
+
+/**
  * Type for sandbox status data sent with SANDBOX_STATUS events
  */
 export type SandboxStatusData = {
@@ -63,8 +73,9 @@ export type SandboxStatusData = {
 
   /**
    * Identifier for the backend
+   * Made optional for compatibility with frontend
    */
-  identifier: string;
+  identifier?: string;
 
   /**
    * Optional error message when something goes wrong
@@ -80,6 +91,50 @@ export type SandboxStatusData = {
    * Optional status message for user feedback
    */
   message?: string;
+
+  /**
+   * Optional CloudFormation stack status
+   */
+  stackStatus?: string;
+
+  /**
+   * Flag indicating if a deployment has completed
+   */
+  deploymentCompleted?: boolean;
+};
+
+/**
+ * Interface for log stream status
+ */
+export type LogStreamStatus = {
+  resourceId: string;
+  status: string;
+  error?: string;
+};
+
+/**
+ * Interface for log entry data
+ */
+export type LogEntry = {
+  timestamp: string;
+  message: string;
+};
+
+/**
+ * Interface for resource logs
+ */
+export type ResourceLogs = {
+  resourceId: string;
+  logs: LogEntry[];
+};
+
+/**
+ * Interface for Lambda test result
+ */
+export type LambdaTestResult = {
+  resourceId: string;
+  result?: string;
+  error?: string;
 };
 
 /**
