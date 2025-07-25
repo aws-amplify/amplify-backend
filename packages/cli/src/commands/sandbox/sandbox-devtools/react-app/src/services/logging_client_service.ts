@@ -1,5 +1,6 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
+import { ResourceLoggingToggle } from '../../../shared/socket_types';
 
 /**
  * Interface for log entry data
@@ -58,11 +59,12 @@ export class LoggingClientService extends SocketClientService {
     resourceType: string,
     startLogging: boolean,
   ): void {
-    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, {
+    const payload: ResourceLoggingToggle = {
       resourceId,
       resourceType,
       startLogging,
-    });
+    };
+    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, payload);
   }
 
   /**

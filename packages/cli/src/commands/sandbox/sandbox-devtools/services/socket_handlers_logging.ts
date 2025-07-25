@@ -12,6 +12,7 @@ import {
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { getLogGroupName } from '../logging/log_group_extractor.js';
+import { ResourceLoggingToggle } from '../shared/socket_types.js';
 import { SocketEvents } from './socket_handlers.js';
 
 /**
@@ -41,7 +42,7 @@ export class SocketHandlerLogging {
    */
   public async handleToggleResourceLogging(
     socket: Socket,
-    data: SocketEvents['toggleResourceLogging'],
+    data: ResourceLoggingToggle,
   ): Promise<void> {
     this.printer.log(
       `Toggle logging for ${data.resourceId}, startLogging=${data.startLogging}`,

@@ -5,6 +5,16 @@ import { ResourceWithFriendlyName } from '../resource_console_functions.js';
  */
 
 /**
+ * Type for toggling resource logging - used in both client and server components
+ * for controlling the logging state of AWS resources
+ */
+export type ResourceLoggingToggle = {
+  resourceId: string;
+  resourceType: string;
+  startLogging: boolean;
+};
+
+/**
  * Type for backend resources data
  */
 export type BackendResourcesData = {

@@ -12,6 +12,7 @@ import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
   BackendResourcesData,
   DevToolsSandboxOptions,
+  ResourceLoggingToggle,
   SandboxStatusData,
 } from '../shared/socket_types.js';
 import { ShutdownService } from './shutdown_service.js';
@@ -34,11 +35,7 @@ export type ConsoleLogEntry = {
  * Interface for socket event data types
  */
 export type SocketEvents = {
-  toggleResourceLogging: {
-    resourceId: string;
-    resourceType: string;
-    startLogging: boolean;
-  };
+  toggleResourceLogging: ResourceLoggingToggle;
   viewResourceLogs: {
     resourceId: string;
   };
