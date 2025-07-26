@@ -96,7 +96,11 @@ export class AmplifyCollectionGenerator
 
     const geoAspects = Aspects.of(Stack.of(amplifyCollection));
     if (!geoAspects.all.length) {
-      new AmplifyGeoOutputsAspect(this.getInstanceProps.outputStorageStrategy);
+      geoAspects.add(
+        new AmplifyGeoOutputsAspect(
+          this.getInstanceProps.outputStorageStrategy,
+        ),
+      );
     }
 
     return amplifyCollection;

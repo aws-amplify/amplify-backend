@@ -4,6 +4,7 @@ import {
   AuthClientConfigContributor as Auth1_3,
   CustomClientConfigContributor as Custom1_1,
   DataClientConfigContributor as Data1_1,
+  GeoClientConfigContributor as Geo1,
   StorageClientConfigContributorV1 as Storage1,
   StorageClientConfigContributorV1_1 as Storage1_1,
   StorageClientConfigContributor as Storage1_2,
@@ -39,6 +40,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersionOption.V1_4]: [
         new Auth1_3(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Geo1(),
         new Storage1_2(),
         new VersionContributor1_4(),
         new Custom1_1(),
@@ -47,6 +49,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersionOption.V1_3]: [
         new Auth1_3(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Geo1(),
         new Storage1_2(),
         new VersionContributorV1_3(),
         new Custom1_1(),
@@ -55,6 +58,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersionOption.V1_2]: [
         new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Geo1(),
         new Storage1_2(),
         new VersionContributorV1_2(),
         new Custom1_1(),
@@ -63,6 +67,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersionOption.V1_1]: [
         new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Geo1(),
         new Storage1_1(),
         new VersionContributorV1_1(),
         new Custom1_1(),
