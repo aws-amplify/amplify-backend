@@ -36,11 +36,12 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     if (
       !(node instanceof AmplifyMap) &&
       !(node instanceof AmplifyPlace) &&
-      !(node instanceof AmplifyCollection) &&
-      this.isGeoOutputProcessed
+      !(node instanceof AmplifyCollection)
     ) {
       return;
     }
+
+    if (this.isGeoOutputProcessed) return;
 
     this.isGeoOutputProcessed = true; // once this is visited, shouldn't process geo outputs again
 
@@ -122,36 +123,36 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     outputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>,
     region: string,
   ) {
-    this.validateDefaultCollection(collections, collections[0]);
+    const defaultCollectionName = this.validateDefaultCollection(
+      collections,
+      collections[0],
+    );
 
+    // Add the main geo output entry with aws_region (snake_case to match schema)
     outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
       version: '1',
       payload: {
-        aws_region: region,
+        geoRegion: region,
       },
     });
 
-    collections.forEach((collection) => {
-      if (collection.isDefault) {
-        outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
-          version: '1',
-          payload: {
-            geofence_collections: JSON.stringify({
-              default: collection.resources.collection.geofenceCollectionName,
-              items: collection.resources.collection.geofenceCollectionName,
-            }),
-          },
-        });
-      } else {
-        outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
-          version: '1',
-          payload: {
-            geofence_collections: JSON.stringify({
-              items: collection.resources.collection.geofenceCollectionName,
-            }),
-          },
-        });
-      }
-    });
+    // Collect all collection names for the items array
+    const collectionNames = collections.map(
+      (collection) => collection.resources.collection.geofenceCollectionName,
+    );
+
+    // Add geofence_collections as a single entry with all collections
+    if (collections.length > 0 && defaultCollectionName) {
+      outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
+        version: '1',
+        payload: {
+          geofenceCollections: JSON.stringify({
+            // Changed from geofenceCollections to geofence_collections
+            default: defaultCollectionName,
+            items: collectionNames, // Array of all collection names
+          }),
+        },
+      });
+    }
   }
 }

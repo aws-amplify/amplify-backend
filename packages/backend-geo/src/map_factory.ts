@@ -99,7 +99,11 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
 
     const geoAspects = Aspects.of(Stack.of(amplifyMap));
     if (!geoAspects.all.length) {
-      new AmplifyGeoOutputsAspect(this.getInstanceProps.outputStorageStrategy);
+      geoAspects.add(
+        new AmplifyGeoOutputsAspect(
+          this.getInstanceProps.outputStorageStrategy,
+        ),
+      );
     }
 
     return amplifyMap;

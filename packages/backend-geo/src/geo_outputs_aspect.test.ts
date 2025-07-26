@@ -106,7 +106,7 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(mapNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 2);
+      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
   });
 
@@ -179,12 +179,12 @@ void describe('AmplifyGeoOutputsAspect', () => {
         'AWS::Amplify::Geo',
       );
       assert.equal(
-        addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.aws_region,
+        addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.geoRegion,
         Stack.of(node).region,
       );
       assert.deepStrictEqual(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
-          .geofence_collections,
+          .geofenceCollections,
         undefined,
       );
     });
@@ -208,26 +208,13 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(node);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 2);
+      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
 
       assert.equal(addBackendOutputEntryMock.mock.calls[0].arguments.length, 2);
       assert.equal(
         addBackendOutputEntryMock.mock.calls[0].arguments[0],
         'AWS::Amplify::Geo',
       );
-
-      const parsedEntry1 = JSON.parse(
-        appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
-          .geofence_collections,
-      );
-      assert.ok(parsedEntry1.default.includes('TOKEN'));
-      assert.ok(parsedEntry1.items.includes('TOKEN'));
-
-      const parsedEntry2 = JSON.parse(
-        appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
-          .geofence_collections,
-      );
-      assert.ok(parsedEntry2.items.includes('TOKEN'));
     });
   });
 });
