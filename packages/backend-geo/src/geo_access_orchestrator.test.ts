@@ -17,6 +17,8 @@ void describe('GeoAccessOrchestrator', () => {
     const testResourceArn =
       'arn:aws:geo:us-east-1:123456789012:geofence-collection/test-collection';
 
+    const testResourceName = 'testResource';
+
     beforeEach(() => {
       stack = createStackAndSetContext();
     });
@@ -55,6 +57,7 @@ void describe('GeoAccessOrchestrator', () => {
           geoAccessOrchestrator.orchestrateGeoAccess(
             testResourceArn,
             'collection',
+            testResourceName,
           ),
         new AmplifyUserError('ActionNotFoundError', {
           message:
@@ -106,6 +109,7 @@ void describe('GeoAccessOrchestrator', () => {
           geoAccessOrchestrator.orchestrateGeoAccess(
             testResourceArn,
             'collection',
+            testResourceName,
           ),
         new AmplifyUserError('InvalidGeoAccessDefinitionError', {
           message: 'Duplicate authenticated access definition',
@@ -147,6 +151,7 @@ void describe('GeoAccessOrchestrator', () => {
       const policies = geoAccessOrchestrator.orchestrateGeoAccess(
         testResourceArn,
         'collection',
+        testResourceName,
       );
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
@@ -217,7 +222,11 @@ void describe('GeoAccessOrchestrator', () => {
           ssmEnvironmentEntriesStub,
         );
 
-      geoAccessOrchestrator.orchestrateGeoAccess(testResourceArn, 'collection');
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'collection',
+        testResourceName,
+      );
 
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
@@ -310,7 +319,11 @@ void describe('GeoAccessOrchestrator', () => {
           ssmEnvironmentEntriesStub,
         );
 
-      geoAccessOrchestrator.orchestrateGeoAccess(testResourceArn, 'collection');
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'collection',
+        testResourceName,
+      );
 
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
@@ -386,6 +399,7 @@ void describe('GeoAccessOrchestrator', () => {
       geoAccessOrchestrator.orchestrateGeoAccess(
         'arn:aws:geo-maps:us-east-1::provider/default',
         'map',
+        testResourceName,
       );
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
@@ -436,6 +450,7 @@ void describe('GeoAccessOrchestrator', () => {
       geoAccessOrchestrator.orchestrateGeoAccess(
         'arn:aws:geo-places:us-east-1::provider/default',
         'place',
+        testResourceName,
       );
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
@@ -494,6 +509,7 @@ void describe('GeoAccessOrchestrator', () => {
           geoAccessOrchestrator.orchestrateGeoAccess(
             'arn:aws:geo:us-east-1:123456789012:map/test-map',
             'map',
+            testResourceName,
           ),
         new AmplifyUserError('ActionNotFoundError', {
           message:
@@ -538,6 +554,7 @@ void describe('GeoAccessOrchestrator', () => {
           geoAccessOrchestrator.orchestrateGeoAccess(
             testResourceArn,
             'collection',
+            testResourceName,
           ),
         { message: 'At least one permission must be specified' },
       );

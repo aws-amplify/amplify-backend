@@ -10,6 +10,7 @@ void describe('GeoAccessPolicyFactory', () => {
   let geoAccessPolicyFactory: GeoAccessPolicyFactory;
   const testResourceArn =
     'arn:aws:geo:us-east-1:123456789012:geofence-collection/test-collection';
+  const testResourceName = 'testResource';
 
   beforeEach(() => {
     const app = new App();
@@ -23,6 +24,7 @@ void describe('GeoAccessPolicyFactory', () => {
         [],
         testResourceArn,
         'test-role',
+        testResourceName,
         stack,
       ),
     );
@@ -33,6 +35,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['get'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -45,7 +48,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -62,6 +65,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['autocomplete'],
       testResourceArn,
       'guest',
+      testResourceName,
       stack,
     );
 
@@ -74,7 +78,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-guest-access-policy',
+      PolicyName: 'geo-testResource-guest-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -91,6 +95,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['geocode'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -103,7 +108,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -120,6 +125,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['search'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -132,7 +138,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -154,6 +160,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['create'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -166,7 +173,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -183,6 +190,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['read'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -195,7 +203,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -217,6 +225,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['update'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -229,7 +238,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -250,6 +259,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['delete'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -262,7 +272,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -279,6 +289,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['list'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -291,7 +302,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -308,6 +319,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['read', 'create', 'update'],
       testResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -320,7 +332,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -346,6 +358,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['read'],
       testResourceArn,
       'custom-role-token',
+      testResourceName,
       stack,
     );
 
@@ -358,7 +371,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-custom-role-token-access-policy',
+      PolicyName: 'geo-testResource-custom-role-token-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -381,6 +394,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['get'],
       mapResourceArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -393,7 +407,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -412,6 +426,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['search', 'geocode'],
       placeIndexArn,
       'authenticated',
+      testResourceName,
       stack,
     );
 
@@ -424,7 +439,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-authenticated-access-policy',
+      PolicyName: 'geo-testResource-authenticated-access-policy',
       PolicyDocument: {
         Statement: [
           {
@@ -448,6 +463,7 @@ void describe('GeoAccessPolicyFactory', () => {
       ['read', 'update'],
       testResourceArn,
       'group-admin',
+      testResourceName,
       stack,
     );
 
@@ -460,7 +476,7 @@ void describe('GeoAccessPolicyFactory', () => {
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyName: 'geo-group-admin-access-policy',
+      PolicyName: 'geo-testResource-group-admin-access-policy',
       PolicyDocument: {
         Statement: [
           {

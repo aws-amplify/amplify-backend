@@ -92,6 +92,7 @@ export class AmplifyCollectionGenerator
       geoAccessOrchestrator.orchestrateGeoAccess(
         amplifyCollection.resources.collection.geofenceCollectionArn,
         'collection',
+        amplifyCollection.name,
       );
 
     const geoAspects = Aspects.of(Stack.of(amplifyCollection));

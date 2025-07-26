@@ -99,6 +99,7 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
       geoAccessOrchestrator.orchestrateGeoAccess(
         amplifyPlace.getResourceArn(),
         'place',
+        amplifyPlace.name,
       );
 
     const geoAspects = Aspects.of(Stack.of(amplifyPlace));

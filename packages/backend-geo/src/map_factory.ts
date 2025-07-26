@@ -95,6 +95,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
     amplifyMap.resources.policies = geoAccessOrchestrator.orchestrateGeoAccess(
       amplifyMap.getResourceArn(),
       'map',
+      amplifyMap.name,
     );
 
     const geoAspects = Aspects.of(Stack.of(amplifyMap));

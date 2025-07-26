@@ -12,6 +12,7 @@ export class GeoAccessPolicyFactory {
     permissions: string[], // organize create policy such that one resource type maps to the actions
     resourceArn: string,
     roleToken: string,
+    resourceName: string,
     stack: Stack,
   ) => {
     if (permissions.length === 0) {
@@ -29,7 +30,7 @@ export class GeoAccessPolicyFactory {
 
     policyStatement.addResources(resourceArn);
 
-    const policyIDName: string = `geo-${roleToken}-access-policy`;
+    const policyIDName: string = `geo-${resourceName}-${roleToken}-access-policy`;
     return new Policy(stack, policyIDName, {
       policyName: policyIDName,
       statements: [policyStatement],
