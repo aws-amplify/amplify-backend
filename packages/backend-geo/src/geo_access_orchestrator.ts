@@ -50,14 +50,17 @@ export class GeoAccessOrchestrator {
   orchestrateGeoAccess = (
     resourceArn: string,
     resourceIdentifier: GeoResourceType,
+    resourceName: string,
   ): Policy[] => {
     // getting access definitions from allow calls
     const geoAccessDefinitions = this.geoAccessGenerator(
       this.roleAccessBuilder,
     );
 
+    const uniqueRoleTokenSet = new Set<string>();
+
     geoAccessDefinitions.forEach((definition) => {
-      const uniqueRoleTokenSet = new Set<string>();
+      const uniqueActionSet = new Set<string>();
 
       definition.uniqueDefinitionValidators.forEach(
         ({ uniqueRoleToken, validationErrorOptions }) => {
@@ -80,6 +83,13 @@ export class GeoAccessOrchestrator {
             resolution: `Please refer to specific ${resourceIdentifier} access actions for more information.`,
           });
         }
+        if (uniqueActionSet.has(action)) {
+          throw new AmplifyUserError('DuplicateActionFoundError', {
+            message: `Desired access action is duplicated for the specific ${resourceIdentifier} resource.`,
+            resolution: `Remove all but one mentions of the ${action} action for the specific ${resourceIdentifier} resource.`,
+          });
+        }
+        uniqueActionSet.add(action);
       });
 
       definition.getAccessAcceptors.forEach((acceptor) => {
@@ -88,6 +98,7 @@ export class GeoAccessOrchestrator {
           definition.actions,
           resourceArn,
           acceptor(this.getInstanceProps).identifier,
+          resourceName,
           this.resourceStack,
         );
         acceptor(this.getInstanceProps).acceptResourceAccess(

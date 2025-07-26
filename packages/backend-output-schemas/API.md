@@ -380,26 +380,36 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
-            aws_region: z.ZodString;
-            geofence_collections: z.ZodOptional<z.ZodString>;
+            geoRegion: z.ZodString;
+            maps: z.ZodOptional<z.ZodString>;
+            searchIndices: z.ZodOptional<z.ZodString>;
+            geofenceCollections: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         }, {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
@@ -477,8 +487,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo"?: {
         version: "1";
         payload: {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         };
     } | undefined;
 }, {
@@ -556,8 +568,10 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Geo"?: {
         version: "1";
         payload: {
-            aws_region: string;
-            geofence_collections?: string | undefined;
+            geoRegion: string;
+            maps?: string | undefined;
+            searchIndices?: string | undefined;
+            geofenceCollections?: string | undefined;
         };
     } | undefined;
 }>;
@@ -749,26 +763,36 @@ export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [
 export const versionedGeoOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
-        aws_region: z.ZodString;
-        geofence_collections: z.ZodOptional<z.ZodString>;
+        geoRegion: z.ZodString;
+        maps: z.ZodOptional<z.ZodString>;
+        searchIndices: z.ZodOptional<z.ZodString>;
+        geofenceCollections: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        aws_region: string;
-        geofence_collections?: string | undefined;
+        geoRegion: string;
+        maps?: string | undefined;
+        searchIndices?: string | undefined;
+        geofenceCollections?: string | undefined;
     }, {
-        aws_region: string;
-        geofence_collections?: string | undefined;
+        geoRegion: string;
+        maps?: string | undefined;
+        searchIndices?: string | undefined;
+        geofenceCollections?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
-        aws_region: string;
-        geofence_collections?: string | undefined;
+        geoRegion: string;
+        maps?: string | undefined;
+        searchIndices?: string | undefined;
+        geofenceCollections?: string | undefined;
     };
 }, {
     version: "1";
     payload: {
-        aws_region: string;
-        geofence_collections?: string | undefined;
+        geoRegion: string;
+        maps?: string | undefined;
+        searchIndices?: string | undefined;
+        geofenceCollections?: string | undefined;
     };
 }>]>;
 
