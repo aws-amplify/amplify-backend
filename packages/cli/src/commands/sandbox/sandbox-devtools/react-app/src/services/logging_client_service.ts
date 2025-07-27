@@ -29,7 +29,7 @@ export class LoggingClientService extends SocketClientService {
       resourceType,
       startLogging,
     };
-    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, payload);
+    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, payload, true);
   }
 
   /**
@@ -83,11 +83,15 @@ export class LoggingClientService extends SocketClientService {
     functionName: string,
     input: string,
   ): void {
-    this.emit(SOCKET_EVENTS.TEST_LAMBDA_FUNCTION, {
-      resourceId,
-      functionName,
-      input,
-    });
+    this.emit(
+      SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
+      {
+        resourceId,
+        functionName,
+        input,
+      },
+      true,
+    );
   }
 
   /**

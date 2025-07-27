@@ -86,7 +86,6 @@ export class SocketHandlerResources {
       const command = new InvokeCommand({
         FunctionName: functionName,
         Payload: JSON.stringify(payload),
-        LogType: 'Tail', // Include the execution log
       });
 
       const response = await this.lambdaClient.send(command);
