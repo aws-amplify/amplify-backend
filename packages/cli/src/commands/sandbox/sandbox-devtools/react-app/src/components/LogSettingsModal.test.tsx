@@ -5,7 +5,6 @@ import LogSettingsModal, { LogSettings } from './LogSettingsModal';
 describe('LogSettingsModal Component', () => {
   const mockOnDismiss = vi.fn();
   const mockOnSave = vi.fn();
-  const mockOnClear = vi.fn();
 
   const defaultSettings: LogSettings = {
     maxLogSizeMB: 100,
@@ -14,7 +13,6 @@ describe('LogSettingsModal Component', () => {
   beforeEach(() => {
     mockOnDismiss.mockReset();
     mockOnSave.mockReset();
-    mockOnClear.mockReset();
   });
 
   it('does not render when visible is false', () => {
@@ -23,7 +21,6 @@ describe('LogSettingsModal Component', () => {
         visible={false}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -38,7 +35,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -50,7 +46,6 @@ describe('LogSettingsModal Component', () => {
     expect(screen.getByText(/Maximum Log Size/)).toBeInTheDocument();
 
     // Check for buttons
-    expect(screen.getByText('Clear Logs')).toBeInTheDocument();
     expect(screen.getByText('Save Settings')).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
   });
@@ -61,7 +56,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
         currentSizeMB={42.5}
       />,
@@ -78,7 +72,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -98,7 +91,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -112,32 +104,12 @@ describe('LogSettingsModal Component', () => {
     expect(mockOnSave).toHaveBeenCalledWith({ maxLogSizeMB: 100 });
   });
 
-  it('calls onClear when Clear Logs button is clicked', () => {
-    render(
-      <LogSettingsModal
-        visible={true}
-        onDismiss={mockOnDismiss}
-        onSave={mockOnSave}
-        onClear={mockOnClear}
-        initialSettings={defaultSettings}
-      />,
-    );
-
-    // Find and click the Clear Logs button
-    const clearButton = screen.getByText('Clear Logs');
-    fireEvent.click(clearButton);
-
-    // Verify onClear was called
-    expect(mockOnClear).toHaveBeenCalledTimes(1);
-  });
-
   it('updates slider value when changed', () => {
     render(
       <LogSettingsModal
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -169,7 +141,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={customSettings}
       />,
     );
@@ -191,7 +162,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={defaultSettings}
       />,
     );
@@ -209,7 +179,6 @@ describe('LogSettingsModal Component', () => {
         visible={true}
         onDismiss={mockOnDismiss}
         onSave={mockOnSave}
-        onClear={mockOnClear}
         initialSettings={newSettings}
       />,
     );

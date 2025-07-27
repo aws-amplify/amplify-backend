@@ -13,7 +13,6 @@ interface LogSettingsModalProps {
   visible: boolean;
   onDismiss: () => void;
   onSave: (settings: LogSettings) => void;
-  onClear: () => void;
   initialSettings: LogSettings;
   currentSizeMB?: number;
 }
@@ -26,7 +25,6 @@ const LogSettingsModal: React.FC<LogSettingsModalProps> = ({
   visible,
   onDismiss,
   onSave,
-  onClear,
   initialSettings,
   currentSizeMB,
 }) => {
@@ -82,9 +80,6 @@ const LogSettingsModal: React.FC<LogSettingsModalProps> = ({
             data-testid="log-size-slider"
           />
         </FormField>
-        <Button onClick={onClear} iconName="remove">
-          Clear Logs
-        </Button>
       </SpaceBetween>
     </Modal>
   );

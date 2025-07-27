@@ -60,10 +60,6 @@ function AppContent() {
 
   const deploymentInProgress = sandboxStatus === 'deploying';
 
-  const clearLogs = () => {
-    setLogs([]);
-    sandboxClientService.saveConsoleLogs([]);
-  };
 
   // Load saved logs on mount
   useEffect(() => {
@@ -309,7 +305,6 @@ function AppContent() {
       unsubscribeLogSettings.unsubscribe();
       unsubscribeSavedConsoleLogs.unsubscribe();
       stopPing.unsubscribe();
-      clearLogs();
       sandboxClientService.disconnect();
     };
   }, [sandboxClientService]);
@@ -557,7 +552,6 @@ function AppContent() {
         visible={showSettingsModal}
         onDismiss={() => setShowSettingsModal(false)}
         onSave={handleSaveSettings}
-        onClear={clearLogs}
         initialSettings={logSettings}
         currentSizeMB={currentLogSizeMB}
       />
