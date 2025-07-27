@@ -229,14 +229,12 @@ vi.mock('./components/LogSettingsModal', () => ({
       onSave,
       visible,
       onDismiss,
-      onClear,
       initialSettings,
       currentSizeMB,
     }: {
       onSave: (settings: LogSettings) => void;
       visible: boolean;
       onDismiss: () => void;
-      onClear: () => void;
       initialSettings: LogSettings;
       currentSizeMB?: number;
     }) => (
@@ -254,9 +252,6 @@ vi.mock('./components/LogSettingsModal', () => ({
         </button>
         <button data-testid="log-settings-cancel" onClick={onDismiss}>
           Cancel
-        </button>
-        <button data-testid="log-settings-clear" onClick={onClear}>
-          Clear Logs
         </button>
       </div>
     ),
@@ -766,37 +761,6 @@ describe('App Component', () => {
     expect(screen.getByText(/Deployment in Progress/i)).toBeInTheDocument();
   });
 
-  it('clears logs when clear logs button is clicked', async () => {
-    render(<App />);
-
-    // Setup some initial logs
-    act(() => {
-      mockSandboxService.emitSavedConsoleLogs([
-        {
-          id: '1',
-          timestamp: '2023-01-01T12:00:00Z',
-          level: 'INFO',
-          message: 'Test log message',
-        },
-      ]);
-    });
-
-    // Verify logs are displayed
-    expect(screen.getByText(/Test log message/i)).toBeInTheDocument();
-
-    // Open settings modal
-    act(() => {
-      screen.getByText('Open Settings').click();
-    });
-
-    // Click clear logs button
-    act(() => {
-      screen.getByTestId('log-settings-clear').click();
-    });
-
-    // Verify logs were cleared and saveConsoleLogs was called with empty array
-    expect(mockSandboxService.saveConsoleLogs).toHaveBeenCalledWith([]);
-  });
 
   it('periodically checks status when in unknown state', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {}); // Silence console logs
