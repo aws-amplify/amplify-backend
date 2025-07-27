@@ -41,6 +41,8 @@ void describe('SocketHandlerResources', () => {
       loadCustomFriendlyNames: mock.fn(() => ({})),
       updateCustomFriendlyName: mock.fn(),
       removeCustomFriendlyName: mock.fn(),
+      loadLastCloudFormationTimestamp: mock.fn(() => null),
+      saveLastCloudFormationTimestamp: mock.fn(),
     } as unknown as LocalStorageManager;
 
     mockCloudFormationEventsService = {
@@ -232,6 +234,11 @@ void describe('SocketHandlerResources', () => {
         config: { region: 'us-east-1' },
       } as unknown as LambdaClient;
 
+      // Set up the timestamp to be non-null
+      (
+        mockStorageManager.loadLastCloudFormationTimestamp as unknown as MockFn
+      ).mock.mockImplementation(() => new Date('2023-01-01T00:00:00Z'));
+
       const deployingHandler = new SocketHandlerResources(
         mockIo,
         mockStorageManager,
@@ -274,13 +281,34 @@ void describe('SocketHandlerResources', () => {
     });
 
     void it('handles errors when fetching events', async () => {
+      // Create a handler with 'deploying' state to ensure it tries to fetch events
+      const mockBackendId = { name: 'test-backend' } as BackendIdentifier;
+
+      // Set up the timestamp to be non-null to make sure getStackEvents is called
+      (
+        mockStorageManager.loadLastCloudFormationTimestamp as unknown as MockFn
+      ).mock.mockImplementation(() => new Date('2023-01-01T00:00:00Z'));
+
+      const deployingHandler = new SocketHandlerResources(
+        mockIo,
+        mockStorageManager,
+        mockBackendId,
+        async () => 'deploying',
+        {} as unknown as LambdaClient,
+        mockPrinter,
+      );
+
+      // Set the mock CloudFormationEventsService to the new handler
+      deployingHandler['cloudFormationEventsService'] =
+        mockCloudFormationEventsService;
+
       (
         mockCloudFormationEventsService.getStackEvents as unknown as MockFn
       ).mock.mockImplementation(() =>
         Promise.reject(new Error('Failed to fetch events')),
       );
 
-      await handler.handleGetCloudFormationEvents(mockSocket);
+      await deployingHandler.handleGetCloudFormationEvents(mockSocket);
 
       const mockEmitFn = mockSocket.emit as unknown as MockFn;
       const errorCall = mockEmitFn.mock.calls.find(

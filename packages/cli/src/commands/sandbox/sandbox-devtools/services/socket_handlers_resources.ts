@@ -24,7 +24,6 @@ import { SandboxStatus } from '@aws-amplify/sandbox';
  */
 export class SocketHandlerResources {
   private cloudFormationEventsService: CloudFormationEventsService;
-  private lastEventTimestamp: Record<string, Date> = {};
 
   /**
    * Creates a new SocketHandlerResources
@@ -38,6 +37,19 @@ export class SocketHandlerResources {
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
   ) {
     this.cloudFormationEventsService = new CloudFormationEventsService();
+  }
+
+  /**
+   * Reset the last event timestamp to the current time
+   * This is used when starting a new deployment to avoid showing old events
+   */
+  public resetLastEventTimestamp(): void {
+    const now = new Date();
+    this.storageManager.saveLastCloudFormationTimestamp(now);
+    this.printer.log(
+      `Reset last CloudFormation timestamp for ${this.backendId.name} to ${now.toISOString()}`,
+      LogLevel.DEBUG,
+    );
   }
 
   /**
@@ -187,8 +199,16 @@ export class SocketHandlerResources {
       }
 
       // We only reach this code if we're in a deploying or deleting state
-      // Get events since the last one we've seen
-      const sinceTimestamp = this.lastEventTimestamp[this.backendId.name];
+
+      // If this is the first time we're fetching events for this backend,
+      // initialize the timestamp to now to avoid fetching old events
+      let sinceTimestamp =
+        this.storageManager.loadLastCloudFormationTimestamp();
+      if (!sinceTimestamp) {
+        const now = new Date();
+        this.storageManager.saveLastCloudFormationTimestamp(now);
+        sinceTimestamp = now;
+      }
 
       // Fetch fresh events from CloudFormation API
       const events = await this.cloudFormationEventsService.getStackEvents(
@@ -209,7 +229,9 @@ export class SocketHandlerResources {
       );
 
       if (latestEvent) {
-        this.lastEventTimestamp[this.backendId.name] = latestEvent.timestamp;
+        this.storageManager.saveLastCloudFormationTimestamp(
+          latestEvent.timestamp,
+        );
       }
 
       // Map events to the format expected by the frontend

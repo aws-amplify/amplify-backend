@@ -40,6 +40,7 @@ export type CloudWatchLogEntry = {
 export class LocalStorageManager {
   private readonly baseDir: string;
   private readonly cloudFormationEventsFile: string;
+  private readonly cloudFormationTimestampFile: string;
   private readonly resourcesFile: string;
   private readonly logsDir: string;
   private readonly cloudWatchLogsDir: string;
@@ -66,6 +67,10 @@ export class LocalStorageManager {
     this.cloudFormationEventsFile = path.join(
       this.baseDir,
       'cloudformation-events.json',
+    );
+    this.cloudFormationTimestampFile = path.join(
+      this.baseDir,
+      'cloudformation-timestamp.json',
     );
 
     this.resourcesFile = path.join(this.baseDir, 'resources.json');
@@ -441,6 +446,72 @@ export class LocalStorageManager {
     } catch (error) {
       printer.log(
         `Error clearing CloudFormation events: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+    }
+  }
+
+  /**
+   * Saves the last CloudFormation event timestamp
+   * @param timestamp The timestamp to save
+   */
+  saveLastCloudFormationTimestamp(timestamp: Date): void {
+    try {
+      const data = { timestamp: timestamp.toISOString() };
+      writeFileAtomic.sync(
+        this.cloudFormationTimestampFile,
+        JSON.stringify(data, null, 2),
+        { mode: 0o600 },
+      );
+      printer.log(
+        `LocalStorageManager: Saved CloudFormation timestamp: ${timestamp.toISOString()}`,
+        LogLevel.DEBUG,
+      );
+    } catch (error) {
+      printer.log(
+        `Error saving CloudFormation timestamp: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+    }
+  }
+
+  /**
+   * Loads the last CloudFormation event timestamp
+   * @returns The timestamp or null if none exists
+   */
+  loadLastCloudFormationTimestamp(): Date | null {
+    try {
+      if (fs.existsSync(this.cloudFormationTimestampFile)) {
+        const data = fs.readFileSync(this.cloudFormationTimestampFile, 'utf8');
+        const parsed = JSON.parse(data);
+        if (parsed.timestamp) {
+          return new Date(parsed.timestamp);
+        }
+      }
+    } catch (error) {
+      printer.log(
+        `Error loading CloudFormation timestamp: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+    }
+    return null;
+  }
+
+  /**
+   * Clears the last CloudFormation event timestamp
+   */
+  clearCloudFormationTimestamp(): void {
+    try {
+      if (fs.existsSync(this.cloudFormationTimestampFile)) {
+        fs.unlinkSync(this.cloudFormationTimestampFile);
+        printer.log(
+          `LocalStorageManager: Cleared CloudFormation timestamp`,
+          LogLevel.DEBUG,
+        );
+      }
+    } catch (error) {
+      printer.log(
+        `Error clearing CloudFormation timestamp: ${String(error)}`,
         LogLevel.ERROR,
       );
     }

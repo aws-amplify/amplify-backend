@@ -187,8 +187,12 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         // Clear CloudFormation events when a new deployment starts
         storageManager.clearCloudFormationEvents();
+        // Reset CloudFormation timestamp to avoid showing old events
+        storageManager.clearCloudFormationTimestamp();
+        // Save current timestamp to start tracking from now
+        storageManager.saveLastCloudFormationTimestamp(new Date());
         this.printer.log(
-          'Cleared previous CloudFormation events',
+          'Cleared previous CloudFormation events and reset timestamp',
           LogLevel.DEBUG,
         );
 
@@ -240,8 +244,12 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         // Clear CloudFormation events when a new deletion starts
         storageManager.clearCloudFormationEvents();
+        // Reset CloudFormation timestamp to avoid showing old events
+        storageManager.clearCloudFormationTimestamp();
+        // Save current timestamp to start tracking from now
+        storageManager.saveLastCloudFormationTimestamp(new Date());
         this.printer.log(
-          'Cleared previous CloudFormation events',
+          'Cleared previous CloudFormation events and reset timestamp',
           LogLevel.DEBUG,
         );
 

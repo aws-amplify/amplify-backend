@@ -108,6 +108,14 @@ export class SocketHandlerService {
   }
 
   /**
+   * Gets the resources handler
+   * @returns The socket handler for resources
+   */
+  public getResourcesHandler(): SocketHandlerResources {
+    return this.resourcesHandler;
+  }
+
+  /**
    * Sets up all socket event handlers
    * @param socket The socket connection
    */
