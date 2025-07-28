@@ -11,10 +11,10 @@ const packagePaths = await glob('./packages/*');
 const getExpectedMajorVersion = (packageName: string) => {
   switch (packageName) {
     case 'ampx':
+    case '@aws-amplify/backend-geo':
       return '0.';
     case '@aws-amplify/backend-deployer':
     case '@aws-amplify/cli-core':
-    case '@aws-amplify/backend-geo':
     case '@aws-amplify/sandbox':
       return '2.';
     default:
