@@ -8,6 +8,10 @@ import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  FriendlyNameUpdate,
+  ResourceIdentifier,
+} from '../shared/socket_types.js';
 import { SocketEvents } from './socket_handlers.js';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
@@ -63,7 +67,6 @@ export class SocketHandlerResources {
       const command = new InvokeCommand({
         FunctionName: functionName,
         Payload: JSON.stringify(payload),
-        LogType: 'Tail', // Include the execution log
       });
 
       const response = await this.lambdaClient.send(command);
@@ -112,9 +115,7 @@ export class SocketHandlerResources {
   /**
    * Handles the updateCustomFriendlyName event
    */
-  public handleUpdateCustomFriendlyName(
-    data: SocketEvents['updateCustomFriendlyName'],
-  ): void {
+  public handleUpdateCustomFriendlyName(data: FriendlyNameUpdate): void {
     if (!data || !data.resourceId || !data.friendlyName) {
       return;
     }
@@ -140,9 +141,7 @@ export class SocketHandlerResources {
   /**
    * Handles the removeCustomFriendlyName event
    */
-  public handleRemoveCustomFriendlyName(
-    data: SocketEvents['removeCustomFriendlyName'],
-  ): void {
+  public handleRemoveCustomFriendlyName(data: ResourceIdentifier): void {
     if (!data || !data.resourceId) {
       return;
     }
