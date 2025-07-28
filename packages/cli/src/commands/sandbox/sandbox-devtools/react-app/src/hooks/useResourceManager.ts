@@ -4,8 +4,10 @@ import {
   useResourceClientService,
   useLoggingClientService,
 } from '../contexts/socket_client_context';
-import { BackendResourcesData } from '../../../shared/socket_types';
-import { LogStreamStatus } from '../services/logging_client_service';
+import {
+  BackendResourcesData,
+  LogStreamStatus,
+} from '../../../shared/socket_types';
 import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 
 /**
@@ -21,7 +23,7 @@ export const useResourceManager = (
   const resourceClientService = useResourceClientService();
   const loggingClientService = useLoggingClientService();
   const [resources, setResources] = useState<ResourceWithFriendlyName[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [customFriendlyNames, setCustomFriendlyNames] = useState<
     Record<string, string>

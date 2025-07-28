@@ -84,6 +84,16 @@ export type SandboxStatusData = {
   deploymentCompleted?: boolean;
 };
 
+
+/**
+ * Interface for log stream status
+ */
+export type LogStreamStatus = {
+  resourceId: string;
+  status: string;
+  error?: string;
+};
+
 /**
  * Interface for DevTools Sandbox options
  *
