@@ -6,7 +6,7 @@ import SandboxOptionsModal from './components/SandboxOptionsModal';
 import { DevToolsSandboxOptions } from '../../shared/socket_types';
 import { SocketClientProvider } from './contexts/socket_client_context';
 import { useSandboxClientService } from './contexts/socket_client_context';
-import { SandboxStatusData } from './services/sandbox_client_service';
+import { SandboxStatusData } from '../../shared/socket_types';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
 // Define LogEntry interface for PR2 (will be replaced in PR3)

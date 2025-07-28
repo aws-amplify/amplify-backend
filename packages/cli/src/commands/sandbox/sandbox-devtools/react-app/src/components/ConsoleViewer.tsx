@@ -14,12 +14,7 @@ import {
 } from '@cloudscape-design/components';
 import '@cloudscape-design/global-styles/index.css';
 import stripAnsi from 'strip-ansi';
-export interface ConsoleLogEntry {
-  id: string;
-  timestamp: string;
-  level: string;
-  message: string;
-}
+import { ConsoleLogEntry } from '../../../shared/socket_types';
 
 interface ConsoleViewerProps {
   logs: ConsoleLogEntry[];

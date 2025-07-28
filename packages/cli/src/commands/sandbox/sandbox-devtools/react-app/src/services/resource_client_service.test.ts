@@ -28,18 +28,6 @@ void describe('ResourceClientService', () => {
     });
   });
 
-  void describe('getSavedResources', () => {
-    void it('emits GET_SAVED_RESOURCES event', () => {
-      service.getSavedResources();
-
-      assert.strictEqual(mockSocket.mockEmit.mock.callCount(), 1);
-      assert.strictEqual(
-        mockSocket.mockEmit.mock.calls[0].arguments[0],
-        SOCKET_EVENTS.GET_SAVED_RESOURCES,
-      );
-    });
-  });
-
   void describe('getDeployedBackendResources', () => {
     void it('emits GET_DEPLOYED_BACKEND_RESOURCES event', () => {
       service.getDeployedBackendResources();

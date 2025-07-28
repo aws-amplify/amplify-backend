@@ -1,17 +1,10 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-import { ResourceWithFriendlyName } from '../../../resource_console_functions';
-
-/**
- * Type for backend resources data
- */
-export interface BackendResourcesData {
-  name: string;
-  status: string;
-  resources: ResourceWithFriendlyName[];
-  region: string | null;
-  message?: string;
-}
+import {
+  BackendResourcesData,
+  FriendlyNameUpdate,
+  ResourceIdentifier,
+} from '../../../shared/socket_types';
 
 /**
  * Service for handling resource-related socket communication
@@ -22,13 +15,6 @@ export class ResourceClientService extends SocketClientService {
    */
   public getCustomFriendlyNames(): void {
     this.emit(SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES);
-  }
-
-  /**
-   * Requests saved resources from the server
-   */
-  public getSavedResources(): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCES);
   }
 
   /**
@@ -47,10 +33,11 @@ export class ResourceClientService extends SocketClientService {
     resourceId: string,
     friendlyName: string,
   ): void {
-    this.emit(SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME, {
+    const payload: FriendlyNameUpdate = {
       resourceId,
       friendlyName,
-    });
+    };
+    this.emit(SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME, payload);
   }
 
   /**
@@ -58,7 +45,8 @@ export class ResourceClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public removeCustomFriendlyName(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME, payload);
   }
 
   /**

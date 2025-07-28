@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 import { useResourceClientService } from '../contexts/socket_client_context';
-import {
-  ResourceWithFriendlyName,
-  BackendResourcesData,
-} from '../services/resource_client_service';
+import { ResourceWithFriendlyName } from '../services/../../../resource_console_functions';
+import { BackendResourcesData } from '../../../shared/socket_types';
 
 /**
  * Hook for managing backend resources
@@ -35,7 +33,6 @@ export const useResourceManager = (
       setError(null);
 
       resourceClientService.getCustomFriendlyNames();
-      resourceClientService.getSavedResources();
       resourceClientService.getDeployedBackendResources();
     };
 
