@@ -4,6 +4,9 @@ import {
   getGenericFromDataStore,
 } from '@aws-amplify/codegen-ui';
 import { parse } from 'graphql';
+// @graphql-codegen/core is moved to root package.json and bundled
+// with esbuild due to https://github.com/aws-amplify/amplify-backend/issues/2901
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as graphqlCodegen from '@graphql-codegen/core';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
 import { DefaultDirectives, Directive } from '@aws-amplify/graphql-directives';
