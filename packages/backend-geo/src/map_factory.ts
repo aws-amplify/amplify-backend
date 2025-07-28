@@ -13,6 +13,7 @@ import { GeoAccessOrchestratorFactory } from './geo_access_orchestrator.js';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyMap } from './map_resource.js';
 import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
 
 /**
  * Construct Factory for AmplifyMap
@@ -97,6 +98,20 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
       'map',
       amplifyMap.name,
     );
+
+    // orchestrateGeoAccess already called and ApiKey actions processed
+    const mapActions =
+      geoAccessOrchestrator.orchestrateKeyAccess() as AllowMapsAction[];
+
+    if (!mapActions.length && this.props.apiKeyProps) {
+      throw new AmplifyUserError('NoApiKeyAccessError', {
+        message:
+          'No API key can be created for maps without access definitions defined for it.',
+        resolution: 'Add at least one map action in the access definition.',
+      });
+    } else {
+      amplifyMap.generateApiKey(mapActions);
+    }
 
     const geoAspects = Aspects.of(Stack.of(amplifyMap));
     if (!geoAspects.all.length) {

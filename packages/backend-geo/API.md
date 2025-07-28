@@ -5,7 +5,10 @@
 ```ts
 
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
+import { ApiKey } from '@aws-cdk/aws-location-alpha';
+import { ApiKeyProps } from '@aws-cdk/aws-location-alpha';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
@@ -36,7 +39,9 @@ export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrateg
 };
 
 // @public (undocumented)
-export type AmplifyMapProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
+export type AmplifyMapProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'> & {
+    apiKeyProps?: GeoApiKeyProps;
+};
 
 // @public
 export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStrategy'> & {
@@ -44,7 +49,9 @@ export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStr
 };
 
 // @public (undocumented)
-export type AmplifyPlaceProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
+export type AmplifyPlaceProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'> & {
+    apiKeyProps?: GeoApiKeyProps;
+};
 
 // @public
 export type CollectionResources = {
@@ -69,6 +76,7 @@ export type GeoAccessBuilder = {
     authenticated: GeoActionBuilder;
     guest: GeoActionBuilder;
     groups: (groupNames: string[]) => GeoActionBuilder;
+    apiKey?: GeoActionBuilder;
 };
 
 // @public (undocumented)
@@ -90,18 +98,32 @@ export type GeoActionBuilder = {
 };
 
 // @public (undocumented)
+export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'>;
+
+// @public (undocumented)
+export type GeoCollectionAccessGenerator = (allow: Omit<GeoAccessBuilder, 'apiKey'>) => GeoAccessDefinition[];
+
+// @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
 
 // @public
 export type MapResources = {
-    policies: Policy[];
     region: string;
+    policies: Policy[];
+    apiKey?: ApiKey;
+    cfnResources: {
+        cfnAPIKey?: CfnAPIKey;
+    };
 };
 
 // @public
 export type PlaceResources = {
-    policies: Policy[];
     region: string;
+    policies: Policy[];
+    apiKey: ApiKey;
+    cfnResources: {
+        cfnAPIKey: CfnAPIKey;
+    };
 };
 
 // @public (undocumented)

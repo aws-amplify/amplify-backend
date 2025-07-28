@@ -1,6 +1,8 @@
 import { AmplifyMapProps, MapResources } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
+import { AllowMapsAction, ApiKey } from '@aws-cdk/aws-location-alpha';
 import { Aws, Resource } from 'aws-cdk-lib';
+import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { Construct } from 'constructs';
 
 /**
@@ -13,6 +15,7 @@ export class AmplifyMap
   readonly resources: MapResources;
   readonly id: string;
   readonly name: string;
+  private readonly props: AmplifyMapProps;
 
   /**
    * Creates an instance of AmplifyMap
@@ -22,13 +25,23 @@ export class AmplifyMap
     this.name = props.name;
     this.id = id;
 
-    this.resources = {
-      region: this.stack.region,
-      policies: [],
-    };
+    this.props = props;
+
+    this.resources.region = this.stack.region;
+    this.resources.policies = [];
   }
 
   getResourceArn = (): string => {
     return `arn:${Aws.PARTITION}:geo-maps:${this.stack.region}::provider/default`;
+  };
+
+  generateApiKey = (actions: AllowMapsAction[]) => {
+    this.resources.apiKey = new ApiKey(this, this.props.name, {
+      ...this.props.apiKeyProps,
+      allowMapsActions: actions,
+    });
+
+    this.resources.cfnResources.cfnAPIKey =
+      this.resources.apiKey.node.findChild('Resource') as CfnAPIKey;
   };
 }

@@ -36,6 +36,18 @@ export class GeoAccessPolicyFactory {
       statements: [policyStatement],
     });
   };
+
+  generateKeyActions = (actions: string[]): string[] => {
+    const keyPermissions: string[] = [];
+
+    actions.forEach((action) => {
+      actionDirectory[action].forEach((permission) => {
+        keyPermissions.push(permission);
+      });
+    });
+
+    return keyPermissions;
+  };
 }
 
 const actionDirectory: Record<string, string[]> = {

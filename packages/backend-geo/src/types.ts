@@ -5,10 +5,12 @@ import {
 } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import {
+  ApiKey,
+  ApiKeyProps,
   GeofenceCollection,
   GeofenceCollectionProps,
 } from '@aws-cdk/aws-location-alpha';
-import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
+import { CfnAPIKey, CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 
@@ -74,12 +76,16 @@ export type AmplifyCollectionFactoryProps = Omit<
 export type AmplifyMapProps = Omit<
   AmplifyCollectionProps,
   'collectionProps' | 'isDefault'
->;
+> & {
+  apiKeyProps?: GeoApiKeyProps;
+};
 
 export type AmplifyPlaceProps = Omit<
   AmplifyCollectionProps,
   'collectionProps' | 'isDefault'
->;
+> & {
+  apiKeyProps?: GeoApiKeyProps;
+};
 
 export type AmplifyCollectionProps = {
   name: string;
@@ -88,13 +94,22 @@ export type AmplifyCollectionProps = {
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
 
+export type GeoApiKeyProps = Omit<
+  ApiKeyProps,
+  'allowMapsActions' | 'allowPlacesActions'
+>;
+
 /**
  * Backend-accessible resources from AmplifyMap
  * @param policies - access policies of the frontend-accessible map resource
  */
 export type MapResources = {
-  policies: Policy[];
   region: string;
+  policies: Policy[];
+  apiKey?: ApiKey;
+  cfnResources: {
+    cfnAPIKey?: CfnAPIKey;
+  };
 };
 
 /**
@@ -102,8 +117,12 @@ export type MapResources = {
  * @param policies - access policies of the frontend-accessible place resource
  */
 export type PlaceResources = {
-  policies: Policy[];
   region: string;
+  policies: Policy[];
+  apiKey: ApiKey;
+  cfnResources: {
+    cfnAPIKey: CfnAPIKey;
+  };
 };
 
 /**
@@ -126,10 +145,15 @@ export type GeoAccessGenerator = (
   allow: GeoAccessBuilder,
 ) => GeoAccessDefinition[];
 
+export type GeoCollectionAccessGenerator = (
+  allow: Omit<GeoAccessBuilder, 'apiKey'>,
+) => GeoAccessDefinition[];
+
 export type GeoAccessBuilder = {
   authenticated: GeoActionBuilder;
   guest: GeoActionBuilder;
   groups: (groupNames: string[]) => GeoActionBuilder;
+  apiKey?: GeoActionBuilder;
 };
 
 export type GeoActionBuilder = {

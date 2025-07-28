@@ -1,6 +1,8 @@
 import { AmplifyPlaceProps, PlaceResources } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
+import { AllowPlacesAction, ApiKey } from '@aws-cdk/aws-location-alpha';
 import { Aws, Resource } from 'aws-cdk-lib';
+import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { Construct } from 'constructs';
 
 /**
@@ -13,6 +15,7 @@ export class AmplifyPlace
   readonly resources: PlaceResources;
   readonly id: string;
   readonly name: string;
+  private readonly props: AmplifyPlaceProps;
 
   /**
    * Creates an instance of AmplifyPlace
@@ -23,17 +26,21 @@ export class AmplifyPlace
     this.name = props.name;
     this.id = id;
 
-    this.resources = {
-      region: this.stack.region,
-      policies: [],
-    };
+    this.resources.region = this.stack.region;
+    this.resources.policies = [];
   }
 
   getResourceArn = (): string => {
     return `arn:${Aws.PARTITION}:geo-places:${this.stack.region}::provider/default`;
   };
 
-  getResourceName = (): string => {
-    return this.name;
+  generateApiKey = (actions: AllowPlacesAction[]) => {
+    this.resources.apiKey = new ApiKey(this, this.props.name, {
+      ...this.props.apiKeyProps,
+      allowPlacesActions: actions,
+    });
+
+    this.resources.cfnResources.cfnAPIKey =
+      this.resources.apiKey.node.findChild('Resource') as CfnAPIKey;
   };
 }

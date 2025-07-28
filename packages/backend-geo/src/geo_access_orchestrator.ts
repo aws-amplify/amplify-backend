@@ -22,6 +22,8 @@ import { Stack } from 'aws-cdk-lib';
 export class GeoAccessOrchestrator {
   private resourceStack: Stack;
   private policies: Policy[] = [];
+  private apiKeyActions: string[] = [];
+
   /**
    * Constructs an instance of GeoAccessOrchestrator
    * @param geoAccessGenerator - access permissions defined by user for the resource
@@ -92,6 +94,11 @@ export class GeoAccessOrchestrator {
         uniqueActionSet.add(action);
       });
 
+      // api key has no acceptors
+      if (!definition.getAccessAcceptors.length) {
+        this.apiKeyActions = definition.actions;
+      }
+
       definition.getAccessAcceptors.forEach((acceptor) => {
         // for each acceptor within auth, guest, or user groups
         const policy: Policy = this.geoPolicyFactory.createPolicy(
@@ -111,6 +118,9 @@ export class GeoAccessOrchestrator {
 
     return this.policies;
   };
+
+  orchestrateKeyAccess = () =>
+    this.geoPolicyFactory.generateKeyActions(this.apiKeyActions);
 }
 
 /**
