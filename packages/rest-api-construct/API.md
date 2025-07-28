@@ -4,6 +4,18 @@
 
 ```ts
 
+import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
+import { Construct } from 'constructs';
+import * as lamb from 'aws-cdk-lib/aws-lambda';
+
+// @public
+export class RestApiConstruct extends Construct {
+    // Warning: (ae-forgotten-export) The symbol "RestApiConstructProps" needs to be exported by the entry point index.d.ts
+    constructor(scope: Construct, id: string, props: RestApiConstructProps);
+    // (undocumented)
+    readonly api: apiGateway.RestApi;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```
