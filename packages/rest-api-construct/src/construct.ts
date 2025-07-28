@@ -30,8 +30,7 @@ export class RestApiConstruct extends Construct {
       const source = lambdaEntry.source;
 
       // Determine Lambda code source - either ExistingDirectory, NewFromCode, or ExistingLambda (function already exists in aws and does not need to be constructed)
-      let code: lambda.AssetCode | lambda.InlineCode =
-        lambda.Code.fromInline('');
+      let code!: lambda.AssetCode | lambda.InlineCode;
       if ('path' in source) {
         const src = source as ExistingDirectory;
         code = lambda.Code.fromAsset(src.path);
