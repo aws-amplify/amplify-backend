@@ -8,25 +8,6 @@ import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import * as lamb from 'aws-cdk-lib/aws-lambda';
 
-// @public (undocumented)
-export type ExistingDirectory = {
-    path: string;
-};
-
-// @public (undocumented)
-export type ExistingLambda = {
-    id: string;
-    name: string;
-};
-
-// @public (undocumented)
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
-
-// @public (undocumented)
-export type NewFromCode = {
-    code: string;
-};
-
 // @public
 export class RestApiConstruct extends Construct {
     constructor(scope: Construct, id: string, props: RestApiConstructProps);
@@ -40,16 +21,9 @@ export type RestApiConstructProps = {
     apiProps: RestApiPathConfig[];
 };
 
-// @public (undocumented)
-export type RestApiPathConfig = {
-    path: string;
-    routes: HttpMethod[];
-    lambdaEntry: LambdaSource;
-};
-
 // Warnings were encountered during analysis:
 //
-// src/types.ts:22:3 - (ae-forgotten-export) The symbol "LambdaSource" needs to be exported by the entry point index.d.ts
+// src/types.ts:16:3 - (ae-forgotten-export) The symbol "RestApiPathConfig" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
