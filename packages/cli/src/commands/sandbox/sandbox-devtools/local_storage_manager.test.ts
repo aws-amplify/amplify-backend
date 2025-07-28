@@ -48,7 +48,12 @@ void describe('LocalStorageManager', () => {
 
   void describe('saveResources and loadResources', () => {
     void it('saves resources to a file', () => {
-      const resources = { name: 'test', resources: [{ id: '1' }] };
+      const resources = {
+        name: 'test',
+        status: 'deployed',
+        resources: [],
+        region: 'us-east-1',
+      };
 
       storageManager.saveResources(resources);
 
@@ -56,7 +61,12 @@ void describe('LocalStorageManager', () => {
     });
 
     void it('loads resources from a file', () => {
-      const mockResources = { name: 'test', resources: [{ id: '1' }] };
+      const mockResources = {
+        name: 'test',
+        status: 'deployed',
+        resources: [],
+        region: 'us-east-1',
+      };
       storageManager.saveResources(mockResources);
 
       const result = storageManager.loadResources();
@@ -73,7 +83,12 @@ void describe('LocalStorageManager', () => {
 
   void describe('clearResources', () => {
     void it('deletes the resources file if it exists', () => {
-      const resources = { name: 'test', resources: [{ id: '1' }] };
+      const resources = {
+        name: 'test',
+        status: 'deployed',
+        resources: [],
+        region: 'us-east-1',
+      };
       storageManager.saveResources(resources);
 
       storageManager.clearResources();
@@ -287,7 +302,12 @@ void describe('LocalStorageManager', () => {
         'amplify-devtools-test-backend',
       );
 
-      storageManager.saveResources({ test: 'data' });
+      storageManager.saveResources({
+        name: 'test',
+        status: 'deployed',
+        resources: [],
+        region: 'us-east-1',
+      });
 
       assert.ok(fs.existsSync(path.join(expectedBaseDir, 'resources.json')));
     });
@@ -373,7 +393,12 @@ void describe('LocalStorageManager', () => {
       );
 
       // Create all possible file types
-      storageManager.saveResources({ test: 'data' });
+      storageManager.saveResources({
+        name: 'test',
+        status: 'deployed',
+        resources: [],
+        region: 'us-east-1',
+      });
       storageManager.saveResourceLoggingState('test-resource', true);
       storageManager.setMaxLogSize(100);
       storageManager.saveCustomFriendlyNames({
