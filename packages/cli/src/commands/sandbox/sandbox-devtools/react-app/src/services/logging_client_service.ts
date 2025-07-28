@@ -1,47 +1,13 @@
 import { SocketClientService } from './socket_client_service';
 import { SOCKET_EVENTS } from '../../../shared/socket_events';
-
-/**
- * Interface for log entry data
- */
-export interface LogEntry {
-  timestamp: string;
-  message: string;
-}
-
-/**
- * Interface for log stream status
- */
-export interface LogStreamStatus {
-  resourceId: string;
-  status: string;
-  error?: string;
-}
-
-/**
- * Interface for resource logs
- */
-export interface ResourceLogs {
-  resourceId: string;
-  logs: LogEntry[];
-}
-
-/**
- * Interface for Lambda test result
- */
-export interface LambdaTestResult {
-  resourceId: string;
-  result?: string;
-  error?: string;
-}
-
-/**
- * Interface for log settings
- */
-export interface LogSettings {
-  maxLogSizeMB: number;
-  currentSizeMB?: number;
-}
+import {
+  LogSettings,
+  LogStreamStatus,
+  LambdaTestResult,
+  ResourceIdentifier,
+  ResourceLogs,
+  ResourceLoggingToggle,
+} from '../../../shared/socket_types';
 
 /**
  * Service for handling logging-related socket communication
@@ -58,11 +24,12 @@ export class LoggingClientService extends SocketClientService {
     resourceType: string,
     startLogging: boolean,
   ): void {
-    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, {
+    const payload: ResourceLoggingToggle = {
       resourceId,
       resourceType,
       startLogging,
-    });
+    };
+    this.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, payload, true);
   }
 
   /**
@@ -70,7 +37,8 @@ export class LoggingClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public viewResourceLogs(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.VIEW_RESOURCE_LOGS, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.VIEW_RESOURCE_LOGS, payload);
   }
 
   /**
@@ -78,7 +46,8 @@ export class LoggingClientService extends SocketClientService {
    * @param resourceId The resource ID
    */
   public getSavedResourceLogs(resourceId: string): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS, { resourceId });
+    const payload: ResourceIdentifier = { resourceId };
+    this.emit(SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS, payload);
   }
 
   /**
@@ -114,11 +83,15 @@ export class LoggingClientService extends SocketClientService {
     functionName: string,
     input: string,
   ): void {
-    this.emit(SOCKET_EVENTS.TEST_LAMBDA_FUNCTION, {
-      resourceId,
-      functionName,
-      input,
-    });
+    this.emit(
+      SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
+      {
+        resourceId,
+        functionName,
+        input,
+      },
+      true,
+    );
   }
 
   /**

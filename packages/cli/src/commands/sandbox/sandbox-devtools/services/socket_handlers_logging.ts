@@ -11,7 +11,12 @@ import {
 } from '@aws-sdk/client-cloudwatch-logs';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { getLogGroupName } from '../logging/log_group_extractor.js';
-import { ConsoleLogEntry, SocketEvents } from './socket_handlers.js';
+import {
+  LogStreamStatus,
+  ResourceIdentifier,
+  ResourceLoggingToggle,
+} from '../shared/socket_types.js';
+import { SocketEvents } from './socket_handlers.js';
 
 /**
  * Service for handling socket events related to logging
@@ -25,7 +30,7 @@ export class SocketHandlerLogging {
   constructor(
     private io: Server,
     private storageManager: {
-      saveConsoleLogs: (logs: ConsoleLogEntry[]) => void;
+      saveConsoleLogs: (logs: unknown[]) => void;
       loadConsoleLogs: () => void;
       saveResourceLoggingState: (resourceId: string, isActive: boolean) => void;
       getResourcesWithActiveLogging: () => string[];
@@ -56,7 +61,7 @@ export class SocketHandlerLogging {
    */
   public async handleToggleResourceLogging(
     socket: Socket,
-    data: SocketEvents['toggleResourceLogging'],
+    data: ResourceLoggingToggle,
   ): Promise<void> {
     this.printer.log(
       `Toggle logging for ${data.resourceId}, startLogging=${data.startLogging}`,
@@ -270,7 +275,7 @@ export class SocketHandlerLogging {
     status: 'starting' | 'active' | 'already-active' | 'stopped',
     socket?: Socket,
   ): void {
-    const statusPayload = {
+    const statusPayload: LogStreamStatus = {
       resourceId,
       status,
     };
@@ -334,7 +339,7 @@ export class SocketHandlerLogging {
    */
   public handleViewResourceLogs(
     socket: Socket,
-    data: SocketEvents['viewResourceLogs'],
+    data: ResourceIdentifier,
   ): void {
     this.printer.log(
       `Viewing logs for resource ${data.resourceId}`,
@@ -345,7 +350,7 @@ export class SocketHandlerLogging {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {
         resourceId: 'unknown',
         error: 'Invalid resource ID provided',
-      });
+      } as LogStreamStatus);
       return;
     }
 
@@ -373,7 +378,7 @@ export class SocketHandlerLogging {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {
         resourceId: data.resourceId,
         error: `Error loading logs: ${String(error)}`,
-      });
+      } as LogStreamStatus);
     }
   }
 
@@ -382,7 +387,7 @@ export class SocketHandlerLogging {
    */
   public handleGetSavedResourceLogs(
     socket: Socket,
-    data: SocketEvents['getSavedResourceLogs'],
+    data: ResourceIdentifier,
   ): void {
     if (!data?.resourceId) {
       socket.emit(SOCKET_EVENTS.LOG_STREAM_ERROR, {

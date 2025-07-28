@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ConsoleLogEntry } from '../socket_handlers.js';
 
 /**
  * Simple mock storage manager that satisfies the interface requirements
@@ -9,14 +8,14 @@ export const mockStorageManager = {
   /**
    * Mock function that does nothing with the logs
    */
-  saveConsoleLogs: (logs: ConsoleLogEntry[]): void => {
+  saveConsoleLogs: (logs: unknown[]): void => {
     // No-op
   },
 
   /**
    * Returns an empty array of console logs
    */
-  loadConsoleLogs: (): ConsoleLogEntry[] => {
+  loadConsoleLogs: (): unknown[] => {
     return [];
   },
 
