@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { SocketHandlerLogging } from '../services/socket_handlers_logging.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
+import { ResourceLoggingToggle } from '../shared/socket_types.js';
 import { Server } from 'socket.io';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
 import { createServer } from 'node:http';
@@ -305,11 +306,12 @@ void describe('Logging System Integration Test', () => {
     );
 
     // Request to start logging for resource
-    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, {
+    const startPayload: ResourceLoggingToggle = {
       resourceId,
       resourceType,
       startLogging: true,
-    });
+    };
+    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, startPayload);
 
     // Wait for the status response
     const startStatus = await statusReceived;
@@ -348,11 +350,12 @@ void describe('Logging System Integration Test', () => {
     });
 
     // Request to stop logging
-    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, {
+    const stopPayload: ResourceLoggingToggle = {
       resourceId,
       resourceType,
       startLogging: false,
-    });
+    };
+    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, stopPayload);
 
     // Wait for the stop status
     const stopStatus = await stopStatusReceived;
@@ -420,11 +423,12 @@ void describe('Logging System Integration Test', () => {
     );
 
     // Request to start logging for resource without specifying resourceType
-    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, {
+    const errorPayload: ResourceLoggingToggle = {
       resourceId: 'test-resource-id',
       resourceType: '', // Empty resource type
       startLogging: true,
-    });
+    };
+    clientSocket.emit(SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING, errorPayload);
 
     // Wait for the error response
     const error = await errorReceived;

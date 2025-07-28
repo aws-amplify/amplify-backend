@@ -3,10 +3,15 @@ import { render, screen, act, within } from '@testing-library/react';
 import App from './App';
 import * as socketClientContext from './contexts/socket_client_context';
 import { SandboxStatus } from '@aws-amplify/sandbox';
-import { DevToolsSandboxOptions } from '../../shared/socket_types';
-import type { ConsoleLogEntry } from './components/ConsoleViewer';
+import { 
+  ConsoleLogEntry, 
+  DevToolsSandboxOptions,
+  LogEntry,
+  SandboxStatusData
+} from '../../shared/socket_types';
 import type { LogSettings } from './components/LogSettingsModal';
-import type { SandboxStatusData } from './services/sandbox_client_service';
+import type { SandboxClientService } from './services/sandbox_client_service';
+import { DeploymentClientService } from './services/deployment_client_service';
 
 // Mock the socket context
 vi.mock('./contexts/socket_client_context', async () => {
@@ -175,7 +180,7 @@ vi.mock('./components/DeploymentProgress', () => ({
       visible,
       status,
     }: {
-      deploymentClientService: any;
+      deploymentClientService: DeploymentClientService;
       visible: boolean;
       status: SandboxStatus;
     }) => (
@@ -224,14 +229,12 @@ vi.mock('./components/LogSettingsModal', () => ({
       onSave,
       visible,
       onDismiss,
-      onClear,
       initialSettings,
       currentSizeMB,
     }: {
       onSave: (settings: LogSettings) => void;
       visible: boolean;
       onDismiss: () => void;
-      onClear: () => void;
       initialSettings: LogSettings;
       currentSizeMB?: number;
     }) => (
@@ -250,9 +253,6 @@ vi.mock('./components/LogSettingsModal', () => ({
         <button data-testid="log-settings-cancel" onClick={onDismiss}>
           Cancel
         </button>
-        <button data-testid="log-settings-clear" onClick={onClear}>
-          Clear Logs
-        </button>
       </div>
     ),
   ),
@@ -264,10 +264,10 @@ describe('App Component', () => {
     const subscribers = {
       connect: [] as Array<() => void>,
       disconnect: [] as Array<(reason: string) => void>,
-      log: [] as Array<(data: any) => void>,
-      sandboxStatus: [] as Array<(data: any) => void>,
-      logSettings: [] as Array<(data: any) => void>,
-      savedConsoleLogs: [] as Array<(data: any) => void>,
+      log: [] as Array<(data: LogEntry) => void>,
+      sandboxStatus: [] as Array<(data: SandboxStatusData) => void>,
+      logSettings: [] as Array<(data: LogSettings) => void>,
+      savedConsoleLogs: [] as Array<(data: ConsoleLogEntry[]) => void>,
       connectError: [] as Array<(error: Error) => void>,
       connectTimeout: [] as Array<() => void>,
       reconnect: [] as Array<(attemptNumber: number) => void>,
@@ -409,7 +409,7 @@ describe('App Component', () => {
       emitDisconnect: (reason: string) => {
         subscribers.disconnect.forEach((handler) => handler(reason));
       },
-      emitLog: (logData: any) => {
+      emitLog: (logData: ConsoleLogEntry) => {
         // Ensure we have a unique ID if not provided
         const logWithId = {
           ...logData,
@@ -419,13 +419,13 @@ describe('App Component', () => {
         };
         subscribers.log.forEach((handler) => handler(logWithId));
       },
-      emitSandboxStatus: (statusData: any) => {
+      emitSandboxStatus: (statusData: SandboxStatusData) => {
         subscribers.sandboxStatus.forEach((handler) => handler(statusData));
       },
-      emitLogSettings: (settingsData: any) => {
+      emitLogSettings: (settingsData: LogSettings) => {
         subscribers.logSettings.forEach((handler) => handler(settingsData));
       },
-      emitSavedConsoleLogs: (logs: any[]) => {
+      emitSavedConsoleLogs: (logs: ConsoleLogEntry[]) => {
         subscribers.savedConsoleLogs.forEach((handler) => handler(logs));
       },
       emitConnectError: (error: Error) => {
@@ -470,10 +470,10 @@ describe('App Component', () => {
     mockDeploymentService = createMockDeploymentService();
 
     vi.mocked(socketClientContext.useSandboxClientService).mockReturnValue(
-      mockSandboxService as any,
+      mockSandboxService as unknown as SandboxClientService,
     );
     vi.mocked(socketClientContext.useDeploymentClientService).mockReturnValue(
-      mockDeploymentService as any,
+      mockDeploymentService as unknown as DeploymentClientService,
     );
 
     // Mock localStorage
@@ -761,37 +761,6 @@ describe('App Component', () => {
     expect(screen.getByText(/Deployment in Progress/i)).toBeInTheDocument();
   });
 
-  it('clears logs when clear logs button is clicked', async () => {
-    render(<App />);
-
-    // Setup some initial logs
-    act(() => {
-      mockSandboxService.emitSavedConsoleLogs([
-        {
-          id: '1',
-          timestamp: '2023-01-01T12:00:00Z',
-          level: 'INFO',
-          message: 'Test log message',
-        },
-      ]);
-    });
-
-    // Verify logs are displayed
-    expect(screen.getByText(/Test log message/i)).toBeInTheDocument();
-
-    // Open settings modal
-    act(() => {
-      screen.getByText('Open Settings').click();
-    });
-
-    // Click clear logs button
-    act(() => {
-      screen.getByTestId('log-settings-clear').click();
-    });
-
-    // Verify logs were cleared and saveConsoleLogs was called with empty array
-    expect(mockSandboxService.saveConsoleLogs).toHaveBeenCalledWith([]);
-  });
 
   it('periodically checks status when in unknown state', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {}); // Silence console logs
