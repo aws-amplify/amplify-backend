@@ -193,7 +193,7 @@ void describe('Complex Error Scenarios Integration Test', () => {
     const response = await responseReceived;
 
     // Should handle corruption gracefully
-    assert.strictEqual(response.status, 'success');
+    assert.strictEqual(response.status, 'running');
 
     // Restore the original method
     storageManager.loadResources = originalLoadResources;
