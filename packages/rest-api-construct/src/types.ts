@@ -6,7 +6,7 @@ export type ExistingLambda = { id: string; name: string };
 export type NewFromCode = { code: string };
 
 //adds runtime to the source
-type LambdaSource = {
+export type LambdaSource = {
   runtime: lamb.Runtime;
   source: ExistingDirectory | ExistingLambda | NewFromCode;
 };
