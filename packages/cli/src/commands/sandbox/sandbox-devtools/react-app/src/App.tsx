@@ -93,17 +93,11 @@ function AppContent() {
             console.log(
               `[CLIENT] Updating sandboxIdentifier from ${prevId} to ${data.identifier}`,
             );
-            // Store the identifier in localStorage for other components to use
-            if (data.identifier) {
-              window.localStorage.setItem('sandboxIdentifier', data.identifier);
-            }
             return data.identifier;
           });
         } else if (data.status === 'nonexistent') {
           setSandboxIdentifier((prevId) => {
             console.log(`[CLIENT] Clearing sandboxIdentifier from ${prevId}`);
-            // Remove the identifier from localStorage
-            window.localStorage.removeItem('sandboxIdentifier');
             return undefined;
           });
         }
