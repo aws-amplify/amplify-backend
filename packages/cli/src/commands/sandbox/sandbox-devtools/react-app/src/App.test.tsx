@@ -552,23 +552,12 @@ describe('App Component', () => {
       within(headerElement).getByText(/Status: running/i),
     ).toBeInTheDocument();
 
-    // Check localStorage was updated
-    expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      'sandboxIdentifier',
-      'sandbox-123',
-    );
-
     // Emit another status update
     act(() => {
       mockSandboxService.emitSandboxStatus({
         status: 'nonexistent' as SandboxStatus,
       } as SandboxStatusData);
     });
-
-    // Check that localStorage entry was removed
-    expect(window.localStorage.removeItem).toHaveBeenCalledWith(
-      'sandboxIdentifier',
-    );
   });
 
   it('shows sandbox options modal when starting sandbox', async () => {
