@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useResourceManager } from '../hooks/useResourceManager';
-import { ResourceWithFriendlyName } from '../services/resource_client_service';
+import { ResourceWithFriendlyName } from '../../../resource_console_functions';
 import { useResourceClientService } from '../contexts/socket_client_context';
 import '@cloudscape-design/global-styles/index.css';
 import {

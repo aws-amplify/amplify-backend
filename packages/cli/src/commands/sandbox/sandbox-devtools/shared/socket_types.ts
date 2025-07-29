@@ -1,6 +1,88 @@
+import { SandboxStatus } from '@aws-amplify/sandbox';
+import { ResourceWithFriendlyName } from '../resource_console_functions.js';
 /**
  * Shared types for socket communication between client and server
  */
+
+/**
+ * Type for identifying a specific resource - used in multiple events
+ * like viewResourceLogs, getSavedResourceLogs, and removeCustomFriendlyName
+ */
+export type ResourceIdentifier = {
+  resourceId: string;
+};
+
+/**
+ * Type for updating a friendly name for a resource
+ * used in updateCustomFriendlyName events
+ */
+export type FriendlyNameUpdate = {
+  resourceId: string;
+  friendlyName: string;
+};
+
+/**
+ * Type for backend resources data
+ */
+export type BackendResourcesData = {
+  name: string;
+  status: string;
+  resources: ResourceWithFriendlyName[];
+  region: string | null;
+  message?: string;
+  error?: string;
+};
+
+/**
+ * Type for console log entries used in both the frontend and backend
+ */
+export type ConsoleLogEntry = {
+  id: string;
+  timestamp: string;
+  level: string;
+  message: string;
+};
+
+/**
+ * Type for sandbox status data sent with SANDBOX_STATUS events
+ */
+export type SandboxStatusData = {
+  /**
+   * Current status of the sandbox
+   */
+  status: SandboxStatus;
+
+  /**
+   * Identifier for the backend
+   * Made optional for compatibility with frontend
+   */
+  identifier?: string;
+
+  /**
+   * Optional error message when something goes wrong
+   */
+  error?: string;
+
+  /**
+   * Optional timestamp for the status update
+   */
+  timestamp?: string;
+
+  /**
+   * Optional status message for user feedback
+   */
+  message?: string;
+
+  /**
+   * Optional CloudFormation stack status
+   */
+  stackStatus?: string;
+
+  /**
+   * Flag indicating if a deployment has completed
+   */
+  deploymentCompleted?: boolean;
+};
 
 /**
  * Interface for DevTools Sandbox options
