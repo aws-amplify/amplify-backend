@@ -15,7 +15,7 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'items',
-          routes: ['GET'],
+          methods: ['GET'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: { path: 'packages/rest-api-construct/lib/test-assets' },
@@ -37,7 +37,7 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'items',
-          routes: ['GET'],
+          methods: ['GET'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_22_X,
             source: {
@@ -151,7 +151,7 @@ void describe('RestApiConstruct', () => {
       apiProps: [
         {
           path: '/test',
-          routes: ['GET', 'POST'],
+          methods: ['GET', 'POST'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: {
@@ -161,7 +161,7 @@ void describe('RestApiConstruct', () => {
         },
         {
           path: '/blog',
-          routes: ['GET', 'POST', 'PUT'],
+          methods: ['GET', 'POST', 'PUT'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: {
