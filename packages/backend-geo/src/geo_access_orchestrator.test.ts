@@ -7,6 +7,10 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AllowMapsAction,
+  AllowPlacesAction,
+} from '@aws-cdk/aws-location-alpha';
 
 void describe('GeoAccessOrchestrator', () => {
   void describe('orchestrateGeoAccess', () => {
@@ -557,6 +561,307 @@ void describe('GeoAccessOrchestrator', () => {
             testResourceName,
           ),
         { message: 'At least one permission must be specified' },
+      );
+    });
+  });
+
+  void describe('API key functionality', () => {
+    let stack: Stack;
+    const ssmEnvironmentEntriesStub: SsmEnvironmentEntry[] = [];
+    const testResourceArn = 'arn:aws:geo-maps:us-east-1::provider/default';
+    const testResourceName = 'testMapResource';
+
+    beforeEach(() => {
+      stack = createStackAndSetContext();
+    });
+
+    void it('handles API key access definition with empty acceptors', () => {
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['get'],
+              getAccessAcceptors: [], // Empty for API key
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      const policies = geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'map',
+        testResourceName,
+      );
+
+      // Should return empty policies array for API key
+      assert.equal(policies.length, 0);
+    });
+
+    void it('orchestrateKeyAccess returns correct actions for map', () => {
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['get'],
+              getAccessAcceptors: [], // API key definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      // First orchestrate geo access to set up API key actions
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'map',
+        testResourceName,
+      );
+
+      // Then get the key actions
+      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
+
+      assert.deepStrictEqual(keyActions, [
+        AllowMapsAction.GET_STATIC_MAP,
+        AllowMapsAction.GET_TILE,
+      ]);
+    });
+
+    void it('orchestrateKeyAccess returns correct actions for place', () => {
+      const placeResourceArn = 'arn:aws:geo-places:us-east-1::provider/default';
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['search', 'geocode'],
+              getAccessAcceptors: [], // API key definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        placeResourceArn,
+        'place',
+        'testPlaceResource',
+      );
+
+      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
+
+      assert.deepStrictEqual(keyActions, [
+        AllowPlacesAction.GET_PLACE,
+        AllowPlacesAction.SEARCH_NEARBY,
+        AllowPlacesAction.SEARCH_TEXT,
+        AllowPlacesAction.SUGGEST,
+        AllowPlacesAction.GEOCODE,
+        AllowPlacesAction.REVERSE_GEOCODE,
+      ]);
+    });
+
+    void it('orchestrateKeyAccess returns empty array when no API key actions', () => {
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: [],
+              getAccessAcceptors: [], // Not API key - has acceptors
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: `Access definition for api key specified multiple times.`,
+                    resolution: `Combine all access definitions for api key into one access rule.`,
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'map',
+        testResourceName,
+      );
+
+      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
+
+      assert.deepStrictEqual(keyActions, []);
+    });
+
+    void it('handles mixed API key and role-based access', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['get'],
+              getAccessAcceptors: [], // API key definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+            {
+              actions: ['get'],
+              getAccessAcceptors: [
+                () => ({
+                  identifier: 'authenticatedUserIamRole',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ], // Role-based definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'authenticated',
+                  validationErrorOptions: {
+                    message: 'Test error',
+                    resolution: 'Test resolution',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      const policies = geoAccessOrchestrator.orchestrateGeoAccess(
+        testResourceArn,
+        'map',
+        testResourceName,
+      );
+
+      // Should have one policy for the role-based access
+      assert.equal(policies.length, 1);
+      assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
+
+      // Should also have API key actions available
+      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
+      assert.deepStrictEqual(keyActions, [
+        AllowMapsAction.GET_STATIC_MAP,
+        AllowMapsAction.GET_TILE,
+      ]);
+    });
+
+    void it('handles multiple API key actions', () => {
+      const placeResourceArn = 'arn:aws:geo-places:us-east-1::provider/default';
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['search', 'geocode', 'autocomplete'],
+              getAccessAcceptors: [], // API key definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        placeResourceArn,
+        'place',
+        'testPlaceResource',
+      );
+
+      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
+
+      assert.deepStrictEqual(keyActions, [
+        AllowPlacesAction.GET_PLACE,
+        AllowPlacesAction.SEARCH_NEARBY,
+        AllowPlacesAction.SEARCH_TEXT,
+        AllowPlacesAction.SUGGEST,
+        AllowPlacesAction.GEOCODE,
+        AllowPlacesAction.REVERSE_GEOCODE,
+        AllowPlacesAction.AUTOCOMPLETE,
+      ]);
+    });
+
+    void it('validates API key actions for resource type', () => {
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['create'], // Invalid for map resource
+              getAccessAcceptors: [], // API key definition
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'api key',
+                  validationErrorOptions: {
+                    message: 'API key access defined multiple times',
+                    resolution: 'Combine API key access definitions',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      assert.throws(
+        () =>
+          geoAccessOrchestrator.orchestrateGeoAccess(
+            testResourceArn,
+            'map',
+            testResourceName,
+          ),
+        new AmplifyUserError('ActionNotFoundError', {
+          message:
+            'Desired access action not found for the specific map resource.',
+          resolution:
+            'Please refer to specific map access actions for more information.',
+        }),
       );
     });
   });

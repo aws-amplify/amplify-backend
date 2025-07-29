@@ -26,8 +26,13 @@ export class AmplifyPlace
     this.name = props.name;
     this.id = id;
 
-    this.resources.region = this.stack.region;
-    this.resources.policies = [];
+    this.props = props;
+
+    this.resources = {
+      region: this.stack.region,
+      policies: [],
+      cfnResources: {},
+    };
   }
 
   getResourceArn = (): string => {
@@ -37,6 +42,7 @@ export class AmplifyPlace
   generateApiKey = (actions: AllowPlacesAction[]) => {
     this.resources.apiKey = new ApiKey(this, this.props.name, {
       ...this.props.apiKeyProps,
+      noExpiry: this.props.apiKeyProps?.noExpiry ?? true,
       allowPlacesActions: actions,
     });
 

@@ -59,6 +59,8 @@ export class GeoAccessOrchestrator {
       this.roleAccessBuilder,
     );
 
+    this.apiKeyActions.length = 0;
+
     const uniqueRoleTokenSet = new Set<string>();
 
     geoAccessDefinitions.forEach((definition) => {

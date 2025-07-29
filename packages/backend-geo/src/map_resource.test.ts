@@ -2,6 +2,8 @@ import { beforeEach, describe, it } from 'node:test';
 import { AmplifyMap } from './map_resource.js';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
+import { Template } from 'aws-cdk-lib/assertions';
 
 void describe('AmplifyMap', () => {
   let app: App;
@@ -102,6 +104,91 @@ void describe('AmplifyMap', () => {
       assert.ok(map.resources);
       assert.equal(map.resources.region, 'us-west-2');
       assert.ok(map.stack);
+    });
+  });
+
+  void describe('API key functionality', () => {
+    void it('initializes without API key', () => {
+      const map = new AmplifyMap(stack, 'testMap', {
+        name: 'testMapName',
+      });
+
+      assert.equal(map.resources.apiKey, undefined);
+      assert.equal(map.resources.cfnResources.cfnAPIKey, undefined);
+    });
+
+    void it('generates API key with provided actions', () => {
+      const map = new AmplifyMap(stack, 'testMap', {
+        name: 'testMapName',
+      });
+
+      map.generateApiKey([AllowMapsAction.GET_TILE]);
+
+      assert.ok(map.resources.apiKey);
+      assert.ok(map.resources.cfnResources.cfnAPIKey);
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Location::APIKey', {
+        Restrictions: {
+          AllowActions: ['geo-maps:GetTile'],
+        },
+      });
+    });
+
+    void it('generates API key with empty actions array', () => {
+      const map = new AmplifyMap(stack, 'testMap', {
+        name: 'testMapName',
+      });
+
+      map.generateApiKey([]);
+
+      assert.ok(map.resources.apiKey);
+      assert.ok(map.resources.cfnResources.cfnAPIKey);
+    });
+
+    void it('generates API key with multiple actions', () => {
+      const map = new AmplifyMap(stack, 'testMap', {
+        name: 'testMapName',
+      });
+
+      map.generateApiKey([
+        AllowMapsAction.GET_STATIC_MAP,
+        AllowMapsAction.GET_TILE,
+      ]);
+
+      assert.ok(map.resources.apiKey);
+
+      assert.ok(map.resources.cfnResources.cfnAPIKey);
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Location::APIKey', {
+        Restrictions: {
+          AllowActions: ['geo-maps:GetStaticMap', 'geo-maps:GetTile'],
+        },
+      });
+    });
+
+    void it('generates API key with custom apiKeyProps', () => {
+      const map = new AmplifyMap(stack, 'testMap', {
+        name: 'testMapName',
+        apiKeyProps: {
+          description: 'Custom API key for maps',
+        },
+      });
+
+      map.generateApiKey([AllowMapsAction.GET_STATIC_MAP]);
+
+      assert.ok(map.resources.apiKey);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Location::APIKey', {
+        Restrictions: {
+          AllowActions: ['geo-maps:GetStaticMap'],
+        },
+      });
+      assert.equal(
+        map.resources.cfnResources.cfnAPIKey?.description,
+        'Custom API key for maps',
+      );
     });
   });
 });

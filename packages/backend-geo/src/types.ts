@@ -5,6 +5,8 @@ import {
 } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import {
+  AllowMapsAction,
+  AllowPlacesAction,
   ApiKey,
   ApiKeyProps,
   GeofenceCollection,
@@ -119,9 +121,9 @@ export type MapResources = {
 export type PlaceResources = {
   region: string;
   policies: Policy[];
-  apiKey: ApiKey;
+  apiKey?: ApiKey;
   cfnResources: {
-    cfnAPIKey: CfnAPIKey;
+    cfnAPIKey?: CfnAPIKey;
   };
 };
 
@@ -178,5 +180,7 @@ export const resourceActionRecord: Record<string, string[]> = {
   place: ['autocomplete', 'geocode', 'search'],
   collection: ['create', 'read', 'update', 'delete', 'list'],
 };
+
+export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 
 export type GeoResourceType = 'map' | 'place' | 'collection';

@@ -27,8 +27,11 @@ export class AmplifyMap
 
     this.props = props;
 
-    this.resources.region = this.stack.region;
-    this.resources.policies = [];
+    this.resources = {
+      region: this.stack.region,
+      policies: [],
+      cfnResources: {},
+    };
   }
 
   getResourceArn = (): string => {
@@ -38,9 +41,9 @@ export class AmplifyMap
   generateApiKey = (actions: AllowMapsAction[]) => {
     this.resources.apiKey = new ApiKey(this, this.props.name, {
       ...this.props.apiKeyProps,
+      noExpiry: this.props.apiKeyProps?.noExpiry ?? true,
       allowMapsActions: actions,
     });
-
     this.resources.cfnResources.cfnAPIKey =
       this.resources.apiKey.node.findChild('Resource') as CfnAPIKey;
   };
