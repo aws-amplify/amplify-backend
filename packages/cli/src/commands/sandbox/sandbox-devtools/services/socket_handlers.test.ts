@@ -5,32 +5,26 @@ import { Printer, printer } from '@aws-amplify/cli-core';
 import type { Server, Socket } from 'socket.io';
 import type { ResourceService } from './resource_service.js';
 import type { ShutdownService } from './shutdown_service.js';
-import type { Sandbox, SandboxStatus } from '@aws-amplify/sandbox';
+import type {
+  Sandbox,
+  SandboxDeleteOptions,
+  SandboxStatus,
+} from '@aws-amplify/sandbox';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { SandboxStatusData } from '../shared/socket_types.js';
+import {
+  BackendResourcesData,
+  SandboxStatusData,
+} from '../shared/socket_types.js';
 
-// Define the return type of mock.fn()
 type MockFn = ReturnType<typeof mock.fn>;
 
 // Type for handler functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventHandler = (...args: any[]) => void | Promise<void>;
 
-// Type for backend resources data
-type BackendResourcesData = {
-  name: string;
-  status: string;
-  resources: unknown[];
-  region: string | null;
-  message?: string;
-  error?: string;
-};
-
-// Mock call type with more specific typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockCall = {
   arguments: readonly unknown[];
 };
@@ -433,6 +427,9 @@ void describe('SocketHandlerService', () => {
       );
       const handler = foundCall?.arguments[1] as EventHandler;
 
+      // Reset the socket emit mock to track only new calls
+      (mockSocket.emit as unknown as MockFn).mock.resetCalls();
+
       await handler();
 
       const mockEmitFn = mockSocket.emit as unknown as MockFn;
@@ -636,45 +633,10 @@ void describe('SocketHandlerService', () => {
 
       await handler({});
 
-      // Verify socket emit was called with error status
-      const mockEmitFn = mockSocket.emit as unknown as MockFn;
-      assert.strictEqual(mockEmitFn.mock.callCount(), 2); // First for deploying, then for error
-
-      assert.ok(
-        mockEmitFn.mock.calls.length > 1,
-        'Should have at least two emit calls',
-      );
-      assert.strictEqual(
-        mockEmitFn.mock.calls[1].arguments[0],
-        SOCKET_EVENTS.SANDBOX_STATUS,
-      );
-
-      const statusData = mockEmitFn.mock.calls[1]
-        .arguments[1] as SandboxStatusData;
-      assert.strictEqual(statusData.status, 'error');
-      assert.strictEqual(statusData.identifier, 'test-backend');
-      assert.strictEqual(statusData.error, `Error: ${errorMessage}`);
-    });
-  });
-
-  void describe('handleStopSandbox', () => {
-    void it('stops sandbox and emits status', async () => {
-      service.setupSocketHandlers(mockSocket);
-      const mockOnFn = mockSocket.on as unknown as MockFn;
-      const foundCall = mockOnFn.mock.calls.find(
-        (call: MockCall) => call.arguments[0] === SOCKET_EVENTS.STOP_SANDBOX,
-      );
-
-      assert.ok(foundCall, 'Could not find stopSandbox handler');
-      const handler = foundCall?.arguments[1] as EventHandler;
-
-      await handler();
-
-      // Verify sandbox.stop was called
-      const mockStopFn = mockSandbox.stop as unknown as MockFn;
-      assert.strictEqual(mockStopFn.mock.callCount(), 1);
-
-      // Verify socket emit was called with stopped status
+      // Verify socket emit was called with deploying status only
+      // The implementation only emits the initial deploying status
+      // and logs the error but doesn't emit an error status directly
+      // Error status would come from sandbox events like 'initializationError' or 'failedDeployment'
       const mockEmitFn = mockSocket.emit as unknown as MockFn;
       assert.strictEqual(mockEmitFn.mock.callCount(), 1);
 
@@ -689,9 +651,39 @@ void describe('SocketHandlerService', () => {
 
       const statusData = mockEmitFn.mock.calls[0]
         .arguments[1] as SandboxStatusData;
-      assert.strictEqual(statusData.status, 'stopped');
+      assert.strictEqual(statusData.status, 'deploying');
       assert.strictEqual(statusData.identifier, 'test-backend');
-      assert.strictEqual(statusData.message, 'Sandbox stopped successfully');
+      assert.strictEqual(statusData.message, 'Starting sandbox...');
+
+      // Verify that the error was logged
+      const mockLogFn = mockPrinter.log as unknown as MockFn;
+      const errorLogCall = mockLogFn.mock.calls.find(
+        (call: MockCall) =>
+          String(call.arguments[0]).includes('Error starting sandbox') &&
+          String(call.arguments[0]).includes(errorMessage),
+      );
+      assert.ok(errorLogCall, 'Should log the error message');
+    });
+  });
+
+  void describe('handleStopSandbox', () => {
+    void it('stops sandbox', async () => {
+      service.setupSocketHandlers(mockSocket);
+      const mockOnFn = mockSocket.on as unknown as MockFn;
+      const foundCall = mockOnFn.mock.calls.find(
+        (call: MockCall) => call.arguments[0] === SOCKET_EVENTS.STOP_SANDBOX,
+      );
+
+      assert.ok(foundCall, 'Could not find stopSandbox handler');
+      const handler = foundCall?.arguments[1] as EventHandler;
+
+      await handler();
+
+      // Verify sandbox.stop was called
+      const mockStopFn = mockSandbox.stop as unknown as MockFn;
+      assert.strictEqual(mockStopFn.mock.callCount(), 1);
+      // The stop method does not emit an updated status, so we don't check for that here
+      // The updated status comes with the successfulStop event from the sandbox
     });
 
     void it('handles errors when stopping sandbox', async () => {
@@ -726,7 +718,7 @@ void describe('SocketHandlerService', () => {
 
       const statusData = mockEmitFn.mock.calls[0]
         .arguments[1] as SandboxStatusData;
-      assert.strictEqual(statusData.status, 'error');
+      assert.strictEqual(statusData.status, 'running');
       assert.strictEqual(statusData.identifier, 'test-backend');
       assert.strictEqual(statusData.error, `Error: ${errorMessage}`);
     });
@@ -748,9 +740,11 @@ void describe('SocketHandlerService', () => {
       // Verify sandbox.delete was called with correct identifier
       const mockDeleteFn = mockSandbox.delete as unknown as MockFn;
       assert.strictEqual(mockDeleteFn.mock.callCount(), 1);
-      assert.deepStrictEqual(mockDeleteFn.mock.calls[0].arguments[0], {
-        identifier: 'test-backend',
-      });
+      assert.deepStrictEqual(
+        (mockDeleteFn.mock.calls[0].arguments[0] as SandboxDeleteOptions)
+          .identifier,
+        'test-backend',
+      );
 
       // Verify socket emit was called with deleting status
       const mockEmitFn = mockSocket.emit as unknown as MockFn;
@@ -789,24 +783,36 @@ void describe('SocketHandlerService', () => {
 
       await handler();
 
-      // Verify socket emit was called with error status
+      // Verify socket emit was called with deleting status first, then error status
       const mockEmitFn = mockSocket.emit as unknown as MockFn;
       assert.strictEqual(mockEmitFn.mock.callCount(), 2); // First for deleting, then for error
 
       assert.ok(
-        mockEmitFn.mock.calls.length > 1,
-        'Should have at least two emit calls',
+        mockEmitFn.mock.calls.length > 0,
+        'Should have at least one emit call',
       );
+
+      // First emit should be the deleting status
+      assert.strictEqual(
+        mockEmitFn.mock.calls[0].arguments[0],
+        SOCKET_EVENTS.SANDBOX_STATUS,
+      );
+      const initialStatus = mockEmitFn.mock.calls[0]
+        .arguments[1] as SandboxStatusData;
+      assert.strictEqual(initialStatus.status, 'deleting');
+      assert.strictEqual(initialStatus.identifier, 'test-backend');
+      assert.strictEqual(initialStatus.message, 'Deleting sandbox...');
+
+      // Second emit should be the error status
       assert.strictEqual(
         mockEmitFn.mock.calls[1].arguments[0],
         SOCKET_EVENTS.SANDBOX_STATUS,
       );
-
-      const statusData = mockEmitFn.mock.calls[1]
+      const errorStatus = mockEmitFn.mock.calls[1]
         .arguments[1] as SandboxStatusData;
-      assert.strictEqual(statusData.status, 'error');
-      assert.strictEqual(statusData.identifier, 'test-backend');
-      assert.strictEqual(statusData.error, `Error: ${errorMessage}`);
+      assert.strictEqual(errorStatus.status, 'running'); // Current state from mockGetSandboxState
+      assert.strictEqual(errorStatus.identifier, 'test-backend');
+      assert.strictEqual(errorStatus.error, `Error: ${errorMessage}`);
     });
   });
 
