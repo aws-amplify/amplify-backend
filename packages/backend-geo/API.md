@@ -4,6 +4,8 @@
 
 ```ts
 
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
+import { AllowPlacesAction } from '@aws-cdk/aws-location-alpha';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { ApiKey } from '@aws-cdk/aws-location-alpha';
 import { ApiKeyProps } from '@aws-cdk/aws-location-alpha';
@@ -98,6 +100,9 @@ export type GeoActionBuilder = {
 };
 
 // @public (undocumented)
+export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
+
+// @public (undocumented)
 export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'>;
 
 // @public (undocumented)
@@ -120,9 +125,9 @@ export type MapResources = {
 export type PlaceResources = {
     region: string;
     policies: Policy[];
-    apiKey: ApiKey;
+    apiKey?: ApiKey;
     cfnResources: {
-        cfnAPIKey: CfnAPIKey;
+        cfnAPIKey?: CfnAPIKey;
     };
 };
 
