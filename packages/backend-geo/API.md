@@ -78,7 +78,7 @@ export type GeoAccessBuilder = {
     authenticated: GeoActionBuilder;
     guest: GeoActionBuilder;
     groups: (groupNames: string[]) => GeoActionBuilder;
-    apiKey?: GeoActionBuilder;
+    apiKey: GeoActionBuilder;
 };
 
 // @public (undocumented)
