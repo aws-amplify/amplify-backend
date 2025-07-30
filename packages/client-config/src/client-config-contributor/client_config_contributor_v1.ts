@@ -503,7 +503,7 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
       }
 
       if (geofenceCollectionsObj && geofenceCollectionsObj.default) {
-        config.geo!.geofence_collections = {
+        config.geo.geofence_collections = {
           default: geofenceCollectionsObj.default,
           items: geofenceCollectionsObj.items || [],
         };

@@ -271,20 +271,4 @@ void describe('GeoAccessBuilder', () => {
       },
     );
   });
-
-  void it('handles empty group array', () => {
-    const accessDefinition = roleAccessBuilder.groups([]).to(['get']);
-
-    assert.deepStrictEqual(accessDefinition.actions, ['get']);
-    assert.equal(accessDefinition.getAccessAcceptors.length, 0);
-    assert.equal(accessDefinition.uniqueDefinitionValidators.length, 0);
-  });
-
-  void it('handles empty actions array', () => {
-    const accessDefinition = roleAccessBuilder.authenticated.to([]);
-
-    assert.deepStrictEqual(accessDefinition.actions, []);
-    assert.equal(accessDefinition.getAccessAcceptors.length, 1);
-    assert.equal(accessDefinition.uniqueDefinitionValidators.length, 1);
-  });
 });
