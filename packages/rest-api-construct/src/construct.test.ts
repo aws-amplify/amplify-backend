@@ -71,7 +71,7 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'items',
-          routes: ['GET'],
+          methods: ['GET'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_22_X,
             source: {
@@ -106,7 +106,7 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'stuff',
-          routes: ['GET'],
+          methods: ['GET'],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_22_X,
             source: { id: func.functionArn, name: func.functionName },
