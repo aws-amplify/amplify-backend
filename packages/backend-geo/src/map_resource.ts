@@ -1,9 +1,14 @@
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { AmplifyMapProps, MapResources } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 import { AllowMapsAction, ApiKey } from '@aws-cdk/aws-location-alpha';
 import { Aws, Resource } from 'aws-cdk-lib';
 import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { Construct } from 'constructs';
+import { fileURLToPath } from 'node:url';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+
+const geoStackType = 'geo-Location';
 
 /**
  * Resource for AWS-managed Maps
@@ -15,6 +20,8 @@ export class AmplifyMap
   readonly resources: MapResources;
   readonly id: string;
   readonly name: string;
+  readonly isDefault: boolean;
+  readonly policies: Policy[];
   private readonly props: AmplifyMapProps;
 
   /**
@@ -24,14 +31,21 @@ export class AmplifyMap
     super(scope, id);
     this.name = props.name;
     this.id = id;
+    this.isDefault = props.isDefault || false;
 
     this.props = props;
 
     this.resources = {
       region: this.stack.region,
-      policies: [],
+      policies: this.policies,
       cfnResources: {},
     };
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      this.stack,
+      geoStackType,
+      fileURLToPath(new URL('../package.json', import.meta.url)),
+    );
   }
 
   getResourceArn = (): string => {

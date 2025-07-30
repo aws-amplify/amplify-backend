@@ -15,6 +15,9 @@ import {
 import { CfnAPIKey, CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import { AmplifyMap } from './map_resource.js';
+import { AmplifyPlace } from './place_resource.js';
+import { AmplifyCollection } from './collection_construct.js';
 
 // ----------------------------------- factory properties ----------------------------------------------
 
@@ -80,14 +83,14 @@ export type AmplifyCollectionFactoryProps = Omit<
 
 export type AmplifyMapProps = Omit<
   AmplifyCollectionProps,
-  'collectionProps' | 'isDefault'
+  'collectionProps'
 > & {
   apiKeyProps?: GeoApiKeyProps;
 };
 
 export type AmplifyPlaceProps = Omit<
   AmplifyCollectionProps,
-  'collectionProps' | 'isDefault'
+  'collectionProps'
 > & {
   apiKeyProps?: GeoApiKeyProps;
 };
@@ -103,6 +106,8 @@ export type GeoApiKeyProps = Omit<
   ApiKeyProps,
   'allowMapsActions' | 'allowPlacesActions'
 >;
+
+// ----------------------------------- output properties ----------------------------------------------
 
 /**
  * Backend-accessible resources from AmplifyMap
@@ -144,6 +149,11 @@ export type CollectionResources = {
   };
 };
 
+export type ResourceOutputs = {
+  name: string;
+  apiKey?: string;
+};
+
 // ----------------------------------- access definitions ----------------------------------------------
 
 export type GeoAccessGenerator = (
@@ -183,6 +193,8 @@ export const resourceActionRecord: Record<string, string[]> = {
   place: ['autocomplete', 'geocode', 'search'],
   collection: ['create', 'read', 'update', 'delete', 'list'],
 };
+
+export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
 
 export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 

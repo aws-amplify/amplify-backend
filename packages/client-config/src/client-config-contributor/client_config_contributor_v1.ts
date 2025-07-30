@@ -503,6 +503,51 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
       }
 
       if (geofenceCollectionsObj && geofenceCollectionsObj.default) {
+        config.geo!.geofence_collections = {
+          default: geofenceCollectionsObj.default,
+          items: geofenceCollectionsObj.items || [],
+        };
+      }
+    }
+
+    return config;
+  };
+}
+
+/**
+ * Transformer for Geo segment of ClientConfig (V1.1 or later)
+ */
+export class GeoClientConfigContributorV1 implements ClientConfigContributor {
+  contribute = ({
+    [geoOutputKey]: geoOutput,
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
+    if (geoOutput === undefined) {
+      return {};
+    }
+
+    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
+
+    config.geo = {
+      aws_region: geoOutput.payload.geoRegion,
+    };
+
+    let geofenceCollectionsObj;
+
+    if (geoOutput.payload.geofenceCollections) {
+      const firstParse = JSON.parse(
+        JSON.parse(geoOutput.payload.geofenceCollections),
+      );
+
+      if (
+        firstParse &&
+        typeof firstParse === 'object' &&
+        !Array.isArray(firstParse) &&
+        firstParse.default
+      ) {
+        geofenceCollectionsObj = firstParse;
+      }
+
+      if (geofenceCollectionsObj && geofenceCollectionsObj.default) {
         config.geo.geofence_collections = {
           default: geofenceCollectionsObj.default,
           items: geofenceCollectionsObj.items || [],
