@@ -31,6 +31,7 @@ export type LambdaSource = {
 // @public (undocumented)
 export type NewFromCode = {
     code: string;
+    functionName: string;
 };
 
 // @public
