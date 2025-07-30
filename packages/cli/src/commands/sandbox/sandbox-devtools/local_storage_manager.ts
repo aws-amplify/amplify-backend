@@ -34,6 +34,15 @@ export type CloudWatchLogEntry = {
 };
 
 /**
+ * File information with path, modification time, and size
+ */
+type FileInfo = {
+  path: string;
+  mtime: Date;
+  size: number;
+};
+
+/**
  * Manager for local storage of sandbox data
  * Handles storing and retrieving various types of data like deployment progress, resources, logs, etc.
  */
@@ -229,36 +238,20 @@ export class LocalStorageManager {
    * @returns The total size of all logs in MB
    */
   getLogsSizeInMB(): number {
-    let totalSize = 0;
+    let allFiles: FileInfo[] = [];
 
-    // Check base directory files
-    if (fs.existsSync(this.baseDir)) {
-      fs.readdirSync(this.baseDir).forEach((file) => {
-        const filePath = path.join(this.baseDir, file);
-        if (fs.lstatSync(filePath).isFile()) {
-          totalSize += fs.statSync(filePath).size;
-        }
-      });
-    }
+    // Collect files from all directories
+    allFiles = allFiles.concat(
+      this.collectFileStats(this.baseDir, true),
+      this.collectFileStats(this.logsDir),
+      this.collectFileStats(this.cloudWatchLogsDir),
+    );
 
-    // Check logs directory
-    if (fs.existsSync(this.logsDir)) {
-      fs.readdirSync(this.logsDir).forEach((file) => {
-        const filePath = path.join(this.logsDir, file);
-        totalSize += fs.statSync(filePath).size;
-      });
-    }
-
-    // Check CloudWatch logs directory
-    if (fs.existsSync(this.cloudWatchLogsDir)) {
-      fs.readdirSync(this.cloudWatchLogsDir).forEach((file) => {
-        const filePath = path.join(this.cloudWatchLogsDir, file);
-        totalSize += fs.statSync(filePath).size;
-      });
-    }
+    // Sum up the sizes
+    const totalBytes = allFiles.reduce((sum, file) => sum + file.size, 0);
 
     // Convert bytes to MB
-    return totalSize / (1024 * 1024);
+    return totalBytes / (1024 * 1024);
   }
 
   /**
@@ -795,44 +788,99 @@ export class LocalStorageManager {
   }
 
   /**
-   * Prunes the oldest log files when size limit is exceeded
+   * Collects file information from a directory
+   * @param directory The directory to collect files from
+   * @param onlyFiles Whether to only include files (not directories)
+   * @returns Array of file information objects
    */
-  private pruneOldestLogs(): void {
+  private collectFileStats(directory: string, onlyFiles = true): FileInfo[] {
+    const files: FileInfo[] = [];
+
+    if (!fs.existsSync(directory)) {
+      return files;
+    }
+
+    fs.readdirSync(directory).forEach((file) => {
+      const filePath = path.join(directory, file);
+      const stats = fs.statSync(filePath);
+
+      if (!onlyFiles || stats.isFile()) {
+        files.push({
+          path: filePath,
+          mtime: stats.mtime,
+          size: stats.size,
+        });
+      }
+    });
+
+    return files;
+  }
+
+  /**
+   * Prunes the oldest log files when size limit is exceeded
+   * @returns Number of files deleted
+   */
+  private pruneOldestLogs(): number {
     try {
-      const logFiles: { path: string; mtime: Date }[] = [];
+      // Collect file stats from log directories
+      let logFiles: FileInfo[] = [];
+      logFiles = logFiles.concat(
+        this.collectFileStats(this.cloudWatchLogsDir),
+        this.collectFileStats(this.logsDir),
+      );
 
-      if (fs.existsSync(this.cloudWatchLogsDir)) {
-        fs.readdirSync(this.cloudWatchLogsDir).forEach((file) => {
-          const filePath = path.join(this.cloudWatchLogsDir, file);
-          const stats = fs.statSync(filePath);
-          logFiles.push({ path: filePath, mtime: stats.mtime });
-        });
-      }
-
-      if (fs.existsSync(this.logsDir)) {
-        fs.readdirSync(this.logsDir).forEach((file) => {
-          const filePath = path.join(this.logsDir, file);
-          const stats = fs.statSync(filePath);
-          logFiles.push({ path: filePath, mtime: stats.mtime });
-        });
-      }
-
+      // Sort files by modification time (oldest first)
       logFiles.sort((a, b) => a.mtime.getTime() - b.mtime.getTime());
 
-      // Delete oldest files until we're under the limit
+      // Calculate current total size in bytes
+      const totalSizeBytes = logFiles.reduce((sum, file) => sum + file.size, 0);
+      const currentSizeMB = totalSizeBytes / (1024 * 1024);
+
+      // Calculate target size (80% of max size)
+      const targetSizeMB = this._maxLogSizeMB * 0.8;
+
+      // If we're already under target, no need to prune
+      if (currentSizeMB <= targetSizeMB) {
+        return 0;
+      }
+
+      // Calculate how many bytes we need to remove
+      const bytesToRemoveMB = currentSizeMB - targetSizeMB;
+      const bytesToRemove = bytesToRemoveMB * 1024 * 1024;
+
+      // Track how many bytes we've removed
+      let bytesRemoved = 0;
+      let filesDeleted = 0;
+
+      // Delete oldest files until we reach our target
       for (const file of logFiles) {
-        if (this.getLogsSizeInMB() <= this._maxLogSizeMB * 0.8) {
-          // Remove until we're at 80% of limit
+        fs.unlinkSync(file.path);
+        bytesRemoved += file.size;
+        filesDeleted++;
+
+        printer.log(
+          `LocalStorageManager: Pruned old log file: ${path.basename(file.path)} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`,
+          LogLevel.DEBUG,
+        );
+
+        // Check if we've removed enough
+        if (bytesRemoved >= bytesToRemove) {
           break;
         }
-
-        fs.unlinkSync(file.path);
       }
+
+      printer.log(
+        `LocalStorageManager: Pruned ${filesDeleted} log files, freed ${(bytesRemoved / (1024 * 1024)).toFixed(2)} MB`,
+        LogLevel.INFO,
+      );
+
+      return filesDeleted;
     } catch (error) {
       printer.log(
         `LocalStorageManager: Error pruning old logs: ${String(error)}`,
         LogLevel.ERROR,
       );
+      return 0;
     }
   }
 }

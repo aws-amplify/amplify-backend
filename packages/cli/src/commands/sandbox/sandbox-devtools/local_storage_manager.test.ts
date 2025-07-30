@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import fs from 'node:fs';
+import fs, { PathLike } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { LocalStorageManager } from './local_storage_manager.js';
@@ -276,6 +276,145 @@ void describe('LocalStorageManager', () => {
       storageManager.setMaxLogSize(50);
       assert.strictEqual(storageManager.maxLogSizeMB, 50);
     });
+
+    void it('calculates log size correctly using collectFileStats', () => {
+      // Mock filesystem
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock.method(fs, 'readdirSync').mock.mockImplementation(((
+        dir: PathLike,
+      ) => {
+        const dirString = String(dir);
+        if (dirString.includes('cloudwatch-logs')) return ['cw1.json'];
+        if (dirString.includes('logs')) return ['log1.json', 'log2.json'];
+        return ['file1.txt', 'file2.txt'];
+      }) as unknown as typeof fs.readdirSync);
+
+      const mockStat = (filePath: PathLike) => {
+        const fileName = path.basename(String(filePath));
+        let size = 1024; // Default 1KB
+
+        if (fileName === 'log1.json') size = 2 * 1024 * 1024; // 2MB
+        if (fileName === 'log2.json') size = 3 * 1024 * 1024; // 3MB
+        if (fileName === 'cw1.json') size = 4 * 1024 * 1024; // 4MB
+        if (fileName === 'file1.txt') size = 5 * 1024 * 1024; // 5MB
+        if (fileName === 'file2.txt') size = 6 * 1024 * 1024; // 6MB
+
+        return {
+          size,
+          mtime: new Date(),
+          isFile: () => true,
+          isDirectory: () => false,
+        } as unknown as fs.Stats;
+      };
+
+      mock
+        .method(fs, 'statSync')
+        .mock.mockImplementation(mockStat as unknown as typeof fs.statSync);
+
+      const result = storageManager.getLogsSizeInMB();
+
+      // Should be 2MB + 3MB + 4MB + 5MB + 6MB = 20MB (from all directories)
+      assert.strictEqual(result, 20);
+    });
+  });
+
+  void describe('collectFileStats', () => {
+    void it('collects file information correctly', () => {
+      const collectFileStats = Reflect.get(
+        storageManager,
+        'collectFileStats',
+      ).bind(storageManager);
+
+      // Mock file system
+      const mockDate1 = new Date(2023, 0, 1);
+      const mockDate2 = new Date(2023, 0, 2);
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock
+        .method(fs, 'readdirSync')
+        .mock.mockImplementation((() => [
+          'file1.txt',
+          'file2.txt',
+        ]) as unknown as typeof fs.readdirSync);
+
+      const mockStat = (filePath: PathLike) => {
+        const fileName = path.basename(String(filePath));
+        return {
+          size: fileName === 'file1.txt' ? 1024 : 2048,
+          mtime: fileName === 'file1.txt' ? mockDate1 : mockDate2,
+          isFile: () => true,
+          isDirectory: () => false,
+        } as unknown as fs.Stats;
+      };
+
+      mock
+        .method(fs, 'statSync')
+        .mock.mockImplementation(mockStat as unknown as typeof fs.statSync);
+
+      const result = collectFileStats('/test/dir');
+
+      assert.strictEqual(result.length, 2);
+      assert.strictEqual(path.basename(result[0].path), 'file1.txt');
+      assert.strictEqual(result[0].size, 1024);
+      assert.strictEqual(result[0].mtime, mockDate1);
+      assert.strictEqual(path.basename(result[1].path), 'file2.txt');
+      assert.strictEqual(result[1].size, 2048);
+      assert.strictEqual(result[1].mtime, mockDate2);
+    });
+
+    void it('handles non-existent directories', () => {
+      const collectFileStats = Reflect.get(
+        storageManager,
+        'collectFileStats',
+      ).bind(storageManager);
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => false);
+
+      const result = collectFileStats('/non-existent/dir');
+
+      assert.strictEqual(result.length, 0);
+      // Verify existsSync was called with the correct path
+      const existsSyncMock = fs.existsSync as unknown as ReturnType<
+        typeof mock.fn
+      >;
+      assert.strictEqual(existsSyncMock.mock.callCount(), 1);
+    });
+
+    void it('filters out directories when onlyFiles is true', () => {
+      const collectFileStats = Reflect.get(
+        storageManager,
+        'collectFileStats',
+      ).bind(storageManager);
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock
+        .method(fs, 'readdirSync')
+        .mock.mockImplementation((() => [
+          'file1.txt',
+          'dir1',
+        ]) as unknown as typeof fs.readdirSync);
+
+      const mockStat = (filePath: PathLike) => {
+        const fileName = path.basename(String(filePath));
+        const isFileValue = fileName !== 'dir1'; // dir1 is a directory
+
+        return {
+          size: 1024,
+          mtime: new Date(),
+          isFile: () => isFileValue,
+          isDirectory: () => !isFileValue,
+        } as unknown as fs.Stats;
+      };
+
+      mock
+        .method(fs, 'statSync')
+        .mock.mockImplementation(mockStat as unknown as typeof fs.statSync);
+
+      const result = collectFileStats('/test/dir');
+
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(path.basename(result[0].path), 'file1.txt');
+    });
   });
 
   void describe('Console logs operations', () => {
@@ -381,6 +520,148 @@ void describe('LocalStorageManager', () => {
         fs.readFileSync(path.join(expectedBaseDir, 'settings.json'), 'utf8'),
       );
       assert.strictEqual(settingsContent.maxLogSizeMB, 100);
+    });
+  });
+
+  void describe('pruneOldestLogs', () => {
+    void it('prunes oldest log files to meet target size', () => {
+      const pruneOldestLogs = Reflect.get(
+        storageManager,
+        'pruneOldestLogs',
+      ).bind(storageManager);
+
+      const mockDate1 = new Date(2023, 0, 1); // Oldest
+      const mockDate2 = new Date(2023, 0, 2);
+      const mockDate3 = new Date(2023, 0, 3);
+      const mockDate4 = new Date(2023, 0, 4); // Newest
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock.method(fs, 'readdirSync').mock.mockImplementation(((
+        dir: PathLike,
+      ) => {
+        const dirString = String(dir);
+        if (
+          dirString.includes('logs') &&
+          !dirString.includes('cloudwatch-logs')
+        )
+          return ['log1.json', 'log2.json'];
+        if (dirString.includes('cloudwatch-logs'))
+          return ['cw1.json', 'cw2.json'];
+        return [];
+      }) as unknown as typeof fs.readdirSync);
+
+      const mockStat = (filePath: PathLike) => {
+        const fileName = path.basename(String(filePath));
+        let size = 0;
+        let mtime = new Date();
+
+        if (fileName === 'log1.json') {
+          size = 3 * 1024 * 1024; // 3MB
+          mtime = mockDate1; // Oldest
+        } else if (fileName === 'log2.json') {
+          size = 2 * 1024 * 1024; // 2MB
+          mtime = mockDate3;
+        } else if (fileName === 'cw1.json') {
+          size = 4 * 1024 * 1024; // 4MB
+          mtime = mockDate2;
+        } else if (fileName === 'cw2.json') {
+          size = 1 * 1024 * 1024; // 1MB
+          mtime = mockDate4;
+        }
+
+        return {
+          size,
+          mtime,
+          isFile: () => true,
+          isDirectory: () => false,
+        } as unknown as fs.Stats;
+      };
+
+      mock
+        .method(fs, 'statSync')
+        .mock.mockImplementation(mockStat as unknown as typeof fs.statSync);
+
+      mock.method(fs, 'unlinkSync').mock.mockImplementation(() => {});
+
+      Object.defineProperty(storageManager, '_maxLogSizeMB', { value: 5 }); // 5MB limit
+      const filesDeleted = pruneOldestLogs();
+
+      // Verify files deleted (should delete oldest first)
+      // We have 10MB total, target is 4MB (80% of 5MB), so we need to delete at least 6MB
+      // Should delete log1.json (3MB, oldest) and cw1.json (4MB, second oldest) = 7MB total
+      const unlinkSyncMock = fs.unlinkSync as unknown as ReturnType<
+        typeof mock.fn
+      >;
+      assert.strictEqual(filesDeleted, 2);
+      assert.strictEqual(unlinkSyncMock.mock.callCount(), 2);
+
+      const deletedPaths = unlinkSyncMock.mock.calls.map((call) => {
+        return path.basename(call.arguments[0] as string);
+      });
+
+      assert.ok(deletedPaths.includes('log1.json')); // Oldest, should be deleted
+      assert.ok(deletedPaths.includes('cw1.json')); // Second oldest, should be deleted
+      assert.ok(!deletedPaths.includes('log2.json')); // Newer, should be kept
+      assert.ok(!deletedPaths.includes('cw2.json')); // Newest, should be kept
+    });
+
+    void it('does not delete any files if under the size limit', () => {
+      const pruneOldestLogs = Reflect.get(
+        storageManager,
+        'pruneOldestLogs',
+      ).bind(storageManager);
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock
+        .method(fs, 'readdirSync')
+        .mock.mockImplementation((() => [
+          'small.json',
+        ]) as unknown as typeof fs.readdirSync);
+      mock.method(fs, 'statSync').mock.mockImplementation((() => {
+        return {
+          size: 1 * 1024 * 1024, // 1MB
+          mtime: new Date(),
+          isFile: () => true,
+          isDirectory: () => false,
+        } as unknown as fs.Stats;
+      }) as unknown as typeof fs.statSync);
+
+      mock.method(fs, 'unlinkSync').mock.mockImplementation(() => {});
+
+      Object.defineProperty(storageManager, '_maxLogSizeMB', { value: 10 });
+
+      const filesDeleted = pruneOldestLogs();
+
+      // Verify no files were deleted
+      assert.strictEqual(filesDeleted, 0);
+      const unlinkSyncMock = fs.unlinkSync as unknown as ReturnType<
+        typeof mock.fn
+      >;
+      assert.strictEqual(unlinkSyncMock.mock.callCount(), 0);
+    });
+
+    void it('handles empty directories gracefully', () => {
+      const pruneOldestLogs = Reflect.get(
+        storageManager,
+        'pruneOldestLogs',
+      ).bind(storageManager);
+
+      mock.method(fs, 'existsSync').mock.mockImplementation(() => true);
+      mock
+        .method(fs, 'readdirSync')
+        .mock.mockImplementation(
+          (() => []) as unknown as typeof fs.readdirSync,
+        );
+      mock.method(fs, 'unlinkSync').mock.mockImplementation(() => {});
+
+      const filesDeleted = pruneOldestLogs();
+
+      // Verify no files were deleted
+      assert.strictEqual(filesDeleted, 0);
+      const unlinkSyncMock = fs.unlinkSync as unknown as ReturnType<
+        typeof mock.fn
+      >;
+      assert.strictEqual(unlinkSyncMock.mock.callCount(), 0);
     });
   });
 
