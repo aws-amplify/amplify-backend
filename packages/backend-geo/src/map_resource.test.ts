@@ -38,7 +38,6 @@ void describe('AmplifyMap', () => {
     });
 
     assert.ok(map.resources);
-    assert.ok(Array.isArray(map.resources.policies));
     assert.equal(typeof map.resources.region, 'string');
   });
 

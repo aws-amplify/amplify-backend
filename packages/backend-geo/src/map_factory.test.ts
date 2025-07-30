@@ -44,6 +44,10 @@ void describe('AmplifyMapFactory', () => {
 
     mapFactory = defineMap({
       name: 'testMap',
+      access: (allow) => [allow.apiKey.to(['get'])],
+      apiKeyProps: {
+        apiKeyName: 'testKey',
+      },
     });
     const stack = createStackAndSetContext();
 
@@ -117,8 +121,8 @@ void describe('AmplifyMapFactory', () => {
           }),
         new AmplifyUserError('MultipleSingletonResourcesError', {
           message:
-            'Multiple `defineMap` calls not permitted within an Amplify backend',
-          resolution: 'Maintain one `defineMap` call',
+            'Multiple `defineMap` calls are not allowed within an Amplify backend',
+          resolution: 'Remove all but one `defineMap` call',
         }),
       );
     });
@@ -161,7 +165,7 @@ void describe('AmplifyMapFactory', () => {
     const mapConstruct = mapFactory.getInstance(getInstanceProps) as AmplifyMap;
 
     assert.equal(mapConstruct.name, 'testMap');
-    assert.ok(mapConstruct.resources);
+    assert.equal(typeof mapConstruct.resources.apiKey?.apiKeyName, 'string'); // API Key defined
   });
 
   void it('verifies stack property exists and is equal to map stack', () => {

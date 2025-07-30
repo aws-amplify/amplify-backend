@@ -44,6 +44,10 @@ void describe('AmplifyPlaceFactory', () => {
 
     placeFactory = definePlace({
       name: 'testPlace',
+      access: (allow) => [allow.apiKey.to(['search', 'geocode'])],
+      apiKeyProps: {
+        apiKeyName: 'testKey',
+      },
     });
     const stack = createStackAndSetContext();
 
@@ -118,8 +122,8 @@ void describe('AmplifyPlaceFactory', () => {
           }),
         new AmplifyUserError('MultipleSingletonResourcesError', {
           message:
-            'Multiple `definePlace` calls not permitted within an Amplify backend',
-          resolution: 'Maintain one `definePlace` call',
+            'Multiple `definePlace` calls are not allowed within an Amplify backend',
+          resolution: 'Remove all but one `definePlace` call',
         }),
       );
     });
@@ -166,7 +170,7 @@ void describe('AmplifyPlaceFactory', () => {
     ) as AmplifyPlace;
 
     assert.equal(placeConstruct.name, 'testPlace');
-    assert.ok(placeConstruct.resources);
+    assert.equal(typeof placeConstruct.resources.apiKey?.apiKeyName, 'string'); // checking if API key exists
   });
 
   void it('verifies stack property exists and is equal to place stack', () => {

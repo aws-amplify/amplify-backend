@@ -131,6 +131,7 @@ void describe('AmplifyCollectionFactory', () => {
         geofenceCollectionName: 'customCollection',
         description: 'Custom test collection',
       },
+      access: (allow) => [allow.apiKey.to(['create'])],
     });
 
     const collectionConstruct =

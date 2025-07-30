@@ -38,7 +38,6 @@ void describe('AmplifyPlace', () => {
     });
 
     assert.ok(place.resources);
-    assert.ok(Array.isArray(place.resources.policies));
     assert.equal(typeof place.resources.region, 'string');
   });
 
