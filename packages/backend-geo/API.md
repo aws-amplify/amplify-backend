@@ -12,17 +12,14 @@ import { ApiKeyProps } from '@aws-cdk/aws-location-alpha';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
 import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import { Resource } from 'aws-cdk-lib';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
 
 // @public
@@ -110,13 +107,6 @@ export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlaces
 
 // @public (undocumented)
 export type GeoCollectionAccessGenerator = (allow: Omit<GeoAccessBuilder, 'apiKey'>) => GeoAccessDefinition[];
-
-// Warning: (ae-forgotten-export) The symbol "AmplifyMap" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "AmplifyPlace" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "AmplifyCollection" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
 
 // @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';

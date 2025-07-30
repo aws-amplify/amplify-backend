@@ -6,8 +6,10 @@ import { AmplifyPlace } from './place_resource.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { GeoOutput, geoOutputKey } from '@aws-amplify/backend-output-schemas';
-import { GeoResource, ResourceOutputs } from './types.js';
+import { ResourceOutputs } from './types.js';
 import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
+
+export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
 
 /**
  * Aspect Implementation for Geo Resources

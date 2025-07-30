@@ -15,9 +15,6 @@ import {
 import { CfnAPIKey, CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import { AmplifyMap } from './map_resource.js';
-import { AmplifyPlace } from './place_resource.js';
-import { AmplifyCollection } from './collection_construct.js';
 
 // ----------------------------------- factory properties ----------------------------------------------
 
@@ -193,8 +190,6 @@ export const resourceActionRecord: Record<string, string[]> = {
   place: ['autocomplete', 'geocode', 'search'],
   collection: ['create', 'read', 'update', 'delete', 'list'],
 };
-
-export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
 
 export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 
