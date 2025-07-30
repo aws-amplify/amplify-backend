@@ -88,9 +88,9 @@ export class AmplifyGeoOutputsAspect implements IAspect {
         // if default exists and instance is default (throw multiple defaults error)
         throw new AmplifyUserError('MultipleDefaultCollectionError', {
           message:
-            'Multiple instances of geofence collections have been marked as default.',
+            'More than one default geofence collection set in the Amplify project',
           resolution:
-            'Remove `isDefault: true` from all but one `defineCollection` call.',
+            'Remove `isDefault: true` from all `defineCollection` calls except for one in your Amplify project',
         });
       }
     });
@@ -102,10 +102,9 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     } else if (collectionCount > 1 && !defaultCollectionName) {
       // if multiple constructs with default collection, throw error
       throw new AmplifyUserError('NoDefaultCollectionError', {
-        message:
-          'No instances of geofence collections have been marked as default.',
+        message: 'No default geofence collection set in the Amplify project',
         resolution:
-          'Add `isDefault: true` to one of the `defineCollection` calls.',
+          'Add `isDefault: true` to one of the `defineCollection` calls in your Amplify project',
       });
     }
 

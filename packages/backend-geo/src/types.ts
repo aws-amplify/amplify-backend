@@ -26,6 +26,7 @@ export type AmplifyMapFactoryProps = Omit<
   'outputStorageStrategy'
 > & {
   /**
+   * @todo update with complete geo docs
    *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
    * @example
    * const map = defineMap({
@@ -45,6 +46,7 @@ export type AmplifyPlaceFactoryProps = Omit<
   'outputStorageStrategy'
 > & {
   /**
+   * @todo update with complete geo docs
    *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
    * @example
    * const index = definePlace({
@@ -64,6 +66,7 @@ export type AmplifyCollectionFactoryProps = Omit<
   'outputStorageStrategy'
 > & {
   /**
+   * @todo update with complete geo docs
    *  access definition for maps (@see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/ for more information)
    * @example
    * const collection = defineCollection({

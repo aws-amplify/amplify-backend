@@ -26,7 +26,7 @@ export class GeoAccessPolicyFactory {
       });
     }
 
-    // policy statements created for each resource type?
+    // policy statements created for each resource type
     const policyStatement: PolicyStatement = new PolicyStatement();
 
     permissions.forEach((action) => {
