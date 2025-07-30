@@ -128,10 +128,9 @@ void describe('AmplifyGeoOutputsAspect', () => {
           aspect.visit(newNode);
         },
         new AmplifyUserError('NoDefaultCollectionError', {
-          message:
-            'No instances of geofence collections have been marked as default.',
+          message: 'No default geofence collection set in the Amplify project',
           resolution:
-            'Add `isDefault: true` to one of the `defineCollection` calls.',
+            'Add `isDefault: true` to one of the `defineCollection` calls in your Amplify project',
         }),
       );
     });
@@ -154,9 +153,9 @@ void describe('AmplifyGeoOutputsAspect', () => {
         },
         new AmplifyUserError('MultipleDefaultCollectionError', {
           message:
-            'Multiple instances of geofence collections have been marked as default.',
+            'More than one default geofence collection set in the Amplify project',
           resolution:
-            'Remove `isDefault: true` from all but one `defineCollection` call.',
+            'Remove `isDefault: true` from all but one `defineCollection` calls except for one in your Amplify project',
         }),
       );
     });

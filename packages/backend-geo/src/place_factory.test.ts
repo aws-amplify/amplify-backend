@@ -118,8 +118,8 @@ void describe('AmplifyPlaceFactory', () => {
           }),
         new AmplifyUserError('MultipleSingletonResourcesError', {
           message:
-            'Multiple `definePlace` calls not permitted within an Amplify backend',
-          resolution: 'Maintain one `definePlace` call',
+            'Multiple `definePlace` calls are not allowed within an Amplify backend',
+          resolution: 'Remove all but one `definePlace` call',
         }),
       );
     });

@@ -117,8 +117,8 @@ void describe('AmplifyMapFactory', () => {
           }),
         new AmplifyUserError('MultipleSingletonResourcesError', {
           message:
-            'Multiple `defineMap` calls not permitted within an Amplify backend',
-          resolution: 'Maintain one `defineMap` call',
+            'Multiple `defineMap` calls are not allowed within an Amplify backend',
+          resolution: 'Remove all but one `defineMap` call',
         }),
       );
     });
