@@ -91,6 +91,10 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
   version: '1.4';
@@ -161,13 +165,13 @@ export interface AWSAmplifyBackendOutputs {
        *
        * @minItems 1
        */
-      redirect_sign_in_uri: string[];
+      redirect_sign_in_uri: [string, ...string[]];
       /**
        * URIs used to redirect after signing out
        *
        * @minItems 1
        */
-      redirect_sign_out_uri: string[];
+      redirect_sign_out_uri: [string, ...string[]];
       response_type: 'code' | 'token';
     };
     /**
@@ -181,7 +185,10 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: ('email' | 'phone_number' | 'username')[];
+    username_attributes?: [
+      'email' | 'phone_number' | 'username',
+      ...('email' | 'phone_number' | 'username')[],
+    ];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -221,10 +228,22 @@ export interface AWSAmplifyBackendOutputs {
      * Maps from Amazon Location Service
      */
     maps?: {
-      items: {
-        [k: string]: AmazonLocationServiceConfig;
-      };
-      default: string;
+      /**
+       * @minItems 1
+       */
+      keys?: [
+        {
+          name?: string;
+          api_key?: string;
+          [k: string]: unknown;
+        },
+        ...{
+          name?: string;
+          api_key?: string;
+          [k: string]: unknown;
+        }[],
+      ];
+      required?: ['keys', 'default'];
     };
     /**
      * Location search (search by places, addresses, coordinates)
@@ -233,8 +252,19 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: string[];
-      default: string;
+      keys?: [
+        {
+          name?: string;
+          api_key?: string;
+          [k: string]: unknown;
+        },
+        ...{
+          name?: string;
+          api_key?: string;
+          [k: string]: unknown;
+        }[],
+      ];
+      required?: ['keys', 'default'];
     };
     /**
      * Geofencing (visualize virtual perimeters)
@@ -243,7 +273,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: string[];
+      items: [string, ...string[]];
       default: string;
     };
   };
@@ -256,7 +286,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * @minItems 1
      */
-    channels: AmazonPinpointChannels[];
+    channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
   };
   /**
    * Outputs generated from defineStorage
@@ -284,23 +314,6 @@ export interface AmplifyUserGroupConfig {
   precedence?: number;
 }
 /**
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` ".*".
- *
- * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
- * via the `definition` "amazon_location_service_config".
- */
-export interface AmazonLocationServiceConfig {
-  /**
-   * Map resource name
-   */
-  name?: string;
-  /**
-   * Map style
-   */
-  style?: string;
-}
-/**
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_bucket".
  */
@@ -311,4 +324,14 @@ export interface AmplifyStorageBucket {
   paths?: {
     [k: string]: AmplifyStorageAccessRule;
   };
+}
+/**
+ * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
+ * via the `definition` "amazon_location_service_config".
+ */
+export interface AmazonLocationServiceConfig {
+  /**
+   * Map style
+   */
+  style?: string;
 }
