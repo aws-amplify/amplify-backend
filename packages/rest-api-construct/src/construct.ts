@@ -105,8 +105,16 @@ export class RestApiConstruct extends Construct {
     root: apiGateway.IResource,
     path: string,
   ): apiGateway.IResource {
-    return path.split('/').reduce((resource, part) => {
-      return resource.getResource(part) ?? resource.addResource(part);
-    }, root);
+    // Split the path into parts (e.g. "posts/comments" → ["posts", "comments"])
+    const parts = path.split('/');
+
+    // Traverse the path, adding any missing nested resources along the way
+    let current = root;
+    for (const part of parts) {
+      const existing = current.getResource(part);
+      current = existing ?? current.addResource(part);
+    }
+
+    return current;
   }
 }
