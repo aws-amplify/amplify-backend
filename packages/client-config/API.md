@@ -761,7 +761,9 @@ export enum ClientConfigVersionOption {
     // (undocumented)
     V1_3 = "1.3",
     // (undocumented)
-    V1_4 = "1.4"
+    V1_4 = "1.4",
+    // (undocumented)
+    V1_5 = "1.5"
 }
 
 // @public
