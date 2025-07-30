@@ -88,78 +88,90 @@ void describe('RestApiConstruct Lambda Handling', () => {
     strictEqual(fs.existsSync(src + 'handler.ts'), true);
   });
 
-  //   void it("loads a function from aws if the id and name are specified", () => {
-  //     const app = new App();
-  //     const funcStack = new Stack(app, "funcStack");
+  void it('loads a function from aws if the id and name are specified', () => {
+    const app = new App();
+    const funcStack = new Stack(app, 'funcStack');
 
-  //     const func = new lambda.Function(funcStack, "testFunc", {
-  //         runtime: lambda.Runtime.NODEJS_22_X,
-  //         handler: 'index.handler',
-  //         code: lambda.Code.fromInline("export const handler = () => {return 'Hello World! This is an existing lambda function.';};")
-  //     });
+    const func = new lambda.Function(funcStack, 'testFunc', {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromInline(
+        "export const handler = () => {return 'Hello World! This is an existing lambda function.';};",
+      ),
+    });
 
-  //     const stack = new Stack(app, "stack");
-  //     new RestApiConstruct(stack, 'RestApiLoadFunc', {
-  //         apiName: 'RestApiLoad',
-  //         apiProps: [{
-  //             path: 'stuff',
-  //             routes: ['GET'],
-  //             lambdaEntry: {
-  //                 runtime: lambda.Runtime.NODEJS_22_X,
-  //                 source: {id: func.functionArn, name: func.functionName}
-  //             }
-  //         }]
-  //     });
+    const stack = new Stack(app, 'stack');
+    new RestApiConstruct(stack, 'RestApiLoadFunc', {
+      apiName: 'RestApiLoad',
+      apiProps: [
+        {
+          path: 'stuff',
+          routes: ['GET'],
+          lambdaEntry: {
+            runtime: lambda.Runtime.NODEJS_22_X,
+            source: { id: func.functionArn, name: func.functionName },
+          },
+        },
+      ],
+    });
 
-  // const template = Template.fromStack(stack);
-  // //there should be no functions in the stack
-  // template.resourcePropertiesCountIs('AWS::Lambda::Function', {Arn: func.functionArn}, 0);
-  // //should be allowed to call the function
-  // template.hasResourceProperties('AWS::Lambda::Permission', {
-  //     Action: 'lambda:InvokeFunction',
-  //     Principal: 'apigateway.amazonaws.com',
-  //     FunctionName: {"Fn::GetAtt": [func.functionName, "Arn"]},
-  // });
-  //api should reference ARN
-  //     template.hasResourceProperties('AWS::ApiGateway::Method', {
-  //         Integration: {Uri: {'Fn::Sub': [
-  //             'arn:aws:apigateway:${AWS::REGION}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations',
-  //             {LambdaArn: func.functionArn}
-  //         ]}}
-  //     })
+    const template = Template.fromStack(stack);
+    //there should be no functions in the stack
+    template.resourcePropertiesCountIs(
+      'AWS::Lambda::Function',
+      { Arn: func.functionArn },
+      0,
+    );
+    //should be allowed to call the function
+    template.hasResourceProperties('AWS::Lambda::Permission', {
+      Action: 'lambda:InvokeFunction',
+      Principal: 'apigateway.amazonaws.com',
+      FunctionName: { 'Fn::GetAtt': [func.functionName, 'Arn'] },
+    });
+    //api should reference ARN
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      Integration: {
+        Uri: {
+          'Fn::Sub': [
+            'arn:aws:apigateway:${AWS::REGION}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations',
+            { LambdaArn: func.functionArn },
+          ],
+        },
+      },
+    });
+  });
 });
-// });
 
-// void describe('RestApiConstruct', () => {
-//   void it('creates a queue if specified', () => {
-//     const app = new App();
-//     const stack = new Stack(app);
-//     new RestApiConstruct(stack, 'RestApiTest', {
-//       apiName: 'RestApiTest',
-//       apiProps: [
-//         {
-//           path: '/test',
-//           routes: ['GET', 'POST'],
-//           lambdaEntry: {
-//             runtime: lambda.Runtime.NODEJS_18_X,
-//             source: {
-//               path: './test-lambda',
-//             },
-//           },
-//         },
-//         {
-//           path: '/blog',
-//           routes: ['GET', 'POST', 'PUT'],
-//           lambdaEntry: {
-//             runtime: lambda.Runtime.NODEJS_18_X,
-//             source: {
-//               path: './blog-lambda',
-//             },
-//           },
-//         },
-//       ],
-//     });
-//     const template = Template.fromStack(stack);
-//     template.resourceCountIs('AWS::AGW::RestApi', 1);
-//   });
-// });
+void describe('RestApiConstruct', () => {
+  void it('creates a queue if specified', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new RestApiConstruct(stack, 'RestApiTest', {
+      apiName: 'RestApiTest',
+      apiProps: [
+        {
+          path: '/test',
+          routes: ['GET', 'POST'],
+          lambdaEntry: {
+            runtime: lambda.Runtime.NODEJS_18_X,
+            source: {
+              path: './test-lambda',
+            },
+          },
+        },
+        {
+          path: '/blog',
+          routes: ['GET', 'POST', 'PUT'],
+          lambdaEntry: {
+            runtime: lambda.Runtime.NODEJS_18_X,
+            source: {
+              path: './blog-lambda',
+            },
+          },
+        },
+      ],
+    });
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::AGW::RestApi', 1);
+  });
+});
