@@ -1,4 +1,4 @@
-import { AmplifyMapProps, MapResources } from './types.js';
+import { AmplifyMapProps } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 import { Aws, Resource } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -8,9 +8,9 @@ import { Construct } from 'constructs';
  */
 export class AmplifyMap
   extends Resource
-  implements ResourceProvider<MapResources>, StackProvider
+  implements ResourceProvider<object>, StackProvider
 {
-  readonly resources: MapResources;
+  readonly resources: object;
   readonly id: string;
   readonly name: string;
 
@@ -21,11 +21,6 @@ export class AmplifyMap
     super(scope, id);
     this.name = props.name;
     this.id = id;
-
-    this.resources = {
-      region: this.stack.region,
-      policies: [],
-    };
   }
 
   getResourceArn = (): string => {

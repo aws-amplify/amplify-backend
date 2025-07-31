@@ -8,7 +8,7 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Aspects, Stack, Tags } from 'aws-cdk-lib/core';
-import { AmplifyPlaceFactoryProps, PlaceResources } from './types.js';
+import { AmplifyPlaceFactoryProps } from './types.js';
 import { GeoAccessOrchestratorFactory } from './geo_access_orchestrator.js';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyPlace } from './place_resource.js';
@@ -18,7 +18,7 @@ import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
  * Construct Factory for AmplifyPlace
  */
 export class AmplifyPlaceFactory
-  implements ConstructFactory<ResourceProvider<PlaceResources>>
+  implements ConstructFactory<ResourceProvider<object>>
 {
   static placeCount: number = 0;
 
@@ -76,7 +76,7 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
 
   generateContainerEntry = ({
     scope,
-  }: GenerateContainerEntryProps): ResourceProvider<PlaceResources> => {
+  }: GenerateContainerEntryProps): ResourceProvider<object> => {
     const amplifyPlace = new AmplifyPlace(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
@@ -95,12 +95,11 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
       [],
     );
 
-    amplifyPlace.resources.policies =
-      geoAccessOrchestrator.orchestrateGeoAccess(
-        amplifyPlace.getResourceArn(),
-        'place',
-        amplifyPlace.name,
-      );
+    geoAccessOrchestrator.orchestrateGeoAccess(
+      amplifyPlace.getResourceArn(),
+      'place',
+      amplifyPlace.name,
+    );
 
     const geoAspects = Aspects.of(Stack.of(amplifyPlace));
     if (!geoAspects.all.length) {
@@ -120,5 +119,5 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
  */
 export const definePlace = (
   props: AmplifyPlaceFactoryProps,
-): ConstructFactory<ResourceProvider<PlaceResources> & StackProvider> =>
+): ConstructFactory<ResourceProvider<object> & StackProvider> =>
   new AmplifyPlaceFactory(props);

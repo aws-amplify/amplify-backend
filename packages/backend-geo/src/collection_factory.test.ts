@@ -123,7 +123,7 @@ void describe('AmplifyCollectionFactory', () => {
   void it('creates collection with custom collection properties', () => {
     const customCollectionFactory = defineCollection({
       name: 'customCollection',
-      collectionDescription: 'Custom test collection',
+      description: 'Custom test collection',
     });
 
     const collectionConstruct =

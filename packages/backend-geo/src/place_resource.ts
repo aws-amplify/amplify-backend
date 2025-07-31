@@ -1,4 +1,4 @@
-import { AmplifyPlaceProps, PlaceResources } from './types.js';
+import { AmplifyPlaceProps } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 import { Aws, Resource } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -8,11 +8,11 @@ import { Construct } from 'constructs';
  */
 export class AmplifyPlace
   extends Resource
-  implements ResourceProvider<PlaceResources>, StackProvider
+  implements ResourceProvider<object>, StackProvider
 {
-  readonly resources: PlaceResources;
   readonly id: string;
   readonly name: string;
+  readonly resources: object;
 
   /**
    * Creates an instance of AmplifyPlace
@@ -22,11 +22,6 @@ export class AmplifyPlace
 
     this.name = props.name;
     this.id = id;
-
-    this.resources = {
-      region: this.stack.region,
-      policies: [],
-    };
   }
 
   getResourceArn = (): string => {

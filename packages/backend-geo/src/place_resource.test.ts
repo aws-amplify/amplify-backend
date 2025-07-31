@@ -30,16 +30,6 @@ void describe('AmplifyPlace', () => {
     assert.equal(place.name, 'myTestPlace');
   });
 
-  void it('exposes place resources correctly', () => {
-    const place = new AmplifyPlace(stack, 'testPlace', {
-      name: 'testPlaceName',
-    });
-
-    assert.ok(place.resources);
-    assert.ok(Array.isArray(place.resources.policies));
-    assert.equal(typeof place.resources.region, 'string');
-  });
-
   void it('returns correct resource ARN', () => {
     const place = new AmplifyPlace(stack, 'testPlace', {
       name: 'testPlaceName',
@@ -103,8 +93,6 @@ void describe('AmplifyPlace', () => {
 
       assert.equal(place.name, 'minimal');
       assert.equal(place.id, 'minimalPlace');
-      assert.ok(place.resources);
-      assert.equal(place.resources.region, 'us-west-2');
       assert.ok(place.stack);
     });
   });

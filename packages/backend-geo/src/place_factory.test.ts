@@ -17,7 +17,6 @@ import {
   ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
-import { PlaceResources } from './types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyPlace } from './place_resource.js';
 
@@ -30,7 +29,7 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
-let placeFactory: ConstructFactory<ResourceProvider<PlaceResources>>;
+let placeFactory: ConstructFactory<ResourceProvider<object>>;
 let constructContainer: ConstructContainer;
 let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
 let resourceNameValidator: ResourceNameValidator;
@@ -166,7 +165,6 @@ void describe('AmplifyPlaceFactory', () => {
     ) as AmplifyPlace;
 
     assert.equal(placeConstruct.name, 'testPlace');
-    assert.ok(placeConstruct.resources);
   });
 
   void it('verifies stack property exists and is equal to place stack', () => {

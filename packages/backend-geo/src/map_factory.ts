@@ -8,7 +8,7 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Aspects, Stack, Tags } from 'aws-cdk-lib/core';
-import { AmplifyMapFactoryProps, MapResources } from './types.js';
+import { AmplifyMapFactoryProps } from './types.js';
 import { GeoAccessOrchestratorFactory } from './geo_access_orchestrator.js';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyMap } from './map_resource.js';
@@ -18,7 +18,7 @@ import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
  * Construct Factory for AmplifyMap
  */
 export class AmplifyMapFactory
-  implements ConstructFactory<ResourceProvider<MapResources>>
+  implements ConstructFactory<ResourceProvider<object>>
 {
   static mapCount: number = 0;
 
@@ -73,7 +73,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
 
   generateContainerEntry = ({
     scope,
-  }: GenerateContainerEntryProps): ResourceProvider<MapResources> => {
+  }: GenerateContainerEntryProps): ResourceProvider<object> => {
     const amplifyMap = new AmplifyMap(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
@@ -92,7 +92,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
 
     Tags.of(amplifyMap).add(TagName.FRIENDLY_NAME, this.props.name);
 
-    amplifyMap.resources.policies = geoAccessOrchestrator.orchestrateGeoAccess(
+    geoAccessOrchestrator.orchestrateGeoAccess(
       amplifyMap.getResourceArn(),
       'map',
       amplifyMap.name,
@@ -116,5 +116,5 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineMap = (
   props: AmplifyMapFactoryProps,
-): ConstructFactory<ResourceProvider<MapResources> & StackProvider> =>
+): ConstructFactory<ResourceProvider<object> & StackProvider> =>
   new AmplifyMapFactory(props);

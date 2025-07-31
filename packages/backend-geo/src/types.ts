@@ -6,7 +6,6 @@ import {
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
-import { Policy } from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
 
 // ----------------------------------- factory properties ----------------------------------------------
@@ -83,28 +82,10 @@ export type AmplifyPlaceProps = {
 
 export type AmplifyCollectionProps = {
   name: string;
-  collectionDescription?: string;
+  description?: string;
   kmsKey?: kms.IKey;
   isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
-};
-
-/**
- * Backend-accessible resources from AmplifyMap
- * @param policies - access policies of the frontend-accessible map resource
- */
-export type MapResources = {
-  policies: Policy[];
-  region: string;
-};
-
-/**
- * Backend-accessible resources from AmplifyPlace
- * @param policies - access policies of the frontend-accessible place resource
- */
-export type PlaceResources = {
-  policies: Policy[];
-  region: string;
 };
 
 /**
@@ -114,7 +95,6 @@ export type PlaceResources = {
  * @param cfnResources - cloudformation resources exposed from the abstracted collection provisioned from collection
  */
 export type CollectionResources = {
-  policies: Policy[];
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };

@@ -11,7 +11,6 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import * as kms from 'aws-cdk-lib/aws-kms';
-import { Policy } from 'aws-cdk-lib/aws-iam';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
@@ -24,7 +23,7 @@ export type AmplifyCollectionFactoryProps = Omit<AmplifyCollectionProps, 'output
 // @public (undocumented)
 export type AmplifyCollectionProps = {
     name: string;
-    collectionDescription?: string;
+    description?: string;
     kmsKey?: kms.IKey;
     isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
@@ -54,7 +53,6 @@ export type AmplifyPlaceProps = {
 
 // @public
 export type CollectionResources = {
-    policies: Policy[];
     cfnResources: {
         cfnCollection: CfnGeofenceCollection;
     };
@@ -64,10 +62,10 @@ export type CollectionResources = {
 export const defineCollection: (props: AmplifyCollectionFactoryProps) => ConstructFactory<ResourceProvider<CollectionResources> & StackProvider>;
 
 // @public
-export const defineMap: (props: AmplifyMapFactoryProps) => ConstructFactory<ResourceProvider<MapResources> & StackProvider>;
+export const defineMap: (props: AmplifyMapFactoryProps) => ConstructFactory<ResourceProvider<object> & StackProvider>;
 
 // @public
-export const definePlace: (props: AmplifyPlaceFactoryProps) => ConstructFactory<ResourceProvider<PlaceResources> & StackProvider>;
+export const definePlace: (props: AmplifyPlaceFactoryProps) => ConstructFactory<ResourceProvider<object> & StackProvider>;
 
 // @public (undocumented)
 export type GeoAccessBuilder = {
@@ -96,18 +94,6 @@ export type GeoActionBuilder = {
 
 // @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
-
-// @public
-export type MapResources = {
-    policies: Policy[];
-    region: string;
-};
-
-// @public
-export type PlaceResources = {
-    policies: Policy[];
-    region: string;
-};
 
 // (No @packageDocumentation comment for this package)
 

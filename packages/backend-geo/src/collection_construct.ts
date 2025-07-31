@@ -42,11 +42,10 @@ export class AmplifyCollection
 
     const geofenceCollection = new GeofenceCollection(this, id, {
       geofenceCollectionName: props.name,
-      description: props.collectionDescription,
+      description: props.description,
       kmsKey: props.kmsKey,
     });
     this.resources = {
-      policies: this.policies,
       cfnResources: {
         cfnCollection: geofenceCollection.node.findChild(
           'Resource',
