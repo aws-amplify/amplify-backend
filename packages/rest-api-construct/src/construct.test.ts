@@ -15,7 +15,13 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'items',
-          methods: ['GET'],
+          defaultAuthorizer: { type: 'none' },
+          methods: [
+            {
+              method: 'GET',
+              authorizer: { type: 'none' },
+            },
+          ],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: { path: 'packages/rest-api-construct/lib/test-assets' },
@@ -37,7 +43,13 @@ void describe('RestApiConstruct Lambda Handling', () => {
       apiProps: [
         {
           path: 'items',
-          methods: ['GET'],
+          defaultAuthorizer: { type: 'none' },
+          methods: [
+            {
+              method: 'GET',
+              authorizer: { type: 'none' },
+            },
+          ],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_22_X,
             source: {
@@ -151,7 +163,12 @@ void describe('RestApiConstruct', () => {
       apiProps: [
         {
           path: '/test',
-          methods: ['GET', 'POST'],
+          methods: [
+            {
+              method: 'GET',
+              authorizer: { type: 'none' },
+            },
+          ],
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: {
@@ -161,7 +178,17 @@ void describe('RestApiConstruct', () => {
         },
         {
           path: '/blog',
-          methods: ['GET', 'POST', 'PUT'],
+          methods: [
+            {
+              method: 'POST',
+              authorizer: { type: 'userPool', groups: ['Admins'] },
+            },
+            {
+              method: 'GET',
+              authorizer: { type: 'userPool' },
+            },
+          ],
+          defaultAuthorizer: { type: 'userPool' },
           lambdaEntry: {
             runtime: lambda.Runtime.NODEJS_18_X,
             source: {
