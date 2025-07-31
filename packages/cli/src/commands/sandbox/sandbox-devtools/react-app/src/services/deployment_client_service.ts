@@ -5,7 +5,6 @@ export interface DeploymentEvent {
   message: string;
   timestamp: string;
   resourceStatus?: ResourceStatus;
-  isGeneric?: boolean;
 }
 
 export interface ResourceStatus {

@@ -241,7 +241,6 @@ export class SocketHandlerResources {
           message: `${event.timestamp.toLocaleTimeString()} | ${event.status} | ${event.resourceType} | ${event.logicalId}`,
           timestamp: event.timestamp.toISOString(),
           resourceStatus,
-          isGeneric: false,
         };
       });
 

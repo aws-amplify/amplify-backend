@@ -20,7 +20,6 @@ export type CloudFormationEvent = {
     statusReason?: string;
     eventId?: string;
   };
-  isGeneric?: boolean;
 };
 
 /**

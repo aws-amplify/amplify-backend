@@ -40,7 +40,6 @@ interface DeploymentEvent {
   message: string;
   timestamp: string;
   resourceStatus?: ResourceStatus;
-  isGeneric?: boolean;
 }
 
 const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
@@ -484,7 +483,7 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
                 ))}
 
                 {/* Show generic events at the bottom */}
-                {events.filter((event) => event.isGeneric).length > 0 && (
+                {events.filter((event) => !event.resourceStatus).length > 0 && (
                   <div
                     style={{
                       marginTop: '16px',
@@ -493,7 +492,7 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
                     }}
                   >
                     {events
-                      .filter((event) => event.isGeneric)
+                      .filter((event) => !event.resourceStatus)
                       .map((event, index) => (
                         <div
                           key={index}
@@ -505,7 +504,7 @@ const DeploymentProgress: React.FC<DeploymentProgressProps> = ({
                         >
                           {(status === 'deploying' || status === 'deleting') &&
                           index ===
-                            events.filter((e) => e.isGeneric).length - 1 ? (
+                            events.filter((e) => !e.resourceStatus).length - 1 ? (
                             <div
                               className="spinner"
                               style={{
