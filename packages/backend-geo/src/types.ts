@@ -147,7 +147,7 @@ export type CollectionResources = {
 
 export type ResourceOutputs = {
   name: string;
-  apiKey?: string;
+  key?: string;
 };
 
 // ----------------------------------- access definitions ----------------------------------------------

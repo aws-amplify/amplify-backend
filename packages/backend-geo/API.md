@@ -139,7 +139,7 @@ export type PlaceResources = {
 // @public (undocumented)
 export type ResourceOutputs = {
     name: string;
-    apiKey?: string;
+    key?: string;
 };
 
 // (No @packageDocumentation comment for this package)

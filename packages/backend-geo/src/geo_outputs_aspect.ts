@@ -160,7 +160,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     const mapOutputs: ResourceOutputs[] = maps.map((map): ResourceOutputs => {
       return {
         name: map.name,
-        apiKey: map.resources.cfnResources.cfnAPIKey?.ref,
+        key: map.resources.cfnResources.cfnAPIKey?.ref,
       };
     });
 
@@ -168,7 +168,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       (place): ResourceOutputs => {
         return {
           name: place.name,
-          apiKey: place.resources.cfnResources.cfnAPIKey?.ref,
+          key: place.resources.cfnResources.cfnAPIKey?.ref,
         };
       },
     );
@@ -184,7 +184,12 @@ export class AmplifyGeoOutputsAspect implements IAspect {
 
     // Add maps as a single entry with all maps
     if (maps.length > 0 && defaultMap)
-      this.addOutput(outputStorageStrategy, 'map', defaultMap.name, mapOutputs);
+      this.addOutput(
+        outputStorageStrategy,
+        'maps',
+        defaultMap.name,
+        mapOutputs,
+      );
 
     // Add index as a single entry with all place indices
     if (places.length > 0 && defaultPlace)

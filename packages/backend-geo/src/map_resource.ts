@@ -58,6 +58,7 @@ export class AmplifyMap
       noExpiry: this.props.apiKeyProps?.noExpiry ?? true,
       allowMapsActions: actions,
     });
+
     this.resources.cfnResources.cfnAPIKey =
       this.resources.apiKey.node.findChild('Resource') as CfnAPIKey;
   };

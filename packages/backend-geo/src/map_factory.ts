@@ -109,7 +109,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
           'No API key can be created for maps without access definitions defined for it.',
         resolution: 'Add at least one map action in the access definition.',
       });
-    } else {
+    } else if (this.props.apiKeyProps) {
       amplifyMap.generateApiKey(mapActions);
     }
 

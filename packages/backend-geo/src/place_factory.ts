@@ -113,7 +113,7 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
           'No API key can be created for places without access definitions defined for it.',
         resolution: 'Add at least one place action in the access definition.',
       });
-    } else {
+    } else if (this.props.apiKeyProps) {
       amplifyPlace.generateApiKey(placeActions);
     }
 

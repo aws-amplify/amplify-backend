@@ -7,7 +7,7 @@ const collectionConstructSchema = z.object({
 
 const resourceItemSchema = z.object({
   name: z.string(),
-  api_key: z.string().optional(),
+  key: z.string().optional(),
 });
 
 const resourceSchema = z.object({
