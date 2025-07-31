@@ -636,6 +636,12 @@ export class LocalStorageManager {
    * @param friendlyNames Map of resource IDs to custom friendly names
    */
   saveCustomFriendlyNames(friendlyNames: Record<string, string>): void {
+    // TODO: Re-evaluate this functionality. This feature allows users to set custom display names for AWS resources
+    // in the devtools UI, but it may cause confusion since customers might believe changing the name here will
+    // change the actual resource name in the AWS backend. Consider either:
+    // 1. Adding tool tips/UI clarification that this is display-only
+    // 2. Using different terminology (e.g., "Display Name", "Local Alias")
+    // 3. Removing this functionality altogether to avoid customer confusion
     try {
       writeFileAtomic.sync(
         this.customFriendlyNamesFile,
