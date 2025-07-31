@@ -9,7 +9,6 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
 import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -36,7 +35,10 @@ export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrateg
 };
 
 // @public (undocumented)
-export type AmplifyMapProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
+export type AmplifyMapProps = {
+    name: string;
+    outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
 
 // @public
 export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStrategy'> & {
@@ -44,12 +46,14 @@ export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStr
 };
 
 // @public (undocumented)
-export type AmplifyPlaceProps = Omit<AmplifyCollectionProps, 'collectionProps' | 'isDefault'>;
+export type AmplifyPlaceProps = {
+    name: string;
+    outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
 
 // @public
 export type CollectionResources = {
     policies: Policy[];
-    collection: GeofenceCollection;
     cfnResources: {
         cfnCollection: CfnGeofenceCollection;
     };
@@ -103,9 +107,6 @@ export type PlaceResources = {
     policies: Policy[];
     region: string;
 };
-
-// @public (undocumented)
-export const resourceActionRecord: Record<string, string[]>;
 
 // (No @packageDocumentation comment for this package)
 

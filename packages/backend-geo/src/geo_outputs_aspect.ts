@@ -83,7 +83,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       if (!defaultCollectionName && instance.isDefault) {
         // if no default exists and instance is default, mark it
         defaultCollectionName =
-          instance.resources.collection?.geofenceCollectionName;
+          instance.resources.cfnResources.cfnCollection.collectionName;
       } else if (instance.isDefault && defaultCollectionName) {
         // if default exists and instance is default (throw multiple defaults error)
         throw new AmplifyUserError('MultipleDefaultCollectionError', {
@@ -98,7 +98,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     if (collectionCount === 1 && !defaultCollectionName) {
       // if no defaults and only one construct, instance assumed to be default
       defaultCollectionName =
-        currentNode.resources.collection?.geofenceCollectionName;
+        currentNode.resources.cfnResources.cfnCollection.collectionName;
     } else if (collectionCount > 1 && !defaultCollectionName) {
       // if multiple constructs with default collection, throw error
       throw new AmplifyUserError('NoDefaultCollectionError', {
@@ -137,7 +137,8 @@ export class AmplifyGeoOutputsAspect implements IAspect {
 
     // Collect all collection names for the items array
     const collectionNames = collections.map(
-      (collection) => collection.resources.collection.geofenceCollectionName,
+      (collection) =>
+        collection.resources.cfnResources.cfnCollection.collectionName,
     );
 
     // Add geofence_collections as a single entry with all collections

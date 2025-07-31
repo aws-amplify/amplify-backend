@@ -135,7 +135,6 @@ void describe('AmplifyCollection', () => {
       isDefault: false,
     });
 
-    assert.ok(amplifyCollection.resources.collection);
     assert.ok(amplifyCollection.resources.cfnResources.cfnCollection);
   });
 
@@ -246,7 +245,6 @@ void describe('AmplifyCollection', () => {
       assert.equal(collection.name, 'minimal');
       assert.equal(collection.id, 'minimalCollection');
       assert.equal(collection.isDefault, false);
-      assert.ok(collection.resources.collection);
       assert.ok(collection.resources.cfnResources.cfnCollection);
 
       const template = Template.fromStack(stack);

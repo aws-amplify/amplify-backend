@@ -46,7 +46,6 @@ export class AmplifyCollection
       props.collectionProps,
     );
     this.resources = {
-      collection: geofenceCollection,
       policies: this.policies,
       cfnResources: {
         cfnCollection: geofenceCollection.node.findChild(

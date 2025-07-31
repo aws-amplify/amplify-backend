@@ -74,7 +74,7 @@ void describe('AmplifyCollectionFactory', () => {
     const collectionConstruct = collectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
 
     template.resourceCountIs('AWS::Location::GeofenceCollection', 1);
@@ -110,7 +110,7 @@ void describe('AmplifyCollectionFactory', () => {
     const collectionConstruct = collectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
 
     // Check that the friendly name tag is applied
@@ -137,7 +137,7 @@ void describe('AmplifyCollectionFactory', () => {
       customCollectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
     template.hasResourceProperties('AWS::Location::GeofenceCollection', {
       CollectionName: 'customCollection',
@@ -155,7 +155,7 @@ void describe('AmplifyCollectionFactory', () => {
 
     assert.equal(
       collectionConstructFactory.stack,
-      Stack.of(collectionConstructFactory.resources.collection),
+      Stack.of(collectionConstructFactory.resources.cfnResources.cfnCollection),
     );
   });
 });

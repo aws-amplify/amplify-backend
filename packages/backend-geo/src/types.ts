@@ -4,10 +4,7 @@ import {
   ResourceAccessAcceptor,
 } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
-import {
-  GeofenceCollection,
-  GeofenceCollectionProps,
-} from '@aws-cdk/aws-location-alpha';
+import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -74,15 +71,15 @@ export type AmplifyCollectionFactoryProps = Omit<
   access?: GeoAccessGenerator;
 };
 
-export type AmplifyMapProps = Omit<
-  AmplifyCollectionProps,
-  'collectionProps' | 'isDefault'
->;
+export type AmplifyMapProps = {
+  name: string;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
 
-export type AmplifyPlaceProps = Omit<
-  AmplifyCollectionProps,
-  'collectionProps' | 'isDefault'
->;
+export type AmplifyPlaceProps = {
+  name: string;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+};
 
 export type AmplifyCollectionProps = {
   name: string;
@@ -117,7 +114,6 @@ export type PlaceResources = {
  */
 export type CollectionResources = {
   policies: Policy[];
-  collection: GeofenceCollection;
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };
@@ -151,11 +147,5 @@ export type GeoAccessDefinition = {
 };
 
 // ----------------------------------- misc. types ----------------------------------------------
-
-export const resourceActionRecord: Record<string, string[]> = {
-  map: ['get'],
-  place: ['autocomplete', 'geocode', 'search'],
-  collection: ['create', 'read', 'update', 'delete', 'list'],
-};
 
 export type GeoResourceType = 'map' | 'place' | 'collection';
