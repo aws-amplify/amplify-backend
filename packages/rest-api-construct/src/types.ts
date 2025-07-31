@@ -21,7 +21,6 @@ export type AuthorizerConfig =
   | { type: 'userPool' } // signed-in users
   | { type: 'userPool'; groups: string[] }; // signed-in + group restriction
 
-
 export type MethodsProps = {
   method: HttpMethod;
   authorizer?: AuthorizerConfig;

@@ -92,7 +92,10 @@ export class RestApiConstruct extends Construct {
       // Add resource and methods for this route
       const resource = this.addNestedResource(this.api.root, path);
       for (const method of methods) {
-        resource.addMethod(method.method, new apiGateway.LambdaIntegration(handler));
+        resource.addMethod(
+          method.method,
+          new apiGateway.LambdaIntegration(handler),
+        );
       }
     }
   }
