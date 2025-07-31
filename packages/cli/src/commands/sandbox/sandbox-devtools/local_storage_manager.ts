@@ -278,7 +278,6 @@ export class LocalStorageManager {
    */
   saveCloudWatchLogs(resourceId: string, logs: CloudWatchLogEntry[]): void {
     try {
-      // Check if logs exceed size limit before saving
       if (this.logsExceedSizeLimit()) {
         printer.log(
           `LocalStorageManager: Logs exceed size limit of ${this._maxLogSizeMB}MB, clearing oldest logs`,
@@ -287,10 +286,17 @@ export class LocalStorageManager {
         this.pruneOldestLogs();
       }
 
-      const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.json`);
-      writeFileAtomic.sync(filePath, JSON.stringify(logs, null, 2), {
-        mode: 0o600,
-      });
+      const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.csv`);
+      const csvContent = logs
+        .map((log) => this.cloudWatchLogToCSV(log))
+        .join('\n');
+      writeFileAtomic.sync(
+        filePath,
+        csvContent + (logs.length > 0 ? '\n' : ''),
+        {
+          mode: 0o600,
+        },
+      );
     } catch (error) {
       printer.log(
         `LocalStorageManager: Error saving CloudWatch logs for resource ${resourceId}: ${String(error)}`,
@@ -312,11 +318,13 @@ export class LocalStorageManager {
    */
   loadCloudWatchLogs(resourceId: string): CloudWatchLogEntry[] {
     try {
-      const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.json`);
+      const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.csv`);
       if (fs.existsSync(filePath)) {
         const data = fs.readFileSync(filePath, 'utf8');
-        const logs = JSON.parse(data);
-        return logs;
+        const lines = data.trim().split('\n');
+        return lines
+          .map((line) => this.parseCSVLine(line))
+          .filter(Boolean) as CloudWatchLogEntry[];
       }
     } catch (error) {
       printer.log(
@@ -342,8 +350,8 @@ export class LocalStorageManager {
       if (fs.existsSync(this.cloudWatchLogsDir)) {
         const files = fs.readdirSync(this.cloudWatchLogsDir);
         const resourceIds = files
-          .filter((file) => file.endsWith('.json'))
-          .map((file) => file.replace('.json', ''));
+          .filter((file) => file.endsWith('.csv'))
+          .map((file) => file.replace('.csv', ''));
         return resourceIds;
       }
     } catch (error) {
@@ -368,9 +376,9 @@ export class LocalStorageManager {
    */
   appendCloudWatchLog(resourceId: string, logEntry: CloudWatchLogEntry): void {
     try {
-      const logs = this.loadCloudWatchLogs(resourceId);
-      logs.push(logEntry);
-      this.saveCloudWatchLogs(resourceId, logs);
+      const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.csv`);
+      const csvLine = this.cloudWatchLogToCSV(logEntry) + '\n';
+      fs.appendFileSync(filePath, csvLine);
     } catch (error) {
       printer.log(
         `LocalStorageManager: Error appending CloudWatch log for resource ${resourceId}: ${String(error)}`,
@@ -881,5 +889,48 @@ export class LocalStorageManager {
       );
       return 0;
     }
+  }
+
+  private escapeCSVField(field: string): string {
+    if (field.includes('"') || field.includes(',') || field.includes('\n')) {
+      return `"${field.replace(/"/g, '""')}"`;
+    }
+    return field;
+  }
+
+  private parseCSVLine(line: string): CloudWatchLogEntry | null {
+    const match = line.match(
+      /^(\d+),("[^"]*(?:""[^"]*)*"|[^,]*),("[^"]*(?:""[^"]*)*"|[^,]*),("[^"]*(?:""[^"]*)*"|[^,]*)$/,
+    );
+    if (!match) return null;
+
+    const [, timestamp, message, logGroupName, logStreamName] = match;
+    const entry: CloudWatchLogEntry = {
+      timestamp: parseInt(timestamp),
+      message: message.replace(/^"|"$/g, '').replace(/""/g, '"'),
+    };
+
+    if (logGroupName && logGroupName !== '""' && logGroupName !== '') {
+      entry.logGroupName = logGroupName
+        .replace(/^"|"$/g, '')
+        .replace(/""/g, '"');
+    }
+
+    if (logStreamName && logStreamName !== '""' && logStreamName !== '') {
+      entry.logStreamName = logStreamName
+        .replace(/^"|"$/g, '')
+        .replace(/""/g, '"');
+    }
+
+    return entry;
+  }
+
+  private cloudWatchLogToCSV(log: CloudWatchLogEntry): string {
+    return [
+      log.timestamp.toString(),
+      this.escapeCSVField(log.message),
+      this.escapeCSVField(log.logGroupName || ''),
+      this.escapeCSVField(log.logStreamName || ''),
+    ].join(',');
   }
 }

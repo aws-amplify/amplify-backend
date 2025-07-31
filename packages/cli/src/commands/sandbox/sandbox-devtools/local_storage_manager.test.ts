@@ -470,7 +470,7 @@ void describe('LocalStorageManager', () => {
       );
       assert.ok(
         fs.existsSync(
-          path.join(expectedBaseDir, 'cloudwatch-logs', 'test-resource.json'),
+          path.join(expectedBaseDir, 'cloudwatch-logs', 'test-resource.csv'),
         ),
       );
     });
@@ -714,7 +714,7 @@ void describe('LocalStorageManager', () => {
       );
       assert.ok(
         fs.existsSync(
-          path.join(expectedBaseDir, 'cloudwatch-logs', 'lambda-function.json'),
+          path.join(expectedBaseDir, 'cloudwatch-logs', 'lambda-function.csv'),
         ),
       );
 
@@ -743,7 +743,7 @@ void describe('LocalStorageManager', () => {
       );
       assert.ok(
         !fs.existsSync(
-          path.join(expectedBaseDir, 'cloudwatch-logs', 'lambda-function.json'),
+          path.join(expectedBaseDir, 'cloudwatch-logs', 'lambda-function.csv'),
         ),
       );
 
