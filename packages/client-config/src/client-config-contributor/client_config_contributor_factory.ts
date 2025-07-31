@@ -9,11 +9,12 @@ import {
   StorageClientConfigContributorV1 as Storage1,
   StorageClientConfigContributorV1_1 as Storage1_1,
   StorageClientConfigContributor as Storage1_2,
-  VersionContributor as VersionContributor1_4,
+  VersionContributor as VersionContributor1_5,
   VersionContributorV1,
   VersionContributorV1_1,
   VersionContributorV1_2,
   VersionContributorV1_3,
+  VersionContributorV1_4,
 } from './client_config_contributor_v1.js';
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
@@ -43,7 +44,7 @@ export class ClientConfigContributorFactory {
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Geo1_1(),
         new Storage1_2(),
-        new VersionContributor1_4(),
+        new VersionContributor1_5(),
         new Custom1_1(),
       ],
 
@@ -52,7 +53,7 @@ export class ClientConfigContributorFactory {
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Geo1(),
         new Storage1_2(),
-        new VersionContributor1_4(),
+        new VersionContributorV1_4(),
         new Custom1_1(),
       ],
 
@@ -97,7 +98,7 @@ export class ClientConfigContributorFactory {
         new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_2(),
-        new VersionContributor1_4(),
+        new VersionContributorV1_4(),
         new Custom1_1(),
       ],
     };

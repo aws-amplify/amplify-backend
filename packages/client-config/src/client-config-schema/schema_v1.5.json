@@ -12,7 +12,7 @@
     },
     "version": {
       "description": "Version of this schema",
-      "const": "1.4"
+      "const": "1.5"
     },
     "analytics": {
       "description": "Outputs manually specified by developers for use with frontend library",
@@ -258,7 +258,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "keys": {
+            "items": {
               "type": "array",
               "uniqueItems": true,
               "minItems": 1,
@@ -269,16 +269,16 @@
                   "name": {
                     "type": "string"
                   },
-                  "api_key": {
+                  "key": {
                     "type": "string"
                   }
                 }
-              },
-              "default": {
-                "type": "string"
               }
             },
-            "required": ["keys", "default"]
+            "default": {
+              "type": "string"
+            },
+            "required": ["items", "default"]
           }
         },
         "search_indices": {
@@ -286,7 +286,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "keys": {
+            "items": {
               "type": "array",
               "uniqueItems": true,
               "minItems": 1,
@@ -297,16 +297,16 @@
                   "name": {
                     "type": "string"
                   },
-                  "api_key": {
+                  "key": {
                     "type": "string"
                   }
                 }
-              },
-              "default": {
-                "type": "string"
               }
             },
-            "required": ["keys", "default"]
+            "default": {
+              "type": "string"
+            },
+            "required": ["items", "default"]
           }
         },
         "geofence_collections": {

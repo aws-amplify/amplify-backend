@@ -74,7 +74,7 @@ export type AmplifyStorageAccessRule = {
   resource?: AmplifyStorageAccessActions[];
 };
 /**
- * run json-schema-to-typescript with --unreachableDefinitions to ensure this type is generated
+ * run json-schema-to-typescript with --unreachableDefitions to ensure this type is generated
  *
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_access_actions".
@@ -97,7 +97,7 @@ export interface AWSAmplifyBackendOutputs {
   /**
    * Version of this schema
    */
-  version: '1.4';
+  version: '1.5';
   /**
    * Outputs manually specified by developers for use with frontend library
    */
@@ -231,19 +231,20 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      keys?: [
+      items?: [
         {
           name?: string;
-          api_key?: string;
+          key?: string;
           [k: string]: unknown;
         },
         ...{
           name?: string;
-          api_key?: string;
+          key?: string;
           [k: string]: unknown;
         }[],
       ];
-      required?: ['keys', 'default'];
+      default?: string;
+      required?: ['items', 'default'];
     };
     /**
      * Location search (search by places, addresses, coordinates)
@@ -252,19 +253,20 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      keys?: [
+      items?: [
         {
           name?: string;
-          api_key?: string;
+          key?: string;
           [k: string]: unknown;
         },
         ...{
           name?: string;
-          api_key?: string;
+          key?: string;
           [k: string]: unknown;
         }[],
       ];
-      required?: ['keys', 'default'];
+      default?: string;
+      required?: ['items', 'default'];
     };
     /**
      * Geofencing (visualize virtual perimeters)

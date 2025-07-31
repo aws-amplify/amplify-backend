@@ -26,7 +26,7 @@ void describe('ClientConfigLegacyConverter', () => {
           version: '3' as any,
         }),
       new AmplifyFault('UnsupportedClientConfigVersionFault', {
-        message: 'Only version 1.4 of ClientConfig is supported.',
+        message: 'Only version 1.5 of ClientConfig is supported.',
       }),
     );
   });
@@ -35,7 +35,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       auth: {
         identity_pool_id: 'testIdentityPoolId',
         user_pool_id: 'testUserPoolId',
@@ -133,7 +133,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       data: {
         aws_region: 'testRegion',
         url: 'testUrl',
@@ -274,7 +274,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       storage: {
         aws_region: 'testRegion',
         bucket_name: 'testBucket',
@@ -296,7 +296,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       custom: {
         customKey: {
           customNestedKey: {
@@ -327,7 +327,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       analytics: {
         amazon_pinpoint: {
           aws_region: 'testRegion',
@@ -356,19 +356,16 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       geo: {
         aws_region: 'testRegion',
         maps: {
           default: 'map1',
-          items: {
-            map1: { style: 'style1' },
-            map2: { style: 'style2' },
-          },
+          items: [{ name: 'map1', api_key: 'key' }],
         },
         search_indices: {
           default: 'index1',
-          items: ['index1', 'index2'],
+          items: [{ name: 'index1', api_key: 'key' }],
         },
         geofence_collections: {
           default: 'geofence1',
@@ -384,13 +381,12 @@ void describe('ClientConfigLegacyConverter', () => {
           maps: {
             default: 'map1',
             items: {
-              map1: { style: 'style1' },
-              map2: { style: 'style2' },
+              map1: { style: '' },
             },
           },
           search_indices: {
             default: 'index1',
-            items: ['index1', 'index2'],
+            items: ['index1'],
           },
           geofenceCollections: {
             default: 'geofence1',
@@ -409,7 +405,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     let v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       notifications: {
         amazon_pinpoint_app_id: 'testAppId',
         aws_region: 'testRegion',
@@ -452,7 +448,7 @@ void describe('ClientConfigLegacyConverter', () => {
 
     // both APNS and FCM cannot be specified together as they both map to Push.
     v1Config = {
-      version: ClientConfigVersionOption.V1_4,
+      version: ClientConfigVersionOption.V1_5,
       notifications: {
         amazon_pinpoint_app_id: 'testAppId',
         aws_region: 'testRegion',

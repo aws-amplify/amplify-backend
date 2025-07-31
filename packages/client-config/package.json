@@ -29,6 +29,7 @@
     "@aws-amplify/model-generator": "^1.2.0",
     "@aws-amplify/platform-core": "^1.10.0",
     "@aws-amplify/plugin-types": "^1.10.0",
+    "json-schema-to-typescript": "^15.0.4",
     "zod": "3.25.17"
   },
   "devDependencies": {

@@ -9,7 +9,7 @@ import {
 } from './client_config_contributor_v1.js';
 import {
   ClientConfig,
-  clientConfigTypesV1_4,
+  clientConfigTypesV1_5,
 } from '../client-config-types/client_config.js';
 import assert from 'node:assert';
 import {
@@ -76,7 +76,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -101,7 +101,7 @@ void describe('auth client config contributor v1', () => {
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -135,7 +135,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: true,
           },
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -168,7 +168,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: false,
           },
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -263,7 +263,7 @@ void describe('auth client config contributor v1', () => {
             },
           ],
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -352,7 +352,7 @@ void describe('auth client config contributor v1', () => {
             },
           ],
         },
-      } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>,
+      } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>,
     );
   });
 
@@ -435,7 +435,7 @@ void describe('auth client config contributor v1', () => {
           },
         ],
       },
-    } as Pick<clientConfigTypesV1_4.AWSAmplifyBackendOutputs, 'auth'>;
+    } as Pick<clientConfigTypesV1_5.AWSAmplifyBackendOutputs, 'auth'>;
 
     void it('returns translated config when mfa is disabled', () => {
       const contributor = new AuthClientConfigContributor();
@@ -536,7 +536,7 @@ void describe('data client config contributor v1', () => {
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
       },
-    } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>);
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
@@ -584,7 +584,7 @@ void describe('data client config contributor v1', () => {
           enums: {},
         },
       },
-    } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs>);
   });
 });
 
@@ -631,6 +631,75 @@ void describe('geo client config contributor v1', () => {
       {
         geo: {
           aws_region: 'us-west-2',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
+        },
+      },
+    );
+  });
+
+  void it('returns correct config when all geo objects exist', () => {
+    const contributor = new GeoClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-west-2',
+            maps: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultMap',
+                items: [
+                  {
+                    name: 'defaultMap',
+                    key: 'defaultKey',
+                  },
+                ],
+              }),
+            ),
+            searchIndices: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultPlace',
+                items: [
+                  {
+                    name: 'defaultIndex',
+                    key: 'defaultKey',
+                  },
+                ],
+              }),
+            ),
+            geofenceCollections: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultCollection',
+                items: ['defaultCollection', 'testCollection'],
+              }),
+            ),
+          },
+        },
+      }),
+      {
+        geo: {
+          aws_region: 'us-west-2',
+          maps: {
+            default: 'defaultMap',
+            items: [
+              {
+                name: 'defaultMap',
+                key: 'defaultKey',
+              },
+            ],
+          },
+          search_indices: {
+            default: 'defaultPlace',
+            items: [
+              {
+                name: 'defaultIndex',
+                key: 'defaultKey',
+              },
+            ],
+          },
           geofence_collections: {
             default: 'defaultCollection',
             items: ['defaultCollection', 'testCollection'],
@@ -761,6 +830,6 @@ void describe('Custom client config contributor v1', () => {
 
 void describe('Custom client config contributor v1', () => {
   void it('contributes the version correctly', () => {
-    assert.deepEqual(new VersionContributor().contribute(), { version: '1.4' });
+    assert.deepEqual(new VersionContributor().contribute(), { version: '1.5' });
   });
 });
