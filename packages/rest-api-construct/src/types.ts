@@ -16,10 +16,22 @@ export type RestApiConstructProps = {
   apiProps: RestApiPathConfig[];
 };
 
+export type AuthorizerConfig =
+  | { type: 'none' } // public
+  | { type: 'userPool' } // signed-in users
+  | { type: 'userPool'; groups: string[] }; // signed-in + group restriction
+
+
+export type MethodsProps = {
+  method: HttpMethod;
+  authorizer?: AuthorizerConfig;
+};
+
 export type RestApiPathConfig = {
   path: string;
-  methods: HttpMethod[];
+  methods: MethodsProps[];
   lambdaEntry: LambdaSource;
+  defaultAuthorizer?: AuthorizerConfig;
 };
 
 export type HttpMethod =
