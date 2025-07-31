@@ -57,6 +57,7 @@ export class LocalStorageManager {
   private readonly customFriendlyNamesFile: string;
   private readonly defaultMaxLogSizeMB = 50; // Default 50MB limit
   private _maxLogSizeMB: number;
+  private _storageDisabled: boolean = false;
 
   /**
    * Creates a new LocalStorageManager
@@ -143,6 +144,7 @@ export class LocalStorageManager {
    * @param resources The resources to save
    */
   saveResources(resources: BackendResourcesData): void {
+    if (!this.isStorageEnabled()) return;
     try {
       writeFileAtomic.sync(
         this.resourcesFile,
@@ -159,6 +161,7 @@ export class LocalStorageManager {
    * @returns The saved resources or null if none exist
    */
   loadResources(): BackendResourcesData | null {
+    if (!this.isStorageEnabled()) return null;
     try {
       if (fs.existsSync(this.resourcesFile)) {
         const data = fs.readFileSync(this.resourcesFile, 'utf8');
@@ -277,6 +280,7 @@ export class LocalStorageManager {
    * @param logs The logs to save
    */
   saveCloudWatchLogs(resourceId: string, logs: CloudWatchLogEntry[]): void {
+    if (!this.isStorageEnabled()) return;
     try {
       if (this.logsExceedSizeLimit()) {
         printer.log(
@@ -317,6 +321,7 @@ export class LocalStorageManager {
    * @returns The saved logs or an empty array if none exist
    */
   loadCloudWatchLogs(resourceId: string): CloudWatchLogEntry[] {
+    if (!this.isStorageEnabled()) return [];
     try {
       const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.csv`);
       if (fs.existsSync(filePath)) {
@@ -346,6 +351,7 @@ export class LocalStorageManager {
    * @returns Array of resource IDs
    */
   getResourcesWithCloudWatchLogs(): string[] {
+    if (!this.isStorageEnabled()) return [];
     try {
       if (fs.existsSync(this.cloudWatchLogsDir)) {
         const files = fs.readdirSync(this.cloudWatchLogsDir);
@@ -375,6 +381,7 @@ export class LocalStorageManager {
    * @param logEntry The log entry to append
    */
   appendCloudWatchLog(resourceId: string, logEntry: CloudWatchLogEntry): void {
+    if (!this.isStorageEnabled()) return;
     try {
       const filePath = path.join(this.cloudWatchLogsDir, `${resourceId}.csv`);
       const csvLine = this.cloudWatchLogToCSV(logEntry) + '\n';
@@ -740,31 +747,27 @@ export class LocalStorageManager {
         writeFileAtomic.sync(testFilePath, 'Test write permissions', {
           mode: 0o600,
         });
-        printer.log(
-          `LocalStorageManager: Write permissions test successful`,
-          LogLevel.DEBUG,
-        );
-
         // Clean up test file
         fs.unlinkSync(testFilePath);
-      } catch (writeError) {
+      } catch {
+        this._storageDisabled = true;
         printer.log(
-          `LocalStorageManager: Write permissions test failed: ${String(writeError)}`,
-          LogLevel.ERROR,
+          `LocalStorageManager: Disabling local storage due to write permission issues. Devtools will continue to work but data will not be persisted.`,
+          LogLevel.WARN,
         );
+        return;
       }
-    } catch (error) {
+    } catch {
+      this._storageDisabled = true;
       printer.log(
-        `LocalStorageManager: Error ensuring directories: ${String(error)}`,
-        LogLevel.ERROR,
+        `LocalStorageManager: Disabling local storage due to directory creation issues. Devtools will continue to work but data will not be persisted.`,
+        LogLevel.WARN,
       );
-      if (error instanceof Error) {
-        printer.log(
-          `LocalStorageManager: Error stack: ${error.stack}`,
-          LogLevel.DEBUG,
-        );
-      }
     }
+  }
+
+  private isStorageEnabled(): boolean {
+    return !this._storageDisabled;
   }
 
   /**
