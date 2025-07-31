@@ -93,7 +93,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
 
     Tags.of(amplifyMap).add(TagName.FRIENDLY_NAME, this.props.name);
 
-    amplifyMap.resources.policies = geoAccessOrchestrator.orchestrateGeoAccess(
+    geoAccessOrchestrator.orchestrateGeoAccess(
       amplifyMap.getResourceArn(),
       'map',
       amplifyMap.name,

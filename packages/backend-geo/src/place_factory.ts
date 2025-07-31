@@ -96,12 +96,11 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
       [],
     );
 
-    amplifyPlace.resources.policies =
-      geoAccessOrchestrator.orchestrateGeoAccess(
-        amplifyPlace.getResourceArn(),
-        'place',
-        amplifyPlace.name,
-      );
+    geoAccessOrchestrator.orchestrateGeoAccess(
+      amplifyPlace.getResourceArn(),
+      'place',
+      amplifyPlace.name,
+    );
 
     // orchestrateGeoAccess already called and ApiKey actions processed
     const placeActions =

@@ -93,7 +93,7 @@ export type AmplifyPlaceProps = {
 
 export type AmplifyCollectionProps = {
   name: string;
-  collectionDescription?: string;
+  description?: string;
   kmsKey?: kms.IKey;
   isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
@@ -111,8 +111,6 @@ export type GeoApiKeyProps = Omit<
  * @param policies - access policies of the frontend-accessible map resource
  */
 export type MapResources = {
-  region: string;
-  policies: Policy[];
   apiKey?: ApiKey;
   cfnResources: {
     cfnAPIKey?: CfnAPIKey;
@@ -124,8 +122,6 @@ export type MapResources = {
  * @param policies - access policies of the frontend-accessible place resource
  */
 export type PlaceResources = {
-  region: string;
-  policies: Policy[];
   apiKey?: ApiKey;
   cfnResources: {
     cfnAPIKey?: CfnAPIKey;

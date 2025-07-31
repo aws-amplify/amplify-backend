@@ -77,7 +77,7 @@ void describe('AmplifyCollection', () => {
   void it('sets collection description when provided', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionDescription: 'Test geofence collection for unit testing',
+      description: 'Test geofence collection for unit testing',
       isDefault: false,
     });
     const template = Template.fromStack(stack);
@@ -217,7 +217,7 @@ void describe('AmplifyCollection', () => {
     void it('creates collection with all optional properties', () => {
       const collection = new AmplifyCollection(stack, 'fullCollection', {
         name: 'fullFeatureCollection',
-        collectionDescription: 'A fully configured geofence collection',
+        description: 'A fully configured geofence collection',
         kmsKey: new kms.Key(stack, 'testKey', {}),
         isDefault: true,
       });

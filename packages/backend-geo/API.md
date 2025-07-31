@@ -29,7 +29,7 @@ export type AmplifyCollectionFactoryProps = Omit<AmplifyCollectionProps, 'output
 // @public (undocumented)
 export type AmplifyCollectionProps = {
     name: string;
-    collectionDescription?: string;
+    description?: string;
     kmsKey?: kms.IKey;
     isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
@@ -115,8 +115,6 @@ export type GeoResourceType = 'map' | 'place' | 'collection';
 
 // @public
 export type MapResources = {
-    region: string;
-    policies: Policy[];
     apiKey?: ApiKey;
     cfnResources: {
         cfnAPIKey?: CfnAPIKey;
@@ -125,8 +123,6 @@ export type MapResources = {
 
 // @public
 export type PlaceResources = {
-    region: string;
-    policies: Policy[];
     apiKey?: ApiKey;
     cfnResources: {
         cfnAPIKey?: CfnAPIKey;

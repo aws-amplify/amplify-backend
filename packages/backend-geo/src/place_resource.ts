@@ -36,8 +36,6 @@ export class AmplifyPlace
     this.props = props;
 
     this.resources = {
-      region: this.stack.region,
-      policies: this.policies,
       cfnResources: {},
     };
 

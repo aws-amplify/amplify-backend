@@ -32,15 +32,6 @@ void describe('AmplifyMap', () => {
     assert.equal(map.name, 'myTestMap');
   });
 
-  void it('exposes map resources correctly', () => {
-    const map = new AmplifyMap(stack, 'testMap', {
-      name: 'testMapName',
-    });
-
-    assert.ok(map.resources);
-    assert.equal(typeof map.resources.region, 'string');
-  });
-
   void it('returns correct resource ARN', () => {
     const map = new AmplifyMap(stack, 'testMap', {
       name: 'testMapName',
@@ -100,8 +91,6 @@ void describe('AmplifyMap', () => {
 
       assert.equal(map.name, 'minimal');
       assert.equal(map.id, 'minimalMap');
-      assert.ok(map.resources);
-      assert.equal(map.resources.region, 'us-west-2');
       assert.ok(map.stack);
     });
   });
