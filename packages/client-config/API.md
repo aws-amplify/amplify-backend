@@ -11,7 +11,7 @@ import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client'
 import { S3Client } from '@aws-sdk/client-s3';
 
 // @public
-type AmazonCognitoStandardAttributes = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
 type AmazonCognitoStandardAttributes_2 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
@@ -64,7 +64,7 @@ interface AmazonLocationServiceConfig_6 {
 }
 
 // @public
-type AmazonPinpointChannels = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
 type AmazonPinpointChannels_2 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
@@ -82,7 +82,7 @@ type AmazonPinpointChannels_5 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 
 type AmazonPinpointChannels_6 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmplifyStorageAccessActions = "read" | "get" | "list" | "write" | "delete";
+type AmplifyStorageAccessActions = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public
 type AmplifyStorageAccessActions_2 = 'read' | 'get' | 'list' | 'write' | 'delete';
@@ -285,19 +285,22 @@ interface AWSAmplifyBackendOutputs {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
             redirect_sign_in_uri: [string, ...string[]];
             redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: [
+        'email' | 'phone_number' | 'username',
+        ...('email' | 'phone_number' | 'username')[]
+        ];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig;
         }[];
@@ -331,7 +334,7 @@ interface AWSAmplifyBackendOutputs {
             }[]
             ];
             default?: string;
-            required?: ["items", "default"];
+            required?: ['items', 'default'];
         };
         search_indices?: {
             items?: [
@@ -347,7 +350,7 @@ interface AWSAmplifyBackendOutputs {
             }[]
             ];
             default?: string;
-            required?: ["items", "default"];
+            required?: ['items', 'default'];
         };
         geofence_collections?: {
             items: [string, ...string[]];
@@ -364,7 +367,7 @@ interface AWSAmplifyBackendOutputs {
         bucket_name: string;
         buckets?: AmplifyStorageBucket[];
     };
-    version: "1.5";
+    version: '1.5';
 }
 
 // @public
@@ -763,7 +766,7 @@ interface AWSAmplifyBackendOutputs_6 {
 }
 
 // @public
-type AwsAppsyncAuthorizationType = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
 type AwsAppsyncAuthorizationType_2 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';

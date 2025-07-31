@@ -16,9 +16,6 @@ void describe('AmplifyCollection', () => {
   void it('creates a geofence collection', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
     const template = Template.fromStack(stack);
@@ -28,9 +25,6 @@ void describe('AmplifyCollection', () => {
   void it('sets collection name correctly', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'myTestCollection',
-      collectionProps: {
-        geofenceCollectionName: 'myTestCollection',
-      },
       isDefault: false,
     });
     const template = Template.fromStack(stack);
@@ -42,9 +36,6 @@ void describe('AmplifyCollection', () => {
   void it('sets isDefault property correctly when true', () => {
     const collection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: true,
     });
 
@@ -56,9 +47,6 @@ void describe('AmplifyCollection', () => {
   void it('sets isDefault property correctly when false', () => {
     const collection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
 
@@ -68,9 +56,6 @@ void describe('AmplifyCollection', () => {
   void it('defaults isDefault to false when not specified', () => {
     const collection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
     });
 
     assert.equal(collection.isDefault, false);
@@ -79,9 +64,6 @@ void describe('AmplifyCollection', () => {
   void it('stores attribution data in stack', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
 
@@ -95,10 +77,7 @@ void describe('AmplifyCollection', () => {
   void it('sets collection description when provided', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-        description: 'Test geofence collection for unit testing',
-      },
+      collectionDescription: 'Test geofence collection for unit testing',
       isDefault: false,
     });
     const template = Template.fromStack(stack);
@@ -111,10 +90,7 @@ void describe('AmplifyCollection', () => {
   void it('sets KMS key when provided', () => {
     new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-        kmsKey: new kms.Key(stack, 'testKey', {}),
-      },
+      kmsKey: new kms.Key(stack, 'testKey', {}),
       isDefault: false,
     });
     const template = Template.fromStack(stack);
@@ -129,22 +105,15 @@ void describe('AmplifyCollection', () => {
   void it('exposes collection resource correctly', () => {
     const amplifyCollection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
 
-    assert.ok(amplifyCollection.resources.collection);
     assert.ok(amplifyCollection.resources.cfnResources.cfnCollection);
   });
 
   void it('exposes CFN resources for overrides', () => {
     const amplifyCollection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
 
@@ -159,9 +128,6 @@ void describe('AmplifyCollection', () => {
   void it('sets tags when provided via CFN resource', () => {
     const collection = new AmplifyCollection(stack, 'testCollection', {
       name: 'testCollectionName',
-      collectionProps: {
-        geofenceCollectionName: 'testCollectionName',
-      },
       isDefault: false,
     });
 
@@ -197,9 +163,6 @@ void describe('AmplifyCollection', () => {
     void it('can override collection properties', () => {
       const collection = new AmplifyCollection(stack, 'testCollection', {
         name: 'testCollectionName',
-        collectionProps: {
-          geofenceCollectionName: 'testCollectionName',
-        },
         isDefault: false,
       });
 
@@ -217,9 +180,6 @@ void describe('AmplifyCollection', () => {
     void it('can override KMS key via CFN resource', () => {
       const collection = new AmplifyCollection(stack, 'testCollection', {
         name: 'testCollectionName',
-        collectionProps: {
-          geofenceCollectionName: 'testCollectionName',
-        },
         isDefault: false,
       });
 
@@ -239,14 +199,12 @@ void describe('AmplifyCollection', () => {
     void it('creates collection with minimal required properties', () => {
       const collection = new AmplifyCollection(stack, 'minimalCollection', {
         name: 'minimal',
-        collectionProps: {},
         isDefault: false,
       });
 
       assert.equal(collection.name, 'minimal');
       assert.equal(collection.id, 'minimalCollection');
       assert.equal(collection.isDefault, false);
-      assert.ok(collection.resources.collection);
       assert.ok(collection.resources.cfnResources.cfnCollection);
 
       const template = Template.fromStack(stack);
@@ -259,11 +217,8 @@ void describe('AmplifyCollection', () => {
     void it('creates collection with all optional properties', () => {
       const collection = new AmplifyCollection(stack, 'fullCollection', {
         name: 'fullFeatureCollection',
-        collectionProps: {
-          geofenceCollectionName: 'fullFeatureCollection',
-          description: 'A fully configured geofence collection',
-          kmsKey: new kms.Key(stack, 'testKey', {}),
-        },
+        collectionDescription: 'A fully configured geofence collection',
+        kmsKey: new kms.Key(stack, 'testKey', {}),
         isDefault: true,
       });
 

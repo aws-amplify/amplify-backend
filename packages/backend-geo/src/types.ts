@@ -9,12 +9,11 @@ import {
   AllowPlacesAction,
   ApiKey,
   ApiKeyProps,
-  GeofenceCollection,
-  GeofenceCollectionProps,
 } from '@aws-cdk/aws-location-alpha';
 import { CfnAPIKey, CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
 
 // ----------------------------------- factory properties ----------------------------------------------
 
@@ -78,23 +77,24 @@ export type AmplifyCollectionFactoryProps = Omit<
   access?: GeoAccessGenerator;
 };
 
-export type AmplifyMapProps = Omit<
-  AmplifyCollectionProps,
-  'collectionProps'
-> & {
+export type AmplifyMapProps = {
+  name: string;
+  isDefault?: boolean;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
   apiKeyProps?: GeoApiKeyProps;
 };
 
-export type AmplifyPlaceProps = Omit<
-  AmplifyCollectionProps,
-  'collectionProps'
-> & {
+export type AmplifyPlaceProps = {
+  name: string;
+  isDefault?: boolean;
+  outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
   apiKeyProps?: GeoApiKeyProps;
 };
 
 export type AmplifyCollectionProps = {
   name: string;
-  collectionProps: GeofenceCollectionProps;
+  collectionDescription?: string;
+  kmsKey?: kms.IKey;
   isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
@@ -140,7 +140,6 @@ export type PlaceResources = {
  */
 export type CollectionResources = {
   policies: Policy[];
-  collection: GeofenceCollection;
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };
@@ -184,13 +183,6 @@ export type GeoAccessDefinition = {
 };
 
 // ----------------------------------- misc. types ----------------------------------------------
-
-export const resourceActionRecord: Record<string, string[]> = {
-  map: ['get'],
-  place: ['autocomplete', 'geocode', 'search'],
-  collection: ['create', 'read', 'update', 'delete', 'list'],
-};
-
 export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 
 export type GeoResourceType = 'map' | 'place' | 'collection';

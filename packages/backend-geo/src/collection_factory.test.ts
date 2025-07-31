@@ -40,9 +40,6 @@ void describe('AmplifyCollectionFactory', () => {
   beforeEach(() => {
     collectionFactory = defineCollection({
       name: 'testCollection',
-      collectionProps: {
-        geofenceCollectionName: 'testCollection',
-      },
     });
     const stack = createStackAndSetContext();
 
@@ -74,7 +71,7 @@ void describe('AmplifyCollectionFactory', () => {
     const collectionConstruct = collectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
 
     template.resourceCountIs('AWS::Location::GeofenceCollection', 1);
@@ -91,7 +88,6 @@ void describe('AmplifyCollectionFactory', () => {
 
     const collectionFactory = defineCollection({
       name: '|$%#86430resource',
-      collectionProps: {},
     });
     assert.throws(
       () =>
@@ -110,7 +106,7 @@ void describe('AmplifyCollectionFactory', () => {
     const collectionConstruct = collectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
 
     // Check that the friendly name tag is applied
@@ -127,10 +123,7 @@ void describe('AmplifyCollectionFactory', () => {
   void it('creates collection with custom collection properties', () => {
     const customCollectionFactory = defineCollection({
       name: 'customCollection',
-      collectionProps: {
-        geofenceCollectionName: 'customCollection',
-        description: 'Custom test collection',
-      },
+      collectionDescription: 'Custom test collection',
       access: (allow) => [allow.apiKey.to(['create'])],
     });
 
@@ -138,7 +131,7 @@ void describe('AmplifyCollectionFactory', () => {
       customCollectionFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(collectionConstruct.resources.collection),
+      Stack.of(collectionConstruct.resources.cfnResources.cfnCollection),
     );
     template.hasResourceProperties('AWS::Location::GeofenceCollection', {
       CollectionName: 'customCollection',
@@ -149,14 +142,11 @@ void describe('AmplifyCollectionFactory', () => {
   void it('verifies stack property exists and is equal to collection stack', () => {
     const collectionConstructFactory = defineCollection({
       name: 'testCollection',
-      collectionProps: {
-        geofenceCollectionName: 'testCollection',
-      },
     }).getInstance(getInstanceProps);
 
     assert.equal(
       collectionConstructFactory.stack,
-      Stack.of(collectionConstructFactory.resources.collection),
+      Stack.of(collectionConstructFactory.resources.cfnResources.cfnCollection),
     );
   });
 });

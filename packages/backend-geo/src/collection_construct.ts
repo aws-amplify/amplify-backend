@@ -40,13 +40,12 @@ export class AmplifyCollection
     this.isDefault = props.isDefault || false;
     this.stack = Stack.of(scope);
 
-    const geofenceCollection = new GeofenceCollection(
-      this,
-      id,
-      props.collectionProps,
-    );
+    const geofenceCollection = new GeofenceCollection(this, id, {
+      geofenceCollectionName: props.name,
+      description: props.collectionDescription,
+      kmsKey: props.kmsKey,
+    });
     this.resources = {
-      collection: geofenceCollection,
       policies: this.policies,
       cfnResources: {
         cfnCollection: geofenceCollection.node.findChild(

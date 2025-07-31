@@ -14,9 +14,8 @@ import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { GeofenceCollection } from '@aws-cdk/aws-location-alpha';
-import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -30,7 +29,8 @@ export type AmplifyCollectionFactoryProps = Omit<AmplifyCollectionProps, 'output
 // @public (undocumented)
 export type AmplifyCollectionProps = {
     name: string;
-    collectionProps: GeofenceCollectionProps;
+    collectionDescription?: string;
+    kmsKey?: kms.IKey;
     isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };
@@ -41,7 +41,10 @@ export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrateg
 };
 
 // @public (undocumented)
-export type AmplifyMapProps = Omit<AmplifyCollectionProps, 'collectionProps'> & {
+export type AmplifyMapProps = {
+    name: string;
+    isDefault?: boolean;
+    outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
     apiKeyProps?: GeoApiKeyProps;
 };
 
@@ -51,14 +54,16 @@ export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStr
 };
 
 // @public (undocumented)
-export type AmplifyPlaceProps = Omit<AmplifyCollectionProps, 'collectionProps'> & {
+export type AmplifyPlaceProps = {
+    name: string;
+    isDefault?: boolean;
+    outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
     apiKeyProps?: GeoApiKeyProps;
 };
 
 // @public
 export type CollectionResources = {
     policies: Policy[];
-    collection: GeofenceCollection;
     cfnResources: {
         cfnCollection: CfnGeofenceCollection;
     };
@@ -130,9 +135,6 @@ export type PlaceResources = {
         cfnAPIKey?: CfnAPIKey;
     };
 };
-
-// @public (undocumented)
-export const resourceActionRecord: Record<string, string[]>;
 
 // @public (undocumented)
 export type ResourceOutputs = {

@@ -153,7 +153,8 @@ export class AmplifyGeoOutputsAspect implements IAspect {
 
     // Collect all collection names for the items array
     const collectionNames = collections.map(
-      (collection) => collection.resources.collection.geofenceCollectionName,
+      (collection) =>
+        collection.resources.cfnResources.cfnCollection.collectionName,
     );
 
     const mapOutputs: ResourceOutputs[] = maps.map((map): ResourceOutputs => {
@@ -177,7 +178,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       this.addOutput(
         outputStorageStrategy,
         'geofenceCollections',
-        defaultCollection.resources.collection.geofenceCollectionName,
+        defaultCollection.resources.cfnResources.cfnCollection.collectionName,
         collectionNames,
       );
 

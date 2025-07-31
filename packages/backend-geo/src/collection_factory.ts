@@ -90,7 +90,8 @@ export class AmplifyCollectionGenerator
 
     amplifyCollection.resources.policies =
       geoAccessOrchestrator.orchestrateGeoAccess(
-        amplifyCollection.resources.collection.geofenceCollectionArn,
+        amplifyCollection.resources.cfnResources.cfnCollection
+          .attrCollectionArn,
         'collection',
         amplifyCollection.name,
       );

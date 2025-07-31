@@ -6,7 +6,6 @@ import {
   GeoAccessBuilder,
   GeoAccessGenerator,
   GeoResourceType,
-  resourceActionRecord,
 } from './types.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { GeoAccessPolicyFactory } from './geo_access_policy_factory.js';
@@ -142,3 +141,9 @@ export class GeoAccessOrchestratorFactory {
       ssmEnvironmentEntries,
     );
 }
+
+const resourceActionRecord: Record<string, string[]> = {
+  map: ['get'],
+  place: ['autocomplete', 'geocode', 'search'],
+  collection: ['create', 'read', 'update', 'delete', 'list'],
+};
