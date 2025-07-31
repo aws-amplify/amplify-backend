@@ -79,7 +79,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('both backend output entry and append list invoked with AmplifyCollection node', () => {
       const collectionNode = new AmplifyCollection(stack, 'testCollection', {
         name: 'testCollectionName',
-        collectionProps: {},
       });
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
       aspect.visit(collectionNode);
@@ -91,12 +90,11 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('output entry called once with multiple collections created', () => {
       new AmplifyCollection(stack, 'testCollection_1', {
         name: 'testCollection1',
-        collectionProps: {},
+
         isDefault: true,
       }); // set as default collection
       new AmplifyCollection(stack, 'testCollection_2', {
         name: 'testCollection2',
-        collectionProps: {},
       });
       const mapNode = new AmplifyMap(stack, 'testMap', {
         name: 'testMapResourceName',
@@ -116,11 +114,10 @@ void describe('AmplifyGeoOutputsAspect', () => {
       const newNode = new AmplifyCollection(
         noDuplicateStack,
         'testCollection2',
-        { name: 'testCollection_2', collectionProps: {} },
+        { name: 'testCollection_2' },
       );
       new AmplifyCollection(noDuplicateStack, 'testCollection3', {
         name: 'testCollection_3',
-        collectionProps: {},
       });
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
       assert.throws(
@@ -138,7 +135,7 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('throws if multiple default collections', () => {
       const node = new AmplifyCollection(stack, 'testCollection', {
         name: 'defaultCollection',
-        collectionProps: {},
+
         isDefault: true,
       });
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
@@ -146,7 +143,7 @@ void describe('AmplifyGeoOutputsAspect', () => {
         () => {
           new AmplifyCollection(stack, 'defaultCollection', {
             name: 'default_collection',
-            collectionProps: {},
+
             isDefault: true,
           });
           aspect.visit(node);
@@ -195,12 +192,10 @@ void describe('AmplifyGeoOutputsAspect', () => {
       new AmplifyPlace(stack, 'placeResource', { name: 'testPlaceIndex' });
       new AmplifyCollection(stack, 'defaultCollection', {
         name: 'default_collection',
-        collectionProps: { geofenceCollectionName: 'newCollection' },
         isDefault: true,
       });
       new AmplifyCollection(stack, 'testCollection', {
         name: 'default_collection',
-        collectionProps: {},
       });
 
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);

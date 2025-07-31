@@ -9,8 +9,8 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -24,7 +24,8 @@ export type AmplifyCollectionFactoryProps = Omit<AmplifyCollectionProps, 'output
 // @public (undocumented)
 export type AmplifyCollectionProps = {
     name: string;
-    collectionProps: GeofenceCollectionProps;
+    collectionDescription?: string;
+    kmsKey?: kms.IKey;
     isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };

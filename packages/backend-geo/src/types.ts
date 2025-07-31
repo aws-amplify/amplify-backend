@@ -4,10 +4,10 @@ import {
   ResourceAccessAcceptor,
 } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
-import { GeofenceCollectionProps } from '@aws-cdk/aws-location-alpha';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import * as kms from 'aws-cdk-lib/aws-kms';
 
 // ----------------------------------- factory properties ----------------------------------------------
 
@@ -83,7 +83,8 @@ export type AmplifyPlaceProps = {
 
 export type AmplifyCollectionProps = {
   name: string;
-  collectionProps: GeofenceCollectionProps;
+  collectionDescription?: string;
+  kmsKey?: kms.IKey;
   isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
 };

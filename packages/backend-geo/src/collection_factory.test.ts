@@ -40,9 +40,6 @@ void describe('AmplifyCollectionFactory', () => {
   beforeEach(() => {
     collectionFactory = defineCollection({
       name: 'testCollection',
-      collectionProps: {
-        geofenceCollectionName: 'testCollection',
-      },
     });
     const stack = createStackAndSetContext();
 
@@ -91,7 +88,6 @@ void describe('AmplifyCollectionFactory', () => {
 
     const collectionFactory = defineCollection({
       name: '|$%#86430resource',
-      collectionProps: {},
     });
     assert.throws(
       () =>
@@ -127,10 +123,7 @@ void describe('AmplifyCollectionFactory', () => {
   void it('creates collection with custom collection properties', () => {
     const customCollectionFactory = defineCollection({
       name: 'customCollection',
-      collectionProps: {
-        geofenceCollectionName: 'customCollection',
-        description: 'Custom test collection',
-      },
+      collectionDescription: 'Custom test collection',
     });
 
     const collectionConstruct =
@@ -148,9 +141,6 @@ void describe('AmplifyCollectionFactory', () => {
   void it('verifies stack property exists and is equal to collection stack', () => {
     const collectionConstructFactory = defineCollection({
       name: 'testCollection',
-      collectionProps: {
-        geofenceCollectionName: 'testCollection',
-      },
     }).getInstance(getInstanceProps);
 
     assert.equal(
