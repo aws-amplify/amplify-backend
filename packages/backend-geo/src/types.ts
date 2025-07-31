@@ -156,10 +156,6 @@ export type GeoAccessGenerator = (
   allow: GeoAccessBuilder,
 ) => GeoAccessDefinition[];
 
-export type GeoCollectionAccessGenerator = (
-  allow: Omit<GeoAccessBuilder, 'apiKey'>,
-) => GeoAccessDefinition[];
-
 export type GeoAccessBuilder = {
   authenticated: GeoActionBuilder;
   guest: GeoActionBuilder;

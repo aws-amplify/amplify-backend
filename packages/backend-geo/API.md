@@ -111,9 +111,6 @@ export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'>;
 
 // @public (undocumented)
-export type GeoCollectionAccessGenerator = (allow: Omit<GeoAccessBuilder, 'apiKey'>) => GeoAccessDefinition[];
-
-// @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
 
 // @public

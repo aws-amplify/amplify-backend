@@ -524,6 +524,96 @@ void describe('GeoAccessOrchestrator', () => {
       );
     });
 
+    void it('throws for duplicate action on map resource', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['get', 'get'], // Invalid for map (valid for collection)
+              getAccessAcceptors: [
+                () => ({
+                  identifier: 'authenticatedUserIamRole',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'authenticated',
+                  validationErrorOptions: {
+                    message: 'Test error',
+                    resolution: 'Test resolution',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      assert.throws(
+        () =>
+          geoAccessOrchestrator.orchestrateGeoAccess(
+            'arn:aws:geo:us-east-1:123456789012:map/test-map',
+            'map',
+            testResourceName,
+          ),
+        new AmplifyUserError('DuplicateActionFoundError', {
+          message:
+            'Desired access action is duplicated for the specific map resource.',
+          resolution:
+            'Remove all but one mentions of the get action for the specific map resource.',
+        }),
+      );
+    });
+
+    void it('throws for duplicate action on place resource', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const geoAccessOrchestrator =
+        new GeoAccessOrchestratorFactory().getInstance(
+          () => [
+            {
+              actions: ['search', 'search'], // Invalid for map (valid for collection)
+              getAccessAcceptors: [
+                () => ({
+                  identifier: 'authenticatedUserIamRole',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
+              uniqueDefinitionValidators: [
+                {
+                  uniqueRoleToken: 'authenticated',
+                  validationErrorOptions: {
+                    message: 'Test error',
+                    resolution: 'Test resolution',
+                  },
+                },
+              ],
+            },
+          ],
+          {} as unknown as ConstructFactoryGetInstanceProps,
+          stack,
+          ssmEnvironmentEntriesStub,
+        );
+
+      assert.throws(
+        () =>
+          geoAccessOrchestrator.orchestrateGeoAccess(
+            'arn:aws:geo:us-east-1:123456789012:place/test-place',
+            'place',
+            testResourceName,
+          ),
+        new AmplifyUserError('DuplicateActionFoundError', {
+          message:
+            'Desired access action is duplicated for the specific place resource.',
+          resolution:
+            'Remove all but one mentions of the search action for the specific place resource.',
+        }),
+      );
+    });
+
     void it('handles empty actions array', () => {
       const acceptResourceAccessMock = mock.fn();
       const geoAccessOrchestrator =

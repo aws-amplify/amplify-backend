@@ -328,8 +328,8 @@ void describe('AmplifyGeoOutputsAspect', () => {
        */
       assert.ok(
         JSON.parse(
-          appendToBackendOutputListMock.mock.calls[1].arguments[1].payload.map,
-        ).items[0].apiKey.includes('TOKEN'),
+          appendToBackendOutputListMock.mock.calls[1].arguments[1].payload.maps,
+        ).items[0].key.includes('TOKEN'),
       );
 
       assert.equal(
