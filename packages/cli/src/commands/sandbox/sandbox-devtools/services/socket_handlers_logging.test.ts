@@ -4,6 +4,7 @@ import { SocketHandlerLogging } from './socket_handlers_logging.js';
 import { Printer, printer } from '@aws-amplify/cli-core';
 import type { Server, Socket } from 'socket.io';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
+import { LocalStorageManager } from '../local_storage_manager.js';
 import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
 
 // Define the return type of mock.fn()
@@ -13,24 +14,6 @@ type MockFn = ReturnType<typeof mock.fn>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockCall = {
   arguments: readonly unknown[];
-};
-
-type LocalStorageManager = {
-  saveConsoleLogs: (logs: unknown[]) => void;
-  loadConsoleLogs: () => void;
-  saveResourceLoggingState: (resourceId: string, isActive: boolean) => void;
-  getResourcesWithActiveLogging: () => string[];
-  loadCloudWatchLogs: (
-    resourceId: string,
-  ) => { timestamp: number; message: string }[];
-  appendCloudWatchLog: (
-    resourceId: string,
-    log: { timestamp: number; message: string },
-  ) => void;
-  loadResourceLoggingState: (resourceId: string) => boolean;
-  setMaxLogSize: (maxLogSize: number) => void;
-  getLogsSizeInMB: () => number;
-  maxLogSizeMB: number;
 };
 
 void describe('SocketHandlerLogging', () => {
