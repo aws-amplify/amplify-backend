@@ -5,6 +5,7 @@ import {
   UnifiedBackendOutput,
   authOutputKey,
   customOutputKey,
+  geoOutputKey,
   graphqlOutputKey,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -79,6 +80,18 @@ void describe('UnifiedClientConfigGenerator', () => {
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
           },
         },
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-east-1',
+            geofenceCollections: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultCollection',
+                items: ['defaultCollection', 'testCollection'],
+              }),
+            ),
+          },
+        },
         [customOutputKey]: {
           version: '1',
           payload: {
@@ -91,6 +104,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           },
         },
       };
+
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
         stubClientProvider,
@@ -149,6 +163,13 @@ void describe('UnifiedClientConfigGenerator', () => {
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
+        },
+        geo: {
+          aws_region: 'us-east-1',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
         },
         custom: {
           output1: 'val1',
@@ -211,6 +232,18 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-east-1',
+            geofenceCollections: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultCollection',
+                items: ['defaultCollection', 'testCollection'],
+              }),
+            ),
           },
         },
         [customOutputKey]: {
@@ -277,6 +310,13 @@ void describe('UnifiedClientConfigGenerator', () => {
             },
           ],
         },
+        geo: {
+          aws_region: 'us-east-1',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
+        },
         data: {
           url: 'testApiEndpoint',
           aws_region: 'us-east-1',
@@ -332,6 +372,18 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-east-1',
+            geofenceCollections: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultCollection',
+                items: ['defaultCollection', 'testCollection'],
+              }),
+            ),
           },
         },
         [customOutputKey]: {
@@ -393,6 +445,13 @@ void describe('UnifiedClientConfigGenerator', () => {
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
         },
+        geo: {
+          aws_region: 'us-east-1',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
+        },
         custom: {
           output1: 'val1',
           output2: 'val2',
@@ -441,6 +500,18 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-east-1',
+            geofenceCollections: JSON.stringify(
+              JSON.stringify({
+                default: 'defaultCollection',
+                items: ['defaultCollection', 'testCollection'],
+              }),
+            ),
           },
         },
         [customOutputKey]: {
@@ -501,6 +572,13 @@ void describe('UnifiedClientConfigGenerator', () => {
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
+        },
+        geo: {
+          aws_region: 'us-east-1',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
         },
         custom: {
           output1: 'val1',
