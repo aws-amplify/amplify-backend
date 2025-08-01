@@ -10,6 +10,7 @@ import {
   GetLogEventsCommand,
 } from '@aws-sdk/client-cloudwatch-logs';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
+import { LocalStorageManager } from '../local_storage_manager.js';
 import { getLogGroupName } from '../logging/log_group_extractor.js';
 import {
   LogStreamStatus,
@@ -60,24 +61,7 @@ export class SocketHandlerLogging {
    */
   constructor(
     private io: Server,
-    private storageManager: {
-      saveConsoleLogs: (logs: unknown[]) => void;
-      loadConsoleLogs: () => void;
-      saveResourceLoggingState: (resourceId: string, isActive: boolean) => void;
-      getResourcesWithActiveLogging: () => string[];
-      loadCloudWatchLogs: (
-        resourceId: string,
-      ) => { timestamp: number; message: string }[];
-      appendCloudWatchLog: (
-        resourceId: string,
-        log: { timestamp: number; message: string },
-      ) => void;
-      loadResourceLoggingState: (resourceId: string) => boolean;
-      setMaxLogSize: (maxLogSize: number) => void;
-      getLogsSizeInMB: () => number;
-      maxLogSizeMB: number;
-    },
-    // eslint-disable-next-line spellcheck/spell-checker
+    private storageManager: LocalStorageManager,
     private activeLogPollers = new Map<string, NodeJS.Timeout>(),
     // Track when logging was toggled on for each resource
     private toggleStartTimes = new Map<string, number>(),
