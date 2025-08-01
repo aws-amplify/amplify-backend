@@ -85,6 +85,26 @@ export const SOCKET_EVENTS = {
   GET_LOG_SETTINGS: 'getLogSettings',
 
   /**
+   * Event to save log settings
+   */
+  SAVE_LOG_SETTINGS: 'saveLogSettings',
+
+  /**
+   * Event received when log settings are sent from the server
+   */
+  LOG_SETTINGS: 'logSettings',
+
+  /**
+   * Event to test a Lambda function
+   */
+  TEST_LAMBDA_FUNCTION: 'testLambdaFunction',
+
+  /**
+   * Event received when Lambda test results are sent from the server
+   */
+  LAMBDA_TEST_RESULT: 'lambdaTestResult',
+
+  /**
    * Event received when a log message is sent from the server
    */
   LOG: 'log',
@@ -93,6 +113,21 @@ export const SOCKET_EVENTS = {
    * Event received when an error occurs
    */
   ERROR: 'error',
+
+  /**
+   * Event to save console logs
+   */
+  SAVE_CONSOLE_LOGS: 'saveConsoleLogs',
+
+  /**
+   * Event to load console logs
+   */
+  LOAD_CONSOLE_LOGS: 'loadConsoleLogs',
+
+  /**
+   * Event received when saved console logs are sent from the server
+   */
+  SAVED_CONSOLE_LOGS: 'savedConsoleLogs',
 
   /**
    * Event which triggers UI to show a deployment error

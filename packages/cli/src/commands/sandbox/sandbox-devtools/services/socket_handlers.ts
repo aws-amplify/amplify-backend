@@ -6,28 +6,36 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Sandbox, SandboxOptions, SandboxStatus } from '@aws-amplify/sandbox';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { LambdaClient } from '@aws-sdk/client-lambda';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
+  ConsoleLogEntry,
   DevToolsSandboxOptions,
   SandboxStatusData,
 } from '../shared/socket_types.js';
 import { ShutdownService } from './shutdown_service.js';
+import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-
-// Simple type definitions for PR 2
-export type ResourceWithFriendlyName = {
-  logicalResourceId: string;
-  physicalResourceId: string;
-  resourceType: string;
-  resourceStatus: string;
-  friendlyName?: string;
-};
+import { SocketHandlerResources } from './socket_handlers_resources.js';
 
 /**
  * Interface for socket event data types
  */
 export type SocketEvents = {
+  getLogSettings: void;
+  saveLogSettings: {
+    maxLogSizeMB: number;
+  };
+  getCustomFriendlyNames: void;
+  updateCustomFriendlyName: {
+    resourceId: string;
+    friendlyName: string;
+  };
+  removeCustomFriendlyName: {
+    resourceId: string;
+  };
+
   getSandboxStatus: void;
   deploymentInProgress: {
     message: string;
@@ -38,40 +46,63 @@ export type SocketEvents = {
   stopSandbox: void;
   deleteSandbox: void;
   stopDevTools: void;
-  getSavedDeploymentProgress: void;
   getSavedResources: void;
-  getCustomFriendlyNames: void;
-  updateCustomFriendlyName: {
+  getSavedCloudFormationEvents: void;
+  testLambdaFunction: {
     resourceId: string;
-    friendlyName: string;
+    functionName: string;
+    input: string;
   };
-  removeCustomFriendlyName: {
-    resourceId: string;
+  getCloudFormationEvents: void;
+  saveConsoleLogs: {
+    logs: ConsoleLogEntry[];
   };
+  loadConsoleLogs: void;
 };
 
 /**
  * Service for handling socket events
  */
 export class SocketHandlerService {
+  private resourcesHandler: SocketHandlerResources;
+
   /**
    * Creates a new SocketHandlerService
    */
   constructor(
-    private io: Server,
+    io: Server,
     private sandbox: Sandbox,
     private getSandboxState: () => Promise<SandboxStatus>,
     private backendId: BackendIdentifier,
     private shutdownService: ShutdownService,
     private resourceService: ResourceService,
+    storageManager: LocalStorageManager,
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
-  ) {}
+    lambdaClient: LambdaClient = new LambdaClient({}),
+  ) {
+    this.resourcesHandler = new SocketHandlerResources(
+      io,
+      storageManager,
+      backendId,
+      getSandboxState,
+      lambdaClient,
+      printer,
+    );
+  }
 
   /**
    * Sets up all socket event handlers
    * @param socket The socket connection
    */
   public setupSocketHandlers(socket: Socket): void {
+    socket.on(
+      SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
+      this.resourcesHandler.handleTestLambdaFunction.bind(
+        this.resourcesHandler,
+        socket,
+      ),
+    );
+
     // Sandbox status handlers
     socket.on(
       SOCKET_EVENTS.GET_SANDBOX_STATUS,
@@ -87,15 +118,22 @@ export class SocketHandlerService {
     // Friendly name handlers
     socket.on(
       SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,
-      this.handleGetCustomFriendlyNames.bind(this, socket),
+      this.resourcesHandler.handleGetCustomFriendlyNames.bind(
+        this.resourcesHandler,
+        socket,
+      ),
     );
     socket.on(
       SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
-      this.handleUpdateCustomFriendlyName.bind(this, socket),
+      this.resourcesHandler.handleUpdateCustomFriendlyName.bind(
+        this.resourcesHandler,
+      ),
     );
     socket.on(
       SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
-      this.handleRemoveCustomFriendlyName.bind(this, socket),
+      this.resourcesHandler.handleRemoveCustomFriendlyName.bind(
+        this.resourcesHandler,
+      ),
     );
 
     // Sandbox operation handlers
@@ -153,67 +191,28 @@ export class SocketHandlerService {
   ): Promise<void> {
     try {
       this.printer.log('Fetching deployed backend resources...', LogLevel.INFO);
+      try {
+        const resources =
+          await this.resourceService.getDeployedBackendResources();
+        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, resources);
+      } catch (error) {
+        // ResourceService handles most common errors
+        // but we still need to handle unexpected errors
+        const errorMessage = String(error);
+        this.printer.log(
+          `Error getting backend resources: ${errorMessage}`,
+          LogLevel.ERROR,
+        );
 
-      // Get the current sandbox state
-      const status = await this.getSandboxState();
-
-      // If sandbox is running or stopped, fetch actual resources
-      if (status === 'running' || status === 'stopped') {
-        try {
-          // Use the ResourceService to get deployed backend resources
-          const resources =
-            await this.resourceService.getDeployedBackendResources();
-          socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, resources);
-          return;
-        } catch (error) {
-          const errorMessage = String(error);
-          this.printer.log(
-            `Error getting backend resources: ${errorMessage}`,
-            LogLevel.ERROR,
-          );
-
-          if (errorMessage.includes('deployment is in progress')) {
-            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
-              name: this.backendId.name,
-              status: 'deploying',
-              resources: [],
-              region: null,
-              message:
-                'Sandbox deployment is in progress. Resources will update when deployment completes.',
-            });
-          } else if (errorMessage.includes('does not exist')) {
-            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
-              name: this.backendId.name,
-              status: 'nonexistent',
-              resources: [],
-              region: null,
-              message: 'No sandbox exists. Please create a sandbox first.',
-            });
-          } else {
-            socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
-              name: this.backendId.name,
-              status: 'error',
-              resources: [],
-              region: null,
-              message: `Error fetching resources: ${errorMessage}`,
-              error: errorMessage,
-            });
-          }
-          return;
-        }
+        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
+          name: this.backendId.name,
+          status: 'error',
+          resources: [],
+          region: null,
+          message: `Error fetching resources: ${errorMessage}`,
+          error: errorMessage,
+        });
       }
-
-      // For non-running states, return appropriate status
-      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
-        name: this.backendId.name,
-        status: status,
-        resources: [],
-        region: null,
-        message:
-          status === 'nonexistent'
-            ? 'No sandbox exists. Please create a sandbox first.'
-            : `Sandbox is ${status}. Start the sandbox to see resources.`,
-      });
     } catch (error) {
       this.printer.log(
         `Error in handleGetDeployedBackendResources: ${String(error)}`,
@@ -356,62 +355,6 @@ export class SocketHandlerService {
       };
       socket.emit(SOCKET_EVENTS.SANDBOX_STATUS, errorStatusData);
     }
-  }
-
-  /**
-   * Handles the getCustomFriendlyNames event
-   */
-  private handleGetCustomFriendlyNames(socket: Socket): void {
-    // In PR 2, we don't have actual storage for custom friendly names
-    // Just return an empty object
-    socket.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAMES, {});
-  }
-
-  /**
-   * Handles the updateCustomFriendlyName event
-   */
-  private handleUpdateCustomFriendlyName(
-    socket: Socket,
-    data: SocketEvents['updateCustomFriendlyName'],
-  ): void {
-    if (!data || !data.resourceId || !data.friendlyName) {
-      return;
-    }
-
-    // In PR 2, we don't actually store the custom friendly name
-    // Just emit the event to acknowledge the update
-    this.io.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_UPDATED, {
-      resourceId: data.resourceId,
-      friendlyName: data.friendlyName,
-    });
-
-    this.printer.log(
-      `Custom friendly name updated for ${data.resourceId}: ${data.friendlyName}`,
-      LogLevel.INFO,
-    );
-  }
-
-  /**
-   * Handles the removeCustomFriendlyName event
-   */
-  private handleRemoveCustomFriendlyName(
-    socket: Socket,
-    data: SocketEvents['removeCustomFriendlyName'],
-  ): void {
-    if (!data || !data.resourceId) {
-      return;
-    }
-
-    // In PR 2, we don't actually store the custom friendly name
-    // Just emit the event to acknowledge the removal
-    this.io.emit(SOCKET_EVENTS.CUSTOM_FRIENDLY_NAME_REMOVED, {
-      resourceId: data.resourceId,
-    });
-
-    this.printer.log(
-      `Custom friendly name removed for ${data.resourceId}`,
-      LogLevel.INFO,
-    );
   }
 
   /**

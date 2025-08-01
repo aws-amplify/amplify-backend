@@ -37,6 +37,7 @@ import { PortChecker } from '../port_checker.js';
 import { DevToolsLogger } from './services/devtools_logger.js';
 import { DevToolsLoggerFactory } from './services/devtools_logger_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { LocalStorageManager } from './local_storage_manager.js';
 import { SOCKET_EVENTS } from './shared/socket_events.js';
 
 /**
@@ -171,15 +172,13 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
    * @param backendId.namespace The namespace of the backend (optional)
    * @param getSandboxState Function to get the current sandbox state
    * @param storageManager The storage manager instance
-   * @param storageManager.clearAll Method to clear all storage
-   * @param storageManager.clearResources Method to clear resources storage
    */
   setupEventListeners(
     sandbox: Sandbox,
     io: Server,
     backendId: { name: string; namespace?: string },
     getSandboxState: () => Promise<SandboxStatus>,
-    storageManager: { clearAll: () => void; clearResources: () => void },
+    storageManager: LocalStorageManager,
   ): void {
     // Listen for deployment started
     sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {
@@ -213,6 +212,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         const currentState = await getSandboxState();
 
+        //Clear saved resources after successful deployment,
+        // so that the next fetch will get the latest resources
         storageManager.clearResources();
 
         const statusData: SandboxStatusData = {
@@ -457,6 +458,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       this.awsClientProvider,
     );
 
+    // Create a storage manager for this sandbox
+    const storageManager = new LocalStorageManager(backendId.name);
+
     // Create a custom logger that forwards logs to Socket.IO clients
     // Either use the injected factory or create a logger directly
     let devToolsLogger: DevToolsLogger;
@@ -482,12 +486,6 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendId,
     );
 
-    // Create a simple storage manager for PR 2
-    const storageManager = {
-      clearAll: () => {},
-      clearResources: () => {},
-    };
-
     // Initialize the shutdown service
     const shutdownService = new ShutdownService(
       io,
@@ -500,7 +498,9 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
     // Initialize the resource service
     const resourceService = new ResourceService(
+      storageManager,
       backendId.name,
+      getSandboxState,
       backendClient,
       backendId.namespace,
       undefined, // Use default RegionFetcher
@@ -515,6 +515,7 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       backendId,
       shutdownService,
       resourceService,
+      storageManager,
       devToolsLogger,
     );
 
