@@ -22,7 +22,38 @@ import { SocketEvents } from './socket_handlers.js';
  * Service for handling socket events related to logging
  */
 export class SocketHandlerLogging {
+  /**
+   * CloudWatch log polling configuration - all values subjectively tuned
+   * AWS limits: GetLogEvents (10 req/s), DescribeLogStreams (5 req/s)
+   */
+  private static readonly pollingConfig = {
+    // How often to poll for new logs when first starting - balances responsiveness vs API usage
+    // Lower = more responsive but more API calls, Higher = less responsive but fewer API calls
+    // Tune: Decrease for faster log appearance, increase to reduce AWS costs
+    INITIAL_POLL_INTERVAL_MS: 2000,
+
+    // Maximum polling interval when no logs are found - prevents excessive slowdown
+    // Tune: Increase to further reduce API calls, decrease for better responsiveness
+    MAX_POLL_INTERVAL_MS: 10000,
+
+    // How often to check if Lambda created a new log stream - Lambda creates new streams periodically
+    // Lambda rotates streams on cold starts and daily, so we need periodic checks
+    // Tune: Increase to reduce API calls, decrease to catch new streams faster
+    STREAM_CHECK_INTERVAL_MS: 30000,
+
+    // Number of consecutive empty API responses before slowing down polling
+    // Prevents immediate slowdown from brief quiet periods but responds to sustained inactivity
+    // Tune: Increase to delay slowdown longer, decrease to slow down sooner
+    EMPTY_POLLS_THRESHOLD: 3,
+
+    // Exponential back off multiplier - 1.5 is conservative to avoid overshooting max interval
+    // Tune: Higher values reach max interval faster but risk overshooting optimal frequency
+    BACKOFF_MULTIPLIER: 1.5,
+  } as const;
+
   private cwLogsClient: CloudWatchLogsClient;
+  // Prevent overlapping async polling requests
+  private pollingInProgress = new Map<string, boolean>();
 
   /**
    * Creates a new SocketHandlerLogging
@@ -510,114 +541,31 @@ export class SocketHandlerLogging {
     let nextToken: string | undefined = undefined;
     let currentLogStreamName = logStreamName;
     let lastStreamCheckTime = Date.now();
-    const STREAM_CHECK_INTERVAL = 30000; // Check for new streams every 30 seconds
     let consecutiveEmptyPolls = 0;
-    let currentInterval = 2000; // Start with 2 seconds
-
-    const fetchLogs = () => {
-      void (async () => {
-        try {
-          // Periodically check for newer log streams
-          if (Date.now() - lastStreamCheckTime > STREAM_CHECK_INTERVAL) {
-            try {
-              const streamResult = await this.findLatestLogStream(logGroupName);
-              if (
-                streamResult.logStreamName &&
-                streamResult.logStreamName !== currentLogStreamName
-              ) {
-                this.printer.log(
-                  `Found newer log stream for ${resourceId}: ${streamResult.logStreamName}`,
-                  LogLevel.INFO,
-                );
-                currentLogStreamName = streamResult.logStreamName;
-                nextToken = undefined; // Reset token when switching to a new stream
-              }
-              lastStreamCheckTime = Date.now();
-            } catch (error) {
-              // Continue with current stream if there's an error finding a new one
-              this.printer.log(
-                `Error checking for new log streams: ${String(error)}`,
-                LogLevel.DEBUG,
-              );
-            }
-          }
-
-          const getLogsResponse = await this.cwLogsClient.send(
-            new GetLogEventsCommand({
-              logGroupName,
-              logStreamName: currentLogStreamName,
-              nextToken,
-              startFromHead: true,
-            }),
-          );
-
-          // Update next token for next poll
-          nextToken = getLogsResponse.nextForwardToken;
-
-          // Process and save logs
-          if (getLogsResponse.events && getLogsResponse.events.length > 0) {
-            // Get the toggle start time for this resource
-            const toggleStartTime = this.toggleStartTimes.get(resourceId) || 0;
-
-            // Filter logs based on toggle start time
-            const logs = getLogsResponse.events
-              .filter((event) => (event.timestamp || 0) > toggleStartTime)
-              .map((event) => ({
-                timestamp: event.timestamp || Date.now(),
-                message: event.message || '',
-              }));
-
-            // Only save and emit if we have logs after filtering
-            if (logs.length > 0) {
-              // Save logs to local storage
-              logs.forEach((log: { timestamp: number; message: string }) => {
-                this.storageManager.appendCloudWatchLog(resourceId, log);
-              });
-
-              // Emit logs to all clients
-              this.io.emit(SOCKET_EVENTS.RESOURCE_LOGS, {
-                resourceId,
-                logs,
-              });
-
-              // Reset consecutive empty polls and speed up polling if needed
-              consecutiveEmptyPolls = 0;
-              if (currentInterval > 2000) {
-                // Speed up polling if we're getting logs
-                clearInterval(pollingInterval);
-                currentInterval = 2000;
-                pollingInterval = setInterval(fetchLogs, currentInterval);
-                this.activeLogPollers.set(resourceId, pollingInterval);
-              }
-            } else {
-              // No new logs after filtering
-              handleEmptyPoll();
-            }
-          } else {
-            // No logs at all
-            handleEmptyPoll();
-          }
-        } catch (error) {
-          try {
-            clearInterval(pollingInterval);
-            this.activeLogPollers.delete(resourceId);
-            this.handleResourceNotFoundException(resourceId, error, socket);
-          } catch {
-            this.handleLogError(resourceId, error, socket);
-          }
-        }
-      })();
-    };
+    let currentInterval: number =
+      SocketHandlerLogging.pollingConfig.INITIAL_POLL_INTERVAL_MS;
 
     // Helper function to handle empty poll results
     const handleEmptyPoll = () => {
       consecutiveEmptyPolls++;
-      if (consecutiveEmptyPolls > 3 && currentInterval < 10000) {
-        // Slow down polling after 3 empty polls
-        clearInterval(pollingInterval);
-        currentInterval = Math.min(currentInterval * 1.5, 10000);
-        pollingInterval = setInterval(fetchLogs, currentInterval);
-        this.activeLogPollers.set(resourceId, pollingInterval);
+      if (
+        consecutiveEmptyPolls >
+          SocketHandlerLogging.pollingConfig.EMPTY_POLLS_THRESHOLD &&
+        currentInterval <
+          SocketHandlerLogging.pollingConfig.MAX_POLL_INTERVAL_MS
+      ) {
+        // Slow down polling after threshold empty polls
+        currentInterval = Math.min(
+          currentInterval *
+            SocketHandlerLogging.pollingConfig.BACKOFF_MULTIPLIER,
+          SocketHandlerLogging.pollingConfig.MAX_POLL_INTERVAL_MS,
+        );
+        pollingInterval = this.updatePollingInterval(
+          resourceId,
+          () => void fetchLogs(),
+          currentInterval,
+          pollingInterval,
+        );
 
         this.printer.log(
           `Reduced polling frequency for ${resourceId} to ${currentInterval}ms after ${consecutiveEmptyPolls} empty polls`,
@@ -626,11 +574,124 @@ export class SocketHandlerLogging {
       }
     };
 
-    let pollingInterval = setInterval(fetchLogs, currentInterval);
+    const fetchLogs = async (): Promise<void> => {
+      // Prevent overlapping async requests
+      if (this.pollingInProgress.get(resourceId)) {
+        return;
+      }
+
+      this.pollingInProgress.set(resourceId, true);
+
+      try {
+        // Periodically check for newer log streams
+        if (
+          Date.now() - lastStreamCheckTime >
+          SocketHandlerLogging.pollingConfig.STREAM_CHECK_INTERVAL_MS
+        ) {
+          try {
+            const streamResult = await this.findLatestLogStream(logGroupName);
+            if (
+              streamResult.logStreamName &&
+              streamResult.logStreamName !== currentLogStreamName
+            ) {
+              this.printer.log(
+                `Found newer log stream for ${resourceId}: ${streamResult.logStreamName}`,
+                LogLevel.INFO,
+              );
+              currentLogStreamName = streamResult.logStreamName;
+              nextToken = undefined; // Reset token when switching to a new stream
+            }
+            lastStreamCheckTime = Date.now();
+          } catch (error) {
+            // Continue with current stream if there's an error finding a new one
+            this.printer.log(
+              `Error checking for new log streams: ${String(error)}`,
+              LogLevel.DEBUG,
+            );
+          }
+        }
+
+        const getLogsResponse = await this.cwLogsClient.send(
+          new GetLogEventsCommand({
+            logGroupName,
+            logStreamName: currentLogStreamName,
+            nextToken,
+            startFromHead: true,
+          }),
+        );
+
+        // Update next token for next poll
+        nextToken = getLogsResponse.nextForwardToken;
+
+        // Process and save logs
+        if (getLogsResponse.events && getLogsResponse.events.length > 0) {
+          // Get the toggle start time for this resource
+          const toggleStartTime = this.toggleStartTimes.get(resourceId) || 0;
+
+          // Filter logs based on toggle start time
+          const logs = getLogsResponse.events
+            .filter((event) => (event.timestamp || 0) > toggleStartTime)
+            .map((event) => ({
+              timestamp: event.timestamp || Date.now(),
+              message: event.message || '',
+            }));
+
+          // Only save and emit if we have logs after filtering
+          if (logs.length > 0) {
+            // Save logs to local storage
+            logs.forEach((log: { timestamp: number; message: string }) => {
+              this.storageManager.appendCloudWatchLog(resourceId, log);
+            });
+
+            // Emit logs to all clients
+            this.io.emit(SOCKET_EVENTS.RESOURCE_LOGS, {
+              resourceId,
+              logs,
+            });
+
+            // Reset consecutive empty polls and speed up polling if needed
+            consecutiveEmptyPolls = 0;
+            if (
+              currentInterval >
+              SocketHandlerLogging.pollingConfig.INITIAL_POLL_INTERVAL_MS
+            ) {
+              // Speed up polling if we're getting logs
+              currentInterval =
+                SocketHandlerLogging.pollingConfig.INITIAL_POLL_INTERVAL_MS;
+              pollingInterval = this.updatePollingInterval(
+                resourceId,
+                () => void fetchLogs(),
+                currentInterval,
+                pollingInterval,
+              );
+            }
+          } else {
+            // No new logs after filtering
+            handleEmptyPoll();
+          }
+        } else {
+          // No logs at all
+          handleEmptyPoll();
+        }
+      } catch (error) {
+        try {
+          clearInterval(pollingInterval);
+          this.activeLogPollers.delete(resourceId);
+          this.handleResourceNotFoundException(resourceId, error, socket);
+        } catch {
+          this.handleLogError(resourceId, error, socket);
+        }
+      } finally {
+        // Always reset the polling flag
+        this.pollingInProgress.set(resourceId, false);
+      }
+    };
+
+    let pollingInterval = setInterval(() => void fetchLogs(), currentInterval);
     this.activeLogPollers.set(resourceId, pollingInterval);
 
     // Fetch logs immediately after setting up the interval
-    fetchLogs();
+    void fetchLogs();
   }
 
   /**
@@ -673,5 +734,25 @@ export class SocketHandlerLogging {
       );
       socket.emit(SOCKET_EVENTS.SAVED_CONSOLE_LOGS, []);
     }
+  }
+
+  /**
+   * Helper method to update polling interval - centralizes interval management logic
+   * @param resourceId The resource ID
+   * @param fetchLogsFn The fetch function to call on interval
+   * @param newInterval The new interval in milliseconds
+   * @param pollingInterval The current polling interval to update
+   * @returns The new polling interval
+   */
+  private updatePollingInterval(
+    resourceId: string,
+    fetchLogsFn: () => void,
+    newInterval: number,
+    pollingInterval: NodeJS.Timeout,
+  ): NodeJS.Timeout {
+    clearInterval(pollingInterval);
+    const newPoller = setInterval(fetchLogsFn, newInterval);
+    this.activeLogPollers.set(resourceId, newPoller);
+    return newPoller;
   }
 }
