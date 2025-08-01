@@ -126,6 +126,8 @@ export class ApiChangesValidator {
       '--target',
       'es2022',
       '--noEmit',
+      '--verbatimModuleSyntax',
+      'false',
     ];
     await execa('npx', tscArgs, { cwd: this.testProjectPath });
   };
