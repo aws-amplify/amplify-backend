@@ -18,7 +18,7 @@ export const generateSeedPolicyTemplate = async (
   stsClient = new STSClient(),
 ): Promise<PolicyDocument> => {
   const seedPolicy = new PolicyDocument();
-  const clientConfig = await generateClientConfiguration(backendId, '1.4');
+  const clientConfig = await generateClientConfiguration(backendId, '1.5');
 
   if (!clientConfig.auth) {
     throw new AmplifyUserError('MissingAuthError', {
