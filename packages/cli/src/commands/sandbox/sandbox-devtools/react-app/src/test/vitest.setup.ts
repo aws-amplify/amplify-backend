@@ -14,9 +14,9 @@ vi.mock('@cloudscape-design/components', () => {
     Modal: ({ visible, children, header, footer }: any) => {
       if (!visible) return null;
       return React.createElement('div', { 'data-testid': 'modal' }, [
-        header,
-        children,
-        footer,
+        React.createElement('div', { className: 'modal-header' }, header),
+        React.createElement('div', { className: 'modal-content' }, children),
+        React.createElement('div', { className: 'modal-footer' }, footer),
       ]);
     },
     SpaceBetween: ({ children, direction, size }: any) => {
@@ -64,7 +64,10 @@ vi.mock('@cloudscape-design/components', () => {
         React.createElement('label', { htmlFor: controlId }, label),
         description &&
           React.createElement('div', { className: 'description' }, description),
-        React.cloneElement(children, { id: controlId }),
+        React.cloneElement(children, {
+          id: controlId,
+          ariaLabel: label,
+        }),
       ]),
 
     Input: ({ value, onChange, placeholder, id }: any) =>
@@ -76,18 +79,31 @@ vi.mock('@cloudscape-design/components', () => {
         id,
       }),
 
-    Header: ({ children, actions, description }: any) => {
-      return React.createElement('div', { className: 'header-container' }, [
-        React.createElement('h2', { className: 'header' }, children),
-        description &&
-          React.createElement(
-            'div',
-            { className: 'header-description' },
-            description,
-          ),
-        actions &&
-          React.createElement('div', { className: 'header-actions' }, actions),
-      ]);
+    Header: ({
+      children,
+      actions,
+      description,
+      'data-testid': dataTestId,
+    }: any) => {
+      return React.createElement(
+        'div',
+        { className: 'header-container', 'data-testid': dataTestId },
+        [
+          React.createElement('h2', { className: 'header' }, children),
+          description &&
+            React.createElement(
+              'div',
+              { className: 'header-description' },
+              description,
+            ),
+          actions &&
+            React.createElement(
+              'div',
+              { className: 'header-actions' },
+              actions,
+            ),
+        ],
+      );
     },
     Checkbox: ({ checked, onChange, disabled, children }: any) =>
       React.createElement('label', {}, [
@@ -103,7 +119,19 @@ vi.mock('@cloudscape-design/components', () => {
     Container: ({ children, header }: any) =>
       React.createElement('div', {}, [header, children]),
     AppLayout: ({ content }: any) => React.createElement('div', {}, content),
-    Select: ({ selectedOption, options, onChange, placeholder }: any) =>
+    ContentLayout: ({ header, children }: any) =>
+      React.createElement('div', { className: 'content-layout' }, [
+        header,
+        children,
+      ]),
+    Select: ({
+      selectedOption,
+      options,
+      onChange,
+      placeholder,
+      ariaLabel,
+      id,
+    }: any) =>
       React.createElement(
         'select',
         {
@@ -115,6 +143,8 @@ vi.mock('@cloudscape-design/components', () => {
                   options.find((o: any) => o.value === e.target.value) || null,
               },
             }),
+          'aria-label': ariaLabel,
+          id: id,
         },
         [
           placeholder &&
@@ -128,28 +158,54 @@ vi.mock('@cloudscape-design/components', () => {
           ),
         ],
       ),
-    Multiselect: ({ selectedOptions, options }: any) =>
-      React.createElement(
+    // Properly implement Multiselect to handle click events and filter changes
+    Multiselect: ({
+      selectedOptions,
+      options,
+      ariaLabel,
+      id,
+      onChange,
+    }: any) => {
+      // Handle option selection
+      const handleClick = (option: any) => {
+        // Create a new array of selected options
+        // For single selection behavior, create a new array with just this option
+        const newSelectedOptions = [option];
+
+        // Call onChange to update parent component state
+        if (onChange) {
+          onChange({ detail: { selectedOptions: newSelectedOptions } });
+        }
+      };
+
+      return React.createElement(
         'div',
         { className: 'multiselect' },
         React.createElement(
           'select',
-          { multiple: true },
+          {
+            multiple: true,
+            'aria-label': ariaLabel,
+            id: id,
+          },
           (options || []).map((option: any) =>
             React.createElement(
               'option',
               {
                 key: option.value,
                 value: option.value,
+                'data-testid': `filter-option-${option.value}`,
                 selected: (selectedOptions || []).some(
                   (o: any) => o.value === option.value,
                 ),
+                onClick: () => handleClick(option),
               },
               option.label,
             ),
           ),
         ),
-      ),
+      );
+    },
     StatusIndicator: ({ type, children }: any) =>
       React.createElement(
         'span',
@@ -209,6 +265,7 @@ vi.mock('@cloudscape-design/components', () => {
                 key: tab.id,
                 'data-active': tab.id === activeTabId,
                 onClick: () => onChange({ detail: { activeTabId: tab.id } }),
+                role: 'tab',
               },
               tab.label,
             ),
