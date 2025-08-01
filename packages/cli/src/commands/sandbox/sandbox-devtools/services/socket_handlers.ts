@@ -119,6 +119,57 @@ export class SocketHandlerService {
    * @param socket The socket connection
    */
   public setupSocketHandlers(socket: Socket): void {
+    // Resource logs handlers
+    socket.on(
+      SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING,
+      this.loggingHandler.handleToggleResourceLogging.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.VIEW_RESOURCE_LOGS,
+      this.loggingHandler.handleViewResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS,
+      this.loggingHandler.handleGetSavedResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_ACTIVE_LOG_STREAMS,
+      this.loggingHandler.handleGetActiveLogStreams.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_LOG_SETTINGS,
+      this.loggingHandler.handleGetLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.SAVE_LOG_SETTINGS,
+      this.loggingHandler.handleSaveLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
+      this.resourcesHandler.handleTestLambdaFunction.bind(
+        this.resourcesHandler,
+        socket,
+      ),
+    );
+
     // Sandbox status handlers
     socket.on(
       SOCKET_EVENTS.GET_SANDBOX_STATUS,
