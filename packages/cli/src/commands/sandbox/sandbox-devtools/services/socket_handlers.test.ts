@@ -92,6 +92,8 @@ void describe('SocketHandlerService', () => {
       mockShutdownService,
       mockResourceService,
       mockStorageManager,
+      undefined, // No active log pollers for this test
+      undefined, // No toggle start times for this test
       mockPrinter,
     );
   });
@@ -106,9 +108,15 @@ void describe('SocketHandlerService', () => {
 
       // Verify all expected handlers are registered
       const expectedHandlers = [
+        SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING,
+        SOCKET_EVENTS.VIEW_RESOURCE_LOGS,
+        SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS,
+        SOCKET_EVENTS.GET_LOG_SETTINGS,
+        SOCKET_EVENTS.SAVE_LOG_SETTINGS,
         SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
         SOCKET_EVENTS.GET_SANDBOX_STATUS,
         SOCKET_EVENTS.GET_DEPLOYED_BACKEND_RESOURCES,
+        SOCKET_EVENTS.GET_ACTIVE_LOG_STREAMS,
         SOCKET_EVENTS.GET_CUSTOM_FRIENDLY_NAMES,
         SOCKET_EVENTS.UPDATE_CUSTOM_FRIENDLY_NAME,
         SOCKET_EVENTS.REMOVE_CUSTOM_FRIENDLY_NAME,
@@ -116,6 +124,8 @@ void describe('SocketHandlerService', () => {
         SOCKET_EVENTS.STOP_SANDBOX,
         SOCKET_EVENTS.DELETE_SANDBOX,
         SOCKET_EVENTS.STOP_DEV_TOOLS,
+        SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
+        SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
       ];
 
       expectedHandlers.forEach((handler) => {
@@ -180,6 +190,8 @@ void describe('SocketHandlerService', () => {
         mockShutdownService,
         mockResourceService,
         mockStorageManager,
+        undefined, // No active log pollers for this test
+        undefined, // No toggle start times for this test
         mockPrinter,
       );
 
@@ -402,6 +414,8 @@ void describe('SocketHandlerService', () => {
         mockShutdownService,
         mockResourceService,
         mockStorageManager,
+        undefined, // No active log pollers for this test
+        undefined, // No toggle start times for this test
         mockPrinter,
       );
 

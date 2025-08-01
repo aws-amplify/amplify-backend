@@ -5,6 +5,16 @@ import { ResourceWithFriendlyName } from '../resource_console_functions.js';
  */
 
 /**
+ * Type for toggling resource logging - used in both client and server components
+ * for controlling the logging state of AWS resources
+ */
+export type ResourceLoggingToggle = {
+  resourceId: string;
+  resourceType: string;
+  startLogging: boolean;
+};
+
+/**
  * Type for identifying a specific resource - used in multiple events
  * like viewResourceLogs, getSavedResourceLogs, and removeCustomFriendlyName
  */
@@ -31,6 +41,15 @@ export type BackendResourcesData = {
   region: string | null;
   message?: string;
   error?: string;
+};
+
+/**
+ * Type for log settings configuration
+ * used in saveLogSettings and getLogSettings events
+ */
+export type LogSettings = {
+  maxLogSizeMB: number;
+  currentSizeMB?: number;
 };
 
 /**
@@ -82,6 +101,40 @@ export type SandboxStatusData = {
    * Flag indicating if a deployment has completed
    */
   deploymentCompleted?: boolean;
+};
+
+/**
+ * Interface for log stream status
+ */
+export type LogStreamStatus = {
+  resourceId: string;
+  status: string;
+  error?: string;
+};
+
+/**
+ * Interface for log entry data
+ */
+export type LogEntry = {
+  timestamp: string;
+  message: string;
+};
+
+/**
+ * Interface for resource logs
+ */
+export type ResourceLogs = {
+  resourceId: string;
+  logs: LogEntry[];
+};
+
+/**
+ * Interface for Lambda test result
+ */
+export type LambdaTestResult = {
+  resourceId: string;
+  result?: string;
+  error?: string;
 };
 
 /**

@@ -516,6 +516,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
       shutdownService,
       resourceService,
       storageManager,
+      undefined,
+      undefined,
       devToolsLogger,
     );
 

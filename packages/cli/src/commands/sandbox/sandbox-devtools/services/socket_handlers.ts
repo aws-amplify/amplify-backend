@@ -10,31 +10,34 @@ import { LambdaClient } from '@aws-sdk/client-lambda';
 import { ResourceService } from './resource_service.js';
 import { SOCKET_EVENTS } from '../shared/socket_events.js';
 import {
+  BackendResourcesData,
   ConsoleLogEntry,
   DevToolsSandboxOptions,
+  FriendlyNameUpdate,
+  LogSettings,
+  ResourceIdentifier,
+  ResourceLoggingToggle,
   SandboxStatusData,
 } from '../shared/socket_types.js';
 import { ShutdownService } from './shutdown_service.js';
 import { LocalStorageManager } from '../local_storage_manager.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { SocketHandlerLogging } from './socket_handlers_logging.js';
 import { SocketHandlerResources } from './socket_handlers_resources.js';
 
 /**
  * Interface for socket event data types
  */
 export type SocketEvents = {
+  toggleResourceLogging: ResourceLoggingToggle;
+  viewResourceLogs: ResourceIdentifier;
+  getSavedResourceLogs: ResourceIdentifier;
+  getActiveLogStreams: void;
   getLogSettings: void;
-  saveLogSettings: {
-    maxLogSizeMB: number;
-  };
+  saveLogSettings: LogSettings;
   getCustomFriendlyNames: void;
-  updateCustomFriendlyName: {
-    resourceId: string;
-    friendlyName: string;
-  };
-  removeCustomFriendlyName: {
-    resourceId: string;
-  };
+  updateCustomFriendlyName: FriendlyNameUpdate;
+  removeCustomFriendlyName: ResourceIdentifier;
 
   getSandboxStatus: void;
   deploymentInProgress: {
@@ -46,14 +49,13 @@ export type SocketEvents = {
   stopSandbox: void;
   deleteSandbox: void;
   stopDevTools: void;
-  getSavedResources: void;
+
   getSavedCloudFormationEvents: void;
   testLambdaFunction: {
     resourceId: string;
     functionName: string;
     input: string;
   };
-  getCloudFormationEvents: void;
   saveConsoleLogs: {
     logs: ConsoleLogEntry[];
   };
@@ -64,6 +66,7 @@ export type SocketEvents = {
  * Service for handling socket events
  */
 export class SocketHandlerService {
+  private loggingHandler: SocketHandlerLogging;
   private resourcesHandler: SocketHandlerResources;
 
   /**
@@ -77,9 +80,22 @@ export class SocketHandlerService {
     private shutdownService: ShutdownService,
     private resourceService: ResourceService,
     storageManager: LocalStorageManager,
+    // eslint-disable-next-line spellcheck/spell-checker
+    activeLogPollers = new Map<string, NodeJS.Timeout>(),
+    // Track when logging was toggled on for each resource
+    toggleStartTimes = new Map<string, number>(),
     private printer: Printer = printerUtil, // Optional printer, defaults to cli-core printer
     lambdaClient: LambdaClient = new LambdaClient({}),
   ) {
+    // Initialize specialized handlers
+    this.loggingHandler = new SocketHandlerLogging(
+      io,
+      storageManager,
+      activeLogPollers,
+      toggleStartTimes,
+      printer,
+    );
+
     this.resourcesHandler = new SocketHandlerResources(
       io,
       storageManager,
@@ -91,10 +107,61 @@ export class SocketHandlerService {
   }
 
   /**
+   * Gets the resources handler
+   * @returns The socket handler for resources
+   */
+  public getResourcesHandler(): SocketHandlerResources {
+    return this.resourcesHandler;
+  }
+
+  /**
    * Sets up all socket event handlers
    * @param socket The socket connection
    */
   public setupSocketHandlers(socket: Socket): void {
+    // Resource logs handlers
+    socket.on(
+      SOCKET_EVENTS.TOGGLE_RESOURCE_LOGGING,
+      this.loggingHandler.handleToggleResourceLogging.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.VIEW_RESOURCE_LOGS,
+      this.loggingHandler.handleViewResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_SAVED_RESOURCE_LOGS,
+      this.loggingHandler.handleGetSavedResourceLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_ACTIVE_LOG_STREAMS,
+      this.loggingHandler.handleGetActiveLogStreams.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.GET_LOG_SETTINGS,
+      this.loggingHandler.handleGetLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
+    socket.on(
+      SOCKET_EVENTS.SAVE_LOG_SETTINGS,
+      this.loggingHandler.handleSaveLogSettings.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
     socket.on(
       SOCKET_EVENTS.TEST_LAMBDA_FUNCTION,
       this.resourcesHandler.handleTestLambdaFunction.bind(
@@ -152,6 +219,19 @@ export class SocketHandlerService {
 
     // DevTools handlers
     socket.on(SOCKET_EVENTS.STOP_DEV_TOOLS, this.handleStopDevTools.bind(this));
+
+    // Console logs handlers
+    socket.on(
+      SOCKET_EVENTS.SAVE_CONSOLE_LOGS,
+      this.loggingHandler.handleSaveConsoleLogs.bind(this.loggingHandler),
+    );
+    socket.on(
+      SOCKET_EVENTS.LOAD_CONSOLE_LOGS,
+      this.loggingHandler.handleLoadConsoleLogs.bind(
+        this.loggingHandler,
+        socket,
+      ),
+    );
   }
 
   /**
@@ -204,28 +284,31 @@ export class SocketHandlerService {
           LogLevel.ERROR,
         );
 
-        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
+        const errorResponse: BackendResourcesData = {
           name: this.backendId.name,
           status: 'error',
           resources: [],
           region: null,
           message: `Error fetching resources: ${errorMessage}`,
           error: errorMessage,
-        });
+        };
+        socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
       }
     } catch (error) {
       this.printer.log(
         `Error in handleGetDeployedBackendResources: ${String(error)}`,
         LogLevel.ERROR,
       );
-      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, {
+      const errorMessage = String(error);
+      const errorResponse: BackendResourcesData = {
         name: this.backendId.name,
         status: 'error',
         resources: [],
         region: null,
-        message: `Error checking sandbox status: ${String(error)}`,
-        error: String(error),
-      });
+        message: `Error checking sandbox status: ${errorMessage}`,
+        error: errorMessage,
+      };
+      socket.emit(SOCKET_EVENTS.DEPLOYED_BACKEND_RESOURCES, errorResponse);
     }
   }
 
@@ -361,6 +444,8 @@ export class SocketHandlerService {
    * Handles the stopDevTools event
    */
   private async handleStopDevTools(): Promise<void> {
+    // Stop all active log pollers before shutting down
+    this.loggingHandler.stopAllLogPollers();
     await this.shutdownService.shutdown('user request', true);
   }
 }
