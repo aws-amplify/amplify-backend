@@ -181,7 +181,8 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
     storageManager: LocalStorageManager,
   ): void {
     // Listen for deployment started
-    sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {      void (async () => {
+    sandbox.on('deploymentStarted', (data: { timestamp?: string }) => {
+      void (async () => {
         this.printer.log('Deployment started', LogLevel.DEBUG);
 
         const currentState = await getSandboxState();
@@ -194,20 +195,20 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
           );
         }
 
-      // Clear CloudFormation events when a new deployment starts
-      storageManager.clearCloudFormationEvents();
-      // Reset CloudFormation timestamp to avoid showing old events
-      storageManager.clearCloudFormationTimestamp();
-      // Save current timestamp to start tracking from now
-      storageManager.saveLastCloudFormationTimestamp(new Date());
-      this.printer.log(
-        'Cleared previous CloudFormation events and reset timestamp',
-        LogLevel.DEBUG,
-      );
-      this.printer.log(
-        'Cleared previous CloudFormation events',
-        LogLevel.DEBUG,
-      );
+        // Clear CloudFormation events when a new deployment starts
+        storageManager.clearCloudFormationEvents();
+        // Reset CloudFormation timestamp to avoid showing old events
+        storageManager.clearCloudFormationTimestamp();
+        // Save current timestamp to start tracking from now
+        storageManager.saveLastCloudFormationTimestamp(new Date());
+        this.printer.log(
+          'Cleared previous CloudFormation events and reset timestamp',
+          LogLevel.DEBUG,
+        );
+        this.printer.log(
+          'Cleared previous CloudFormation events',
+          LogLevel.DEBUG,
+        );
         const statusData: SandboxStatusData = {
           status: currentState, // This should be 'deploying' after deployment starts,
           identifier: backendId.name,
@@ -246,20 +247,20 @@ export class SandboxDevToolsCommand implements CommandModule<object> {
 
         const currentState = await getSandboxState();
         // Clear CloudFormation events when a new deployment starts
-      storageManager.clearCloudFormationEvents();
-      // Reset CloudFormation timestamp to avoid showing old events
-      storageManager.clearCloudFormationTimestamp();
-      // Save current timestamp to start tracking from now
-      storageManager.saveLastCloudFormationTimestamp(new Date());
-      this.printer.log(
-        'Cleared previous CloudFormation events and reset timestamp',
-        LogLevel.DEBUG,
-      );
-      this.printer.log(
-        'Cleared previous CloudFormation events',
-        LogLevel.DEBUG,
-      );
-      const statusData: SandboxStatusData = {
+        storageManager.clearCloudFormationEvents();
+        // Reset CloudFormation timestamp to avoid showing old events
+        storageManager.clearCloudFormationTimestamp();
+        // Save current timestamp to start tracking from now
+        storageManager.saveLastCloudFormationTimestamp(new Date());
+        this.printer.log(
+          'Cleared previous CloudFormation events and reset timestamp',
+          LogLevel.DEBUG,
+        );
+        this.printer.log(
+          'Cleared previous CloudFormation events',
+          LogLevel.DEBUG,
+        );
+        const statusData: SandboxStatusData = {
           status: currentState, // This should be 'deleting' after deletion starts
           identifier: backendId.name,
           message: 'Deletion started',

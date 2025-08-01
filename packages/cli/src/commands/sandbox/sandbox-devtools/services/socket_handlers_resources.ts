@@ -53,6 +53,68 @@ export class SocketHandlerResources {
   }
 
   /**
+   * Handles the testLambdaFunction event
+   */
+  public async handleTestLambdaFunction(
+    socket: Socket,
+    data: SocketEvents['testLambdaFunction'],
+  ): Promise<void> {
+    if (!data?.resourceId || !data?.functionName) {
+      socket.emit(SOCKET_EVENTS.LAMBDA_TEST_RESULT, {
+        resourceId: data?.resourceId || 'unknown',
+        error: 'Invalid function information provided',
+      });
+      return;
+    }
+
+    try {
+      const { resourceId, functionName, input } = data;
+
+      // Parse the input as JSON
+      let payload: Record<string, unknown>;
+      try {
+        payload = input ? JSON.parse(input) : {};
+      } catch (error) {
+        socket.emit(SOCKET_EVENTS.LAMBDA_TEST_RESULT, {
+          resourceId,
+          error: `Invalid JSON input: ${String(error)}`,
+        });
+        return;
+      }
+
+      // Invoke the Lambda function
+      const command = new InvokeCommand({
+        FunctionName: functionName,
+        Payload: JSON.stringify(payload),
+      });
+
+      const response = await this.lambdaClient.send(command);
+
+      // Parse the response payload
+      let result = '';
+      if (response.Payload) {
+        const responseText = Buffer.from(response.Payload).toString('utf-8');
+        result = responseText;
+      }
+
+      // Send the result to the client
+      socket.emit(SOCKET_EVENTS.LAMBDA_TEST_RESULT, {
+        resourceId,
+        result,
+      });
+    } catch (error) {
+      this.printer.log(
+        `Error testing Lambda function ${data.functionName}: ${String(error)}`,
+        LogLevel.ERROR,
+      );
+      socket.emit(SOCKET_EVENTS.LAMBDA_TEST_RESULT, {
+        resourceId: data.resourceId,
+        error: String(error),
+      });
+    }
+  }
+
+  /**
    * Handles the getSavedCloudFormationEvents event
    */
   public handleGetSavedCloudFormationEvents(socket: Socket): void {

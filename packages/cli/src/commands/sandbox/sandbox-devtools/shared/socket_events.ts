@@ -93,6 +93,7 @@ export const SOCKET_EVENTS = {
    * Event received when log settings are sent from the server
    */
   LOG_SETTINGS: 'logSettings',
+
   /**
    * Event to test a Lambda function
    */
@@ -152,6 +153,7 @@ export const SOCKET_EVENTS = {
    * Event received when saved console logs are sent from the server
    */
   SAVED_CONSOLE_LOGS: 'savedConsoleLogs',
+
   /**
    * Event which triggers UI to show a deployment error
    * Contains error details like name, message, resolution, and timestamp.

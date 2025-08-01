@@ -8,6 +8,13 @@ import {
 import { DeploymentEvent } from './deployment_client_service';
 
 /**
+ * Interface for log settings data
+ */
+export interface LogSettings {
+  maxLogSizeMB: number;
+  currentSizeMB?: number;
+}
+/**
  * Service for handling sandbox-related socket communication
  */
 export class SandboxClientService extends SocketClientService {
@@ -59,6 +66,13 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
+   * Gets saved CloudFormation events
+   */
+  public getSavedCloudFormationEvents(): void {
+    this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
+  }
+
+  /**
    * Saves log settings
    * @param settings The log settings to save
    */
@@ -78,13 +92,6 @@ export class SandboxClientService extends SocketClientService {
   }
 
   /**
-   * Gets saved CloudFormation events
-   */
-  public getSavedCloudFormationEvents(): void {
-    this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
-  }
-
-  /**
    * Gets log settings
    */
   public getLogSettings(): void {
@@ -100,17 +107,6 @@ export class SandboxClientService extends SocketClientService {
     unsubscribe: () => void;
   } {
     return this.on('log', handler);
-  }
-
-  /**
-   * Registers a handler for saved CloudFormation events
-   * @param handler The event handler
-   * @returns An object with an unsubscribe method
-   */
-  public onSavedCloudFormationEvents(
-    handler: (events: DeploymentEvent[]) => void,
-  ): { unsubscribe: () => void } {
-    return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 
   /**
@@ -137,5 +133,16 @@ export class SandboxClientService extends SocketClientService {
     unsubscribe: () => void;
   } {
     return this.on(SOCKET_EVENTS.SAVED_CONSOLE_LOGS, handler);
+  }
+
+  /**
+   * Registers a handler for saved CloudFormation events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onSavedCloudFormationEvents(
+    handler: (events: DeploymentEvent[]) => void,
+  ): { unsubscribe: () => void } {
+    return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 }
