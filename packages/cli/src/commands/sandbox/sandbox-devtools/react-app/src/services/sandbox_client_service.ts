@@ -5,6 +5,7 @@ import {
   ConsoleLogEntry,
   DevToolsSandboxOptions,
 } from '../../../shared/socket_types';
+import { DeploymentEvent } from './deployment_client_service';
 
 /**
  * Interface for log settings data
@@ -62,6 +63,13 @@ export class SandboxClientService extends SocketClientService {
     unsubscribe: () => void;
   } {
     return this.on(SOCKET_EVENTS.SANDBOX_STATUS, handler);
+  }
+
+  /**
+   * Gets saved CloudFormation events
+   */
+  public getSavedCloudFormationEvents(): void {
+    this.emit(SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS);
   }
 
   /**
@@ -125,5 +133,16 @@ export class SandboxClientService extends SocketClientService {
     unsubscribe: () => void;
   } {
     return this.on(SOCKET_EVENTS.SAVED_CONSOLE_LOGS, handler);
+  }
+
+  /**
+   * Registers a handler for saved CloudFormation events
+   * @param handler The event handler
+   * @returns An object with an unsubscribe method
+   */
+  public onSavedCloudFormationEvents(
+    handler: (events: DeploymentEvent[]) => void,
+  ): { unsubscribe: () => void } {
+    return this.on(SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS, handler);
   }
 }

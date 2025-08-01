@@ -92,6 +92,18 @@ void describe('SandboxClientService', () => {
     });
   });
 
+  void describe('getSavedCloudFormationEvents', () => {
+    void it('emits GET_SAVED_CLOUD_FORMATION_EVENTS event', () => {
+      service.getSavedCloudFormationEvents();
+
+      assert.strictEqual(mockSocket.mockEmit.mock.callCount(), 1);
+      assert.strictEqual(
+        mockSocket.mockEmit.mock.calls[0].arguments[0],
+        SOCKET_EVENTS.GET_SAVED_CLOUD_FORMATION_EVENTS,
+      );
+    });
+  });
+
   void describe('saveLogSettings', () => {
     void it('emits SAVE_LOG_SETTINGS event with correct parameters', () => {
       const settings = { maxLogSizeMB: 50 };
@@ -214,6 +226,18 @@ void describe('SandboxClientService', () => {
       assert.strictEqual(
         mockSocket.mockOn.mock.calls[0].arguments[0],
         SOCKET_EVENTS.SAVED_CONSOLE_LOGS,
+      );
+    });
+
+    void it('registers onSavedCloudFormationEvents handler correctly', () => {
+      const mockHandler = mock.fn();
+
+      service.onSavedCloudFormationEvents(mockHandler);
+
+      assert.strictEqual(mockSocket.mockOn.mock.callCount(), 1);
+      assert.strictEqual(
+        mockSocket.mockOn.mock.calls[0].arguments[0],
+        SOCKET_EVENTS.SAVED_CLOUD_FORMATION_EVENTS,
       );
     });
   });

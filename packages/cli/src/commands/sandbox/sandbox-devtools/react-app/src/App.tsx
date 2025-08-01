@@ -2,11 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import ConsoleViewer from './components/ConsoleViewer';
 import Header from './components/Header';
 import ResourceConsole from './components/ResourceConsole';
+import DeploymentProgress from './components/DeploymentProgress';
 import SandboxOptionsModal from './components/SandboxOptionsModal';
 import { DevToolsSandboxOptions } from '../../shared/socket_types';
 import LogSettingsModal, { LogSettings } from './components/LogSettingsModal';
 import { SocketClientProvider } from './contexts/socket_client_context';
-import { useSandboxClientService } from './contexts/socket_client_context';
+import {
+  useSandboxClientService,
+  useDeploymentClientService,
+} from './contexts/socket_client_context';
 import { SandboxStatusData } from '../../shared/socket_types';
 import { SandboxStatus } from '@aws-amplify/sandbox';
 
@@ -57,6 +61,7 @@ function AppContent() {
   const [isDeletingLoading, setIsDeletingLoading] = useState(false);
 
   const sandboxClientService = useSandboxClientService();
+  const deploymentClientService = useDeploymentClientService();
 
   const deploymentInProgress = sandboxStatus === 'deploying';
 
@@ -509,7 +514,16 @@ function AppContent() {
             {
               id: 'logs',
               label: 'Console Logs',
-              content: <ConsoleViewer logs={logs} />,
+              content: (
+                <SpaceBetween size="l">
+                  <DeploymentProgress
+                    deploymentClientService={deploymentClientService}
+                    visible={true}
+                    status={sandboxStatus}
+                  />
+                  <ConsoleViewer logs={logs} />
+                </SpaceBetween>
+              ),
             },
             {
               id: 'resources',
