@@ -6,32 +6,25 @@
 
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
-import * as lamb from 'aws-cdk-lib/aws-lambda';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 // @public (undocumented)
-export type ExistingDirectory = {
-    path: string;
-};
-
-// @public (undocumented)
-export type ExistingLambda = {
-    id: string;
-    name: string;
+export type AuthorizerConfig = {
+    type: 'none';
+} | {
+    type: 'userPool';
+} | {
+    type: 'userPool';
+    groups: string[];
 };
 
 // @public (undocumented)
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 // @public (undocumented)
-export type LambdaSource = {
-    runtime: lamb.Runtime;
-    source: ExistingDirectory | ExistingLambda | NewFromCode;
-};
-
-// @public (undocumented)
-export type NewFromCode = {
-    code: string;
-    functionName: string;
+export type MethodsProps = {
+    method: HttpMethod;
+    authorizer?: AuthorizerConfig;
 };
 
 // @public
@@ -50,8 +43,8 @@ export type RestApiConstructProps = {
 // @public (undocumented)
 export type RestApiPathConfig = {
     path: string;
-    methods: HttpMethod[];
-    lambdaEntry: LambdaSource;
+    methods: MethodsProps[];
+    lambdaEntry: IFunction;
 };
 
 // (No @packageDocumentation comment for this package)
