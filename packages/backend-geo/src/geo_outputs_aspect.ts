@@ -145,19 +145,5 @@ export class AmplifyGeoOutputsAspect implements IAspect {
         }),
       },
     });
-
-    // // Add geofence_collections as a single entry with all collections
-    // if (collections.length > 0 && defaultCollectionName) {
-    //   outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
-    //     version: '1',
-    //     payload: {
-    //       geofenceCollections: JSON.stringify({
-    //         // Changed from geofenceCollections to geofence_collections
-    //         default: defaultCollectionName,
-    //         items: collectionNames, // Array of all collection names
-    //       }),
-    //     },
-    //   });
-    // }
   }
 }
