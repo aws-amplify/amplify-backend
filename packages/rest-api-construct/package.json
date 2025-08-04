@@ -2,6 +2,7 @@
   "name": "@aws-amplify/rest-api-construct",
   "version": "1.0.0",
   "type": "module",
+  "main": "lib/index.js",
   "publishConfig": {
     "access": "public"
   },
