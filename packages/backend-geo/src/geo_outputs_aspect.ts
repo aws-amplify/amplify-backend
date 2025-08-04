@@ -127,32 +127,37 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       collections[0],
     );
 
-    // Add the main geo output entry with aws_region (snake_case to match schema)
-    outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
-      version: '1',
-      payload: {
-        geoRegion: region,
-      },
-    });
-
     // Collect all collection names for the items array
     const collectionNames = collections.map(
       (collection) =>
         collection.resources.cfnResources.cfnCollection.collectionName,
     );
 
-    // Add geofence_collections as a single entry with all collections
-    if (collections.length > 0 && defaultCollectionName) {
-      outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
-        version: '1',
-        payload: {
-          geofenceCollections: JSON.stringify({
-            // Changed from geofenceCollections to geofence_collections
-            default: defaultCollectionName,
-            items: collectionNames, // Array of all collection names
-          }),
-        },
-      });
-    }
+    // Add the main geo output entry with aws_region (snake_case to match schema)
+    outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
+      version: '1',
+      payload: {
+        geoRegion: region,
+        geofenceCollections: JSON.stringify({
+          // Changed from geofenceCollections to geofence_collections
+          default: defaultCollectionName,
+          items: collectionNames, // Array of all collection names
+        }),
+      },
+    });
+
+    // // Add geofence_collections as a single entry with all collections
+    // if (collections.length > 0 && defaultCollectionName) {
+    //   outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
+    //     version: '1',
+    //     payload: {
+    //       geofenceCollections: JSON.stringify({
+    //         // Changed from geofenceCollections to geofence_collections
+    //         default: defaultCollectionName,
+    //         items: collectionNames, // Array of all collection names
+    //       }),
+    //     },
+    //   });
+    // }
   }
 }

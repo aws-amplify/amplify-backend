@@ -84,7 +84,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(collectionNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output entry called once with multiple collections created', () => {
@@ -104,7 +103,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(mapNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
   });
 
@@ -181,7 +179,9 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.deepStrictEqual(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
           .geofenceCollections,
-        undefined,
+        JSON.stringify({
+          items: [],
+        }),
       );
     });
 
@@ -202,7 +202,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(node);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
 
       assert.equal(addBackendOutputEntryMock.mock.calls[0].arguments.length, 2);
       assert.equal(

@@ -619,12 +619,10 @@ void describe('geo client config contributor v1', () => {
           version: '1',
           payload: {
             geoRegion: 'us-west-2',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
       }),

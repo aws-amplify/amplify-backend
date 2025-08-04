@@ -489,9 +489,7 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
     let geofenceCollectionsObj;
 
     if (geoOutput.payload.geofenceCollections) {
-      const firstParse = JSON.parse(
-        JSON.parse(geoOutput.payload.geofenceCollections),
-      );
+      const firstParse = JSON.parse(geoOutput.payload.geofenceCollections);
 
       if (
         firstParse &&

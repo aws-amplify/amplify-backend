@@ -84,12 +84,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -238,12 +236,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -378,12 +374,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -506,12 +500,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
