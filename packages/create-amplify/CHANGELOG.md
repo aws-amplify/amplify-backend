@@ -1,5 +1,14 @@
 # create-amplify
 
+## 1.2.2
+
+### Patch Changes
+
+- f63506f: bump create amplify dependencies
+- f8d2b02: - Introduces a new backend-geo package that includes new constructs for geo resources
+  - Unit test cases for the functionality of these constructs and resources are provided
+  - Client configurations and backend output storage strategies updated
+
 ## 1.2.1
 
 ### Patch Changes
