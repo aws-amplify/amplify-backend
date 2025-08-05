@@ -1,5 +1,15 @@
 # @aws-amplify/client-config
 
+## 1.8.1
+
+### Patch Changes
+
+- f8d2b02: - Introduces a new backend-geo package that includes new constructs for geo resources
+  - Unit test cases for the functionality of these constructs and resources are provided
+  - Client configurations and backend output storage strategies updated
+- Updated dependencies [f8d2b02]
+  - @aws-amplify/backend-output-schemas@1.7.1
+
 ## 1.8.0
 
 ### Minor Changes
