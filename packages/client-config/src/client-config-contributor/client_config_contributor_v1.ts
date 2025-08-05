@@ -516,7 +516,7 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
   assignOutput = (resourcePayload: string | undefined) => {
     if (resourcePayload) {
       let resourceObj;
-      const firstParse = JSON.parse(JSON.parse(resourcePayload));
+      const firstParse = JSON.parse(resourcePayload);
 
       if (firstParse && typeof firstParse === 'object' && firstParse.default) {
         resourceObj = firstParse;
@@ -552,9 +552,7 @@ export class GeoClientConfigContributorV1 implements ClientConfigContributor {
     let geofenceCollectionsObj;
 
     if (geoOutput.payload.geofenceCollections) {
-      const firstParse = JSON.parse(
-        JSON.parse(geoOutput.payload.geofenceCollections),
-      );
+      const firstParse = JSON.parse(geoOutput.payload.geofenceCollections);
 
       if (
         firstParse &&

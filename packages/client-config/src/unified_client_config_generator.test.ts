@@ -84,34 +84,28 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            maps: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultMap',
-                items: [
-                  {
-                    name: 'defaultMap',
-                    key: 'defaultKey',
-                  },
-                ],
-              }),
-            ),
-            searchIndices: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultPlace',
-                items: [
-                  {
-                    name: 'defaultIndex',
-                    key: 'defaultKey',
-                  },
-                ],
-              }),
-            ),
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            maps: JSON.stringify({
+              default: 'defaultMap',
+              items: [
+                {
+                  name: 'defaultMap',
+                  key: 'defaultKey',
+                },
+              ],
+            }),
+            searchIndices: JSON.stringify({
+              default: 'defaultPlace',
+              items: [
+                {
+                  name: 'defaultIndex',
+                  key: 'defaultKey',
+                },
+              ],
+            }),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -279,12 +273,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -433,12 +425,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -573,12 +563,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
@@ -701,12 +689,10 @@ void describe('UnifiedClientConfigGenerator', () => {
           version: '1',
           payload: {
             geoRegion: 'us-east-1',
-            geofenceCollections: JSON.stringify(
-              JSON.stringify({
-                default: 'defaultCollection',
-                items: ['defaultCollection', 'testCollection'],
-              }),
-            ),
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
           },
         },
         [customOutputKey]: {
