@@ -21,7 +21,6 @@ export class AmplifyGeoOutputsAspect implements IAspect {
    * 3. store the outputs for all collections within outputStorageStrategy
    */
   isGeoOutputProcessed: boolean = false;
-  defaultCollectionName: string | undefined = undefined;
   private readonly geoOutputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>;
   /**
    * Constructs an instance of the AmplifyGeoOutputsAspect
@@ -143,14 +142,6 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       'place',
     ) as AmplifyPlace;
 
-    // Add the main geo output entry with aws_region (snake_case to match schema)
-    outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
-      version: '1',
-      payload: {
-        geoRegion: region,
-      },
-    });
-
     // Collect all collection names for the items array
     const collectionNames = collections.map(
       (collection) =>
@@ -173,48 +164,49 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const geoPayload: any = {
+      geoRegion: region, // same type as payload of V1 schema
+    };
+
     // Add geofence_collections as a single entry with all collections
     if (collections.length > 0 && defaultCollection)
-      this.addOutput(
-        outputStorageStrategy,
+      this.addPayload(
         'geofenceCollections',
         defaultCollection.resources.cfnResources.cfnCollection.collectionName,
         collectionNames,
+        geoPayload,
       );
 
     // Add maps as a single entry with all maps
     if (maps.length > 0 && defaultMap)
-      this.addOutput(
-        outputStorageStrategy,
-        'maps',
-        defaultMap.name,
-        mapOutputs,
-      );
+      this.addPayload('maps', defaultMap.name, mapOutputs, geoPayload);
 
     // Add index as a single entry with all place indices
     if (places.length > 0 && defaultPlace)
-      this.addOutput(
-        outputStorageStrategy,
+      this.addPayload(
         'searchIndices',
         defaultPlace.name,
         placeOutputs,
+        geoPayload,
       );
-  }
 
-  private addOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>,
-    resourceKey: string,
-    defaultResource: string,
-    items: (string | ResourceOutputs)[],
-  ) => {
-    outputStorageStrategy.appendToBackendOutputList(geoOutputKey, {
+    // Add the main geo output entry with aws_region (snake_case to match schema)
+    outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
       version: '1',
-      payload: {
-        [resourceKey]: JSON.stringify({
-          default: defaultResource,
-          items: items,
-        }),
-      },
+      payload: geoPayload,
+    });
+  }
+  private addPayload = (
+    resourceKey: string,
+    defaultResourceName: string,
+    resources: (ResourceOutputs | string)[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    currentPayload: any, // type of payload from V1 schema
+  ) => {
+    currentPayload[resourceKey] = JSON.stringify({
+      default: defaultResourceName,
+      items: resources,
     });
   };
 }

@@ -43,7 +43,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(mapNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output storage invoked with AmplifyPlace node', () => {
@@ -54,7 +53,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(placeNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output storage invoked with AmplifyCollection node', () => {
@@ -65,7 +63,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(collectionNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output entry called once with multiple maps created', () => {
@@ -81,7 +78,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(mapNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output entry called once with multiple places created', () => {
@@ -97,7 +93,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(placeNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
 
     void it('output entry called once with multiple collections created', () => {
@@ -114,7 +109,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(collectionNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
     });
   });
 
@@ -256,7 +250,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(node);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 1);
 
       assert.equal(addBackendOutputEntryMock.mock.calls[0].arguments.length, 2);
       assert.equal(
@@ -289,34 +282,19 @@ void describe('AmplifyGeoOutputsAspect', () => {
         isDefault: true,
       });
       new AmplifyCollection(stack, 'testCollection', {
-        name: 'default_collection',
+        name: 'testCollection',
       });
 
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
       aspect.visit(node);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 3);
-
-      assert.equal(
-        appendToBackendOutputListMock.mock.calls[0].arguments.length,
-        2,
-      );
-      assert.equal(
-        appendToBackendOutputListMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Geo',
-      );
-
-      assert.equal(
-        appendToBackendOutputListMock.mock.calls[1].arguments.length,
-        2,
-      );
 
       /**
         {
           version: '1',
           payload: {
-            map: JSON.stringify({
+            maps: JSON.stringify({
               default: "testMapResource",
               items: [{
                 name: "testMapResource",
@@ -328,29 +306,39 @@ void describe('AmplifyGeoOutputsAspect', () => {
        */
       assert.ok(
         JSON.parse(
-          appendToBackendOutputListMock.mock.calls[1].arguments[1].payload.maps,
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
         ).items[0].key.includes('TOKEN'),
       );
 
       assert.equal(
-        appendToBackendOutputListMock.mock.calls[2].arguments.length,
-        2,
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
+        ).items[0].name,
+        'testMapResource',
       );
-      assert.deepStrictEqual(
-        appendToBackendOutputListMock.mock.calls[2].arguments[1],
-        {
-          version: '1',
-          payload: {
-            searchIndices: JSON.stringify({
-              default: 'testPlaceIndex',
-              items: [
-                {
-                  name: 'testPlaceIndex',
-                },
-              ],
-            }),
-          },
-        },
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .searchIndices,
+        ).items[0].name,
+        'testPlaceIndex',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .geofenceCollections,
+        ).items[0],
+        'default_collection',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .geofenceCollections,
+        ).items[1],
+        'testCollection',
       );
     });
   });
