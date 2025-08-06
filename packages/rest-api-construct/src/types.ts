@@ -1,4 +1,7 @@
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import {
+  FunctionResources,
+  ResourceProvider,
+} from '@aws-amplify/backend/types/platform';
 
 export type RestApiConstructProps = {
   apiName: string;
@@ -18,7 +21,7 @@ export type MethodsProps = {
 export type RestApiPathConfig = {
   path: string;
   methods: MethodsProps[];
-  lambdaEntry: IFunction;
+  lambdaEntry: ResourceProvider<FunctionResources>;
 };
 
 export type HttpMethod =

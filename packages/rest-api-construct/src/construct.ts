@@ -26,7 +26,7 @@ export class RestApiConstruct extends Construct {
       for (const method of methods) {
         resource.addMethod(
           method.method,
-          new apiGateway.LambdaIntegration(lambdaEntry),
+          new apiGateway.LambdaIntegration(lambdaEntry.resources.lambda),
         );
       }
     }

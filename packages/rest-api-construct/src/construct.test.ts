@@ -16,9 +16,8 @@ void describe('RestApiConstruct Lambda Handling', () => {
     const stack = new Stack(app);
     const factory = defineFunction({
       name: 'Test Function',
-      entry: './test-assets/handler.js',
+      entry: './test-assets/handler.ts',
     });
-    const func = factory.getInstance;
 
     //stubs for the instance props
     const constructContainer = new ConstructContainerStub(
@@ -34,14 +33,14 @@ void describe('RestApiConstruct Lambda Handling', () => {
       resourceNameValidator,
     };
 
-    const f = func(getInstanceProps).resources.lambda;
+    const resource = factory.getInstance(getInstanceProps);
 
     new RestApiConstruct(stack, 'RestApiTest', {
       apiName: 'RestApiTest',
       apiProps: [
         {
           path: 'items',
-          lambdaEntry: f,
+          lambdaEntry: resource,
           methods: [
             {
               method: 'GET',
