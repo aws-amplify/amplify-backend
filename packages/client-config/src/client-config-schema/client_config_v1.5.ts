@@ -165,13 +165,13 @@ export interface AWSAmplifyBackendOutputs {
        *
        * @minItems 1
        */
-      redirect_sign_in_uri: [string, ...string[]];
+      redirect_sign_in_uri: string[];
       /**
        * URIs used to redirect after signing out
        *
        * @minItems 1
        */
-      redirect_sign_out_uri: [string, ...string[]];
+      redirect_sign_out_uri: string[];
       response_type: 'code' | 'token';
     };
     /**
@@ -185,10 +185,7 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: [
-      'email' | 'phone_number' | 'username',
-      ...('email' | 'phone_number' | 'username')[],
-    ];
+    username_attributes?: ('email' | 'phone_number' | 'username')[];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -231,18 +228,11 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items?: [
-        {
-          name?: string;
-          key?: string;
-          [k: string]: unknown;
-        },
-        ...{
-          name?: string;
-          key?: string;
-          [k: string]: unknown;
-        }[],
-      ];
+      items?: {
+        name?: string;
+        key?: string;
+        [k: string]: unknown;
+      }[];
       default?: string;
       required?: ['items', 'default'];
     };
@@ -253,18 +243,11 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items?: [
-        {
-          name?: string;
-          key?: string;
-          [k: string]: unknown;
-        },
-        ...{
-          name?: string;
-          key?: string;
-          [k: string]: unknown;
-        }[],
-      ];
+      items?: {
+        name?: string;
+        key?: string;
+        [k: string]: unknown;
+      }[];
       default?: string;
       required?: ['items', 'default'];
     };
@@ -275,7 +258,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: [string, ...string[]];
+      items: string[];
       default: string;
     };
   };
@@ -288,7 +271,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * @minItems 1
      */
-    channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
+    channels: AmazonPinpointChannels[];
   };
   /**
    * Outputs generated from defineStorage
