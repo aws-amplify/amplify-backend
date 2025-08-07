@@ -19,8 +19,8 @@ export class RestApiConstruct extends Construct {
     });
 
     // Iterate over each path configuration
-    for (const pathConfig of Object.entries(props.apiProps)) {
-      const { path, methods, lambdaEntry } = pathConfig[1];
+    for (const pathConfig of props.apiProps) {
+      const { path, methods, lambdaEntry } = pathConfig;
       // Add resource and methods for this route
       const resource = this.addNestedResource(this.api.root, path);
       for (const method of methods) {

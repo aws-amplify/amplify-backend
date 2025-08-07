@@ -6,7 +6,8 @@
 
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { FunctionResources } from '@aws-amplify/backend/types/platform';
+import { ResourceProvider } from '@aws-amplify/backend/types/platform';
 
 // @public (undocumented)
 export type AuthorizerConfig = {
@@ -44,7 +45,7 @@ export type RestApiConstructProps = {
 export type RestApiPathConfig = {
     path: string;
     methods: MethodsProps[];
-    lambdaEntry: IFunction;
+    lambdaEntry: ResourceProvider<FunctionResources>;
 };
 
 // (No @packageDocumentation comment for this package)
