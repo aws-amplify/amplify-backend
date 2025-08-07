@@ -74,7 +74,7 @@ export type AmplifyStorageAccessRule = {
   resource?: AmplifyStorageAccessActions[];
 };
 /**
- * run json-schema-to-typescript with --unreachableDefinitions to ensure this type is generated
+ * run json-schema-to-typescript with --unreachableDefitions to ensure this type is generated
  *
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_access_actions".
@@ -91,9 +91,13 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
-  version: '1.4';
+  version: '1.5';
   /**
    * Outputs manually specified by developers for use with frontend library
    */
@@ -221,10 +225,16 @@ export interface AWSAmplifyBackendOutputs {
      * Maps from Amazon Location Service
      */
     maps?: {
-      items: {
-        [k: string]: AmazonLocationServiceConfig;
-      };
-      default: string;
+      /**
+       * @minItems 1
+       */
+      items?: {
+        name?: string;
+        key?: string;
+        [k: string]: unknown;
+      }[];
+      default?: string;
+      required?: ['items', 'default'];
     };
     /**
      * Location search (search by places, addresses, coordinates)
@@ -233,8 +243,13 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: string[];
-      default: string;
+      items?: {
+        name?: string;
+        key?: string;
+        [k: string]: unknown;
+      }[];
+      default?: string;
+      required?: ['items', 'default'];
     };
     /**
      * Geofencing (visualize virtual perimeters)
@@ -284,23 +299,6 @@ export interface AmplifyUserGroupConfig {
   precedence?: number;
 }
 /**
- * This interface was referenced by `undefined`'s JSON-Schema definition
- * via the `patternProperty` ".*".
- *
- * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
- * via the `definition` "amazon_location_service_config".
- */
-export interface AmazonLocationServiceConfig {
-  /**
-   * Map resource name
-   */
-  name?: string;
-  /**
-   * Map style
-   */
-  style?: string;
-}
-/**
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_bucket".
  */
@@ -311,4 +309,14 @@ export interface AmplifyStorageBucket {
   paths?: {
     [k: string]: AmplifyStorageAccessRule;
   };
+}
+/**
+ * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
+ * via the `definition` "amazon_location_service_config".
+ */
+export interface AmazonLocationServiceConfig {
+  /**
+   * Map style
+   */
+  style?: string;
 }

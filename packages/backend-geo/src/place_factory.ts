@@ -8,17 +8,18 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Aspects, Stack, Tags } from 'aws-cdk-lib/core';
-import { AmplifyPlaceFactoryProps } from './types.js';
+import { AmplifyPlaceFactoryProps, PlaceResources } from './types.js';
 import { GeoAccessOrchestratorFactory } from './geo_access_orchestrator.js';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyPlace } from './place_resource.js';
 import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
+import { AllowPlacesAction } from '@aws-cdk/aws-location-alpha';
 
 /**
  * Construct Factory for AmplifyPlace
  */
 export class AmplifyPlaceFactory
-  implements ConstructFactory<ResourceProvider<object>>
+  implements ConstructFactory<ResourceProvider<PlaceResources>>
 {
   static placeCount: number = 0;
 
@@ -76,17 +77,17 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
 
   generateContainerEntry = ({
     scope,
-  }: GenerateContainerEntryProps): ResourceProvider<object> => {
+  }: GenerateContainerEntryProps): ResourceProvider<PlaceResources> => {
     const amplifyPlace = new AmplifyPlace(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
 
-    Tags.of(amplifyPlace).add(TagName.FRIENDLY_NAME, this.props.name);
-
     if (!this.props.access) {
       return amplifyPlace;
     }
+
+    Tags.of(amplifyPlace).add(TagName.FRIENDLY_NAME, this.props.name);
 
     const geoAccessOrchestrator = this.geoAccessOrchestratorFactory.getInstance(
       this.props.access,
@@ -100,6 +101,20 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
       'place',
       amplifyPlace.name,
     );
+
+    // orchestrateGeoAccess already called and ApiKey actions processed
+    const placeActions =
+      geoAccessOrchestrator.orchestrateKeyAccess() as AllowPlacesAction[];
+
+    if (!placeActions.length && this.props.apiKeyProps) {
+      throw new AmplifyUserError('NoApiKeyAccessError', {
+        message:
+          'No API key can be created for places without access definitions defined for it.',
+        resolution: 'Add at least one place action in the access definition.',
+      });
+    } else if (this.props.apiKeyProps) {
+      amplifyPlace.generateApiKey(placeActions);
+    }
 
     const geoAspects = Aspects.of(Stack.of(amplifyPlace));
     if (!geoAspects.all.length) {
@@ -119,5 +134,5 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
  */
 export const definePlace = (
   props: AmplifyPlaceFactoryProps,
-): ConstructFactory<ResourceProvider<object> & StackProvider> =>
+): ConstructFactory<ResourceProvider<PlaceResources> & StackProvider> =>
   new AmplifyPlaceFactory(props);
