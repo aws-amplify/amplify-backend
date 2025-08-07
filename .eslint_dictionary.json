@@ -18,6 +18,7 @@
   "argv",
   "arn",
   "arns",
+  "authorizer",
   "aws",
   "backends",
   "birthdate",
