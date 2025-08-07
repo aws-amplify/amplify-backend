@@ -28,7 +28,7 @@
     "minimatch": "10.0.1"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.189.1",
+    "aws-cdk-lib": "^2.207.0",
     "typescript": "^5.0.0"
   },
   "overrides": {

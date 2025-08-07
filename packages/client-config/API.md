@@ -288,15 +288,12 @@ interface AWSAmplifyBackendOutputs {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
             response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes[];
-        username_attributes?: [
-        'email' | 'phone_number' | 'username',
-        ...('email' | 'phone_number' | 'username')[]
-        ];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -321,46 +318,32 @@ interface AWSAmplifyBackendOutputs {
     geo?: {
         aws_region: string;
         maps?: {
-            items?: [
-                {
+            items?: {
                 name?: string;
                 key?: string;
                 [k: string]: unknown;
-            },
-            ...{
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[]
-            ];
+            }[];
             default?: string;
             required?: ['items', 'default'];
         };
         search_indices?: {
-            items?: [
-                {
+            items?: {
                 name?: string;
                 key?: string;
                 [k: string]: unknown;
-            },
-            ...{
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[]
-            ];
+            }[];
             default?: string;
             required?: ['items', 'default'];
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
+        channels: AmazonPinpointChannels[];
     };
     storage?: {
         aws_region: AwsRegion;

@@ -702,6 +702,57 @@ void describe('geo client config contributor v1', () => {
   });
 });
 
+void describe('geo client config contributor v1', () => {
+  void it('empty outputs if no geo output provided', () => {
+    const contributor = new GeoClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [graphqlOutputKey]: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncConflictResolutionMode: undefined,
+            awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+      }),
+      {},
+    );
+  });
+
+  void it('returns correct config when geo collections exist', () => {
+    const contributor = new GeoClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [geoOutputKey]: {
+          version: '1',
+          payload: {
+            geoRegion: 'us-west-2',
+            geofenceCollections: JSON.stringify({
+              default: 'defaultCollection',
+              items: ['defaultCollection', 'testCollection'],
+            }),
+          },
+        },
+      }),
+      {
+        geo: {
+          aws_region: 'us-west-2',
+          geofence_collections: {
+            default: 'defaultCollection',
+            items: ['defaultCollection', 'testCollection'],
+          },
+        },
+      },
+    );
+  });
+});
+
 void describe('storage client config contributor v1', () => {
   void it('returns an empty object if output has no storage output', () => {
     const contributor = new StorageClientConfigContributor();
