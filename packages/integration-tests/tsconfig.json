@@ -1,6 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "allowJs": true,
+    "types": ["node"]
+  },
   "references": [
     { "path": "../ai-constructs" },
     { "path": "../auth-construct" },

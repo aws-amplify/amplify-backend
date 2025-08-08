@@ -1,6 +1,11 @@
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { Stack } from 'aws-cdk-lib';
+import {
+  AllowMapsAction,
+  AllowPlacesAction,
+} from '@aws-cdk/aws-location-alpha';
+import { GeoApiActionType } from './types.js';
 
 /**
  * Geo Access Policy Factory
@@ -36,6 +41,16 @@ export class GeoAccessPolicyFactory {
       statements: [policyStatement],
     });
   };
+
+  generateKeyActions = (actions: string[]): string[] => {
+    const keyPermissions: GeoApiActionType[] = [];
+
+    actions.forEach((action) => {
+      keyPermissions.push(...apiKeyActionDirectory[action]);
+    });
+
+    return keyPermissions;
+  };
 }
 
 const actionDirectory: Record<string, string[]> = {
@@ -62,4 +77,16 @@ const actionDirectory: Record<string, string[]> = {
   ],
   delete: ['geo:BatchDeleteGeofence', 'geo:DeleteGeofenceCollection'],
   list: ['geo:ListGeofences', 'geo:ListGeofenceCollections'],
+};
+
+const apiKeyActionDirectory: Record<string, GeoApiActionType[]> = {
+  get: [AllowMapsAction.GET_STATIC_MAP, AllowMapsAction.GET_TILE],
+  autocomplete: [AllowPlacesAction.AUTOCOMPLETE],
+  geocode: [AllowPlacesAction.GEOCODE, AllowPlacesAction.REVERSE_GEOCODE],
+  search: [
+    AllowPlacesAction.GET_PLACE,
+    AllowPlacesAction.SEARCH_NEARBY,
+    AllowPlacesAction.SEARCH_TEXT,
+    AllowPlacesAction.SUGGEST,
+  ],
 };

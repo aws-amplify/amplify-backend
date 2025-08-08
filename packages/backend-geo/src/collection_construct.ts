@@ -8,7 +8,7 @@ import { Policy } from 'aws-cdk-lib/aws-iam';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 
-const geoStackType = 'geo-GeofenceCollection';
+const geoStackType = 'geo-Location';
 
 /**
  * Amplify Collection CDK Construct
@@ -46,6 +46,7 @@ export class AmplifyCollection
       kmsKey: props.kmsKey,
     });
     this.resources = {
+      policies: this.policies,
       cfnResources: {
         cfnCollection: geofenceCollection.node.findChild(
           'Resource',

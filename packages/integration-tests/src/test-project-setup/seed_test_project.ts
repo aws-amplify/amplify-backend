@@ -133,7 +133,7 @@ class SeedTestProject extends TestProjectBase {
     const cleanedPolicyString =
       seedPolicyProcessResult.stdout.slice(startingInd);
 
-    const clientConfig = await generateClientConfig(backendIdentifier, '1.4');
+    const clientConfig = await generateClientConfig(backendIdentifier, '1.5');
     if (!clientConfig.custom) {
       throw new Error('Client config missing custom section');
     }
@@ -172,7 +172,7 @@ class SeedTestProject extends TestProjectBase {
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
     const testUsername = 'testUser@amazon.com';
-    const clientConfig = await generateClientConfig(backendId, '1.4');
+    const clientConfig = await generateClientConfig(backendId, '1.5');
 
     if (!clientConfig.auth) {
       throw new Error('Client config missing auth section');

@@ -15,7 +15,7 @@ export const generateEmptyClientConfigToFile = async (
   format?: ClientConfigFormat,
 ): Promise<GenerateClientConfigToFileResult> => {
   const clientConfig: ClientConfig = {
-    version: '1.4',
+    version: '1.5',
   };
   return writeClientConfigToFile(clientConfig, version, outDir, format);
 };

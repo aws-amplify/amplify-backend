@@ -65,7 +65,7 @@
   },
   "peerDependencies": {
     "@aws-sdk/types": "^3.734.0",
-    "aws-cdk-lib": "^2.189.1"
+    "aws-cdk-lib": "^2.207.0"
   },
   "devDependencies": {
     "@types/envinfo": "^7.8.3",
