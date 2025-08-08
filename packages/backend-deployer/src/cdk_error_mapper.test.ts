@@ -230,6 +230,13 @@ const testErrorMappings = [
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
   },
   {
+    errorMessage: `Error: Cannot read asset manifest '.amplify/artifacts/cdk.out<escaped stack>.assets.json': Cloud assembly schema version mismatch: Maximum schema version supported is 43.x.x, but found 44.0.0`,
+    expectedTopLevelErrorMessage:
+      "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+    errorName: 'CDKVersionMismatchError',
+    expectedDownstreamErrorMessage: `Error: Cannot read asset manifest '.amplify/artifacts/cdk.out<escaped stack>.assets.json': Cloud assembly schema version mismatch: Maximum schema version supported is 43.x.x, but found 44.0.0`,
+  },
+  {
     errorMessage: `error Command cdk not found. Did you mean cdl?`,
     expectedTopLevelErrorMessage: 'Unable to detect cdk installation',
     errorName: 'CDKNotFoundError',
