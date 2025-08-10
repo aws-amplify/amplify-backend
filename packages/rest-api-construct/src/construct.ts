@@ -45,10 +45,10 @@ export class RestApiConstruct extends Construct {
     root: apiGateway.IResource,
     path: string,
   ): apiGateway.IResource {
-    //TODO: remove leading/trailing slashes from path and check it is not an empty string? eg /items, items/stuff/, /items/stuff/
+    //remove the leading slash to prevent empty id error
     if (path.startsWith('/')) path = path.substring(1);
-    // Split the path into parts (e.g. "posts/comments" → ["posts", "comments"])
 
+    // Split the path into parts (e.g. "posts/comments" → ["posts", "comments"])
     const parts = path.split('/');
 
     // Traverse the path, adding any missing nested resources along the way
