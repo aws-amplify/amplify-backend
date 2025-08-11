@@ -43,7 +43,6 @@ export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrateg
 // @public (undocumented)
 export type AmplifyMapProps = {
     name: string;
-    isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
     apiKeyProps?: GeoApiKeyProps;
 };
@@ -56,7 +55,6 @@ export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStr
 // @public (undocumented)
 export type AmplifyPlaceProps = {
     name: string;
-    isDefault?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
     apiKeyProps?: GeoApiKeyProps;
 };

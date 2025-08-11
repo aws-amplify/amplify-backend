@@ -381,34 +381,34 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
             geoRegion: z.ZodString;
-            maps: z.ZodOptional<z.ZodString>;
-            searchIndices: z.ZodOptional<z.ZodString>;
+            map: z.ZodOptional<z.ZodString>;
+            searchIndex: z.ZodOptional<z.ZodString>;
             geofenceCollections: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         }, {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         };
     }, {
         version: "1";
         payload: {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         };
     }>]>>;
@@ -488,8 +488,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         };
     } | undefined;
@@ -569,8 +569,8 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             geoRegion: string;
-            maps?: string | undefined;
-            searchIndices?: string | undefined;
+            map?: string | undefined;
+            searchIndex?: string | undefined;
             geofenceCollections?: string | undefined;
         };
     } | undefined;
@@ -764,34 +764,34 @@ export const versionedGeoOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zod
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
         geoRegion: z.ZodString;
-        maps: z.ZodOptional<z.ZodString>;
-        searchIndices: z.ZodOptional<z.ZodString>;
+        map: z.ZodOptional<z.ZodString>;
+        searchIndex: z.ZodOptional<z.ZodString>;
         geofenceCollections: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         geoRegion: string;
-        maps?: string | undefined;
-        searchIndices?: string | undefined;
+        map?: string | undefined;
+        searchIndex?: string | undefined;
         geofenceCollections?: string | undefined;
     }, {
         geoRegion: string;
-        maps?: string | undefined;
-        searchIndices?: string | undefined;
+        map?: string | undefined;
+        searchIndex?: string | undefined;
         geofenceCollections?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
         geoRegion: string;
-        maps?: string | undefined;
-        searchIndices?: string | undefined;
+        map?: string | undefined;
+        searchIndex?: string | undefined;
         geofenceCollections?: string | undefined;
     };
 }, {
     version: "1";
     payload: {
         geoRegion: string;
-        maps?: string | undefined;
-        searchIndices?: string | undefined;
+        map?: string | undefined;
+        searchIndex?: string | undefined;
         geofenceCollections?: string | undefined;
     };
 }>]>;

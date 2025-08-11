@@ -317,23 +317,13 @@ interface AWSAmplifyBackendOutputs {
     };
     geo?: {
         aws_region: string;
-        maps?: {
-            items?: {
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[];
-            default?: string;
-            required?: ["items", "default"];
+        map?: {
+            name?: string;
+            api_key?: string;
         };
-        search_indices?: {
-            items?: {
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[];
-            default?: string;
-            required?: ["items", "default"];
+        search_index?: {
+            name?: string;
+            api_key?: string;
         };
         geofence_collections?: {
             items: string[];
