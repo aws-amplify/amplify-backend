@@ -31,7 +31,7 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "post:compile": "npm run bundle:default-handler",
-    "bundle:default-handler": "esbuild src/conversation/runtime/default_handler.ts --bundle --platform=node --target=node20 --outfile=lib/conversation/runtime/default_handler_bundled/index.js",
+    "bundle:default-handler": "esbuild src/conversation/runtime/default_handler.ts --bundle --platform=node --target=node20 --external:@aws-sdk/* --external:@smithy/* --external:aws-lambda --external:buffer --external:crypto --external:fs --external:http --external:https --external:path --external:stream --external:url --external:util --minify --tree-shaking=true --outfile=lib/conversation/runtime/default_handler_bundled/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
@@ -40,6 +40,7 @@
     "@aws-amplify/plugin-types": "^1.10.1",
     "@aws-sdk/client-bedrock-runtime": "3.622.0",
     "@smithy/types": "^4.1.0",
+    "aws-lambda": "^1.0.7",
     "json-schema-to-ts": "^3.1.1"
   },
   "devDependencies": {
