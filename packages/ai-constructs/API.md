@@ -65,10 +65,14 @@ class AiModelArnGeneratorConstruct extends Construct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // @public
 =======
 // @public (undocumented)
 >>>>>>> 353c6a1fd3 (test: enhance AI model policy validation in conversation handler tests)
+=======
+// @public
+>>>>>>> 079832009a (update package-lock.json and small doc update)
 type AiModelConfig = {
     modelId: string;
     region: string;
