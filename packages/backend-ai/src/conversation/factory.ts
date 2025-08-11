@@ -51,6 +51,7 @@ class ConversationHandlerFunctionGenerator
         return {
           modelId,
           region: model.region,
+          crossRegionInference: model.crossRegionInference,
         };
       }),
       outputStorageStrategy: this.outputStorageStrategy,
@@ -177,6 +178,7 @@ export type DefineConversationHandlerFunctionProps = {
   models: Array<{
     modelId: string | AiModel;
     region?: string;
+    crossRegionInference?: boolean;
   }>;
   /**
    * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
