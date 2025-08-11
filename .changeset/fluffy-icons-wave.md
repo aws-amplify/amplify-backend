@@ -16,3 +16,5 @@
 '@aws-amplify/backend': patch
 '@aws-amplify/backend-cli': patch
 ---
+
+- Upgrading `aws-cdk-lib` peer dependency versions for the above changesets to `2.207.0` to accomodate the `aws-location-alpha` package

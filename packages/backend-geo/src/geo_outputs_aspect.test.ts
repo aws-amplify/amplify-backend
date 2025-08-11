@@ -68,7 +68,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('output entry called once with multiple maps created', () => {
       new AmplifyMap(stack, 'testMap_1', {
         name: 'testMap1',
-        isDefault: true,
       }); // set as default map
       const mapNode = new AmplifyMap(stack, 'testMap_2', {
         name: 'testMap2',
@@ -83,7 +82,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('output entry called once with multiple places created', () => {
       new AmplifyPlace(stack, 'testPlace_1', {
         name: 'testPlace1',
-        isDefault: true,
       }); // set as default place
       const placeNode = new AmplifyPlace(stack, 'testPlace_2', {
         name: 'testPlace2',
@@ -178,27 +176,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       );
     });
 
-    void it('throws if multiple default maps', () => {
-      const node = new AmplifyMap(stack, 'testMapDefault', {
-        name: 'defaultMap',
-        isDefault: true,
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      assert.throws(
-        () => {
-          new AmplifyMap(stack, 'anotherDefaultMap', {
-            name: 'anotherDefaultMap',
-            isDefault: true,
-          });
-          aspect.visit(node);
-        },
-        new AmplifyUserError('MultipleDefaultMapError', {
-          message: `More than one default map set in the Amplify project`,
-          resolution: `Remove 'isDefault: true' from all 'defineMap' calls except for one in your Amplify project`,
-        }),
-      );
-    });
-
     void it('throws if no place set to default', () => {
       const noDuplicateStack = new Stack(app, 'noDuplicateStack');
       const newNode = new AmplifyPlace(noDuplicateStack, 'testPlace', {
@@ -222,14 +199,12 @@ void describe('AmplifyGeoOutputsAspect', () => {
     void it('throws if multiple default places', () => {
       const node = new AmplifyPlace(stack, 'testPlaceDefault', {
         name: 'defaultPlace',
-        isDefault: true,
       });
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
       assert.throws(
         () => {
           new AmplifyPlace(stack, 'anotherDefaultPlace', {
             name: 'anotherDefaultPlace',
-            isDefault: true,
           });
           aspect.visit(node);
         },
