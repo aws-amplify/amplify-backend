@@ -96,6 +96,7 @@ void describe('AiModelPropsResolver', () => {
       const resolver = buildResolver();
       assert.strictEqual(resolver.getGeography('us-east-1'), 'us');
       assert.strictEqual(resolver.getGeography('eu-central-1'), 'eu');
+      // eslint-disable-next-line spellcheck/spell-checker
       assert.strictEqual(resolver.getGeography('ap-northeast-1'), 'apac');
     });
 
