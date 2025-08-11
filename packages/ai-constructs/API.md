@@ -53,7 +53,7 @@ class AiModelArnGeneratorConstruct extends Construct {
     generateArns(modelConfig: AiModelConfig): string[];
 }
 
-// @public (undocumented)
+// @public
 type AiModelConfig = {
     modelId: string;
     region: string;
