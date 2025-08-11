@@ -22,7 +22,7 @@ export class ClientConfigLegacyConverter {
    * Converts client config to a shape consumable by legacy libraries.
    */
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
-    // We can only convert from V1.4 of ClientConfig. For everything else, throw
+    // We can only convert from V1.5 of ClientConfig. For everything else, throw
     if (!this.isClientConfigV1_5(clientConfig)) {
       throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
         message: 'Only version 1.5 of ClientConfig is supported.',

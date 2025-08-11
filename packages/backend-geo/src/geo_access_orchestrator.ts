@@ -67,6 +67,12 @@ export class GeoAccessOrchestrator {
 
       definition.uniqueDefinitionValidators.forEach(
         ({ uniqueRoleToken, validationErrorOptions }) => {
+          if (!definition.actions.length)
+            throw new AmplifyUserError('NoGeoAccessActionsFoundError', {
+              message: `No access actions found for the ${uniqueRoleToken} role.`,
+              resolution: `Please add an action for the ${uniqueRoleToken} role or remove the action statement.`,
+            });
+
           if (uniqueRoleTokenSet.has(uniqueRoleToken)) {
             throw new AmplifyUserError(
               'InvalidGeoAccessDefinitionError',

@@ -650,7 +650,10 @@ void describe('GeoAccessOrchestrator', () => {
             'collection',
             testResourceName,
           ),
-        { message: 'At least one permission must be specified' },
+        new AmplifyUserError('NoGeoAccessActionsFoundError', {
+          message: `No access actions found for the authenticated role.`,
+          resolution: `Please add an action for the authenticated role or remove the action statement.`,
+        }),
       );
     });
   });

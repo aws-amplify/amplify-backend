@@ -568,12 +568,6 @@ void describe('GeoAccessPolicyFactory', () => {
       ]);
     });
 
-    void it('generateKeyActions returns empty array for empty input', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([]);
-
-      assert.deepStrictEqual(keyActions, []);
-    });
-
     void it('generateKeyActions handles duplicate actions', () => {
       const keyActions = geoAccessPolicyFactory.generateKeyActions([
         'get',

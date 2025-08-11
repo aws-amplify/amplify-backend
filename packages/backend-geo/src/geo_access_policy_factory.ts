@@ -1,5 +1,4 @@
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { AmplifyFault } from '@aws-amplify/platform-core';
 import { Stack } from 'aws-cdk-lib';
 import {
   AllowMapsAction,
@@ -20,12 +19,6 @@ export class GeoAccessPolicyFactory {
     resourceName: string,
     stack: Stack,
   ) => {
-    if (permissions.length === 0) {
-      throw new AmplifyFault('EmptyPolicyFault', {
-        message: 'At least one permission must be specified',
-      });
-    }
-
     // policy statements created for each resource type
     const policyStatement: PolicyStatement = new PolicyStatement();
 
