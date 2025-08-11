@@ -70,6 +70,7 @@ export type ConversationTurnEvent = {
   graphqlApiEndpoint: string;
   modelConfiguration: {
     modelId: string;
+    crossRegionInference?: boolean;
     systemPrompt: string;
     region?: string;
     inferenceConfiguration?: {

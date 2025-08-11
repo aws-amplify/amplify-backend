@@ -27,6 +27,8 @@ import {
   AIConversationOutput,
   aiConversationOutputKey,
 } from '@aws-amplify/backend-output-schemas';
+import { AiModelArnGeneratorConstruct } from '../ai-model/ai_model_arn_generator_construct';
+import type { AiModelConfig } from '../ai-model/ai_model_types';
 
 const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
 const defaultHandlerFilePath = path.join(
@@ -38,6 +40,7 @@ export type ConversationHandlerFunctionProps = {
   entry?: string;
   models: Array<{
     modelId: string;
+    crossRegionInference?: boolean;
     region?: string;
   }>;
   /**
@@ -150,12 +153,23 @@ export class ConversationHandlerFunction
     }
 
     if (this.props.models && this.props.models.length > 0) {
-      const resources = this.props.models.map(
-        (model) =>
-          `arn:aws:bedrock:${
-            model.region ?? Stack.of(this).region
-          }::foundation-model/${model.modelId}`,
+      const arnGenerator = new AiModelArnGeneratorConstruct(
+        this,
+        'AiModelArnGenerator',
       );
+
+      const resolvedModelArns: string[] = this.props.models
+        .map(
+          (model): AiModelConfig => ({
+            modelId: model.modelId,
+            region: model.region ?? Stack.of(this).region,
+            crossRegionInference: Boolean(model.crossRegionInference),
+          }),
+        )
+        .flatMap((cfg) => arnGenerator.generateArns(cfg));
+
+      const modelArns = Array.from(new Set(resolvedModelArns));
+
       conversationHandler.addToRolePolicy(
         new PolicyStatement({
           effect: Effect.ALLOW,
@@ -163,7 +177,7 @@ export class ConversationHandlerFunction
             'bedrock:InvokeModel',
             'bedrock:InvokeModelWithResponseStream',
           ],
-          resources,
+          resources: modelArns,
         }),
       );
     }
