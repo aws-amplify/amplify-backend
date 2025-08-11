@@ -121,14 +121,12 @@ void describe('AiModelPropsResolver', () => {
         () => resolver.getGeography('   '),
         /Region parameter is required/,
       );
-      // @ts-expect-error - null
       assert.throws(
-        () => resolver.getGeography(null),
+        () => resolver.getGeography(null as unknown as string),
         /Region parameter is required/,
       );
-      // @ts-expect-error - undefined
       assert.throws(
-        () => resolver.getGeography(undefined),
+        () => resolver.getGeography(undefined as unknown as string),
         /Region parameter is required/,
       );
     });
@@ -217,14 +215,12 @@ void describe('AiModelPropsResolver', () => {
         () => resolver.getFoundationModelId('   '),
         /Inference profile ID is required/,
       );
-      // @ts-expect-error - null
       assert.throws(
-        () => resolver.getFoundationModelId(null),
+        () => resolver.getFoundationModelId(null as unknown as string),
         /Inference profile ID is required/,
       );
-      // @ts-expect-error - undefined
       assert.throws(
-        () => resolver.getFoundationModelId(undefined),
+        () => resolver.getFoundationModelId(undefined as unknown as string),
         /Inference profile ID is required/,
       );
     });
