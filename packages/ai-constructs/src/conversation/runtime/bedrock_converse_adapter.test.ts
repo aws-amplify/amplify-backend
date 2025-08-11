@@ -26,6 +26,7 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import { UserAgentProvider } from './user_agent_provider';
+import { MockAiModelPropsResolver } from '../../ai-model/test-assets';
 
 void describe('Bedrock converse adapter', () => {
   const commonEvent: Readonly<ConversationTurnEvent> = {
@@ -39,7 +40,8 @@ void describe('Bedrock converse adapter', () => {
       listQueryInputTypeName: '',
     },
     modelConfiguration: {
-      modelId: 'testModelId',
+      modelId: 'testModelId1',
+      region: 'us-east-1',
       systemPrompt: 'testSystemPrompt',
       inferenceConfiguration: {
         maxTokens: 124,
@@ -85,6 +87,7 @@ void describe('Bedrock converse adapter', () => {
         };
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
@@ -95,6 +98,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [],
           bedrockClient,
+          aiModelResolver,
           undefined,
           messageHistoryRetriever,
         );
@@ -258,6 +262,7 @@ void describe('Bedrock converse adapter', () => {
         };
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const bedrockResponseQueue: Array<
           ConverseCommandOutput | ConverseStreamCommandOutput
         > = [];
@@ -329,6 +334,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [additionalTool],
           bedrockClient,
+          aiModelResolver,
           eventToolsProvider,
           messageHistoryRetriever,
         );
@@ -468,6 +474,7 @@ void describe('Bedrock converse adapter', () => {
         };
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const bedrockResponseQueue: Array<
           ConverseCommandOutput | ConverseStreamCommandOutput
         > = [];
@@ -500,6 +507,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [tool],
           bedrockClient,
+          aiModelResolver,
           undefined,
           messageHistoryRetriever,
         );
@@ -556,6 +564,7 @@ void describe('Bedrock converse adapter', () => {
         };
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const bedrockResponseQueue: Array<
           ConverseCommandOutput | ConverseStreamCommandOutput
         > = [];
@@ -588,6 +597,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [tool],
           bedrockClient,
+          aiModelResolver,
           undefined,
           messageHistoryRetriever,
         );
@@ -659,6 +669,7 @@ void describe('Bedrock converse adapter', () => {
         };
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelPropsResolver = new MockAiModelPropsResolver();
         const bedrockResponseQueue: Array<
           ConverseCommandOutput | ConverseStreamCommandOutput
         > = [];
@@ -691,6 +702,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [additionalTool],
           bedrockClient,
+          aiModelPropsResolver,
           undefined,
           messageHistoryRetriever,
         );
@@ -791,6 +803,7 @@ void describe('Bedrock converse adapter', () => {
         );
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
@@ -801,6 +814,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [],
           bedrockClient,
+          aiModelResolver,
           undefined,
           messageHistoryRetriever,
         ).askBedrock();
@@ -856,6 +870,7 @@ void describe('Bedrock converse adapter', () => {
         );
 
         const bedrockClient = new BedrockRuntimeClient();
+        const aiModelResolver = new MockAiModelPropsResolver();
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
@@ -866,6 +881,7 @@ void describe('Bedrock converse adapter', () => {
           event,
           [],
           bedrockClient,
+          aiModelResolver,
           undefined,
           messageHistoryRetriever,
         ).askBedrock();
@@ -914,6 +930,7 @@ void describe('Bedrock converse adapter', () => {
     };
 
     const bedrockClient = new BedrockRuntimeClient();
+    const aiModelResolver = new MockAiModelPropsResolver();
     const bedrockResponseQueue: Array<
       ConverseCommandOutput | ConverseStreamCommandOutput
     > = [];
@@ -955,6 +972,7 @@ void describe('Bedrock converse adapter', () => {
       event,
       [tool],
       bedrockClient,
+      aiModelResolver,
       undefined,
       messageHistoryRetriever,
     );
@@ -980,6 +998,7 @@ void describe('Bedrock converse adapter', () => {
     };
 
     const bedrockClient = new BedrockRuntimeClient();
+    const aiModelResolver = new MockAiModelPropsResolver();
     const bedrockResponseQueue: Array<
       ConverseCommandOutput | ConverseStreamCommandOutput
     > = [];
@@ -1011,6 +1030,7 @@ void describe('Bedrock converse adapter', () => {
       event,
       [],
       bedrockClient,
+      aiModelResolver,
       undefined,
       messageHistoryRetriever,
       undefined,
@@ -1117,6 +1137,7 @@ void describe('Bedrock converse adapter', () => {
     };
 
     const bedrockClient = new BedrockRuntimeClient();
+    const aiModelResolver = new MockAiModelPropsResolver();
     const addMiddlewareMock = mock.method(bedrockClient.middlewareStack, 'add');
     const userAgentProvider = new UserAgentProvider(
       {} as unknown as ConversationTurnEvent,
@@ -1127,6 +1148,7 @@ void describe('Bedrock converse adapter', () => {
       event,
       [],
       bedrockClient,
+      aiModelResolver,
       undefined,
       messageHistoryRetriever,
       userAgentProvider,
