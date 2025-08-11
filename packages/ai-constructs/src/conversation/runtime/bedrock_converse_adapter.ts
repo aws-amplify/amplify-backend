@@ -22,7 +22,11 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
+<<<<<<< HEAD
 import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
+=======
+import { AiModelConfig, AiModelPropsResolver } from '../../ai-model';
+>>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -190,7 +194,17 @@ export class BedrockConverseAdapter {
         this.event.modelConfiguration.crossRegionInference ?? false,
     };
 
+<<<<<<< HEAD
     const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
+=======
+    this.logger.info(
+      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
+    );
+    const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
+    this.logger.info(
+      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
+    );
+>>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
