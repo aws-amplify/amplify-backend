@@ -30,7 +30,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/data-schema": "^1.13.4",
+    "@aws-amplify/data-schema": "/Users/eashour/Desktop/amplify2/amplify-data/packages/data-schema",
     "@aws-amplify/backend-auth": "^1.7.1",
     "@aws-amplify/backend-function": "^1.14.1",
     "@aws-amplify/backend-data": "^1.6.1",

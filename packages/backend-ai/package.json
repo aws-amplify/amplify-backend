@@ -22,10 +22,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/ai-constructs": "^1.5.1",
+    "@aws-amplify/ai-constructs": "/Users/eashour/Desktop/amplify2/amplify-backend/packages/ai-constructs",
     "@aws-amplify/backend-output-schemas": "^1.6.0",
     "@aws-amplify/backend-output-storage": "^1.3.1",
-    "@aws-amplify/data-schema-types": "^1.2.0",
+    "@aws-amplify/data-schema-types": "/Users/eashour/Desktop/amplify2/amplify-data/packages/data-schema-types",
     "@aws-amplify/platform-core": "^1.9.0",
     "@aws-amplify/plugin-types": "^1.10.1"
   },
