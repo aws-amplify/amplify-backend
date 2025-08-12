@@ -588,7 +588,7 @@ void describe('data client config contributor v1', () => {
   });
 });
 
-void describe('geo client config contributor v1', () => {
+void describe('geo client config contributor v1.1', () => {
   void it('empty outputs if no geo output provided', () => {
     const contributor = new GeoClientConfigContributor();
     assert.deepStrictEqual(
@@ -651,16 +651,16 @@ void describe('geo client config contributor v1', () => {
               items: [
                 {
                   name: 'defaultMap',
-                  key: 'defaultKey',
+                  api_key_name: 'defaultKey',
                 },
               ],
             }),
             searchIndices: JSON.stringify({
-              default: 'defaultPlace',
+              default: 'defaultIndex',
               items: [
                 {
                   name: 'defaultIndex',
-                  key: 'defaultKey',
+                  api_key_name: 'defaultKey',
                 },
               ],
             }),
@@ -676,21 +676,19 @@ void describe('geo client config contributor v1', () => {
           aws_region: 'us-west-2',
           maps: {
             default: 'defaultMap',
-            items: [
-              {
-                name: 'defaultMap',
-                key: 'defaultKey',
+            items: {
+              defaultMap: {
+                api_key_name: 'defaultKey',
               },
-            ],
+            },
           },
           search_indices: {
-            default: 'defaultPlace',
-            items: [
-              {
-                name: 'defaultIndex',
-                key: 'defaultKey',
+            default: 'defaultIndex',
+            items: {
+              defaultIndex: {
+                api_key_name: 'defaultKey',
               },
-            ],
+            },
           },
           geofence_collections: {
             default: 'defaultCollection',

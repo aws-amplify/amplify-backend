@@ -225,31 +225,19 @@ export interface AWSAmplifyBackendOutputs {
      * Maps from Amazon Location Service
      */
     maps?: {
-      /**
-       * @minItems 1
-       */
-      items?: {
-        name?: string;
-        key?: string;
-        [k: string]: unknown;
-      }[];
-      default?: string;
-      required?: ['items', 'default'];
+      items: {
+        [k: string]: AmazonLocationServiceConfig;
+      };
+      default: string;
     };
     /**
      * Location search (search by places, addresses, coordinates)
      */
     search_indices?: {
-      /**
-       * @minItems 1
-       */
-      items?: {
-        name?: string;
-        key?: string;
-        [k: string]: unknown;
-      }[];
-      default?: string;
-      required?: ['items', 'default'];
+      items: {
+        [k: string]: AmazonLocationServiceConfig;
+      };
+      default: string;
     };
     /**
      * Geofencing (visualize virtual perimeters)
@@ -299,6 +287,26 @@ export interface AmplifyUserGroupConfig {
   precedence?: number;
 }
 /**
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ *
+ * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
+ * via the `definition` "amazon_location_service_config".
+ */
+export interface AmazonLocationServiceConfig {
+  /**
+   * Map style
+   */
+  style?: string;
+  /**
+   * Resource API Key Name
+   */
+  api_key_name?: string;
+}
+/**
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_bucket".
  */
@@ -309,14 +317,4 @@ export interface AmplifyStorageBucket {
   paths?: {
     [k: string]: AmplifyStorageAccessRule;
   };
-}
-/**
- * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
- * via the `definition` "amazon_location_service_config".
- */
-export interface AmazonLocationServiceConfig {
-  /**
-   * Map style
-   */
-  style?: string;
 }

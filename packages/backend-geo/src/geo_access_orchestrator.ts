@@ -69,8 +69,8 @@ export class GeoAccessOrchestrator {
         ({ uniqueRoleToken, validationErrorOptions }) => {
           if (!definition.actions.length)
             throw new AmplifyUserError('NoGeoAccessActionsFoundError', {
-              message: `No access actions found for the ${uniqueRoleToken} role.`,
-              resolution: `Please add an action for the ${uniqueRoleToken} role or remove the action statement.`,
+              message: `No access actions found for the ${uniqueRoleToken} users.`,
+              resolution: `Please add an action for the ${uniqueRoleToken} users or remove the action statement.`,
             });
 
           if (uniqueRoleTokenSet.has(uniqueRoleToken)) {

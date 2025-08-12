@@ -139,11 +139,6 @@ export type CollectionResources = {
   };
 };
 
-export type ResourceOutputs = {
-  name: string;
-  key?: string;
-};
-
 // ----------------------------------- access definitions ----------------------------------------------
 
 export type GeoAccessGenerator = (

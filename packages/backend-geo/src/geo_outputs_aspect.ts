@@ -6,9 +6,15 @@ import { AmplifyPlace } from './place_resource.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { GeoOutput, geoOutputKey } from '@aws-amplify/backend-output-schemas';
-import { GeoResourceType, ResourceOutputs } from './types.js';
+import { GeoResourceType } from './types.js';
 
 export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
+
+type ResourceOutputs = {
+  name?: string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  api_key_name?: string;
+};
 
 /**
  * Aspect Implementation for Geo Resources
@@ -134,13 +140,9 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       'collection',
     ) as AmplifyCollection;
 
-    const defaultMap = this.validateDefault(maps, maps[0], 'map') as AmplifyMap;
+    const defaultMap = maps[0];
 
-    const defaultPlace = this.validateDefault(
-      places,
-      places[0],
-      'place',
-    ) as AmplifyPlace;
+    const defaultPlace = places[0];
 
     // Collect all collection names for the items array
     const collectionNames = collections.map(
@@ -151,7 +153,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     const mapOutputs: ResourceOutputs[] = maps.map((map): ResourceOutputs => {
       return {
         name: map.name,
-        key: map.resources.cfnResources.cfnAPIKey?.ref,
+        api_key_name: map.resources.cfnResources.cfnAPIKey?.keyName,
       };
     });
 
@@ -159,7 +161,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       (place): ResourceOutputs => {
         return {
           name: place.name,
-          key: place.resources.cfnResources.cfnAPIKey?.ref,
+          api_key_name: place.resources.cfnResources.cfnAPIKey?.keyName,
         };
       },
     );

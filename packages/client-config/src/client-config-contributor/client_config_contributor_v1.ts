@@ -506,8 +506,24 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
       geoOutput.payload.geofenceCollections,
     );
 
-    if (mapPayload) config.geo.maps = mapPayload;
-    if (placesPayload) config.geo.search_indices = placesPayload;
+    if (mapPayload)
+      config.geo.maps = {
+        default: mapPayload.items[0].name,
+        items: {
+          [mapPayload.items[0].name]: {
+            api_key_name: mapPayload.items[0].api_key_name,
+          },
+        },
+      };
+    if (placesPayload)
+      config.geo.search_indices = {
+        default: placesPayload.items[0].name,
+        items: {
+          [placesPayload.items[0].name]: {
+            api_key_name: placesPayload.items[0].api_key_name,
+          },
+        },
+      };
     if (collectionPayload) config.geo.geofence_collections = collectionPayload;
 
     return config;
