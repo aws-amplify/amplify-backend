@@ -256,16 +256,16 @@ export const telemetryPayloadSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     }, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
@@ -283,17 +283,17 @@ export const telemetryPayloadSchema: z.ZodObject<{
             parameters: string[];
         }>;
     }, "strip", z.ZodTypeAny, {
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
-        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     }, {
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
-        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     }>;
     environment: z.ZodObject<{
         os: z.ZodObject<{
@@ -390,18 +390,18 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
-        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     };
     environment: {
         os: {
@@ -434,18 +434,18 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
-        state: "SUCCEEDED" | "FAILED" | "ABORTED";
     };
     environment: {
         os: {
