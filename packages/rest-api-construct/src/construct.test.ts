@@ -11,6 +11,8 @@ import {
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { RestApiPathConfig } from './types.js';
+import { handler } from './test-assets/handler.js';
+import { Context } from 'aws-lambda';
 
 const setupExampleLambda = (stack: Stack) => {
   const factory = defineFunction({
@@ -109,6 +111,28 @@ void describe('RestApiConstruct Error Handling', () => {
     );
 
     assert.doesNotThrow(() => constructApiWithPath('/a/valid/path'));
+  });
+});
+
+void describe('Handler testing', () => {
+  void it('test function works and returns hello world', async () => {
+    const mockContext: Context = {
+      callbackWaitsForEmptyEventLoop: false,
+      functionName: 'testFunction',
+      functionVersion: '1',
+      invokedFunctionArn:
+        'arn:aws:lambda:us-east-1:123456789012:function:testFunction',
+      memoryLimitInMB: '128',
+      awsRequestId: 'testRequestId',
+      logGroupName: '/aws/lambda/testFunction',
+      logStreamName: '2021/01/01/[$LATEST]a',
+      getRemainingTimeInMillis: () => 1000,
+      done: () => {},
+      fail: () => {},
+      succeed: () => {},
+    };
+    const result = await handler(null, mockContext, () => {});
+    assert.equal(result, 'Hello, World!');
   });
 });
 
