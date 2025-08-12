@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "aws-cdk-lib": "^2.189.0",
+    "aws-cdk-lib": "^2.189.1",
     "constructs": "^10.0.0"
   },
   "dependencies": {
