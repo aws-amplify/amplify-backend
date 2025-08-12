@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend" },
-    { "path": "../backend-output-storage" }
+    { "path": "../backend-output-storage" },
+    { "path": "../platform-core" }
   ]
 }

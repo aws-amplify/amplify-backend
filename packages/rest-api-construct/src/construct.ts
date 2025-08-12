@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { RestApiConstructProps } from './types.js';
+import { validateRestApiPaths } from './validate_paths.js';
 
 /**
  * Rest API construct for Amplify Backend
@@ -12,6 +13,11 @@ export class RestApiConstruct extends Construct {
    */
   constructor(scope: Construct, id: string, props: RestApiConstructProps) {
     super(scope, id);
+
+    //check that the paths are valid before creating the API
+    const paths: string[] = [];
+    props.apiProps.forEach((value) => paths.push(value.path));
+    validateRestApiPaths(paths);
 
     // Create a new API Gateway REST API with the specified name
     this.api = new apiGateway.RestApi(this, 'RestApi', {
@@ -39,7 +45,9 @@ export class RestApiConstruct extends Construct {
     root: apiGateway.IResource,
     path: string,
   ): apiGateway.IResource {
-    //TODO: remove leading/trailing slashes from path and check it is not an empty string? eg /items, items/stuff/, /
+    //remove the leading slash to prevent empty id error
+    if (path.startsWith('/')) path = path.substring(1);
+
     // Split the path into parts (e.g. "posts/comments" → ["posts", "comments"])
     const parts = path.split('/');
 
