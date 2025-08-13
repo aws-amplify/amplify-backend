@@ -3,7 +3,6 @@ import {
   AuthClientConfigContributor,
   CustomClientConfigContributor,
   DataClientConfigContributor,
-  GeoClientConfigContributor,
   StorageClientConfigContributor,
   VersionContributor,
 } from './client_config_contributor_v1.js';
@@ -16,7 +15,6 @@ import {
   UnifiedBackendOutput,
   authOutputKey,
   customOutputKey,
-  geoOutputKey,
   graphqlOutputKey,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -585,57 +583,6 @@ void describe('data client config contributor v1', () => {
         },
       },
     } as Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs>);
-  });
-});
-
-void describe('geo client config contributor v1', () => {
-  void it('empty outputs if no geo output provided', () => {
-    const contributor = new GeoClientConfigContributor();
-    assert.deepStrictEqual(
-      contributor.contribute({
-        [graphqlOutputKey]: {
-          version: '1',
-          payload: {
-            awsAppsyncApiEndpoint: 'testApiEndpoint',
-            awsAppsyncRegion: 'us-east-1',
-            awsAppsyncAuthenticationType: 'API_KEY',
-            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
-            awsAppsyncConflictResolutionMode: undefined,
-            awsAppsyncApiKey: 'testApiKey',
-            awsAppsyncApiId: 'testApiId',
-            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
-          },
-        },
-      }),
-      {},
-    );
-  });
-
-  void it('returns correct config when geo collections exist', () => {
-    const contributor = new GeoClientConfigContributor();
-    assert.deepStrictEqual(
-      contributor.contribute({
-        [geoOutputKey]: {
-          version: '1',
-          payload: {
-            geoRegion: 'us-west-2',
-            geofenceCollections: JSON.stringify({
-              default: 'defaultCollection',
-              items: ['defaultCollection', 'testCollection'],
-            }),
-          },
-        },
-      }),
-      {
-        geo: {
-          aws_region: 'us-west-2',
-          geofence_collections: {
-            default: 'defaultCollection',
-            items: ['defaultCollection', 'testCollection'],
-          },
-        },
-      },
-    );
   });
 });
 
