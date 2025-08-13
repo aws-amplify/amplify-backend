@@ -67,8 +67,6 @@ export class AiModelArnGeneratorConstruct extends Construct {
       resourceType: AI_MODEL_ARN_GENERATOR_RESOURCE_TYPE,
       properties: {
         modelConfig,
-        // Helps CloudFormation detect property updates consistently
-        timestamp: Date.now(),
       },
     });
 
