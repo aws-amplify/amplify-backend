@@ -1,5 +1,11 @@
 # create-amplify
 
+## 1.2.2
+
+### Patch Changes
+
+- f63506f: bump create amplify dependencies
+
 ## 1.2.1
 
 ### Patch Changes
