@@ -42,6 +42,7 @@
     "@aws-amplify/backend-output-storage": "^1.3.1",
     "@types/lodash.transform": "^4.6.9",
     "@types/aws-lambda": "8.10.152",
+    "aws-lambda": "1.0.7",
     "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },
