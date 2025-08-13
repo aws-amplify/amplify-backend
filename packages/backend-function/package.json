@@ -36,7 +36,8 @@
     "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/client-ssm": "^3.750.0",
     "aws-sdk": "^2.1550.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "jmespath": "0.16.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.189.1",
