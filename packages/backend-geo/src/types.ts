@@ -79,14 +79,12 @@ export type AmplifyCollectionFactoryProps = Omit<
 
 export type AmplifyMapProps = {
   name: string;
-  isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
   apiKeyProps?: GeoApiKeyProps;
 };
 
 export type AmplifyPlaceProps = {
   name: string;
-  isDefault?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
   apiKeyProps?: GeoApiKeyProps;
 };
@@ -139,11 +137,6 @@ export type CollectionResources = {
   cfnResources: {
     cfnCollection: CfnGeofenceCollection;
   };
-};
-
-export type ResourceOutputs = {
-  name: string;
-  key?: string;
 };
 
 // ----------------------------------- access definitions ----------------------------------------------

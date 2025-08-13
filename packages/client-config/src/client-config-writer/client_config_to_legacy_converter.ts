@@ -22,7 +22,7 @@ export class ClientConfigLegacyConverter {
    * Converts client config to a shape consumable by legacy libraries.
    */
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
-    // We can only convert from V1.4 of ClientConfig. For everything else, throw
+    // We can only convert from V1.5 of ClientConfig. For everything else, throw
     if (!this.isClientConfigV1_5(clientConfig)) {
       throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
         message: 'Only version 1.5 of ClientConfig is supported.',
@@ -207,9 +207,11 @@ export class ClientConfigLegacyConverter {
       if (clientConfig.geo.maps) {
         const mapsLegacyConfig: Record<string, { style: string }> = {};
 
-        for (const map of clientConfig.geo.maps.items!) {
-          mapsLegacyConfig[map.name!] = {
-            style: '', // leaving empty as it doesn't exist
+        for (const [name, config] of Object.entries(
+          clientConfig.geo.maps.items!,
+        )) {
+          mapsLegacyConfig[name!] = {
+            style: config.style || '', // leaving empty as it doesn't exist
           };
         }
 
@@ -222,8 +224,10 @@ export class ClientConfigLegacyConverter {
       if (clientConfig.geo.search_indices) {
         const placesLegacyConfig: string[] = [];
 
-        for (const place of clientConfig.geo.search_indices.items!) {
-          placesLegacyConfig.push(place.name!);
+        for (const config of Object.entries(
+          clientConfig.geo.search_indices.items!,
+        )) {
+          placesLegacyConfig.push(config[0]);
         }
 
         geoConfig.geo!.amazon_location_service.search_indices = {

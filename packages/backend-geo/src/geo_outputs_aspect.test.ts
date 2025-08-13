@@ -65,36 +65,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
     });
 
-    void it('output entry called once with multiple maps created', () => {
-      new AmplifyMap(stack, 'testMap_1', {
-        name: 'testMap1',
-        isDefault: true,
-      }); // set as default map
-      const mapNode = new AmplifyMap(stack, 'testMap_2', {
-        name: 'testMap2',
-      });
-
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      aspect.visit(mapNode);
-
-      assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-    });
-
-    void it('output entry called once with multiple places created', () => {
-      new AmplifyPlace(stack, 'testPlace_1', {
-        name: 'testPlace1',
-        isDefault: true,
-      }); // set as default place
-      const placeNode = new AmplifyPlace(stack, 'testPlace_2', {
-        name: 'testPlace2',
-      });
-
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      aspect.visit(placeNode);
-
-      assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-    });
-
     void it('output entry called once with multiple collections created', () => {
       new AmplifyCollection(stack, 'testCollection_1', {
         name: 'testCollection1',
@@ -157,88 +127,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
         }),
       );
     });
-
-    void it('throws if no map set to default', () => {
-      const noDuplicateStack = new Stack(app, 'noDuplicateStack');
-      const newNode = new AmplifyMap(noDuplicateStack, 'testMap', {
-        name: 'testMap',
-      });
-      new AmplifyMap(noDuplicateStack, 'testMap2', {
-        name: 'testDuplicateMap2',
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      assert.throws(
-        () => {
-          aspect.visit(newNode);
-        },
-        new AmplifyUserError('NoDefaultMapError', {
-          message: `No default map set in the Amplify project`,
-          resolution: `Add 'isDefault: true' to one of the 'defineMap' calls in your Amplify project`,
-        }),
-      );
-    });
-
-    void it('throws if multiple default maps', () => {
-      const node = new AmplifyMap(stack, 'testMapDefault', {
-        name: 'defaultMap',
-        isDefault: true,
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      assert.throws(
-        () => {
-          new AmplifyMap(stack, 'anotherDefaultMap', {
-            name: 'anotherDefaultMap',
-            isDefault: true,
-          });
-          aspect.visit(node);
-        },
-        new AmplifyUserError('MultipleDefaultMapError', {
-          message: `More than one default map set in the Amplify project`,
-          resolution: `Remove 'isDefault: true' from all 'defineMap' calls except for one in your Amplify project`,
-        }),
-      );
-    });
-
-    void it('throws if no place set to default', () => {
-      const noDuplicateStack = new Stack(app, 'noDuplicateStack');
-      const newNode = new AmplifyPlace(noDuplicateStack, 'testPlace', {
-        name: 'testPlace',
-      });
-      new AmplifyPlace(noDuplicateStack, 'testPlace2', {
-        name: 'testDuplicatePlace2',
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      assert.throws(
-        () => {
-          aspect.visit(newNode);
-        },
-        new AmplifyUserError('NoDefaultPlaceError', {
-          message: `No default place set in the Amplify project`,
-          resolution: `Add 'isDefault: true' to one of the 'definePlace' calls in your Amplify project`,
-        }),
-      );
-    });
-
-    void it('throws if multiple default places', () => {
-      const node = new AmplifyPlace(stack, 'testPlaceDefault', {
-        name: 'defaultPlace',
-        isDefault: true,
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      assert.throws(
-        () => {
-          new AmplifyPlace(stack, 'anotherDefaultPlace', {
-            name: 'anotherDefaultPlace',
-            isDefault: true,
-          });
-          aspect.visit(node);
-        },
-        new AmplifyUserError('MultipleDefaultPlaceError', {
-          message: `More than one default place set in the Amplify project`,
-          resolution: `Remove 'isDefault: true' from all 'definePlace' calls except for one in your Amplify project`,
-        }),
-      );
-    });
   });
 
   void describe('output validation', () => {
@@ -298,16 +186,17 @@ void describe('AmplifyGeoOutputsAspect', () => {
               default: "testMapResource",
               items: [{
                 name: "testMapResource",
-                apiKey: "TOKEN_STRING"
+                api_key_name: "TOKEN_STRING"
               }]
             })
           }
         }
        */
-      assert.ok(
+      assert.equal(
         JSON.parse(
           addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
-        ).items[0].key.includes('TOKEN'),
+        ).items[0].apiKeyName,
+        'myKey',
       );
 
       assert.equal(

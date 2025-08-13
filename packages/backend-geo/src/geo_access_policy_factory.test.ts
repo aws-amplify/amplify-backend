@@ -18,18 +18,6 @@ void describe('GeoAccessPolicyFactory', () => {
     geoAccessPolicyFactory = new GeoAccessPolicyFactory();
   });
 
-  void it('throws if no permissions are specified', () => {
-    assert.throws(() =>
-      geoAccessPolicyFactory.createPolicy(
-        [],
-        testResourceArn,
-        'test-role',
-        testResourceName,
-        stack,
-      ),
-    );
-  });
-
   void it('returns policy with get actions', () => {
     const policy = geoAccessPolicyFactory.createPolicy(
       ['get'],
@@ -566,12 +554,6 @@ void describe('GeoAccessPolicyFactory', () => {
         'geo-places:SearchText',
         'geo-places:Suggest',
       ]);
-    });
-
-    void it('generateKeyActions returns empty array for empty input', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([]);
-
-      assert.deepStrictEqual(keyActions, []);
     });
 
     void it('generateKeyActions handles duplicate actions', () => {

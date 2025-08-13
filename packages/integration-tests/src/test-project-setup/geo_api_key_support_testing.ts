@@ -103,13 +103,13 @@ export class GeoAPIKeySupportTestProject extends TestProjectBase {
     const testCollection = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Location::GeofenceCollection',
-      (name) => name.includes('integrationTestCollection'),
+      (name) => name.includes('amplifyTestCollection'),
     );
 
     const testAPIKey = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Location::APIKey',
-      (name) => name.includes('integrationTestIndexKey'),
+      (name) => name.includes('amplifyTestIndexKey'),
     );
 
     assert.equal(testCollection.length, 1);
@@ -118,7 +118,7 @@ export class GeoAPIKeySupportTestProject extends TestProjectBase {
     const expectedCollectionResponse = {
       Entries: [
         {
-          CollectionName: 'integrationTestCollection',
+          CollectionName: 'amplifyTestCollection',
           Description:
             'This is a geofence collection setup for integration testing purposes.',
           CreateTime: new Date(),
@@ -145,7 +145,7 @@ export class GeoAPIKeySupportTestProject extends TestProjectBase {
 
     const expectedKeysResponse = {
       Entries: {
-        KeyName: 'integrationTestIndexKey',
+        KeyName: 'amplifyTestIndexKey',
         CreateTime: new Date(),
         UpdateTime: new Date(),
         Restrictions: {

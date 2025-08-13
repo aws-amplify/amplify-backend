@@ -89,16 +89,16 @@ void describe('UnifiedClientConfigGenerator', () => {
               items: [
                 {
                   name: 'defaultMap',
-                  key: 'defaultKey',
+                  api_key_name: 'defaultKey',
                 },
               ],
             }),
             searchIndices: JSON.stringify({
-              default: 'defaultPlace',
+              default: 'defaultIndex',
               items: [
                 {
                   name: 'defaultIndex',
-                  key: 'defaultKey',
+                  api_key_name: 'defaultKey',
                 },
               ],
             }),
@@ -178,21 +178,19 @@ void describe('UnifiedClientConfigGenerator', () => {
           aws_region: 'us-east-1',
           maps: {
             default: 'defaultMap',
-            items: [
-              {
-                name: 'defaultMap',
-                key: 'defaultKey',
+            items: {
+              defaultMap: {
+                api_key_name: 'defaultKey',
               },
-            ],
+            },
           },
           search_indices: {
-            default: 'defaultPlace',
-            items: [
-              {
-                name: 'defaultIndex',
-                key: 'defaultKey',
+            default: 'defaultIndex',
+            items: {
+              defaultIndex: {
+                api_key_name: 'defaultKey',
               },
-            ],
+            },
           },
           geofence_collections: {
             default: 'defaultCollection',

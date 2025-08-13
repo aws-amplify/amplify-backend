@@ -31,7 +31,6 @@ export class AmplifyMap
     super(scope, id);
     this.name = props.name;
     this.id = id;
-    this.isDefault = props.isDefault || false;
 
     this.props = props;
 

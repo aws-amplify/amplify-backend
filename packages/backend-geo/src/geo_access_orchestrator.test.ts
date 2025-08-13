@@ -650,7 +650,10 @@ void describe('GeoAccessOrchestrator', () => {
             'collection',
             testResourceName,
           ),
-        { message: 'At least one permission must be specified' },
+        new AmplifyUserError('NoGeoAccessActionsFoundError', {
+          message: `No access actions found for the authenticated users.`,
+          resolution: `Please add an action for the authenticated users or remove the action statement.`,
+        }),
       );
     });
   });
@@ -802,15 +805,21 @@ void describe('GeoAccessOrchestrator', () => {
           ssmEnvironmentEntriesStub,
         );
 
-      geoAccessOrchestrator.orchestrateGeoAccess(
-        testResourceArn,
-        'map',
-        testResourceName,
+      assert.throws(
+        () => {
+          geoAccessOrchestrator.orchestrateGeoAccess(
+            testResourceArn,
+            'map',
+            testResourceName,
+          );
+
+          geoAccessOrchestrator.orchestrateKeyAccess();
+        },
+        new AmplifyUserError('NoGeoAccessActionsFoundError', {
+          message: `No access actions found for the api key users.`,
+          resolution: `Please add an action for the api key users or remove the action statement.`,
+        }),
       );
-
-      const keyActions = geoAccessOrchestrator.orchestrateKeyAccess();
-
-      assert.deepStrictEqual(keyActions, []);
     });
 
     void it('handles mixed API key and role-based access', () => {

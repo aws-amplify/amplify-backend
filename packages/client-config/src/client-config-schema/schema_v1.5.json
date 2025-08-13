@@ -259,27 +259,23 @@
           "additionalProperties": false,
           "properties": {
             "items": {
-              "type": "array",
-              "uniqueItems": true,
-              "minItems": 1,
-              "items": {
-                "description": "Actual map name",
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "key": {
-                    "type": "string"
-                  }
+              "type": "object",
+              "additionalProperties": false,
+              "propertyNames": {
+                "description": "Amazon Location Service Map name",
+                "type": "string"
+              },
+              "patternProperties": {
+                ".*": {
+                  "$ref": "#/$defs/amazon_location_service_config"
                 }
               }
             },
             "default": {
               "type": "string"
-            },
-            "required": ["items", "default"]
-          }
+            }
+          },
+          "required": ["items", "default"]
         },
         "search_indices": {
           "description": "Location search (search by places, addresses, coordinates)",
@@ -287,27 +283,23 @@
           "additionalProperties": false,
           "properties": {
             "items": {
-              "type": "array",
-              "uniqueItems": true,
-              "minItems": 1,
-              "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "propertyNames": {
                 "description": "Actual index name",
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "key": {
-                    "type": "string"
-                  }
+                "type": "string"
+              },
+              "patternProperties": {
+                ".*": {
+                  "$ref": "#/$defs/amazon_location_service_config"
                 }
               }
             },
             "default": {
               "type": "string"
-            },
-            "required": ["items", "default"]
-          }
+            }
+          },
+          "required": ["items", "default"]
         },
         "geofence_collections": {
           "description": "Geofencing (visualize virtual perimeters)",
@@ -458,6 +450,10 @@
       "properties": {
         "style": {
           "description": "Map style",
+          "type": "string"
+        },
+        "api_key_name": {
+          "description": "Resource API Key Name",
           "type": "string"
         }
       }

@@ -5,24 +5,24 @@ import {
 } from '@aws-amplify/backend-geo';
 
 export const map = defineMap({
-  name: 'integrationTestMap',
+  name: 'amplifyTestMap',
   access: (allow) => [allow.authenticated.to(['get'])],
 });
 
 export const place = definePlace({
-  name: 'integrationTestPlaceIndex',
+  name: 'amplifyTestPlaceIndex',
   access: (allow) => [
     allow.authenticated.to(['search']),
     allow.guest.to(['geocode']),
     allow.apiKey.to(['autocomplete']),
   ],
   apiKeyProps: {
-    apiKeyName: 'integrationTestIndexKey',
+    apiKeyName: 'amplifyTestIndexKey',
   },
 });
 
 export const collection = defineCollection({
-  name: 'integrationTestCollection',
+  name: 'amplifyTestCollection',
   description:
     'This is a geofence collection setup for integration testing purposes.',
   access: (allow) => [

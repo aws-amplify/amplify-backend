@@ -361,11 +361,19 @@ void describe('ClientConfigLegacyConverter', () => {
         aws_region: 'testRegion',
         maps: {
           default: 'map1',
-          items: [{ name: 'map1', api_key: 'key' }],
+          items: {
+            map1: {
+              api_key_name: 'key',
+            },
+          },
         },
         search_indices: {
           default: 'index1',
-          items: [{ name: 'index1', api_key: 'key' }],
+          items: {
+            index1: {
+              api_key_name: 'key',
+            },
+          },
         },
         geofence_collections: {
           default: 'geofence1',
