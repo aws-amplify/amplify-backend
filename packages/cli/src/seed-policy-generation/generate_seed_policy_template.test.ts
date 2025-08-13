@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { AWSAmplifyBackendOutputs } from '../../../client-config/src/client-config-schema/client_config_v1.5.js';
+import { AWSAmplifyBackendOutputs } from '../../../client-config/src/client-config-schema/client_config_v1.4.js';
 import { generateSeedPolicyTemplate } from './generate_seed_policy_template.js';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -33,7 +33,7 @@ const testBackendIdentifier: BackendIdentifier = {
 void describe('generate inline policy for seed', () => {
   const mockConfigGenerator = mock.fn(async () =>
     Promise.resolve({
-      version: '1.5',
+      version: '1.4',
       auth: {
         aws_region: testRegion,
         user_pool_id: testUserpoolId,
@@ -106,7 +106,7 @@ void describe('generate inline policy for seed', () => {
   void it('throws error if there is no userpool attached to sandbox', async () => {
     mockConfigGenerator.mock.mockImplementationOnce(async () =>
       Promise.resolve({
-        version: '1.5',
+        version: '1.4',
         storage: {
           aws_region: testRegion,
           bucket_name: 'my-cool-bucket',

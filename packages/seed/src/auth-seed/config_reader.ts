@@ -31,7 +31,7 @@ export class ConfigReader {
     const backendId = JSON.parse(process.env.AMPLIFY_BACKEND_IDENTIFIER);
 
     const authConfig = (
-      await this.generateClientConfiguration(backendId, '1.5')
+      await this.generateClientConfiguration(backendId, '1.4')
     ).auth;
     if (!authConfig) {
       throw new AmplifyUserError('MissingAuthError', {

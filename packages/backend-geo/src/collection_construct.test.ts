@@ -70,7 +70,7 @@ void describe('AmplifyCollection', () => {
     const template = Template.fromStack(stack);
     assert.equal(
       JSON.parse(template.toJSON().Description).stackType,
-      'geo-Location',
+      'geo-GeofenceCollection',
     );
   });
 

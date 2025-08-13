@@ -18,6 +18,18 @@ void describe('GeoAccessPolicyFactory', () => {
     geoAccessPolicyFactory = new GeoAccessPolicyFactory();
   });
 
+  void it('throws if no permissions are specified', () => {
+    assert.throws(() =>
+      geoAccessPolicyFactory.createPolicy(
+        [],
+        testResourceArn,
+        'test-role',
+        testResourceName,
+        stack,
+      ),
+    );
+  });
+
   void it('returns policy with get actions', () => {
     const policy = geoAccessPolicyFactory.createPolicy(
       ['get'],
@@ -481,130 +493,6 @@ void describe('GeoAccessPolicyFactory', () => {
           },
         ],
       },
-    });
-  });
-
-  void describe('API key functionality', () => {
-    void it('generateKeyActions returns correct actions for single map action', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions(['get']);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-maps:GetStaticMap',
-        'geo-maps:GetTile',
-      ]);
-    });
-
-    void it('generateKeyActions returns correct actions for single place action', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions(['search']);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-places:GetPlace',
-        'geo-places:SearchNearby',
-        'geo-places:SearchText',
-        'geo-places:Suggest',
-      ]);
-    });
-
-    void it('generateKeyActions returns correct actions for geocode', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions(['geocode']);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-places:Geocode',
-        'geo-places:ReverseGeocode',
-      ]);
-    });
-
-    void it('generateKeyActions returns correct actions for autocomplete', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'autocomplete',
-      ]);
-
-      assert.deepStrictEqual(keyActions, ['geo-places:Autocomplete']);
-    });
-
-    void it('generateKeyActions handles multiple actions', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'search',
-        'geocode',
-        'autocomplete',
-      ]);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-places:GetPlace',
-        'geo-places:SearchNearby',
-        'geo-places:SearchText',
-        'geo-places:Suggest',
-        'geo-places:Geocode',
-        'geo-places:ReverseGeocode',
-        'geo-places:Autocomplete',
-      ]);
-    });
-
-    void it('generateKeyActions handles mixed map and place actions', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'get',
-        'search',
-      ]);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-maps:GetStaticMap',
-        'geo-maps:GetTile',
-        'geo-places:GetPlace',
-        'geo-places:SearchNearby',
-        'geo-places:SearchText',
-        'geo-places:Suggest',
-      ]);
-    });
-
-    void it('generateKeyActions handles duplicate actions', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'get',
-        'get',
-      ]);
-
-      // Should include duplicates as they appear in the input
-      assert.deepStrictEqual(keyActions, [
-        'geo-maps:GetStaticMap',
-        'geo-maps:GetTile',
-        'geo-maps:GetStaticMap',
-        'geo-maps:GetTile',
-      ]);
-    });
-
-    void it('generateKeyActions handles all place actions', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'search',
-        'geocode',
-        'autocomplete',
-      ]);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-places:GetPlace',
-        'geo-places:SearchNearby',
-        'geo-places:SearchText',
-        'geo-places:Suggest',
-        'geo-places:Geocode',
-        'geo-places:ReverseGeocode',
-        'geo-places:Autocomplete',
-      ]);
-    });
-
-    void it('generateKeyActions preserves action order', () => {
-      const keyActions = geoAccessPolicyFactory.generateKeyActions([
-        'autocomplete',
-        'get',
-        'search',
-      ]);
-
-      assert.deepStrictEqual(keyActions, [
-        'geo-places:Autocomplete',
-        'geo-maps:GetStaticMap',
-        'geo-maps:GetTile',
-        'geo-places:GetPlace',
-        'geo-places:SearchNearby',
-        'geo-places:SearchText',
-        'geo-places:Suggest',
-      ]);
     });
   });
 });

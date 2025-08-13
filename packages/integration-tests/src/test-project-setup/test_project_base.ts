@@ -235,7 +235,7 @@ export abstract class TestProjectBase {
 
     const schema = JSON.parse(
       await fsp.readFile(
-        './packages/client-config/src/client-config-schema/schema_v1.5.json',
+        './packages/client-config/src/client-config-schema/schema_v1.4.json',
         'utf-8',
       ),
     );

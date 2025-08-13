@@ -74,7 +74,7 @@ export type AmplifyStorageAccessRule = {
   resource?: AmplifyStorageAccessActions[];
 };
 /**
- * run json-schema-to-typescript with --unreachableDefinitions to ensure this type is generated
+ * run json-schema-to-typescript with --unreachableDefitions to ensure this type is generated
  *
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_access_actions".
