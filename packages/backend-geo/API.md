@@ -4,13 +4,19 @@
 
 ```ts
 
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
+import { AllowPlacesAction } from '@aws-cdk/aws-location-alpha';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
+import { ApiKey } from '@aws-cdk/aws-location-alpha';
+import { ApiKeyProps } from '@aws-cdk/aws-location-alpha';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 import { CfnGeofenceCollection } from 'aws-cdk-lib/aws-location';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import * as kms from 'aws-cdk-lib/aws-kms';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
@@ -38,6 +44,7 @@ export type AmplifyMapFactoryProps = Omit<AmplifyMapProps, 'outputStorageStrateg
 export type AmplifyMapProps = {
     name: string;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+    apiKeyProps?: GeoApiKeyProps;
 };
 
 // @public
@@ -49,10 +56,12 @@ export type AmplifyPlaceFactoryProps = Omit<AmplifyPlaceProps, 'outputStorageStr
 export type AmplifyPlaceProps = {
     name: string;
     outputStorageStrategy?: BackendOutputStorageStrategy<GeoOutput>;
+    apiKeyProps?: GeoApiKeyProps;
 };
 
 // @public
 export type CollectionResources = {
+    policies: Policy[];
     cfnResources: {
         cfnCollection: CfnGeofenceCollection;
     };
@@ -62,16 +71,17 @@ export type CollectionResources = {
 export const defineCollection: (props: AmplifyCollectionFactoryProps) => ConstructFactory<ResourceProvider<CollectionResources> & StackProvider>;
 
 // @public
-export const defineMap: (props: AmplifyMapFactoryProps) => ConstructFactory<ResourceProvider<object> & StackProvider>;
+export const defineMap: (props: AmplifyMapFactoryProps) => ConstructFactory<ResourceProvider<MapResources> & StackProvider>;
 
 // @public
-export const definePlace: (props: AmplifyPlaceFactoryProps) => ConstructFactory<ResourceProvider<object> & StackProvider>;
+export const definePlace: (props: AmplifyPlaceFactoryProps) => ConstructFactory<ResourceProvider<PlaceResources> & StackProvider>;
 
 // @public (undocumented)
 export type GeoAccessBuilder = {
     authenticated: GeoActionBuilder;
     guest: GeoActionBuilder;
     groups: (groupNames: string[]) => GeoActionBuilder;
+    apiKey: GeoActionBuilder;
 };
 
 // @public (undocumented)
@@ -93,7 +103,29 @@ export type GeoActionBuilder = {
 };
 
 // @public (undocumented)
+export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
+
+// @public (undocumented)
+export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'>;
+
+// @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
+
+// @public
+export type MapResources = {
+    apiKey?: ApiKey;
+    cfnResources: {
+        cfnAPIKey?: CfnAPIKey;
+    };
+};
+
+// @public
+export type PlaceResources = {
+    apiKey?: ApiKey;
+    cfnResources: {
+        cfnAPIKey?: CfnAPIKey;
+    };
+};
 
 // (No @packageDocumentation comment for this package)
 

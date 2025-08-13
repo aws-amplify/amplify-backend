@@ -74,7 +74,7 @@ export type AmplifyStorageAccessRule = {
   resource?: AmplifyStorageAccessActions[];
 };
 /**
- * run json-schema-to-typescript with --unreachableDefinitions to ensure this type is generated
+ * run json-schema-to-typescript with --unreachableDefitions to ensure this type is generated
  *
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amplify_storage_access_actions".
@@ -91,9 +91,13 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
-  version: '1.4';
+  version: '1.5';
   /**
    * Outputs manually specified by developers for use with frontend library
    */
@@ -230,10 +234,9 @@ export interface AWSAmplifyBackendOutputs {
      * Location search (search by places, addresses, coordinates)
      */
     search_indices?: {
-      /**
-       * @minItems 1
-       */
-      items: string[];
+      items: {
+        [k: string]: AmazonLocationServiceConfig;
+      };
       default: string;
     };
     /**
@@ -287,18 +290,21 @@ export interface AmplifyUserGroupConfig {
  * This interface was referenced by `undefined`'s JSON-Schema definition
  * via the `patternProperty` ".*".
  *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ *
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema
  * via the `definition` "amazon_location_service_config".
  */
 export interface AmazonLocationServiceConfig {
   /**
-   * Map resource name
-   */
-  name?: string;
-  /**
    * Map style
    */
   style?: string;
+  /**
+   * Resource API Key Name
+   */
+  api_key_name?: string;
 }
 /**
  * This interface was referenced by `AWSAmplifyBackendOutputs`'s JSON-Schema

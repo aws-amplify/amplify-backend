@@ -8,6 +8,7 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { GeoOutput } from '@aws-amplify/backend-output-schemas';
 import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
 
 void describe('AmplifyGeoOutputsAspect', () => {
   let app: App;
@@ -44,17 +45,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
     });
 
-    void it('only backend output entry invoked with AmplifyMap node', () => {
-      const mapNode = new AmplifyMap(stack, 'testMap', {
-        name: 'testMapResourceName',
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      aspect.visit(mapNode);
-
-      assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 0);
-    });
-
     void it('output storage invoked with AmplifyPlace node', () => {
       const placeNode = new AmplifyPlace(stack, 'testPlace', {
         name: 'testPlaceResourceName',
@@ -65,18 +55,7 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
     });
 
-    void it('only backend output entry invoked with AmplifyPlace node', () => {
-      const placeNode = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceResourceName',
-      });
-      aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      aspect.visit(placeNode);
-
-      assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 0);
-    });
-
-    void it('both backend output entry and append list invoked with AmplifyCollection node', () => {
+    void it('output storage invoked with AmplifyCollection node', () => {
       const collectionNode = new AmplifyCollection(stack, 'testCollection', {
         name: 'testCollectionName',
       });
@@ -92,15 +71,12 @@ void describe('AmplifyGeoOutputsAspect', () => {
 
         isDefault: true,
       }); // set as default collection
-      new AmplifyCollection(stack, 'testCollection_2', {
+      const collectionNode = new AmplifyCollection(stack, 'testCollection_2', {
         name: 'testCollection2',
-      });
-      const mapNode = new AmplifyMap(stack, 'testMap', {
-        name: 'testMapResourceName',
       });
 
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
-      aspect.visit(mapNode);
+      aspect.visit(collectionNode);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
     });
@@ -123,9 +99,8 @@ void describe('AmplifyGeoOutputsAspect', () => {
           aspect.visit(newNode);
         },
         new AmplifyUserError('NoDefaultCollectionError', {
-          message: 'No default geofence collection set in the Amplify project',
-          resolution:
-            'Add `isDefault: true` to one of the `defineCollection` calls in your Amplify project',
+          message: `No default collection set in the Amplify project`,
+          resolution: `Add 'isDefault: true' to one of the 'defineCollection' calls in your Amplify project`,
         }),
       );
     });
@@ -147,10 +122,8 @@ void describe('AmplifyGeoOutputsAspect', () => {
           aspect.visit(node);
         },
         new AmplifyUserError('MultipleDefaultCollectionError', {
-          message:
-            'More than one default geofence collection set in the Amplify project',
-          resolution:
-            'Remove `isDefault: true` from all but one `defineCollection` calls except for one in your Amplify project',
+          message: `More than one default collection set in the Amplify project`,
+          resolution: `Remove 'isDefault: true' from all 'defineCollection' calls except for one in your Amplify project`,
         }),
       );
     });
@@ -165,7 +138,6 @@ void describe('AmplifyGeoOutputsAspect', () => {
       aspect.visit(node);
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
-      assert.equal(appendToBackendOutputListMock.mock.callCount(), 0);
 
       assert.equal(addBackendOutputEntryMock.mock.calls[0].arguments.length, 2);
       assert.equal(
@@ -179,23 +151,26 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.deepStrictEqual(
         addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
           .geofenceCollections,
-        JSON.stringify({
-          items: [],
-        }),
+        undefined,
       );
     });
 
     void it('output with multiple collections and all resources', () => {
       const node = new AmplifyMap(stack, 'mapResource', {
         name: 'testMapResource',
+        apiKeyProps: {
+          apiKeyName: 'myKey',
+        },
       });
+
+      node.generateApiKey([AllowMapsAction.GET_STATIC_MAP]);
       new AmplifyPlace(stack, 'placeResource', { name: 'testPlaceIndex' });
       new AmplifyCollection(stack, 'defaultCollection', {
         name: 'default_collection',
         isDefault: true,
       });
       new AmplifyCollection(stack, 'testCollection', {
-        name: 'default_collection',
+        name: 'testCollection',
       });
 
       aspect = new AmplifyGeoOutputsAspect(outputStorageStrategy);
@@ -203,10 +178,56 @@ void describe('AmplifyGeoOutputsAspect', () => {
 
       assert.equal(addBackendOutputEntryMock.mock.callCount(), 1);
 
-      assert.equal(addBackendOutputEntryMock.mock.calls[0].arguments.length, 2);
+      /**
+        {
+          version: '1',
+          payload: {
+            maps: JSON.stringify({
+              default: "testMapResource",
+              items: [{
+                name: "testMapResource",
+                api_key_name: "TOKEN_STRING"
+              }]
+            })
+          }
+        }
+       */
       assert.equal(
-        addBackendOutputEntryMock.mock.calls[0].arguments[0],
-        'AWS::Amplify::Geo',
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
+        ).items[0].apiKeyName,
+        'myKey',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
+        ).items[0].name,
+        'testMapResource',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .searchIndices,
+        ).items[0].name,
+        'testPlaceIndex',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .geofenceCollections,
+        ).items[0],
+        'default_collection',
+      );
+
+      assert.equal(
+        JSON.parse(
+          addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+            .geofenceCollections,
+        ).items[1],
+        'testCollection',
       );
     });
   });

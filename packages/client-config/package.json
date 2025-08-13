@@ -34,7 +34,8 @@
   "devDependencies": {
     "@aws-sdk/types": "^3.734.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
-    "aws-sdk-client-mock": "^4.1.0"
+    "aws-sdk-client-mock": "^4.1.0",
+    "json-schema-to-typescript": "^15.0.4"
   },
   "peerDependencies": {
     "@aws-sdk/client-amplify": "^3.750.0",
