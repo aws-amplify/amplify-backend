@@ -195,7 +195,7 @@ void describe('AmplifyGeoOutputsAspect', () => {
       assert.equal(
         JSON.parse(
           addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.maps,
-        ).items[0].api_key_name,
+        ).items[0].apiKeyName,
         'myKey',
       );
 

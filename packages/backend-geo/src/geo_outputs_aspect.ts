@@ -12,8 +12,7 @@ export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
 
 type ResourceOutputs = {
   name?: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  api_key_name?: string;
+  apiKeyName?: string;
 };
 
 /**
@@ -153,7 +152,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
     const mapOutputs: ResourceOutputs[] = maps.map((map): ResourceOutputs => {
       return {
         name: map.name,
-        api_key_name: map.resources.cfnResources.cfnAPIKey?.keyName,
+        apiKeyName: map.resources.cfnResources.cfnAPIKey?.keyName,
       };
     });
 
@@ -161,7 +160,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       (place): ResourceOutputs => {
         return {
           name: place.name,
-          api_key_name: place.resources.cfnResources.cfnAPIKey?.keyName,
+          apiKeyName: place.resources.cfnResources.cfnAPIKey?.keyName,
         };
       },
     );
