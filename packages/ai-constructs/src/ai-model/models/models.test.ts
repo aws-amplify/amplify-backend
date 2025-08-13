@@ -1,12 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import modelsJson from './models.json';
-import { AiModelsJson } from '../ai_model_types';
+import { AiModelsManifest } from '../ai_model_types';
 
 void describe('models.json', () => {
-  void it('parses into AiModelsJson type without errors', () => {
+  void it('parses into AiModelsManifest type without errors', () => {
     assert.doesNotThrow(() => {
-      const data: AiModelsJson = modelsJson as AiModelsJson;
+      const data: AiModelsManifest = modelsJson as AiModelsManifest;
       assert.ok(data.schemaVersion);
       assert.ok(data.lastUpdated);
       assert.ok(data.regionGroups);
@@ -15,7 +15,7 @@ void describe('models.json', () => {
   });
 
   void it('has valid structure', () => {
-    const data = modelsJson as AiModelsJson;
+    const data = modelsJson as AiModelsManifest;
 
     // Check regionGroups
     assert.ok(

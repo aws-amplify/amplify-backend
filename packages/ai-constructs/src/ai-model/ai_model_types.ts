@@ -17,7 +17,7 @@ export type AiModelsEntry = {
 };
 
 /** Root structure of the models JSON data. */
-export type AiModelsJson = {
+export type AiModelsManifest = {
   schemaVersion: 1;
   lastUpdated: string;
   regionGroups: RegionGroups;

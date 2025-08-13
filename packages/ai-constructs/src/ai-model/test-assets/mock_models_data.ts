@@ -1,6 +1,6 @@
-import { AiModelsJson } from '../ai_model_types';
+import { AiModelsManifest } from '../ai_model_types';
 
-export const mockModelsData: AiModelsJson = {
+export const mockModelsData: AiModelsManifest = {
   schemaVersion: 1,
   lastUpdated: '2025-01-01',
   regionGroups: {

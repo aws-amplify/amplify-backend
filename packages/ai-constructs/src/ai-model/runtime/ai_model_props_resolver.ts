@@ -1,22 +1,22 @@
 import modelsJson from '../models/models.json';
-import {
+import type {
   AiModelConfig,
   AiModelMapping,
   AiModelsEntry,
-  AiModelsJson,
+  AiModelsManifest,
 } from '../ai_model_types';
 
 /**
  * Resolves AI model properties based on region and cross-region inference requirements.
  */
 export class AiModelPropsResolver {
-  private readonly data: AiModelsJson;
+  private readonly data: AiModelsManifest;
 
   /**
    * Creates a new AI model properties resolver.
    */
   constructor() {
-    this.data = modelsJson as AiModelsJson;
+    this.data = modelsJson as AiModelsManifest;
   }
 
   /**
