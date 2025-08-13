@@ -50,7 +50,11 @@
     "aws-lambda": "^1.0.7",
 =======
     "@types/aws-lambda": "8.10.152",
+<<<<<<< HEAD
 >>>>>>> 28357faf13 (replace aws-lambda with @types/aws-lambda, revert bundle script)
+=======
+    "aws-lambda": "1.0.7",
+>>>>>>> 18b2b243ba (add aws-lambda to devdeps)
     "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },
