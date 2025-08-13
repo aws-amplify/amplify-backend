@@ -30,6 +30,7 @@ type AmazonCognitoStandardAttributes_6 = 'address' | 'birthdate' | 'email' | 'fa
 
 // @public
 interface AmazonLocationServiceConfig {
+    api_key_name?: string;
     style?: string;
 }
 
@@ -327,13 +328,10 @@ interface AWSAmplifyBackendOutputs {
             required?: ['items', 'default'];
         };
         search_indices?: {
-            items?: {
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[];
-            default?: string;
-            required?: ['items', 'default'];
+            items: {
+                [k: string]: AmazonLocationServiceConfig;
+            };
+            default: string;
         };
         geofence_collections?: {
             items: string[];
