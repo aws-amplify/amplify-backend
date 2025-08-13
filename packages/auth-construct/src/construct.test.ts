@@ -1739,7 +1739,8 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.cfnIdentityPool.allowUnauthenticatedIdentities = false;
+      auth.resources.cfnResources.cfnIdentityPool.allowUnauthenticatedIdentities =
+        false;
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         AllowUnauthenticatedIdentities: false,
