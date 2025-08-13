@@ -57,22 +57,6 @@ export const roleAccessBuilder: GeoAccessBuilder = {
       actions,
     }),
   }),
-  apiKey: {
-    // access for api keys
-    to: (actions) => ({
-      getAccessAcceptors: [],
-      actions,
-      uniqueDefinitionValidators: [
-        {
-          uniqueRoleToken: 'api key',
-          validationErrorOptions: {
-            message: `Access definition for api key specified multiple times.`,
-            resolution: `Combine all access definitions for api key into one access rule.`,
-          },
-        },
-      ],
-    }),
-  },
 };
 
 const getAuthRoleAcceptor = (

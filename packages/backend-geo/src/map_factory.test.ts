@@ -17,7 +17,6 @@ import {
   ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
-import { MapResources } from './types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyMap } from './map_resource.js';
 
@@ -30,7 +29,7 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
-let mapFactory: ConstructFactory<ResourceProvider<MapResources>>;
+let mapFactory: ConstructFactory<ResourceProvider<object>>;
 let constructContainer: ConstructContainer;
 let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
 let resourceNameValidator: ResourceNameValidator;
@@ -44,10 +43,6 @@ void describe('AmplifyMapFactory', () => {
 
     mapFactory = defineMap({
       name: 'testMap',
-      access: (allow) => [allow.apiKey.to(['get'])],
-      apiKeyProps: {
-        apiKeyName: 'testKey',
-      },
     });
     const stack = createStackAndSetContext();
 
@@ -163,9 +158,7 @@ void describe('AmplifyMapFactory', () => {
 
   void it('creates map with proper name and properties', () => {
     const mapConstruct = mapFactory.getInstance(getInstanceProps) as AmplifyMap;
-
     assert.equal(mapConstruct.name, 'testMap');
-    assert.equal(typeof mapConstruct.resources.apiKey?.apiKeyName, 'string'); // API Key defined
   });
 
   void it('verifies stack property exists and is equal to map stack', () => {

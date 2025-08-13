@@ -2,7 +2,7 @@ import { AmplifyFault } from '@aws-amplify/platform-core';
 import {
   ClientConfig,
   ClientConfigLegacy,
-  clientConfigTypesV1_5,
+  clientConfigTypesV1_4,
 } from '../client-config-types/client_config.js';
 
 import {
@@ -22,10 +22,10 @@ export class ClientConfigLegacyConverter {
    * Converts client config to a shape consumable by legacy libraries.
    */
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
-    // We can only convert from V1.5 of ClientConfig. For everything else, throw
-    if (!this.isClientConfigV1_5(clientConfig)) {
+    // We can only convert from V1.4 of ClientConfig. For everything else, throw
+    if (!this.isClientConfigV1_4(clientConfig)) {
       throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
-        message: 'Only version 1.5 of ClientConfig is supported.',
+        message: 'Only version 1.4 of ClientConfig is supported.',
       });
     }
 
@@ -37,8 +37,7 @@ export class ClientConfigLegacyConverter {
       legacyConfig.aws_project_region =
         clientConfig.auth?.aws_region ??
         clientConfig.data?.aws_region ??
-        clientConfig.storage?.aws_region ??
-        clientConfig.geo?.aws_region;
+        clientConfig.storage?.aws_region;
     }
 
     // Auth
@@ -206,34 +205,22 @@ export class ClientConfigLegacyConverter {
 
       if (clientConfig.geo.maps) {
         const mapsLegacyConfig: Record<string, { style: string }> = {};
-
-        for (const [name, config] of Object.entries(
-          clientConfig.geo.maps.items!,
-        )) {
-          mapsLegacyConfig[name!] = {
-            style: config.style || '', // leaving empty as it doesn't exist
-          };
+        for (const mapName in clientConfig.geo.maps.items) {
+          if (clientConfig.geo.maps.items[mapName].style) {
+            mapsLegacyConfig[mapName] = {
+              style: clientConfig.geo.maps.items[mapName].style!,
+            };
+          }
         }
-
         geoConfig.geo!.amazon_location_service.maps = {
-          default: clientConfig.geo.maps.default!,
+          default: clientConfig.geo.maps.default,
           items: mapsLegacyConfig,
         };
       }
 
       if (clientConfig.geo.search_indices) {
-        const placesLegacyConfig: string[] = [];
-
-        for (const config of Object.entries(
-          clientConfig.geo.search_indices.items!,
-        )) {
-          placesLegacyConfig.push(config[0]);
-        }
-
-        geoConfig.geo!.amazon_location_service.search_indices = {
-          default: clientConfig.geo!.search_indices.default!,
-          items: placesLegacyConfig,
-        };
+        geoConfig.geo!.amazon_location_service.search_indices =
+          clientConfig.geo.search_indices;
       }
 
       if (clientConfig.geo.geofence_collections) {
@@ -287,9 +274,9 @@ export class ClientConfigLegacyConverter {
   };
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  isClientConfigV1_5 = (
+  isClientConfigV1_4 = (
     clientConfig: ClientConfig,
-  ): clientConfig is clientConfigTypesV1_5.AWSAmplifyBackendOutputs => {
-    return clientConfig.version === '1.5';
+  ): clientConfig is clientConfigTypesV1_4.AWSAmplifyBackendOutputs => {
+    return clientConfig.version === '1.4';
   };
 }

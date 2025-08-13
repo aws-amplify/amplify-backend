@@ -2,8 +2,6 @@ import { beforeEach, describe, it } from 'node:test';
 import { AmplifyPlace } from './place_resource.js';
 import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
-import { Template } from 'aws-cdk-lib/assertions';
-import { AllowPlacesAction } from '@aws-cdk/aws-location-alpha';
 
 void describe('AmplifyPlace', () => {
   let app: App;
@@ -96,90 +94,6 @@ void describe('AmplifyPlace', () => {
       assert.equal(place.name, 'minimal');
       assert.equal(place.id, 'minimalPlace');
       assert.ok(place.stack);
-    });
-  });
-
-  void describe('API key functionality', () => {
-    void it('initializes without API key', () => {
-      const place = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceName',
-      });
-
-      assert.equal(place.resources.apiKey, undefined);
-      assert.equal(place.resources.cfnResources.cfnAPIKey, undefined);
-    });
-
-    void it('generates API key with provided actions', () => {
-      const place = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceName',
-      });
-
-      place.generateApiKey([AllowPlacesAction.SEARCH_TEXT]);
-
-      assert.ok(place.resources.apiKey);
-      assert.ok(place.resources.cfnResources.cfnAPIKey);
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Location::APIKey', {
-        Restrictions: {
-          AllowActions: ['geo-places:SearchText'],
-        },
-      });
-    });
-
-    void it('generates API key with empty actions array', () => {
-      const place = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceName',
-      });
-
-      place.generateApiKey([]);
-
-      assert.ok(place.resources.apiKey);
-      assert.ok(place.resources.cfnResources.cfnAPIKey);
-    });
-
-    void it('generates API key with multiple actions', () => {
-      const place = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceName',
-      });
-
-      place.generateApiKey([
-        AllowPlacesAction.SEARCH_TEXT,
-        AllowPlacesAction.GET_PLACE,
-      ]);
-
-      assert.ok(place.resources.apiKey);
-      assert.ok(place.resources.cfnResources.cfnAPIKey);
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Location::APIKey', {
-        Restrictions: {
-          AllowActions: ['geo-places:SearchText', 'geo-places:GetPlace'],
-        },
-      });
-    });
-
-    void it('generates API key with custom apiKeyProps', () => {
-      const place = new AmplifyPlace(stack, 'testPlace', {
-        name: 'testPlaceName',
-        apiKeyProps: {
-          description: 'Custom API key for places',
-        },
-      });
-
-      place.generateApiKey([AllowPlacesAction.SEARCH_TEXT]);
-
-      assert.ok(place.resources.apiKey);
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Location::APIKey', {
-        Restrictions: {
-          AllowActions: ['geo-places:SearchText'],
-        },
-      });
-      assert.equal(
-        place.resources.cfnResources.cfnAPIKey?.description,
-        'Custom API key for places',
-      );
     });
   });
 });

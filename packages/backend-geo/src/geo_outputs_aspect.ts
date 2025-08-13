@@ -6,14 +6,6 @@ import { AmplifyPlace } from './place_resource.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { GeoOutput, geoOutputKey } from '@aws-amplify/backend-output-schemas';
-import { GeoResourceType } from './types.js';
-
-export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
-
-type ResourceOutputs = {
-  name?: string;
-  apiKeyName?: string;
-};
 
 /**
  * Aspect Implementation for Geo Resources
@@ -26,6 +18,7 @@ export class AmplifyGeoOutputsAspect implements IAspect {
    * 3. store the outputs for all collections within outputStorageStrategy
    */
   isGeoOutputProcessed: boolean = false;
+  defaultCollectionName: string | undefined = undefined;
   private readonly geoOutputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>;
   /**
    * Constructs an instance of the AmplifyGeoOutputsAspect
@@ -69,79 +62,70 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       placeInstances.length > 0 ||
       collectionInstances.length > 0
     ) {
-      this.configureBackendOutputs(
+      this.addBackendOutput(
         collectionInstances,
-        mapInstances,
-        placeInstances,
         this.geoOutputStorageStrategy,
         Stack.of(node).region,
       );
     }
   }
 
-  private validateDefault = (
-    nodes: GeoResource[],
-    currentNode: GeoResource,
-    resourceType: GeoResourceType,
+  private validateDefaultCollection = (
+    nodes: AmplifyCollection[],
+    currentNode: AmplifyCollection,
   ) => {
-    const resourceCount = nodes.length;
+    const collectionCount = nodes.length;
 
-    let defaultNode: GeoResource | undefined = undefined;
-    const defineName =
-      resourceType.charAt(0).toUpperCase() + resourceType.slice(1);
+    let defaultCollectionName: string | undefined = undefined;
 
     // go through all children and find the default (make duplicity check on defaults)
     nodes.forEach((instance) => {
-      if (!defaultNode && instance.isDefault) {
+      if (!defaultCollectionName && instance.isDefault) {
         // if no default exists and instance is default, mark it
-        defaultNode = instance;
-      } else if (instance.isDefault && defaultNode) {
+        defaultCollectionName =
+          instance.resources.cfnResources.cfnCollection.collectionName;
+      } else if (instance.isDefault && defaultCollectionName) {
         // if default exists and instance is default (throw multiple defaults error)
-        throw new AmplifyUserError(`MultipleDefault${defineName}Error`, {
-          message: `More than one default ${resourceType} set in the Amplify project`,
-          resolution: `Remove 'isDefault: true' from all 'define${defineName}' calls except for one in your Amplify project`,
+        throw new AmplifyUserError('MultipleDefaultCollectionError', {
+          message:
+            'More than one default geofence collection set in the Amplify project',
+          resolution:
+            'Remove `isDefault: true` from all but one `defineCollection` calls except for one in your Amplify project',
         });
       }
     });
 
-    if (!defaultNode && resourceCount === 1) {
+    if (collectionCount === 1 && !defaultCollectionName) {
       // if no defaults and only one construct, instance assumed to be default
-      defaultNode = currentNode;
-    } else if (resourceCount > 1 && !defaultNode) {
+      defaultCollectionName =
+        currentNode.resources.cfnResources.cfnCollection.collectionName;
+    } else if (collectionCount > 1 && !defaultCollectionName) {
       // if multiple constructs with default collection, throw error
-      throw new AmplifyUserError(`NoDefault${defineName}Error`, {
-        message: `No default ${resourceType} set in the Amplify project`,
-        resolution: `Add 'isDefault: true' to one of the 'define${defineName}' calls in your Amplify project`,
+      throw new AmplifyUserError('NoDefaultCollectionError', {
+        message: 'No default geofence collection set in the Amplify project',
+        resolution:
+          'Add `isDefault: true` to one of the `defineCollection` calls in your Amplify project',
       });
     }
 
-    return defaultNode;
+    return defaultCollectionName;
   };
 
   /**
    * Function responsible for add all collection outputs (with defaults)
-   * @param collections - all construct instances of Amplify Geo
-   * @param maps - all map resources of Amplify Geo
-   * @param places - all place index resources of Amplify Geo
+   * @param collections - all construct instances of AmplifyGeo
    * @param outputStorageStrategy - backend output schema of type GeoOutput
    * @param region - region of geo resources
    */
-  private configureBackendOutputs(
+  private addBackendOutput(
     collections: AmplifyCollection[],
-    maps: AmplifyMap[],
-    places: AmplifyPlace[],
     outputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>,
     region: string,
   ) {
-    const defaultCollection = this.validateDefault(
+    const defaultCollectionName = this.validateDefaultCollection(
       collections,
       collections[0],
-      'collection',
-    ) as AmplifyCollection;
-
-    const defaultMap = maps[0];
-
-    const defaultPlace = places[0];
+    );
 
     // Collect all collection names for the items array
     const collectionNames = collections.map(
@@ -149,65 +133,17 @@ export class AmplifyGeoOutputsAspect implements IAspect {
         collection.resources.cfnResources.cfnCollection.collectionName,
     );
 
-    const mapOutputs: ResourceOutputs[] = maps.map((map): ResourceOutputs => {
-      return {
-        name: map.name,
-        apiKeyName: map.resources.cfnResources.cfnAPIKey?.keyName,
-      };
-    });
-
-    const placeOutputs: ResourceOutputs[] = places.map(
-      (place): ResourceOutputs => {
-        return {
-          name: place.name,
-          apiKeyName: place.resources.cfnResources.cfnAPIKey?.keyName,
-        };
-      },
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const geoPayload: any = {
-      geoRegion: region, // same type as payload of V1 schema
-    };
-
-    // Add geofence_collections as a single entry with all collections
-    if (collections.length > 0 && defaultCollection)
-      this.addPayload(
-        'geofenceCollections',
-        defaultCollection.resources.cfnResources.cfnCollection.collectionName,
-        collectionNames,
-        geoPayload,
-      );
-
-    // Add maps as a single entry with all maps
-    if (maps.length > 0 && defaultMap)
-      this.addPayload('maps', defaultMap.name, mapOutputs, geoPayload);
-
-    // Add index as a single entry with all place indices
-    if (places.length > 0 && defaultPlace)
-      this.addPayload(
-        'searchIndices',
-        defaultPlace.name,
-        placeOutputs,
-        geoPayload,
-      );
-
     // Add the main geo output entry with aws_region (snake_case to match schema)
     outputStorageStrategy.addBackendOutputEntry(geoOutputKey, {
       version: '1',
-      payload: geoPayload,
+      payload: {
+        geoRegion: region,
+        geofenceCollections: JSON.stringify({
+          // Changed from geofenceCollections to geofence_collections
+          default: defaultCollectionName,
+          items: collectionNames, // Array of all collection names
+        }),
+      },
     });
   }
-  private addPayload = (
-    resourceKey: string,
-    defaultResourceName: string,
-    resources: (ResourceOutputs | string)[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    currentPayload: any, // type of payload from V1 schema
-  ) => {
-    currentPayload[resourceKey] = JSON.stringify({
-      default: defaultResourceName,
-      items: resources,
-    });
-  };
 }

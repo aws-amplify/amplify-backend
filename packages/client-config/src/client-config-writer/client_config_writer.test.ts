@@ -43,7 +43,7 @@ void describe('client config writer', () => {
   });
 
   const clientConfig: ClientConfig = {
-    version: '1.5',
+    version: '1.4',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,

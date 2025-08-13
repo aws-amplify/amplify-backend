@@ -14,8 +14,6 @@ import {
   clientConfigTypesV1_1,
   clientConfigTypesV1_2,
   clientConfigTypesV1_3,
-  clientConfigTypesV1_4,
-  clientConfigTypesV1_5,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
@@ -25,19 +23,9 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 // the same schema (version and other types)
 
 /**
- * Translator for the version number of ClientConfig of V1.5
- */
-export class VersionContributor implements ClientConfigContributor {
-  contribute = (): ClientConfig => {
-    return { version: ClientConfigVersionOption.V1_5 };
-  };
-}
-
-/**
  * Translator for the version number of ClientConfig of V1.4
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export class VersionContributorV1_4 implements ClientConfigContributor {
+export class VersionContributor implements ClientConfigContributor {
   contribute = (): ClientConfig => {
     return { version: ClientConfigVersionOption.V1_4 };
   };
@@ -482,7 +470,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
 }
 
 /**
- * Transformer for Geo segment of ClientConfig (V1.5 or later)
+ * Transformer for Geo segment of ClientConfig (V1.1 or later)
  */
 export class GeoClientConfigContributor implements ClientConfigContributor {
   contribute = ({
@@ -492,74 +480,7 @@ export class GeoClientConfigContributor implements ClientConfigContributor {
       return {};
     }
 
-    const config: Partial<clientConfigTypesV1_5.AWSAmplifyBackendOutputs> = {};
-
-    config.geo = {
-      aws_region: geoOutput.payload.geoRegion,
-    };
-
-    const mapPayload = this.assignOutput(geoOutput.payload.maps);
-
-    const placesPayload = this.assignOutput(geoOutput.payload.searchIndices);
-
-    const collectionPayload = this.assignOutput(
-      geoOutput.payload.geofenceCollections,
-    );
-
-    if (mapPayload)
-      config.geo.maps = {
-        default: mapPayload.items[0].name,
-        items: {
-          [mapPayload.items[0].name]: {
-            api_key_name: mapPayload.items[0].api_key_name,
-          },
-        },
-      };
-    if (placesPayload)
-      config.geo.search_indices = {
-        default: placesPayload.items[0].name,
-        items: {
-          [placesPayload.items[0].name]: {
-            api_key_name: placesPayload.items[0].api_key_name,
-          },
-        },
-      };
-    if (collectionPayload) config.geo.geofence_collections = collectionPayload;
-
-    return config;
-  };
-
-  assignOutput = (resourcePayload: string | undefined) => {
-    if (resourcePayload) {
-      let resourceObj;
-      const firstParse = JSON.parse(resourcePayload);
-
-      if (firstParse && typeof firstParse === 'object' && firstParse.default) {
-        resourceObj = firstParse;
-      }
-
-      if (resourceObj) {
-        return resourceObj;
-      }
-    } else {
-      return resourcePayload;
-    }
-  };
-}
-
-/**
- * Transformer for Geo segment of ClientConfig (V1.1 or later)
- */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export class GeoClientConfigContributorV1 implements ClientConfigContributor {
-  contribute = ({
-    [geoOutputKey]: geoOutput,
-  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
-    if (geoOutput === undefined) {
-      return {};
-    }
-
-    const config: Partial<clientConfigTypesV1_4.AWSAmplifyBackendOutputs> = {};
+    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
 
     config.geo = {
       aws_region: geoOutput.payload.geoRegion,

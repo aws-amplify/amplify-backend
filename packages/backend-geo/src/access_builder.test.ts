@@ -192,29 +192,6 @@ void describe('GeoAccessBuilder', () => {
     );
   });
 
-  void it('builds geo access definition for api keys', () => {
-    const accessDefinition = roleAccessBuilder.apiKey.to(['search', 'geocode']);
-
-    assert.deepStrictEqual(accessDefinition.actions, ['search', 'geocode']);
-    assert.deepStrictEqual(
-      accessDefinition.getAccessAcceptors.map((getAccessAcceptor) =>
-        getAccessAcceptor(mockGetInstanceProps),
-      ),
-      [],
-    );
-
-    assert.equal(accessDefinition.uniqueDefinitionValidators.length, 1);
-    assert.equal(
-      accessDefinition.uniqueDefinitionValidators[0].uniqueRoleToken,
-      'api key',
-    );
-    assert.equal(
-      accessDefinition.uniqueDefinitionValidators[0].validationErrorOptions
-        .message,
-      'Access definition for api key specified multiple times.',
-    );
-  });
-
   void it('throws error when auth construct factory is not found', () => {
     const getConstructFactoryMockReturnsNull = mock.fn(() => null);
     const stubGetInstancePropsWithNullFactory: ConstructFactoryGetInstanceProps =

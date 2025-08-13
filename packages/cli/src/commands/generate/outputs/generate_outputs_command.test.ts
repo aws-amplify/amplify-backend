@@ -74,7 +74,7 @@ void describe('generate outputs command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '1.5', // default version
+      '1.4', // default version
     );
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
@@ -95,7 +95,7 @@ void describe('generate outputs command', () => {
           namespace: 'app_id',
           type: 'branch',
         },
-        '1.5',
+        '1.4',
         '/foo/bar',
         undefined,
       ],
@@ -113,7 +113,7 @@ void describe('generate outputs command', () => {
         {
           stackName: 'stack_name',
         },
-        '1.5',
+        '1.4',
         '/foo/bar',
         undefined,
       ],
@@ -131,7 +131,7 @@ void describe('generate outputs command', () => {
         {
           stackName: 'stack_name',
         },
-        '1.5',
+        '1.4',
         'foo/bar',
         undefined,
       ],
@@ -149,7 +149,7 @@ void describe('generate outputs command', () => {
         {
           stackName: 'stack_name',
         },
-        '1.5',
+        '1.4',
         'foo/bar',
         ClientConfigFormat.DART,
       ],

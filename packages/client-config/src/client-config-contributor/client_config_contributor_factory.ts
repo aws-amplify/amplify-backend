@@ -4,17 +4,15 @@ import {
   AuthClientConfigContributor as Auth1_3,
   CustomClientConfigContributor as Custom1_1,
   DataClientConfigContributor as Data1_1,
-  GeoClientConfigContributorV1 as Geo1,
-  GeoClientConfigContributor as Geo1_1,
+  GeoClientConfigContributor as Geo1,
   StorageClientConfigContributorV1 as Storage1,
   StorageClientConfigContributorV1_1 as Storage1_1,
   StorageClientConfigContributor as Storage1_2,
-  VersionContributor as VersionContributor1_5,
+  VersionContributor as VersionContributor1_4,
   VersionContributorV1,
   VersionContributorV1_1,
   VersionContributorV1_2,
   VersionContributorV1_3,
-  VersionContributorV1_4,
 } from './client_config_contributor_v1.js';
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
@@ -39,21 +37,12 @@ export class ClientConfigContributorFactory {
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter,
   ) {
     this.versionedClientConfigContributors = {
-      [ClientConfigVersionOption.V1_5]: [
-        new Auth1_3(),
-        new Data1_1(this.modelIntrospectionSchemaAdapter),
-        new Geo1_1(),
-        new Storage1_2(),
-        new VersionContributor1_5(),
-        new Custom1_1(),
-      ],
-
       [ClientConfigVersionOption.V1_4]: [
         new Auth1_3(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Geo1(),
         new Storage1_2(),
-        new VersionContributorV1_4(),
+        new VersionContributor1_4(),
         new Custom1_1(),
       ],
 
@@ -98,7 +87,7 @@ export class ClientConfigContributorFactory {
         new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_2(),
-        new VersionContributorV1_4(),
+        new VersionContributor1_4(),
         new Custom1_1(),
       ],
     };
