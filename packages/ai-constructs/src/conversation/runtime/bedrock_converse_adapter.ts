@@ -22,7 +22,7 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
-import { AiModelConfig, AiModelPropsResolver } from '../../ai-model';
+import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
