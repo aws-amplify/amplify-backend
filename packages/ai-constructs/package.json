@@ -47,6 +47,7 @@
     "@types/aws-lambda": "^8.10.119",
     "@types/lodash.transform": "^4.6.9",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "aws-lambda": "^1.0.7",
 =======
     "@types/aws-lambda": "8.10.152",
@@ -55,6 +56,10 @@
 =======
     "aws-lambda": "1.0.7",
 >>>>>>> 18b2b243ba (add aws-lambda to devdeps)
+=======
+    "@types/aws-lambda": "^8.10.149",
+    "aws-lambda": "^1.0.7",
+>>>>>>> 7ee240ddb9 (use correct ver of @types/aws-lambda)
     "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },
