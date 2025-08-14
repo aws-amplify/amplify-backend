@@ -48,6 +48,7 @@
     "@types/lodash.transform": "^4.6.9",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "aws-lambda": "^1.0.7",
 =======
     "@types/aws-lambda": "8.10.152",
@@ -60,6 +61,8 @@
     "@types/aws-lambda": "^8.10.149",
     "aws-lambda": "^1.0.7",
 >>>>>>> 7ee240ddb9 (use correct ver of @types/aws-lambda)
+=======
+>>>>>>> 0e034cd2bf (fix(ai-constructs): separate runtime exports to prevent CDK bundling in conversation Lambda)
     "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },

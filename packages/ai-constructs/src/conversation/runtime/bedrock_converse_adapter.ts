@@ -23,10 +23,14 @@ import { ConversationMessageHistoryRetriever } from './conversation_message_hist
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
 =======
 import { AiModelConfig, AiModelPropsResolver } from '../../ai-model';
 >>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
+=======
+import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
+>>>>>>> 0e034cd2bf (fix(ai-constructs): separate runtime exports to prevent CDK bundling in conversation Lambda)
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
