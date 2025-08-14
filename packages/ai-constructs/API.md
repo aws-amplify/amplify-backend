@@ -23,6 +23,14 @@ declare namespace __export__ai_model {
 }
 export { __export__ai_model }
 
+declare namespace __export__ai_model__runtime {
+    export {
+        AiModelPropsResolver,
+        AiModelConfig
+    }
+}
+export { __export__ai_model__runtime }
+
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
