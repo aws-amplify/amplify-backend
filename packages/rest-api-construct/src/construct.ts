@@ -1,41 +1,95 @@
 import { Construct } from 'constructs';
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
-import { RestApiConstructProps } from './types.js';
-import { validateRestApiPaths } from './validate_paths.js';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { MethodsProps, RestApiConstructProps } from './types.js';
 
 /**
- * Rest API construct for Amplify Backend
+ *
  */
 export class RestApiConstruct extends Construct {
   public readonly api: apiGateway.RestApi;
+  private readonly userPoolAuthorizer?: apiGateway.CognitoUserPoolsAuthorizer;
+
   /**
-   * Create a new RestApiConstruct
+   * Creates a new REST API in API Gateway with optional Cognito User Pool authorization.
+   *
+   * If a user pool is provided, all routes default to using it for authentication unless overridden.
+   * @param scope - The scope in which this construct is defined.
+   * @param id - The unique identifier for this construct.
+   * @param props - Configuration options for the REST API, including name and route definitions.
+   * @param userPool - Optional Cognito User Pool to use as the default authorizer.
    */
-  constructor(scope: Construct, id: string, props: RestApiConstructProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: RestApiConstructProps,
+    userPool?: IUserPool,
+  ) {
     super(scope, id);
 
-    //check that the paths are valid before creating the API
-    const paths: string[] = [];
-    props.apiProps.forEach((value) => paths.push(value.path));
-    validateRestApiPaths(paths);
-
-    // Create a new API Gateway REST API with the specified name
+    // Create API
     this.api = new apiGateway.RestApi(this, 'RestApi', {
       restApiName: props.apiName,
     });
 
-    // Iterate over each path configuration
+    // If userPool exists, create default authorizer
+    if (userPool) {
+      this.userPoolAuthorizer = new apiGateway.CognitoUserPoolsAuthorizer(
+        this,
+        'DefaultUserPoolAuth',
+        {
+          cognitoUserPools: [userPool],
+        },
+      );
+    }
+
     for (const pathConfig of props.apiProps) {
-      const { path, methods, lambdaEntry } = pathConfig;
-      // Add resource and methods for this route
-      const resource = this.addNestedResource(this.api.root, path);
-      for (const method of methods) {
-        resource.addMethod(
-          method.method,
-          new apiGateway.LambdaIntegration(lambdaEntry.resources.lambda),
+      const resource = this.addNestedResource(this.api.root, pathConfig.path);
+
+      for (const method of pathConfig.methods) {
+        const integration = new apiGateway.LambdaIntegration(
+          pathConfig.lambdaEntry.resources.lambda,
         );
+
+        resource.addMethod(method.method, integration, {
+          authorizer: this.getAuthorizerForMethod(method),
+          authorizationType: this.getAuthorizationType(method),
+        });
       }
     }
+  }
+
+  /**
+   *
+   * If the method specifies a user pool authorizer, it returns the default user pool authorizer.
+   * If no authorizer is specified but a user pool exists, it returns the default user pool authorizer.
+   * Otherwise, it returns undefined.
+   */
+
+  private getAuthorizerForMethod(method: MethodsProps) {
+    if (method.authorizer?.type === 'userPool' && this.userPoolAuthorizer) {
+      return this.userPoolAuthorizer;
+    }
+    if (!method.authorizer && this.userPoolAuthorizer) {
+      return this.userPoolAuthorizer;
+    }
+    return undefined;
+  }
+
+  /**
+   * Determines the authorization type based on the method's authorizer configuration.
+   * If a user pool authorizer is set or if no authorizer is specified but a user pool exists, it returns COGNITO.
+   * Otherwise, it returns NONE.
+   */
+
+  private getAuthorizationType(method: MethodsProps) {
+    if (
+      method.authorizer?.type === 'userPool' ||
+      (!method.authorizer && this.userPoolAuthorizer)
+    ) {
+      return apiGateway.AuthorizationType.COGNITO;
+    }
+    return apiGateway.AuthorizationType.NONE;
   }
 
   /**
