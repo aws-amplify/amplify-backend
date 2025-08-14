@@ -7,6 +7,7 @@
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import { FunctionResources } from '@aws-amplify/backend/types/platform';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/backend/types/platform';
 
 // @public (undocumented)
@@ -14,9 +15,6 @@ export type AuthorizerConfig = {
     type: 'none';
 } | {
     type: 'userPool';
-} | {
-    type: 'userPool';
-    groups: string[];
 };
 
 // @public (undocumented)
@@ -28,9 +26,9 @@ export type MethodsProps = {
     authorizer?: AuthorizerConfig;
 };
 
-// @public
+// @public (undocumented)
 export class RestApiConstruct extends Construct {
-    constructor(scope: Construct, id: string, props: RestApiConstructProps);
+    constructor(scope: Construct, id: string, props: RestApiConstructProps, userPool?: IUserPool);
     // (undocumented)
     readonly api: apiGateway.RestApi;
 }
@@ -39,6 +37,7 @@ export class RestApiConstruct extends Construct {
 export type RestApiConstructProps = {
     apiName: string;
     apiProps: RestApiPathConfig[];
+    defaultAuthorizer?: AuthorizerConfig;
 };
 
 // @public (undocumented)
