@@ -1,4 +1,4 @@
-import type {
+import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
