@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { MethodsProps, RestApiConstructProps } from './types.js';
+import { validateRestApiPaths } from './validate_paths.js';
 
 /**
  *
@@ -27,6 +28,11 @@ export class RestApiConstruct extends Construct {
   ) {
     super(scope, id);
 
+    //check that the paths are valid before creating the API
+    const paths: string[] = [];
+    props.apiProps.forEach((value) => paths.push(value.path));
+    validateRestApiPaths(paths);
+
     // Create API
     this.api = new apiGateway.RestApi(this, 'RestApi', {
       restApiName: props.apiName,
@@ -44,11 +50,13 @@ export class RestApiConstruct extends Construct {
     }
 
     for (const pathConfig of props.apiProps) {
-      const resource = this.addNestedResource(this.api.root, pathConfig.path);
+      const { path, methods, lambdaEntry } = pathConfig;
+      // Add resource and methods for this route
+      const resource = this.addNestedResource(this.api.root, path);
 
-      for (const method of pathConfig.methods) {
+      for (const method of methods) {
         const integration = new apiGateway.LambdaIntegration(
-          pathConfig.lambdaEntry.resources.lambda,
+          lambdaEntry.resources.lambda,
         );
 
         resource.addMethod(method.method, integration, {

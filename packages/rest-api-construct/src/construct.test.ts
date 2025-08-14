@@ -13,6 +13,9 @@ import assert from 'node:assert';
 import { RestApiPathConfig } from './types.js';
 import { handler } from './test-assets/handler.js';
 import { Context } from 'aws-lambda';
+import { Template } from 'aws-cdk-lib/assertions';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 
 const setupExampleLambda = (stack: Stack) => {
   const factory = defineFunction({
@@ -60,6 +63,84 @@ const constructApiWithPath = (path: string, n: number = 1) => {
     apiProps: apiProps,
   });
 };
+
+void describe('RestApiConstruct User Pool Handling', () => {
+  void it('attaches a Cognito authorizer when a user pool is provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    // Create a test Cognito user pool
+    const userPool = new cognito.UserPool(stack, 'TestUserPool', {
+      userPoolName: 'test-pool',
+    });
+
+    // Setup a Lambda to attach to the API
+    const lambdaResource = setupExampleLambda(stack);
+
+    // Create the API with a GET method using user pool authorization
+    new RestApiConstruct(
+      stack,
+      'RestApiWithAuth',
+      {
+        apiName: 'RestApiWithAuth',
+        apiProps: [
+          {
+            path: '/test',
+            lambdaEntry: lambdaResource,
+            methods: [
+              { method: 'GET', authorizer: { type: 'userPool' } },
+              { method: 'POST', authorizer: { type: 'userPool' } },
+            ],
+          },
+        ],
+      },
+      userPool,
+    );
+
+    const template = Template.fromStack(stack); // <-- use Template here
+
+    // Check that the GET method has the proper Cognito user pool auth
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      AuthorizationType: apiGateway.AuthorizationType.COGNITO, // this is COGNITO_USER_POOLS
+      HttpMethod: 'GET',
+    });
+
+    // Check that the POST method also has the proper Cognito user pool auth
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      AuthorizationType: apiGateway.AuthorizationType.COGNITO,
+      HttpMethod: 'POST',
+    });
+
+    // Optionally, check that authorizer is correctly attached
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      AuthorizerId: { Ref: 'RestApiWithAuthDefaultUserPoolAuth0006E5FA' }, // CDK auto-generated ID
+    });
+  });
+
+  void it('does not create an authorizer if no user pool is passed', () => {
+    const stack = new Stack(new App());
+    const lambdaResource = setupExampleLambda(stack);
+
+    new RestApiConstruct(stack, 'RestApiWithoutAuth', {
+      apiName: 'RestApiWithoutAuth',
+      apiProps: [
+        {
+          path: '/test',
+          lambdaEntry: lambdaResource,
+          methods: [{ method: 'GET', authorizer: { type: 'none' } }],
+        },
+      ],
+    });
+
+    const template = Template.fromStack(stack); // <-- use Template here
+
+    // GET method should be open (no auth)
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      AuthorizationType: apiGateway.AuthorizationType.NONE,
+      HttpMethod: 'GET',
+    });
+  });
+});
 
 void describe('RestApiConstruct Lambda Handling', () => {
   void it('integrates the result of defineFunction into the api', () => {
