@@ -8,17 +8,18 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Aspects, Stack, Tags } from 'aws-cdk-lib/core';
-import { AmplifyMapFactoryProps } from './types.js';
+import { AmplifyMapFactoryProps, MapResources } from './types.js';
 import { GeoAccessOrchestratorFactory } from './geo_access_orchestrator.js';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AmplifyMap } from './map_resource.js';
 import { AmplifyGeoOutputsAspect } from './geo_outputs_aspect.js';
+import { AllowMapsAction } from '@aws-cdk/aws-location-alpha';
 
 /**
  * Construct Factory for AmplifyMap
  */
 export class AmplifyMapFactory
-  implements ConstructFactory<ResourceProvider<object>>
+  implements ConstructFactory<ResourceProvider<MapResources>>
 {
   static mapCount: number = 0;
 
@@ -73,7 +74,7 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
 
   generateContainerEntry = ({
     scope,
-  }: GenerateContainerEntryProps): ResourceProvider<object> => {
+  }: GenerateContainerEntryProps): ResourceProvider<MapResources> => {
     const amplifyMap = new AmplifyMap(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
@@ -98,6 +99,20 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
       amplifyMap.name,
     );
 
+    // orchestrateGeoAccess already called and ApiKey actions processed
+    const mapActions =
+      geoAccessOrchestrator.orchestrateKeyAccess() as AllowMapsAction[];
+
+    if (!mapActions.length && this.props.apiKeyProps) {
+      throw new AmplifyUserError('NoApiKeyAccessError', {
+        message:
+          'No API key can be created for maps without access definitions defined for it.',
+        resolution: 'Add at least one map action in the access definition.',
+      });
+    } else if (this.props.apiKeyProps) {
+      amplifyMap.generateApiKey(mapActions);
+    }
+
     const geoAspects = Aspects.of(Stack.of(amplifyMap));
     if (!geoAspects.all.length) {
       geoAspects.add(
@@ -116,5 +131,5 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineMap = (
   props: AmplifyMapFactoryProps,
-): ConstructFactory<ResourceProvider<object> & StackProvider> =>
+): ConstructFactory<ResourceProvider<MapResources> & StackProvider> =>
   new AmplifyMapFactory(props);

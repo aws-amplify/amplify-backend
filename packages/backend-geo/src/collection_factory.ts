@@ -88,11 +88,13 @@ export class AmplifyCollectionGenerator
       [],
     );
 
-    geoAccessOrchestrator.orchestrateGeoAccess(
-      amplifyCollection.resources.cfnResources.cfnCollection.attrCollectionArn,
-      'collection',
-      amplifyCollection.name,
-    );
+    amplifyCollection.resources.policies =
+      geoAccessOrchestrator.orchestrateGeoAccess(
+        amplifyCollection.resources.cfnResources.cfnCollection
+          .attrCollectionArn,
+        'collection',
+        amplifyCollection.name,
+      );
 
     const geoAspects = Aspects.of(Stack.of(amplifyCollection));
     if (!geoAspects.all.length) {

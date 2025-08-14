@@ -124,6 +124,7 @@ void describe('AmplifyCollectionFactory', () => {
     const customCollectionFactory = defineCollection({
       name: 'customCollection',
       description: 'Custom test collection',
+      access: (allow) => [allow.apiKey.to(['create'])],
     });
 
     const collectionConstruct =
