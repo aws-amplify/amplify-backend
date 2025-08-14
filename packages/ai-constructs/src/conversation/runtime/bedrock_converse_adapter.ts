@@ -20,7 +20,6 @@ import {
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
-import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
 import { AiModelConfig, AiModelPropsResolver } from '../../ai-model';
@@ -210,7 +209,7 @@ export class BedrockConverseAdapter {
     let stopReason = '';
     // Accumulates client facing content per turn.
     // So that upstream can persist full message at the end of the streaming.
-    const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
+    const accumulatedTurnContent: Array<ContentBlock> = [];
     do {
       const toolConfig = this.createToolConfiguration();
       const converseCommandInput: ConverseStreamCommandInput = {
