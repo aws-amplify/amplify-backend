@@ -1,18 +1,6 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { AiModelsManifest } from '../ai_model_types';
 
 export const mockModelsData: AiModelsManifest = {
-=======
-import { AiModelsJson } from '../ai_model_types';
-
-export const mockModelsData: AiModelsJson = {
->>>>>>> 5399894242 (feat: add mock data and resolver for AI model properties)
-=======
-import { AiModelsManifest } from '../ai_model_types';
-
-export const mockModelsData: AiModelsManifest = {
->>>>>>> d74e9c107b (change AiModelsJson to AiModelsManifest)
   schemaVersion: 1,
   lastUpdated: '2025-01-01',
   regionGroups: {

@@ -46,27 +46,7 @@
     "@aws-amplify/backend-output-storage": "^1.3.1",
     "@types/aws-lambda": "^8.10.119",
     "@types/lodash.transform": "^4.6.9",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     "aws-lambda": "^1.0.7",
-=======
-    "@types/aws-lambda": "8.10.152",
-<<<<<<< HEAD
->>>>>>> 28357faf13 (replace aws-lambda with @types/aws-lambda, revert bundle script)
-=======
-    "aws-lambda": "1.0.7",
->>>>>>> 18b2b243ba (add aws-lambda to devdeps)
-=======
-    "@types/aws-lambda": "^8.10.149",
-    "aws-lambda": "^1.0.7",
->>>>>>> 7ee240ddb9 (use correct ver of @types/aws-lambda)
-=======
->>>>>>> 0e034cd2bf (fix(ai-constructs): separate runtime exports to prevent CDK bundling in conversation Lambda)
-=======
-    "aws-lambda": "^1.0.7",
->>>>>>> 56ad79c03a (fix(lint, ai-constructs): re-add aws-lambda and @types/aws-lambda)
     "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },

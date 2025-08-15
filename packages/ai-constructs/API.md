@@ -23,10 +23,6 @@ declare namespace __export__ai_model {
 }
 export { __export__ai_model }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b23b064b99 (update api doc)
 declare namespace __export__ai_model__runtime {
     export {
         AiModelPropsResolver,
@@ -35,11 +31,6 @@ declare namespace __export__ai_model__runtime {
 }
 export { __export__ai_model__runtime }
 
-<<<<<<< HEAD
-=======
->>>>>>> 353c6a1fd3 (test: enhance AI model policy validation in conversation handler tests)
-=======
->>>>>>> b23b064b99 (update api doc)
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
@@ -70,15 +61,7 @@ class AiModelArnGeneratorConstruct extends Construct {
     generateArns(modelConfig: AiModelConfig): string[];
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 // @public
-=======
-// @public (undocumented)
->>>>>>> 353c6a1fd3 (test: enhance AI model policy validation in conversation handler tests)
-=======
-// @public
->>>>>>> 079832009a (update package-lock.json and small doc update)
 type AiModelConfig = {
     modelId: string;
     region: string;

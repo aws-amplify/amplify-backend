@@ -1,10 +1,6 @@
 ---
 '@aws-amplify/ai-constructs': minor
 '@aws-amplify/backend-ai': minor
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 ---
 
 feat(ai): add cross-region inference support for AI conversation routes
@@ -13,39 +9,3 @@ feat(ai): add cross-region inference support for AI conversation routes
 - Conversation handler supports `crossRegionInference` and uses generated ARNs for IAM policies.
 - Runtime (`BedrockConverseAdapter`) resolves foundation model vs inference profile ID using `AiModelPropsResolver`.
 - Add `models.json` manifest and tests; update public exports.
-=======
-=======
-'@aws-amplify/backend-function': patch
->>>>>>> 91e67ee83d (update changeset)
-=======
->>>>>>> b0848cb48f (remove changeset entry for backend-function)
-'create-amplify': patch
-=======
->>>>>>> 8cac681777 (update changeset)
----
-
-feat(ai): add cross-region inference support for AI conversation routes
-
-<<<<<<< HEAD
-- Added `AiModelArnGeneratorConstruct` + `AiModelPropsResolver` for resolving Bedrock model/inference profile ARNs based on region + CRI.
-- `ConversationHandlerFunction` and runtime now support optional `crossRegionInference` in model configs and use generated ARNs for IAM policies.
-- Exported new AI model construct/types from `@aws-amplify/ai-constructs/ai-model`.
-- Updated tests, bundling config, and deps (`aws-cdk-lib` bump in create-amplify, `aws-lambda` dep).
-<<<<<<< HEAD
-<<<<<<< HEAD
-- Minor telemetry schema adjustments in platform-core.
-<<<<<<< HEAD
->>>>>>> cb44f64411 (docs: final changeset)
-=======
-=======
->>>>>>> da4aa12fbb (update changesets)
-- Add `jmespath` dependency needed by test to `backend-function`
->>>>>>> 91e67ee83d (update changeset)
-=======
->>>>>>> b0848cb48f (remove changeset entry for backend-function)
-=======
-- Add `AiModelArnGeneratorConstruct` + `AiModelPropsResolver` for region-aware model/inference-profile resolution.
-- Conversation handler supports `crossRegionInference` and uses generated ARNs for IAM policies.
-- Runtime (`BedrockConverseAdapter`) resolves foundation model vs inference profile ID using `AiModelPropsResolver`.
-- Add `models.json` manifest and tests; update public exports.
->>>>>>> 8cac681777 (update changeset)

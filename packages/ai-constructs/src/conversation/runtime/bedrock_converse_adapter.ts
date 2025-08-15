@@ -22,15 +22,7 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
-=======
-import { AiModelConfig, AiModelPropsResolver } from '../../ai-model';
->>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
-=======
-import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
->>>>>>> 0e034cd2bf (fix(ai-constructs): separate runtime exports to prevent CDK bundling in conversation Lambda)
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -198,21 +190,7 @@ export class BedrockConverseAdapter {
         this.event.modelConfiguration.crossRegionInference ?? false,
     };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
-=======
-    this.logger.info(
-      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
-    );
-    const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
-    this.logger.info(
-      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
-    );
->>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
-=======
-    const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
->>>>>>> 88b3c4b995 (fix(ai-constructs): remove debug lambda logs)
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
