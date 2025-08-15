@@ -199,6 +199,7 @@ export class BedrockConverseAdapter {
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
 =======
     this.logger.info(
@@ -209,6 +210,9 @@ export class BedrockConverseAdapter {
       `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
     );
 >>>>>>> a93b2559ad (feat: integrate AiModelPropsResolver for model ID resolution and update BedrockConverseAdapter)
+=======
+    const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
+>>>>>>> 88b3c4b995 (fix(ai-constructs): remove debug lambda logs)
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
