@@ -319,13 +319,10 @@ interface AWSAmplifyBackendOutputs {
     geo?: {
         aws_region: string;
         maps?: {
-            items?: {
-                name?: string;
-                key?: string;
-                [k: string]: unknown;
-            }[];
-            default?: string;
-            required?: ['items', 'default'];
+            items: {
+                [k: string]: AmazonLocationServiceConfig;
+            };
+            default: string;
         };
         search_indices?: {
             items: {
@@ -892,8 +889,8 @@ declare namespace clientConfigTypesV1_5 {
         AmplifyStorageAccessActions,
         AWSAmplifyBackendOutputs,
         AmplifyUserGroupConfig,
-        AmplifyStorageBucket,
-        AmazonLocationServiceConfig
+        AmazonLocationServiceConfig,
+        AmplifyStorageBucket
     }
 }
 export { clientConfigTypesV1_5 }
