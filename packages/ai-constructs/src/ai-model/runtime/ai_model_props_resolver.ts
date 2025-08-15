@@ -1,4 +1,4 @@
-import modelsJson from '../models/models.json';
+import models from '../models/models.json';
 import type {
   AiModelConfig,
   AiModelMapping,
@@ -16,7 +16,7 @@ export class AiModelPropsResolver {
    * Creates a new AI model properties resolver.
    */
   constructor() {
-    this.data = modelsJson as AiModelsManifest;
+    this.data = models as AiModelsManifest;
   }
 
   /**

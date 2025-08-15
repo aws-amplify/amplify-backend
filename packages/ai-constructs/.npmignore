@@ -7,8 +7,11 @@
 !lib/**/*.js
 !lib/**/*.d.ts
 
+# Then add back ai-model/models/models.json
+!lib/ai-model/models/models.json
+
 # Then ignore test js and ts declaration files
 *.test.js
 *.test.d.ts
 
-# This leaves us with including only js and ts declaration files of functional code
+# This leaves us with including only js and ts declaration files of functional code, and essential JSON data files
