@@ -34,5 +34,16 @@ export const createEmptyCdkProject = async (
     force: true,
   });
 
+  // Update tsconfig.json to include types for "node:" imports
+  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
+  const tsconfig = JSON.parse(await fsp.readFile(tsconfigPath, 'utf-8'));
+  if (!tsconfig.compilerOptions.types) {
+    tsconfig.compilerOptions.types = [];
+  }
+  if (!tsconfig.compilerOptions.types.includes('node')) {
+    tsconfig.compilerOptions.types.push('node');
+  }
+  await fsp.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+
   return { projectName, projectRoot };
 };
