@@ -13,5 +13,6 @@
     { "path": "../backend-output-schemas" },
     { "path": "../plugin-types" },
     { "path": "../backend-output-storage" }
-  ]
+  ],
+  "include": ["./src/**/*", "./src/ai-model/models/models.json"]
 }

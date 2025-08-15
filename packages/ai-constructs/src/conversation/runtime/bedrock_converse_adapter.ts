@@ -20,9 +20,9 @@ import {
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
-import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { ValidationError } from './errors';
 import { UserAgentProvider } from './user_agent_provider';
+import { AiModelConfig, AiModelPropsResolver } from '../../ai-model/runtime';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -45,6 +45,7 @@ export class BedrockConverseAdapter {
     private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
       { region: event.modelConfiguration.region },
     ),
+    private readonly aiModelResolver: AiModelPropsResolver = new AiModelPropsResolver(),
     eventToolsProvider = new ConversationTurnEventToolsProvider(event),
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
       event,
@@ -99,6 +100,19 @@ export class BedrockConverseAdapter {
   askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
+
+    const aiModelConfig: AiModelConfig = {
+      modelId: this.event.modelConfiguration.modelId,
+      region:
+        this.event.modelConfiguration.region ??
+        process.env.AWS_REGION ??
+        (this.bedrockClient.config.region as string),
+      crossRegionInference:
+        this.event.modelConfiguration.crossRegionInference ?? false,
+    };
+
+    this.event.modelConfiguration.modelId =
+      this.aiModelResolver.resolveModelId(aiModelConfig);
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
@@ -163,8 +177,20 @@ export class BedrockConverseAdapter {
    * Asks Bedrock for response using streaming version of Converse API.
    */
   async *askBedrockStreaming(): AsyncGenerator<StreamingResponseChunk> {
-    const { modelId, systemPrompt, inferenceConfiguration } =
+    const { systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
+
+    const aiModelConfig: AiModelConfig = {
+      modelId: this.event.modelConfiguration.modelId,
+      region:
+        this.event.modelConfiguration.region ??
+        process.env.AWS_REGION ??
+        (this.bedrockClient.config.region as string),
+      crossRegionInference:
+        this.event.modelConfiguration.crossRegionInference ?? false,
+    };
+
+    const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
@@ -177,7 +203,7 @@ export class BedrockConverseAdapter {
     let stopReason = '';
     // Accumulates client facing content per turn.
     // So that upstream can persist full message at the end of the streaming.
-    const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
+    const accumulatedTurnContent: Array<ContentBlock> = [];
     do {
       const toolConfig = this.createToolConfiguration();
       const converseCommandInput: ConverseStreamCommandInput = {

@@ -18,7 +18,11 @@ void describe('Conversation turn executor', () => {
       listQueryName: '',
       listQueryInputTypeName: '',
     },
-    modelConfiguration: { modelId: '', systemPrompt: '' },
+    modelConfiguration: {
+      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+      systemPrompt: '',
+      region: 'us-east-1',
+    },
     request: { headers: { authorization: '' } },
     responseMutation: {
       name: '',

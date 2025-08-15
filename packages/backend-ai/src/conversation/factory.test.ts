@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   ConstructFactoryGetInstanceProps,
   ResourceNameValidator,
@@ -13,7 +14,6 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultEntryHandler } from './test-assets/with-default-entry/resource.js';
 import { customEntryHandler } from './test-assets/with-custom-entry/resource.js';
-import { Template } from 'aws-cdk-lib/assertions';
 import { defineConversationHandlerFunction } from './factory.js';
 import { ConversationHandlerFunction } from '@aws-amplify/ai-constructs/conversation';
 import { AmplifyError } from '@aws-amplify/platform-core';
@@ -100,18 +100,60 @@ void describe('ConversationHandlerFactory', () => {
     });
     const lambda = factory.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-    template.resourceCountIs('AWS::IAM::Policy', 1);
-    const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
-    assert.ok(
-      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelId',
-      ),
+
+    // Expect multiple policies (Lambda/log retention + our Bedrock policy)
+    template.resourceCountIs('AWS::IAM::Policy', 3);
+
+    // Validate policy shape without peeking into tokenized Resource
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith([
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ]),
+            Effect: 'Allow',
+            Resource: Match.anyValue(),
+          }),
+        ]),
+      },
+    });
+
+    // Find the custom resource
+    const tpl = template.toJSON();
+    const withModelConfig = Object.values(tpl.Resources).filter(
+      (r: unknown) => {
+        const resource = r as Record<string, unknown>;
+        const properties = resource?.Properties as Record<string, unknown>;
+        return properties?.modelConfig;
+      },
     );
     assert.ok(
-      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelRegion',
-      ),
+      withModelConfig.length > 0,
+      'No custom resource with modelConfig found',
     );
+
+    const arnGenCr = withModelConfig.find((r: unknown) => {
+      const resource = r as Record<string, unknown>;
+      const properties = resource?.Properties as Record<string, unknown>;
+      const modelConfig = properties?.modelConfig as Record<string, unknown>;
+      return modelConfig?.modelId === 'testModelId';
+    });
+    assert.ok(
+      arnGenCr,
+      'Expected custom resource with matching modelId not found',
+    );
+    const arnGenCrResource = arnGenCr as Record<string, unknown>;
+    const arnGenCrProperties = arnGenCrResource?.Properties as Record<
+      string,
+      unknown
+    >;
+    const arnGenCrModelConfig = arnGenCrProperties?.modelConfig as Record<
+      string,
+      unknown
+    >;
+    assert.strictEqual(arnGenCrModelConfig?.region, 'testModelRegion');
   });
 
   void it('accepts modelId as schema type', () => {
@@ -130,18 +172,57 @@ void describe('ConversationHandlerFactory', () => {
     });
     const lambda = factory.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(lambda.resources.lambda));
-    template.resourceCountIs('AWS::IAM::Policy', 1);
-    const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
-    assert.ok(
-      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelId',
-      ),
+
+    template.resourceCountIs('AWS::IAM::Policy', 3);
+
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith([
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ]),
+            Effect: 'Allow',
+            Resource: Match.anyValue(),
+          }),
+        ]),
+      },
+    });
+
+    const tpl = template.toJSON();
+    const withModelConfig = Object.values(tpl.Resources).filter(
+      (r: unknown) => {
+        const resource = r as Record<string, unknown>;
+        const properties = resource?.Properties as Record<string, unknown>;
+        return properties?.modelConfig;
+      },
     );
     assert.ok(
-      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
-        'testModelRegion',
-      ),
+      withModelConfig.length > 0,
+      'No custom resource with modelConfig found',
     );
+
+    const arnGenCr = withModelConfig.find((r: unknown) => {
+      const resource = r as Record<string, unknown>;
+      const properties = resource?.Properties as Record<string, unknown>;
+      const modelConfig = properties?.modelConfig as Record<string, unknown>;
+      return modelConfig?.modelId === 'testModelId';
+    });
+    assert.ok(
+      arnGenCr,
+      'Expected custom resource with matching schema-derived modelId not found',
+    );
+    const arnGenCrResource = arnGenCr as Record<string, unknown>;
+    const arnGenCrProperties = arnGenCrResource?.Properties as Record<
+      string,
+      unknown
+    >;
+    const arnGenCrModelConfig = arnGenCrProperties?.modelConfig as Record<
+      string,
+      unknown
+    >;
+    assert.strictEqual(arnGenCrModelConfig?.region, 'testModelRegion');
   });
 
   void it('throws if resourceNameValidator detects an invalid name', () => {

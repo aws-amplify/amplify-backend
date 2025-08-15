@@ -69,6 +69,7 @@ type DefineConversationHandlerFunctionProps = {
     models: Array<{
         modelId: string | AiModel;
         region?: string;
+        crossRegionInference?: boolean;
     }>;
     memoryMB?: number;
     timeoutSeconds?: number;

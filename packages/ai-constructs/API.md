@@ -14,6 +14,23 @@ import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
+declare namespace __export__ai_model {
+    export {
+        AiModelArnGeneratorConstruct,
+        AiModelPropsResolver,
+        AiModelConfig
+    }
+}
+export { __export__ai_model }
+
+declare namespace __export__ai_model__runtime {
+    export {
+        AiModelPropsResolver,
+        AiModelConfig
+    }
+}
+export { __export__ai_model__runtime }
+
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
@@ -39,6 +56,33 @@ declare namespace __export__conversation__runtime {
 export { __export__conversation__runtime }
 
 // @public
+class AiModelArnGeneratorConstruct extends Construct {
+    constructor(scope: Construct, id?: string);
+    generateArns(modelConfig: AiModelConfig): string[];
+}
+
+// @public
+type AiModelConfig = {
+    modelId: string;
+    region: string;
+    crossRegionInference: boolean;
+};
+
+// @public
+class AiModelPropsResolver {
+    constructor();
+    getFoundationModelId(inferenceProfileId: string): string;
+    getGeography(region: string): string;
+    getInferenceProfileId(foundationModelId: string, geography: string): string;
+    getSupportedSourceRegions(modelId: string, geography: string): string[];
+    isKnownInferenceProfile(modelId: string): boolean;
+    requiresCri(modelId: string, region: string): boolean;
+    resolveModelId(modelConfig: AiModelConfig): string;
+    supportsCri(modelId: string, region: string): boolean;
+    validateModelId(modelId: string): void;
+}
+
+// @public
 class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerFunctionProps);
     // (undocumented)
@@ -52,6 +96,7 @@ type ConversationHandlerFunctionProps = {
     entry?: string;
     models: Array<{
         modelId: string;
+        crossRegionInference?: boolean;
         region?: string;
     }>;
     memoryMB?: number;
@@ -76,6 +121,7 @@ type ConversationTurnEvent = {
     graphqlApiEndpoint: string;
     modelConfiguration: {
         modelId: string;
+        crossRegionInference?: boolean;
         systemPrompt: string;
         region?: string;
         inferenceConfiguration?: {
