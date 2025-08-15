@@ -190,13 +190,7 @@ export class BedrockConverseAdapter {
         this.event.modelConfiguration.crossRegionInference ?? false,
     };
 
-    this.logger.info(
-      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
-    );
     const modelId = this.aiModelResolver.resolveModelId(aiModelConfig);
-    this.logger.info(
-      `${aiModelConfig.modelId} - ${aiModelConfig.region} - ${aiModelConfig.crossRegionInference}`,
-    );
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
