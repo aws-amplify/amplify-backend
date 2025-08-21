@@ -6,12 +6,14 @@ import {
 export type RestApiConstructProps = {
   apiName: string;
   apiProps: RestApiPathConfig[];
+  defaultAuthorizer?: AuthorizerConfig;
 };
 
 export type AuthorizerConfig =
   | { type: 'none' } // public
-  | { type: 'userPool' } // signed-in users
-  | { type: 'userPool'; groups: string[] }; // signed-in + group restriction
+  | { type: 'userPool' }; // signed-in users
+// TODO: Group Validation
+// | { type: 'userPool', groups: string[] } // signed-in users in a group
 
 export type MethodsProps = {
   method: HttpMethod;
