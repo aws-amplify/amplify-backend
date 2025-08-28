@@ -1,5 +1,5 @@
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { AmplifyPlaceProps, PlaceResources } from './types.js';
+import { AmplifyPlaceProps, GeoApiKeyProps, PlaceResources } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 import { AllowPlacesAction, ApiKey } from '@aws-cdk/aws-location-alpha';
 import { Aws, Resource, Stack } from 'aws-cdk-lib';
@@ -20,8 +20,10 @@ export class AmplifyPlace
   readonly id: string;
   readonly name: string;
   readonly isDefault: boolean;
+  readonly merge: boolean;
   readonly policies: Policy[];
-  private readonly props: AmplifyPlaceProps;
+  readonly props: AmplifyPlaceProps;
+  private actions: AllowPlacesAction[];
 
   /**
    * Creates an instance of AmplifyPlace
@@ -31,6 +33,8 @@ export class AmplifyPlace
 
     this.name = props.name;
     this.id = id;
+
+    this.merge = props.apiKeyProps?.merge || true;
 
     this.props = props;
 
@@ -47,6 +51,18 @@ export class AmplifyPlace
 
   getResourceArn = (): string => {
     return `arn:${Aws.PARTITION}:geo-places:${this.stack.region}::provider/default`;
+  };
+
+  getApiKeyProps = (): GeoApiKeyProps => {
+    return this.props.apiKeyProps ?? {};
+  };
+
+  getActions = (): AllowPlacesAction[] => {
+    return this.actions;
+  };
+
+  setActions = (placeActions: AllowPlacesAction[]) => {
+    this.actions = placeActions;
   };
 
   generateApiKey = (actions: AllowPlacesAction[]) => {

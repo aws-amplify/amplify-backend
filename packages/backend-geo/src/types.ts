@@ -100,7 +100,9 @@ export type AmplifyCollectionProps = {
 export type GeoApiKeyProps = Omit<
   ApiKeyProps,
   'allowMapsActions' | 'allowPlacesActions'
->;
+> & {
+  merge?: boolean;
+};
 
 // ----------------------------------- output properties ----------------------------------------------
 

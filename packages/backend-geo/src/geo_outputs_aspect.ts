@@ -7,8 +7,17 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { GeoOutput, geoOutputKey } from '@aws-amplify/backend-output-schemas';
 import { GeoResourceType } from './types.js';
+import {
+  AllowMapsAction,
+  AllowPlacesAction,
+  ApiKey,
+} from '@aws-cdk/aws-location-alpha';
+import { randomBytes } from 'crypto';
+import { CfnAPIKey } from 'aws-cdk-lib/aws-location';
 
-export type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
+type GeoResource = AmplifyMap | AmplifyPlace | AmplifyCollection;
+
+type LocationApiKeyResource = AmplifyMap | AmplifyPlace;
 
 type ResourceOutputs = {
   name?: string;
@@ -27,6 +36,10 @@ export class AmplifyGeoOutputsAspect implements IAspect {
    */
   isGeoOutputProcessed: boolean = false;
   private readonly geoOutputStorageStrategy: BackendOutputStorageStrategy<GeoOutput>;
+
+  private apiKeyResources: Partial<
+    Record<GeoResourceType, LocationApiKeyResource>
+  > = {};
   /**
    * Constructs an instance of the AmplifyGeoOutputsAspect
    * @param outputStorageStrategy - storage schema for Geo outputs
@@ -56,19 +69,53 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       (el) => el instanceof AmplifyMap,
     ) as AmplifyMap[];
 
+    this.apiKeyResources.map = mapInstances[0]; // only one instance of map allowed
+
     const placeInstances = Stack.of(node).node.children.filter(
       (el) => el instanceof AmplifyPlace,
     ) as AmplifyPlace[];
+
+    this.apiKeyResources.place = placeInstances[0]; // only one instance of place allowed
 
     const collectionInstances = Stack.of(node).node.children.filter(
       (el) => el instanceof AmplifyCollection,
     ) as AmplifyCollection[];
 
-    if (
-      mapInstances.length > 0 ||
-      placeInstances.length > 0 ||
-      collectionInstances.length > 0
-    ) {
+    const apiKeyResourceCount = Object.keys(this.apiKeyResources).length;
+    const geoResourceCount = apiKeyResourceCount + collectionInstances.length;
+
+    if (geoResourceCount > 0) {
+      if (apiKeyResourceCount > 0) {
+        let generateGenericKey: boolean = true;
+        // verify that all these keys need to be consolidated
+        Object.entries(this.apiKeyResources).forEach(([key, resource]) => {
+          // cannot have an existing API key with request for a generic API key
+          if (resource.resources.apiKey && resource.merge)
+            throw new AmplifyUserError('APIKeyMergeError', {
+              message: `The ${key} resource in the stack has been marked as a API Key merge interest but already has a defined API key.`,
+              resolution: `Mark all API Key properties with the 'merge: True' flag or remove the flag from all API key resource properties.`,
+            });
+          // if no merge and resource contains API key, no generic API key should be created
+          else if (resource.resources.apiKey && !resource.merge)
+            generateGenericKey = false;
+
+          if (
+            !JSON.stringify(
+              resource.getApiKeyProps() ===
+                JSON.stringify(this.apiKeyResources.map?.getApiKeyProps()),
+            )
+          )
+            throw new AmplifyUserError('APIKeyPropertyMismatchError', {
+              message: `The merge is incompatible due to mismatching properties from the ${key} API key resource.`,
+              resolution: `Ensure all API key resources have the same properties or remove the 'merge: True' flag from all API key resources.`,
+            });
+        });
+
+        // only generate generic key if required
+        if (generateGenericKey)
+          this.configureApiKey(node, this.apiKeyResources);
+      }
+
       this.configureBackendOutputs(
         collectionInstances,
         mapInstances,
@@ -78,6 +125,33 @@ export class AmplifyGeoOutputsAspect implements IAspect {
       );
     }
   }
+
+  private configureApiKey = (
+    node: IConstruct,
+    resources: Partial<Record<GeoResourceType, LocationApiKeyResource>>,
+  ) => {
+    // provisioning the new API key
+    const genericKeyName: string = `amplify-${Object.keys(resources).join('-')}-api-key-${randomBytes(4).toString('hex')}`;
+    const genericApiKey = new ApiKey(Stack.of(node), genericKeyName, {
+      ...resources.map?.getApiKeyProps(),
+      apiKeyName: genericKeyName.substring(0, -5),
+      allowMapsActions:
+        (resources.map?.getActions() as AllowMapsAction[]) || [],
+      allowPlacesActions:
+        (resources.place?.getActions() as AllowPlacesAction[]) || [],
+    });
+
+    // attaching each Amplify resource with the new generic API key
+    for (const key in resources) {
+      const resourceType = key as GeoResourceType;
+      const resource = resources[resourceType];
+      if (resource) {
+        resource.resources.apiKey = genericApiKey;
+        resource.resources.cfnResources.cfnAPIKey =
+          genericApiKey.node.findChild('Resource') as CfnAPIKey;
+      }
+    }
+  };
 
   private validateDefault = (
     nodes: GeoResource[],

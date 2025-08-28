@@ -1,5 +1,5 @@
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { AmplifyMapProps, MapResources } from './types.js';
+import { AmplifyMapProps, GeoApiKeyProps, MapResources } from './types.js';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 import { AllowMapsAction, ApiKey } from '@aws-cdk/aws-location-alpha';
 import { Aws, Resource } from 'aws-cdk-lib';
@@ -21,7 +21,10 @@ export class AmplifyMap
   readonly id: string;
   readonly name: string;
   readonly isDefault: boolean;
+  readonly merge: boolean;
   readonly policies: Policy[];
+
+  protected actions: AllowMapsAction[];
   private readonly props: AmplifyMapProps;
 
   /**
@@ -31,6 +34,8 @@ export class AmplifyMap
     super(scope, id);
     this.name = props.name;
     this.id = id;
+
+    this.merge = props.apiKeyProps?.merge || true;
 
     this.props = props;
 
@@ -47,6 +52,18 @@ export class AmplifyMap
 
   getResourceArn = (): string => {
     return `arn:${Aws.PARTITION}:geo-maps:${this.stack.region}::provider/default`;
+  };
+
+  getApiKeyProps = (): GeoApiKeyProps => {
+    return this.props.apiKeyProps ?? {};
+  };
+
+  getActions = (): AllowMapsAction[] => {
+    return this.actions;
+  };
+
+  setActions = (mapActions: AllowMapsAction[]) => {
+    this.actions = mapActions;
   };
 
   generateApiKey = (actions: AllowMapsAction[]) => {

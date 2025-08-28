@@ -113,7 +113,8 @@ export class AmplifyPlaceGenerator implements ConstructContainerEntryGenerator {
         resolution: 'Add at least one place action in the access definition.',
       });
     } else if (this.props.apiKeyProps) {
-      amplifyPlace.generateApiKey(placeActions);
+      if (this.props.apiKeyProps.merge) amplifyPlace.setActions(placeActions);
+      else amplifyPlace.generateApiKey(placeActions);
     }
 
     const geoAspects = Aspects.of(Stack.of(amplifyPlace));

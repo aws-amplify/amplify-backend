@@ -110,7 +110,8 @@ export class AmplifyMapGenerator implements ConstructContainerEntryGenerator {
         resolution: 'Add at least one map action in the access definition.',
       });
     } else if (this.props.apiKeyProps) {
-      amplifyMap.generateApiKey(mapActions);
+      if (this.props.apiKeyProps.merge) amplifyMap.setActions(mapActions);
+      else amplifyMap.generateApiKey(mapActions);
     }
 
     const geoAspects = Aspects.of(Stack.of(amplifyMap));
