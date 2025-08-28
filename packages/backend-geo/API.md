@@ -106,7 +106,9 @@ export type GeoActionBuilder = {
 export type GeoApiActionType = AllowMapsAction | AllowPlacesAction;
 
 // @public (undocumented)
-export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'>;
+export type GeoApiKeyProps = Omit<ApiKeyProps, 'allowMapsActions' | 'allowPlacesActions'> & {
+    merge?: boolean;
+};
 
 // @public (undocumented)
 export type GeoResourceType = 'map' | 'place' | 'collection';
