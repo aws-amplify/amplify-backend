@@ -113,7 +113,7 @@ jobs:
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
           fi
-          if [ "${{ inputs.include-windows }}" == "true" ]; then
+          if [ "${{ inputs.include-windows }}" != "false" ]; then
             os+=', "windows-2025"'
             os_for_e2e+=', "windows-2025"'
           fi
