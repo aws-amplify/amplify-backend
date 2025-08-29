@@ -42,7 +42,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: false
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -73,7 +73,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: false
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
