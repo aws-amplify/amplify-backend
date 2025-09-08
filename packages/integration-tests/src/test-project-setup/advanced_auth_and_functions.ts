@@ -211,6 +211,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     const entries = await zipReader.getEntries();
     const entry = entries.find((entry) => entry.filename.endsWith('index.mjs'));
     assert(entry !== undefined);
+    assert(entry.directory === false);
     const sourceCode = await entry.getData!(new TextWriter());
     assert(sourceCode.includes(expectedCode));
   };
