@@ -42,7 +42,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: false
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -73,7 +73,7 @@ on:
         description: 'Include Windows?'
         required: false
         type: boolean
-        default: false
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -113,7 +113,7 @@ jobs:
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
           fi
-          if [ "${{ inputs.include-windows }}" == "true" ]; then
+          if [ "${{ inputs.include-windows }}" != "false" ]; then
             os+=', "windows-2025"'
             os_for_e2e+=', "windows-2025"'
           fi
