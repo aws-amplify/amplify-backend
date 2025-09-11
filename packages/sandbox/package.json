@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@types/debounce-promise": "^3.1.6",
+    "@types/events": "^3.0.3",
     "@types/parse-gitignore": "^1.0.0"
   }
 }
