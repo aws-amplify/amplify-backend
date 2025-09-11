@@ -14,7 +14,7 @@ import fs from 'fs';
 import _open from 'open';
 // EventEmitter is a class name and expected to have PascalCase
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import {
   GetParameterCommand,
   ParameterNotFound,

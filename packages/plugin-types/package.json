@@ -11,14 +11,17 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
+    "@aws-sdk/types": "^3.734.0",
     "aws-cdk-lib": "^2.189.1",
-    "constructs": "^10.0.0",
-    "@aws-sdk/types": "^3.734.0"
+    "constructs": "^10.0.0"
   },
   "dependencies": {
     "@aws-cdk/toolkit-lib": "1.6.1"
   },
   "imports": {
     "#package.json": "./package.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1"
   }
 }
