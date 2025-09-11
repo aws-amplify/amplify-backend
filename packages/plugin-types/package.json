@@ -20,8 +20,5 @@
   },
   "imports": {
     "#package.json": "./package.json"
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.11"
   }
 }
