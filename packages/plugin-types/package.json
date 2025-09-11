@@ -22,6 +22,6 @@
     "#package.json": "./package.json"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1"
+    "@types/node": "^18.15.11"
   }
 }
