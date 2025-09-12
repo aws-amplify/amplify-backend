@@ -6,7 +6,7 @@
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import { Format } from '@aws-amplify/cli-core';
 import { Printer } from '@aws-amplify/cli-core';
 import { SDKProfileResolver } from '@aws-amplify/plugin-types';
