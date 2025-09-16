@@ -19,4 +19,13 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 20
-      - run: node stress_dns.cjs
+
+      - run: |
+          npm install
+          npm run build
+          (cd packages/cli && npm link)
+
+          for x in $(seq 10000); do
+            rm -rf ~/Library/Preferences/amplify/
+            npx ampx notices list
+          done
