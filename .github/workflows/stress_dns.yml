@@ -1,0 +1,22 @@
+name: stress_dns
+
+on:
+  pull_request: {}
+
+jobs:
+  stress:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - run: node stress_dns.cjs
