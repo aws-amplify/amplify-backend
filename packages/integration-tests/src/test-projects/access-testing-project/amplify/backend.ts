@@ -2,7 +2,7 @@ import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { RemovalPolicy, Tags } from 'aws-cdk-lib';
 import {
   AccountPrincipal,
   Effect,
@@ -23,7 +23,12 @@ const simpleAuthUserPool = new cognito.UserPool(
   'SimpleAuthUserPool',
   {
     removalPolicy: RemovalPolicy.DESTROY,
+    selfSignUpEnabled: false,
   },
+);
+Tags.of(simpleAuthUserPool).add(
+  'sourceFile',
+  'amplify-backend:packages/integration-tests/src/test-projects/access-testing-project/amplify/backend.ts',
 );
 
 const simpleAuthUserPoolClient = new cognito.UserPoolClient(
