@@ -52,7 +52,7 @@ export class PackageManagerControllerFactory {
       default:
         throw new AmplifyUserError('UnsupportedPackageManagerError', {
           message: `Package Manager ${packageManagerName} is not supported.`,
-          resolution: 'Use npm, yarn or pnpm.',
+          resolution: 'Use npm, yarn, pnpm or bun.',
         });
     }
   }
