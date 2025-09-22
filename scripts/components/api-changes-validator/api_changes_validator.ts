@@ -72,7 +72,7 @@ export class ApiChangesValidator {
     if (this.latestPackageDependencyDeclarationStrategy === 'npmRegistry') {
       dependencies[latestPackageJson.name] = latestPackageJson.version;
     }
-    dependencies['typescript'] = '^5.0.0';
+    dependencies['typescript'] = '5.9.x';
     dependencies['@types/node'] = '^18.15.11';
     // Add the latest dependencies and peer dependencies as public API might use them
     if (latestPackageJson.dependencies) {
@@ -123,10 +123,14 @@ export class ApiChangesValidator {
       'node16',
       '--moduleResolution',
       'node16',
+      '--types',
+      'node',
       '--target',
       'es2022',
       '--noEmit',
       '--verbatimModuleSyntax',
+      'false',
+      '--exactOptionalPropertyTypes', // 2025-09-22: this is kind of bad, but our types are currently not set up for it to be enabled
       'false',
     ];
     await execa('npx', tscArgs, { cwd: this.testProjectPath });
