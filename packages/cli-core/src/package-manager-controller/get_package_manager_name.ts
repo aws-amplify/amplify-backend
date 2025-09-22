@@ -34,6 +34,7 @@ const runnerMap: Record<string, string> = {
   'yarn-modern': 'yarn',
   'yarn-classic': 'yarn',
   pnpm: 'pnpm',
+  bun: 'bunx',
 };
 
 /**
@@ -45,7 +46,7 @@ export const getPackageManagerRunnerName = (): string => {
   if (!packageManagerRunnerName) {
     throw new AmplifyUserError('UnsupportedPackageManagerError', {
       message: `Package manager ${packageManagerName} is not supported.`,
-      resolution: 'Use npm, yarn, or pnpm.',
+      resolution: 'Use npm, yarn, pnpm or bun.',
     });
   }
   return packageManagerRunnerName;

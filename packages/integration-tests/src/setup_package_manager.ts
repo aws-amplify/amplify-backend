@@ -7,8 +7,13 @@ import * as os from 'os';
 const customRegistry = 'http://localhost:4873';
 
 // TODO: refactor into `type PackageManagerInitializer` and have sub-types with a factory.
-export type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
-export type PackageManagerExecutable = 'npx' | 'yarn' | 'pnpm';
+export type PackageManager =
+  | 'npm'
+  | 'yarn-classic'
+  | 'yarn-modern'
+  | 'pnpm'
+  | 'bun';
+export type PackageManagerExecutable = 'npx' | 'yarn' | 'pnpm' | 'bunx';
 
 const initializeNpm = async () => {
   const { stdout } = await execa('npm', ['config', 'get', 'cache']);
@@ -73,6 +78,14 @@ const initializeYarnModern = async (execaOptions: {
   await execa(packageManager, ['cache', 'clean'], execaOptions);
 };
 
+const initializeBun = async () => {
+  const packageManager = 'bun';
+  await execa('npm', ['install', '-g', packageManager], {
+    stdio: 'inherit',
+  });
+  await execa(packageManager, ['--version']);
+};
+
 /**
  * Sets up the package manager for the e2e flow
  */
@@ -110,6 +123,11 @@ export const setupPackageManager = async (
       packageManagerExecutable = 'yarn';
       execaOptions.cwd = dir;
       await initializeYarnModern(execaOptions);
+      break;
+
+    case 'bun':
+      packageManagerExecutable = 'bunx';
+      await initializeBun();
       break;
 
     default:

@@ -4,6 +4,7 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
+import { BunPackageManagerController } from './bun_package_manager_controller.js';
 import { printer as _printer } from '../printer.js';
 import { Printer } from '../printer/printer.js';
 import { getPackageManagerName } from './get_package_manager_name.js';
@@ -46,6 +47,8 @@ export class PackageManagerControllerFactory {
         return new YarnClassicPackageManagerController(this.cwd);
       case 'yarn-modern':
         return new YarnModernPackageManagerController(this.cwd, this.printer);
+      case 'bun':
+        return new BunPackageManagerController(this.cwd);
       default:
         throw new AmplifyUserError('UnsupportedPackageManagerError', {
           message: `Package Manager ${packageManagerName} is not supported.`,
