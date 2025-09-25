@@ -87,7 +87,7 @@ void describe('dependabot version update handler', async () => {
     await setPackageDependencies(cantaloupePackagePath, { testDep: '^1.0.0' });
     await setPackageDependencies(platypusPackagePath, { testDep: '^1.0.0' });
 
-    await $`npx changeset init`;
+    await $`npx --package @changesets/cli -- changeset init`;
     await gitClient.commitAllChanges('Initial setup');
     baseRef = await gitClient.getHashForCurrentCommit();
   });

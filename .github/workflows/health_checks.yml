@@ -817,7 +817,7 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Validate that PR has changeset
-        run: npx changeset status --since origin/"$BASE_REF"
+        run: npx --package @changesets/cli -- changeset status --since origin/"$BASE_REF"
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
       - name: Validate changeset is not missing packages
@@ -826,7 +826,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
       # - name: Validate that changeset has necessary dependency updates
       #   run: |
-      #     npx changeset version
+      #     npx --package @changesets/cli -- changeset version
       #     npm update
       #     npm run check:dependencies
   check_package_versions:
@@ -845,7 +845,7 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-      - run: npx changeset version
+      - run: npx --verbose --package @changesets/cli -- changeset version
       - run: npm run check:package-versions
 
   update_package_versions:
