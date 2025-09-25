@@ -36,4 +36,9 @@ jobs:
           role-to-assume: arn:aws:iam::${{ matrix.testAccount }}:role/e2e-resource-cleanup
           aws-region: ${{ matrix.region }}
       - name: Run E2E resource cleanup
-        run: npm run e2e:cleanup-resources
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # version 3.0.2
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 60 # wait a minute before retrying
+          timeout_minutes: 15 # these don't typically take long
+          command: npm run e2e:cleanup-resources
