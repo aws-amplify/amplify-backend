@@ -104,7 +104,7 @@ void describe('release lifecycle', async () => {
 
     await npmClient.install(['@changesets/cli']);
 
-    await $`npx changeset init`;
+    await $`npx --package @changesets/cli -- changeset init`;
     await gitClient.commitAllChanges('Version Packages (baseline release)');
     await runPublishInTestDir();
 
