@@ -478,9 +478,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Set file descriptor limit on macOS
-        if: runner.os == 'macOS'
-        run: ulimit -n 10000
       - name: Run e2e deployment tests
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -528,9 +525,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Set file descriptor limit on macOS
-        if: runner.os == 'macOS'
-        run: ulimit -n 10000
       - name: Run e2e sandbox tests
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -567,9 +561,6 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
-      - name: Set file descriptor limit on macOS
-        if: runner.os == 'macOS'
-        run: ulimit -n 10000
       - name: Run e2e notices tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
   e2e_backend_output:
@@ -628,9 +619,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
-      - name: Set file descriptor limit on macOS
-        if: runner.os == 'macOS'
-        run: ulimit -n 10000
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
@@ -657,9 +645,6 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: Set file descriptor limit on macOS
-        if: runner.os == 'macOS'
-        run: ulimit -n 10000
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         uses: ./.github/actions/run_with_e2e_account
         with:
