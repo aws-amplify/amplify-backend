@@ -267,10 +267,15 @@ jobs:
         with:
           path: base-branch-content
           ref: ${{ github.event.pull_request.base.sha }}
-      - name: Check API changes
-        run: |
-          mkdir api-validation-projects
-          npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
+      - name: Check API changes with retry
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            mkdir -p api-validation-projects
+            npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   handle_dependabot_version_update:
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
