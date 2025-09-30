@@ -130,7 +130,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'SUCCEEDED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, [
@@ -205,7 +205,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'FAILED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, [
@@ -287,7 +287,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'FAILED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, []);
