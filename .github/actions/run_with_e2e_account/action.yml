@@ -24,6 +24,14 @@ inputs:
     default: false
   cdk-lib-version:
     required: true
+  retry_attempts:
+    description: Number of retry attempts for the main script
+    required: false
+    default: '3'
+  retry_delay:
+    description: Delay between retry attempts in seconds
+    required: false
+    default: '30'
 runs:
   using: composite
   steps:
@@ -76,9 +84,53 @@ runs:
       with:
         role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
         aws-region: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
-    - name: Run script
-      shell: ${{ inputs.shell }}
-      run: ${{ inputs.run }}
+    - name: Run script with retry
+      shell: bash
+      run: |
+        set -e
+
+        # Set default shell if not provided
+        SHELL_CMD="${{ inputs.shell }}"
+        if [ -z "$SHELL_CMD" ]; then
+          SHELL_CMD="bash"
+        fi
+
+        # Retry logic
+        RETRY_ATTEMPTS=${{ inputs.retry_attempts }}
+        RETRY_DELAY=${{ inputs.retry_delay }}
+        ATTEMPT=1
+
+        while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
+          echo "Attempt $ATTEMPT of $RETRY_ATTEMPTS"
+          
+          if [ "$SHELL_CMD" = "bash" ]; then
+            if bash -c '${{ inputs.run }}'; then
+              echo "Script succeeded on attempt $ATTEMPT"
+              exit 0
+            fi
+          elif [ "$SHELL_CMD" = "pwsh" ]; then
+            if pwsh -c '${{ inputs.run }}'; then
+              echo "Script succeeded on attempt $ATTEMPT"
+              exit 0
+            fi
+          else
+            # Default to bash for other shells
+            if bash -c '${{ inputs.run }}'; then
+              echo "Script succeeded on attempt $ATTEMPT"
+              exit 0
+            fi
+          fi
+          
+          if [ $ATTEMPT -lt $RETRY_ATTEMPTS ]; then
+            echo "Script failed on attempt $ATTEMPT. Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+          else
+            echo "Script failed after $RETRY_ATTEMPTS attempts"
+            exit 1
+          fi
+          
+          ATTEMPT=$((ATTEMPT + 1))
+        done
       env:
         AWS_REGION: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
         AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}

@@ -489,22 +489,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Run e2e deployment tests with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
-          max_attempts: 3
-          retry_wait_seconds: 30
-          shell: bash
-          command: |
-            # Setup node and restore cache
-            echo "Setting up Node.js and restoring cache..."
+      - name: Run e2e deployment tests
+        run: |
+          # Setup node and restore cache
+          echo "Setting up Node.js and restoring cache..."
 
-            # Run the e2e deployment tests using the action
-            echo "Running e2e deployment tests..."
+          # Run the e2e deployment tests using the action
+          echo "Running e2e deployment tests..."
 
-            # This will be handled by the composite action call below
-            exit 0
+          # This will be handled by the composite action call below
+          exit 0
       - name: Execute e2e deployment tests
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -559,16 +553,10 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e sandbox tests with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
-          max_attempts: 3
-          retry_wait_seconds: 30
-          shell: bash
-          command: |
-            # This step will be handled by the composite action below
-            echo "Preparing to run e2e sandbox tests with retry..."
-            exit 0
+        run: |
+          # This step will be handled by the composite action below
+          echo "Preparing to run e2e sandbox tests with retry..."
+          exit 0
       - name: Execute e2e sandbox tests
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -606,7 +594,12 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
-        run: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: ${{ matrix.os == 'windows-2025' && 8 || 5 }}
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -690,16 +683,10 @@ jobs:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Run e2e package manager tests with retry
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
-          max_attempts: 3
-          retry_wait_seconds: 30
-          shell: bash
-          command: |
-            # This step will be handled by the composite action below
-            echo "Preparing to run e2e package manager tests with retry..."
-            exit 0
+        run: |
+          # This step will be handled by the composite action below
+          echo "Preparing to run e2e package manager tests with retry..."
+          exit 0
       - name: Execute e2e package manager tests
         uses: ./.github/actions/run_with_e2e_account
         with:
