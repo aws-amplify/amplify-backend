@@ -24,6 +24,7 @@ export type EnvInfo = {
     Yarn: EnvInfoBinary;
     npm: EnvInfoBinary;
     pnpm: EnvInfoBinary;
+    Bun: EnvInfoBinary;
   };
   npmPackages: Record<string, EnvInfoNpmPackage>;
 };
