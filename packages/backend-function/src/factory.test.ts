@@ -495,17 +495,34 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.hasResourceProperties('AWS::Events::Rule', {
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
         ScheduleExpression: 'cron(*/5 * * * ? *)',
-        Targets: [
-          {
-            Arn: {
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
-            },
-            Id: 'Target0',
+        ScheduleExpressionTimezone: 'UTC',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
           },
-        ],
+        },
+      });
+    });
+
+    void it('sets valid schedule - rate with timezone', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: { rate: 'every 5m', timezone: 'America/New_York' },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(*/5 * * * ? *)',
+        ScheduleExpressionTimezone: 'America/New_York',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
       });
     });
 
@@ -516,17 +533,34 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.hasResourceProperties('AWS::Events::Rule', {
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
         ScheduleExpression: 'cron(0 1 * * ? *)',
-        Targets: [
-          {
-            Arn: {
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
-            },
-            Id: 'Target0',
+        ScheduleExpressionTimezone: 'UTC',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
           },
-        ],
+        },
+      });
+    });
+
+    void it('sets valid schedule - cron with timezone', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: { cron: '0 1 * * ?', timezone: 'America/New_York' },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 1 * * ? *)',
+        ScheduleExpressionTimezone: 'America/New_York',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
       });
     });
 
@@ -537,14 +571,16 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.resourceCountIs('AWS::Events::Rule', 2);
+      template.resourceCountIs('AWS::Scheduler::Schedule', 2);
 
-      template.hasResourceProperties('AWS::Events::Rule', {
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
         ScheduleExpression: 'cron(0 1 * * ? *)',
+        ScheduleExpressionTimezone: 'UTC',
       });
 
-      template.hasResourceProperties('AWS::Events::Rule', {
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
         ScheduleExpression: 'cron(*/5 * * * ? *)',
+        ScheduleExpressionTimezone: 'UTC',
       });
     });
 
@@ -554,7 +590,7 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.resourceCountIs('AWS::Events::Rule', 0);
+      template.resourceCountIs('AWS::Scheduler::Schedule', 0);
     });
   });
 
