@@ -404,41 +404,11 @@ jobs:
       # See https://github.com/actions/checkout/issues/692
       - name: Checkout version for baseline
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Setup baseline version (attempt 1)
-        id: setup_baseline_version_attempt1
+      - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
-        with:
-          node_version: 18
-        continue-on-error: true
-
-      - name: Setup baseline version (attempt 2)
-        id: setup_baseline_version_attempt2
-        if: steps.setup_baseline_version_attempt1.outcome == 'failure'
-        uses: ./.github/actions/setup_baseline_version
-        with:
-          node_version: 18
-        continue-on-error: true
-
-      - name: Setup baseline version (attempt 3)
-        id: setup_baseline_version_attempt3
-        if: steps.setup_baseline_version_attempt2.outcome == 'failure'
-        uses: ./.github/actions/setup_baseline_version
-        with:
-          node_version: 18
-
-      - name: Set baseline directory output
         id: setup_baseline_version
-        run: |
-          if [[ "${{ steps.setup_baseline_version_attempt1.outcome }}" == "success" ]]; then
-            echo "✅ Setup baseline version succeeded on attempt 1"
-            echo "baseline_dir=${{ steps.setup_baseline_version_attempt1.outputs.baseline_dir }}" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ steps.setup_baseline_version_attempt2.outcome }}" == "success" ]]; then
-            echo "⚠️ Setup baseline version succeeded on attempt 2 (after 1 failure)"
-            echo "baseline_dir=${{ steps.setup_baseline_version_attempt2.outputs.baseline_dir }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "⚠️ Setup baseline version succeeded on attempt 3 (after 2 failures)"
-            echo "baseline_dir=${{ steps.setup_baseline_version_attempt3.outputs.baseline_dir }}" >> "$GITHUB_OUTPUT"
-          fi
+        with:
+          node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e amplify outputs backwards compatibility test
