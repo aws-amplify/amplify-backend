@@ -410,7 +410,7 @@ jobs:
         with:
           node_version: 18
         continue-on-error: true
-      
+
       - name: Setup baseline version (attempt 2)
         id: setup_baseline_version_attempt2
         if: steps.setup_baseline_version_attempt1.outcome == 'failure'
@@ -418,14 +418,14 @@ jobs:
         with:
           node_version: 18
         continue-on-error: true
-      
+
       - name: Setup baseline version (attempt 3)
         id: setup_baseline_version_attempt3
         if: steps.setup_baseline_version_attempt2.outcome == 'failure'
         uses: ./.github/actions/setup_baseline_version
         with:
           node_version: 18
-      
+
       - name: Set baseline directory output
         id: setup_baseline_version
         run: |
