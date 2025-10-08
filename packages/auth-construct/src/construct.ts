@@ -819,6 +819,7 @@ export class AmplifyAuth
       ? {
           sms: mfa.sms ? true : false,
           otp: mfa.totp ? true : false,
+          email: mfa.email ? true : false,
         }
       : undefined;
   };
@@ -1229,6 +1230,9 @@ export class AmplifyAuth
           }
           if (type === 'SOFTWARE_TOKEN_MFA') {
             mfaTypes.push('TOTP');
+          }
+          if (type === 'EMAIL_OTP') {
+            mfaTypes.push('EMAIL');
           }
         });
         return JSON.stringify(mfaTypes);
