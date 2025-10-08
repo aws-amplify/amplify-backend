@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
-import { FunctionSchedule } from './factory.js';
+import { CronSchedule, FunctionSchedule } from './factory.js';
 import assert from 'node:assert';
 import os from 'os';
 
@@ -349,6 +349,23 @@ void describe('ScheduleParser', () => {
       {
         message:
           'Function schedule rate must be greater than the function timeout of 120 seconds',
+      },
+    );
+  });
+
+  void it('throws if schedule is an invalid format', () => {
+    // eslint-disable-next-line spellcheck/spell-checker -- misspelled to test error handling
+    const schedule: FunctionSchedule[] = [
+      { corn: '* * * * *', timezone: 'UTC' } as unknown as CronSchedule,
+    ];
+    const testLambda = getTestLambda();
+
+    assert.throws(
+      () => {
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
+      },
+      {
+        message: "Could not determine the function's schedule type",
       },
     );
   });
