@@ -526,6 +526,26 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
+    void it('sets schedule - rate with invalid timezone', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: { rate: 'every 5m', timezone: 'Invalid/Timezone' },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // CDK does not validate timezone
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(*/5 * * * ? *)',
+        ScheduleExpressionTimezone: 'Invalid/Timezone',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
+    });
+
     void it('sets valid schedule - cron', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
@@ -555,6 +575,26 @@ void describe('AmplifyFunctionFactory', () => {
       template.hasResourceProperties('AWS::Scheduler::Schedule', {
         ScheduleExpression: 'cron(0 1 * * ? *)',
         ScheduleExpressionTimezone: 'America/New_York',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
+    });
+
+    void it('sets schedule - cron with invalid timezone', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: { cron: '0 1 * * ?', timezone: 'Invalid/Timezone' },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // CDK does not validate timezone
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 1 * * ? *)',
+        ScheduleExpressionTimezone: 'Invalid/Timezone',
         Target: {
           Arn: {
             // eslint-disable-next-line spellcheck/spell-checker
