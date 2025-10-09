@@ -459,7 +459,9 @@ export class ReferenceAuthInitializer {
 
     // domain
     const oauthDomain = userPool.CustomDomain ?? userPool.Domain ?? '';
-    const fullDomainPath = `${oauthDomain}.auth.${region}.amazoncognito.com`;
+    const fullDomainPath = userPool.CustomDomain
+      ? userPool.CustomDomain
+      : `${oauthDomain}.auth.${region}.amazoncognito.com`;
     const data = {
       signupAttributes: JSON.stringify(
         userPool.SchemaAttributes?.filter(
