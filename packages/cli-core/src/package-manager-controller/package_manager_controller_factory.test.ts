@@ -38,6 +38,11 @@ void describe('packageManagerControllerFactory', () => {
         userAgent: 'yarn/4.0.1 node/v15.0.0 darwin x64',
         expectedInstanceOf: PackageManagerControllerBase,
       },
+      {
+        name: 'Bun',
+        userAgent: 'bun/1.2.21 node/v15.0.0 darwin x64',
+        expectedInstanceOf: PackageManagerControllerBase,
+      },
     ];
 
     for (const testCase of testCases) {
