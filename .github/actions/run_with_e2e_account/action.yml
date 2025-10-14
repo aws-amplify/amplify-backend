@@ -105,7 +105,7 @@ runs:
         TIMEOUT_MINUTES=${{ inputs.attempt_timeout_minutes }}
         ATTEMPT=1
 
-        # Function to run command with timeout
+        # Function to run command with timeout (cross-platform)
         run_with_timeout() {
           local cmd="$1"
           local shell_type="$2"
@@ -113,14 +113,50 @@ runs:
           
           echo "Running command with timeout of $TIMEOUT_MINUTES minutes ($timeout_seconds seconds)"
           
+          # Create a temporary file for the exit code
+          local temp_exit_code=$(mktemp)
+          
+          # Run the command in background
           if [ "$shell_type" = "bash" ]; then
-            timeout $timeout_seconds bash -c "$cmd"
+            (bash -c "$cmd"; echo $? > "$temp_exit_code") &
           elif [ "$shell_type" = "pwsh" ]; then
-            timeout $timeout_seconds pwsh -c "$cmd"
+            (pwsh -c "$cmd"; echo $? > "$temp_exit_code") &
           else
             # Default to bash for other shells
-            timeout $timeout_seconds bash -c "$cmd"
+            (bash -c "$cmd"; echo $? > "$temp_exit_code") &
           fi
+          
+          local cmd_pid=$!
+          local elapsed=0
+          local sleep_interval=5
+          
+          # Monitor the process
+          while [ $elapsed -lt $timeout_seconds ]; do
+            if ! kill -0 $cmd_pid 2>/dev/null; then
+              # Process has finished
+              wait $cmd_pid 2>/dev/null
+              local exit_code
+              if [ -f "$temp_exit_code" ]; then
+                exit_code=$(cat "$temp_exit_code")
+                rm -f "$temp_exit_code"
+              else
+                exit_code=$?
+              fi
+              return $exit_code
+            fi
+            
+            sleep $sleep_interval
+            elapsed=$((elapsed + sleep_interval))
+          done
+          
+          # Timeout reached, kill the process
+          echo "Timeout reached, terminating process..."
+          kill -TERM $cmd_pid 2>/dev/null
+          sleep 2
+          kill -KILL $cmd_pid 2>/dev/null
+          wait $cmd_pid 2>/dev/null
+          rm -f "$temp_exit_code"
+          return 124  # Standard timeout exit code
         }
 
         while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
