@@ -24,6 +24,10 @@ inputs:
     default: false
   cdk-lib-version:
     required: true
+  attempt_timeout_minutes:
+    description: Timeout for each attempt in minutes
+    required: false
+    default: '25'
   retry_attempts:
     description: Number of retry attempts for the main script
     required: false
@@ -98,31 +102,80 @@ runs:
         # Retry logic
         RETRY_ATTEMPTS=${{ inputs.retry_attempts }}
         RETRY_DELAY=${{ inputs.retry_delay }}
+        TIMEOUT_MINUTES=${{ inputs.attempt_timeout_minutes }}
         ATTEMPT=1
+
+        # Function to run command with timeout (cross-platform)
+        run_with_timeout() {
+          local cmd="$1"
+          local shell_type="$2"
+          local timeout_seconds=$((TIMEOUT_MINUTES * 60))
+          
+          echo "Running command with timeout of $TIMEOUT_MINUTES minutes ($timeout_seconds seconds)"
+          
+          # Create a temporary file for the exit code
+          local temp_exit_code=$(mktemp)
+          
+          # Run the command in background
+          if [ "$shell_type" = "bash" ]; then
+            (bash -c "$cmd"; echo $? > "$temp_exit_code") &
+          elif [ "$shell_type" = "pwsh" ]; then
+            (pwsh -c "$cmd"; echo $? > "$temp_exit_code") &
+          else
+            # Default to bash for other shells
+            (bash -c "$cmd"; echo $? > "$temp_exit_code") &
+          fi
+          
+          local cmd_pid=$!
+          local elapsed=0
+          local sleep_interval=5
+          
+          # Monitor the process
+          while [ $elapsed -lt $timeout_seconds ]; do
+            if ! kill -0 $cmd_pid 2>/dev/null; then
+              # Process has finished
+              wait $cmd_pid 2>/dev/null
+              local exit_code
+              if [ -f "$temp_exit_code" ]; then
+                exit_code=$(cat "$temp_exit_code")
+                rm -f "$temp_exit_code"
+              else
+                exit_code=$?
+              fi
+              return $exit_code
+            fi
+            
+            sleep $sleep_interval
+            elapsed=$((elapsed + sleep_interval))
+          done
+          
+          # Timeout reached, kill the process
+          echo "Timeout reached, terminating process..."
+          kill -TERM $cmd_pid 2>/dev/null
+          sleep 2
+          kill -KILL $cmd_pid 2>/dev/null
+          wait $cmd_pid 2>/dev/null
+          rm -f "$temp_exit_code"
+          return 124  # Standard timeout exit code
+        }
 
         while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
           echo "Attempt $ATTEMPT of $RETRY_ATTEMPTS"
           
-          if [ "$SHELL_CMD" = "bash" ]; then
-            if bash -c '${{ inputs.run }}'; then
-              echo "Script succeeded on attempt $ATTEMPT"
-              exit 0
-            fi
-          elif [ "$SHELL_CMD" = "pwsh" ]; then
-            if pwsh -c '${{ inputs.run }}'; then
-              echo "Script succeeded on attempt $ATTEMPT"
-              exit 0
-            fi
+          if run_with_timeout '${{ inputs.run }}' "$SHELL_CMD"; then
+            echo "Script succeeded on attempt $ATTEMPT"
+            exit 0
           else
-            # Default to bash for other shells
-            if bash -c '${{ inputs.run }}'; then
-              echo "Script succeeded on attempt $ATTEMPT"
-              exit 0
+            EXIT_CODE=$?
+            if [ $EXIT_CODE -eq 124 ]; then
+              echo "Script timed out after $TIMEOUT_MINUTES minutes on attempt $ATTEMPT"
+            else
+              echo "Script failed with exit code $EXIT_CODE on attempt $ATTEMPT"
             fi
           fi
           
           if [ $ATTEMPT -lt $RETRY_ATTEMPTS ]; then
-            echo "Script failed on attempt $ATTEMPT. Retrying in $RETRY_DELAY seconds..."
+            echo "Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
           else
             echo "Script failed after $RETRY_ATTEMPTS attempts"

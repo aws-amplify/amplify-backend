@@ -357,7 +357,7 @@ jobs:
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -384,13 +384,14 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -417,13 +418,14 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_hosting:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -440,6 +442,7 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 120
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
         env:
           AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
@@ -477,7 +480,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_deployment ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 160 || 120 }}
     needs:
       - do_include_e2e
       - build
@@ -506,6 +509,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_generate_sandbox_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
@@ -540,7 +544,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_sandbox ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 160 || 120 }}
     needs:
       - do_include_e2e
       - build
@@ -564,6 +568,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_notices:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
@@ -603,7 +608,7 @@ jobs:
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -621,6 +626,7 @@ jobs:
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
     if: needs.do_include_e2e.outputs.run_e2e == 'true' && needs.do_include_e2e.outputs.include_create_amplify_e2e == 'true'
@@ -670,7 +676,7 @@ jobs:
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 180 || 120 }}
     needs:
       - build
       - do_include_e2e
@@ -694,6 +700,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           shell: bash
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
           run: PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
     runs-on: ubuntu-latest
