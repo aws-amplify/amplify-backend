@@ -500,13 +500,6 @@ export class AmplifyAuth
       );
     }
 
-    // If email MFA is enabled, email login must be enabled.
-    if (emailEnabled && mfaMode && mfaMode !== 'OFF' && !mfaType?.email) {
-      throw Error(
-        'Invalid MFA settings. Email login must be enabled in loginWith if email MFA is enabled',
-      );
-    }
-
     const { standardAttributes, customAttributes } = Object.entries(
       props.userAttributes ?? {},
     ).reduce(
