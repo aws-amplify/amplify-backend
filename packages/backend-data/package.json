@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-data",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-amplify/data-schema": "^1.13.4",
+    "@aws-amplify/data-schema": "^1.22.0",
     "@aws-amplify/backend-platform-test-stubs": "^0.3.9",
     "@aws-amplify/platform-core": "^1.9.0"
   },
