@@ -928,7 +928,7 @@ jobs:
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 24        
+          node-version: 24
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
