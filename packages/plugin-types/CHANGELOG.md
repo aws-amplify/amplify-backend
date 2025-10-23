@@ -1,11 +1,5 @@
 # @aws-amplify/plugin-types
 
-## 1.11.1
-
-### Patch Changes
-
-- 1875bbf: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 1.1.1 to 1.2.4.
-
 ## 1.11.0
 
 ### Minor Changes

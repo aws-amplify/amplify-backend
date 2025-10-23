@@ -1,14 +1,5 @@
 # create-amplify
 
-## 1.2.2
-
-### Patch Changes
-
-- 2536f04: bump create amplify dependencies
-- f63506f: bump create amplify dependencies
-- Updated dependencies [1875bbf]
-  - @aws-amplify/plugin-types@1.11.1
-
 ## 1.2.1
 
 ### Patch Changes
