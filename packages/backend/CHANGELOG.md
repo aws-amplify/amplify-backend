@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 1.17.0
+
+### Minor Changes
+
+- 603e831: feat: add timezone support to scheduling Lambda functions
+
+### Patch Changes
+
+- Updated dependencies [1875bbf]
+- Updated dependencies [a13d72d]
+- Updated dependencies [603e831]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-auth@1.7.2
+  - @aws-amplify/backend-function@1.15.0
+
 ## 1.16.1
 
 ### Patch Changes
