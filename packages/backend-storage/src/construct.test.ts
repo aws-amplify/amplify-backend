@@ -3,6 +3,7 @@ import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { HttpMethods } from 'aws-cdk-lib/aws-s3';
 
 void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
@@ -56,6 +57,37 @@ void describe('AmplifyStorage', () => {
               'ETag',
             ],
             MaxAge: 3000,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('allows the user to override the default cors settings', () => {
+    const expectedCorsSettings = {
+      maxAge: 100,
+      allowedHeaders: ['example-header'],
+      allowedMethods: [HttpMethods.GET],
+      allowedOrigins: ['my-origin.aws.com'],
+      exposedHeaders: ['*'],
+    };
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testAuth', {
+      name: 'testName',
+      cors: [expectedCorsSettings],
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      CorsConfiguration: {
+        CorsRules: [
+          {
+            AllowedHeaders: expectedCorsSettings.allowedHeaders,
+            AllowedMethods: expectedCorsSettings.allowedMethods,
+            AllowedOrigins: expectedCorsSettings.allowedOrigins,
+            ExposedHeaders: expectedCorsSettings.exposedHeaders,
+            MaxAge: expectedCorsSettings.maxAge,
           },
         ],
       },
