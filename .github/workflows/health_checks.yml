@@ -914,7 +914,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      id-token: write    
+      id-token: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
@@ -935,7 +935,7 @@ jobs:
           publish: npm run publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TRUSTED_PUBLISHER: "true"
+          NPM_TRUSTED_PUBLISHER: 'true'
       - name: Update hotfix branch
         if: ${{ steps.changeset_publish.outputs.published == 'true' && github.ref_name == 'main' }}
         run: git push origin main:hotfix --force
