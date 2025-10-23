@@ -916,10 +916,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
@@ -932,7 +932,7 @@ jobs:
           publish: npm run publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TRUSTED_PUBLISHER: "true"
       - name: Update hotfix branch
         if: ${{ steps.changeset_publish.outputs.published == 'true' && github.ref_name == 'main' }}
         run: git push origin main:hotfix --force
