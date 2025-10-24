@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.9.1
+
+### Patch Changes
+
+- b6ef34d: Disable self-signup for UserPool
+
 ## 0.9.0
 
 ### Minor Changes

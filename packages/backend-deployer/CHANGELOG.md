@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.4
+
+### Patch Changes
+
+- b6ef34d: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 1.1.1 to 1.2.4.
+- Updated dependencies [b6ef34d]
+  - @aws-amplify/plugin-types@1.11.1
+
 ## 2.1.3
 
 ### Patch Changes
