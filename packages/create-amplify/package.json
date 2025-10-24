@@ -6,6 +6,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
   "engines": {
     "node": "^18.19.0 || ^20.6.0 || >=22"
   },

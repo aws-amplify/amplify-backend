@@ -5,6 +5,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
   "exports": {
     "./conversation": {
       "types": "./lib/conversation/index.d.ts",
