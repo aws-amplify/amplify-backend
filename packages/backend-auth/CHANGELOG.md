@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 1.7.2
+
+### Patch Changes
+
+- b6ef34d: Add unit tests for custom domain and cognito-managed domain OAuth scenarios
+- Updated dependencies [b6ef34d]
+  - @aws-amplify/plugin-types@1.11.1
+
 ## 1.7.1
 
 ### Patch Changes
