@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-function",
-  "version": "1.15.0",
+  "version": "1.14.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -30,7 +30,7 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.6.0",
     "@aws-amplify/backend-output-storage": "^1.3.1",
-    "@aws-amplify/plugin-types": "^1.11.1",
+    "@aws-amplify/plugin-types": "^1.10.1",
     "@aws-sdk/client-s3": "^3.750.0",
     "execa": "^9.5.1"
   },
