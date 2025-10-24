@@ -919,13 +919,16 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 24
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 24
+          node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 24
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
