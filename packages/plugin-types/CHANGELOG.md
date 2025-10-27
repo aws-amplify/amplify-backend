@@ -1,5 +1,12 @@
 # @aws-amplify/plugin-types
 
+## 1.11.1
+
+### Patch Changes
+
+- b6ef34d: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 1.1.1 to 1.2.4.
+- 016ee87: adding repository to package.json configuration for trusted publishing
+
 ## 1.11.0
 
 ### Minor Changes

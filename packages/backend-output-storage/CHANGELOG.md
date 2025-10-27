@@ -1,5 +1,16 @@
 # @aws-amplify/backend-output-storage
 
+## 1.3.2
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/platform-core@1.10.1
+
 ## 1.3.1
 
 ### Patch Changes

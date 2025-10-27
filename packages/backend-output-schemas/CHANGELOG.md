@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.7.1
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+
 ## 1.7.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-output-schemas",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-amplify/plugin-types": "^1.10.0"
+    "@aws-amplify/plugin-types": "^1.11.1"
   },
   "peerDependencies": {
     "zod": "3.25.17"
