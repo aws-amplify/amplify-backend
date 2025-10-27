@@ -936,6 +936,8 @@ jobs:
         uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # version 1.4.7
         with:
           publish: npm run publish
+        permissions:
+          contents: write
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TRUSTED_PUBLISHER: 'true'
