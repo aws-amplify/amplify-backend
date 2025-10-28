@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.10.2
+
+### Patch Changes
+
+- 2455768: update screaming snake case test
+
 ## 1.10.1
 
 ### Patch Changes
