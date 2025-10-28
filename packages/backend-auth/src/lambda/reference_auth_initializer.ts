@@ -430,6 +430,10 @@ export class ReferenceAuthInitializer {
     if (userPoolMFA.SoftwareTokenMfaConfiguration?.Enabled) {
       mfaTypes.push('TOTP');
     }
+
+    if (userPoolMFA.EmailMfaConfiguration) {
+      mfaTypes.push('EMAIL_MFA');
+    }
     // social providers
     const socialProviders: string[] = [];
     if (userPoolProviders) {

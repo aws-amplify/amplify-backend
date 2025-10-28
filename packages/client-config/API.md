@@ -253,7 +253,7 @@ interface AWSAmplifyBackendOutputs {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig;
         }[];
@@ -334,7 +334,7 @@ interface AWSAmplifyBackendOutputs_2 {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig_2;
         }[];
@@ -415,7 +415,7 @@ interface AWSAmplifyBackendOutputs_3 {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -493,7 +493,7 @@ interface AWSAmplifyBackendOutputs_4 {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -571,7 +571,7 @@ interface AWSAmplifyBackendOutputs_5 {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
     };
     custom?: {
         [k: string]: unknown;
