@@ -300,7 +300,7 @@ void describe('Auth construct', () => {
     });
   });
 
-  void it('creates email login mechanism with MFA', () => {
+  void it('creates email login mechanism with SMS MFA', () => {
     const app = new App();
     const stack = new Stack(app);
     const emailBodyFunction = (createCode: () => string) =>
@@ -345,6 +345,33 @@ void describe('Auth construct', () => {
       EnabledMfas: ['SMS_MFA'],
       SmsAuthenticationMessage: expectedSMSMFAMessage,
       SmsVerificationMessage: expectedSMSVerificationMessage,
+    });
+  });
+
+  void it('creates email login mechanism with email MFA', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        email: true,
+      },
+      senders: {
+        email: {
+          fromEmail: 'noreply@yourdomain.com',
+          fromName: 'testAdmin',
+          replyTo: 'noreply@yourdomain.com',
+        },
+      },
+      accountRecovery: 'EMAIL_AND_PHONE_WITHOUT_MFA',
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      MfaConfiguration: 'OPTIONAL',
+      EnabledMfas: ['EMAIL_OTP'],
     });
   });
 
@@ -1166,6 +1193,28 @@ void describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       const outputs = template.findOutputs('*');
       assert.equal(outputs['mfaTypes']['Value'], '["TOTP"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
+    });
+
+    void it('updates mfaConfiguration & mfaTypes when MFA is set to REQUIRED with only EMAIL enabled', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'REQUIRED', email: true },
+        senders: {
+          email: {
+            fromEmail: 'noreply@yourdomain.com',
+            fromName: 'testAdmin',
+            replyTo: 'noreply@yourdomain.com',
+          },
+        },
+        accountRecovery: 'EMAIL_AND_PHONE_WITHOUT_MFA',
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["EMAIL"]');
       assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
 
