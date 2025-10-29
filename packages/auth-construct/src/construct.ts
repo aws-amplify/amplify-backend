@@ -232,9 +232,6 @@ export class AmplifyAuth
       throw Error('Could not find CfnUserPool resource in stack.');
     }
 
-    // Configure email MFA if enabled
-    this.configureEmailMFA(props.multifactor, cfnUserPool);
-
     const cfnUserPoolClient = userPoolClient.node.findChild(
       'Resource',
     ) as CfnUserPoolClient;
@@ -861,28 +858,6 @@ export class AmplifyAuth
       return message;
     }
     return undefined;
-  };
-
-  /**
-   * Configure email MFA if enabled
-   * @param mfa - MFA settings
-   * @param cfnUserPool - CloudFormation UserPool resource
-   */
-  private configureEmailMFA = (
-    mfa: AuthProps['multifactor'],
-    cfnUserPool: CfnUserPool,
-  ): void => {
-    const enabledMfas = cfnUserPool.enabledMfas || [];
-    const shouldEnableEmail = mfa && mfa.mode !== 'OFF' && mfa.email;
-    const hasEmailOtp = enabledMfas.includes('EMAIL_OTP');
-
-    if (shouldEnableEmail && !hasEmailOtp) {
-      cfnUserPool.enabledMfas = [...enabledMfas, 'EMAIL_OTP'];
-    } else if (!shouldEnableEmail && hasEmailOtp) {
-      cfnUserPool.enabledMfas = enabledMfas.filter(
-        (mfa) => mfa !== 'EMAIL_OTP',
-      );
-    }
   };
 
   /**
