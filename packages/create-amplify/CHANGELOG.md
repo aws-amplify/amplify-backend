@@ -1,5 +1,18 @@
 # create-amplify
 
+## 1.2.2
+
+### Patch Changes
+
+- b6ef34d: bump create amplify dependencies
+- b6ef34d: bump create amplify dependencies
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/platform-core@1.10.1
+  - @aws-amplify/cli-core@2.2.2
+
 ## 1.2.1
 
 ### Patch Changes

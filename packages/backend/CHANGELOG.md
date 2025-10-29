@@ -1,5 +1,29 @@
 # @aws-amplify/backend
 
+## 1.17.0
+
+### Minor Changes
+
+- b6ef34d: feat: add timezone support to scheduling Lambda functions
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [b6ef34d]
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-auth@1.7.2
+  - @aws-amplify/backend-function@1.15.0
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/backend-output-storage@1.3.2
+  - @aws-amplify/backend-storage@1.4.2
+  - @aws-amplify/backend-secret@1.4.1
+  - @aws-amplify/client-config@1.8.1
+  - @aws-amplify/platform-core@1.10.1
+  - @aws-amplify/backend-data@1.6.2
+
 ## 1.16.1
 
 ### Patch Changes

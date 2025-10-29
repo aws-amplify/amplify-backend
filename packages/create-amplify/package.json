@@ -1,10 +1,14 @@
 {
   "name": "create-amplify",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "main": "lib/index.js",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
   },
   "engines": {
     "node": "^18.19.0 || ^20.6.0 || >=22"
@@ -17,9 +21,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/cli-core": "^2.1.0",
-    "@aws-amplify/platform-core": "^1.8.0",
-    "@aws-amplify/plugin-types": "^1.10.0",
+    "@aws-amplify/cli-core": "^2.2.2",
+    "@aws-amplify/platform-core": "^1.10.1",
+    "@aws-amplify/plugin-types": "^1.11.1",
     "execa": "^9.5.1",
     "kleur": "^4.1.5",
     "yargs": "^17.7.2"

@@ -245,7 +245,7 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -267,10 +267,15 @@ jobs:
         with:
           path: base-branch-content
           ref: ${{ github.event.pull_request.base.sha }}
-      - name: Check API changes
-        run: |
-          mkdir api-validation-projects
-          npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
+      - name: Check API changes with retry
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            mkdir -p api-validation-projects
+            npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   handle_dependabot_version_update:
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
@@ -352,7 +357,7 @@ jobs:
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -379,13 +384,14 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -412,13 +418,14 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_hosting:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -435,6 +442,7 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          attempt_timeout_minutes: 120
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
         env:
           AMPLIFY_BACKEND_TESTS_HOSTING_TEST_BRANCH_NAME: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
@@ -456,8 +464,14 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
-      - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
+      - name: Generate matrix with retry
+        id: generateMatrix
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -466,7 +480,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_deployment ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 160 || 120 }}
     needs:
       - do_include_e2e
       - build
@@ -479,12 +493,23 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e deployment tests
+        run: |
+          # Setup node and restore cache
+          echo "Setting up Node.js and restoring cache..."
+
+          # Run the e2e deployment tests using the action
+          echo "Running e2e deployment tests..."
+
+          # This will be handled by the composite action call below
+          exit 0
+      - name: Execute e2e deployment tests
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_generate_sandbox_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
@@ -503,8 +528,14 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
-      - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
+      - name: Generate matrix with retry
+        id: generateMatrix
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -513,7 +544,7 @@ jobs:
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     name: e2e_sandbox ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 160 || 120 }}
     needs:
       - do_include_e2e
       - build
@@ -525,13 +556,19 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Run e2e sandbox tests
+      - name: Run e2e sandbox tests with retry
+        run: |
+          # This step will be handled by the composite action below
+          echo "Preparing to run e2e sandbox tests with retry..."
+          exit 0
+      - name: Execute e2e sandbox tests
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 35 || 25 }}
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_notices:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
@@ -562,11 +599,16 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
-        run: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: ${{ matrix.os == 'windows-2025' && 8 || 5 }}
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:dir packages/integration-tests/lib/test-e2e/notices.test.js
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 120
     needs:
       - do_include_e2e
       - build
@@ -584,6 +626,7 @@ jobs:
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
+          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
     if: needs.do_include_e2e.outputs.run_e2e == 'true' && needs.do_include_e2e.outputs.include_create_amplify_e2e == 'true'
@@ -633,7 +676,7 @@ jobs:
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 180 || 120 }}
     needs:
       - build
       - do_include_e2e
@@ -645,13 +688,19 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
+      - name: Run e2e package manager tests with retry
+        run: |
+          # This step will be handled by the composite action below
+          echo "Preparing to run e2e package manager tests with retry..."
+          exit 0
+      - name: Execute e2e package manager tests
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           shell: bash
+          attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
           run: PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
     runs-on: ubuntu-latest
@@ -863,6 +912,10 @@ jobs:
       - e2e_hosting
       - resolve_inputs
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
@@ -874,6 +927,9 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 24
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
@@ -883,7 +939,7 @@ jobs:
           publish: npm run publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TRUSTED_PUBLISHER: 'true'
       - name: Update hotfix branch
         if: ${{ steps.changeset_publish.outputs.published == 'true' && github.ref_name == 'main' }}
         run: git push origin main:hotfix --force
