@@ -58,6 +58,10 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
   version: '1.3';
@@ -128,13 +132,13 @@ export interface AWSAmplifyBackendOutputs {
        *
        * @minItems 1
        */
-      redirect_sign_in_uri: string[];
+      redirect_sign_in_uri: [string, ...string[]];
       /**
        * URIs used to redirect after signing out
        *
        * @minItems 1
        */
-      redirect_sign_out_uri: string[];
+      redirect_sign_out_uri: [string, ...string[]];
       response_type: 'code' | 'token';
     };
     /**
@@ -148,7 +152,10 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: ('email' | 'phone_number' | 'username')[];
+    username_attributes?: [
+      'email' | 'phone_number' | 'username',
+      ...('email' | 'phone_number' | 'username')[],
+    ];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -200,7 +207,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: string[];
+      items: [string, ...string[]];
       default: string;
     };
     /**
@@ -210,7 +217,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: string[];
+      items: [string, ...string[]];
       default: string;
     };
   };
@@ -223,7 +230,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * @minItems 1
      */
-    channels: AmazonPinpointChannels[];
+    channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
   };
   /**
    * Outputs generated from defineStorage
@@ -252,10 +259,6 @@ export interface AmplifyUserGroupConfig {
  * via the `patternProperty` ".*".
  */
 export interface AmazonLocationServiceConfig {
-  /**
-   * Map resource name
-   */
-  name?: string;
   /**
    * Map style
    */

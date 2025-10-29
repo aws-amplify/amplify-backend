@@ -1226,7 +1226,7 @@ export class AmplifyAuth
       produce: () => {
         const enabledMfas = cfnUserPool.enabledMfas ?? [];
         const mfaTypes: string[] = [];
-        enabledMfas.forEach((type: string) => {
+        enabledMfas.forEach((type) => {
           if (type === 'SMS_MFA') {
             mfaTypes.push('SMS');
           }
