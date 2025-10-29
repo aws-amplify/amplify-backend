@@ -187,7 +187,7 @@
         "mfa_methods": {
           "type": "array",
           "items": {
-            "enum": ["SMS", "TOTP", "EMAIL"]
+            "enum": ["SMS", "TOTP"]
           }
         }
       },

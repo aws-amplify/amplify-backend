@@ -58,10 +58,6 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
-   * JSON schema
-   */
-  $schema?: string;
-  /**
    * Version of this schema
    */
   version: '1.2';
@@ -132,13 +128,13 @@ export interface AWSAmplifyBackendOutputs {
        *
        * @minItems 1
        */
-      redirect_sign_in_uri: [string, ...string[]];
+      redirect_sign_in_uri: string[];
       /**
        * URIs used to redirect after signing out
        *
        * @minItems 1
        */
-      redirect_sign_out_uri: [string, ...string[]];
+      redirect_sign_out_uri: string[];
       response_type: 'code' | 'token';
     };
     /**
@@ -152,14 +148,11 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: [
-      'email' | 'phone_number' | 'username',
-      ...('email' | 'phone_number' | 'username')[],
-    ];
+    username_attributes?: ('email' | 'phone_number' | 'username')[];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-    mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
+    mfa_methods?: ('SMS' | 'TOTP')[];
   };
   /**
    * Outputs generated from defineData
@@ -204,7 +197,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: [string, ...string[]];
+      items: string[];
       default: string;
     };
     /**
@@ -214,7 +207,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * @minItems 1
        */
-      items: [string, ...string[]];
+      items: string[];
       default: string;
     };
   };
@@ -227,7 +220,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * @minItems 1
      */
-    channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
+    channels: AmazonPinpointChannels[];
   };
   /**
    * Outputs generated from defineStorage
@@ -249,6 +242,10 @@ export interface AWSAmplifyBackendOutputs {
  * via the `patternProperty` ".*".
  */
 export interface AmazonLocationServiceConfig {
+  /**
+   * Map resource name
+   */
+  name?: string;
   /**
    * Map style
    */

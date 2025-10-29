@@ -11,68 +11,73 @@ import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client'
 import { S3Client } from '@aws-sdk/client-s3';
 
 // @public
-type AmazonCognitoStandardAttributes = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
-type AmazonCognitoStandardAttributes_2 = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes_2 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
-type AmazonCognitoStandardAttributes_3 = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes_3 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
-type AmazonCognitoStandardAttributes_4 = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes_4 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
-type AmazonCognitoStandardAttributes_5 = "address" | "birthdate" | "email" | "family_name" | "gender" | "given_name" | "locale" | "middle_name" | "name" | "nickname" | "phone_number" | "picture" | "preferred_username" | "profile" | "sub" | "updated_at" | "website" | "zoneinfo";
+type AmazonCognitoStandardAttributes_5 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
 interface AmazonLocationServiceConfig {
+    name?: string;
     style?: string;
 }
 
 // @public
 interface AmazonLocationServiceConfig_2 {
+    name?: string;
     style?: string;
 }
 
 // @public
 interface AmazonLocationServiceConfig_3 {
+    name?: string;
     style?: string;
 }
 
 // @public
 interface AmazonLocationServiceConfig_4 {
+    name?: string;
     style?: string;
 }
 
 // @public
 interface AmazonLocationServiceConfig_5 {
+    name?: string;
     style?: string;
 }
 
 // @public
-type AmazonPinpointChannels = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmazonPinpointChannels_2 = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels_2 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmazonPinpointChannels_3 = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels_3 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmazonPinpointChannels_4 = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels_4 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmazonPinpointChannels_5 = "IN_APP_MESSAGING" | "FCM" | "APNS" | "EMAIL" | "SMS";
+type AmazonPinpointChannels_5 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public
-type AmplifyStorageAccessActions = "read" | "get" | "list" | "write" | "delete";
+type AmplifyStorageAccessActions = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
-type AmplifyStorageAccessActions_2 = "read" | "get" | "list" | "write" | "delete";
+type AmplifyStorageAccessActions_2 = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
-type AmplifyStorageAccessActions_3 = "read" | "get" | "list" | "write" | "delete";
+type AmplifyStorageAccessActions_3 = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public
 type AmplifyStorageAccessRule = {
@@ -217,7 +222,6 @@ export type AuthClientConfig = {
 
 // @public
 interface AWSAmplifyBackendOutputs {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
             aws_region: string;
@@ -237,19 +241,19 @@ interface AWSAmplifyBackendOutputs {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP" | "EMAIL")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig;
         }[];
@@ -276,30 +280,29 @@ interface AWSAmplifyBackendOutputs {
             default: string;
         };
         search_indices?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
+        channels: AmazonPinpointChannels[];
     };
     storage?: {
         aws_region: AwsRegion;
         bucket_name: string;
         buckets?: AmplifyStorageBucket[];
     };
-    version: "1.4";
+    version: '1.4';
 }
 
 // @public
 interface AWSAmplifyBackendOutputs_2 {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
             aws_region: string;
@@ -319,19 +322,19 @@ interface AWSAmplifyBackendOutputs_2 {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes_2[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP" | "EMAIL")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig_2;
         }[];
@@ -358,30 +361,29 @@ interface AWSAmplifyBackendOutputs_2 {
             default: string;
         };
         search_indices?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion_2;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels_2, ...AmazonPinpointChannels_2[]];
+        channels: AmazonPinpointChannels_2[];
     };
     storage?: {
         aws_region: AwsRegion_2;
         bucket_name: string;
         buckets?: AmplifyStorageBucket_2[];
     };
-    version: "1.3";
+    version: '1.3';
 }
 
 // @public
 interface AWSAmplifyBackendOutputs_3 {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
             aws_region: string;
@@ -401,19 +403,19 @@ interface AWSAmplifyBackendOutputs_3 {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes_3[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP" | "EMAIL")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -437,38 +439,37 @@ interface AWSAmplifyBackendOutputs_3 {
             default: string;
         };
         search_indices?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion_3;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels_3, ...AmazonPinpointChannels_3[]];
+        channels: AmazonPinpointChannels_3[];
     };
     storage?: {
         aws_region: AwsRegion_3;
         bucket_name: string;
         buckets?: AmplifyStorageBucket_3[];
     };
-    version: "1.2";
+    version: '1.2';
 }
 
 // @public
 interface AWSAmplifyBackendOutputs_4 {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
-            aws_region: string;
+            aws_region: AwsRegion_4;
             app_id: string;
         };
     };
     auth?: {
-        aws_region: string;
+        aws_region: AwsRegion_4;
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -480,19 +481,19 @@ interface AWSAmplifyBackendOutputs_4 {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes_4[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP" | "EMAIL")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -508,7 +509,7 @@ interface AWSAmplifyBackendOutputs_4 {
         authorization_types: AwsAppsyncAuthorizationType_4[];
     };
     geo?: {
-        aws_region: string;
+        aws_region: AwsRegion_4;
         maps?: {
             items: {
                 [k: string]: AmazonLocationServiceConfig_4;
@@ -516,38 +517,37 @@ interface AWSAmplifyBackendOutputs_4 {
             default: string;
         };
         search_indices?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion_4;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels_4, ...AmazonPinpointChannels_4[]];
+        channels: AmazonPinpointChannels_4[];
     };
     storage?: {
         aws_region: AwsRegion_4;
         bucket_name: string;
         buckets?: AmplifyStorageBucket_4[];
     };
-    version: "1.1";
+    version: '1.1';
 }
 
 // @public
 interface AWSAmplifyBackendOutputs_5 {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
-            aws_region: string;
+            aws_region: AwsRegion_5;
             app_id: string;
         };
     };
     auth?: {
-        aws_region: string;
+        aws_region: AwsRegion_5;
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -559,19 +559,19 @@ interface AWSAmplifyBackendOutputs_5 {
             require_symbols: boolean;
         };
         oauth?: {
-            identity_providers: ("GOOGLE" | "FACEBOOK" | "LOGIN_WITH_AMAZON" | "SIGN_IN_WITH_APPLE")[];
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
             domain: string;
             scopes: string[];
-            redirect_sign_in_uri: [string, ...string[]];
-            redirect_sign_out_uri: [string, ...string[]];
-            response_type: "code" | "token";
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
         };
         standard_required_attributes?: AmazonCognitoStandardAttributes_5[];
-        username_attributes?: ["email" | "phone_number" | "username", ...("email" | "phone_number" | "username")[]];
-        user_verification_types?: ("email" | "phone_number")[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP" | "EMAIL")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -587,7 +587,7 @@ interface AWSAmplifyBackendOutputs_5 {
         authorization_types: AwsAppsyncAuthorizationType_5[];
     };
     geo?: {
-        aws_region: string;
+        aws_region: AwsRegion_5;
         maps?: {
             items: {
                 [k: string]: AmazonLocationServiceConfig_5;
@@ -595,40 +595,40 @@ interface AWSAmplifyBackendOutputs_5 {
             default: string;
         };
         search_indices?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
         geofence_collections?: {
-            items: [string, ...string[]];
+            items: string[];
             default: string;
         };
     };
     notifications?: {
         aws_region: AwsRegion_5;
         amazon_pinpoint_app_id: string;
-        channels: [AmazonPinpointChannels_5, ...AmazonPinpointChannels_5[]];
+        channels: AmazonPinpointChannels_5[];
     };
     storage?: {
         aws_region: AwsRegion_5;
         bucket_name: string;
     };
-    version: "1.1";
+    version: '1';
 }
 
 // @public
-type AwsAppsyncAuthorizationType = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
-type AwsAppsyncAuthorizationType_2 = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType_2 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
-type AwsAppsyncAuthorizationType_3 = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType_3 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
-type AwsAppsyncAuthorizationType_4 = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType_4 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
-type AwsAppsyncAuthorizationType_5 = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType_5 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
 type AwsRegion = string;
