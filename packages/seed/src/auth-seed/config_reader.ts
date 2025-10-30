@@ -3,7 +3,7 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type AuthConfiguration = {
   userPoolId: string;
-  mfaMethods?: ('SMS' | 'TOTP')[];
+  mfaMethods?: ('SMS' | 'TOTP' | 'EMAIL')[];
   mfaConfig?: 'NONE' | 'REQUIRED' | 'OPTIONAL';
   groups?: string[];
 };

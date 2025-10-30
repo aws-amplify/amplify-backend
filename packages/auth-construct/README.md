@@ -47,6 +47,36 @@ new AmplifyAuth(stack, 'Auth', {
 });
 ```
 
+### Email login with email MFA
+
+In this example, you will create a stack with email login and email MFA enabled. Note that email MFA requires an email sender configuration.
+
+```ts
+import { App, Stack } from 'aws-cdk-lib';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
+
+const app = new App();
+const stack = new Stack(app, 'AuthStack');
+
+new AmplifyAuth(stack, 'Auth', {
+  loginWith: {
+    email: true,
+  },
+  multifactor: {
+    mode: 'OPTIONAL',
+    email: true,
+    sms: false,
+    totp: false,
+  },
+  senders: {
+    email: {
+      fromEmail: 'noreply@example.com',
+      fromName: 'My App',
+    },
+  },
+});
+```
+
 ### Customized email and phone login with external login providers
 
 In this example, you will create a stack with email, phone, and external login providers. Additionally, you can customize the email and phone verification messages.
