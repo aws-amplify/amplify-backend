@@ -195,12 +195,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         }
 
         amplifyGraphqlDefinitions.push(
-          convertSchemaToCDK(
+          convertSchemaToCDK({
             schema,
             backendSecretResolver,
             stableBackendIdentifiers,
             importedTableName,
-          ),
+          }),
         );
       });
     } catch (error) {
