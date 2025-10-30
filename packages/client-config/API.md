@@ -27,6 +27,7 @@ type AmazonCognitoStandardAttributes_5 = 'address' | 'birthdate' | 'email' | 'fa
 
 // @public
 interface AmazonLocationServiceConfig {
+    name?: string;
     style?: string;
 }
 
@@ -221,7 +222,6 @@ export type AuthClientConfig = {
 
 // @public
 interface AWSAmplifyBackendOutputs {
-    $schema?: string;
     analytics?: {
         amazon_pinpoint?: {
             aws_region: string;
