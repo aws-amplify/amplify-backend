@@ -3144,4 +3144,29 @@ void describe('Auth construct', () => {
       UserPoolName: Match.absent(),
     });
   });
+
+  void it('sets featurePlan when provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      featurePlan: aws_cognito.FeaturePlan.ESSENTIALS,
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolTier: 'ESSENTIALS',
+    });
+  });
+
+  void it('does not set featurePlan when not provided', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolTier: Match.absent(),
+    });
+  });
 });
