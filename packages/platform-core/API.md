@@ -256,16 +256,16 @@ export const telemetryPayloadSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     }, {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
@@ -283,13 +283,13 @@ export const telemetryPayloadSchema: z.ZodObject<{
             parameters: string[];
         }>;
     }, "strip", z.ZodTypeAny, {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
         };
     }, {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
@@ -390,14 +390,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
@@ -434,14 +434,14 @@ export const telemetryPayloadSchema: z.ZodObject<{
     identifiers: {
         payloadVersion: string;
         sessionUuid: string;
-        eventId: string;
         timestamp: string;
+        eventId: string;
         localProjectId: string;
         accountId?: string | undefined;
         awsRegion?: string | undefined;
     };
     event: {
-        state: "ABORTED" | "FAILED" | "SUCCEEDED";
+        state: "FAILED" | "SUCCEEDED" | "ABORTED";
         command: {
             path: string[];
             parameters: string[];
