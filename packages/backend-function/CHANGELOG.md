@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.15.1
+
+### Patch Changes
+
+- 6aa209f: fix: function schedule deployment failure issue in the 1.17 update
+
 ## 1.15.0
 
 ### Minor Changes

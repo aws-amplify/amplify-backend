@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 1.18.0
+
+### Minor Changes
+
+- 477139e: feat(auth): Added support for email-MFA in Amplify Auth construct
+
+### Patch Changes
+
+- 6aa209f: fix: function schedule deployment failure issue in the 1.17 update
+- Updated dependencies [477139e]
+- Updated dependencies [6aa209f]
+  - @aws-amplify/client-config@1.9.0
+  - @aws-amplify/backend-auth@1.8.0
+  - @aws-amplify/backend-function@1.15.1
+
 ## 1.17.0
 
 ### Minor Changes
