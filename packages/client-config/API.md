@@ -253,7 +253,7 @@ interface AWSAmplifyBackendOutputs {
         user_verification_types?: ('email' | 'phone_number')[];
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
-        mfa_methods?: ('SMS' | 'TOTP')[];
+        mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
         groups?: {
             [k: string]: AmplifyUserGroupConfig;
         }[];

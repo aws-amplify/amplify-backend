@@ -1169,6 +1169,62 @@ void describe('Auth construct', () => {
       assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
 
+    void it('enables email MFA when email is set to true', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        multifactor: { mode: 'OPTIONAL', email: true },
+        senders: {
+          email: {
+            fromEmail: 'noreply@example.com',
+            fromName: 'Example.com',
+          },
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        EnabledMfas: ['EMAIL_OTP'],
+      });
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["EMAIL"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'OPTIONAL');
+    });
+
+    void it('enables multiple MFA types including email', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        multifactor: { mode: 'REQUIRED', sms: true, totp: true, email: true },
+        senders: {
+          email: {
+            fromEmail: 'noreply@example.com',
+            fromName: 'Example.com',
+          },
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        EnabledMfas: ['SMS_MFA', 'SOFTWARE_TOKEN_MFA', 'EMAIL_OTP'],
+      });
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["SMS","TOTP","EMAIL"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
+    });
+
+    void it('does not enable email MFA when email is set to false', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        multifactor: { mode: 'OPTIONAL', sms: true, email: false },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        EnabledMfas: ['SMS_MFA'],
+      });
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '["SMS"]');
+    });
+
     void it('updates socialProviders and oauth outputs when external providers are present', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {

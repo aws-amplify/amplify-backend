@@ -13,6 +13,7 @@ export {
   VerificationEmailWithLink,
   MFA,
   MFASmsSettings,
+  MFAEmailSettings,
   MFATotpSettings,
   MFASettings,
   PhoneNumberLogin,
