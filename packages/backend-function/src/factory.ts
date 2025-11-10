@@ -651,7 +651,7 @@ class AmplifyFunction
 
       expressions.forEach((expression, index) => {
         // Lambda name will be prepended to schedule id, so only using index here for uniqueness
-        new scheduler.Schedule(functionLambda, `schedule${index}`, {
+        new scheduler.Schedule(functionLambda, `schedule-${index}`, {
           schedule: expression,
           target: lambdaTarget,
         });
