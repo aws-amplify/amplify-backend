@@ -18,8 +18,6 @@ export const translateErrorToTelemetryErrorDetails = (
       const serializedError = new SerializableError(currentError);
       const errorDetail: TelemetryPayload['error'] = {
         name: serializedError.name,
-        message: serializedError.message,
-        stack: serializedError.stack ?? '',
       };
 
       if (errorDetails) {

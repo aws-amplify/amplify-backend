@@ -9,8 +9,6 @@ void describe('translateErrorToTelemetryErrorDetails', () => {
     error.stack = 'test stack';
     const expectedError: TelemetryPayload['error'] = {
       name: 'Error',
-      message: 'test error message',
-      stack: 'test stack',
     };
     const actual = translateErrorToTelemetryErrorDetails(error);
     assert.deepStrictEqual(actual, expectedError);
@@ -30,16 +28,10 @@ void describe('translateErrorToTelemetryErrorDetails', () => {
 
     const expectedError: TelemetryPayload['error'] = {
       name: 'DeeplyNestedError',
-      message: 'deeply nested error',
-      stack: 'stack for deeply nested error',
       caused: {
         name: 'NestedError',
-        message: 'nested error',
-        stack: 'stack for nested error',
         caused: {
           name: 'Error',
-          message: 'top level error',
-          stack: 'stack for error',
         },
       },
     };

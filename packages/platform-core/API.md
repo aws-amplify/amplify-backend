@@ -131,8 +131,6 @@ export class ConfigurationControllerFactory {
 // @public (undocumented)
 export type ErrorDetails = {
     name: string;
-    message: string;
-    stack: string;
     caused?: ErrorDetails;
 };
 
