@@ -53,8 +53,10 @@ const latencySchema = z.object({
 
 export type ErrorDetails = {
   name: string;
-  message: string;
-  stack: string;
+  // Purposely omitting message and stack. Removing them from the Zod schema
+  // removes them from the payload sent to the server.
+  // message: string;
+  // stack: string;
   caused?: ErrorDetails;
 };
 
