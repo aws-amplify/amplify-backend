@@ -53,16 +53,20 @@ const latencySchema = z.object({
 
 export type ErrorDetails = {
   name: string;
-  message: string;
-  stack: string;
+  // Purposely omitting message and stack. Removing them from the Zod schema
+  // removes them from the payload sent to the server.
+  // message: string;
+  // stack: string;
   caused?: ErrorDetails;
 };
 
 const errorSchema: z.ZodType<ErrorDetails> = z.lazy(() =>
   z.object({
     name: z.string(),
-    message: z.string(),
-    stack: z.string(),
+    // Purposely omitting message and stack. Removing them from the Zod schema
+    // removes them from the payload sent to the server.
+    // message: z.string(),
+    // stack: z.string(),
     caused: z.optional(errorSchema), // Recursive reference
   }),
 );
