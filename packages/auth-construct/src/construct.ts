@@ -55,6 +55,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -196,6 +197,8 @@ export class AmplifyAuth
       );
     }
 
+    this.applyPasswordlessConfiguration(this.userPool, props);
+
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
@@ -212,6 +215,8 @@ export class AmplifyAuth
         oAuth: this.providerSetupResult.oAuthSettings,
       },
     );
+
+    this.applyUserAuthFlow(userPoolClient, props);
 
     // Identity Pool
     const {
@@ -1127,6 +1132,131 @@ export class AmplifyAuth
       result.push(cognito.OAuthScope[scope]);
     }
     return result;
+  };
+
+  /**
+   * Apply passwordless authentication configuration to the UserPool.
+   * Configures Email OTP, SMS OTP, and WebAuthn (passkeys) based on props.
+   */
+  private applyPasswordlessConfiguration = (
+    userPool: UserPool,
+    props: AuthProps,
+  ): void => {
+    const cfnUserPool = userPool.node.findChild('Resource') as CfnUserPool;
+    if (!(cfnUserPool instanceof CfnUserPool)) {
+      throw Error('Could not find CfnUserPool resource in stack.');
+    }
+
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!emailOtpEnabled && !smsOtpEnabled && !webAuthnEnabled) {
+      return;
+    }
+
+    // PASSWORD is always included per Cognito requirements
+    const allowedFirstAuthFactors: string[] = ['PASSWORD'];
+
+    if (emailOtpEnabled) {
+      allowedFirstAuthFactors.push('EMAIL_OTP');
+    }
+
+    if (smsOtpEnabled) {
+      allowedFirstAuthFactors.push('SMS_OTP');
+    }
+
+    if (webAuthnEnabled) {
+      allowedFirstAuthFactors.push('WEB_AUTHN');
+    }
+
+    cfnUserPool.addPropertyOverride('Policies.SignInPolicy', {
+      AllowedFirstAuthFactors: allowedFirstAuthFactors,
+    });
+
+    if (webAuthnEnabled) {
+      const webAuthnConfig = props.loginWith.webAuthn!;
+      let relyingPartyId: string;
+      let userVerification: string;
+
+      if (webAuthnConfig === true) {
+        relyingPartyId = this.resolveRelyingPartyId('AUTO');
+        userVerification = 'preferred';
+      } else {
+        relyingPartyId = this.resolveRelyingPartyId(
+          webAuthnConfig.relyingPartyId,
+        );
+        userVerification = webAuthnConfig.userVerification ?? 'preferred';
+      }
+
+      cfnUserPool.addPropertyOverride('WebAuthnRelyingPartyID', relyingPartyId);
+      cfnUserPool.addPropertyOverride(
+        'WebAuthnUserVerification',
+        userVerification,
+      );
+    }
+  };
+
+  /**
+   * Resolve the relying party ID for WebAuthn configuration.
+   * Handles AUTO resolution based on deployment context.
+   */
+  private resolveRelyingPartyId = (relyingPartyId: string): string => {
+    if (relyingPartyId !== 'AUTO') {
+      return relyingPartyId;
+    }
+
+    const deploymentType = this.node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    );
+
+    if (deploymentType === 'branch') {
+      const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
+      const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
+
+      if (appId && branchName) {
+        return `${branchName}.${appId}.amplifyapp.com`;
+      }
+    }
+
+    return 'localhost';
+  };
+
+  /**
+   * Apply USER_AUTH flow to UserPoolClient when passwordless factors are enabled.
+   */
+  private applyUserAuthFlow = (
+    userPoolClient: UserPoolClient,
+    props: AuthProps,
+  ): void => {
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    const hasPasswordlessFactors =
+      emailOtpEnabled || smsOtpEnabled || webAuthnEnabled;
+
+    if (!hasPasswordlessFactors) {
+      return;
+    }
+
+    const cfnUserPoolClient = userPoolClient.node.findChild(
+      'Resource',
+    ) as CfnUserPoolClient;
+    if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
+      throw Error('Could not find CfnUserPoolClient resource in stack.');
+    }
+
+    const existingFlows = cfnUserPoolClient.explicitAuthFlows || [];
+    cfnUserPoolClient.explicitAuthFlows = [...existingFlows, 'ALLOW_USER_AUTH'];
   };
 
   /**
