@@ -231,6 +231,7 @@ export class AmplifyAuth
     if (!(cfnUserPool instanceof CfnUserPool)) {
       throw Error('Could not find CfnUserPool resource in stack.');
     }
+
     const cfnUserPoolClient = userPoolClient.node.findChild(
       'Resource',
     ) as CfnUserPoolClient;
@@ -810,7 +811,7 @@ export class AmplifyAuth
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
-   * @returns cognito MFA type (sms or totp)
+   * @returns cognito MFA type (sms, totp, or email)
    */
   private getMFAType = (
     mfa: AuthProps['multifactor'],
@@ -819,6 +820,7 @@ export class AmplifyAuth
       ? {
           sms: mfa.sms ? true : false,
           otp: mfa.totp ? true : false,
+          email: mfa.email ? true : false,
         }
       : undefined;
   };
@@ -1222,13 +1224,17 @@ export class AmplifyAuth
     // extract the MFA types from the UserPool resource
     output.mfaTypes = Lazy.string({
       produce: () => {
+        const enabledMfas = cfnUserPool.enabledMfas ?? [];
         const mfaTypes: string[] = [];
-        (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+        enabledMfas.forEach((type) => {
           if (type === 'SMS_MFA') {
             mfaTypes.push('SMS');
           }
           if (type === 'SOFTWARE_TOKEN_MFA') {
             mfaTypes.push('TOTP');
+          }
+          if (type === 'EMAIL_OTP') {
+            mfaTypes.push('EMAIL');
           }
         });
         return JSON.stringify(mfaTypes);

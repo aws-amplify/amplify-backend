@@ -1,5 +1,15 @@
 # @aws-amplify/ai-constructs
 
+## 1.5.4
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+
 ## 1.5.3
 
 ### Patch Changes

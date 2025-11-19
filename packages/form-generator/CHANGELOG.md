@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.2.5
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+
 ## 1.2.4
 
 ### Patch Changes

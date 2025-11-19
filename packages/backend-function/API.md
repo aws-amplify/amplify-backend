@@ -34,7 +34,10 @@ export type AddEnvironmentFactory = {
 };
 
 // @public (undocumented)
-export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type CronSchedule = CronScheduleExpression | ZonedCronSchedule;
+
+// @public (undocumented)
+export type CronScheduleExpression = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public (undocumented)
 type DataClientConfig = {
@@ -141,7 +144,22 @@ type ResourceConfig = {
 };
 
 // @public (undocumented)
-export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
+export type TimeInterval = ZonedTimeInterval | TimeIntervalExpression;
+
+// @public (undocumented)
+export type TimeIntervalExpression = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
+
+// @public (undocumented)
+export type ZonedCronSchedule = {
+    cron: CronScheduleExpression;
+    timezone: string;
+};
+
+// @public (undocumented)
+export type ZonedTimeInterval = {
+    rate: TimeIntervalExpression;
+    timezone: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

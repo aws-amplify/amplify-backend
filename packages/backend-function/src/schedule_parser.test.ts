@@ -1,145 +1,215 @@
 import { describe, it } from 'node:test';
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import { FunctionSchedule } from './factory.js';
+import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
+import { CronSchedule, FunctionSchedule } from './factory.js';
 import assert from 'node:assert';
 import os from 'os';
 
 void describe('ScheduleParser', () => {
-  void it('creates EventBridge rule for natural language', () => {
+  void it('creates EventBridge Schedule expression for natural language', () => {
     const schedule: FunctionSchedule[] = ['every day'];
     const expectedScheduleExpression = 'cron(0 0 * * ? *)'; // every day at 00:00
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rule for natural language with number value', () => {
+  void it('creates EventBridge Schedule expression for natural language with timezone', () => {
+    const schedule: FunctionSchedule[] = [
+      { rate: 'every day', timezone: 'America/New_York' },
+    ];
+    const expectedScheduleExpression = 'cron(0 0 * * ? *)'; // every day at 00:00
+    const testLambda = getTestLambda();
+
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
+      testLambda,
+      schedule,
+    );
+
+    assert.equal(schedules.length, 1);
+    assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'America/New_York');
+  });
+
+  void it('creates EventBridge Schedule expression for natural language with number value', () => {
     const schedule: FunctionSchedule[] = ['every 5m'];
     const expectedScheduleExpression = 'cron(*/5 * * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rule for cron expression', () => {
+  void it('creates EventBridge Schedule expression for cron expression', () => {
     const schedule: FunctionSchedule[] = ['* * * * ?'];
     const expectedScheduleExpression = 'cron(* * * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rule for cron expression with /', () => {
+  void it('creates EventBridge Schedule expression for cron expression with timezone', () => {
+    const schedule: FunctionSchedule[] = [
+      { cron: '* * * * ?', timezone: 'America/New_York' },
+    ];
+    const expectedScheduleExpression = 'cron(* * * * ? *)';
+    const testLambda = getTestLambda();
+
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
+      testLambda,
+      schedule,
+    );
+
+    assert.equal(schedules.length, 1);
+    assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'America/New_York');
+  });
+
+  void it('creates EventBridge Schedule expression for cron expression with /', () => {
     const schedule: FunctionSchedule[] = ['*/5 * * * ?'];
     const expectedScheduleExpression = 'cron(*/5 * * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rule for cron expression with ,', () => {
+  void it('creates EventBridge Schedule expression for cron expression with ,', () => {
     const schedule: FunctionSchedule[] = ['0 1,2 * * ?'];
     const expectedScheduleExpression = 'cron(0 1,2 * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rule for cron expression with -', () => {
+  void it('creates EventBridge Schedule expression for cron expression with -', () => {
     const schedule: FunctionSchedule[] = ['0 1-5 * * ?'];
     const expectedScheduleExpression = 'cron(0 1-5 * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       schedule,
     );
 
     assert.equal(schedules.length, 1);
     assert.equal(schedules[0].expressionString, expectedScheduleExpression);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rules for an array of natural language', () => {
+  void it('creates EventBridge Schedule expressions for an array of natural language', () => {
     const functionSchedules: FunctionSchedule[] = ['every 2h', 'every month'];
     const expectedExpressionTwoHours = 'cron(0 */2 * * ? *)';
     const expectedExpressionEveryMonth = 'cron(0 0 1 * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
     assert.equal(schedules[0].expressionString, expectedExpressionTwoHours);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
     assert.equal(schedules[1].expressionString, expectedExpressionEveryMonth);
+    assert.equal(schedules[1].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rules for an array of cron expressions', () => {
+  void it('creates EventBridge Schedule expressions for an array of cron expressions', () => {
     const functionSchedules: FunctionSchedule[] = ['* * * * ?', '0 0 * * ?'];
     const expectedExpressionEveryMinute = 'cron(* * * * ? *)';
     const expectedExpressionEveryMidnight = 'cron(0 0 * * ? *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
     assert.equal(schedules[0].expressionString, expectedExpressionEveryMinute);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
     assert.equal(
       schedules[1].expressionString,
       expectedExpressionEveryMidnight,
     );
+    assert.equal(schedules[1].timeZone?.timezoneName, 'UTC');
   });
 
-  void it('creates EventBridge rules for an array of both natural language and cron expressions', () => {
+  void it('creates EventBridge Schedule expressions for an array of both natural language and cron expressions', () => {
     const functionSchedules: FunctionSchedule[] = ['* * * * ?', 'every week'];
     const expectedExpressionEveryMinute = 'cron(* * * * ? *)';
     const expectedExpressionEveryWeek = 'cron(0 0 ? * 1 *)';
     const testLambda = getTestLambda();
 
-    const schedules = convertFunctionSchedulesToRuleSchedules(
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
       testLambda,
       functionSchedules,
     );
 
     assert.equal(schedules.length, 2);
     assert.equal(schedules[0].expressionString, expectedExpressionEveryMinute);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
     assert.equal(schedules[1].expressionString, expectedExpressionEveryWeek);
+    assert.equal(schedules[1].timeZone?.timezoneName, 'UTC');
+  });
+
+  void it('creates EventBridge Schedule expressions for an array of both expression with timezone and cron expression without timezone', () => {
+    const functionSchedules: FunctionSchedule[] = [
+      '* * * * ?',
+      { cron: '0 0 * * ?', timezone: 'Asia/Tokyo' },
+    ];
+    const expectedExpressionEveryMinute = 'cron(* * * * ? *)';
+    const expectedExpressionEveryMidnight = 'cron(0 0 * * ? *)';
+    const testLambda = getTestLambda();
+
+    const schedules = convertFunctionSchedulesToScheduleExpressions(
+      testLambda,
+      functionSchedules,
+    );
+
+    assert.equal(schedules.length, 2);
+    assert.equal(schedules[0].expressionString, expectedExpressionEveryMinute);
+    assert.equal(schedules[0].timeZone?.timezoneName, 'UTC');
+    assert.equal(
+      schedules[1].expressionString,
+      expectedExpressionEveryMidnight,
+    );
+    assert.equal(schedules[1].timeZone?.timezoneName, 'Asia/Tokyo');
   });
 
   void it('throws if rate is a negative number', () => {
@@ -148,7 +218,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message:
@@ -163,7 +233,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message:
@@ -187,7 +257,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message: expectedErrors.join(os.EOL),
@@ -214,7 +284,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message: expectedErrors.join(os.EOL),
@@ -237,7 +307,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message: expectedErrors.join(os.EOL),
@@ -260,7 +330,7 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message: expectedErrors.join(os.EOL),
@@ -274,11 +344,28 @@ void describe('ScheduleParser', () => {
 
     assert.throws(
       () => {
-        convertFunctionSchedulesToRuleSchedules(testLambda, schedule);
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
       },
       {
         message:
           'Function schedule rate must be greater than the function timeout of 120 seconds',
+      },
+    );
+  });
+
+  void it('throws if schedule is an invalid format', () => {
+    // eslint-disable-next-line spellcheck/spell-checker -- misspelled to test error handling
+    const schedule: FunctionSchedule[] = [
+      { corn: '* * * * *', timezone: 'UTC' } as unknown as CronSchedule,
+    ];
+    const testLambda = getTestLambda();
+
+    assert.throws(
+      () => {
+        convertFunctionSchedulesToScheduleExpressions(testLambda, schedule);
+      },
+      {
+        message: "Could not determine the function's schedule type",
       },
     );
   });

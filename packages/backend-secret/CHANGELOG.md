@@ -1,5 +1,15 @@
 # @aws-amplify/backend-secret
 
+## 1.4.1
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/platform-core@1.10.1
+
 ## 1.4.0
 
 ### Minor Changes

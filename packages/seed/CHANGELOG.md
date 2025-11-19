@@ -1,5 +1,29 @@
 # @aws-amplify/seed
 
+## 1.1.0
+
+### Minor Changes
+
+- 477139e: feat(auth): Added support for email-MFA in Amplify Auth construct
+
+### Patch Changes
+
+- Updated dependencies [477139e]
+  - @aws-amplify/client-config@1.9.0
+
+## 1.0.2
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-secret@1.4.1
+  - @aws-amplify/client-config@1.8.1
+  - @aws-amplify/platform-core@1.10.1
+  - @aws-amplify/cli-core@2.2.2
+
 ## 1.0.1
 
 ### Patch Changes

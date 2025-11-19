@@ -1,5 +1,13 @@
 # @aws-amplify/schema-generator
 
+## 1.4.1
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [016ee87]
+  - @aws-amplify/platform-core@1.10.1
+
 ## 1.4.0
 
 ### Minor Changes

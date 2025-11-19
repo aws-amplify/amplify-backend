@@ -1,5 +1,29 @@
 # @aws-amplify/backend-auth
 
+## 1.8.0
+
+### Minor Changes
+
+- 477139e: feat(auth): Added support for email-MFA in Amplify Auth construct
+
+### Patch Changes
+
+- Updated dependencies [477139e]
+  - @aws-amplify/auth-construct@1.9.0
+
+## 1.7.2
+
+### Patch Changes
+
+- b6ef34d: Add unit tests for custom domain and cognito-managed domain OAuth scenarios
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/backend-output-storage@1.3.2
+  - @aws-amplify/auth-construct@1.8.2
+
 ## 1.7.1
 
 ### Patch Changes

@@ -23,8 +23,8 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Duration, Size, Stack, Tags } from 'aws-cdk-lib';
-import { Rule } from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as scheduler from 'aws-cdk-lib/aws-scheduler';
+import * as targets from 'aws-cdk-lib/aws-scheduler-targets';
 import {
   Architecture,
   CfnFunction,
@@ -50,7 +50,7 @@ import {
   convertLoggingOptionsToCDK,
   createLogGroup,
 } from './logging_options_parser.js';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
 import {
   ProvidedFunctionFactory,
   ProvidedFunctionProps,
@@ -62,16 +62,32 @@ export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
 };
 
-export type CronSchedule =
+export type CronScheduleExpression =
   | `${string} ${string} ${string} ${string} ${string}`
   | `${string} ${string} ${string} ${string} ${string} ${string}`;
-export type TimeInterval =
+
+export type ZonedCronSchedule = {
+  cron: CronScheduleExpression;
+  timezone: string;
+};
+
+export type CronSchedule = CronScheduleExpression | ZonedCronSchedule;
+
+export type TimeIntervalExpression =
   | `every ${number}m`
   | `every ${number}h`
   | `every day`
   | `every week`
   | `every month`
   | `every year`;
+
+export type ZonedTimeInterval = {
+  rate: TimeIntervalExpression;
+  timezone: string;
+};
+
+export type TimeInterval = ZonedTimeInterval | TimeIntervalExpression;
+
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
 export type FunctionLogLevel = Extract<
@@ -636,19 +652,19 @@ class AmplifyFunction
     }
 
     try {
-      const schedules = convertFunctionSchedulesToRuleSchedules(
+      const expressions = convertFunctionSchedulesToScheduleExpressions(
         functionLambda,
         props.schedule,
       );
-      const lambdaTarget = new targets.LambdaFunction(functionLambda);
 
-      schedules.forEach((schedule, index) => {
-        // Lambda name will be prepended to rule id, so only using index here for uniqueness
-        const rule = new Rule(functionLambda, `schedule${index}`, {
-          schedule,
+      const lambdaTarget = new targets.LambdaInvoke(functionLambda);
+
+      expressions.forEach((expression, index) => {
+        // Lambda name will be prepended to schedule id, so only using index here for uniqueness
+        new scheduler.Schedule(functionLambda, `schedule-${index}`, {
+          schedule: expression,
+          target: lambdaTarget,
         });
-
-        rule.addTarget(lambdaTarget);
       });
     } catch (error) {
       throw new AmplifyUserError(
