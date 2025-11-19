@@ -9,6 +9,7 @@ import {
 import { ApplicationLogLevel, LoggingFormat } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 
 type ConversionTestCase = {
   input: FunctionLoggingOptions;
@@ -63,25 +64,15 @@ void describe('LoggingOptions converter', () => {
     // Check that the log group was created
     assert.ok(logGroup instanceof LogGroup);
 
-    // We can't easily check the CDK properties from the instance
-    // So we verify the synthesized CloudFormation template
-    const template = JSON.parse(
-      JSON.stringify(app.synth().getStackArtifact('TestStack').template),
-    );
-
-    // Find the LogGroup resource
-    const logGroupResources = Object.values(template.Resources).filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (resource: any) => resource.Type === 'AWS::Logs::LogGroup',
-    );
+    // Verify the synthesized CloudFormation template
+    const template = Template.fromStack(stack);
 
     // Ensure we found exactly one log group
-    assert.strictEqual(logGroupResources.length, 1);
+    template.resourceCountIs('AWS::Logs::LogGroup', 1);
 
-    const logGroupResource = logGroupResources[0] as {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      Properties: { RetentionInDays: number };
-    };
-    assert.strictEqual(logGroupResource.Properties.RetentionInDays, 400); // 13 months = 400 days
+    // Verify retention period (13 months = 400 days)
+    template.hasResourceProperties('AWS::Logs::LogGroup', {
+      RetentionInDays: 400,
+    });
   });
 });
