@@ -41,9 +41,6 @@ export const createLogGroup = (
 
 /**
  * Converts logging options to CDK format using non-deprecated properties
- * Note: This function no longer includes 'retention' in the return object
- * as that property is deprecated. Instead, create a LogGroup with
- * createLogGroup() when needed.
  */
 export const convertLoggingOptionsToCDK = (
   loggingOptions: FunctionLoggingOptions,
