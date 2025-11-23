@@ -9,6 +9,7 @@ import {
 import {
   BackendSecretResolver,
   ConstructFactoryGetInstanceProps,
+  StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import {
   AmazonProviderFactoryProps,
@@ -26,10 +27,13 @@ import { AmplifyAuthProps } from './factory.js';
  * Translate an Auth factory's loginWith to its Auth construct counterpart. Backend secret fields will be resolved
  * to an CFN token and map to the required construct type. Note that not all construct secret fields are of sdk
  * SecretValue type, many are (wrongly) of type string as well.
+ *
+ * The domain prefix will be used if specified, otherwise a default domain prefix will be generated.
  */
 export const translateToAuthConstructLoginWith = (
   authFactoryLoginWith: AuthLoginWithFactoryProps,
   backendSecretResolver: BackendSecretResolver,
+  stableBackendIdentifiers: StableBackendIdentifiers,
 ): AuthProps['loginWith'] => {
   const result: AuthProps['loginWith'] =
     authFactoryLoginWith as AuthProps['loginWith'];
@@ -80,6 +84,14 @@ export const translateToAuthConstructLoginWith = (
   );
   if (googleProps) {
     result.externalProviders.google = googleProps;
+  }
+
+  const domainPrefix = translateDomainPrefix(
+    stableBackendIdentifiers,
+    externalProviders.domainPrefix,
+  );
+  if (domainPrefix) {
+    result.externalProviders.domainPrefix = domainPrefix;
   }
 
   return result;
@@ -159,14 +171,14 @@ const translateAmazonProps = (
 
 const translateAppleProps = (
   backendSecretResolver: BackendSecretResolver,
-  amazonProviderProps?: AppleProviderFactoryProps,
+  appleProviderProps?: AppleProviderFactoryProps,
 ): AppleProviderProps | undefined => {
-  if (!amazonProviderProps) {
+  if (!appleProviderProps) {
     return undefined;
   }
 
   const { clientId, teamId, keyId, privateKey, ...noSecretProps } =
-    amazonProviderProps;
+    appleProviderProps;
   return {
     ...noSecretProps,
     clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
@@ -235,4 +247,14 @@ const translateGoogleProps = (
     clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecret: backendSecretResolver.resolveSecret(clientSecretValue),
   };
+};
+
+const translateDomainPrefix = (
+  stableBackendIdentifiers: StableBackendIdentifiers,
+  domainPrefix?: string,
+): string | undefined => {
+  if (!domainPrefix) {
+    return stableBackendIdentifiers.getStableBackendHash();
+  }
+  return domainPrefix;
 };
