@@ -31,8 +31,8 @@
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.9",
     "@aws-amplify/platform-core": "^1.10.1",
-    "@aws-sdk/client-cognito-identity-provider": "^3.750.0",
-    "@aws-sdk/client-cognito-identity": "^3.750.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
+    "@aws-sdk/client-cognito-identity": "^3.936.0",
     "@types/aws-lambda": "^8.10.119",
     "aws-lambda": "^1.0.7"
   },
