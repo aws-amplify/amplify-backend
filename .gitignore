@@ -22,3 +22,7 @@ concurrent_workspace_script_cache.json
 
 testDir
 /.amplify
+
+*.js
+*.d.ts
+*.map

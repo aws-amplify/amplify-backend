@@ -35,7 +35,7 @@
     "@aws-amplify/backend-output-schemas": "^1.7.1",
     "@aws-amplify/plugin-types": "^1.11.1",
     "@aws-sdk/client-bedrock-runtime": "3.622.0",
-    "@smithy/types": "^4.1.0",
+    "@smithy/types": "^4.9.0",
     "json-schema-to-ts": "^3.1.1"
   },
   "devDependencies": {
