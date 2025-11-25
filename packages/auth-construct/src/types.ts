@@ -82,6 +82,8 @@ export type EmailLoginSettings = (
    *
    * When enabled, users can sign in by receiving a one-time code via email
    * instead of using a password.
+   *
+   * Note: Enabling passwordless login via otpLogin automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
    * @default false
    * @example
    * // Enable email OTP login
@@ -126,6 +128,8 @@ export type PhoneNumberLogin =
        *
        * When enabled, users can sign in by receiving a one-time code via SMS
        * instead of using a password.
+       *
+       * Note: Enabling passwordless login via otpLogin automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
        * @default false
        * @example
        * // Enable SMS OTP login
@@ -553,6 +557,8 @@ export type AuthProps = {
     phone?: PhoneNumberLogin;
     /**
      * Enable WebAuthn (passkey) authentication for passwordless login.
+     *
+     * Note: Enabling passwordless login via webAuthn automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
      * @default undefined (WebAuthn not enabled)
      * @example
      * // Simple passwordless with email OTP and passkeys
