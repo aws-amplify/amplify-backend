@@ -1,5 +1,18 @@
 # @aws-amplify/backend
 
+## 1.18.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/backend-function@1.15.2
+  - @aws-amplify/backend-secret@1.4.2
+  - @aws-amplify/client-config@1.9.1
+  - @aws-amplify/platform-core@1.10.3
+  - @aws-amplify/backend-auth@1.8.1
+
 ## 1.18.0
 
 ### Minor Changes

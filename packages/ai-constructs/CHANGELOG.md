@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.5.5
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
 ## 1.5.4
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @aws-amplify/cli-core
 
+## 2.2.3
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/platform-core@1.10.3
+
 ## 2.2.2
 
 ### Patch Changes

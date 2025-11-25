@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.9.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
 ## 1.9.0
 
 ### Minor Changes
