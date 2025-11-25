@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.9.2
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
 ## 0.9.1
 
 ### Patch Changes

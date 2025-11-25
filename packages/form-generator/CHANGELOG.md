@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.2.6
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
 ## 1.2.5
 
 ### Patch Changes
