@@ -1,7 +1,7 @@
+/* eslint-disable no-restricted-syntax */
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
-import { randomBytes } from 'node:crypto';
 
 export class TestCdkProjectAuthCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -20,7 +20,7 @@ export class TestCdkProjectAuthCdkStack extends cdk.Stack {
             clientId: '123',
             clientSecret: '123',
           },
-          domainPrefix: randomBytes(10).toString('hex'),
+          domainPrefix: randomHex(20),
           logoutUrls: ['https://logout.com'],
           callbackUrls: ['https://redirect.com'],
         },
@@ -31,4 +31,13 @@ export class TestCdkProjectAuthCdkStack extends cdk.Stack {
     };
     new AmplifyAuth(this, 'test-auth', authProps);
   }
+}
+
+function randomHex(n: number) {
+  const hex = '0123456789abcdef';
+  const ret: string[] = [];
+  for (let i = 0; i < n; i++) {
+    ret.push(hex[Math.floor(Math.random() * hex.length)]);
+  }
+  return ret.join('');
 }
