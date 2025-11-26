@@ -55,6 +55,15 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import {
+  Certificate,
+  CertificateValidation,
+} from 'aws-cdk-lib/aws-certificatemanager';
+import {
+  CloudFrontTarget,
+  UserPoolDomainTarget,
+} from 'aws-cdk-lib/aws-route53-targets';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -1061,6 +1070,38 @@ export class AmplifyAuth
       );
     }
 
+    const stack = Stack.of(this);
+
+    const hostedZone = HostedZone.fromHostedZoneAttributes(
+      stack,
+      'hostedZone',
+      {
+        hostedZoneId: 'Z00739961UF0WORM8EZIG',
+        zoneName: 'goheim.com',
+      },
+    );
+
+    const certificate = new Certificate(stack, 'certificate', {
+      domainName: 'auth.goheim.com',
+      validation: CertificateValidation.fromDns(hostedZone),
+    });
+
+    const customDomain = this.userPool.addDomain(
+      `${this.name}UserPoolCustomDomain`,
+      {
+        customDomain: {
+          domainName: 'auth.goheim.com',
+          certificate,
+        },
+      },
+    );
+
+    new ARecord(Stack.of(this), `${this.name}ARecord`, {
+      zone: hostedZone,
+      recordName: 'auth.goheim.com',
+      target: RecordTarget.fromAlias(new UserPoolDomainTarget(customDomain)),
+    });
+
     // oauth settings for the UserPool client
     result.oAuthSettings = {
       callbackUrls: external.callbackUrls,
@@ -1285,18 +1326,29 @@ export class AmplifyAuth
 
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain = this.resources.userPool.node.tryFindChild(
-          `${this.name}UserPoolDomain`,
+        // const userPoolDomain = this.resources.userPool.node.tryFindChild(
+        //   `${this.name}UserPoolDomain`,
+        // );
+        // if (!userPoolDomain) {
+        //   return '';
+        // }
+        // if (!(userPoolDomain instanceof UserPoolDomain)) {
+        //   throw Error('Could not find UserPoolDomain resource in the stack.');
+        // }
+        // return `${userPoolDomain.domainName}.auth.${
+        //   Stack.of(this).region
+        // }.amazoncognito.com`;
+
+        const userPooCustomDomain = this.resources.userPool.node.tryFindChild(
+          `${this.name}UserPoolCustomDomain`,
         );
-        if (!userPoolDomain) {
+        if (!userPooCustomDomain) {
           return '';
         }
-        if (!(userPoolDomain instanceof UserPoolDomain)) {
+        if (!(userPooCustomDomain instanceof UserPoolDomain)) {
           throw Error('Could not find UserPoolDomain resource in the stack.');
         }
-        return `${userPoolDomain.domainName}.auth.${
-          Stack.of(this).region
-        }.amazoncognito.com`;
+        return userPooCustomDomain.domainName;
       },
     });
 
