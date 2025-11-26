@@ -43,6 +43,7 @@ import {
   AttributeMapping,
   AuthProps,
   CustomAttribute,
+  CustomDomainOptions,
   CustomSmsSender,
   EmailLoginSettings,
   ExternalProviderOptions,
@@ -60,10 +61,7 @@ import {
   Certificate,
   CertificateValidation,
 } from 'aws-cdk-lib/aws-certificatemanager';
-import {
-  CloudFrontTarget,
-  UserPoolDomainTarget,
-} from 'aws-cdk-lib/aws-route53-targets';
+import { UserPoolDomainTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -869,6 +867,38 @@ export class AmplifyAuth
     return undefined;
   };
 
+  private setupCustomDomain = (
+    userPool: UserPool,
+    customDomainOptions: CustomDomainOptions,
+  ) => {
+    const hostedZone = HostedZone.fromHostedZoneAttributes(
+      this,
+      `${this.name}HostedZone`,
+      customDomainOptions.hostedZone,
+    );
+
+    const certificate = new Certificate(this, `${this.name}Certificate`, {
+      domainName: customDomainOptions.domainName,
+      validation: CertificateValidation.fromDns(hostedZone),
+    });
+
+    const customDomain = userPool.addDomain(
+      `${this.name}UserPoolCustomDomain`,
+      {
+        customDomain: {
+          domainName: customDomainOptions.domainName,
+          certificate,
+        },
+      },
+    );
+
+    new ARecord(this, `${this.name}ARecord`, {
+      zone: hostedZone,
+      recordName: customDomainOptions.domainName,
+      target: RecordTarget.fromAlias(new UserPoolDomainTarget(customDomain)),
+    });
+  };
+
   /**
    * Setup External Providers (OAuth/OIDC/SAML) and related settings
    * such as OAuth settings and User Pool Domains
@@ -1070,37 +1100,10 @@ export class AmplifyAuth
       );
     }
 
-    const stack = Stack.of(this);
-
-    const hostedZone = HostedZone.fromHostedZoneAttributes(
-      stack,
-      'hostedZone',
-      {
-        hostedZoneId: 'Z00739961UF0WORM8EZIG',
-        zoneName: 'goheim.com',
-      },
-    );
-
-    const certificate = new Certificate(stack, 'certificate', {
-      domainName: 'auth.goheim.com',
-      validation: CertificateValidation.fromDns(hostedZone),
-    });
-
-    const customDomain = this.userPool.addDomain(
-      `${this.name}UserPoolCustomDomain`,
-      {
-        customDomain: {
-          domainName: 'auth.goheim.com',
-          certificate,
-        },
-      },
-    );
-
-    new ARecord(Stack.of(this), `${this.name}ARecord`, {
-      zone: hostedZone,
-      recordName: 'auth.goheim.com',
-      target: RecordTarget.fromAlias(new UserPoolDomainTarget(customDomain)),
-    });
+    // Generate a custom domain if custom domain options are specified
+    if (external.customDomainOptions) {
+      this.setupCustomDomain(this.userPool, external.customDomainOptions);
+    }
 
     // oauth settings for the UserPool client
     result.oAuthSettings = {
