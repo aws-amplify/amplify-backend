@@ -442,6 +442,11 @@ export type AuthProps = {
    */
   name?: string;
   /**
+   * Specify the feature plan for the user pool.
+   * @example cognito.FeaturePlan.PLUS
+   */
+  featurePlan?: cognito.FeaturePlan;
+  /**
    * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
    */
   loginWith: {

@@ -42,6 +42,7 @@ export type AttributeMapping = {
 // @public
 export type AuthProps = {
     name?: string;
+    featurePlan?: aws_cognito.FeaturePlan;
     loginWith: {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;

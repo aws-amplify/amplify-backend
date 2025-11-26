@@ -615,6 +615,7 @@ export class AmplifyAuth
       snsRegion: smsConfiguration?.snsRegion,
       enableSmsRole: smsConfiguration?.enableSMSRole,
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
+      featurePlan: props?.featurePlan,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
       mfaSecondFactor: mfaType,
