@@ -1389,6 +1389,98 @@ void describe('Auth construct', () => {
         ],
       });
     });
+
+    describe('creates custom domain when custom domain options are present', () => {
+      const testHostedZoneName = 'test-zone-name';
+      const testHostedZoneId = 'test-zone-id';
+      const testCustomDomainName = 'test-custom-domain-name';
+
+      let template: Template;
+      let userPoolCustomDomainRefValue = '';
+      let userPoolCloudFrontDomainNameRefValue = '';
+
+      beforeEach(() => {
+        new AmplifyAuth(stack, 'test', {
+          name: 'test_name',
+          loginWith: {
+            email: true,
+            externalProviders: {
+              google: {
+                clientId: googleClientId,
+                clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              },
+              scopes: ['EMAIL', 'PROFILE'],
+              callbackUrls: ['http://callback.com'],
+              logoutUrls: ['http://logout.com'],
+              customDomainOptions: {
+                hostedZone: {
+                  zoneName: testHostedZoneName,
+                  hostedZoneId: testHostedZoneId,
+                },
+                domainName: testCustomDomainName,
+              },
+              domainPrefix: 'test-domain-prefix',
+            },
+          },
+        });
+        template = Template.fromStack(stack);
+      });
+
+      void it('creates certificate for the custom domain', () => {
+        template.hasResourceProperties('AWS::CertificateManager::Certificate', {
+          DomainName: testCustomDomainName,
+          DomainValidationOptions: [
+            {
+              DomainName: testCustomDomainName,
+              HostedZoneId: testHostedZoneId,
+            },
+          ],
+        });
+      });
+
+      void it('creates custom domain for the user pool', () => {
+        const userPoolCustomDomains = Object.entries(
+          template.findResources('AWS::Cognito::UserPoolDomain', {
+            Properties: {
+              Domain: testCustomDomainName,
+            },
+          }),
+        );
+        assert.equal(userPoolCustomDomains.length, 1);
+        userPoolCustomDomainRefValue = userPoolCustomDomains[0][0];
+      });
+
+      void it('creates cloud front domain name for the user pool', () => {
+        const cloudFrontDomainNames = Object.entries(
+          template.findResources('Custom::UserPoolCloudFrontDomainName'),
+        );
+        assert.equal(cloudFrontDomainNames.length, 1);
+        userPoolCloudFrontDomainNameRefValue = cloudFrontDomainNames[0][0];
+      });
+
+      void it('creates dns record for the custom domain', () => {
+        template.hasResourceProperties('AWS::Route53::RecordSet', {
+          AliasTarget: {
+            DNSName: {
+              'Fn::GetAtt': [
+                userPoolCloudFrontDomainNameRefValue,
+                'DomainDescription.CloudFrontDistribution',
+              ],
+            },
+          },
+          HostedZoneId: testHostedZoneId,
+          Type: 'A',
+          Name: `${testCustomDomainName}.${testHostedZoneName}.`,
+        });
+      });
+
+      void it('uses custom domain name for outputs', () => {
+        const outputs = template.findOutputs('*');
+        assert.deepEqual(outputs['oauthCognitoDomain']['Value'], {
+          Ref: userPoolCustomDomainRefValue,
+        });
+      });
+    });
   });
 
   void describe('storeOutput strategy', () => {
