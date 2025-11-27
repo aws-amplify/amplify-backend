@@ -22,6 +22,7 @@ import {
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
+  PasskeyUserVerification,
   ProviderAttribute,
   StandardAttribute,
   UserPool,
@@ -196,8 +197,6 @@ export class AmplifyAuth
         props.senders.sms.handler,
       );
     }
-
-    this.applyPasswordlessConfiguration(this.userPool, props);
 
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
@@ -582,12 +581,21 @@ export class AmplifyAuth
       }
     }
     const smsConfiguration = this.getSmsConfiguration(props.senders?.sms);
+    const signInPolicy = this.getSignInPolicy(props);
+    const passkeyConfig = this.getPasskeyConfig(props);
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
         phone: phoneEnabled,
         email: emailEnabled,
       },
+      ...(signInPolicy && { signInPolicy }),
+      ...(passkeyConfig.relyingPartyId && {
+        passkeyRelyingPartyId: passkeyConfig.relyingPartyId,
+      }),
+      ...(passkeyConfig.userVerification && {
+        passkeyUserVerification: passkeyConfig.userVerification,
+      }),
       keepOriginal: {
         email: emailEnabled,
         phone: phoneEnabled,
@@ -1135,18 +1143,9 @@ export class AmplifyAuth
   };
 
   /**
-   * Apply passwordless authentication configuration to the UserPool.
-   * Configures Email OTP, SMS OTP, and WebAuthn (passkeys) based on props.
+   * Get sign-in policy configuration for passwordless authentication.
    */
-  private applyPasswordlessConfiguration = (
-    userPool: UserPool,
-    props: AuthProps,
-  ): void => {
-    const cfnUserPool = userPool.node.findChild('Resource') as CfnUserPool;
-    if (!(cfnUserPool instanceof CfnUserPool)) {
-      throw Error('Could not find CfnUserPool resource in stack.');
-    }
-
+  private getSignInPolicy = (props: AuthProps) => {
     const emailOtpEnabled =
       typeof props.loginWith.email === 'object' &&
       props.loginWith.email.otpLogin === true;
@@ -1156,49 +1155,47 @@ export class AmplifyAuth
     const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
 
     if (!emailOtpEnabled && !smsOtpEnabled && !webAuthnEnabled) {
-      return;
+      return undefined;
     }
 
-    // PASSWORD is always included per Cognito requirements
-    const allowedFirstAuthFactors: string[] = ['PASSWORD'];
+    return {
+      allowedFirstAuthFactors: {
+        password: true,
+        emailOtp: emailOtpEnabled,
+        smsOtp: smsOtpEnabled,
+        passkey: webAuthnEnabled,
+      },
+    };
+  };
 
-    if (emailOtpEnabled) {
-      allowedFirstAuthFactors.push('EMAIL_OTP');
+  /**
+   * Get passkey configuration for WebAuthn.
+   */
+  private getPasskeyConfig = (props: AuthProps) => {
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!webAuthnEnabled) {
+      return {};
     }
 
-    if (smsOtpEnabled) {
-      allowedFirstAuthFactors.push('SMS_OTP');
-    }
+    const webAuthnConfig = props.loginWith.webAuthn!;
+    let relyingPartyId: string;
+    let userVerification: PasskeyUserVerification;
 
-    if (webAuthnEnabled) {
-      allowedFirstAuthFactors.push('WEB_AUTHN');
-    }
-
-    cfnUserPool.addPropertyOverride('Policies.SignInPolicy', {
-      AllowedFirstAuthFactors: allowedFirstAuthFactors,
-    });
-
-    if (webAuthnEnabled) {
-      const webAuthnConfig = props.loginWith.webAuthn!;
-      let relyingPartyId: string;
-      let userVerification: string;
-
-      if (webAuthnConfig === true) {
-        relyingPartyId = this.resolveRelyingPartyId('AUTO');
-        userVerification = 'preferred';
-      } else {
-        relyingPartyId = this.resolveRelyingPartyId(
-          webAuthnConfig.relyingPartyId,
-        );
-        userVerification = webAuthnConfig.userVerification ?? 'preferred';
-      }
-
-      cfnUserPool.addPropertyOverride('WebAuthnRelyingPartyID', relyingPartyId);
-      cfnUserPool.addPropertyOverride(
-        'WebAuthnUserVerification',
-        userVerification,
+    if (webAuthnConfig === true) {
+      relyingPartyId = this.resolveRelyingPartyId('AUTO');
+      userVerification = PasskeyUserVerification.PREFERRED;
+    } else {
+      relyingPartyId = this.resolveRelyingPartyId(
+        webAuthnConfig.relyingPartyId,
       );
+      userVerification =
+        webAuthnConfig.userVerification === 'required'
+          ? PasskeyUserVerification.REQUIRED
+          : PasskeyUserVerification.PREFERRED;
     }
+
+    return { relyingPartyId, userVerification };
   };
 
   /**
