@@ -1160,6 +1160,7 @@ export class AmplifyAuth
 
     return {
       allowedFirstAuthFactors: {
+        // PASSWORD is always included per Cognito requirements
         password: true,
         emailOtp: emailOtpEnabled,
         smsOtp: smsOtpEnabled,
