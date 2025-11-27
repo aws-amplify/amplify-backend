@@ -3144,4 +3144,190 @@ void describe('Auth construct', () => {
       UserPoolName: Match.absent(),
     });
   });
+
+  void describe('passwordless authentication', () => {
+    void it('configures email OTP when otpLogin is enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: {
+            otpLogin: true,
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          SignInPolicy: {
+            AllowedFirstAuthFactors: ['PASSWORD', 'EMAIL_OTP'],
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_AUTH']),
+      });
+    });
+
+    void it('configures SMS OTP when otpLogin is enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phone: {
+            otpLogin: true,
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          SignInPolicy: {
+            AllowedFirstAuthFactors: ['PASSWORD', 'SMS_OTP'],
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_AUTH']),
+      });
+    });
+
+    void it('configures WebAuthn with default settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'sandbox');
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          webAuthn: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          SignInPolicy: {
+            AllowedFirstAuthFactors: ['PASSWORD', 'WEB_AUTHN'],
+          },
+        },
+        WebAuthnRelyingPartyID: 'localhost',
+        WebAuthnUserVerification: 'preferred',
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_AUTH']),
+      });
+    });
+
+    void it('configures WebAuthn with custom settings', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          webAuthn: {
+            relyingPartyId: 'example.com',
+            userVerification: 'required',
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          SignInPolicy: {
+            AllowedFirstAuthFactors: ['PASSWORD', 'WEB_AUTHN'],
+          },
+        },
+        WebAuthnRelyingPartyID: 'example.com',
+        WebAuthnUserVerification: 'required',
+      });
+    });
+
+    void it('configures all passwordless factors together', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: {
+            otpLogin: true,
+          },
+          phone: {
+            otpLogin: true,
+          },
+          webAuthn: {
+            relyingPartyId: 'example.com',
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          SignInPolicy: {
+            AllowedFirstAuthFactors: [
+              'PASSWORD',
+              'EMAIL_OTP',
+              'SMS_OTP',
+              'WEB_AUTHN',
+            ],
+          },
+        },
+        WebAuthnRelyingPartyID: 'example.com',
+        WebAuthnUserVerification: 'preferred',
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_AUTH']),
+      });
+    });
+
+    void it('resolves AUTO to localhost in sandbox mode', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'sandbox');
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          webAuthn: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        WebAuthnRelyingPartyID: 'localhost',
+      });
+    });
+
+    void it('resolves AUTO to Amplify domain in branch mode', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'branch');
+      stack.node.setContext('amplify-backend-namespace', 'testProjectName');
+      stack.node.setContext('amplify-backend-name', 'main');
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          webAuthn: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        WebAuthnRelyingPartyID: 'main.testProjectName.amplifyapp.com',
+      });
+    });
+
+    void it('does not configure passwordless when not enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: Match.objectLike({}),
+          SignInPolicy: Match.absent(),
+        },
+        WebAuthnRelyingPartyID: Match.absent(),
+        WebAuthnUserVerification: Match.absent(),
+      });
+    });
+  });
 });
