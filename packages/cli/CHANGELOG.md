@@ -1,5 +1,20 @@
 # @aws-amplify/backend-cli
 
+## 1.8.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/model-generator@1.2.2
+  - @aws-amplify/backend-secret@1.4.2
+  - @aws-amplify/form-generator@1.2.6
+  - @aws-amplify/client-config@1.9.1
+  - @aws-amplify/platform-core@1.10.3
+  - @aws-amplify/cli-core@2.2.3
+  - @aws-amplify/sandbox@2.1.4
+
 ## 1.8.0
 
 ### Minor Changes

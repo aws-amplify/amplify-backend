@@ -1,5 +1,18 @@
 # @aws-amplify/backend-auth
 
+## 1.9.0
+
+### Minor Changes
+
+- f35e393: Added support for passwordless authentication
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [f35e393]
+  - @aws-amplify/auth-construct@1.10.0
+
 ## 1.8.0
 
 ### Minor Changes

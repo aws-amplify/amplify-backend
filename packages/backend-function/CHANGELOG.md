@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.15.2
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
 ## 1.15.1
 
 ### Patch Changes
