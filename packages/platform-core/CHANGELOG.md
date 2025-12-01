@@ -1,5 +1,12 @@
 # @aws-amplify/platform-core
 
+## 1.10.3
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- 34dc06f: Remove freeform error message text from telemetry
+
 ## 1.10.2
 
 ### Patch Changes
