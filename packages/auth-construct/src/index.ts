@@ -30,6 +30,8 @@ export {
   CustomEmailSender,
   CustomSmsSender,
   UserPoolSnsOptions,
+  WebAuthnLogin,
+  WebAuthnOptions,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { triggerEvents } from './trigger_events.js';

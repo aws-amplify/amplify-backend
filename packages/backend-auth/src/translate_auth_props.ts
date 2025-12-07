@@ -33,6 +33,22 @@ export const translateToAuthConstructLoginWith = (
 ): AuthProps['loginWith'] => {
   const result: AuthProps['loginWith'] =
     authFactoryLoginWith as AuthProps['loginWith'];
+
+  if (authFactoryLoginWith.webAuthn !== undefined) {
+    if (authFactoryLoginWith.webAuthn === true) {
+      result.webAuthn = {
+        relyingPartyId: 'AUTO',
+        userVerification: 'preferred',
+      };
+    } else {
+      result.webAuthn = {
+        relyingPartyId: authFactoryLoginWith.webAuthn.relyingPartyId ?? 'AUTO',
+        userVerification:
+          authFactoryLoginWith.webAuthn.userVerification ?? 'preferred',
+      };
+    }
+  }
+
   if (!authFactoryLoginWith.externalProviders) {
     return result;
   }

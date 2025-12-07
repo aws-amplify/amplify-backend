@@ -22,6 +22,7 @@ import {
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
+  PasskeyUserVerification,
   ProviderAttribute,
   StandardAttribute,
   UserPool,
@@ -56,6 +57,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import {
   Certificate,
@@ -219,6 +221,8 @@ export class AmplifyAuth
         oAuth: this.providerSetupResult.oAuthSettings,
       },
     );
+
+    this.applyUserAuthFlow(userPoolClient, props);
 
     // Identity Pool
     const {
@@ -584,12 +588,21 @@ export class AmplifyAuth
       }
     }
     const smsConfiguration = this.getSmsConfiguration(props.senders?.sms);
+    const signInPolicy = this.getSignInPolicy(props);
+    const passkeyConfig = this.getPasskeyConfig(props);
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
         phone: phoneEnabled,
         email: emailEnabled,
       },
+      ...(signInPolicy && { signInPolicy }),
+      ...(passkeyConfig.relyingPartyId && {
+        passkeyRelyingPartyId: passkeyConfig.relyingPartyId,
+      }),
+      ...(passkeyConfig.userVerification && {
+        passkeyUserVerification: passkeyConfig.userVerification,
+      }),
       keepOriginal: {
         email: emailEnabled,
         phone: phoneEnabled,
@@ -1200,6 +1213,121 @@ export class AmplifyAuth
       throw Error('Could not find UserPoolCustomDomain resource in the stack.');
     }
     return userPoolCustomDomain.domainName;
+  };
+
+  /**
+   * Get sign-in policy configuration for passwordless authentication.
+   */
+  private getSignInPolicy = (props: AuthProps) => {
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!emailOtpEnabled && !smsOtpEnabled && !webAuthnEnabled) {
+      return undefined;
+    }
+
+    return {
+      allowedFirstAuthFactors: {
+        // PASSWORD is always included per Cognito requirements
+        password: true,
+        emailOtp: emailOtpEnabled,
+        smsOtp: smsOtpEnabled,
+        passkey: webAuthnEnabled,
+      },
+    };
+  };
+
+  /**
+   * Get passkey configuration for WebAuthn.
+   */
+  private getPasskeyConfig = (props: AuthProps) => {
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!webAuthnEnabled) {
+      return {};
+    }
+
+    const webAuthnConfig = props.loginWith.webAuthn!;
+    let relyingPartyId: string;
+    let userVerification: PasskeyUserVerification;
+
+    if (webAuthnConfig === true) {
+      relyingPartyId = this.resolveRelyingPartyId('AUTO');
+      userVerification = PasskeyUserVerification.PREFERRED;
+    } else {
+      relyingPartyId = this.resolveRelyingPartyId(
+        webAuthnConfig.relyingPartyId,
+      );
+      userVerification =
+        webAuthnConfig.userVerification === 'required'
+          ? PasskeyUserVerification.REQUIRED
+          : PasskeyUserVerification.PREFERRED;
+    }
+
+    return { relyingPartyId, userVerification };
+  };
+
+  /**
+   * Resolve the relying party ID for WebAuthn configuration.
+   * Handles AUTO resolution based on deployment context.
+   */
+  private resolveRelyingPartyId = (relyingPartyId: string): string => {
+    if (relyingPartyId !== 'AUTO') {
+      return relyingPartyId;
+    }
+
+    const deploymentType = this.node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    );
+
+    if (deploymentType === 'branch') {
+      const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
+      const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
+
+      if (appId && branchName) {
+        return `${branchName}.${appId}.amplifyapp.com`;
+      }
+    }
+
+    return 'localhost';
+  };
+
+  /**
+   * Apply USER_AUTH flow to UserPoolClient when passwordless factors are enabled.
+   */
+  private applyUserAuthFlow = (
+    userPoolClient: UserPoolClient,
+    props: AuthProps,
+  ): void => {
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    const hasPasswordlessFactors =
+      emailOtpEnabled || smsOtpEnabled || webAuthnEnabled;
+
+    if (!hasPasswordlessFactors) {
+      return;
+    }
+
+    const cfnUserPoolClient = userPoolClient.node.findChild(
+      'Resource',
+    ) as CfnUserPoolClient;
+    if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
+      throw Error('Could not find CfnUserPoolClient resource in stack.');
+    }
+
+    const existingFlows = cfnUserPoolClient.explicitAuthFlows || [];
+    cfnUserPoolClient.explicitAuthFlows = [...existingFlows, 'ALLOW_USER_AUTH'];
   };
 
   /**

@@ -45,6 +45,7 @@ export type AuthProps = {
     loginWith: {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;
+        webAuthn?: WebAuthnLogin;
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
@@ -108,6 +109,7 @@ export type EmailLoginSettings = (VerificationEmailWithLink | VerificationEmailW
         emailBody?: (username: () => string, code: () => string) => string;
         smsMessage?: (username: () => string, code: () => string) => string;
     };
+    otpLogin?: boolean;
 };
 
 // @public
@@ -178,6 +180,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 // @public
 export type PhoneNumberLogin = true | {
     verificationMessage?: (createCode: () => string) => string;
+    otpLogin?: boolean;
 };
 
 // @public
@@ -215,6 +218,15 @@ export type VerificationEmailWithLink = {
     verificationEmailStyle?: 'LINK';
     verificationEmailBody?: (createLink: (text?: string) => string) => string;
     verificationEmailSubject?: string;
+};
+
+// @public
+export type WebAuthnLogin = true | WebAuthnOptions;
+
+// @public
+export type WebAuthnOptions = {
+    relyingPartyId: string;
+    userVerification?: 'required' | 'preferred';
 };
 
 // (No @packageDocumentation comment for this package)
