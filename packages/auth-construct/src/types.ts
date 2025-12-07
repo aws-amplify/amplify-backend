@@ -77,6 +77,26 @@ export type EmailLoginSettings = (
      */
     smsMessage?: (username: () => string, code: () => string) => string;
   };
+  /**
+   * Enable email OTP (one-time password) login for passwordless authentication.
+   *
+   * When enabled, users can sign in by receiving a one-time code via email
+   * instead of using a password.
+   *
+   * Note: Enabling passwordless login via otpLogin automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
+   * @default false
+   * @example
+   * // Enable email OTP login
+   * defineAuth({
+   *   loginWith: {
+   *     email: {
+   *       otpLogin: true
+   *     }
+   *   }
+   * })
+   * @see https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-email-phone-verification.html
+   */
+  otpLogin?: boolean;
 };
 /**
  * Email login options.
@@ -103,6 +123,26 @@ export type PhoneNumberLogin =
        * (code) => `The verification code to your new account is ${createCode()}`
        */
       verificationMessage?: (createCode: () => string) => string;
+      /**
+       * Enable SMS OTP (one-time password) login for passwordless authentication.
+       *
+       * When enabled, users can sign in by receiving a one-time code via SMS
+       * instead of using a password.
+       *
+       * Note: Enabling passwordless login via otpLogin automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
+       * @default false
+       * @example
+       * // Enable SMS OTP login
+       * defineAuth({
+       *   loginWith: {
+       *     phone: {
+       *       otpLogin: true
+       *     }
+       *   }
+       * })
+       * @see https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-email-phone-verification.html
+       */
+      otpLogin?: boolean;
     };
 
 /**
@@ -434,6 +474,62 @@ export type UserPoolSnsOptions = {
 };
 
 /**
+ * WebAuthn (passkey) login configuration for passwordless authentication.
+ * @example
+ * // Simple configuration (uses default settings)
+ * webAuthn: true
+ * @example
+ * // Custom configuration
+ * webAuthn: {
+ *   relyingPartyId: 'example.com',
+ *   userVerification: 'required'
+ * }
+ * @see https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-passkeys.html
+ */
+export type WebAuthnLogin = true | WebAuthnOptions;
+
+/**
+ * WebAuthn configuration options for passkey authentication.
+ *
+ * Configure advanced settings for WebAuthn passkey authentication, including
+ * the relying party identifier and user verification requirements.
+ * @see https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-passkeys.html
+ */
+export type WebAuthnOptions = {
+  /**
+   * The relying party identifier (domain) for WebAuthn credentials.
+   *
+   * **WARNING:** Changing this value after deployment invalidates all existing
+   * passkeys. Users will need to re-register their passkeys.
+   *
+   * **Supported values:**
+   *
+   * - `'AUTO'` - Automatically resolves based on deployment context
+   * - `'localhost'` - For local development and testing
+   * - Custom domain - Your production domain (e.g., `'example.com'`, `'app.example.com'`)
+   * @example
+   * // Automatic resolution
+   * relyingPartyId: 'AUTO'
+   * @example
+   * // Custom domain
+   * relyingPartyId: 'example.com'
+   */
+  relyingPartyId: string;
+
+  /**
+   * User verification requirement for WebAuthn authentication.
+   * @default 'preferred'
+   * @example
+   * // Require biometric or PIN verification
+   * userVerification: 'required'
+   * @example
+   * // Prefer verification but allow fallback
+   * userVerification: 'preferred'
+   */
+  userVerification?: 'required' | 'preferred';
+};
+
+/**
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
@@ -459,6 +555,23 @@ export type AuthProps = {
      * If settings are provided, phone number login will be enabled with the specified settings.
      */
     phone?: PhoneNumberLogin;
+    /**
+     * Enable WebAuthn (passkey) authentication for passwordless login.
+     *
+     * Note: Enabling passwordless login via webAuthn automatically enables the ALLOW_USER_AUTH authentication flow in your Cognito App Client
+     * @default undefined (WebAuthn not enabled)
+     * @example
+     * // Simple passwordless with email OTP and passkeys
+     * defineAuth({
+     *   loginWith: {
+     *     email: {
+     *       otpLogin: true
+     *     },
+     *     webAuthn: true
+     *   }
+     * })
+     */
+    webAuthn?: WebAuthnLogin;
     /**
      * Configure OAuth, OIDC, and SAML login providers
      */

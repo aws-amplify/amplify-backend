@@ -112,6 +112,23 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
       });
     }
     AmplifyAuthFactory.factoryCount++;
+
+    const validationResult = validatePasswordlessConfig(props);
+
+    if (validationResult.warnings && validationResult.warnings.length > 0) {
+      process.stderr.write('\nWARNINGS:\n');
+      validationResult.warnings.forEach((warning) => {
+        process.stderr.write(`  • ${warning}\n`);
+      });
+    }
+
+    if (!validationResult.valid) {
+      throw new AmplifyUserError('InvalidPasswordlessConfigError', {
+        message: 'Invalid passwordless authentication configuration',
+        details: validationResult.errors.join('\n\n'),
+        resolution: 'Fix the configuration errors listed above',
+      });
+    }
   }
 
   /**
@@ -252,6 +269,122 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
     roleName === 'authenticatedUserIamRole' ||
     roleName === 'unauthenticatedUserIamRole'
   );
+};
+
+type ValidationResult = {
+  valid: boolean;
+  errors: string[];
+  warnings?: string[];
+};
+
+/**
+ * Validates the format of a WebAuthn relying party ID.
+ * @param relyingPartyId - The relying party ID to validate
+ * @returns Error message if invalid, undefined if valid
+ */
+const validateRelyingPartyId = (relyingPartyId: string): string | undefined => {
+  if (relyingPartyId === 'AUTO' || relyingPartyId === 'localhost') {
+    return undefined;
+  }
+
+  if (relyingPartyId.includes('://')) {
+    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain without protocol (e.g., "example.com"), "localhost" for development, or "AUTO" for Amplify Hosting.
+
+Examples:
+  - Valid: "example.com", "app.example.com", "localhost", "AUTO"
+  - Invalid: "http://example.com", "https://example.com"`;
+  }
+
+  // Must contain at least one dot or be a single word (for local domains)
+  const domainPattern =
+    /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/;
+
+  if (!domainPattern.test(relyingPartyId)) {
+    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain format.
+
+Examples:
+  - Valid: "example.com", "app.example.com", "localhost", "AUTO"
+  - Invalid: "example", "192.168.1.1", "my app.com"`;
+  }
+
+  return undefined;
+};
+
+/**
+ * Validates passwordless authentication configuration.
+ * @param props - The auth configuration props to validate
+ * @returns Validation result with errors and warnings
+ */
+const validatePasswordlessConfig = (
+  props: AmplifyAuthProps,
+): ValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  const { loginWith, multifactor } = props;
+
+  const emailEnabled = !!loginWith.email;
+  const phoneEnabled = !!loginWith.phone;
+  const emailOtpEnabled =
+    typeof loginWith.email === 'object' && loginWith.email.otpLogin === true;
+  const smsOtpEnabled =
+    typeof loginWith.phone === 'object' && loginWith.phone.otpLogin === true;
+  const webAuthnEnabled = !!loginWith.webAuthn;
+
+  let webAuthnRelyingPartyId: string | undefined;
+  if (webAuthnEnabled && typeof loginWith.webAuthn === 'object') {
+    webAuthnRelyingPartyId = loginWith.webAuthn.relyingPartyId;
+  }
+
+  const anyPasswordlessEnabled =
+    emailOtpEnabled || smsOtpEnabled || webAuthnEnabled;
+
+  if (!emailEnabled && !phoneEnabled && !loginWith.externalProviders) {
+    errors.push(
+      'At least one authentication method must be enabled. Configure email, phone, or external providers in loginWith.',
+    );
+  }
+
+  if (webAuthnEnabled && !emailEnabled && !phoneEnabled) {
+    errors.push(
+      `Passkeys (WebAuthn) require at least one sign-up method (email or phone).
+
+Email OTP and SMS OTP are valid passwordless sign-up methods.
+Passkeys can only be registered after initial account creation.
+
+Resolution: Add email or phone to loginWith configuration.`,
+    );
+  }
+
+  if (webAuthnEnabled && webAuthnRelyingPartyId) {
+    const relyingPartyIdError = validateRelyingPartyId(webAuthnRelyingPartyId);
+    if (relyingPartyIdError) {
+      errors.push(relyingPartyIdError);
+    } else if (
+      webAuthnRelyingPartyId !== 'AUTO' &&
+      webAuthnRelyingPartyId !== 'localhost'
+    ) {
+      // Warning about immutability for custom domains
+      warnings.push(
+        `WebAuthn relying party ID is set to "${webAuthnRelyingPartyId}". Changing this value after deployment will invalidate all existing passkeys. Users will need to re-register their passkeys.`,
+      );
+    }
+  }
+
+  if (anyPasswordlessEnabled && multifactor?.mode === 'REQUIRED') {
+    errors.push(
+      `Passwordless authentication (Email OTP, SMS OTP, WebAuthn) cannot be used when MFA is set to REQUIRED. Amazon Cognito does not support combining MFA with passwordless authentication methods.
+
+Resolution: Choose either passwordless authentication or MFA, not both.
+Note: WebAuthn passkeys with user verification can provide similar security to MFA without requiring separate MFA configuration.`,
+    );
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
 };
 
 /**

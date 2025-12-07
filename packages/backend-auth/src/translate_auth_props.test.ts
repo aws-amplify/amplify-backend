@@ -250,4 +250,347 @@ void describe('translateToAuthConstructLoginWith', () => {
     };
     assert.deepStrictEqual(translated, expected);
   });
+
+  void it('translates email OTP configuration', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates SMS OTP configuration', () => {
+    const phoneConfig = {
+      verificationMessage: (createCode: () => string) =>
+        `text${createCode()}text2`,
+      otpLogin: true,
+    };
+    const loginWith: AuthLoginWithFactoryProps = {
+      phone: phoneConfig,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      phone: {
+        verificationMessage: phoneConfig.verificationMessage,
+        otpLogin: true,
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates WebAuthn boolean to default configuration', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+      webAuthn: true,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: true,
+      webAuthn: {
+        relyingPartyId: 'AUTO',
+        userVerification: 'preferred',
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates WebAuthn custom configuration with all properties', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+      webAuthn: {
+        relyingPartyId: 'example.com',
+        userVerification: 'required',
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: true,
+      webAuthn: {
+        relyingPartyId: 'example.com',
+        userVerification: 'required',
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates WebAuthn custom configuration with partial properties', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+      webAuthn: {
+        relyingPartyId: 'localhost',
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: true,
+      webAuthn: {
+        relyingPartyId: 'localhost',
+        userVerification: 'preferred',
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates combined passwordless factors', () => {
+    const phoneConfig = {
+      verificationMessage: (createCode: () => string) =>
+        `text${createCode()}text2`,
+      otpLogin: true,
+    };
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+      phone: phoneConfig,
+      webAuthn: {
+        relyingPartyId: 'example.com',
+        userVerification: 'required',
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+      phone: {
+        verificationMessage: phoneConfig.verificationMessage,
+        otpLogin: true,
+      },
+      webAuthn: {
+        relyingPartyId: 'example.com',
+        userVerification: 'required',
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates combined passwordless with WebAuthn boolean', () => {
+    const phoneConfig = {
+      verificationMessage: (createCode: () => string) =>
+        `text${createCode()}text2`,
+      otpLogin: true,
+    };
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+      phone: phoneConfig,
+      webAuthn: true,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        otpLogin: true,
+      },
+      phone: {
+        verificationMessage: phoneConfig.verificationMessage,
+        otpLogin: true,
+      },
+      webAuthn: {
+        relyingPartyId: 'AUTO',
+        userVerification: 'preferred',
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('does not add otpLogin when not specified for email', () => {
+    const emailBody = (code: () => string) => `Your code is ${code()}`;
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: {
+        verificationEmailStyle: 'CODE',
+        verificationEmailSubject: 'Verify your email',
+        verificationEmailBody: emailBody,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(
+      (translated.email as Record<string, unknown>)?.otpLogin,
+      undefined,
+    );
+    assert.deepStrictEqual(translated, {
+      email: {
+        verificationEmailStyle: 'CODE',
+        verificationEmailSubject: 'Verify your email',
+        verificationEmailBody: emailBody,
+      },
+    });
+  });
+
+  void it('does not add otpLogin when not specified for phone', () => {
+    const phoneConfig = {
+      verificationMessage: (createCode: () => string) =>
+        `text${createCode()}text2`,
+    };
+    const loginWith: AuthLoginWithFactoryProps = {
+      phone: phoneConfig,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(
+      (translated.phone as Record<string, unknown>)?.otpLogin,
+      undefined,
+    );
+    assert.deepStrictEqual(translated, {
+      phone: {
+        verificationMessage: phoneConfig.verificationMessage,
+      },
+    });
+  });
+
+  void it('does not add webAuthn when not specified', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+      phone: true,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(translated.webAuthn, undefined);
+    assert.deepStrictEqual(translated, {
+      email: true,
+      phone: true,
+    });
+  });
+
+  void it('preserves existing configuration without adding passwordless properties', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: {
+        verificationEmailStyle: 'CODE',
+      },
+      phone: {
+        verificationMessage: (createCode: () => string) =>
+          `text${createCode()}text2`,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(
+      (translated.email as Record<string, unknown>)?.otpLogin,
+      undefined,
+    );
+    assert.strictEqual(
+      (translated.phone as Record<string, unknown>)?.otpLogin,
+      undefined,
+    );
+    assert.strictEqual(translated.webAuthn, undefined);
+  });
+
+  void it('translates external providers without adding passwordless properties', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+      externalProviders: {
+        google: {
+          clientId: new TestBackendSecret(googleClientId),
+          clientSecret: new TestBackendSecret(googleClientSecret),
+        },
+        callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(
+      (translated.email as Record<string, unknown>)?.otpLogin,
+      undefined,
+    );
+    assert.strictEqual(translated.webAuthn, undefined);
+    assert.ok(translated.externalProviders);
+  });
+
+  void it('handles email as boolean without adding otpLogin', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      email: true,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(translated.email, true);
+    assert.strictEqual(translated.webAuthn, undefined);
+  });
+
+  void it('handles phone as boolean without adding otpLogin', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      phone: true,
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    assert.strictEqual(translated.phone, true);
+    assert.strictEqual(translated.webAuthn, undefined);
+  });
 });
