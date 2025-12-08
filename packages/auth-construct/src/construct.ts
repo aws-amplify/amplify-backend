@@ -143,6 +143,11 @@ export class AmplifyAuth
   private customSenderKMSkey: IKey | undefined;
 
   /**
+   * The preferred authentication challenge
+   */
+  private readonly preferredChallenge: string;
+
+  /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
@@ -154,6 +159,7 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
+    this.preferredChallenge = props.preferredChallenge ?? 'EMAIL_OTP';
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
@@ -1366,6 +1372,49 @@ export class AmplifyAuth
           }
         });
         return JSON.stringify(mfaTypes);
+      },
+    });
+
+    // extract passwordless configuration
+    output.passwordlessOptions = Lazy.string({
+      produce: () => {
+        const passwordlessConfig: {
+          emailOtpEnabled?: boolean;
+          smsOtpEnabled?: boolean;
+          webAuthn?: {
+            relyingPartyId: string;
+            userVerification: 'required' | 'preferred';
+          };
+          preferredChallenge?: string;
+        } = {};
+
+        const signInPolicy = (
+          cfnUserPool.policies as CfnUserPool.PoliciesProperty
+        )?.signInPolicy;
+        if (signInPolicy) {
+          const allowedFactors =
+            (signInPolicy as CfnUserPool.SignInPolicyProperty)
+              .allowedFirstAuthFactors || [];
+          passwordlessConfig.emailOtpEnabled =
+            allowedFactors.includes('EMAIL_OTP');
+          passwordlessConfig.smsOtpEnabled = allowedFactors.includes('SMS_OTP');
+
+          if (allowedFactors.includes('WEB_AUTHN')) {
+            passwordlessConfig.webAuthn = {
+              relyingPartyId: cfnUserPool.webAuthnRelyingPartyId || '',
+              userVerification:
+                (cfnUserPool.webAuthnUserVerification as
+                  | 'required'
+                  | 'preferred') || 'preferred',
+            };
+          }
+        }
+
+        passwordlessConfig.preferredChallenge = this.preferredChallenge;
+
+        return Object.keys(passwordlessConfig).length > 0
+          ? JSON.stringify(passwordlessConfig)
+          : '';
       },
     });
 
