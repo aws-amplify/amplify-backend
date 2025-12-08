@@ -1461,6 +1461,7 @@ void describe('Auth construct', () => {
               'passwordPolicyRequirements',
               'mfaConfiguration',
               'mfaTypes',
+              'passwordlessOptions',
               'socialProviders',
               'oauthCognitoDomain',
               'oauthScope',
