@@ -1,5 +1,15 @@
 # @aws-amplify/client-config
 
+## 1.9.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/model-generator@1.2.2
+  - @aws-amplify/platform-core@1.10.3
+
 ## 1.9.0
 
 ### Minor Changes
