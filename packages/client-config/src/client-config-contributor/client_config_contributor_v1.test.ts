@@ -354,6 +354,43 @@ void describe('auth client config contributor v1', () => {
     );
   });
 
+  void it('returns translated config with passwordless options without preferred challenge', () => {
+    const contribution = {
+      version: '1' as const,
+      payload: {
+        identityPoolId: 'testIdentityPoolId',
+        userPoolId: 'testUserPoolId',
+        webClientId: 'testWebClientId',
+        authRegion: 'testRegion',
+        passwordlessOptions: JSON.stringify({
+          emailOtpEnabled: true,
+          smsOtpEnabled: false,
+        }),
+      },
+    };
+
+    const expected = {
+      auth: {
+        user_pool_id: 'testUserPoolId',
+        user_pool_client_id: 'testWebClientId',
+        aws_region: 'testRegion',
+        identity_pool_id: 'testIdentityPoolId',
+        passwordless: {
+          email_otp_enabled: true,
+          sms_otp_enabled: false,
+          web_authn: undefined,
+        },
+      },
+    } as Pick<clientConfigTypesV1_4.AWSAmplifyBackendOutputs, 'auth'>;
+
+    const contributor = new AuthClientConfigContributor();
+
+    assert.deepStrictEqual(
+      contributor.contribute({ [authOutputKey]: contribution }),
+      expected,
+    );
+  });
+
   void it('returns translated config with passwordless options', () => {
     const contribution = {
       version: '1' as const,

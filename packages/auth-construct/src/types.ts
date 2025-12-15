@@ -642,13 +642,18 @@ export type AuthProps = {
   groups?: string[];
 
   /**
-   * Specify the preferred authentication challenge for users.
-   * This setting is propagated to the frontend but does not affect backend behavior.
-   * @default 'EMAIL_OTP'
-   * @example
-   * preferredChallenge: 'PASSWORD'
+   * Passwordless authentication options.
    */
-  preferredChallenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+  passwordlessOptions?: {
+    /**
+     * Specify the preferred authentication challenge for users.
+     * This setting is propagated to the frontend but does not affect backend behavior.
+     * @default undefined
+     * @example
+     * preferredChallenge: 'PASSWORD'
+     */
+    preferredChallenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+  };
 
   /**
    * @internal

@@ -145,7 +145,7 @@ export class AmplifyAuth
   /**
    * The preferred authentication challenge
    */
-  private readonly preferredChallenge: string;
+  private readonly preferredChallenge: string | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -159,7 +159,7 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
-    this.preferredChallenge = props.preferredChallenge ?? 'EMAIL_OTP';
+    this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
@@ -1410,7 +1410,9 @@ export class AmplifyAuth
           }
         }
 
-        passwordlessConfig.preferredChallenge = this.preferredChallenge;
+        if (this.preferredChallenge) {
+          passwordlessConfig.preferredChallenge = this.preferredChallenge;
+        }
 
         return Object.keys(passwordlessConfig).length > 0
           ? JSON.stringify(passwordlessConfig)
