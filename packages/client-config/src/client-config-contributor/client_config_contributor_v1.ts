@@ -250,8 +250,12 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
               user_verification: passwordlessConfig.webAuthn.userVerification,
             }
           : undefined,
-        preferred_challenge: passwordlessConfig.preferredChallenge,
       };
+
+      if (passwordlessConfig.preferredChallenge) {
+        authClientConfig.auth.passwordless.preferred_challenge =
+          passwordlessConfig.preferredChallenge;
+      }
     }
 
     return authClientConfig;
