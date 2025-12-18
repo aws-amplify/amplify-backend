@@ -230,6 +230,13 @@ export type FunctionProps = {
   resourceGroupName?: AmplifyResourceGroupName;
 
   logging?: FunctionLoggingOptions;
+
+  /**
+   * Configuration for durable functions.
+   *
+   * Lambda durable functions allow for long-running executions with persistent state.
+   */
+  durableConfig?: FunctionDurableConfigOptions;
 };
 
 export type FunctionBundlingOptions = {
@@ -251,6 +258,22 @@ export type FunctionLoggingOptions = (
     }
 ) & {
   retention?: FunctionLogRetention;
+};
+
+export type FunctionDurableConfigOptions = {
+  /**
+   * The amount of time in seconds that Lambda allows a durable function to run before stopping it.
+   *
+   * Must be between 1 and 31,622,400 seconds (366 days).
+   */
+  executionTimeoutSeconds: number;
+  /**
+   * The number of days after a durable execution is closed that Lambda retains its history.
+   *
+   * Must be between 1 and 90 days.
+   * @default 14
+   */
+  retentionPeriodDays?: number;
 };
 
 /**
@@ -303,6 +326,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       layers: this.props.layers ?? {},
       resourceGroupName: this.props.resourceGroupName ?? 'function',
       logging: this.props.logging ?? {},
+      durableConfig: this.resolveDurableConfig(),
     };
   };
 
@@ -500,9 +524,60 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveMinify = (bundling?: FunctionBundlingOptions) => {
     return bundling?.minify === undefined ? true : bundling.minify;
   };
+
+  private resolveDurableConfig = () => {
+    if (!this.props.durableConfig) {
+      return undefined;
+    }
+    const { executionTimeoutSeconds, retentionPeriodDays } =
+      this.props.durableConfig;
+    const executionTimeoutMin = 1;
+    const executionTimeoutMax = 31_622_400; // 366 days in seconds
+    if (
+      !isWholeNumberBetweenInclusive(
+        executionTimeoutSeconds,
+        executionTimeoutMin,
+        executionTimeoutMax,
+      )
+    ) {
+      throw new AmplifyUserError(
+        'InvalidDurableFunctionExecutionTimeoutError',
+        {
+          message: `Invalid durable function execution timeout of ${this.props.durableConfig.executionTimeoutSeconds}`,
+          resolution: `durableConfig.executionTimeoutSeconds must be a whole number between ${executionTimeoutMin} and ${executionTimeoutMax} inclusive`,
+        },
+      );
+    }
+    if (retentionPeriodDays !== undefined) {
+      const retentionPeriodMin = 1;
+      const retentionPeriodMax = 90;
+      if (
+        !isWholeNumberBetweenInclusive(
+          retentionPeriodDays,
+          retentionPeriodMin,
+          retentionPeriodMax,
+        )
+      ) {
+        throw new AmplifyUserError(
+          'InvalidDurableFunctionRetentionPeriodError',
+          {
+            message: `Invalid durable function retention period of ${this.props.durableConfig.retentionPeriodDays}`,
+            resolution: `durableConfig.retentionPeriodDays must be a whole number between ${retentionPeriodMin} and ${retentionPeriodMax} inclusive`,
+          },
+        );
+      }
+    }
+
+    return {
+      executionTimeoutSeconds: this.props.durableConfig.executionTimeoutSeconds,
+      retentionPeriodDays: this.props.durableConfig.retentionPeriodDays ?? 14,
+    };
+  };
 }
 
-type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionProps = {
+  durableConfig?: Required<FunctionProps['durableConfig']>;
+} & Required<Omit<FunctionProps, 'durableConfig'>>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: AmplifyResourceGroupName;
@@ -618,6 +693,16 @@ class AmplifyFunction
         logRetention: cdkLoggingOptions.retention,
         applicationLogLevelV2: cdkLoggingOptions.level,
         loggingFormat: cdkLoggingOptions.format,
+        durableConfig: props.durableConfig
+          ? {
+              executionTimeout: Duration.seconds(
+                props.durableConfig.executionTimeoutSeconds,
+              ),
+              retentionPeriod: Duration.days(
+                props.durableConfig.retentionPeriodDays,
+              ),
+            }
+          : undefined,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,
