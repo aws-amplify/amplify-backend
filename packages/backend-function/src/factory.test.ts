@@ -864,6 +864,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid durableConfig with executionTimeoutSeconds only', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
         durableConfig: {
           executionTimeoutSeconds: 3600, // 1 hour
         },
@@ -881,6 +882,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid durableConfig with both executionTimeoutSeconds and retentionPeriodDays', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
         durableConfig: {
           executionTimeoutSeconds: 86400, // 1 day
           retentionPeriodDays: 30,
@@ -899,6 +901,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid durableConfig with maximum values', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
         durableConfig: {
           executionTimeoutSeconds: 31_622_400, // 366 days
           retentionPeriodDays: 90,
@@ -917,6 +920,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid durableConfig with minimum values', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
         durableConfig: {
           executionTimeoutSeconds: 1,
           retentionPeriodDays: 1,
@@ -1042,6 +1046,39 @@ void describe('AmplifyFunctionFactory', () => {
       template.hasResourceProperties('AWS::Lambda::Function', {
         DurableConfig: Match.absent(),
       });
+    });
+
+    void it('throws when durableConfig is used with runtime below 22', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 20,
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
+          message: `Durable functions require runtime 22 or higher. Current runtime is 20.`,
+          resolution: `Set the function runtime to 22 or higher to use durable functions.`,
+        }),
+      );
+    });
+
+    void it('throws when durableConfig is used with default runtime', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
+          message: `Durable functions require runtime 22 or higher. Current runtime is 20.`,
+          resolution: `Set the function runtime to 22 or higher to use durable functions.`,
+        }),
+      );
     });
   });
 

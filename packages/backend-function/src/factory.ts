@@ -568,6 +568,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       }
     }
 
+    const runtime = this.resolveRuntime();
+    if (runtime < 22) {
+      throw new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
+        message: `Durable functions require runtime 22 or higher. Current runtime is ${runtime}.`,
+        resolution: `Set the function runtime to 22 or higher to use durable functions.`,
+      });
+    }
+
     return {
       executionTimeoutSeconds: this.props.durableConfig.executionTimeoutSeconds,
       retentionPeriodDays: this.props.durableConfig.retentionPeriodDays ?? 14,
