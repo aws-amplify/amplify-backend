@@ -69,6 +69,12 @@ export type FunctionBundlingOptions = {
 };
 
 // @public (undocumented)
+export type FunctionDurableConfigOptions = {
+    executionTimeoutSeconds: number;
+    retentionPeriodDays?: number;
+};
+
+// @public (undocumented)
 export type FunctionLoggingOptions = ({
     format: 'json';
     level?: FunctionLogLevel;
@@ -99,6 +105,7 @@ export type FunctionProps = {
     bundling?: FunctionBundlingOptions;
     resourceGroupName?: AmplifyResourceGroupName;
     logging?: FunctionLoggingOptions;
+    durableConfig?: FunctionDurableConfigOptions;
 };
 
 // @public (undocumented)
