@@ -30,6 +30,7 @@ import {
   CfnFunction,
   IFunction,
   ILayerVersion,
+  IVersion,
   LayerVersion,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
@@ -734,13 +735,30 @@ class AmplifyFunction
       );
     }
 
+    let version: IVersion | undefined;
+    if (props.durableConfig) {
+      try {
+        version = functionLambda.currentVersion;
+      } catch (error) {
+        throw new AmplifyUserError(
+          'DurableFunctionVersionInitializationError',
+          {
+            message:
+              'Failed to create version for durable function. Durable functions require a versioned Lambda function.',
+            resolution: 'See the underlying error message for more details.',
+          },
+          error as Error,
+        );
+      }
+    }
+
     try {
       const expressions = convertFunctionSchedulesToScheduleExpressions(
         functionLambda,
         props.schedule,
       );
 
-      const lambdaTarget = new targets.LambdaInvoke(functionLambda);
+      const lambdaTarget = new targets.LambdaInvoke(version ?? functionLambda);
 
       expressions.forEach((expression, index) => {
         // Lambda name will be prepended to schedule id, so only using index here for uniqueness

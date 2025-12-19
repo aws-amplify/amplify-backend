@@ -1080,6 +1080,53 @@ void describe('AmplifyFunctionFactory', () => {
         }),
       );
     });
+
+    void it('uses versioned Lambda ARN in schedule target when durableConfig is specified', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 3600,
+        },
+        schedule: 'every day',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // Should create a Lambda version
+      template.resourceCountIs('AWS::Lambda::Version', 1);
+
+      // Schedule should target the versioned Lambda
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 0 * * ? *)',
+        Target: {
+          Arn: {
+            Ref: Match.stringLikeRegexp('.*Version.*'),
+          },
+        },
+      });
+    });
+
+    void it('uses un versioned Lambda ARN in schedule target when durableConfig is not specified', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: 'every day',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // Should not create a Lambda version
+      template.resourceCountIs('AWS::Lambda::Version', 0);
+
+      // Schedule should target the un versioned Lambda
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 0 * * ? *)',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
+    });
   });
 
   void describe('provided function runtime property', () => {
