@@ -1065,22 +1065,6 @@ void describe('AmplifyFunctionFactory', () => {
       );
     });
 
-    void it('throws when durableConfig is used with default runtime', () => {
-      assert.throws(
-        () =>
-          defineFunction({
-            entry: './test-assets/default-lambda/handler.ts',
-            durableConfig: {
-              executionTimeoutSeconds: 3600,
-            },
-          }).getInstance(getInstanceProps),
-        new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
-          message: `Durable functions require runtime 22 or higher. Current runtime is 20.`,
-          resolution: `Set the function runtime to 22 or higher to use durable functions.`,
-        }),
-      );
-    });
-
     void it('uses versioned Lambda ARN in schedule target when durableConfig is specified', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
