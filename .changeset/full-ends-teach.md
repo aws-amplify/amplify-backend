@@ -1,4 +1,5 @@
 ---
+'@aws-amplify/backend': minor
 '@aws-amplify/backend-function': minor
 ---
 
