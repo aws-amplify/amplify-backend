@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/model-generator",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -27,12 +27,12 @@
     "@aws-amplify/deployed-backend-client": "^1.8.1",
     "@aws-amplify/graphql-generator": "^0.5.1",
     "@aws-amplify/graphql-types-generator": "^3.6.0",
-    "@aws-amplify/platform-core": "^1.10.1",
+    "@aws-amplify/platform-core": "^1.10.3",
     "@aws-amplify/plugin-types": "^1.11.1",
-    "@aws-sdk/client-appsync": "^3.750.0",
-    "@aws-sdk/client-s3": "^3.750.0",
-    "@aws-sdk/credential-providers": "^3.750.0",
-    "@aws-sdk/types": "^3.734.0",
+    "@aws-sdk/client-appsync": "^3.936.0",
+    "@aws-sdk/client-s3": "^3.937.0",
+    "@aws-sdk/credential-providers": "^3.936.0",
+    "@aws-sdk/types": "^3.936.0",
     "graphql": "^15.8.0"
   },
   "peerDependencies": {

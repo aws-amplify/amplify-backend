@@ -622,6 +622,331 @@ void describe('AmplifyAuthFactory', () => {
       },
     });
   });
+
+  void it('preserves existing auth flows when passwordless not configured', () => {
+    resetFactoryCount();
+    const authFactory = defineAuth({
+      loginWith: { email: true },
+    });
+    const backendAuth = authFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(backendAuth.stack);
+
+    template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+      ExplicitAuthFlows: Match.arrayWith(['ALLOW_REFRESH_TOKEN_AUTH']),
+    });
+
+    const clientResources = template.findResources(
+      'AWS::Cognito::UserPoolClient',
+    );
+    const clientProps = Object.values(clientResources)[0].Properties;
+    assert.ok(!clientProps.ExplicitAuthFlows.includes('ALLOW_USER_AUTH'));
+  });
+
+  void describe('Passwordless Validation', () => {
+    void it('accepts email OTP configuration', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: { otpLogin: true },
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts SMS OTP configuration', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          phone: { otpLogin: true },
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts WebAuthn with email', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: true,
+          webAuthn: true,
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts WebAuthn with phone', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          phone: true,
+          webAuthn: true,
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts localhost relying party ID', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: true,
+          webAuthn: { relyingPartyId: 'localhost' },
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts AUTO relying party ID', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: true,
+          webAuthn: { relyingPartyId: 'AUTO' },
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts valid domain formats', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: true,
+          webAuthn: { relyingPartyId: 'example.com' },
+        },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts MFA OPTIONAL with passwordless', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: { otpLogin: true },
+        },
+        multifactor: { mode: 'OPTIONAL', sms: true },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('accepts MFA OFF with passwordless', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: { otpLogin: true },
+        },
+        multifactor: { mode: 'OFF' },
+      });
+      assert.doesNotThrow(() => authFactory.getInstance(getInstanceProps));
+    });
+
+    void it('rejects WebAuthn-only configuration', () => {
+      resetFactoryCount();
+      assert.throws(
+        () => {
+          defineAuth({
+            loginWith: { webAuthn: true },
+          });
+        },
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, 'InvalidPasswordlessConfigError');
+          assert.ok(error.details?.includes('Passkeys (WebAuthn) require'));
+          return true;
+        },
+      );
+    });
+
+    void it('rejects relying party ID with protocol', () => {
+      resetFactoryCount();
+      assert.throws(
+        () => {
+          defineAuth({
+            loginWith: {
+              email: true,
+              webAuthn: { relyingPartyId: 'http://example.com' },
+            },
+          });
+        },
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, 'InvalidPasswordlessConfigError');
+          assert.ok(error.details?.includes('Invalid relying party ID'));
+          return true;
+        },
+      );
+    });
+
+    void it('rejects invalid domain format', () => {
+      resetFactoryCount();
+      assert.throws(
+        () => {
+          defineAuth({
+            loginWith: {
+              email: true,
+              webAuthn: { relyingPartyId: 'my app.com' },
+            },
+          });
+        },
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, 'InvalidPasswordlessConfigError');
+          assert.ok(error.details?.includes('Invalid relying party ID'));
+          return true;
+        },
+      );
+    });
+
+    void it('rejects MFA REQUIRED with passwordless', () => {
+      resetFactoryCount();
+      assert.throws(
+        () => {
+          defineAuth({
+            loginWith: {
+              email: { otpLogin: true },
+            },
+            multifactor: { mode: 'REQUIRED', sms: true },
+          });
+        },
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, 'InvalidPasswordlessConfigError');
+          assert.ok(error.details?.includes('Passwordless authentication'));
+          assert.ok(error.details?.includes('MFA'));
+          return true;
+        },
+      );
+    });
+
+    void it('processes email-only authentication without otpLogin', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: { email: true },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.resourceCountIs('AWS::Cognito::UserPool', 1);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: Match.objectLike({
+          SignInPolicy: Match.absent(),
+        }),
+        WebAuthnRelyingPartyId: Match.absent(),
+        WebAuthnUserVerification: Match.absent(),
+      });
+    });
+
+    void it('processes phone-only authentication without otpLogin', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: { phone: true },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.resourceCountIs('AWS::Cognito::UserPool', 1);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: Match.objectLike({
+          SignInPolicy: Match.absent(),
+        }),
+        WebAuthnRelyingPartyId: Match.absent(),
+        WebAuthnUserVerification: Match.absent(),
+      });
+    });
+
+    void it('processes email + phone authentication without otpLogin', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: { email: true, phone: true },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.resourceCountIs('AWS::Cognito::UserPool', 1);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email', 'phone_number'],
+        AutoVerifiedAttributes: ['email', 'phone_number'],
+      });
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: Match.objectLike({
+          SignInPolicy: Match.absent(),
+        }),
+        WebAuthnRelyingPartyId: Match.absent(),
+        WebAuthnUserVerification: Match.absent(),
+      });
+    });
+
+    void it('defaults otpLogin to false when not specified for email', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          email: {
+            verificationEmailStyle: 'CODE',
+            verificationEmailSubject: 'Verify your email',
+            verificationEmailBody: (code) => `Your code is ${code()}`,
+          },
+        },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: Match.objectLike({
+          SignInPolicy: Match.absent(),
+        }),
+      });
+    });
+
+    void it('defaults otpLogin to false when not specified for phone', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: {
+          phone: {
+            verificationMessage: (code) => `Your code is ${code()}`,
+          },
+        },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['phone_number'],
+        AutoVerifiedAttributes: ['phone_number'],
+      });
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: Match.objectLike({
+          SignInPolicy: Match.absent(),
+        }),
+      });
+    });
+
+    void it('does not configure WebAuthn when not specified', () => {
+      resetFactoryCount();
+      const authFactory = defineAuth({
+        loginWith: { email: true },
+      });
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(backendAuth.stack);
+
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        WebAuthnRelyingPartyId: Match.absent(),
+        WebAuthnUserVerification: Match.absent(),
+      });
+    });
+  });
 });
 
 const upperCaseFirstChar = (str: string) => {
