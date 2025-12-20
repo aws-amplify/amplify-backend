@@ -668,7 +668,7 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      // We now create a LogGroup directly rather than using the deprecated logRetention
+      // When retention is set, creates a LogGroup
       template.resourceCountIs('AWS::Logs::LogGroup', 1);
       template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 400,
