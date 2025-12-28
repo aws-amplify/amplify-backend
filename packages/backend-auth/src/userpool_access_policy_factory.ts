@@ -69,6 +69,7 @@ const iamActionMap: IamActionMap = {
     'cognito-idp:AdminDisableUser',
     'cognito-idp:AdminEnableUser',
     'cognito-idp:AdminGetUser',
+    'cognito-idp:AdminLinkProviderForUser',
     'cognito-idp:AdminListGroupsForUser',
     'cognito-idp:AdminRespondToAuthChallenge',
     'cognito-idp:AdminSetUserMFAPreference',
