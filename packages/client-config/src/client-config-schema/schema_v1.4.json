@@ -190,6 +190,36 @@
             "enum": ["SMS", "TOTP", "EMAIL"]
           }
         },
+        "passwordless": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "email_otp_enabled": {
+              "type": "boolean"
+            },
+            "sms_otp_enabled": {
+              "type": "boolean"
+            },
+            "web_authn": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "relying_party_id": {
+                  "type": "string"
+                },
+                "user_verification": {
+                  "type": "string",
+                  "enum": ["required", "preferred"]
+                }
+              },
+              "required": ["relying_party_id", "user_verification"]
+            },
+            "preferred_challenge": {
+              "type": "string",
+              "enum": ["EMAIL_OTP", "SMS_OTP", "PASSWORD", "WEB_AUTHN"]
+            }
+          }
+        },
         "groups": {
           "type": "array",
           "items": {
