@@ -16,6 +16,12 @@ jobs:
   health_checks_with_cdk_version:
     uses: ./.github/workflows/health_checks.yml
     secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      security-events: write
+      id-token: write
     with:
       # This runs all deployment and sandbox tests.
       desired-cdk-lib-version: ${{ inputs.desired-cdk-lib-version || 'latest' }}
