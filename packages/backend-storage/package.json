@@ -32,7 +32,7 @@
     "@aws-amplify/platform-core": "^1.10.1"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.189.1",
+    "aws-cdk-lib": "^2.232.2",
     "constructs": "^10.0.0"
   }
 }
