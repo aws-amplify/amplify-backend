@@ -654,7 +654,7 @@ void describe('AmplifyFunctionFactory', () => {
   });
 
   void describe('logging options', () => {
-    void it('sets logging options', () => {
+    void it('sets logging options with log group', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
         bundling: {
@@ -667,19 +667,44 @@ void describe('AmplifyFunctionFactory', () => {
         },
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
-      // Enabling log retention adds extra lambda.
-      template.resourceCountIs('AWS::Lambda::Function', 2);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      assert.ok(
-        Object.keys(lambdas).some((key) => key.startsWith('LogRetention')),
-      );
-      template.hasResourceProperties('Custom::LogRetention', {
+
+      // When retention is set, creates a LogGroup
+      template.resourceCountIs('AWS::Logs::LogGroup', 1);
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 400,
       });
+
+      // The function should use the applicationLogLevelV2 and loggingFormat properties
       template.hasResourceProperties('AWS::Lambda::Function', {
         Handler: 'index.handler',
         LoggingConfig: {
           ApplicationLogLevel: 'WARN',
+          LogFormat: 'JSON',
+        },
+      });
+    });
+
+    void it('sets logging options without retention', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        bundling: {
+          minify: false,
+        },
+        logging: {
+          format: 'json',
+          level: 'info',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // No log group should be created when retention is not specified
+      template.resourceCountIs('AWS::Logs::LogGroup', 0);
+
+      // The function should still have logging config
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.handler',
+        LoggingConfig: {
+          ApplicationLogLevel: 'INFO',
           LogFormat: 'JSON',
         },
       });
