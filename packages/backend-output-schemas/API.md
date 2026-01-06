@@ -134,6 +134,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId: z.ZodOptional<z.ZodString>;
             oauthResponseType: z.ZodOptional<z.ZodString>;
             groups: z.ZodOptional<z.ZodString>;
+            passwordlessOptions: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             authRegion: string;
             userPoolId: string;
@@ -155,6 +156,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         }, {
             authRegion: string;
             userPoolId: string;
@@ -176,6 +178,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
@@ -200,6 +203,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         };
     }, {
         version: "1";
@@ -224,6 +228,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         };
     }>]>>;
     "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -408,6 +413,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -480,6 +486,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
             groups?: string | undefined;
+            passwordlessOptions?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -563,6 +570,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthClientId: z.ZodOptional<z.ZodString>;
         oauthResponseType: z.ZodOptional<z.ZodString>;
         groups: z.ZodOptional<z.ZodString>;
+        passwordlessOptions: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         authRegion: string;
         userPoolId: string;
@@ -584,6 +592,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
         groups?: string | undefined;
+        passwordlessOptions?: string | undefined;
     }, {
         authRegion: string;
         userPoolId: string;
@@ -605,6 +614,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
         groups?: string | undefined;
+        passwordlessOptions?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
@@ -629,6 +639,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
         groups?: string | undefined;
+        passwordlessOptions?: string | undefined;
     };
 }, {
     version: "1";
@@ -653,6 +664,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
         groups?: string | undefined;
+        passwordlessOptions?: string | undefined;
     };
 }>]>;
 
