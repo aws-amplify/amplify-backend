@@ -253,4 +253,5 @@ export type DataLogLevel = Extract<
 export type AmplifyGen1DynamoDbTableMapping = {
   branchName: string;
   modelNameToTableNameMapping?: Record<string, string>;
+  shouldAdoptExistingTable?: boolean;
 };
