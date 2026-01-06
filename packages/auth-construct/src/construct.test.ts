@@ -3330,5 +3330,94 @@ void describe('Auth construct', () => {
         WebAuthnUserVerification: Match.absent(),
       });
     });
+
+    void it('includes preferredChallenge in client config when specified', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        passwordlessOptions: {
+          preferredChallenge: 'EMAIL_OTP',
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      const passwordlessConfig = JSON.parse(
+        outputs['passwordlessOptions']['Value'],
+      );
+
+      assert.strictEqual(passwordlessConfig.preferredChallenge, 'EMAIL_OTP');
+    });
+
+    void it('includes preferredChallenge SMS_OTP in client config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { phone: true },
+        passwordlessOptions: {
+          preferredChallenge: 'SMS_OTP',
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      const passwordlessConfig = JSON.parse(
+        outputs['passwordlessOptions']['Value'],
+      );
+
+      assert.strictEqual(passwordlessConfig.preferredChallenge, 'SMS_OTP');
+    });
+
+    void it('includes preferredChallenge PASSWORD in client config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        passwordlessOptions: {
+          preferredChallenge: 'PASSWORD',
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      const passwordlessConfig = JSON.parse(
+        outputs['passwordlessOptions']['Value'],
+      );
+
+      assert.strictEqual(passwordlessConfig.preferredChallenge, 'PASSWORD');
+    });
+
+    void it('includes preferredChallenge WEB_AUTHN in client config', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true, webAuthn: true },
+        passwordlessOptions: {
+          preferredChallenge: 'WEB_AUTHN',
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      const passwordlessConfig = JSON.parse(
+        outputs['passwordlessOptions']['Value'],
+      );
+
+      assert.strictEqual(passwordlessConfig.preferredChallenge, 'WEB_AUTHN');
+    });
+
+    void it('does not include preferredChallenge when not specified', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+
+      assert.strictEqual(outputs['passwordlessOptions']['Value'], '');
+    });
   });
 });
