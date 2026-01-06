@@ -160,6 +160,10 @@ export class AmplifyAuth
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
     this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+
+    // Validate preferredChallenge against enabled authentication methods
+    this.validatePreferredChallenge(props);
+
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
@@ -1261,6 +1265,53 @@ export class AmplifyAuth
 
     const existingFlows = cfnUserPoolClient.explicitAuthFlows || [];
     cfnUserPoolClient.explicitAuthFlows = [...existingFlows, 'ALLOW_USER_AUTH'];
+  };
+
+  /**
+   * Validates that the preferredChallenge matches enabled authentication methods
+   */
+  private validatePreferredChallenge = (props: AuthProps): void => {
+    if (!this.preferredChallenge) {
+      return; // No validation needed if preferredChallenge is not set
+    }
+
+    const enabledChallenges: string[] = ['PASSWORD']; // PASSWORD is always available
+
+    // Check for EMAIL_OTP
+    if (
+      props.loginWith.email &&
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin
+    ) {
+      enabledChallenges.push('EMAIL_OTP');
+    }
+
+    // Check for SMS_OTP
+    if (
+      props.loginWith.phone &&
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin
+    ) {
+      enabledChallenges.push('SMS_OTP');
+    }
+
+    // Check for WEB_AUTHN
+    if (props.loginWith.webAuthn) {
+      enabledChallenges.push('WEB_AUTHN');
+    }
+
+    if (!enabledChallenges.includes(this.preferredChallenge)) {
+      process.stderr.write('\nWARNING:\n');
+      process.stderr.write(
+        `  • Preferred challenge "${this.preferredChallenge}" is not enabled in your authentication configuration.\n`,
+      );
+      process.stderr.write(
+        `    Enabled challenges: ${enabledChallenges.join(', ')}\n`,
+      );
+      process.stderr.write(
+        `    This will result in a broken authentication flow in the frontend.\n`,
+      );
+    }
   };
 
   /**
