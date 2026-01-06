@@ -3335,7 +3335,11 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
-        loginWith: { email: true },
+        loginWith: {
+          email: {
+            otpLogin: true,
+          },
+        },
         passwordlessOptions: {
           preferredChallenge: 'EMAIL_OTP',
         },
@@ -3354,7 +3358,11 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
-        loginWith: { phone: true },
+        loginWith: {
+          phone: {
+            otpLogin: true,
+          },
+        },
         passwordlessOptions: {
           preferredChallenge: 'SMS_OTP',
         },
@@ -3420,46 +3428,34 @@ void describe('Auth construct', () => {
       assert.strictEqual(outputs['passwordlessOptions']['Value'], '');
     });
 
-    void it('warns when preferredChallenge does not match enabled challenges', () => {
+    void it('throws error when preferredChallenge does not match enabled challenges', () => {
       const app = new App();
       const stack = new Stack(app);
-      const originalStderr = process.stderr.write;
-      let warningOutput = '';
 
-      process.stderr.write = (chunk: string) => {
-        warningOutput += chunk.toString();
-        return true;
-      };
-
-      try {
-        new AmplifyAuth(stack, 'test', {
-          loginWith: { email: true }, // Only PASSWORD is enabled
-          passwordlessOptions: {
-            preferredChallenge: 'SMS_OTP', // SMS_OTP is not enabled
-          },
-        });
-
-        assert(warningOutput.includes('WARNING'));
-        assert(warningOutput.includes('SMS_OTP'));
-        assert(warningOutput.includes('not enabled'));
-        assert(warningOutput.includes('broken authentication flow'));
-      } finally {
-        process.stderr.write = originalStderr;
-      }
+      assert.throws(
+        () => {
+          new AmplifyAuth(stack, 'test', {
+            loginWith: { email: true }, // Only PASSWORD is enabled
+            passwordlessOptions: {
+              preferredChallenge: 'SMS_OTP', // SMS_OTP is not enabled
+            },
+          });
+        },
+        (error: Error) => {
+          return (
+            error.message.includes('SMS_OTP') &&
+            error.message.includes('not enabled') &&
+            error.message.includes('broken authentication flow')
+          );
+        },
+      );
     });
 
-    void it('does not warn when preferredChallenge matches enabled challenges', () => {
+    void it('does not throw error when preferredChallenge matches enabled challenges', () => {
       const app = new App();
       const stack = new Stack(app);
-      const originalStderr = process.stderr.write;
-      let warningOutput = '';
 
-      process.stderr.write = (chunk: string) => {
-        warningOutput += chunk.toString();
-        return true;
-      };
-
-      try {
+      assert.doesNotThrow(() => {
         new AmplifyAuth(stack, 'test', {
           loginWith: {
             email: {
@@ -3470,11 +3466,7 @@ void describe('Auth construct', () => {
             preferredChallenge: 'EMAIL_OTP',
           },
         });
-
-        assert.strictEqual(warningOutput, '');
-      } finally {
-        process.stderr.write = originalStderr;
-      }
+      });
     });
   });
 });

@@ -159,10 +159,10 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
-    this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
-
-    // Validate preferredChallenge against enabled authentication methods
+    // Validate preferredChallenge against enabled authentication methods before setting
     this.validatePreferredChallenge(props);
+
+    this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
 
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
@@ -1271,7 +1271,8 @@ export class AmplifyAuth
    * Validates that the preferredChallenge matches enabled authentication methods
    */
   private validatePreferredChallenge = (props: AuthProps): void => {
-    if (!this.preferredChallenge) {
+    const preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+    if (!preferredChallenge) {
       return; // No validation needed if preferredChallenge is not set
     }
 
@@ -1300,16 +1301,11 @@ export class AmplifyAuth
       enabledChallenges.push('WEB_AUTHN');
     }
 
-    if (!enabledChallenges.includes(this.preferredChallenge)) {
-      process.stderr.write('\nWARNING:\n');
-      process.stderr.write(
-        `  • Preferred challenge "${this.preferredChallenge}" is not enabled in your authentication configuration.\n`,
-      );
-      process.stderr.write(
-        `    Enabled challenges: ${enabledChallenges.join(', ')}\n`,
-      );
-      process.stderr.write(
-        `    This will result in a broken authentication flow in the frontend.\n`,
+    if (!enabledChallenges.includes(preferredChallenge)) {
+      throw new Error(
+        `Preferred challenge "${preferredChallenge}" is not enabled in your authentication configuration. ` +
+          `Enabled challenges: ${enabledChallenges.join(', ')}. ` +
+          `This will result in a broken authentication flow in the frontend.`,
       );
     }
   };
