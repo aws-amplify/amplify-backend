@@ -46,7 +46,10 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
-import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
+import {
+  convertLoggingOptionsToCDK,
+  createLogGroup,
+} from './logging_options_parser.js';
 import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
 import {
   ProvidedFunctionFactory,
@@ -599,6 +602,13 @@ class AmplifyFunction
 
     let functionLambda: NodejsFunction;
     const cdkLoggingOptions = convertLoggingOptionsToCDK(props.logging);
+
+    // Create a log group if retention is specified (replacing deprecated logRetention property)
+    let logGroup = cdkLoggingOptions.logGroup;
+    if (props.logging.retention !== undefined && !logGroup) {
+      logGroup = createLogGroup(scope, id, props.logging);
+    }
+
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -615,7 +625,7 @@ class AmplifyFunction
           externalModules: Object.keys(props.layers),
           logLevel: EsBuildLogLevel.ERROR,
         },
-        logRetention: cdkLoggingOptions.retention,
+        logGroup: logGroup,
         applicationLogLevelV2: cdkLoggingOptions.level,
         loggingFormat: cdkLoggingOptions.format,
       });

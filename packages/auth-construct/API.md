@@ -56,6 +56,9 @@ export type AuthProps = {
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     groups?: string[];
+    passwordlessOptions?: {
+        preferredChallenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+    };
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 

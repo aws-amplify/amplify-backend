@@ -254,6 +254,15 @@ interface AWSAmplifyBackendOutputs {
         unauthenticated_identities_enabled?: boolean;
         mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
         mfa_methods?: ('SMS' | 'TOTP' | 'EMAIL')[];
+        passwordless?: {
+            email_otp_enabled?: boolean;
+            sms_otp_enabled?: boolean;
+            web_authn?: {
+                relying_party_id: string;
+                user_verification: 'required' | 'preferred';
+            };
+            preferred_challenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+        };
         groups?: {
             [k: string]: AmplifyUserGroupConfig;
         }[];

@@ -700,6 +700,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           shell: bash
+          on_retry_command: git clean -f -d
           attempt_timeout_minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
           run: PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
