@@ -514,6 +514,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       bundleAwsSDK: true,
       loader: {
         '.node': 'file',
+        '.html': 'text',
       },
       minify: true,
       sourceMap: true,
