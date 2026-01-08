@@ -784,6 +784,8 @@ jobs:
       - run: npm run check:create-amplify-deps
   docs_build_and_publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs:
       - build
       - resolve_inputs
@@ -878,6 +880,8 @@ jobs:
       - install
       - resolve_inputs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
