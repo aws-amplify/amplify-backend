@@ -178,6 +178,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       loginWith: translateToAuthConstructLoginWith(
         this.props.loginWith,
         backendSecretResolver,
+        stableBackendIdentifiers,
       ),
       senders: translateToAuthConstructSenders(
         this.props.senders,
@@ -185,10 +186,6 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
-    if (authProps.loginWith.externalProviders) {
-      authProps.loginWith.externalProviders.domainPrefix =
-        stableBackendIdentifiers.getStableBackendHash();
-    }
 
     let authConstruct: AmplifyAuth;
     try {
