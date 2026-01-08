@@ -32,6 +32,10 @@ void describe('Env Info', () => {
         path: '/fake/path',
         version: '0.0.0',
       },
+      Bun: {
+        path: '/fake/path',
+        version: '0.0.0',
+      },
     },
     npmPackages: {
       fake: {
@@ -59,6 +63,7 @@ void describe('Env Info', () => {
       `  npm: ${mockValue.Binaries.npm.version} - ${mockValue.Binaries.npm.path}`,
       `  pnpm: ${mockValue.Binaries.pnpm.version} - ${mockValue.Binaries.pnpm.path}`,
       `  Yarn: ${mockValue.Binaries.Yarn.version} - ${mockValue.Binaries.Yarn.path}`,
+      `  Bun: ${mockValue.Binaries.Bun.version} - ${mockValue.Binaries.Bun.path}`,
       'NPM Packages:',
       `  fake: ${
         (mockValue.npmPackages.fake as Record<string, string>).installed
