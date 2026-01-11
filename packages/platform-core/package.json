@@ -46,7 +46,7 @@
     "zod": "3.25.17"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.189.1",
+    "aws-cdk-lib": "^2.232.0",
     "constructs": "^10.0.0"
   }
 }

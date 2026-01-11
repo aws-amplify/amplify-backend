@@ -650,6 +650,20 @@ export type AuthProps = {
   groups?: string[];
 
   /**
+   * Passwordless authentication options.
+   */
+  passwordlessOptions?: {
+    /**
+     * Specify the preferred authentication challenge for users.
+     * This setting is propagated to the frontend but does not affect backend behavior.
+     * @default undefined
+     * @example
+     * preferredChallenge: 'PASSWORD'
+     */
+    preferredChallenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+  };
+
+  /**
    * @internal
    */
   outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;

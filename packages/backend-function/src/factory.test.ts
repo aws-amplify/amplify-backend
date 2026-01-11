@@ -12,7 +12,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   FunctionArchitecture,
   NodeVersion,
@@ -654,7 +654,7 @@ void describe('AmplifyFunctionFactory', () => {
   });
 
   void describe('logging options', () => {
-    void it('sets logging options', () => {
+    void it('sets logging options with log group', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
         bundling: {
@@ -667,19 +667,44 @@ void describe('AmplifyFunctionFactory', () => {
         },
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
-      // Enabling log retention adds extra lambda.
-      template.resourceCountIs('AWS::Lambda::Function', 2);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      assert.ok(
-        Object.keys(lambdas).some((key) => key.startsWith('LogRetention')),
-      );
-      template.hasResourceProperties('Custom::LogRetention', {
+
+      // When retention is set, creates a LogGroup
+      template.resourceCountIs('AWS::Logs::LogGroup', 1);
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 400,
       });
+
+      // The function should use the applicationLogLevelV2 and loggingFormat properties
       template.hasResourceProperties('AWS::Lambda::Function', {
         Handler: 'index.handler',
         LoggingConfig: {
           ApplicationLogLevel: 'WARN',
+          LogFormat: 'JSON',
+        },
+      });
+    });
+
+    void it('sets logging options without retention', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        bundling: {
+          minify: false,
+        },
+        logging: {
+          format: 'json',
+          level: 'info',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // No log group should be created when retention is not specified
+      template.resourceCountIs('AWS::Logs::LogGroup', 0);
+
+      // The function should still have logging config
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.handler',
+        LoggingConfig: {
+          ApplicationLogLevel: 'INFO',
           LogFormat: 'JSON',
         },
       });
@@ -857,6 +882,259 @@ void describe('AmplifyFunctionFactory', () => {
           resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
         }),
       );
+    });
+  });
+
+  void describe('durableConfig property', () => {
+    void it('sets valid durableConfig with executionTimeoutSeconds only', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 3600, // 1 hour
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DurableConfig: {
+          ExecutionTimeout: 3600,
+          RetentionPeriodInDays: 14, // default value
+        },
+      });
+    });
+
+    void it('sets valid durableConfig with both executionTimeoutSeconds and retentionPeriodDays', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 86400, // 1 day
+          retentionPeriodDays: 30,
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DurableConfig: {
+          ExecutionTimeout: 86400,
+          RetentionPeriodInDays: 30,
+        },
+      });
+    });
+
+    void it('sets valid durableConfig with maximum values', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 31_622_400, // 366 days
+          retentionPeriodDays: 90,
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DurableConfig: {
+          ExecutionTimeout: 31_622_400,
+          RetentionPeriodInDays: 90,
+        },
+      });
+    });
+
+    void it('sets valid durableConfig with minimum values', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 1,
+          retentionPeriodDays: 1,
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DurableConfig: {
+          ExecutionTimeout: 1,
+          RetentionPeriodInDays: 1,
+        },
+      });
+    });
+
+    void it('throws on executionTimeoutSeconds below minimum', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 0,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionExecutionTimeoutError', {
+          message: `Invalid durable function execution timeout of 0`,
+          resolution: `durableConfig.executionTimeoutSeconds must be a whole number between 1 and 31622400 inclusive`,
+        }),
+      );
+    });
+
+    void it('throws on executionTimeoutSeconds above maximum', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 31_622_401,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionExecutionTimeoutError', {
+          message: `Invalid durable function execution timeout of 31622401`,
+          resolution: `durableConfig.executionTimeoutSeconds must be a whole number between 1 and 31622400 inclusive`,
+        }),
+      );
+    });
+
+    void it('throws on fractional executionTimeoutSeconds', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 3600.5,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionExecutionTimeoutError', {
+          message: `Invalid durable function execution timeout of 3600.5`,
+          resolution: `durableConfig.executionTimeoutSeconds must be a whole number between 1 and 31622400 inclusive`,
+        }),
+      );
+    });
+
+    void it('throws on retentionPeriodDays below minimum', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+              retentionPeriodDays: 0,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionRetentionPeriodError', {
+          message: `Invalid durable function retention period of 0`,
+          resolution: `durableConfig.retentionPeriodDays must be a whole number between 1 and 90 inclusive`,
+        }),
+      );
+    });
+
+    void it('throws on retentionPeriodDays above maximum', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+              retentionPeriodDays: 91,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionRetentionPeriodError', {
+          message: `Invalid durable function retention period of 91`,
+          resolution: `durableConfig.retentionPeriodDays must be a whole number between 1 and 90 inclusive`,
+        }),
+      );
+    });
+
+    void it('throws on fractional retentionPeriodDays', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+              retentionPeriodDays: 14.5,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidDurableFunctionRetentionPeriodError', {
+          message: `Invalid durable function retention period of 14.5`,
+          resolution: `durableConfig.retentionPeriodDays must be a whole number between 1 and 90 inclusive`,
+        }),
+      );
+    });
+
+    void it('returns undefined when durableConfig is not provided', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+
+      assert.ok(lambda);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DurableConfig: Match.absent(),
+      });
+    });
+
+    void it('throws when durableConfig is used with runtime below 22', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            runtime: 20,
+            durableConfig: {
+              executionTimeoutSeconds: 3600,
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
+          message: `Durable functions require runtime 22 or higher. Current runtime is 20.`,
+          resolution: `Set the function runtime to 22 or higher to use durable functions.`,
+        }),
+      );
+    });
+
+    void it('uses versioned Lambda ARN in schedule target when durableConfig is specified', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        runtime: 22,
+        durableConfig: {
+          executionTimeoutSeconds: 3600,
+        },
+        schedule: 'every day',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // Should create a Lambda version
+      template.resourceCountIs('AWS::Lambda::Version', 1);
+
+      // Schedule should target the versioned Lambda
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 0 * * ? *)',
+        Target: {
+          Arn: {
+            Ref: Match.stringLikeRegexp('.*Version.*'),
+          },
+        },
+      });
+    });
+
+    void it('uses un versioned Lambda ARN in schedule target when durableConfig is not specified', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: 'every day',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      // Should not create a Lambda version
+      template.resourceCountIs('AWS::Lambda::Version', 0);
+
+      // Schedule should target the un versioned Lambda
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 0 * * ? *)',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
     });
   });
 
