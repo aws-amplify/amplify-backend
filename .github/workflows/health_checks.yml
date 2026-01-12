@@ -783,6 +783,7 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:create-amplify-deps
   docs_build_and_publish:
+    if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -799,7 +800,6 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run docs
-      - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
