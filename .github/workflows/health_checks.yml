@@ -875,6 +875,7 @@ jobs:
       - run: npm run check:package-versions
 
   update_package_versions:
+    # only runs when merging a PR into main
     if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
     needs:
       - install
