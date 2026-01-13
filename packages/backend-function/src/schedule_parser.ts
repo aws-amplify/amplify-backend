@@ -46,10 +46,7 @@ const hydrateDefaults = (schedule: FunctionSchedule): ZonedSchedule => {
   throw new Error("Could not determine the function's schedule type");
 };
 
-type ScheduleExpressionWithDescription = Pick<
-  ScheduleProps,
-  'schedule' | 'description'
->;
+type ScheduleConfig = Pick<ScheduleProps, 'schedule' | 'description'>;
 
 /**
  * Converts function schedules to schedule props.
@@ -60,9 +57,9 @@ type ScheduleExpressionWithDescription = Pick<
 export const convertFunctionSchedulesToScheduleProps = (
   lambda: NodejsFunction,
   functionSchedules: FunctionSchedule | FunctionSchedule[],
-): ScheduleExpressionWithDescription[] => {
+): ScheduleConfig[] => {
   const errors: string[] = [];
-  const scheduleProps: ScheduleExpressionWithDescription[] = [];
+  const scheduleProps: ScheduleConfig[] = [];
 
   const schedules = Array.isArray(functionSchedules)
     ? functionSchedules
