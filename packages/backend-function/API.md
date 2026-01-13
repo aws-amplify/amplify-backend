@@ -160,12 +160,14 @@ export type TimeIntervalExpression = `every ${number}m` | `every ${number}h` | `
 export type ZonedCronSchedule = {
     cron: CronScheduleExpression;
     timezone: string;
+    description?: string;
 };
 
 // @public (undocumented)
 export type ZonedTimeInterval = {
     rate: TimeIntervalExpression;
     timezone: string;
+    description?: string;
 };
 
 // (No @packageDocumentation comment for this package)

@@ -1,6 +1,7 @@
 import {
   CronOptionsWithTimezone,
   ScheduleExpression,
+  ScheduleProps,
 } from 'aws-cdk-lib/aws-scheduler';
 import { TimeZone } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -45,18 +46,23 @@ const hydrateDefaults = (schedule: FunctionSchedule): ZonedSchedule => {
   throw new Error("Could not determine the function's schedule type");
 };
 
+type ScheduleExpressionWithDescription = Pick<
+  ScheduleProps,
+  'schedule' | 'description'
+>;
+
 /**
- * Converts function schedules to schedule expressions.
+ * Converts function schedules to schedule props.
  * @param lambda The Lambda function to associate with the schedules.
  * @param functionSchedules The function schedules to convert.
- * @returns An array of schedule expressions.
+ * @returns An array of schedule props.
  */
-export const convertFunctionSchedulesToScheduleExpressions = (
+export const convertFunctionSchedulesToScheduleProps = (
   lambda: NodejsFunction,
   functionSchedules: FunctionSchedule | FunctionSchedule[],
-): ScheduleExpression[] => {
+): ScheduleExpressionWithDescription[] => {
   const errors: string[] = [];
-  const scheduleExpressions: ScheduleExpression[] = [];
+  const scheduleProps: ScheduleExpressionWithDescription[] = [];
 
   const schedules = Array.isArray(functionSchedules)
     ? functionSchedules
@@ -94,9 +100,12 @@ export const convertFunctionSchedulesToScheduleExpressions = (
     }
 
     if (errors.length === 0) {
-      scheduleExpressions.push(
-        ScheduleExpression.cron(translateToCronOptionsWithTimezone(schedule)),
-      );
+      scheduleProps.push({
+        schedule: ScheduleExpression.cron(
+          translateToCronOptionsWithTimezone(schedule),
+        ),
+        description: schedule.description,
+      });
     }
   });
 
@@ -104,7 +113,7 @@ export const convertFunctionSchedulesToScheduleExpressions = (
     throw new Error(errors.join(os.EOL));
   }
 
-  return scheduleExpressions;
+  return scheduleProps;
 };
 
 const isTimeInterval = (
