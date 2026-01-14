@@ -51,7 +51,7 @@ import {
   convertLoggingOptionsToCDK,
   createLogGroup,
 } from './logging_options_parser.js';
-import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
+import { convertFunctionSchedulesToScheduleProps } from './schedule_parser.js';
 import {
   ProvidedFunctionFactory,
   ProvidedFunctionProps,
@@ -70,6 +70,7 @@ export type CronScheduleExpression =
 export type ZonedCronSchedule = {
   cron: CronScheduleExpression;
   timezone: string;
+  description?: string;
 };
 
 export type CronSchedule = CronScheduleExpression | ZonedCronSchedule;
@@ -85,6 +86,7 @@ export type TimeIntervalExpression =
 export type ZonedTimeInterval = {
   rate: TimeIntervalExpression;
   timezone: string;
+  description?: string;
 };
 
 export type TimeInterval = ZonedTimeInterval | TimeIntervalExpression;
@@ -763,17 +765,18 @@ class AmplifyFunction
     }
 
     try {
-      const expressions = convertFunctionSchedulesToScheduleExpressions(
+      const scheduleProps = convertFunctionSchedulesToScheduleProps(
         functionLambda,
         props.schedule,
       );
 
       const lambdaTarget = new targets.LambdaInvoke(version ?? functionLambda);
 
-      expressions.forEach((expression, index) => {
+      scheduleProps.forEach(({ schedule, description }, index) => {
         // Lambda name will be prepended to schedule id, so only using index here for uniqueness
         new scheduler.Schedule(functionLambda, `schedule-${index}`, {
-          schedule: expression,
+          schedule,
+          description,
           target: lambdaTarget,
         });
       });
