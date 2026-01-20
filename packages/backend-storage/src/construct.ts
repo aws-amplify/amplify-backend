@@ -3,6 +3,7 @@ import {
   Bucket,
   BucketProps,
   CfnBucket,
+  CorsRule,
   EventType,
   HttpMethods,
   IBucket,
@@ -63,6 +64,7 @@ export type AmplifyStorageProps = {
       ConstructFactory<ResourceProvider<FunctionResources>>
     >
   >;
+  cors?: CorsRule[];
 };
 
 export type StorageResources = {
@@ -97,7 +99,7 @@ export class AmplifyStorage
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
-      cors: [
+      cors: props.cors ?? [
         {
           maxAge: 3000,
           exposedHeaders: [
