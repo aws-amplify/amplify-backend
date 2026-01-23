@@ -44,7 +44,7 @@ export class CdkErrorMapper {
 
     if (error.message.includes('does not support module.register()')) {
       let resolutionMessage;
-      if (deploymentType === 'branch') {
+      if (deploymentType === 'branch' || deploymentType === 'custompipeline') {
         resolutionMessage =
           'Upgrade the node version in your CI/CD environment. ' +
           'If you are using Amplify Hosting for your backend builds, you can add `nvm install 18.x` or `nvm install 20.x` in your `amplify.yml` before the `pipeline-deploy` command';
