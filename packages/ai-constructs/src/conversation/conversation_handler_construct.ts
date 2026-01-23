@@ -150,22 +150,7 @@ export class ConversationHandlerFunction
     }
 
     if (this.props.models && this.props.models.length > 0) {
-      const resources = this.props.models.map(
-        (model) =>
-          `arn:aws:bedrock:${
-            model.region ?? Stack.of(this).region
-          }::foundation-model/${model.modelId}`,
-      );
-      conversationHandler.addToRolePolicy(
-        new PolicyStatement({
-          effect: Effect.ALLOW,
-          actions: [
-            'bedrock:InvokeModel',
-            'bedrock:InvokeModelWithResponseStream',
-          ],
-          resources,
-        }),
-      );
+      this.addBedrockModelPermissions(conversationHandler);
     }
 
     this.resources = {
@@ -234,6 +219,101 @@ export class ConversationHandlerFunction
     }
     return this.props.timeoutSeconds;
   };
+
+  /**
+   * Adds IAM permissions for Bedrock models to the Lambda function.
+   * Handles both regular foundation models and global cross-region inference profiles.
+   *
+   * For global inference profiles (modelId starts with "global."), this creates a three-part
+   * IAM policy as required by AWS Bedrock:
+   * 1. Access to the inference profile in the requesting region
+   * 2. Access to the foundation model in the requesting region
+   * 3. Access to the global foundation model (enables cross-region routing)
+   * @see https://docs.aws.amazon.com/bedrock/latest/userguide/global-cross-region-inference.html
+   */
+  private addBedrockModelPermissions = (handler: IFunction): void => {
+    const currentRegion = Stack.of(this).region;
+    const currentAccount = Stack.of(this).account;
+    const bedrockActions = [
+      'bedrock:InvokeModel',
+      'bedrock:InvokeModelWithResponseStream',
+    ];
+
+    const resourceGroups = this.categorizeModelResources(
+      currentRegion,
+      currentAccount,
+    );
+
+    // Add permissions for each resource group
+    Object.values(resourceGroups).forEach((resources) => {
+      if (resources.length > 0) {
+        handler.addToRolePolicy(
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: bedrockActions,
+            resources,
+          }),
+        );
+      }
+    });
+  };
+
+  /**
+   * Categorizes model resources into different permission groups based on model type.
+   * Returns an object with arrays of ARNs for each permission category.
+   */
+  private categorizeModelResources = (
+    region: string,
+    account: string,
+  ): Record<string, string[]> => {
+    const resources = {
+      regularModels: [] as string[],
+      globalInferenceProfiles: [] as string[],
+      globalRegionalModels: [] as string[],
+      globalCrossRegionModels: [] as string[],
+    };
+
+    this.props.models.forEach((model) => {
+      if (this.isGlobalInferenceProfile(model.modelId)) {
+        const foundationModelId = this.extractFoundationModelId(model.modelId);
+
+        resources.globalInferenceProfiles.push(
+          this.buildInferenceProfileArn(region, account, model.modelId),
+        );
+        resources.globalRegionalModels.push(
+          this.buildFoundationModelArn(region, foundationModelId),
+        );
+        resources.globalCrossRegionModels.push(
+          this.buildGlobalFoundationModelArn(foundationModelId),
+        );
+      } else {
+        resources.regularModels.push(
+          this.buildFoundationModelArn(model.region ?? region, model.modelId),
+        );
+      }
+    });
+
+    return resources;
+  };
+
+  private isGlobalInferenceProfile = (modelId: string): boolean =>
+    modelId.startsWith('global.');
+
+  private extractFoundationModelId = (inferenceProfileId: string): string =>
+    inferenceProfileId.replace(/^global\./, '');
+
+  private buildInferenceProfileArn = (
+    region: string,
+    account: string,
+    profileId: string,
+  ): string =>
+    `arn:aws:bedrock:${region}:${account}:inference-profile/${profileId}`;
+
+  private buildFoundationModelArn = (region: string, modelId: string): string =>
+    `arn:aws:bedrock:${region}::foundation-model/${modelId}`;
+
+  private buildGlobalFoundationModelArn = (modelId: string): string =>
+    `arn:aws:bedrock:::foundation-model/${modelId}`;
 }
 
 const isWholeNumberBetweenInclusive = (
