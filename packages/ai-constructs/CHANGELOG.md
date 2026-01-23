@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.6.0
+
+### Minor Changes
+
+- b3f0e35: feat: add support for the global Bedrock inference profiles
+
 ## 1.5.6
 
 ### Patch Changes
