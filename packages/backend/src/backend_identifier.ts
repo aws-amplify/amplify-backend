@@ -26,7 +26,7 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const deploymentType: DeploymentType = scope.node.getContext(
     CDKContextKey.DEPLOYMENT_TYPE,
   );
-  const expectedDeploymentTypeValues = ['sandbox', 'branch'];
+  const expectedDeploymentTypeValues = ['sandbox', 'branch', 'custompipeline'];
 
   if (!expectedDeploymentTypeValues.includes(deploymentType)) {
     throw new Error(
