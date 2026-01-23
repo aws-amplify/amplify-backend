@@ -6,6 +6,7 @@
 '@aws-amplify/backend-output-storage': patch
 '@aws-amplify/cli-core': patch
 '@aws-amplify/backend-cli': patch
+'@aws-amplify/auth-construct': patch
 ---
 
 Add custompipeline deployment type for custom CI/CD without Amplify Hosting
