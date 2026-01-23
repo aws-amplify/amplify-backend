@@ -71,6 +71,8 @@ export class AttributionMetadataStorage {
         return 'AmplifyPipelineDeploy';
       case 'sandbox':
         return 'AmplifySandbox';
+      case 'custompipeline':
+        return 'AmplifyCustomPipeline';
       default:
         throw new Error(
           `Unknown ${CDKContextKey.DEPLOYMENT_TYPE} CDK context value "${
@@ -121,6 +123,7 @@ export type AttributionMetadata = {
 export type DeploymentEngineType =
   | 'AmplifyPipelineDeploy'
   | 'AmplifySandbox'
+  | 'AmplifyCustomPipeline'
   | 'AmplifyCDK';
 
 export type Platform = 'Mac' | 'Windows' | 'Linux' | 'Other';

@@ -56,4 +56,22 @@ export type BackendIdentifier =
        * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
        */
       hash?: Readonly<string>;
+    }
+  | {
+      /**
+       * The project name for the custom pipeline deployment.
+       */
+      namespace: Readonly<ProjectName>;
+      /**
+       * The branch name for the custom pipeline deployment.
+       */
+      name: Readonly<BranchName>;
+      /**
+       * Const that determines this BackendIdentifier is for a custom pipeline backend (CI/CD without Amplify Hosting)
+       */
+      type: Readonly<Extract<DeploymentType, 'custompipeline'>>;
+      /**
+       * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
+       */
+      hash?: Readonly<string>;
     };

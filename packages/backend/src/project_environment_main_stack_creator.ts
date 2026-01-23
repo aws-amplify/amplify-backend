@@ -32,6 +32,9 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
       Tags.of(this.mainStack).add('amplify:deployment-type', 'branch');
     } else if (deploymentType === 'sandbox') {
       Tags.of(this.mainStack).add('amplify:deployment-type', 'sandbox');
+    } else if (deploymentType === 'custompipeline') {
+      Tags.of(this.mainStack).add('amplify:branch-name', this.backendId.name);
+      Tags.of(this.mainStack).add('amplify:deployment-type', 'custompipeline');
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.mainStack!;

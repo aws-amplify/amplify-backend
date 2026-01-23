@@ -18,10 +18,12 @@ export type PipelineDeployCommandOptions =
 
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
-  appId: string;
+  appId?: string;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
+  customPipeline?: boolean;
+  stackName?: string;
 };
 
 /**
@@ -59,7 +61,7 @@ export class PipelineDeployCommand
   handler = async (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
-    if (!this.isCiEnvironment) {
+    if (!this.isCiEnvironment && !args.customPipeline) {
       throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
         message:
           'It looks like this command is being run outside of a CI/CD workflow.',
@@ -69,10 +71,17 @@ export class PipelineDeployCommand
       });
     }
 
+    // For custom pipeline, use stack-name as namespace if provided, otherwise use a default
+    // For regular pipeline, use appId
+    const namespace = args.customPipeline
+      ? args.stackName || 'amplify-custom-pipeline'
+      : args.appId!; // appId is guaranteed to exist when customPipeline is false due to validation
+
     const backendId: BackendIdentifier = {
-      namespace: args.appId,
+      namespace: namespace,
       name: args.branch,
-      type: 'branch',
+      // Use 'custompipeline' type for custom pipeline to avoid BranchLinker creation
+      type: args.customPipeline ? 'custompipeline' : 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
@@ -96,7 +105,20 @@ export class PipelineDeployCommand
       })
       .option('app-id', {
         describe: 'The app id of the target Amplify app',
-        demandOption: true,
+        demandOption: false,
+        type: 'string',
+        array: false,
+      })
+      .option('custom-pipeline', {
+        describe:
+          'Enable custom pipeline mode for deployment without Amplify Hosting',
+        type: 'boolean',
+        array: false,
+        default: false,
+      })
+      .option('stack-name', {
+        describe:
+          'Custom stack name for the deployment (used with --custom-pipeline)',
         type: 'string',
         array: false,
       })
@@ -121,12 +143,30 @@ export class PipelineDeployCommand
         choices: Object.values(ClientConfigFormat),
       })
       .check(async (argv) => {
-        if (argv['branch'].length === 0 || argv['app-id'].length === 0) {
+        // If custom-pipeline is not enabled, app-id is required
+        if (!argv['custom-pipeline'] && !argv['app-id']) {
           throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --branch or --app-id',
-            resolution: '--branch and --app-id must be at least 1 character',
+            message: 'Missing required argument: app-id',
+            resolution:
+              '--app-id is required unless --custom-pipeline is enabled',
           });
         }
+
+        // Validate that branch and app-id (if provided) are not empty
+        if (argv['branch'].length === 0) {
+          throw new AmplifyUserError('InvalidCommandInputError', {
+            message: 'Invalid --branch',
+            resolution: '--branch must be at least 1 character',
+          });
+        }
+
+        if (argv['app-id'] && argv['app-id'].length === 0) {
+          throw new AmplifyUserError('InvalidCommandInputError', {
+            message: 'Invalid --app-id',
+            resolution: '--app-id must be at least 1 character',
+          });
+        }
+
         return true;
       });
   };

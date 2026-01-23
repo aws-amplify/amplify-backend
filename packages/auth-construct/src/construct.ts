@@ -1222,6 +1222,8 @@ export class AmplifyAuth
       CDKContextKey.DEPLOYMENT_TYPE,
     );
 
+    // For 'branch' deployments with Amplify Hosting, we can automatically derive
+    // the domain from the appId and branchName (e.g., main.d123abc.amplifyapp.com)
     if (deploymentType === 'branch') {
       const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
       const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
@@ -1231,6 +1233,23 @@ export class AmplifyAuth
       }
     }
 
+    // For 'sandbox' and 'custompipeline' deployments, we default to 'localhost'
+    // because there's no Amplify Hosting domain available.
+    //
+    // IMPORTANT: For production 'custompipeline' deployments using WebAuthn/passkeys,
+    // you MUST explicitly provide the relyingPartyId in your auth configuration
+    // instead of using 'AUTO'. The relyingPartyId should match your actual domain
+    // where the application is hosted (e.g., 'example.com' or 'app.example.com').
+    //
+    // Example:
+    //   defineAuth({
+    //     loginWith: {
+    //       webAuthn: {
+    //         relyingPartyId: 'app.example.com', // Your actual domain
+    //         userVerification: 'preferred'
+    //       }
+    //     }
+    //   })
     return 'localhost';
   };
 
