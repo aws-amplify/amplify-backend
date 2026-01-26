@@ -69,6 +69,12 @@ export type FunctionBundlingOptions = {
 };
 
 // @public (undocumented)
+export type FunctionDurableConfigOptions = {
+    executionTimeoutSeconds: number;
+    retentionPeriodDays?: number;
+};
+
+// @public (undocumented)
 export type FunctionLoggingOptions = ({
     format: 'json';
     level?: FunctionLogLevel;
@@ -99,6 +105,7 @@ export type FunctionProps = {
     bundling?: FunctionBundlingOptions;
     resourceGroupName?: AmplifyResourceGroupName;
     logging?: FunctionLoggingOptions;
+    durableConfig?: FunctionDurableConfigOptions;
 };
 
 // @public (undocumented)
@@ -153,12 +160,14 @@ export type TimeIntervalExpression = `every ${number}m` | `every ${number}h` | `
 export type ZonedCronSchedule = {
     cron: CronScheduleExpression;
     timezone: string;
+    description?: string;
 };
 
 // @public (undocumented)
 export type ZonedTimeInterval = {
     rate: TimeIntervalExpression;
     timezone: string;
+    description?: string;
 };
 
 // (No @packageDocumentation comment for this package)
