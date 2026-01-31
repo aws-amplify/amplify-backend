@@ -783,7 +783,10 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:create-amplify-deps
   docs_build_and_publish:
+    if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs:
       - build
       - resolve_inputs
@@ -797,8 +800,7 @@ jobs:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run docs
-      - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
+      - uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
@@ -873,11 +875,15 @@ jobs:
       - run: npm run check:package-versions
 
   update_package_versions:
+    # only runs when merging a PR into main
     if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
     needs:
       - install
       - resolve_inputs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node

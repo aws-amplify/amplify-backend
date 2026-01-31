@@ -624,6 +624,54 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
+    void it('sets valid schedule - rate with timezone and description', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: {
+          rate: 'every 5m',
+          timezone: 'America/New_York',
+          description: 'Runs every 5 minutes in NY timezone',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(*/5 * * * ? *)',
+        ScheduleExpressionTimezone: 'America/New_York',
+        Description: 'Runs every 5 minutes in NY timezone',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
+    });
+
+    void it('sets valid schedule - cron with timezone and description', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: {
+          cron: '0 1 * * ?',
+          timezone: 'America/New_York',
+          description: 'Daily task at 1 AM NY time',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Scheduler::Schedule', {
+        ScheduleExpression: 'cron(0 1 * * ? *)',
+        ScheduleExpressionTimezone: 'America/New_York',
+        Description: 'Daily task at 1 AM NY time',
+        Target: {
+          Arn: {
+            // eslint-disable-next-line spellcheck/spell-checker
+            'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+          },
+        },
+      });
+    });
+
     void it('defaults to no event rule created', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
