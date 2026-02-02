@@ -143,27 +143,28 @@ export class PipelineDeployCommand
         choices: Object.values(ClientConfigFormat),
       })
       .check(async (argv) => {
+        const errors: string[] = [];
+
+        // Check if branch is provided
+        if (!argv['branch']) {
+          errors.push('--branch is required');
+        } else if (argv['branch'].length === 0) {
+          errors.push('--branch must be at least 1 character');
+        }
+
         // If custom-pipeline is not enabled, app-id is required
         if (!argv['custom-pipeline'] && !argv['app-id']) {
-          throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Missing required argument: app-id',
-            resolution:
-              '--app-id is required unless --custom-pipeline is enabled',
-          });
+          errors.push(
+            '--app-id is required (unless --custom-pipeline is enabled)',
+          );
+        } else if (argv['app-id'] && argv['app-id'].length === 0) {
+          errors.push('--app-id must be at least 1 character');
         }
 
-        // Validate that branch and app-id (if provided) are not empty
-        if (argv['branch'].length === 0) {
+        if (errors.length > 0) {
           throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --branch',
-            resolution: '--branch must be at least 1 character',
-          });
-        }
-
-        if (argv['app-id'] && argv['app-id'].length === 0) {
-          throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --app-id',
-            resolution: '--app-id must be at least 1 character',
+            message: errors.join('\n'),
+            resolution: 'Provide all required arguments',
           });
         }
 
