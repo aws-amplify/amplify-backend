@@ -306,11 +306,22 @@ void describe('deploy command', () => {
   });
 
   void it('succeeds when --app-id is missing but --custom-pipeline is provided', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub,
+      mockIoHost,
+      mockProfileResolver,
+    );
+    const mockDeploy = mock.method(
+      backendDeployerFactory.getInstance(),
+      'deploy',
+      () => Promise.resolve(),
+    );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --branch testBranch --custom-pipeline --stack-name mystack',
     );
-    assert.equal(deployMock.mock.callCount(), 1);
-    assert.deepStrictEqual(deployMock.mock.calls[0].arguments, [
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
       {
         name: 'testBranch',
         namespace: 'mystack',
@@ -320,5 +331,6 @@ void describe('deploy command', () => {
         validateAppSources: true,
       },
     ]);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 });
