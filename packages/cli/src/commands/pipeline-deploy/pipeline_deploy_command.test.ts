@@ -85,7 +85,8 @@ void describe('deploy command', () => {
 
   void it('fails if required arguments are not supplied', async () => {
     const output = await getCommandRunner().runCommand('pipeline-deploy');
-    assert.match(output, /Missing required arguments/);
+    assert.match(output, /--branch is required/);
+    assert.match(output, /--app-id is required/);
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
@@ -264,13 +265,18 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
+        assert.match(
+          error.error.message,
+          /--branch must be at least 1 character/,
+        );
         return true;
       },
     );
   });
 
   void it('throws when --app-id argument has no input', async () => {
+    // When you write "--app-id --branch testBranch", yargs interprets "--branch" as the value for --app-id
+    // So we need to test with --app-id at the end to truly have no value
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
@@ -278,9 +284,41 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
+        // app-id will be "--branch" and branch will be missing
+        assert.match(error.error.message, /--branch is required/);
         return true;
       },
     );
+  });
+
+  void it('throws when --app-id is missing without --custom-pipeline', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --branch testBranch',
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.match(error.error.message, /--app-id is required/);
+        return true;
+      },
+    );
+  });
+
+  void it('succeeds when --app-id is missing but --custom-pipeline is provided', async () => {
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --branch testBranch --custom-pipeline --stack-name mystack',
+    );
+    assert.equal(deployMock.mock.callCount(), 1);
+    assert.deepStrictEqual(deployMock.mock.calls[0].arguments, [
+      {
+        name: 'testBranch',
+        namespace: 'mystack',
+        type: 'custompipeline',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
   });
 });
