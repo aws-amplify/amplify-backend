@@ -85,8 +85,7 @@ void describe('deploy command', () => {
 
   void it('fails if required arguments are not supplied', async () => {
     const output = await getCommandRunner().runCommand('pipeline-deploy');
-    assert.match(output, /--branch is required/);
-    assert.match(output, /--app-id is required/);
+    assert.match(output, /Missing required argument: branch/);
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
@@ -265,10 +264,7 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.match(
-          error.error.message,
-          /--branch must be at least 1 character/,
-        );
+        assert.match(error.error.message, /--branch is required/);
         return true;
       },
     );
@@ -280,12 +276,11 @@ void describe('deploy command', () => {
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
-          'pipeline-deploy --app-id --branch testBranch',
+          'pipeline-deploy --branch testBranch --app-id',
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        // app-id will be "--branch" and branch will be missing
-        assert.match(error.error.message, /--branch is required/);
+        assert.match(error.error.message, /--app-id is required/);
         return true;
       },
     );
