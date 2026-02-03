@@ -464,7 +464,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveRuntime = () => {
-    const runtimeDefault = 22;
+    const runtimeDefault = 20;
 
     // if runtime is not set, default to the oldest LTS
     if (!this.props.runtime) {
