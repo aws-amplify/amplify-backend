@@ -72,6 +72,12 @@ const IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY = {
   provisionStrategy: 'IMPORTED_AMPLIFY_TABLE',
 } as const;
 
+// Adopted strategy where Amplify will synthesize a managed CFN table resource
+const ADOPTED_DYNAMO_DATA_SOURCE_STRATEGY = {
+  dbType: 'DYNAMODB',
+  provisionStrategy: 'ADOPTED_AMPLIFY_TABLE',
+} as const;
+
 // Translate the external engine types to the config values
 // Reference: https://github.com/aws-amplify/amplify-category-api/blob/fd7f6fbc17c199331c4b04debaff69ea0424cd74/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L25
 const SQL_DB_TYPES = {
@@ -81,18 +87,28 @@ const SQL_DB_TYPES = {
 
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
- * @param schema TS schema builder definition or string GraphQL schema
- * @param backendSecretResolver secret resolver
- * @param stableBackendIdentifiers backend identifiers
- * @param importedTableName table name to use for imported models. If not defined the model is not imported.
+ * @param params configuration parameters
+ * @param params.schema TS schema builder definition or string GraphQL schema
+ * @param params.backendSecretResolver secret resolver
+ * @param params.stableBackendIdentifiers backend identifiers
+ * @param params.importedTableName table name to use for imported models. If not defined the model is not imported.
+ * @param params.shouldAdoptExistingTable whether to adopt the existing table
  * @returns the cdk graphql definition interface
  */
-export const convertSchemaToCDK = (
-  schema: DataSchema,
-  backendSecretResolver: BackendSecretResolver,
-  stableBackendIdentifiers: StableBackendIdentifiers,
-  importedTableName?: string,
-): IAmplifyDataDefinition => {
+export const convertSchemaToCDK = (params: {
+  schema: DataSchema;
+  backendSecretResolver: BackendSecretResolver;
+  stableBackendIdentifiers: StableBackendIdentifiers;
+  importedTableName?: string;
+  shouldAdoptExistingTable?: boolean;
+}): IAmplifyDataDefinition => {
+  const {
+    schema,
+    backendSecretResolver,
+    stableBackendIdentifiers,
+    importedTableName,
+    shouldAdoptExistingTable,
+  } = params;
   if (isDataSchema(schema)) {
     /**
      * This is not super obvious, but the IAmplifyDataDefinition interface requires a record of each model type to a
@@ -146,6 +162,12 @@ export const convertSchemaToCDK = (
   }
 
   if (importedTableName) {
+    if (shouldAdoptExistingTable) {
+      return AmplifyDataDefinition.fromString(schema, {
+        ...ADOPTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        tableName: importedTableName,
+      } as unknown as ModelDataSourceStrategy);
+    }
     return AmplifyDataDefinition.fromString(schema, {
       ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
       tableName: importedTableName,
