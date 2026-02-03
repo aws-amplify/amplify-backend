@@ -464,7 +464,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveRuntime = () => {
-    const runtimeDefault = 20;
+    const runtimeDefault = 22;
 
     // if runtime is not set, default to the oldest LTS
     if (!this.props.runtime) {
@@ -827,13 +827,14 @@ const isWholeNumberBetweenInclusive = (
   max: number,
 ) => min <= test && test <= max && test % 1 === 0;
 
-export type NodeVersion = 16 | 18 | 20 | 22;
+export type NodeVersion = 16 | 18 | 20 | 22 | 24;
 
 const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
   22: Runtime.NODEJS_22_X,
+  24: Runtime.NODEJS_24_X,
 };
 
 export type FunctionArchitecture = 'x86_64' | 'arm64';
