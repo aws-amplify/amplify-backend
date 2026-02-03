@@ -1,0 +1,22 @@
+name: Conditional Release
+
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run_health_checks:
+    if: "!startsWith(github.ref_name, 'snapshot/')"
+    uses: ./.github/workflows/health_checks.yml
+    permissions:
+      id-token: write
+      contents: read
+
+  run_snapshot_release:
+    if: startsWith(github.ref_name, 'snapshot/')
+    uses: ./.github/workflows/snapshot_release.yml
+    permissions:
+      id-token: write
+      contents: read
