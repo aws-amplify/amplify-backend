@@ -7,20 +7,19 @@ on:
       - hotfix
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   run_health_checks:
-    if: ${{ !startsWith(github.ref_name, 'snapshot/') && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
+    if: ${{ github.ref_name == 'main' || github.ref_name == 'hotfix' }}
     uses: ./.github/workflows/health_checks.yml
     permissions:
       id-token: write
-      contents: read
+      pull-requests: write
+      contents: write
+      actions: read
+      security-events: write
 
   run_snapshot_release:
-    if: startsWith(github.ref_name, 'snapshot/')
+    if: ${{ startsWith(github.ref_name, 'snapshot/') }}
     uses: ./.github/workflows/snapshot_release.yml
     permissions:
       id-token: write
