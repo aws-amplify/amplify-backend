@@ -1,6 +1,11 @@
 name: Conditional Release
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+      - hotfix
+  workflow_dispatch:
 
 permissions:
   id-token: write

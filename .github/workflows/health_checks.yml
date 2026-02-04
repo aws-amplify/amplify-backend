@@ -1,10 +1,6 @@
 name: health_checks
 
 on:
-  push:
-    branches:
-      - main
-      - hotfix
   pull_request:
     branches:
       - main
