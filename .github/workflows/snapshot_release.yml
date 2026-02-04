@@ -47,18 +47,22 @@ jobs:
     needs:
       - test
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
           cdk-lib-version: FROM_PACKAGE_LOCK
-      - name: Authenticate
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish snapshot to npm
         run: |
           npm run publish:snapshot
+        env:
+          NPM_TRUSTED_PUBLISHER: 'true'
