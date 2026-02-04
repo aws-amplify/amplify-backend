@@ -430,7 +430,7 @@ void describe('AmplifyFunctionFactory', () => {
       const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_20_X.name,
+        Runtime: Runtime.NODEJS_22_X.name,
       });
     });
 
@@ -443,7 +443,8 @@ void describe('AmplifyFunctionFactory', () => {
           }).getInstance(getInstanceProps),
         new AmplifyUserError('InvalidRuntimeError', {
           message: `Invalid function runtime of 14`,
-          resolution: 'runtime must be one of the following: 16, 18, 20, 22',
+          resolution:
+            'runtime must be one of the following: 16, 18, 20, 22, 24',
         }),
       );
     });
