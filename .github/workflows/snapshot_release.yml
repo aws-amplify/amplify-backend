@@ -1,7 +1,6 @@
 name: snapshot_release
 
 on:
-  workflow_dispatch:
   workflow_call:
 
 jobs:
