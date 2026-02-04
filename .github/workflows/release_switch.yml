@@ -7,10 +7,6 @@ on:
       - hotfix
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   run_health_checks:
     if: ${{ github.ref_name == 'main' || github.ref_name == 'hotfix' }}
