@@ -1,6 +1,6 @@
 name: Conditional Release
 
-on: workflow_dispatch
+on: workflow_call
 
 permissions:
   id-token: write
