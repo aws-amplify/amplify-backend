@@ -131,7 +131,7 @@ type LibraryOptions = {
 };
 
 // @public (undocumented)
-export type NodeVersion = 16 | 18 | 20 | 22;
+export type NodeVersion = 16 | 18 | 20 | 22 | 24;
 
 // @public (undocumented)
 export type ProvidedFunctionProps = {
