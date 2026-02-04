@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   run_health_checks:
-    if: "!startsWith(github.ref_name, 'snapshot/')"
+    if: ${{ !startsWith(github.ref_name, 'snapshot/') && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
     uses: ./.github/workflows/health_checks.yml
     permissions:
       id-token: write
