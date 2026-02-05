@@ -36,7 +36,7 @@ export class BackendSecretFetcherProviderFactory {
     }
 
     const secretLambda = new NodejsFunction(scope, `${providerId}Lambda`, {
-      runtime: LambdaRuntime.NODEJS_20_X,
+      runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: backendSecretLambdaFilePath,
       handler: 'handler',
