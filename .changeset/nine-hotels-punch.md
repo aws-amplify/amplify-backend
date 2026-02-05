@@ -2,7 +2,6 @@
 '@aws-amplify/backend-function': minor
 '@aws-amplify/backend': minor
 '@aws-amplify/integration-tests': patch
-'@aws-amplify/backend-function': patch
 '@aws-amplify/auth-construct': patch
 '@aws-amplify/ai-constructs': patch
 '@aws-amplify/backend-auth': patch
