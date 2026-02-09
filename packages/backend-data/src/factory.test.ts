@@ -303,7 +303,7 @@ void describe('DataFactory', () => {
 
   void it('does not throw if no auth resources are registered and only lambda is provided', () => {
     const myEchoFn = new Function(stack, 'MyEchoFn', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),
@@ -425,7 +425,7 @@ void describe('DataFactory', () => {
   void it('accepts functions as inputs to the defineData call', () => {
     resetFactoryCount();
     const myEchoFn = new Function(stack, 'MyEchoFn', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),
