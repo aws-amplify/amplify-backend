@@ -376,9 +376,17 @@ const main = async (): Promise<void> => {
   const jobsByRun = new Map<number, Job[]>();
 
   let processedCount = 0;
+  let skippedCount = 0;
   for (const run of runs) {
-    const jobs = await fetchJobsForRun(octokit, owner, repo, run.id);
-    jobsByRun.set(run.id, jobs);
+    try {
+      const jobs = await fetchJobsForRun(octokit, owner, repo, run.id);
+      jobsByRun.set(run.id, jobs);
+    } catch (error) {
+      // Skip runs that fail to fetch (e.g., 502 errors)
+      skippedCount++;
+      // eslint-disable-next-line no-console
+      console.log(`\nSkipping run ${run.id} due to error (${skippedCount} skipped so far)`);
+    }
 
     processedCount++;
     if (processedCount % 50 === 0 || processedCount === runs.length) {
@@ -389,7 +397,7 @@ const main = async (): Promise<void> => {
     }
   }
   // eslint-disable-next-line no-console
-  console.log(`Fetched jobs for ${jobsByRun.size} runs`);
+  console.log(`Fetched jobs for ${jobsByRun.size} runs (${skippedCount} skipped)`);
 
   // 5. Analyze failures
   // eslint-disable-next-line no-console
