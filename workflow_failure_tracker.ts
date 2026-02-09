@@ -146,7 +146,8 @@ const fetchJobsForRun = async (
   const perPage = 100;
 
   // Fetch all pages of jobs
-  while (true) {
+  let shouldContinue = true;
+  while (shouldContinue) {
     const { data: jobsData } =
       await octokit.rest.actions.listJobsForWorkflowRun({
         owner,
@@ -168,10 +169,10 @@ const fetchJobsForRun = async (
 
     // Stop if we've fetched all jobs
     if (jobsData.jobs.length < perPage) {
-      break;
+      shouldContinue = false;
+    } else {
+      page++;
     }
-
-    page++;
   }
 
   return allJobs;
