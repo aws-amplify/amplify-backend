@@ -381,11 +381,13 @@ const main = async (): Promise<void> => {
     try {
       const jobs = await fetchJobsForRun(octokit, owner, repo, run.id);
       jobsByRun.set(run.id, jobs);
-    } catch (error) {
+    } catch {
       // Skip runs that fail to fetch (e.g., 502 errors)
       skippedCount++;
       // eslint-disable-next-line no-console
-      console.log(`\nSkipping run ${run.id} due to error (${skippedCount} skipped so far)`);
+      console.log(
+        `\nSkipping run ${run.id} due to error (${skippedCount} skipped so far)`,
+      );
     }
 
     processedCount++;
@@ -397,7 +399,9 @@ const main = async (): Promise<void> => {
     }
   }
   // eslint-disable-next-line no-console
-  console.log(`Fetched jobs for ${jobsByRun.size} runs (${skippedCount} skipped)`);
+  console.log(
+    `Fetched jobs for ${jobsByRun.size} runs (${skippedCount} skipped)`,
+  );
 
   // 5. Analyze failures
   // eslint-disable-next-line no-console
