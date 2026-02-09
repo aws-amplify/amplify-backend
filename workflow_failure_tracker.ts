@@ -220,12 +220,6 @@ const analyzeFailures = (
         // Extract job prefix (everything before the first space)
         // This groups matrix jobs together (e.g., "e2e_sandbox test1.js test2.js 22 windows" -> "e2e_sandbox")
         const jobPrefix = job.name.split(' ')[0];
-        
-        // Debug: log e2e_deployment failures
-        if (jobPrefix === 'e2e_deployment') {
-          logger(`Found e2e_deployment failure: ${job.name}`);
-        }
-        
         const currentCount = jobFailures.get(jobPrefix) ?? 0;
         jobFailures.set(jobPrefix, currentCount + 1);
       }
@@ -384,19 +378,6 @@ const main = async (): Promise<void> => {
   for (const run of runs) {
     const jobs = await fetchJobsForRun(octokit, owner, repo, run.id);
     jobsByRun.set(run.id, jobs);
-
-    // Debug: Check for e2e_deployment jobs in this run
-    const e2eDeploymentJobs = jobs.filter((j) =>
-      j.name.startsWith('e2e_deployment'),
-    );
-    if (e2eDeploymentJobs.length > 0) {
-      // eslint-disable-next-line no-console
-      console.log(`\nRun ${run.id} has ${e2eDeploymentJobs.length} e2e_deployment jobs:`);
-      for (const job of e2eDeploymentJobs) {
-        // eslint-disable-next-line no-console
-        console.log(`  - ${job.name}: ${job.conclusion}`);
-      }
-    }
 
     processedCount++;
     if (processedCount % 50 === 0 || processedCount === runs.length) {
