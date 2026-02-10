@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 2.2.0
+
+### Minor Changes
+
+- ae6a497: bump glob version
+
 ## 2.1.4
 
 ### Patch Changes
