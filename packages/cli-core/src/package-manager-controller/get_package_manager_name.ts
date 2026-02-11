@@ -34,6 +34,7 @@ const runnerMap: Record<string, string> = {
   'yarn-modern': 'yarn',
   'yarn-classic': 'yarn',
   pnpm: 'pnpm',
+  bun: 'bunx',
 };
 
 /**
