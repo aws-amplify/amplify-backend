@@ -216,10 +216,10 @@ const analyzeFailures = (
         (conclusionCounts.get(conclusion) ?? 0) + 1,
       );
 
-      // Only count 'failure' (not canceled)
+      // Count all 'failures'
       if (job.conclusion === 'failure') {
-        // Extract job prefix (everything before the first space)
-        // This groups matrix jobs together (e.g., "e2e_sandbox test1.js test2.js 22 windows" -> "e2e_sandbox")
+        // Extract job prefix 
+        // This groups matrix jobs together 
         const jobPrefix = job.name.split(' ')[0];
         const currentCount = jobFailures.get(jobPrefix) ?? 0;
         jobFailures.set(jobPrefix, currentCount + 1);
@@ -254,7 +254,6 @@ const generateMarkdownReport = (
 ): string => {
   const lines: string[] = [];
 
-  // Generate markdown header with title
   lines.push('# Workflow Failure Report');
   lines.push('');
 
@@ -291,7 +290,7 @@ const generateMarkdownReport = (
   }
   lines.push('');
 
-  // Create table of job-level failures sorted by count (descending)
+  // Create table of job-level failures sorted by count
   lines.push('## Job-Level Failures');
   lines.push('');
   if (stats.jobFailures.size > 0) {
