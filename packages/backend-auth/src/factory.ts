@@ -291,7 +291,7 @@ const validateRelyingPartyId = (relyingPartyId: string): string | undefined => {
   }
 
   if (relyingPartyId.includes('://')) {
-    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain without protocol (e.g., "example.com"), "localhost" for development, or "AUTO" for Amplify Hosting branch deployments (resolves to localhost otherwise).
+    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain without protocol (e.g., "example.com"), "localhost" for development, or "AUTO" for Amplify Hosting.
 
 Examples:
   - Valid: "example.com", "app.example.com", "localhost", "AUTO"
