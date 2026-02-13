@@ -1222,6 +1222,8 @@ export class AmplifyAuth
       CDKContextKey.DEPLOYMENT_TYPE,
     );
 
+    // For 'branch' deployments with Amplify Hosting, we can automatically derive
+    // the domain from the appId and branchName (e.g., main.d1a2b3c.amplifyapp.com)
     if (deploymentType === 'branch') {
       const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
       const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
@@ -1231,6 +1233,17 @@ export class AmplifyAuth
       }
     }
 
+    // For 'standalone' deployments, AUTO cannot resolve — there's no Amplify Hosting domain.
+    // Force the user to set an explicit relyingPartyId.
+    if (deploymentType === 'standalone') {
+      throw new Error(
+        'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +
+          'Set an explicit relyingPartyId matching your hosting domain. ' +
+          'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
+      );
+    }
+
+    // For 'sandbox' deployments, default to 'localhost'
     return 'localhost';
   };
 

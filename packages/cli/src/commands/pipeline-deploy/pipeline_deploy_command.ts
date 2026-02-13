@@ -11,17 +11,19 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { format } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
 
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
-  appId: string;
+  appId?: string;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
+  standalone?: boolean;
+  stackName?: string;
 };
 
 /**
@@ -60,19 +62,31 @@ export class PipelineDeployCommand
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
-      throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
-        message:
-          'It looks like this command is being run outside of a CI/CD workflow.',
-        resolution: `To deploy locally use ${format.normalizeAmpxCommand(
-          'sandbox',
-        )} instead.`,
-      });
+      if (!args.standalone) {
+        throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
+          message:
+            'It looks like this command is being run outside of a CI/CD workflow.',
+          resolution: `To deploy locally use ${format.normalizeAmpxCommand(
+            'sandbox',
+          )} instead.`,
+        });
+      } else {
+        printer.log(
+          'Warning: --standalone is intended for CI/CD environments.',
+          LogLevel.WARN,
+        );
+      }
     }
 
+    // For standalone, use stack-name as namespace (guaranteed by validation)
+    // For regular pipeline, use appId (guaranteed by validation)
+    const namespace = args.standalone ? args.stackName! : args.appId!;
+
     const backendId: BackendIdentifier = {
-      namespace: args.appId,
+      namespace: namespace,
       name: args.branch,
-      type: 'branch',
+      // Use 'standalone' type to avoid BranchLinker creation
+      type: args.standalone ? 'standalone' : 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
@@ -96,7 +110,20 @@ export class PipelineDeployCommand
       })
       .option('app-id', {
         describe: 'The app id of the target Amplify app',
-        demandOption: true,
+        demandOption: false,
+        type: 'string',
+        array: false,
+      })
+      .option('standalone', {
+        describe:
+          'Enable standalone mode for deployment without Amplify Hosting',
+        type: 'boolean',
+        array: false,
+        default: false,
+      })
+      .option('stack-name', {
+        describe:
+          'Custom stack name for the deployment (used with --standalone)',
         type: 'string',
         array: false,
       })
@@ -121,12 +148,34 @@ export class PipelineDeployCommand
         choices: Object.values(ClientConfigFormat),
       })
       .check(async (argv) => {
-        if (argv['branch'].length === 0 || argv['app-id'].length === 0) {
+        const errors: string[] = [];
+
+        // Check if branch is provided
+        if (!argv['branch']) {
+          errors.push('--branch is required');
+        } else if (argv['branch'].length === 0) {
+          errors.push('--branch must be at least 1 character');
+        }
+
+        // If standalone is enabled, stack-name is required
+        if (argv['standalone'] && !argv['stack-name']) {
+          errors.push('--stack-name is required when --standalone is enabled');
+        }
+
+        // If standalone is not enabled, app-id is required
+        if (!argv['standalone'] && !argv['app-id']) {
+          errors.push('--app-id is required (unless --standalone is enabled)');
+        } else if (argv['app-id'] && argv['app-id'].length === 0) {
+          errors.push('--app-id must be at least 1 character');
+        }
+
+        if (errors.length > 0) {
           throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --branch or --app-id',
-            resolution: '--branch and --app-id must be at least 1 character',
+            message: errors.join('\n'),
+            resolution: 'Provide all required arguments',
           });
         }
+
         return true;
       });
   };

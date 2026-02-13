@@ -25,6 +25,10 @@ const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
       app.node.setContext('amplify-backend-name', 'testEnvName');
       app.node.setContext('amplify-backend-namespace', 'testBackendId');
       break;
+    case 'standalone':
+      app.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      app.node.setContext('amplify-backend-name', 'main');
+      break;
   }
 
   const stack = new Stack(app);
@@ -173,6 +177,49 @@ void describe('Backend', () => {
     new BackendFactory({}, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('does not register branch linker for standalone deployments', () => {
+    const rootStack = createStackAndSetContext('standalone');
+    new BackendFactory({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('initializes constructs correctly in standalone mode', () => {
+    const standaloneStack = createStackAndSetContext('standalone');
+    const testConstructFactory: ConstructFactory<TestResourceProvider> = {
+      getInstance: ({ constructContainer }) => {
+        return constructContainer.getOrCompute({
+          resourceGroupName: 'test',
+          generateContainerEntry: ({ scope }) => {
+            return {
+              resources: {
+                bucket: new Bucket(scope, 'test-bucket'),
+              },
+            };
+          },
+        }) as TestResourceProvider;
+      },
+    };
+
+    const backend = new BackendFactory(
+      { testConstructFactory },
+      standaloneStack,
+    );
+
+    const bucketStack = Stack.of(standaloneStack.node.findChild('test'));
+    const rootStackTemplate = Template.fromStack(standaloneStack);
+    rootStackTemplate.resourceCountIs('AWS::CloudFormation::Stack', 1);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+
+    const bucketStackTemplate = Template.fromStack(bucketStack);
+    bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
+
+    assert.equal(
+      backend.resources.testConstructFactory.resources.bucket.node.id,
+      'test-bucket',
+    );
   });
 
   void describe('createStack', () => {

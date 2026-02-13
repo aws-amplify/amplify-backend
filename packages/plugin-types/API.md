@@ -97,6 +97,11 @@ export type BackendIdentifier = {
     name: Readonly<SandboxName>;
     type: Readonly<Extract<DeploymentType, 'sandbox'>>;
     hash?: Readonly<string>;
+} | {
+    namespace: Readonly<ProjectName>;
+    name: Readonly<BranchName>;
+    type: Readonly<Extract<DeploymentType, 'standalone'>>;
+    hash?: Readonly<string>;
 };
 
 // @public (undocumented)
@@ -178,7 +183,7 @@ export type Dependency = {
 };
 
 // @public
-export type DeploymentType = 'branch' | 'sandbox';
+export type DeploymentType = 'branch' | 'sandbox' | 'standalone';
 
 // @public (undocumented)
 export type ExecaChildProcess = {
