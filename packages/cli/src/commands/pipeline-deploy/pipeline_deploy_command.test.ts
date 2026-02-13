@@ -286,7 +286,7 @@ void describe('deploy command', () => {
     );
   });
 
-  void it('throws when --app-id is missing without --custom-pipeline', async () => {
+  void it('throws when --app-id is missing without --standalone', async () => {
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
@@ -300,7 +300,24 @@ void describe('deploy command', () => {
     );
   });
 
-  void it('succeeds when --app-id is missing but --custom-pipeline is provided', async () => {
+  void it('throws when --standalone is provided without --stack-name', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --branch testBranch --standalone',
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.match(
+          error.error.message,
+          /--stack-name is required when --standalone is enabled/,
+        );
+        return true;
+      },
+    );
+  });
+
+  void it('succeeds when --app-id is missing but --standalone is provided', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
@@ -313,14 +330,14 @@ void describe('deploy command', () => {
       () => Promise.resolve(),
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --branch testBranch --custom-pipeline --stack-name mystack',
+      'pipeline-deploy --branch testBranch --standalone --stack-name my-stack',
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
       {
         name: 'testBranch',
-        namespace: 'mystack',
-        type: 'custompipeline',
+        namespace: 'my-stack',
+        type: 'standalone',
       },
       {
         validateAppSources: true,
