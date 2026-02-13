@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack, aws_cognito } from 'aws-cdk-lib';
-import { Annotations, Match, Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -3312,55 +3312,47 @@ void describe('Auth construct', () => {
       });
     });
 
-    void it('resolves AUTO to localhost in standalone mode and emits warning', () => {
+    void it('throws when AUTO relyingPartyId is used in standalone mode', () => {
       const app = new App();
       const stack = new Stack(app);
       stack.node.setContext('amplify-backend-type', 'standalone');
       stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
       stack.node.setContext('amplify-backend-name', 'main');
-      new AmplifyAuth(stack, 'test', {
-        loginWith: {
-          email: true,
-          webAuthn: true,
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              webAuthn: true,
+            },
+          }),
+        {
+          message:
+            /WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments/,
         },
-      });
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        WebAuthnRelyingPartyID: 'localhost',
-      });
-      Annotations.fromStack(stack).hasWarning(
-        '/Default/test',
-        Match.stringLikeRegexp('standalone'),
       );
     });
 
-    void it('does not emit warning for standalone with explicit relyingPartyId', () => {
+    void it('does not throw for standalone with explicit relyingPartyId', () => {
       const app = new App();
       const stack = new Stack(app);
       stack.node.setContext('amplify-backend-type', 'standalone');
       stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
       stack.node.setContext('amplify-backend-name', 'main');
-      new AmplifyAuth(stack, 'test', {
-        loginWith: {
-          email: true,
-          webAuthn: {
-            relyingPartyId: 'app.example.com',
+      assert.doesNotThrow(() => {
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+            webAuthn: {
+              relyingPartyId: 'app.example.com',
+            },
           },
-        },
+        });
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         WebAuthnRelyingPartyID: 'app.example.com',
       });
-      const warnings = Annotations.fromStack(stack).findWarning(
-        '*',
-        Match.stringLikeRegexp('standalone'),
-      );
-      assert.strictEqual(
-        warnings.length,
-        0,
-        'explicit relyingPartyId should not emit standalone warning',
-      );
     });
 
     void it('does not configure passwordless when not enabled', () => {

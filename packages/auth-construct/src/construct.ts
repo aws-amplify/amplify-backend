@@ -1,6 +1,5 @@
 import { Construct } from 'constructs';
 import {
-  Annotations,
   Lazy,
   RemovalPolicy,
   Stack,
@@ -1234,16 +1233,17 @@ export class AmplifyAuth
       }
     }
 
-    // For 'sandbox' and 'standalone' deployments, we default to 'localhost'
-    // because there's no Amplify Hosting domain available.
+    // For 'standalone' deployments, AUTO cannot resolve — there's no Amplify Hosting domain.
+    // Force the user to set an explicit relyingPartyId.
     if (deploymentType === 'standalone') {
-      Annotations.of(this).addWarning(
-        'WebAuthn relyingPartyId is set to AUTO which defaults to "localhost" for standalone deployments. ' +
-          'This will NOT work in production. Set an explicit relyingPartyId matching your hosting domain. ' +
+      throw new Error(
+        'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +
+          'Set an explicit relyingPartyId matching your hosting domain. ' +
           'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
       );
     }
 
+    // For 'sandbox' deployments, default to 'localhost'
     return 'localhost';
   };
 
