@@ -44,6 +44,27 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
   }
 };
 
+/**
+ * Synthesizes deterministic `defineBackend` CDK templates using standalone deployment context.
+ *
+ * Uses DEPLOYMENT_TYPE: 'standalone' to simulate custom pipeline / standalone deployments.
+ */
+export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
+  <T extends Record<string, ConstructFactory<ResourceProvider>>>(
+    constructFactories: T,
+  ) => {
+    try {
+      process.env.CDK_CONTEXT_JSON = JSON.stringify({
+        [CDKContextKey.BACKEND_NAMESPACE]: 'testStandaloneStack',
+        [CDKContextKey.BACKEND_NAME]: 'main',
+        [CDKContextKey.DEPLOYMENT_TYPE]: 'standalone',
+      });
+      return backendTemplatesCollector(constructFactories);
+    } finally {
+      delete process.env.CDK_CONTEXT_JSON;
+    }
+  };
+
 const backendTemplatesCollector: SynthesizeBackendTemplates = <
   T extends Record<string, ConstructFactory<ResourceProvider>>,
 >(
