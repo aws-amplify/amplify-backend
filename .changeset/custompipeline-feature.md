@@ -9,6 +9,6 @@
 '@aws-amplify/auth-construct': patch
 ---
 
-Add custompipeline deployment type for custom CI/CD without Amplify Hosting
+Add standalone deployment type for deploying without Amplify Hosting
 
 This change enables deploying Amplify Gen2 backends in custom CI/CD pipelines (CodePipeline, Jenkins, etc.) without requiring Amplify Hosting.

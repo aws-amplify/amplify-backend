@@ -415,11 +415,11 @@ export class CfnDeploymentProgressLogger {
     if (
       parts &&
       parts.length === 7 &&
-      (parts[3] === 'sandbox' || parts[3] === 'custompipeline')
+      (parts[3] === 'sandbox' || parts[3] === 'standalone')
     ) {
       return this.rootStackDisplay + '/' + parts[5].slice(0, -8) + ' stack';
     } else if (parts && parts.length === 5) {
-      if (parts[3] === 'sandbox' || parts[3] === 'custompipeline') {
+      if (parts[3] === 'sandbox' || parts[3] === 'standalone') {
         return this.rootStackDisplay;
       }
     }

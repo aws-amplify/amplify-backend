@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import {
+  Annotations,
   Lazy,
   RemovalPolicy,
   Stack,
@@ -1223,7 +1224,7 @@ export class AmplifyAuth
     );
 
     // For 'branch' deployments with Amplify Hosting, we can automatically derive
-    // the domain from the appId and branchName (e.g., main.d123abc.amplifyapp.com)
+    // the domain from the appId and branchName (e.g., main.d1a2b3c.amplifyapp.com)
     if (deploymentType === 'branch') {
       const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
       const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
@@ -1233,23 +1234,16 @@ export class AmplifyAuth
       }
     }
 
-    // For 'sandbox' and 'custompipeline' deployments, we default to 'localhost'
+    // For 'sandbox' and 'standalone' deployments, we default to 'localhost'
     // because there's no Amplify Hosting domain available.
-    //
-    // IMPORTANT: For production 'custompipeline' deployments using WebAuthn/passkeys,
-    // you MUST explicitly provide the relyingPartyId in your auth configuration
-    // instead of using 'AUTO'. The relyingPartyId should match your actual domain
-    // where the application is hosted (e.g., 'example.com' or 'app.example.com').
-    //
-    // Example:
-    //   defineAuth({
-    //     loginWith: {
-    //       webAuthn: {
-    //         relyingPartyId: 'app.example.com', // Your actual domain
-    //         userVerification: 'preferred'
-    //       }
-    //     }
-    //   })
+    if (deploymentType === 'standalone') {
+      Annotations.of(this).addWarning(
+        'WebAuthn relyingPartyId is set to AUTO which defaults to "localhost" for standalone deployments. ' +
+          'This will NOT work in production. Set an explicit relyingPartyId matching your hosting domain. ' +
+          'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
+      );
+    }
+
     return 'localhost';
   };
 

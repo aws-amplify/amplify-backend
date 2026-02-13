@@ -27,7 +27,7 @@ export class AttributionMetadataStorage {
 }
 
 // @public (undocumented)
-export type DeploymentEngineType = 'AmplifyPipelineDeploy' | 'AmplifySandbox' | 'AmplifyCustomPipeline' | 'AmplifyCDK';
+export type DeploymentEngineType = 'AmplifyPipelineDeploy' | 'AmplifySandbox' | 'AmplifyStandalone' | 'AmplifyCDK';
 
 // @public (undocumented)
 export type Platform = 'Mac' | 'Windows' | 'Linux' | 'Other';

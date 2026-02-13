@@ -100,7 +100,7 @@ export type BackendIdentifier = {
 } | {
     namespace: Readonly<ProjectName>;
     name: Readonly<BranchName>;
-    type: Readonly<Extract<DeploymentType, 'custompipeline'>>;
+    type: Readonly<Extract<DeploymentType, 'standalone'>>;
     hash?: Readonly<string>;
 };
 
@@ -183,7 +183,7 @@ export type Dependency = {
 };
 
 // @public
-export type DeploymentType = 'branch' | 'sandbox' | 'custompipeline';
+export type DeploymentType = 'branch' | 'sandbox' | 'standalone';
 
 // @public (undocumented)
 export type ExecaChildProcess = {

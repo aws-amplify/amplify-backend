@@ -89,6 +89,54 @@ void describe('createDefaultRootStack', () => {
     });
   });
 
+  void it('adds tags to the stack resources in case of standalone deployment', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-namespace', 'myCustomStack');
+    app.node.setContext('amplify-backend-name', 'main');
+    app.node.setContext('amplify-backend-type', 'standalone');
+    const stack = createDefaultStack(app);
+    new aws_s3.Bucket(stack, 'test');
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      Tags: [
+        {
+          Key: 'amplify:branch-name',
+          Value: 'main',
+        },
+        {
+          Key: 'amplify:deployment-type',
+          Value: 'standalone',
+        },
+        {
+          Key: 'created-by',
+          Value: 'amplify',
+        },
+      ],
+    });
+  });
+
+  void it('does not add amplify:app-id tag for standalone deployment', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-namespace', 'myCustomStack');
+    app.node.setContext('amplify-backend-name', 'main');
+    app.node.setContext('amplify-backend-type', 'standalone');
+    const stack = createDefaultStack(app);
+    new aws_s3.Bucket(stack, 'test');
+    const template = Template.fromStack(stack);
+    const resources = template.findResources('AWS::S3::Bucket');
+    const bucketKey = Object.keys(resources)[0];
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const tags: Array<{ Key: string; Value: string }> =
+      resources[bucketKey].Properties.Tags;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const appIdTag = tags.find((t) => t.Key === 'amplify:app-id');
+    assert.strictEqual(
+      appIdTag,
+      undefined,
+      'amplify:app-id tag should not be present for standalone',
+    );
+  });
+
   void it('adds tags to the stack resources in case of sandbox deployment', () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testProjectName');

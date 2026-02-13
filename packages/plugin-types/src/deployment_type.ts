@@ -3,6 +3,6 @@
  *
  * Branch deployments are tied to specific git branches and are designed to be used in CI/CD
  * Sandbox deployments are local development environments
- * Custom pipeline deployments are CI/CD deployments without Amplify Hosting
+ * Standalone deployments are deployments without Amplify Hosting
  */
-export type DeploymentType = 'branch' | 'sandbox' | 'custompipeline';
+export type DeploymentType = 'branch' | 'sandbox' | 'standalone';

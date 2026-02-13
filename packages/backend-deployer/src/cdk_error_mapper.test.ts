@@ -515,3 +515,68 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
     },
   );
 });
+
+void describe('Node version error per deployment type', () => {
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
+  const nodeVersionError = new Error('does not support module.register()');
+
+  void it('returns standalone-specific message without Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(
+      nodeVersionError,
+      'standalone',
+    );
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.equal(
+      error.message,
+      'Unable to deploy due to unsupported node version',
+    );
+    assert.equal(
+      error.resolution,
+      'Upgrade the node version in your CI/CD environment to `^18.19.0`, `^20.6.0`, or `>=22`.',
+    );
+    // Must NOT reference Amplify Hosting or amplify.yml
+    assert.ok(
+      !error.resolution?.includes('Amplify Hosting'),
+      'standalone resolution must not mention Amplify Hosting',
+    );
+    assert.ok(
+      !error.resolution?.includes('amplify.yml'),
+      'standalone resolution must not mention amplify.yml',
+    );
+  });
+
+  void it('returns branch-specific message with Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(nodeVersionError, 'branch');
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.equal(
+      error.message,
+      'Unable to deploy due to unsupported node version',
+    );
+    assert.ok(
+      error.resolution?.includes('Amplify Hosting'),
+      'branch resolution must mention Amplify Hosting',
+    );
+    assert.ok(
+      error.resolution?.includes('amplify.yml'),
+      'branch resolution must mention amplify.yml',
+    );
+  });
+
+  void it('returns generic message when deployment type is undefined', () => {
+    const error = cdkErrorMapper.getAmplifyError(nodeVersionError);
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.equal(
+      error.resolution,
+      'Upgrade to node `^18.19.0`, `^20.6.0,` or `>=22`',
+    );
+  });
+
+  void it('returns generic message for sandbox deployment type', () => {
+    const error = cdkErrorMapper.getAmplifyError(nodeVersionError, 'sandbox');
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.equal(
+      error.resolution,
+      'Upgrade to node `^18.19.0`, `^20.6.0,` or `>=22`',
+    );
+  });
+});

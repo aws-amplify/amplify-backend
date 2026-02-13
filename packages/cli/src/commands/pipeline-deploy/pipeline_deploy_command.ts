@@ -11,7 +11,7 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { format } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -22,7 +22,7 @@ type PipelineDeployCommandOptionsCamelCase = {
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
-  customPipeline?: boolean;
+  standalone?: boolean;
   stackName?: string;
 };
 
@@ -61,27 +61,32 @@ export class PipelineDeployCommand
   handler = async (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
-    if (!this.isCiEnvironment && !args.customPipeline) {
-      throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
-        message:
-          'It looks like this command is being run outside of a CI/CD workflow.',
-        resolution: `To deploy locally use ${format.normalizeAmpxCommand(
-          'sandbox',
-        )} instead.`,
-      });
+    if (!this.isCiEnvironment) {
+      if (!args.standalone) {
+        throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
+          message:
+            'It looks like this command is being run outside of a CI/CD workflow.',
+          resolution: `To deploy locally use ${format.normalizeAmpxCommand(
+            'sandbox',
+          )} instead.`,
+        });
+      } else {
+        printer.log(
+          'Warning: --standalone is intended for CI/CD environments.',
+          LogLevel.WARN,
+        );
+      }
     }
 
-    // For custom pipeline, use stack-name as namespace if provided, otherwise use a default
-    // For regular pipeline, use appId
-    const namespace = args.customPipeline
-      ? args.stackName || 'amplify-custom-pipeline'
-      : args.appId!; // appId is guaranteed to exist when customPipeline is false due to validation
+    // For standalone, use stack-name as namespace (guaranteed by validation)
+    // For regular pipeline, use appId (guaranteed by validation)
+    const namespace = args.standalone ? args.stackName! : args.appId!;
 
     const backendId: BackendIdentifier = {
       namespace: namespace,
       name: args.branch,
-      // Use 'custompipeline' type for custom pipeline to avoid BranchLinker creation
-      type: args.customPipeline ? 'custompipeline' : 'branch',
+      // Use 'standalone' type to avoid BranchLinker creation
+      type: args.standalone ? 'standalone' : 'branch',
     };
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
@@ -109,16 +114,16 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
       })
-      .option('custom-pipeline', {
+      .option('standalone', {
         describe:
-          'Enable custom pipeline mode for deployment without Amplify Hosting',
+          'Enable standalone mode for deployment without Amplify Hosting',
         type: 'boolean',
         array: false,
         default: false,
       })
       .option('stack-name', {
         describe:
-          'Custom stack name for the deployment (used with --custom-pipeline)',
+          'Custom stack name for the deployment (used with --standalone)',
         type: 'string',
         array: false,
       })
@@ -152,11 +157,14 @@ export class PipelineDeployCommand
           errors.push('--branch must be at least 1 character');
         }
 
-        // If custom-pipeline is not enabled, app-id is required
-        if (!argv['custom-pipeline'] && !argv['app-id']) {
-          errors.push(
-            '--app-id is required (unless --custom-pipeline is enabled)',
-          );
+        // If standalone is enabled, stack-name is required
+        if (argv['standalone'] && !argv['stack-name']) {
+          errors.push('--stack-name is required when --standalone is enabled');
+        }
+
+        // If standalone is not enabled, app-id is required
+        if (!argv['standalone'] && !argv['app-id']) {
+          errors.push('--app-id is required (unless --standalone is enabled)');
         } else if (argv['app-id'] && argv['app-id'].length === 0) {
           errors.push('--app-id must be at least 1 character');
         }
