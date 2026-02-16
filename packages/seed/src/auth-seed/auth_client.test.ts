@@ -220,6 +220,43 @@ void describe('seeding auth APIs', () => {
       } as AuthOutputs);
     });
 
+    void it('passes user attributes to AdminCreateUserCommand when provided', async () => {
+      await authClient.createAndSignUpUser({
+        username: testUsername,
+        password: testPassword,
+        signInAfterCreation: true,
+        signInFlow: 'Password',
+        userAttributes: {
+          givenName: 'Test',
+          familyName: 'User',
+        },
+      });
+
+      assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
+      const command = mockCognitoIdProviderClient.send.mock.calls[0]
+        .arguments[0] as AdminCreateUserCommand;
+      const userAttributes = command.input.UserAttributes;
+      assert.deepStrictEqual(userAttributes, [
+        { Name: 'family_name', Value: 'User' },
+        { Name: 'given_name', Value: 'Test' },
+      ]);
+    });
+
+    void it('sends empty UserAttributes when no user attributes are provided', async () => {
+      await authClient.createAndSignUpUser({
+        username: testUsername,
+        password: testPassword,
+        signInAfterCreation: true,
+        signInFlow: 'Password',
+      });
+
+      assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
+      const command = mockCognitoIdProviderClient.send.mock.calls[0]
+        .arguments[0] as AdminCreateUserCommand;
+      const userAttributes = command.input.UserAttributes;
+      assert.deepStrictEqual(userAttributes, []);
+    });
+
     void it('throws error if attempting to create user that already exists', async () => {
       const expectedErr = new AmplifyUserError('UsernameExistsError', {
         message: `A user called ${testUsername} already exists.`,
