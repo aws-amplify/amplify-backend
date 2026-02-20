@@ -56,7 +56,7 @@ const authenticateGitHub = (): Octokit => {
  */
 const calculateStartDate = (currentDate: Date = new Date()): Date => {
   const startDate = new Date(currentDate);
-  startDate.setMonth(startDate.getMonth() - 6);
+  startDate.setMonth(startDate.getMonth() - 1);
   return startDate;
 };
 
