@@ -77,11 +77,11 @@ const fetchWorkflowRuns = async (
     );
   }
 
-  // Use octokit.paginate to handle pagination automatically.
+  // Use octokit.paginate with route string for full type inference.
   // The mapFn filters runs within our time period and signals
   // early termination via done() when we hit older runs.
   return octokit.paginate(
-    octokit.rest.actions.listWorkflowRuns,
+    'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
     {
       owner,
       repo,
@@ -112,7 +112,7 @@ const fetchJobsForRun = async (
   runId: number,
 ): Promise<Job[]> => {
   return octokit.paginate(
-    octokit.rest.actions.listJobsForWorkflowRun,
+    'GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs',
     {
       owner,
       repo,
