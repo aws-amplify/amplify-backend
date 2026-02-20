@@ -286,7 +286,11 @@ const main = async (): Promise<void> => {
   const workflowName = 'health_checks';
   // Write report to repo root regardless of where the script is run from
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  const outputFilename = path.resolve(currentDir, '..', 'workflow-failure-report.md');
+  const outputFilename = path.resolve(
+    currentDir,
+    '..',
+    'workflow-failure-report.md',
+  );
 
   // eslint-disable-next-line no-console
   console.log('Starting workflow failure analysis...');
