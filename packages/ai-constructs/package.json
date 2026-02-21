@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/ai-constructs",
-  "version": "1.5.6",
+  "version": "1.6.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"

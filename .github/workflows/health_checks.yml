@@ -1,22 +1,18 @@
 name: health_checks
 
 on:
-  push:
-    branches:
-      - main
-      - hotfix
   pull_request:
     branches:
       - main
       - hotfix
       - feature/**
   schedule:
-    # Every day at minute 0 past hour 0, 6, 12, and 18 UTC.
-    # This is to make sure that there is at least one workflow run every 24 hours
+    # Run every two hours. A single run takes about 40min so we should
+    # get about 10 runs per day. If at least one of them succeeds, we are happy.
     # taking into account that
     # 1) scheduled runs may not fire at exact prescribed time;
     # 2) transient failures may happen and auto recover;
-    - cron: '0 0,6,12,18 * * *'
+    - cron: '0 */2 * * *'
   workflow_dispatch:
     inputs:
       desired-cdk-lib-version:

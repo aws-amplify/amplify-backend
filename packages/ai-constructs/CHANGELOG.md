@@ -1,5 +1,17 @@
 # @aws-amplify/ai-constructs
 
+## 1.6.1
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.6.0
+
+### Minor Changes
+
+- b3f0e35: feat: add support for the global Bedrock inference profiles
+
 ## 1.5.6
 
 ### Patch Changes
