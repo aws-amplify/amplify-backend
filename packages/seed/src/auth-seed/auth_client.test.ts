@@ -433,9 +433,15 @@ void describe('seeding auth APIs', () => {
           phoneNumber: testNumber,
         },
       });
+      const command = mockCognitoIdProviderClient.send.mock.calls[0]
+        .arguments[0] as AdminCreateUserCommand;
+      const userAttributes = command.input.UserAttributes;
 
       assert.strictEqual(mockMfaFlow.mfaSignUp.mock.callCount(), 1);
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
+      assert.deepStrictEqual(userAttributes, [
+        { Name: 'phoneNumber', Value: testNumber },
+      ]);
       assert.deepStrictEqual(output, {
         signInFlow: 'MFA',
         username: testUsername,
