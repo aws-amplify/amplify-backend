@@ -440,7 +440,7 @@ void describe('seeding auth APIs', () => {
       assert.strictEqual(mockMfaFlow.mfaSignUp.mock.callCount(), 1);
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
       assert.deepStrictEqual(userAttributes, [
-        { Name: 'phoneNumber', Value: testNumber },
+        { Name: 'phone_number', Value: testNumber },
       ]);
       assert.deepStrictEqual(output, {
         signInFlow: 'MFA',
