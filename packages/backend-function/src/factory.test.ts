@@ -1202,7 +1202,7 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('provided function defaults to oldest runtime', () => {
+    void it('provided function defaults to oldest runtime from CDK', () => {
       const lambda = defineFunction((scope) => {
         return new NodejsFunction(scope, 'nodejs-provided', {
           entry:
@@ -1212,7 +1212,7 @@ void describe('AmplifyFunctionFactory', () => {
       const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_18_X.name,
+        Runtime: Runtime.NODEJS_16_X.name,
       });
     });
   });
