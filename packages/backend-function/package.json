@@ -39,7 +39,6 @@
     "@aws-amplify/platform-core": "^1.10.4",
     "@aws-sdk/client-s3": "^3.936.0",
     "@aws-sdk/client-ssm": "^3.936.0",
-    "aws-sdk": "^2.1550.0",
     "uuid": "^11.1.0"
   },
   "peerDependencies": {
