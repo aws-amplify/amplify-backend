@@ -443,8 +443,7 @@ void describe('AmplifyFunctionFactory', () => {
           }).getInstance(getInstanceProps),
         new AmplifyUserError('InvalidRuntimeError', {
           message: `Invalid function runtime of 14`,
-          resolution:
-            'runtime must be one of the following: 16, 18, 20, 22, 24',
+          resolution: 'runtime must be one of the following: 18, 20, 22, 24',
         }),
       );
     });
@@ -1203,7 +1202,7 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('provided function defaults to oldest runtime', () => {
+    void it('provided function defaults to oldest runtime from CDK', () => {
       const lambda = defineFunction((scope) => {
         return new NodejsFunction(scope, 'nodejs-provided', {
           entry:
