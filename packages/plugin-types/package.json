@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "1.11.2",
+  "version": "1.11.3",
   "types": "lib/index.d.ts",
   "type": "commonjs",
   "publishConfig": {
