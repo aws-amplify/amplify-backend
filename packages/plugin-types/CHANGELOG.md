@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.11.3
+
+### Patch Changes
+
+- 0ee9189: Bump @aws-cdk/toolkit-lib from 1.6.1 to 1.16.0 to support latest cloud assembly schema versions.
+
 ## 1.11.2
 
 ### Patch Changes

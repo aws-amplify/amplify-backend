@@ -1,5 +1,15 @@
 # @aws-amplify/seed
 
+## 1.1.2
+
+### Patch Changes
+
+- 5c5c06e: fix(seed): pass user attributes during user creation instead of confirmSignIn
+- Updated dependencies [0ee9189]
+- Updated dependencies [3c46984]
+  - @aws-amplify/plugin-types@1.11.3
+  - @aws-amplify/client-config@1.10.1
+
 ## 1.1.1
 
 ### Patch Changes
