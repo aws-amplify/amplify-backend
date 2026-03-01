@@ -85,7 +85,7 @@ void describe('deploy command', () => {
 
   void it('fails if required arguments are not supplied', async () => {
     const output = await getCommandRunner().runCommand('pipeline-deploy');
-    assert.match(output, /Missing required arguments/);
+    assert.match(output, /Missing required argument: branch/);
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
@@ -264,23 +264,85 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
+        assert.match(error.error.message, /--branch is required/);
         return true;
       },
     );
   });
 
   void it('throws when --app-id argument has no input', async () => {
+    // When you write "--app-id --branch testBranch", yargs interprets "--branch" as the value for --app-id
+    // So we need to test with --app-id at the end to truly have no value
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
-          'pipeline-deploy --app-id --branch testBranch',
+          'pipeline-deploy --branch testBranch --app-id',
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
+        assert.match(error.error.message, /--app-id is required/);
         return true;
       },
     );
+  });
+
+  void it('throws when --app-id is missing without --standalone', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --branch testBranch',
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.match(error.error.message, /--app-id is required/);
+        return true;
+      },
+    );
+  });
+
+  void it('throws when --standalone is provided without --stack-name', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --branch testBranch --standalone',
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.match(
+          error.error.message,
+          /--stack-name is required when --standalone is enabled/,
+        );
+        return true;
+      },
+    );
+  });
+
+  void it('succeeds when --app-id is missing but --standalone is provided', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub,
+      mockIoHost,
+      mockProfileResolver,
+    );
+    const mockDeploy = mock.method(
+      backendDeployerFactory.getInstance(),
+      'deploy',
+      () => Promise.resolve(),
+    );
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --branch testBranch --standalone --stack-name my-stack',
+    );
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {
+        name: 'testBranch',
+        namespace: 'my-stack',
+        type: 'standalone',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 });

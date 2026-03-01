@@ -29,14 +29,14 @@ export class BackendIdentifierConversions {
     if (prefix !== AMPLIFY_PREFIX) {
       return;
     }
-    if (type !== 'sandbox' && type !== 'branch') {
+    if (type !== 'sandbox' && type !== 'branch' && type !== 'standalone') {
       return;
     }
 
     return {
       namespace,
       name: instance,
-      type: type as 'sandbox' | 'branch',
+      type: type as 'sandbox' | 'branch' | 'standalone',
       hash,
     };
   }
