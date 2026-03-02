@@ -146,6 +146,10 @@ export type DataProps = {
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 
   /**
+   * stackMapping override the assigned nested stack on a per-resource basis. Only applies to resolvers, and takes the form
+   * { <logicalId>: <stackName> }
+   */
+  stackMapping?: Record<string, string>;
    * Logging configuration for the API.
    */
   logging?: DataLoggingOptions;
