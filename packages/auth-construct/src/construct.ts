@@ -44,6 +44,7 @@ import {
   AttributeMapping,
   AuthProps,
   CustomAttribute,
+  CustomDomainOptions,
   CustomSmsSender,
   EmailLoginSettings,
   ExternalProviderOptions,
@@ -57,6 +58,12 @@ import {
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
 import { CDKContextKey } from '@aws-amplify/platform-core';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import {
+  Certificate,
+  CertificateValidation,
+} from 'aws-cdk-lib/aws-certificatemanager';
+import { UserPoolDomainTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -883,6 +890,38 @@ export class AmplifyAuth
     return undefined;
   };
 
+  private setupCustomDomain = (
+    userPool: UserPool,
+    customDomainOptions: CustomDomainOptions,
+  ) => {
+    const hostedZone = HostedZone.fromHostedZoneAttributes(
+      this,
+      `${this.name}HostedZone`,
+      customDomainOptions.hostedZone,
+    );
+
+    const certificate = new Certificate(this, `${this.name}Certificate`, {
+      domainName: customDomainOptions.domainName,
+      validation: CertificateValidation.fromDns(hostedZone),
+    });
+
+    const customDomain = userPool.addDomain(
+      `${this.name}UserPoolCustomDomain`,
+      {
+        customDomain: {
+          domainName: customDomainOptions.domainName,
+          certificate,
+        },
+      },
+    );
+
+    new ARecord(this, `${this.name}ARecord`, {
+      zone: hostedZone,
+      recordName: customDomainOptions.domainName,
+      target: RecordTarget.fromAlias(new UserPoolDomainTarget(customDomain)),
+    });
+  };
+
   /**
    * Setup External Providers (OAuth/OIDC/SAML) and related settings
    * such as OAuth settings and User Pool Domains
@@ -1084,6 +1123,11 @@ export class AmplifyAuth
       );
     }
 
+    // Generate a custom domain if custom domain options are specified
+    if (external.customDomainOptions) {
+      this.setupCustomDomain(this.userPool, external.customDomainOptions);
+    }
+
     // oauth settings for the UserPool client
     result.oAuthSettings = {
       callbackUrls: external.callbackUrls,
@@ -1150,6 +1194,35 @@ export class AmplifyAuth
       result.push(cognito.OAuthScope[scope]);
     }
     return result;
+  };
+
+  private getDomainName = (): string => {
+    const userPoolDomain = this.resources.userPool.node.tryFindChild(
+      `${this.name}UserPoolDomain`,
+    );
+    if (!userPoolDomain) {
+      return '';
+    }
+    if (!(userPoolDomain instanceof UserPoolDomain)) {
+      throw Error('Could not find UserPoolDomain resource in the stack.');
+    }
+    return `${userPoolDomain.domainName}.auth.${
+      Stack.of(this).region
+    }.amazoncognito.com`;
+  };
+
+  private getCustomDomainName = (): string => {
+    const userPoolCustomDomain = this.resources.userPool.node.tryFindChild(
+      `${this.name}UserPoolCustomDomain`,
+    );
+
+    if (!userPoolCustomDomain) {
+      return '';
+    }
+    if (!(userPoolCustomDomain instanceof UserPoolDomain)) {
+      throw Error('Could not find UserPoolCustomDomain resource in the stack.');
+    }
+    return userPoolCustomDomain.domainName;
   };
 
   /**
@@ -1511,18 +1584,13 @@ export class AmplifyAuth
 
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain = this.resources.userPool.node.tryFindChild(
-          `${this.name}UserPoolDomain`,
-        );
-        if (!userPoolDomain) {
-          return '';
+        const customDomainName = this.getCustomDomainName();
+
+        if (customDomainName === '') {
+          return this.getDomainName();
         }
-        if (!(userPoolDomain instanceof UserPoolDomain)) {
-          throw Error('Could not find UserPoolDomain resource in the stack.');
-        }
-        return `${userPoolDomain.domainName}.auth.${
-          Stack.of(this).region
-        }.amazoncognito.com`;
+
+        return customDomainName;
       },
     });
 
