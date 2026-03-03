@@ -19,7 +19,6 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { MetadataBearer } from '@aws-sdk/types';
-import { NestedStackProps } from 'aws-cdk-lib';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Readable } from 'node:stream';
 import { SecretValue } from 'aws-cdk-lib';
@@ -145,7 +144,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
-    nestedStackProps?: NestedStackProps;
+    suppressTemplateIndentation?: boolean;
     generateContainerEntry: (props: GenerateContainerEntryProps) => ResourceProvider<T>;
 };
 
