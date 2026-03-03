@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.17.0
+
+### Minor Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
 ## 1.16.0
 
 ### Minor Changes

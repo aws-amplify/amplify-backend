@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 1.9.2
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+- Updated dependencies [4c5dd61]
+  - @aws-amplify/auth-construct@1.11.1
+
 ## 1.9.1
 
 ### Patch Changes
