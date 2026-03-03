@@ -8,12 +8,6 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
  * Creates a minimal auth project for standalone deployment E2E testing.
- *
- * This is intentionally lightweight — the standalone deployment template
- * verifies no Amplify Hosting resources are present, and the base
- * class checks client config. Comprehensive resource verification is
- * covered by the data-storage-auth standalone test which reuses the
- * existing DataStorageAuthWithTriggerTestProjectCreator.
  */
 export class StandaloneAuthTestProjectCreator implements TestProjectCreator {
   readonly name = 'standalone-auth';
@@ -57,7 +51,4 @@ class StandaloneAuthTestProject extends TestProjectBase {
     `${this.sourceProjectDirPath}/amplify`,
     import.meta.url,
   );
-
-  // No custom assertPostDeployment — base class checks client config,
-  // and the standalone template checks for no Amplify Hosting resources.
 }

@@ -45,9 +45,7 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
 };
 
 /**
- * Synthesizes deterministic `defineBackend` CDK templates using a custom CDK App.
- *
- * Injects a customer-provided App into defineBackend(), which triggers standalone mode automatically.
+ * Synthesizes `defineBackend` CDK templates using standalone mode (custom CDK App).
  */
 export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
   <T extends Record<string, ConstructFactory<ResourceProvider>>>(
@@ -57,7 +55,10 @@ export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
       throw new Error('constructFactories must have at least one entry');
     }
     const app = new App();
-    const backend = defineBackend(constructFactories, app);
+    const backend = defineBackend(constructFactories, {
+      app,
+      stackName: 'StandaloneTestStack',
+    });
 
     // find some construct in the backend to compute the root stack from
     const firstResourceProvider = backend[Object.keys(constructFactories)[0]];

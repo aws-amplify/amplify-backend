@@ -4,10 +4,7 @@ import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Populates a backend identifier based on CDK context values.
- *
- * When CDK context values are present (Amplify CLI path), the identifier is
- * constructed from them. When they are absent (customer-provided CDK App),
- * a standalone identifier is returned using the stack name as the namespace.
+ * Falls back to standalone mode when context is absent.
  */
 export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const backendNamespace = scope.node.tryGetContext(
@@ -41,10 +38,7 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     };
   }
 
-  // If no context values are set, this is a customer-provided CDK App.
-  // Use standalone deployment type — no BranchLinker, no App ID needed.
-  // The stack name (node.id) becomes the namespace, ensuring unique SSM
-  // parameter paths per deployment (e.g. staging vs production).
+  // No context values — standalone fallback for pure `cdk deploy` usage.
   const nodeId = scope.node.id;
   return {
     type: 'standalone',

@@ -298,26 +298,19 @@ void describe('defineBackend with custom App', () => {
     bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  void it('throws when custom App has CLI context values (conflict detection)', () => {
+  void it('does not throw when custom App has CLI context values', () => {
     const app = new App();
     app.node.setContext('amplify-backend-namespace', 'testAppId');
     app.node.setContext('amplify-backend-name', 'testBranch');
 
-    // Custom App with context values set directly on it should still work —
-    // conflict detection is handled at the deployer level by reading the
-    // synthesized template, not at the defineBackend level.
     const backend = defineBackend({}, { app, stackName: 'TestStack' });
     assert.ok(backend.stack);
   });
 
-  void it('registers amplifySynth listener when custom App is provided', () => {
+  void it('registers amplifySynth listener', () => {
     const app = new App();
     defineBackend({}, { app, stackName: 'TestStack' });
 
-    // The listener should be registered. When 'amplifySynth' is emitted,
-    // app.synth() should be called without throwing.
-    // We verify by emitting the message — if no listener were registered,
-    // app.synth() would never be called and the assembly wouldn't exist.
     assert.doesNotThrow(() => {
       process.emit('message', 'amplifySynth', undefined);
     });

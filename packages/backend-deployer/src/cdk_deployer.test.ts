@@ -360,7 +360,7 @@ void describe('invokeCDKCommand', () => {
   });
 });
 
-void describe('readDeploymentMetadataFromTemplate', () => {
+void describe('standalone deployment detection and validation', () => {
   const cdkOutDir = path.resolve(process.cwd(), '.amplify/artifacts/cdk.out');
   const manifestPath = path.join(cdkOutDir, 'manifest.json');
   const templatePath = path.join(cdkOutDir, 'AmplifyStack.template.json');
@@ -371,8 +371,9 @@ void describe('readDeploymentMetadataFromTemplate', () => {
     type: 'branch',
   };
 
-  const locateMock = mock.fn(() => 'amplify/backend.ts');
-  const backendLocator = { locate: locateMock } as unknown as BackendLocator;
+  const backendLocator = {
+    locate: mock.fn(() => 'amplify/backend.ts'),
+  } as unknown as BackendLocator;
   const packageManagerControllerMock: PackageManagerController = {
     initializeProject: mock.fn(() => Promise.resolve()),
     initializeTsConfig: mock.fn(() => Promise.resolve()),
@@ -390,20 +391,13 @@ void describe('readDeploymentMetadataFromTemplate', () => {
 
   const synthMock = mock.fn();
   const deployMock = mock.fn();
-  const destroyMock = mock.fn();
-  const fromAssemblyBuilderMock = mock.fn();
-  const fromAssemblyDirectoryMock = mock.fn();
   const cdkToolkit = {
     synth: synthMock,
     deploy: deployMock,
-    destroy: destroyMock,
-    fromAssemblyBuilder: fromAssemblyBuilderMock,
-    fromAssemblyDirectory: fromAssemblyDirectoryMock,
+    destroy: mock.fn(),
+    fromAssemblyBuilder: mock.fn(),
+    fromAssemblyDirectory: mock.fn(),
   } as unknown as Toolkit;
-
-  const formatterStub: BackendDeployerOutputFormatter = {
-    normalizeAmpxCommand: () => 'test command',
-  };
 
   const invoker = new CDKDeployer(
     new CdkErrorMapper(formatterStub),
@@ -414,9 +408,7 @@ void describe('readDeploymentMetadataFromTemplate', () => {
   );
 
   const tsCompilerMock = mock.method(invoker, 'compileProject', () => {});
-
   const originalReadFileSync = fs.readFileSync;
-  const readFileSyncMock = mock.method(fs, 'readFileSync');
 
   const makeManifest = (templateFile: string) =>
     JSON.stringify({
@@ -433,18 +425,17 @@ void describe('readDeploymentMetadataFromTemplate', () => {
       return JSON.stringify({ Outputs: {} });
     }
     return JSON.stringify({
-      Outputs: {
-        deploymentType: { Value: deploymentTypeValue },
-      },
+      Outputs: { deploymentType: { Value: deploymentTypeValue } },
     });
   };
 
-  /**
-   * Helper to set up readFileSync mock that intercepts manifest/template reads
-   * but passes through all other calls to the original implementation.
-   */
-  const setupFsMock = (fileMap: Record<string, string>) => {
-    readFileSyncMock.mock.mockImplementation(
+  const setupFsMock = (
+    ctx: { mock: typeof mock },
+    fileMap: Record<string, string>,
+  ) => {
+    ctx.mock.method(
+      fs,
+      'readFileSync',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (...callArgs: any[]) => {
         const filePath = callArgs[0];
@@ -462,86 +453,30 @@ void describe('readDeploymentMetadataFromTemplate', () => {
   afterEach(() => {
     synthMock.mock.resetCalls();
     deployMock.mock.resetCalls();
-    fromAssemblyBuilderMock.mock.resetCalls();
     tsCompilerMock.mock.resetCalls();
-    readFileSyncMock.mock.resetCalls();
-    readFileSyncMock.mock.restore();
   });
 
-  void it('returns standalone when template has deploymentType standalone', async () => {
-    setupFsMock({
+  // --- Detection ---
+
+  void it('standalone deploy returns stackName and backendId in DeployResult', async (context) => {
+    setupFsMock(context, {
       [manifestPath]: makeManifest('AmplifyStack.template.json'),
       [templatePath]: makeTemplate('standalone'),
     });
 
-    // standalone + branch flag → should throw ConflictingDeploymentConfigError
-    // This proves readDeploymentMetadataFromTemplate returned 'standalone'
-    await assert.rejects(
-      () =>
-        invoker.deploy(branchBackendId, {
-          validateAppSources: true,
-          branch: 'main',
-        }),
-      (err: AmplifyUserError) => {
-        assert.equal(err.name, 'ConflictingDeploymentConfigError');
-        return true;
-      },
-    );
-    // Validation fires before CFN deploy
-    assert.strictEqual(deployMock.mock.callCount(), 0);
-  });
-
-  void it('returns stackName from manifest artifact ID in DeployResult', async (context) => {
-    context.mock.method(
-      fs,
-      'readFileSync',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...callArgs: any[]) => {
-        const filePath = callArgs[0];
-        const fileMap: Record<string, string> = {
-          [manifestPath]: makeManifest('AmplifyStack.template.json'),
-          [templatePath]: makeTemplate('standalone'),
-        };
-        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
-          return fileMap[filePath];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (originalReadFileSync as (...a: any[]) => any).apply(
-          fs,
-          callArgs,
-        );
-      },
-    );
-
-    // standalone + no flags → deploy succeeds and returns stackName
     const result = await invoker.deploy(branchBackendId, {
       validateAppSources: true,
     });
     assert.strictEqual(result.stackName, 'AmplifyStack');
     assert.strictEqual(result.backendId?.type, 'standalone');
-    // namespace is derived from the stack name, not hardcoded
     assert.strictEqual(result.backendId?.namespace, 'AmplifyStack');
   });
 
-  void it('returns stackName for branch deployments too', async (context) => {
-    context.mock.method(
-      fs,
-      'readFileSync',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...callArgs: any[]) => {
-        const filePath = callArgs[0];
-        const fileMap: Record<string, string> = {
-          [manifestPath]: makeManifest('AmplifyStack.template.json'),
-          [templatePath]: makeTemplate('branch'),
-        };
-        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
-          return fileMap[filePath];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (originalReadFileSync as (...a: any[]) => any).apply(
-          fs,
-          callArgs,
-        );
-      },
-    );
+  void it('branch deploy returns stackName in DeployResult', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('branch'),
+    });
 
     const result = await invoker.deploy(branchBackendId, {
       validateAppSources: true,
@@ -552,68 +487,23 @@ void describe('readDeploymentMetadataFromTemplate', () => {
     assert.strictEqual(result.backendId?.type, 'branch');
   });
 
-  void it('returns branch when template has deploymentType branch', async (context) => {
-    context.mock.method(
-      fs,
-      'readFileSync',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...callArgs: any[]) => {
-        const filePath = callArgs[0];
-        const fileMap: Record<string, string> = {
-          [manifestPath]: makeManifest('AmplifyStack.template.json'),
-          [templatePath]: makeTemplate('branch'),
-        };
-        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
-          return fileMap[filePath];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (originalReadFileSync as (...a: any[]) => any).apply(
-          fs,
-          callArgs,
-        );
-      },
-    );
-
-    // branch + both flags → should succeed (no validation error)
-    await invoker.deploy(branchBackendId, {
-      validateAppSources: true,
-      branch: 'main',
-      appId: 'abc',
+  void it('returns undefined stackName when no deploymentType output', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate(undefined),
     });
-    assert.strictEqual(deployMock.mock.callCount(), 1);
-  });
 
-  void it('returns undefined when template has no deploymentType output', async (context) => {
-    context.mock.method(
-      fs,
-      'readFileSync',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...callArgs: any[]) => {
-        const filePath = callArgs[0];
-        const fileMap: Record<string, string> = {
-          [manifestPath]: makeManifest('AmplifyStack.template.json'),
-          [templatePath]: makeTemplate(undefined),
-        };
-        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
-          return fileMap[filePath];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (originalReadFileSync as (...a: any[]) => any).apply(
-          fs,
-          callArgs,
-        );
-      },
-    );
-
-    // No deploymentType detected → validation skipped → deploy proceeds
     const result = await invoker.deploy(branchBackendId, {
       validateAppSources: true,
     });
     assert.strictEqual(deployMock.mock.callCount(), 1);
-    // stackName is undefined when no deploymentType output exists
     assert.strictEqual(result.stackName, undefined);
   });
 
-  void it('returns undefined when manifest.json is missing (graceful fallback)', async () => {
-    readFileSyncMock.mock.mockImplementation(
+  void it('gracefully handles missing manifest.json', async (context) => {
+    context.mock.method(
+      fs,
+      'readFileSync',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (...callArgs: any[]) => {
         const filePath = callArgs[0];
@@ -628,129 +518,19 @@ void describe('readDeploymentMetadataFromTemplate', () => {
       },
     );
 
-    // Missing manifest → readDeploymentTypeFromTemplate returns undefined → validation skipped → deploy proceeds
-    await invoker.deploy(branchBackendId, {
-      validateAppSources: true,
-    });
+    await invoker.deploy(branchBackendId, { validateAppSources: true });
     assert.strictEqual(deployMock.mock.callCount(), 1);
   });
-});
 
-void describe('validateDeploymentArgs', () => {
-  const cdkOutDir = path.resolve(process.cwd(), '.amplify/artifacts/cdk.out');
-  const manifestPath = path.join(cdkOutDir, 'manifest.json');
-  const templatePath = path.join(cdkOutDir, 'AmplifyStack.template.json');
+  // --- Validation ---
 
-  const branchBackendId: BackendIdentifier = {
-    namespace: '123',
-    name: 'testBranch',
-    type: 'branch',
-  };
-
-  const locateMock = mock.fn(() => 'amplify/backend.ts');
-  const backendLocator = { locate: locateMock } as unknown as BackendLocator;
-  const packageManagerControllerMock: PackageManagerController = {
-    initializeProject: mock.fn(() => Promise.resolve()),
-    initializeTsConfig: mock.fn(() => Promise.resolve()),
-    installDependencies: mock.fn(() => Promise.resolve()),
-    runWithPackageManager: mock.fn(() => Promise.resolve() as never),
-    getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
-    allowsSignalPropagation: () => true,
-    tryGetDependencies: mock.fn(() => Promise.resolve([])),
-  };
-
-  const mockIoHost: AmplifyIOHost = {
-    notify: mock.fn(),
-    requestResponse: mock.fn(),
-  };
-
-  const synthMock = mock.fn();
-  const deployMock = mock.fn();
-  const destroyMock = mock.fn();
-  const fromAssemblyBuilderMock = mock.fn();
-  const fromAssemblyDirectoryMock = mock.fn();
-  const cdkToolkit = {
-    synth: synthMock,
-    deploy: deployMock,
-    destroy: destroyMock,
-    fromAssemblyBuilder: fromAssemblyBuilderMock,
-    fromAssemblyDirectory: fromAssemblyDirectoryMock,
-  } as unknown as Toolkit;
-
-  const formatterStub: BackendDeployerOutputFormatter = {
-    normalizeAmpxCommand: () => 'test command',
-  };
-
-  const invoker = new CDKDeployer(
-    new CdkErrorMapper(formatterStub),
-    backendLocator,
-    packageManagerControllerMock as never,
-    cdkToolkit,
-    mockIoHost,
-  );
-
-  const tsCompilerMock = mock.method(invoker, 'compileProject', () => {});
-
-  const originalReadFileSync = fs.readFileSync;
-
-  const makeManifest = (templateFile: string) =>
-    JSON.stringify({
-      artifacts: {
-        AmplifyStack: {
-          type: 'aws:cloudformation:stack',
-          properties: { templateFile },
-        },
-      },
-    });
-
-  const makeTemplate = (deploymentTypeValue?: string) => {
-    if (deploymentTypeValue === undefined) {
-      return JSON.stringify({ Outputs: {} });
-    }
-    return JSON.stringify({
-      Outputs: {
-        deploymentType: { Value: deploymentTypeValue },
-      },
-    });
-  };
-
-  const setupFsMock = (
-    context: { mock: typeof mock },
-    fileMap: Record<string, string>,
-  ) => {
-    context.mock.method(
-      fs,
-      'readFileSync',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...callArgs: any[]) => {
-        const filePath = callArgs[0];
-        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
-          return fileMap[filePath];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (originalReadFileSync as (...a: any[]) => any).apply(
-          fs,
-          callArgs,
-        );
-      },
-    );
-  };
-
-  afterEach(() => {
-    synthMock.mock.resetCalls();
-    deployMock.mock.resetCalls();
-    fromAssemblyBuilderMock.mock.resetCalls();
-    tsCompilerMock.mock.resetCalls();
-  });
-
-  void it('standalone + no flags → no error, deploy proceeds', async (context) => {
+  void it('standalone + no flags → deploys', async (context) => {
     setupFsMock(context, {
       [manifestPath]: makeManifest('AmplifyStack.template.json'),
       [templatePath]: makeTemplate('standalone'),
     });
 
-    await invoker.deploy(branchBackendId, {
-      validateAppSources: true,
-    });
+    await invoker.deploy(branchBackendId, { validateAppSources: true });
     assert.strictEqual(deployMock.mock.callCount(), 1);
   });
 
@@ -818,7 +598,7 @@ void describe('validateDeploymentArgs', () => {
     assert.strictEqual(deployMock.mock.callCount(), 0);
   });
 
-  void it('branch + both flags → no error, deploy proceeds', async (context) => {
+  void it('branch + both flags → deploys', async (context) => {
     setupFsMock(context, {
       [manifestPath]: makeManifest('AmplifyStack.template.json'),
       [templatePath]: makeTemplate('branch'),
@@ -874,13 +654,12 @@ void describe('validateDeploymentArgs', () => {
     assert.strictEqual(deployMock.mock.callCount(), 0);
   });
 
-  void it('validation fires BEFORE cdkToolkit.deploy() is called', async (context) => {
+  void it('validation fires before cdkToolkit.deploy()', async (context) => {
     setupFsMock(context, {
       [manifestPath]: makeManifest('AmplifyStack.template.json'),
       [templatePath]: makeTemplate('standalone'),
     });
 
-    // Pass a flag to standalone → should throw before deploy
     await assert.rejects(
       () =>
         invoker.deploy(branchBackendId, {
@@ -893,10 +672,7 @@ void describe('validateDeploymentArgs', () => {
         return true;
       },
     );
-
-    // Synth was called (validation happens after synth)
     assert.strictEqual(synthMock.mock.callCount(), 1);
-    // Deploy was NOT called (validation fires before deploy)
     assert.strictEqual(deployMock.mock.callCount(), 0);
   });
 });

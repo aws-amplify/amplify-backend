@@ -81,9 +81,7 @@ export class PipelineDeployCommand
       appId: args.appId,
     });
 
-    // For standalone, use the actual CFN stack name (e.g. 'AmplifyStack')
-    // since the customer owns the stack name and it doesn't follow Amplify
-    // naming conventions. For branch deploys, use the resolved BackendIdentifier.
+    // For standalone, use the CFN stack name for client config generation.
     const clientConfigIdentifier =
       result.stackName && result.backendId?.type === 'standalone'
         ? { stackName: result.stackName }

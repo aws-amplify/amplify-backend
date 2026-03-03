@@ -282,8 +282,6 @@ export class CDKDeployer implements BackendDeployer {
   };
   /**
    * Reads deployment metadata from the synthesized CloudFormation template.
-   * After synth, the template is on disk in the cloud assembly output directory.
-   * Returns the deployment type and the actual CFN stack name from the manifest.
    */
   private readDeploymentMetadataFromTemplate(): {
     deploymentType: DeploymentType | undefined;
@@ -325,8 +323,7 @@ export class CDKDeployer implements BackendDeployer {
 
   /**
    * Validates CLI args against the detected deployment type.
-   * Standalone deployments require ZERO flags; branch deployments require both --branch and --app-id.
-   * Called after synth but before CFN deploy.
+   * Standalone requires zero flags; branch requires both --branch and --app-id.
    */
   private validateDeploymentArgs(
     detectedType: DeploymentType,
@@ -380,9 +377,6 @@ export class CDKDeployer implements BackendDeployer {
 
   /**
    * Resolves the BackendIdentifier from the detected deployment type and deploy props.
-   * - Standalone: returns a fixed identifier with namespace 'amplify' and name 'default'
-   * - Branch with both args: returns identifier from deploy props
-   * - Otherwise: falls back to the original backendId parameter
    */
   private resolveBackendId(
     detectedType: DeploymentType | undefined,

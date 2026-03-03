@@ -5,18 +5,13 @@ import { App, Stack } from 'aws-cdk-lib';
 import { getBackendIdentifier } from './backend_identifier.js';
 
 /**
- * Property 3: Backend identifier resolution correctness
+ * Property: Backend identifier resolution correctness
  *
- * For any CDK construct scope, getBackendIdentifier returns a deterministic
- * BackendIdentifier where:
- * (a) if all three CDK context values are present, the returned identifier
- *     matches those context values exactly;
- * (b) if no CDK context is set at all (pure cdk deploy fallback), the returned
- *     type is 'standalone' and the namespace is derived from the scope's node ID.
- *
- * **Validates: Requirements 3.1, 3.3**
+ * getBackendIdentifier returns a deterministic BackendIdentifier:
+ * (a) with context → matches context values exactly
+ * (b) without context → standalone with namespace from scope's node ID
  */
-void describe('Property 3: Backend identifier resolution correctness', () => {
+void describe('Backend identifier resolution correctness', () => {
   const validDeploymentTypes = ['sandbox', 'branch', 'standalone'] as const;
 
   // Arbitrary for non-empty alphanumeric strings (valid CDK context values)
@@ -66,8 +61,7 @@ void describe('Property 3: Backend identifier resolution correctness', () => {
         assert.strictEqual(result.name, 'default');
 
         // Namespace is deterministic based on node ID
-        const expectedNamespace =
-          nodeId === 'AmplifyStack' ? 'amplify' : nodeId || 'amplify';
+        const expectedNamespace = nodeId || 'amplify';
         assert.strictEqual(result.namespace, expectedNamespace);
       }),
       { numRuns: 100 },
@@ -93,16 +87,12 @@ void describe('Property 3: Backend identifier resolution correctness', () => {
 });
 
 /**
- * Property 4: Branch identifier backward compatibility
+ * Property: Branch identifier backward compatibility
  *
- * For any CDK construct scope with all three CDK context values set
- * (BACKEND_NAMESPACE, BACKEND_NAME, DEPLOYMENT_TYPE = 'branch'),
- * getBackendIdentifier returns { type: 'branch', namespace: <BACKEND_NAMESPACE>,
- * name: <BACKEND_NAME> } — identical to the pre-change behavior.
- *
- * **Validates: Requirements 3.5**
+ * With DEPLOYMENT_TYPE = 'branch', getBackendIdentifier returns the same
+ * result as the pre-standalone behavior.
  */
-void describe('Property 4: Branch identifier backward compatibility', () => {
+void describe('Branch identifier backward compatibility', () => {
   // Arbitrary for non-empty alphanumeric strings (valid CDK context values)
   const nonEmptyAlphanumStr = fc.stringMatching(
     /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,49}$/,

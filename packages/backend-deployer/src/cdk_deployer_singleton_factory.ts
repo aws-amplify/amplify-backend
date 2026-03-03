@@ -20,11 +20,7 @@ export type DeployProps = {
 export type DeployResult = {
   deploymentTimes: DeploymentTimes;
   backendId?: BackendIdentifier;
-  /**
-   * The actual CloudFormation stack name from the synth output.
-   * For standalone deployments, this is the customer's stack name (e.g. 'AmplifyStack')
-   * which differs from the Amplify naming convention used by toStackName().
-   */
+  /** The actual CloudFormation stack name from the synth output. */
   stackName?: string;
 };
 

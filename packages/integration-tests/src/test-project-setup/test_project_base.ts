@@ -82,8 +82,6 @@ export abstract class TestProjectBase {
         .do(interruptSandbox())
         .run();
     } else if (backendIdentifier.type === 'standalone') {
-      // Standalone deployments require ZERO CLI flags.
-      // The deployer detects standalone mode from the synthesized template.
       await ampxCli(['pipeline-deploy'], this.projectDirPath, {
         env: {
           CI: 'true',

@@ -59,11 +59,11 @@ export type BackendIdentifier =
     }
   | {
       /**
-       * The project name for the custom pipeline deployment.
+       * The project name for the standalone deployment.
        */
       namespace: Readonly<ProjectName>;
       /**
-       * The branch name for the custom pipeline deployment.
+       * The deployment name for the standalone deployment.
        */
       name: Readonly<BranchName>;
       /**
