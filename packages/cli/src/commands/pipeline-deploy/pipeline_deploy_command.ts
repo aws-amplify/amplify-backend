@@ -11,7 +11,7 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { format } from '@aws-amplify/cli-core';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -22,8 +22,6 @@ type PipelineDeployCommandOptionsCamelCase = {
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
-  standalone?: boolean;
-  stackName?: string;
 };
 
 /**
@@ -62,35 +60,57 @@ export class PipelineDeployCommand
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
-      if (!args.standalone) {
-        throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
-          message:
-            'It looks like this command is being run outside of a CI/CD workflow.',
-          resolution: `To deploy locally use ${format.normalizeAmpxCommand(
-            'sandbox',
-          )} instead.`,
-        });
-      } else {
-        printer.log(
-          'Warning: --standalone is intended for CI/CD environments.',
-          LogLevel.WARN,
-        );
-      }
+      throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
+        message:
+          'It looks like this command is being run outside of a CI/CD workflow.',
+        resolution: `To deploy locally use ${format.normalizeAmpxCommand(
+          'sandbox',
+        )} instead.`,
+      });
     }
 
-    // For standalone, use stack-name as namespace (guaranteed by validation)
-    // For regular pipeline, use appId (guaranteed by validation)
-    const namespace = args.standalone ? args.stackName! : args.appId!;
+    // Clean any previous signal before synth
+    delete process.env.AMPLIFY_CUSTOM_APP;
 
-    const backendId: BackendIdentifier = {
-      namespace: namespace,
-      name: args.branch,
-      // Use 'standalone' type to avoid BranchLinker creation
-      type: args.standalone ? 'standalone' : 'branch',
-    };
+    const backendId: BackendIdentifier = args.appId
+      ? {
+          namespace: args.appId,
+          name: args.branch,
+          type: 'branch',
+        }
+      : {
+          // No app-id: assume standalone via custom App in backend.ts.
+          // The namespace/name are placeholders — the customer's App controls the stack.
+          namespace: 'custom',
+          name: args.branch,
+          type: 'branch',
+        };
+
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
     });
+
+    // After synth+deploy, check for conflicts:
+    // 1. Custom App used but --app-id was also provided → conflict
+    // 2. No custom App and no --app-id → missing required arg
+    const usesCustomApp = process.env.AMPLIFY_CUSTOM_APP === 'true';
+    if (usesCustomApp && args.appId) {
+      throw new AmplifyUserError('ConflictingDeploymentConfigError', {
+        message:
+          'Your backend.ts provides a custom CDK App to defineBackend(), but --app-id was also specified.',
+        resolution:
+          'Remove --app-id when using a custom App. The custom App enables standalone deployment without Amplify Hosting.',
+      });
+    }
+    if (!usesCustomApp && !args.appId) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message:
+          '--app-id is required when backend.ts does not provide a custom CDK App to defineBackend().',
+        resolution:
+          'Either provide --app-id for Amplify Hosting deployments, or pass a custom CDK App to defineBackend() for standalone deployments.',
+      });
+    }
+
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
       args.outputsVersion as ClientConfigVersion,
@@ -109,21 +129,9 @@ export class PipelineDeployCommand
         array: false,
       })
       .option('app-id', {
-        describe: 'The app id of the target Amplify app',
+        describe:
+          'The app id of the target Amplify app. Required for Amplify Hosting deployments, must be omitted when backend.ts uses a custom CDK App.',
         demandOption: false,
-        type: 'string',
-        array: false,
-      })
-      .option('standalone', {
-        describe:
-          'Enable standalone mode for deployment without Amplify Hosting',
-        type: 'boolean',
-        array: false,
-        default: false,
-      })
-      .option('stack-name', {
-        describe:
-          'Custom stack name for the deployment (used with --standalone)',
         type: 'string',
         array: false,
       })
@@ -150,22 +158,13 @@ export class PipelineDeployCommand
       .check(async (argv) => {
         const errors: string[] = [];
 
-        // Check if branch is provided
         if (!argv['branch']) {
           errors.push('--branch is required');
         } else if (argv['branch'].length === 0) {
           errors.push('--branch must be at least 1 character');
         }
 
-        // If standalone is enabled, stack-name is required
-        if (argv['standalone'] && !argv['stack-name']) {
-          errors.push('--stack-name is required when --standalone is enabled');
-        }
-
-        // If standalone is not enabled, app-id is required
-        if (!argv['standalone'] && !argv['app-id']) {
-          errors.push('--app-id is required (unless --standalone is enabled)');
-        } else if (argv['app-id'] && argv['app-id'].length === 0) {
+        if (argv['app-id'] !== undefined && argv['app-id'].length === 0) {
           errors.push('--app-id must be at least 1 character');
         }
 

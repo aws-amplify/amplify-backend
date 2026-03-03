@@ -17,12 +17,15 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 /**
  * Defines standalone deployment test.
  *
- * Unlike branch deployment tests, standalone tests do not require an Amplify app.
- * They deploy using `ampx pipeline-deploy --standalone --stack-name <name> --branch main`.
+ * Standalone tests use defineBackend(factories, new App()) in backend.ts.
+ * They deploy using `ampx pipeline-deploy --branch main` (no --app-id).
+ * The custom App triggers standalone mode automatically.
  */
 export const defineStandaloneDeploymentTest = (
   testProjectCreator: TestProjectCreator,
@@ -51,6 +54,26 @@ export const defineStandaloneDeploymentTest = (
             name: 'main',
             type: 'standalone',
           };
+
+          // Patch backend.ts to use a custom CDK App (Option E).
+          // This injects `new App()` into defineBackend() to trigger standalone mode.
+          const backendTsPath = path.join(
+            testProject.projectDirPath,
+            'amplify',
+            'backend.ts',
+          );
+          let backendTs = await fs.readFile(backendTsPath, 'utf-8');
+          // Add App import
+          backendTs = backendTs.replace(
+            "import { defineBackend } from '@aws-amplify/backend';",
+            "import { defineBackend } from '@aws-amplify/backend';\nimport { App } from 'aws-cdk-lib';",
+          );
+          // Inject App into defineBackend call
+          backendTs = backendTs.replace(
+            /defineBackend\(([^)]+)\)/,
+            'defineBackend($1, new App())',
+          );
+          await fs.writeFile(backendTsPath, backendTs);
         });
 
         afterEach(async () => {

@@ -3,7 +3,7 @@ import {
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -148,13 +148,27 @@ export class BackendFactory<
 }
 
 /**
- * Creates a new Amplify backend instance and returns it
+ * Creates a new Amplify backend instance and returns it.
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
+ * @param app - optional CDK App instance. When provided, the backend uses standalone deployment mode
+ *   (no Amplify Hosting, no App ID required). This enables `cdk deploy` as an alternative to `ampx pipeline-deploy`.
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
+  app?: App,
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  let stack: Stack;
+  if (app) {
+    // Signal to the CLI that a custom App is in use (standalone mode).
+    // The CLI checks this after synth to validate --app-id is not provided.
+    process.env.AMPLIFY_CUSTOM_APP = 'true';
+    // Customer-provided CDK App — create a stack within it.
+    stack = new Stack(app, 'AmplifyStack');
+  } else {
+    // Standard Amplify CLI path — create the default stack from CDK context.
+    stack = createDefaultStack();
+  }
+  const backend = new BackendFactory(constructFactories, stack);
   return {
     ...backend.resources,
     createStack: backend.createStack,

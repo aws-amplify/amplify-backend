@@ -3355,6 +3355,26 @@ void describe('Auth construct', () => {
       });
     });
 
+    void it('throws when AUTO relyingPartyId is used with no deployment context (custom App)', () => {
+      // Option E: customer provides their own App with no CDK context
+      const app = new App();
+      const stack = new Stack(app);
+      // No context set — simulates defineBackend(factories, new App())
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              webAuthn: true,
+            },
+          }),
+        {
+          message:
+            /WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments/,
+        },
+      );
+    });
+
     void it('does not configure passwordless when not enabled', () => {
       const app = new App();
       const stack = new Stack(app);

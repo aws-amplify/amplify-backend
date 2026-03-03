@@ -82,15 +82,10 @@ export abstract class TestProjectBase {
         .do(interruptSandbox())
         .run();
     } else if (backendIdentifier.type === 'standalone') {
+      // Standalone deployments use defineBackend(factories, new App()) in backend.ts.
+      // No --app-id needed — the custom App triggers standalone mode automatically.
       await ampxCli(
-        [
-          'pipeline-deploy',
-          '--standalone',
-          '--stack-name',
-          backendIdentifier.namespace,
-          '--branch',
-          backendIdentifier.name,
-        ],
+        ['pipeline-deploy', '--branch', backendIdentifier.name],
         this.projectDirPath,
         {
           env: {
