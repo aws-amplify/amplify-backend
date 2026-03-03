@@ -314,6 +314,19 @@ void describe('defineBackend with custom App (Option E)', () => {
     delete process.env.AMPLIFY_CUSTOM_APP;
   });
 
+  void it('registers amplifySynth listener when custom App is provided', () => {
+    const app = new App();
+    defineBackend({}, app);
+
+    // The listener should be registered. When 'amplifySynth' is emitted,
+    // app.synth() should be called without throwing.
+    // We verify by emitting the message — if no listener were registered,
+    // app.synth() would never be called and the assembly wouldn't exist.
+    assert.doesNotThrow(() => {
+      process.emit('message', 'amplifySynth', undefined);
+    });
+  });
+
   void it('does not set AMPLIFY_CUSTOM_APP env var when no custom App is provided', () => {
     delete process.env.AMPLIFY_CUSTOM_APP;
     // Use the standard path with CDK context

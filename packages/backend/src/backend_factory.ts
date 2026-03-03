@@ -164,6 +164,16 @@ export const defineBackend = <T extends DefineBackendProps>(
     process.env.AMPLIFY_CUSTOM_APP = 'true';
     // Customer-provided CDK App — create a stack within it.
     stack = new Stack(app, 'AmplifyStack');
+
+    // Register the synth listener so the deployer can trigger synthesis.
+    // The deployer emits 'amplifySynth' after importing backend.ts.
+    // Without this, the customer's App never gets synthesized and the
+    // deployer fails with ENOENT on manifest.json.
+    process.once('message', (message) => {
+      if (message === 'amplifySynth') {
+        app.synth({ errorOnDuplicateSynth: false });
+      }
+    });
   } else {
     // Standard Amplify CLI path — create the default stack from CDK context.
     stack = createDefaultStack();
