@@ -675,4 +675,26 @@ void describe('standalone deployment detection and validation', () => {
     assert.strictEqual(synthMock.mock.callCount(), 1);
     assert.strictEqual(deployMock.mock.callCount(), 0);
   });
+
+  void it('standalone + sandbox backendId → StandaloneSandboxNotSupportedError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    const sandboxBackendId: BackendIdentifier = {
+      namespace: 'testProject',
+      name: 'testUser',
+      type: 'sandbox',
+    };
+
+    await assert.rejects(
+      () => invoker.deploy(sandboxBackendId),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'StandaloneSandboxNotSupportedError');
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
 });

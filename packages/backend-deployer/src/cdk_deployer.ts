@@ -103,6 +103,17 @@ export class CDKDeployer implements BackendDeployer {
     const { deploymentType: detectedType, stackName: actualStackName } =
       this.readDeploymentMetadataFromTemplate();
 
+    // TODO: support standalone + sandbox by switching process.once to process.on
+    // in defineBackend so re-synth on file changes works correctly.
+    if (detectedType === 'standalone' && backendId.type === 'sandbox') {
+      throw new AmplifyUserError('StandaloneSandboxNotSupportedError', {
+        message:
+          'Standalone deployments (custom CDK App in defineBackend) are not supported with ampx sandbox.',
+        resolution:
+          'Use ampx pipeline-deploy for standalone backends, or remove the custom App from defineBackend() to use sandbox.',
+      });
+    }
+
     // Validate CLI args against detected type (pipeline-deploy only)
     if (detectedType !== undefined && deployProps?.validateAppSources) {
       this.validateDeploymentArgs(detectedType, deployProps);
