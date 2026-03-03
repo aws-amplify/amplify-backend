@@ -280,13 +280,28 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.match(error.error.message, /--app-id is required/);
+        assert.match(
+          error.error.message,
+          /--app-id must be at least 1 character/,
+        );
         return true;
       },
     );
   });
 
-  void it('throws when --app-id is missing', async () => {
+  void it('throws when --app-id is missing and no custom App is used', async () => {
+    // When no --app-id is provided and backend.ts does not use a custom App,
+    // the post-deploy validation detects the conflict via AMPLIFY_CUSTOM_APP env var.
+    delete process.env.AMPLIFY_CUSTOM_APP;
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub,
+      mockIoHost,
+      mockProfileResolver,
+    );
+    mock.method(backendDeployerFactory.getInstance(), 'deploy', () =>
+      Promise.resolve(),
+    );
     await assert.rejects(
       async () =>
         await getCommandRunner(true).runCommand(
@@ -294,7 +309,10 @@ void describe('deploy command', () => {
         ),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.match(error.error.message, /--app-id is required/);
+        assert.match(
+          error.error.message,
+          /--app-id is required when backend\.ts does not provide a custom CDK App/,
+        );
         return true;
       },
     );
