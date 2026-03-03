@@ -1233,9 +1233,9 @@ export class AmplifyAuth
       }
     }
 
-    // For 'standalone' deployments (or when no deployment type context is set,
-    // e.g. custom CDK App via Option E), AUTO cannot resolve — there's no
-    // Amplify Hosting domain. Force the user to set an explicit relyingPartyId.
+    // For 'standalone' deployments (custom CDK App via defineBackend) or
+    // direct CDK usage without defineBackend (no deployment context),
+    // AUTO cannot resolve — there's no Amplify Hosting domain.
     if (deploymentType === 'standalone' || deploymentType === undefined) {
       throw new Error(
         'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +

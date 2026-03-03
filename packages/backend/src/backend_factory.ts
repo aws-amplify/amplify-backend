@@ -14,6 +14,7 @@ import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
+import { CDKContextKey, ObjectAccumulator } from '@aws-amplify/platform-core';
 import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -25,7 +26,6 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -159,9 +159,11 @@ export const defineBackend = <T extends DefineBackendProps>(
 ): Backend<T> => {
   let stack: Stack;
   if (app) {
-    // Signal to the CLI that a custom App is in use (standalone mode).
-    // The CLI checks this after synth to validate --app-id is not provided.
-    process.env.AMPLIFY_CUSTOM_APP = 'true';
+    // Set CDK context on the customer's App so all downstream constructs
+    // (auth-construct, backend-data, backend-output-storage, etc.) see
+    // consistent 'standalone' deployment type via tryGetContext().
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'standalone');
+
     // Customer-provided CDK App — create a stack within it.
     stack = new Stack(app, 'AmplifyStack');
 

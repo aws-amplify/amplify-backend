@@ -231,7 +231,7 @@ const createTestConstructFactory =
     },
   });
 
-void describe('defineBackend with custom App (Option E)', () => {
+void describe('defineBackend with custom App', () => {
   void it('creates backend in standalone mode when custom App is provided', () => {
     const app = new App();
     const testConstructFactory = createTestConstructFactory();
@@ -257,14 +257,13 @@ void describe('defineBackend with custom App (Option E)', () => {
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
-  void it('stores attribution metadata as AmplifyCDK when custom App is provided', () => {
+  void it('stores attribution metadata as AmplifyStandalone when custom App is provided', () => {
     const app = new App();
     const backend = defineBackend({}, app);
 
     const rootStackTemplate = Template.fromStack(backend.stack);
     const description = JSON.parse(rootStackTemplate.toJSON().Description);
-    // No DEPLOYMENT_TYPE context → AttributionMetadataStorage returns 'AmplifyCDK'
-    assert.equal(description.createdBy, 'AmplifyCDK');
+    assert.equal(description.createdBy, 'AmplifyStandalone');
     assert.equal(description.stackType, 'root');
   });
 
@@ -299,19 +298,10 @@ void describe('defineBackend with custom App (Option E)', () => {
     app.node.setContext('amplify-backend-name', 'testBranch');
 
     // Custom App with context values set directly on it should still work —
-    // the conflict detection is at the CLI level via AMPLIFY_CUSTOM_APP env var,
-    // not at the defineBackend level.
-    // This test verifies defineBackend doesn't throw when context is on the App.
+    // conflict detection is handled at the deployer level by reading the
+    // synthesized template, not at the defineBackend level.
     const backend = defineBackend({}, app);
     assert.ok(backend.stack);
-  });
-
-  void it('sets AMPLIFY_CUSTOM_APP env var when custom App is provided', () => {
-    delete process.env.AMPLIFY_CUSTOM_APP;
-    const app = new App();
-    defineBackend({}, app);
-    assert.equal(process.env.AMPLIFY_CUSTOM_APP, 'true');
-    delete process.env.AMPLIFY_CUSTOM_APP;
   });
 
   void it('registers amplifySynth listener when custom App is provided', () => {
@@ -325,14 +315,6 @@ void describe('defineBackend with custom App (Option E)', () => {
     assert.doesNotThrow(() => {
       process.emit('message', 'amplifySynth', undefined);
     });
-  });
-
-  void it('does not set AMPLIFY_CUSTOM_APP env var when no custom App is provided', () => {
-    delete process.env.AMPLIFY_CUSTOM_APP;
-    // Use the standard path with CDK context
-    const stack = createStackAndSetContext('branch');
-    new BackendFactory({}, stack);
-    assert.notEqual(process.env.AMPLIFY_CUSTOM_APP, 'true');
   });
 
   void it('createStack works with custom App', () => {

@@ -17,7 +17,7 @@ export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
 
 type PipelineDeployCommandOptionsCamelCase = {
-  branch: string;
+  branch?: string;
   appId?: string;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
@@ -69,50 +69,22 @@ export class PipelineDeployCommand
       });
     }
 
-    // Clean any previous signal before synth
-    delete process.env.AMPLIFY_CUSTOM_APP;
+    // Build placeholder identifier from CLI args
+    const backendId: BackendIdentifier =
+      args.appId && args.branch
+        ? { namespace: args.appId, name: args.branch, type: 'branch' }
+        : { namespace: 'standalone', name: 'default', type: 'standalone' };
 
-    const backendId: BackendIdentifier = args.appId
-      ? {
-          namespace: args.appId,
-          name: args.branch,
-          type: 'branch',
-        }
-      : {
-          // No app-id: assume standalone via custom App in backend.ts.
-          // The namespace/name are placeholders — the customer's App controls the stack.
-          namespace: 'custom',
-          name: args.branch,
-          type: 'branch',
-        };
-
-    await this.backendDeployer.deploy(backendId, {
+    const result = await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
+      branch: args.branch,
+      appId: args.appId,
     });
 
-    // After synth+deploy, check for conflicts:
-    // 1. Custom App used but --app-id was also provided → conflict
-    // 2. No custom App and no --app-id → missing required arg
-    const usesCustomApp = process.env.AMPLIFY_CUSTOM_APP === 'true';
-    if (usesCustomApp && args.appId) {
-      throw new AmplifyUserError('ConflictingDeploymentConfigError', {
-        message:
-          'Your backend.ts provides a custom CDK App to defineBackend(), but --app-id was also specified.',
-        resolution:
-          'Remove --app-id when using a custom App. The custom App enables standalone deployment without Amplify Hosting.',
-      });
-    }
-    if (!usesCustomApp && !args.appId) {
-      throw new AmplifyUserError('InvalidCommandInputError', {
-        message:
-          '--app-id is required when backend.ts does not provide a custom CDK App to defineBackend().',
-        resolution:
-          'Either provide --app-id for Amplify Hosting deployments, or pass a custom CDK App to defineBackend() for standalone deployments.',
-      });
-    }
-
+    // Use resolved identifier from deploy result for client config
+    const resolvedId = result.backendId ?? backendId;
     await this.clientConfigGenerator.generateClientConfigToFile(
-      backendId,
+      resolvedId,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
       args.outputsFormat,
@@ -124,7 +96,7 @@ export class PipelineDeployCommand
       .version(false)
       .option('branch', {
         describe: 'Name of the git branch being deployed',
-        demandOption: true,
+        demandOption: false,
         type: 'string',
         array: false,
       })
@@ -154,28 +126,6 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigFormat),
-      })
-      .check(async (argv) => {
-        const errors: string[] = [];
-
-        if (!argv['branch']) {
-          errors.push('--branch is required');
-        } else if (argv['branch'].length === 0) {
-          errors.push('--branch must be at least 1 character');
-        }
-
-        if (argv['app-id'] !== undefined && argv['app-id'].length === 0) {
-          errors.push('--app-id must be at least 1 character');
-        }
-
-        if (errors.length > 0) {
-          throw new AmplifyUserError('InvalidCommandInputError', {
-            message: errors.join('\n'),
-            resolution: 'Provide all required arguments',
-          });
-        }
-
-        return true;
       });
   };
 }

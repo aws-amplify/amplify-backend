@@ -3355,11 +3355,10 @@ void describe('Auth construct', () => {
       });
     });
 
-    void it('throws when AUTO relyingPartyId is used with no deployment context (custom App)', () => {
-      // Option E: customer provides their own App with no CDK context
+    void it('throws when AUTO relyingPartyId is used with no deployment context (pure CDK usage)', () => {
+      // Pure CDK customer using AmplifyAuth directly without defineBackend
       const app = new App();
       const stack = new Stack(app);
-      // No context set — simulates defineBackend(factories, new App())
       assert.throws(
         () =>
           new AmplifyAuth(stack, 'test', {

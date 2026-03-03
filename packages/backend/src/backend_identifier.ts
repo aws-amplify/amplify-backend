@@ -43,9 +43,10 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
 
   // If no context values are set, this is a customer-provided CDK App.
   // Use standalone deployment type — no BranchLinker, no App ID needed.
+  const nodeId = scope.node.id;
   return {
     type: 'standalone',
-    namespace: scope.node.id || 'amplify',
-    name: 'custom',
+    namespace: nodeId === 'AmplifyStack' ? 'amplify' : nodeId || 'amplify',
+    name: 'default',
   };
 };

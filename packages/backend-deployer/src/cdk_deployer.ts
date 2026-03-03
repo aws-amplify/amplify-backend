@@ -1,4 +1,5 @@
 import process from 'node:process';
+import fs from 'node:fs';
 
 import {
   BackendDeployer,
@@ -8,11 +9,13 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import {
   AmplifyIOHost,
   BackendIdentifier,
+  DeploymentType,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyError,
   AmplifyFault,
+  AmplifyUserError,
   BackendLocator,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -96,6 +99,14 @@ export class CDKDeployer implements BackendDeployer {
       data: undefined,
     });
 
+    // Read deployment type from synthesized template (after synth, before deploy)
+    const detectedType = this.readDeploymentTypeFromTemplate();
+
+    // Validate CLI args against detected type (pipeline-deploy only)
+    if (detectedType !== undefined && deployProps?.validateAppSources) {
+      this.validateDeploymentArgs(detectedType, deployProps);
+    }
+
     // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
     const typeCheckStartTime = Date.now();
     await this.ioHost.notify({
@@ -174,6 +185,7 @@ export class CDKDeployer implements BackendDeployer {
           synthTimeSeconds +
           Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
+      backendId: this.resolveBackendId(detectedType, deployProps, backendId),
     };
   };
 
@@ -261,4 +273,123 @@ export class CDKDeployer implements BackendDeployer {
       },
     );
   };
+  /**
+   * Reads the deploymentType from the synthesized CloudFormation template.
+   * After synth, the template is on disk in the cloud assembly output directory.
+   * Returns undefined if not found (graceful fallback for older backends).
+   */
+  private readDeploymentTypeFromTemplate(): DeploymentType | undefined {
+    try {
+      const cdkOutDir = this.absoluteCloudAssemblyLocation;
+      const manifestPath = path.join(cdkOutDir, 'manifest.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+
+      for (const [, artifact] of Object.entries(manifest.artifacts)) {
+        if (
+          (artifact as Record<string, unknown>).type ===
+          'aws:cloudformation:stack'
+        ) {
+          const templateFile = path.join(
+            cdkOutDir,
+            (
+              artifact as {
+                properties: { templateFile: string };
+              }
+            ).properties.templateFile,
+          );
+          const template = JSON.parse(fs.readFileSync(templateFile, 'utf-8'));
+          const deploymentTypeOutput = template.Outputs?.deploymentType;
+          if (deploymentTypeOutput) {
+            return deploymentTypeOutput.Value as DeploymentType;
+          }
+        }
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Validates CLI args against the detected deployment type.
+   * Standalone deployments require ZERO flags; branch deployments require both --branch and --app-id.
+   * Called after synth but before CFN deploy.
+   */
+  private validateDeploymentArgs(
+    detectedType: DeploymentType,
+    deployProps?: DeployProps,
+  ): void {
+    const { branch, appId } = deployProps ?? {};
+
+    if (detectedType === 'standalone') {
+      if (branch && appId) {
+        throw new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --branch and --app-id were also specified.',
+          resolution:
+            'Remove all flags when using a custom App. Standalone deployments require zero CLI flags.',
+        });
+      }
+      if (appId) {
+        throw new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --app-id was also specified.',
+          resolution:
+            'Remove --app-id when using a custom App. Standalone deployments do not use Amplify Hosting.',
+        });
+      }
+      if (branch) {
+        throw new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --branch was also specified.',
+          resolution:
+            'Remove --branch when using a custom App. Standalone deployments do not use branch-based naming.',
+        });
+      }
+    } else {
+      if (!appId) {
+        throw new AmplifyUserError('InvalidCommandInputError', {
+          message:
+            '--app-id is required when backend.ts does not provide a custom CDK App to defineBackend().',
+          resolution:
+            'Provide --app-id for Amplify Hosting deployments, or pass a custom CDK App to defineBackend() for standalone deployments.',
+        });
+      }
+      if (!branch) {
+        throw new AmplifyUserError('InvalidCommandInputError', {
+          message:
+            '--branch is required when backend.ts does not provide a custom CDK App to defineBackend().',
+          resolution: 'Provide --branch for Amplify Hosting deployments.',
+        });
+      }
+    }
+  }
+
+  /**
+   * Resolves the BackendIdentifier from the detected deployment type and deploy props.
+   * - Standalone: returns a fixed identifier with namespace 'amplify' and name 'default'
+   * - Branch with both args: returns identifier from deploy props
+   * - Otherwise: falls back to the original backendId parameter
+   */
+  private resolveBackendId(
+    detectedType: DeploymentType | undefined,
+    deployProps: DeployProps | undefined,
+    fallback: BackendIdentifier,
+  ): BackendIdentifier {
+    if (detectedType === 'standalone') {
+      return { type: 'standalone', namespace: 'amplify', name: 'default' };
+    }
+    if (
+      detectedType === 'branch' &&
+      deployProps?.branch &&
+      deployProps?.appId
+    ) {
+      return {
+        type: 'branch',
+        namespace: deployProps.appId,
+        name: deployProps.branch,
+      };
+    }
+    return fallback;
+  }
 }

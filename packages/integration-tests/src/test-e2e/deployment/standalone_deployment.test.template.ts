@@ -22,8 +22,8 @@ import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
  * Defines standalone deployment test.
  *
  * Standalone test projects must have `new App()` passed to defineBackend()
- * in their backend.ts. They deploy using `ampx pipeline-deploy --branch main`
- * (no --app-id). The custom App triggers standalone mode automatically.
+ * in their backend.ts. They deploy using `ampx pipeline-deploy` with zero flags.
+ * The deployer detects standalone mode from the synthesized template automatically.
  */
 export const defineStandaloneDeploymentTest = (
   testProjectCreator: TestProjectCreator,

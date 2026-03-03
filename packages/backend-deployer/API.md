@@ -36,11 +36,14 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
+    branch?: string;
+    appId?: string;
 };
 
 // @public (undocumented)
 export type DeployResult = {
     deploymentTimes: DeploymentTimes;
+    backendId?: BackendIdentifier;
 };
 
 // @public (undocumented)

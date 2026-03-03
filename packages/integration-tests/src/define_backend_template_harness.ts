@@ -45,10 +45,9 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
 };
 
 /**
- * Synthesizes deterministic `defineBackend` CDK templates using a custom CDK App (Option E).
+ * Synthesizes deterministic `defineBackend` CDK templates using a custom CDK App.
  *
- * Instead of setting DEPLOYMENT_TYPE=standalone via CDK context, this injects a
- * customer-provided App into defineBackend(), which triggers standalone mode automatically.
+ * Injects a customer-provided App into defineBackend(), which triggers standalone mode automatically.
  */
 export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
   <T extends Record<string, ConstructFactory<ResourceProvider>>>(

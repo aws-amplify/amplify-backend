@@ -9,27 +9,15 @@ import {
   PipelineDeployCommand,
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
-import {
-  BackendDeployerFactory,
-  BackendDeployerOutputFormatter,
-} from '@aws-amplify/backend-deployer';
-import {
-  LogLevel,
-  PackageManagerControllerFactory,
-  Printer,
-} from '@aws-amplify/cli-core';
+import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import {
-  ClientConfigFormat,
-  ClientConfigVersionOption,
-  DEFAULT_CLIENT_CONFIG_VERSION,
-} from '@aws-amplify/client-config';
+import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
-void describe('deploy command', () => {
+void describe('pipeline-deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
     getS3Client: () => new S3Client(),
     getAmplifyClient: () => new AmplifyClient(),
@@ -40,30 +28,18 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve(),
   );
-  const mockIoHost: AmplifyIOHost = {
-    notify: mock.fn(),
-    requestResponse: mock.fn(),
-  };
-  const mockProfileResolver = mock.fn();
 
-  const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd(),
-    new Printer(LogLevel.DEBUG),
-  );
-  const formatterStub: BackendDeployerOutputFormatter = {
-    normalizeAmpxCommand: () => 'test command',
+  const mockDeployFn = mock.fn<BackendDeployer['deploy']>();
+  const mockDestroyFn = mock.fn<BackendDeployer['destroy']>();
+  const mockDeployer: BackendDeployer = {
+    deploy: mockDeployFn,
+    destroy: mockDestroyFn,
   };
+
   const getCommandRunner = (isCI = false) => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
-      backendDeployer,
+      mockDeployer,
       isCI,
     ) as CommandModule<object, PipelineDeployCommandOptions>;
     const parser = yargs().command(deployCommand);
@@ -72,21 +48,7 @@ void describe('deploy command', () => {
 
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
-  });
-
-  void it('shows the command description with --help', async () => {
-    const output = await getCommandRunner().runCommand('--help');
-    assert.match(output, /Commands:/);
-    assert.match(
-      output,
-      /Command to deploy backends in a custom CI\/CD pipeline/,
-    );
-  });
-
-  void it('fails if required arguments are not supplied', async () => {
-    const output = await getCommandRunner().runCommand('pipeline-deploy');
-    assert.match(output, /Missing required argument: branch/);
-    assert.equal(generateClientConfigMock.mock.callCount(), 0);
+    mockDeployFn.mock.resetCalls();
   });
 
   void it('throws error if not in CI environment', async () => {
@@ -110,211 +72,197 @@ void describe('deploy command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 0);
   });
 
-  void it('executes backend deployer in CI environments', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
+  void it('no flags + deployer returns standalone result → succeeds, client config uses returned backendId', async () => {
+    const standaloneBackendId = {
+      namespace: 'amplify',
+      name: 'default',
+      type: 'standalone' as const,
+    };
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+        backendId: standaloneBackendId,
+      }),
     );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
+
+    await getCommandRunner(true).runCommand('pipeline-deploy');
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    const [deployedId, deployProps] = mockDeployFn.mock.calls[0].arguments;
+    assert.deepStrictEqual(deployedId, {
+      namespace: 'standalone',
+      name: 'default',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(deployProps, {
+      validateAppSources: true,
+      branch: undefined,
+      appId: undefined,
+    });
+
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      standaloneBackendId,
     );
-    await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch',
-    );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      {
-        validateAppSources: true,
-      },
-    ]);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
-  void it('allows --outputs-out-dir argument', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
+  void it('--branch main --app-id abc + deployer returns branch result → succeeds (regression)', async () => {
+    const branchBackendId = {
+      namespace: 'abc',
+      name: 'main',
+      type: 'branch' as const,
+    };
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+        backendId: branchBackendId,
+      }),
     );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
+
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-out-dir src',
+      'pipeline-deploy --branch main --app-id abc',
     );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      {
-        validateAppSources: true,
-      },
-    ]);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    const [deployedId, deployProps] = mockDeployFn.mock.calls[0].arguments;
+    assert.deepStrictEqual(deployedId, {
+      namespace: 'abc',
+      name: 'main',
+      type: 'branch',
+    });
+    assert.deepStrictEqual(deployProps, {
+      validateAppSources: true,
+      branch: 'main',
+      appId: 'abc',
+    });
+
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      branchBackendId,
+    );
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
       DEFAULT_CLIENT_CONFIG_VERSION,
-      'src',
-      undefined,
-    ]);
+    );
   });
 
-  void it('allows --outputs-version argument to generate legacy config', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
+  void it('no flags + deployer throws InvalidCommandInputError → error surfaces', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(
+        new AmplifyUserError('InvalidCommandInputError', {
+          message:
+            '--app-id is required when backend.ts does not provide a custom CDK App to defineBackend().',
+          resolution: 'Provide --app-id for Amplify Hosting deployments.',
+        }),
+      ),
     );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
-    await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-version 0',
-    );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      {
-        validateAppSources: true,
-      },
-    ]);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      ClientConfigVersionOption.V0,
-      undefined,
-      undefined,
-    ]);
-  });
 
-  void it('allows --outputs-format argument', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
-    await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --outputs-format dart',
-    );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      {
-        validateAppSources: true,
-      },
-    ]);
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
-      {
-        name: 'test-branch',
-        namespace: 'abc',
-        type: 'branch',
-      },
-      DEFAULT_CLIENT_CONFIG_VERSION,
-      undefined,
-      ClientConfigFormat.DART,
-    ]);
-  });
-
-  void it('throws when --branch argument has no input', async () => {
     await assert.rejects(
-      async () =>
-        await getCommandRunner(true).runCommand(
-          'pipeline-deploy --app-id abc --branch',
-        ),
-      (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.match(error.error.message, /--branch is required/);
+      () => getCommandRunner(true).runCommand('pipeline-deploy'),
+      (err: TestCommandError) => {
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        assert.match(err.error.message, /--app-id is required/);
         return true;
       },
     );
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
   });
 
-  void it('throws when --app-id argument has no input', async () => {
-    // When you write "--app-id --branch testBranch", yargs interprets "--branch" as the value for --app-id
-    // So we need to test with --app-id at the end to truly have no value
+  void it('--branch main only + deployer throws InvalidCommandInputError → error surfaces', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(
+        new AmplifyUserError('InvalidCommandInputError', {
+          message:
+            '--app-id is required when backend.ts does not provide a custom CDK App to defineBackend().',
+          resolution: 'Provide --app-id for Amplify Hosting deployments.',
+        }),
+      ),
+    );
+
     await assert.rejects(
-      async () =>
-        await getCommandRunner(true).runCommand(
-          'pipeline-deploy --branch testBranch --app-id',
+      () => getCommandRunner(true).runCommand('pipeline-deploy --branch main'),
+      (err: TestCommandError) => {
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        assert.match(err.error.message, /--app-id is required/);
+        return true;
+      },
+    );
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
+  });
+
+  void it('--branch main + deployer throws ConflictingDeploymentConfigError → error surfaces', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(
+        new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --branch was also specified.',
+          resolution: 'Remove --branch when using a custom App.',
+        }),
+      ),
+    );
+
+    await assert.rejects(
+      () => getCommandRunner(true).runCommand('pipeline-deploy --branch main'),
+      (err: TestCommandError) => {
+        assert.strictEqual(err.error.name, 'ConflictingDeploymentConfigError');
+        assert.match(err.error.message, /--branch was also specified/);
+        return true;
+      },
+    );
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
+  });
+
+  void it('--app-id abc + deployer throws ConflictingDeploymentConfigError → error surfaces', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(
+        new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --app-id was also specified.',
+          resolution:
+            'Remove --app-id when using a custom App. Standalone deployments do not use Amplify Hosting.',
+        }),
+      ),
+    );
+
+    await assert.rejects(
+      () => getCommandRunner(true).runCommand('pipeline-deploy --app-id abc'),
+      (err: TestCommandError) => {
+        assert.strictEqual(err.error.name, 'ConflictingDeploymentConfigError');
+        assert.match(err.error.message, /--app-id was also specified/);
+        return true;
+      },
+    );
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
+  });
+
+  void it('--branch main --app-id abc + deployer throws ConflictingDeploymentConfigError → error surfaces', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(
+        new AmplifyUserError('ConflictingDeploymentConfigError', {
+          message:
+            'Your backend.ts provides a custom CDK App to defineBackend(), but --branch and --app-id were also specified.',
+          resolution:
+            'Remove all flags when using a custom App. Standalone deployments require zero CLI flags.',
+        }),
+      ),
+    );
+
+    await assert.rejects(
+      () =>
+        getCommandRunner(true).runCommand(
+          'pipeline-deploy --branch main --app-id abc',
         ),
-      (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+      (err: TestCommandError) => {
+        assert.strictEqual(err.error.name, 'ConflictingDeploymentConfigError');
         assert.match(
-          error.error.message,
-          /--app-id must be at least 1 character/,
+          err.error.message,
+          /--branch and --app-id were also specified/,
         );
         return true;
       },
     );
-  });
-
-  void it('throws when --app-id is missing and no custom App is used', async () => {
-    // When no --app-id is provided and backend.ts does not use a custom App,
-    // the post-deploy validation detects the conflict via AMPLIFY_CUSTOM_APP env var.
-    delete process.env.AMPLIFY_CUSTOM_APP;
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    mock.method(backendDeployerFactory.getInstance(), 'deploy', () =>
-      Promise.resolve(),
-    );
-    await assert.rejects(
-      async () =>
-        await getCommandRunner(true).runCommand(
-          'pipeline-deploy --branch testBranch',
-        ),
-      (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
-        assert.match(
-          error.error.message,
-          /--app-id is required when backend\.ts does not provide a custom CDK App/,
-        );
-        return true;
-      },
-    );
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
   });
 });

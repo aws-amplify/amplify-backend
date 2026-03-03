@@ -5,6 +5,7 @@
 ```ts
 
 import { a } from '@aws-amplify/data-schema';
+import { App } from 'aws-cdk-lib';
 import { AuthCfnResources } from '@aws-amplify/plugin-types';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
@@ -80,7 +81,7 @@ export { ConstructFactoryGetInstanceProps }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends DefineBackendProps>(constructFactories: T, app?: App) => Backend<T>;
 
 // @public (undocumented)
 export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {

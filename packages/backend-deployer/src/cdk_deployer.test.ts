@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
 import {
@@ -23,6 +23,7 @@ import {
   Toolkit,
 } from '@aws-cdk/toolkit-lib';
 import path from 'node:path';
+import fs from 'node:fs';
 
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -356,5 +357,453 @@ void describe('invokeCDKCommand', () => {
         return true;
       },
     );
+  });
+});
+
+void describe('readDeploymentTypeFromTemplate', () => {
+  const cdkOutDir = path.resolve(process.cwd(), '.amplify/artifacts/cdk.out');
+  const manifestPath = path.join(cdkOutDir, 'manifest.json');
+  const templatePath = path.join(cdkOutDir, 'AmplifyStack.template.json');
+
+  const branchBackendId: BackendIdentifier = {
+    namespace: '123',
+    name: 'testBranch',
+    type: 'branch',
+  };
+
+  const locateMock = mock.fn(() => 'amplify/backend.ts');
+  const backendLocator = { locate: locateMock } as unknown as BackendLocator;
+  const packageManagerControllerMock: PackageManagerController = {
+    initializeProject: mock.fn(() => Promise.resolve()),
+    initializeTsConfig: mock.fn(() => Promise.resolve()),
+    installDependencies: mock.fn(() => Promise.resolve()),
+    runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+    getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+    allowsSignalPropagation: () => true,
+    tryGetDependencies: mock.fn(() => Promise.resolve([])),
+  };
+
+  const mockIoHost: AmplifyIOHost = {
+    notify: mock.fn(),
+    requestResponse: mock.fn(),
+  };
+
+  const synthMock = mock.fn();
+  const deployMock = mock.fn();
+  const destroyMock = mock.fn();
+  const fromAssemblyBuilderMock = mock.fn();
+  const fromAssemblyDirectoryMock = mock.fn();
+  const cdkToolkit = {
+    synth: synthMock,
+    deploy: deployMock,
+    destroy: destroyMock,
+    fromAssemblyBuilder: fromAssemblyBuilderMock,
+    fromAssemblyDirectory: fromAssemblyDirectoryMock,
+  } as unknown as Toolkit;
+
+  const formatterStub: BackendDeployerOutputFormatter = {
+    normalizeAmpxCommand: () => 'test command',
+  };
+
+  const invoker = new CDKDeployer(
+    new CdkErrorMapper(formatterStub),
+    backendLocator,
+    packageManagerControllerMock as never,
+    cdkToolkit,
+    mockIoHost,
+  );
+
+  const tsCompilerMock = mock.method(invoker, 'compileProject', () => {});
+
+  const originalReadFileSync = fs.readFileSync;
+  const readFileSyncMock = mock.method(fs, 'readFileSync');
+
+  const makeManifest = (templateFile: string) =>
+    JSON.stringify({
+      artifacts: {
+        AmplifyStack: {
+          type: 'aws:cloudformation:stack',
+          properties: { templateFile },
+        },
+      },
+    });
+
+  const makeTemplate = (deploymentTypeValue?: string) => {
+    if (deploymentTypeValue === undefined) {
+      return JSON.stringify({ Outputs: {} });
+    }
+    return JSON.stringify({
+      Outputs: {
+        deploymentType: { Value: deploymentTypeValue },
+      },
+    });
+  };
+
+  /**
+   * Helper to set up readFileSync mock that intercepts manifest/template reads
+   * but passes through all other calls to the original implementation.
+   */
+  const setupFsMock = (fileMap: Record<string, string>) => {
+    readFileSyncMock.mock.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (...callArgs: any[]) => {
+        const filePath = callArgs[0];
+        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
+          return fileMap[filePath];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (originalReadFileSync as (...a: any[]) => any).apply(
+          fs,
+          callArgs,
+        );
+      },
+    );
+  };
+
+  afterEach(() => {
+    synthMock.mock.resetCalls();
+    deployMock.mock.resetCalls();
+    fromAssemblyBuilderMock.mock.resetCalls();
+    tsCompilerMock.mock.resetCalls();
+    readFileSyncMock.mock.resetCalls();
+    readFileSyncMock.mock.restore();
+  });
+
+  void it('returns standalone when template has deploymentType standalone', async () => {
+    setupFsMock({
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    // standalone + branch flag → should throw ConflictingDeploymentConfigError
+    // This proves readDeploymentTypeFromTemplate returned 'standalone'
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          branch: 'main',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'ConflictingDeploymentConfigError');
+        return true;
+      },
+    );
+    // Validation fires before CFN deploy
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('returns branch when template has deploymentType branch', async () => {
+    setupFsMock({
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('branch'),
+    });
+
+    // branch + both flags → should succeed (no validation error)
+    await invoker.deploy(branchBackendId, {
+      validateAppSources: true,
+      branch: 'main',
+      appId: 'abc',
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+  });
+
+  void it('returns undefined when template has no deploymentType output', async () => {
+    setupFsMock({
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate(undefined),
+    });
+
+    // No deploymentType detected → validation skipped → deploy proceeds
+    await invoker.deploy(branchBackendId, {
+      validateAppSources: true,
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+  });
+
+  void it('returns undefined when manifest.json is missing (graceful fallback)', async () => {
+    readFileSyncMock.mock.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (...callArgs: any[]) => {
+        const filePath = callArgs[0];
+        if (filePath === manifestPath) {
+          throw new Error('ENOENT: no such file or directory');
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (originalReadFileSync as (...a: any[]) => any).apply(
+          fs,
+          callArgs,
+        );
+      },
+    );
+
+    // Missing manifest → readDeploymentTypeFromTemplate returns undefined → validation skipped → deploy proceeds
+    await invoker.deploy(branchBackendId, {
+      validateAppSources: true,
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+  });
+});
+
+void describe('validateDeploymentArgs', () => {
+  const cdkOutDir = path.resolve(process.cwd(), '.amplify/artifacts/cdk.out');
+  const manifestPath = path.join(cdkOutDir, 'manifest.json');
+  const templatePath = path.join(cdkOutDir, 'AmplifyStack.template.json');
+
+  const branchBackendId: BackendIdentifier = {
+    namespace: '123',
+    name: 'testBranch',
+    type: 'branch',
+  };
+
+  const locateMock = mock.fn(() => 'amplify/backend.ts');
+  const backendLocator = { locate: locateMock } as unknown as BackendLocator;
+  const packageManagerControllerMock: PackageManagerController = {
+    initializeProject: mock.fn(() => Promise.resolve()),
+    initializeTsConfig: mock.fn(() => Promise.resolve()),
+    installDependencies: mock.fn(() => Promise.resolve()),
+    runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+    getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+    allowsSignalPropagation: () => true,
+    tryGetDependencies: mock.fn(() => Promise.resolve([])),
+  };
+
+  const mockIoHost: AmplifyIOHost = {
+    notify: mock.fn(),
+    requestResponse: mock.fn(),
+  };
+
+  const synthMock = mock.fn();
+  const deployMock = mock.fn();
+  const destroyMock = mock.fn();
+  const fromAssemblyBuilderMock = mock.fn();
+  const fromAssemblyDirectoryMock = mock.fn();
+  const cdkToolkit = {
+    synth: synthMock,
+    deploy: deployMock,
+    destroy: destroyMock,
+    fromAssemblyBuilder: fromAssemblyBuilderMock,
+    fromAssemblyDirectory: fromAssemblyDirectoryMock,
+  } as unknown as Toolkit;
+
+  const formatterStub: BackendDeployerOutputFormatter = {
+    normalizeAmpxCommand: () => 'test command',
+  };
+
+  const invoker = new CDKDeployer(
+    new CdkErrorMapper(formatterStub),
+    backendLocator,
+    packageManagerControllerMock as never,
+    cdkToolkit,
+    mockIoHost,
+  );
+
+  const tsCompilerMock = mock.method(invoker, 'compileProject', () => {});
+
+  const originalReadFileSync = fs.readFileSync;
+
+  const makeManifest = (templateFile: string) =>
+    JSON.stringify({
+      artifacts: {
+        AmplifyStack: {
+          type: 'aws:cloudformation:stack',
+          properties: { templateFile },
+        },
+      },
+    });
+
+  const makeTemplate = (deploymentTypeValue?: string) => {
+    if (deploymentTypeValue === undefined) {
+      return JSON.stringify({ Outputs: {} });
+    }
+    return JSON.stringify({
+      Outputs: {
+        deploymentType: { Value: deploymentTypeValue },
+      },
+    });
+  };
+
+  const setupFsMock = (
+    context: { mock: typeof mock },
+    fileMap: Record<string, string>,
+  ) => {
+    context.mock.method(
+      fs,
+      'readFileSync',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (...callArgs: any[]) => {
+        const filePath = callArgs[0];
+        if (typeof filePath === 'string' && fileMap[filePath] !== undefined)
+          return fileMap[filePath];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (originalReadFileSync as (...a: any[]) => any).apply(
+          fs,
+          callArgs,
+        );
+      },
+    );
+  };
+
+  afterEach(() => {
+    synthMock.mock.resetCalls();
+    deployMock.mock.resetCalls();
+    fromAssemblyBuilderMock.mock.resetCalls();
+    tsCompilerMock.mock.resetCalls();
+  });
+
+  void it('standalone + no flags → no error, deploy proceeds', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    await invoker.deploy(branchBackendId, {
+      validateAppSources: true,
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+  });
+
+  void it('standalone + --branch → ConflictingDeploymentConfigError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          branch: 'main',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'ConflictingDeploymentConfigError');
+        assert.match(err.message, /--branch was also specified/);
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('standalone + --app-id → ConflictingDeploymentConfigError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          appId: 'abc',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'ConflictingDeploymentConfigError');
+        assert.match(err.message, /--app-id was also specified/);
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('standalone + both flags → ConflictingDeploymentConfigError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          branch: 'main',
+          appId: 'abc',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'ConflictingDeploymentConfigError');
+        assert.match(err.message, /--branch and --app-id were also specified/);
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('branch + both flags → no error, deploy proceeds', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('branch'),
+    });
+
+    await invoker.deploy(branchBackendId, {
+      validateAppSources: true,
+      branch: 'main',
+      appId: 'abc',
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+  });
+
+  void it('branch + no --app-id → InvalidCommandInputError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('branch'),
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          branch: 'main',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'InvalidCommandInputError');
+        assert.match(err.message, /--app-id is required/);
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('branch + no --branch → InvalidCommandInputError', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('branch'),
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          appId: 'abc',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'InvalidCommandInputError');
+        assert.match(err.message, /--branch is required/);
+        return true;
+      },
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('validation fires BEFORE cdkToolkit.deploy() is called', async (context) => {
+    setupFsMock(context, {
+      [manifestPath]: makeManifest('AmplifyStack.template.json'),
+      [templatePath]: makeTemplate('standalone'),
+    });
+
+    // Pass a flag to standalone → should throw before deploy
+    await assert.rejects(
+      () =>
+        invoker.deploy(branchBackendId, {
+          validateAppSources: true,
+          branch: 'main',
+          appId: 'abc',
+        }),
+      (err: AmplifyUserError) => {
+        assert.equal(err.name, 'ConflictingDeploymentConfigError');
+        return true;
+      },
+    );
+
+    // Synth was called (validation happens after synth)
+    assert.strictEqual(synthMock.mock.callCount(), 1);
+    // Deploy was NOT called (validation fires before deploy)
+    assert.strictEqual(deployMock.mock.callCount(), 0);
   });
 });
