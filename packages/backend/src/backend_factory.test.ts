@@ -236,7 +236,10 @@ void describe('defineBackend with custom App', () => {
     const app = new App();
     const testConstructFactory = createTestConstructFactory();
 
-    const backend = defineBackend({ testConstructFactory }, app);
+    const backend = defineBackend(
+      { testConstructFactory },
+      { app, stackName: 'AmplifyStack' },
+    );
 
     // Should have created the stack inside the custom App
     assert.ok(backend.stack);
@@ -251,7 +254,7 @@ void describe('defineBackend with custom App', () => {
 
   void it('does not register branch linker when custom App is provided', () => {
     const app = new App();
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
 
     const rootStackTemplate = Template.fromStack(backend.stack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
@@ -259,7 +262,7 @@ void describe('defineBackend with custom App', () => {
 
   void it('stores attribution metadata as AmplifyStandalone when custom App is provided', () => {
     const app = new App();
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
 
     const rootStackTemplate = Template.fromStack(backend.stack);
     const description = JSON.parse(rootStackTemplate.toJSON().Description);
@@ -269,7 +272,7 @@ void describe('defineBackend with custom App', () => {
 
   void it('sets deployment type to standalone when custom App is provided', () => {
     const app = new App();
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
 
     const rootStackTemplate = Template.fromStack(backend.stack);
     // The platform output should contain deploymentType: 'standalone'
@@ -282,7 +285,10 @@ void describe('defineBackend with custom App', () => {
     const app = new App();
     const testConstructFactory = createTestConstructFactory();
 
-    const backend = defineBackend({ testConstructFactory }, app);
+    const backend = defineBackend(
+      { testConstructFactory },
+      { app, stackName: 'TestStack' },
+    );
 
     const bucketStack = Stack.of(backend.stack.node.findChild('test'));
     const rootStackTemplate = Template.fromStack(backend.stack);
@@ -300,13 +306,13 @@ void describe('defineBackend with custom App', () => {
     // Custom App with context values set directly on it should still work —
     // conflict detection is handled at the deployer level by reading the
     // synthesized template, not at the defineBackend level.
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
     assert.ok(backend.stack);
   });
 
   void it('registers amplifySynth listener when custom App is provided', () => {
     const app = new App();
-    defineBackend({}, app);
+    defineBackend({}, { app, stackName: 'TestStack' });
 
     // The listener should be registered. When 'amplifySynth' is emitted,
     // app.synth() should be called without throwing.
@@ -319,7 +325,7 @@ void describe('defineBackend with custom App', () => {
 
   void it('createStack works with custom App', () => {
     const app = new App();
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
 
     const customStack = backend.createStack('myCustomStack');
     assert.ok(customStack);
@@ -331,7 +337,7 @@ void describe('defineBackend with custom App', () => {
 
   void it('addOutput works with custom App', () => {
     const app = new App();
-    const backend = defineBackend({}, app);
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
 
     const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
       {
@@ -346,5 +352,27 @@ void describe('defineBackend with custom App', () => {
     rootStackTemplate.hasOutput('customOutputs', {
       Value: JSON.stringify(clientConfigPartial),
     });
+  });
+
+  void it('uses stackName as the CFN stack name', () => {
+    const app = new App();
+    const backend = defineBackend(
+      {},
+      { app, stackName: 'MyProductionBackend' },
+    );
+
+    assert.equal(backend.stack.node.id, 'MyProductionBackend');
+  });
+
+  void it('sets BACKEND_NAMESPACE and BACKEND_NAME context on the customer App', () => {
+    const app = new App();
+    defineBackend({}, { app, stackName: 'StagingStack' });
+
+    assert.equal(
+      app.node.tryGetContext('amplify-backend-namespace'),
+      'StagingStack',
+    );
+    assert.equal(app.node.tryGetContext('amplify-backend-name'), 'default');
+    assert.equal(app.node.tryGetContext('amplify-backend-type'), 'standalone');
   });
 });

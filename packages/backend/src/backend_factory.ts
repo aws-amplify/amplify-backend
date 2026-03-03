@@ -19,6 +19,8 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import {
@@ -148,32 +150,67 @@ export class BackendFactory<
 }
 
 /**
+ * Options for standalone deployment mode.
+ * Pass to `defineBackend` as the second argument to deploy without Amplify Hosting.
+ */
+export type StandaloneConfig = {
+  /** CDK App instance that owns the synthesis lifecycle. */
+  app: App;
+  /**
+   * CloudFormation stack name.
+   * This becomes the actual CFN stack name in your AWS account.
+   */
+  stackName: string;
+};
+
+/**
  * Creates a new Amplify backend instance and returns it.
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
- * @param app - optional CDK App instance. When provided, the backend uses standalone deployment mode
- *   (no Amplify Hosting, no App ID required). This enables `cdk deploy` as an alternative to `ampx pipeline-deploy`.
+ * @param standalone - optional StandaloneConfig. When provided, the backend uses standalone
+ *   deployment mode (no Amplify Hosting, no App ID required).
+ *   Both `app` and `stackName` are required.
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
-  app?: App,
+  standalone?: StandaloneConfig,
 ): Backend<T> => {
   let stack: Stack;
-  if (app) {
+  if (standalone) {
+    const { app, stackName } = standalone;
+
     // Set CDK context on the customer's App so all downstream constructs
     // (auth-construct, backend-data, backend-output-storage, etc.) see
-    // consistent 'standalone' deployment type via tryGetContext().
+    // consistent deployment metadata via tryGetContext().
+    // BACKEND_NAMESPACE = stackName ensures unique SSM parameter paths per
+    // deployment (e.g. staging vs production on the same AWS account).
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'standalone');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, stackName);
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'default');
 
     // Customer-provided CDK App — create a stack within it.
-    stack = new Stack(app, 'AmplifyStack');
+    stack = new Stack(app, stackName);
+
+    // The deployer reads synthesized templates from '.amplify/artifacts/cdk.out/'.
+    // We must synth the customer's App to that same directory.
+    const amplifyOutdir = path.resolve(
+      process.cwd(),
+      '.amplify/artifacts/cdk.out',
+    );
 
     // Register the synth listener so the deployer can trigger synthesis.
     // The deployer emits 'amplifySynth' after importing backend.ts.
     // Without this, the customer's App never gets synthesized and the
     // deployer fails with ENOENT on manifest.json.
     process.once('message', (message) => {
-      if (message === 'amplifySynth') {
-        app.synth({ errorOnDuplicateSynth: false });
+      if (message !== 'amplifySynth') {
+        return;
+      }
+      const assembly = app.synth({ errorOnDuplicateSynth: false });
+      // Copy synth output to the deployer's expected location if different.
+      // App.outdir is readonly (set at construction), so we copy after synth.
+      if (path.resolve(assembly.directory) !== amplifyOutdir) {
+        fs.mkdirSync(amplifyOutdir, { recursive: true });
+        fs.cpSync(assembly.directory, amplifyOutdir, { recursive: true });
       }
     });
   } else {

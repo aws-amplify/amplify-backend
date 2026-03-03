@@ -39,7 +39,7 @@ void describe('getBackendIdentifier', () => {
     });
   });
 
-  void it('returns standalone fallback with namespace "amplify" when node.id is "AmplifyStack" and no context', () => {
+  void it('returns standalone fallback with stack name as namespace when node.id is "AmplifyStack" and no context', () => {
     const app = new App();
     const stack = new Stack(app, 'AmplifyStack');
 
@@ -47,7 +47,7 @@ void describe('getBackendIdentifier', () => {
 
     assert.deepStrictEqual(result, {
       type: 'standalone',
-      namespace: 'amplify',
+      namespace: 'AmplifyStack',
       name: 'default',
     });
   });

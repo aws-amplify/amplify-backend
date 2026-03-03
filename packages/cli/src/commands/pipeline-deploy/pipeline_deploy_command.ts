@@ -81,10 +81,16 @@ export class PipelineDeployCommand
       appId: args.appId,
     });
 
-    // Use resolved identifier from deploy result for client config
-    const resolvedId = result.backendId ?? backendId;
+    // For standalone, use the actual CFN stack name (e.g. 'AmplifyStack')
+    // since the customer owns the stack name and it doesn't follow Amplify
+    // naming conventions. For branch deploys, use the resolved BackendIdentifier.
+    const clientConfigIdentifier =
+      result.stackName && result.backendId?.type === 'standalone'
+        ? { stackName: result.stackName }
+        : (result.backendId ?? backendId);
+
     await this.clientConfigGenerator.generateClientConfigToFile(
-      resolvedId,
+      clientConfigIdentifier,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
       args.outputsFormat,

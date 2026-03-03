@@ -107,6 +107,31 @@ void describe('pipeline-deploy command', () => {
     );
   });
 
+  void it('no flags + deployer returns standalone with stackName → client config uses StackIdentifier', async () => {
+    const standaloneBackendId = {
+      namespace: 'amplify',
+      name: 'default',
+      type: 'standalone' as const,
+    };
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+        backendId: standaloneBackendId,
+        stackName: 'AmplifyStack',
+      }),
+    );
+
+    await getCommandRunner(true).runCommand('pipeline-deploy');
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
+    // When stackName is present and type is standalone, use { stackName } for client config
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments[0],
+      { stackName: 'AmplifyStack' },
+    );
+  });
+
   void it('--branch main --app-id abc + deployer returns branch result → succeeds (regression)', async () => {
     const branchBackendId = {
       namespace: 'abc',

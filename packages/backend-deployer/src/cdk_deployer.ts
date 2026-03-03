@@ -100,7 +100,8 @@ export class CDKDeployer implements BackendDeployer {
     });
 
     // Read deployment type from synthesized template (after synth, before deploy)
-    const detectedType = this.readDeploymentTypeFromTemplate();
+    const { deploymentType: detectedType, stackName: actualStackName } =
+      this.readDeploymentMetadataFromTemplate();
 
     // Validate CLI args against detected type (pipeline-deploy only)
     if (detectedType !== undefined && deployProps?.validateAppSources) {
@@ -185,7 +186,13 @@ export class CDKDeployer implements BackendDeployer {
           synthTimeSeconds +
           Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
-      backendId: this.resolveBackendId(detectedType, deployProps, backendId),
+      backendId: this.resolveBackendId(
+        detectedType,
+        deployProps,
+        backendId,
+        actualStackName,
+      ),
+      stackName: actualStackName,
     };
   };
 
@@ -274,17 +281,20 @@ export class CDKDeployer implements BackendDeployer {
     );
   };
   /**
-   * Reads the deploymentType from the synthesized CloudFormation template.
+   * Reads deployment metadata from the synthesized CloudFormation template.
    * After synth, the template is on disk in the cloud assembly output directory.
-   * Returns undefined if not found (graceful fallback for older backends).
+   * Returns the deployment type and the actual CFN stack name from the manifest.
    */
-  private readDeploymentTypeFromTemplate(): DeploymentType | undefined {
+  private readDeploymentMetadataFromTemplate(): {
+    deploymentType: DeploymentType | undefined;
+    stackName: string | undefined;
+  } {
     try {
       const cdkOutDir = this.absoluteCloudAssemblyLocation;
       const manifestPath = path.join(cdkOutDir, 'manifest.json');
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
 
-      for (const [, artifact] of Object.entries(manifest.artifacts)) {
+      for (const [artifactId, artifact] of Object.entries(manifest.artifacts)) {
         if (
           (artifact as Record<string, unknown>).type ===
           'aws:cloudformation:stack'
@@ -300,13 +310,16 @@ export class CDKDeployer implements BackendDeployer {
           const template = JSON.parse(fs.readFileSync(templateFile, 'utf-8'));
           const deploymentTypeOutput = template.Outputs?.deploymentType;
           if (deploymentTypeOutput) {
-            return deploymentTypeOutput.Value as DeploymentType;
+            return {
+              deploymentType: deploymentTypeOutput.Value as DeploymentType,
+              stackName: artifactId,
+            };
           }
         }
       }
-      return undefined;
+      return { deploymentType: undefined, stackName: undefined };
     } catch {
-      return undefined;
+      return { deploymentType: undefined, stackName: undefined };
     }
   }
 
@@ -375,9 +388,14 @@ export class CDKDeployer implements BackendDeployer {
     detectedType: DeploymentType | undefined,
     deployProps: DeployProps | undefined,
     fallback: BackendIdentifier,
+    stackName: string | undefined,
   ): BackendIdentifier {
     if (detectedType === 'standalone') {
-      return { type: 'standalone', namespace: 'amplify', name: 'default' };
+      return {
+        type: 'standalone',
+        namespace: stackName ?? 'amplify',
+        name: 'default',
+      };
     }
     if (
       detectedType === 'branch' &&

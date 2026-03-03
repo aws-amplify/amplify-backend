@@ -44,6 +44,7 @@ export type DeployProps = {
 export type DeployResult = {
     deploymentTimes: DeploymentTimes;
     backendId?: BackendIdentifier;
+    stackName?: string;
 };
 
 // @public (undocumented)
