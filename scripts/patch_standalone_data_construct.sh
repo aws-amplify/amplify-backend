@@ -17,7 +17,15 @@ for file in "${FILES[@]}"; do
     if grep -q "case 'standalone':" "$file"; then
       continue
     fi
-    sed -i.bak "s/case 'sandbox':/case 'standalone': return 'AmplifyStandalone'; case 'sandbox':/" "$file"
-    rm -f "${file}.bak"
+    # Use node for cross-platform file manipulation (sed behaves differently on Windows/macOS/Linux)
+    node -e "
+      const fs = require('fs');
+      const content = fs.readFileSync('$file', 'utf-8');
+      const patched = content.replace(
+        \"case 'sandbox':\",
+        \"case 'standalone': return 'AmplifyStandalone';\n            case 'sandbox':\"
+      );
+      fs.writeFileSync('$file', patched);
+    "
   fi
 done
