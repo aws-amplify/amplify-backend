@@ -4,7 +4,8 @@ import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 
 /**
  * Populates a backend identifier based on CDK context values.
- * Falls back to standalone mode when context is absent.
+ * Falls back to standalone mode only when no context keys are set at all.
+ * Throws on partial context.
  */
 export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
   const backendNamespace = scope.node.tryGetContext(
@@ -15,12 +16,12 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     CDKContextKey.DEPLOYMENT_TYPE,
   );
 
-  // If all context values are present, use the standard Amplify CLI path
-  if (
-    typeof backendNamespace === 'string' &&
-    typeof backendName === 'string' &&
-    typeof deploymentType === 'string'
-  ) {
+  const hasNamespace = typeof backendNamespace === 'string';
+  const hasName = typeof backendName === 'string';
+  const hasType = typeof deploymentType === 'string';
+
+  // All context present — standard Amplify CLI path.
+  if (hasNamespace && hasName && hasType) {
     const expectedDeploymentTypeValues = ['sandbox', 'branch', 'standalone'];
     if (!expectedDeploymentTypeValues.includes(deploymentType)) {
       throw new Error(
@@ -38,11 +39,29 @@ export const getBackendIdentifier = (scope: Construct): BackendIdentifier => {
     };
   }
 
-  // No context values — standalone fallback for pure `cdk deploy` usage.
-  const nodeId = scope.node.id;
-  return {
-    type: 'standalone',
-    namespace: nodeId || 'amplify',
-    name: 'default',
-  };
+  // No context at all — standalone fallback for pure `cdk deploy` usage.
+  if (!hasNamespace && !hasName && !hasType) {
+    const nodeId = scope.node.id;
+    return {
+      type: 'standalone',
+      namespace: nodeId || 'amplify',
+      name: 'default',
+    };
+  }
+
+  // Partial context — throw for the first missing key.
+  if (!hasNamespace) {
+    throw new Error(
+      `No context value present for ${CDKContextKey.BACKEND_NAMESPACE} key`,
+    );
+  }
+  if (!hasName) {
+    throw new Error(
+      `No context value present for ${CDKContextKey.BACKEND_NAME} key`,
+    );
+  }
+  // !hasType
+  throw new Error(
+    `No context value present for ${CDKContextKey.DEPLOYMENT_TYPE} key`,
+  );
 };
