@@ -222,8 +222,16 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ([triggerEvent, handlerOrConfig]) => {
         if (
           typeof handlerOrConfig === 'object' &&
+          'handler' in handlerOrConfig &&
           'version' in handlerOrConfig
         ) {
+          if (triggerEvent !== 'preTokenGeneration') {
+            throw new AmplifyUserError('InvalidTriggerConfigError', {
+              message: `Versioned trigger configuration is only supported for "preTokenGeneration", but was provided for "${triggerEvent}"`,
+              resolution:
+                'Use a direct handler reference for this trigger event, or move the versioned configuration to "preTokenGeneration"',
+            });
+          }
           const versionMap: Record<PreTokenGenerationVersion, LambdaVersion> = {
             v1_0: LambdaVersion.V1_0,
             v2_0: LambdaVersion.V2_0,
