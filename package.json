@@ -22,6 +22,7 @@
     "live-dependency-health-checks": "npm run test:dir packages/integration-tests/lib/test-live-dependency-health-checks",
     "new": "tsx scripts/copy_template.ts",
     "prepare": "husky",
+    "postinstall": "bash scripts/patch_standalone_data_construct.sh",
     "publish": "tsx scripts/publish.ts",
     "publish:local": "tsx scripts/publish_local.ts",
     "publish:snapshot": "tsx scripts/publish_snapshot.ts",

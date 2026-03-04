@@ -6,7 +6,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { BackendFactory } from './backend_factory.js';
+import { BackendFactory, defineBackend } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -24,6 +24,10 @@ const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
     case 'branch':
       app.node.setContext('amplify-backend-name', 'testEnvName');
       app.node.setContext('amplify-backend-namespace', 'testBackendId');
+      break;
+    case 'standalone':
+      app.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      app.node.setContext('amplify-backend-name', 'main');
       break;
   }
 
@@ -210,3 +214,158 @@ void describe('Backend', () => {
 });
 
 type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;
+
+const createTestConstructFactory =
+  (): ConstructFactory<TestResourceProvider> => ({
+    getInstance: ({ constructContainer }) => {
+      return constructContainer.getOrCompute({
+        resourceGroupName: 'test',
+        generateContainerEntry: ({ scope }) => {
+          return {
+            resources: {
+              bucket: new Bucket(scope, 'test-bucket'),
+            },
+          };
+        },
+      }) as TestResourceProvider;
+    },
+  });
+
+void describe('defineBackend with custom App', () => {
+  void it('creates backend in standalone mode when custom App is provided', () => {
+    const app = new App();
+    const testConstructFactory = createTestConstructFactory();
+
+    const backend = defineBackend(
+      { testConstructFactory },
+      { app, stackName: 'AmplifyStack' },
+    );
+
+    // Should have created the stack inside the custom App
+    assert.ok(backend.stack);
+    assert.equal(backend.stack.node.id, 'AmplifyStack');
+
+    // Verify the construct was created
+    assert.equal(
+      backend.testConstructFactory.resources.bucket.node.id,
+      'test-bucket',
+    );
+  });
+
+  void it('does not register branch linker when custom App is provided', () => {
+    const app = new App();
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+
+    const rootStackTemplate = Template.fromStack(backend.stack);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('stores attribution metadata as AmplifyStandalone when custom App is provided', () => {
+    const app = new App();
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+
+    const rootStackTemplate = Template.fromStack(backend.stack);
+    const description = JSON.parse(rootStackTemplate.toJSON().Description);
+    assert.equal(description.createdBy, 'AmplifyStandalone');
+    assert.equal(description.stackType, 'root');
+  });
+
+  void it('sets deployment type to standalone when custom App is provided', () => {
+    const app = new App();
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+
+    const rootStackTemplate = Template.fromStack(backend.stack);
+    // The platform output should contain deploymentType: 'standalone'
+    rootStackTemplate.hasOutput('deploymentType', {
+      Value: 'standalone',
+    });
+  });
+
+  void it('initializes constructs correctly with custom App', () => {
+    const app = new App();
+    const testConstructFactory = createTestConstructFactory();
+
+    const backend = defineBackend(
+      { testConstructFactory },
+      { app, stackName: 'TestStack' },
+    );
+
+    const bucketStack = Stack.of(backend.stack.node.findChild('test'));
+    const rootStackTemplate = Template.fromStack(backend.stack);
+    rootStackTemplate.resourceCountIs('AWS::CloudFormation::Stack', 1);
+
+    const bucketStackTemplate = Template.fromStack(bucketStack);
+    bucketStackTemplate.resourceCountIs('AWS::S3::Bucket', 1);
+  });
+
+  void it('does not throw when custom App has CLI context values', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-namespace', 'testAppId');
+    app.node.setContext('amplify-backend-name', 'testBranch');
+
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+    assert.ok(backend.stack);
+  });
+
+  void it('registers amplifySynth listener', () => {
+    const app = new App();
+    defineBackend({}, { app, stackName: 'TestStack' });
+
+    assert.doesNotThrow(() => {
+      process.emit('message', 'amplifySynth', undefined);
+    });
+  });
+
+  void it('createStack works with custom App', () => {
+    const app = new App();
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+
+    const customStack = backend.createStack('myCustomStack');
+    assert.ok(customStack);
+    assert.strictEqual(
+      backend.stack.node.findChild('myCustomStack'),
+      customStack,
+    );
+  });
+
+  void it('addOutput works with custom App', () => {
+    const app = new App();
+    const backend = defineBackend({}, { app, stackName: 'TestStack' });
+
+    const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
+      {
+        version: '1.4',
+        custom: {
+          someOutput: 'someValue',
+        },
+      };
+    backend.addOutput(clientConfigPartial);
+
+    const rootStackTemplate = Template.fromStack(backend.stack);
+    rootStackTemplate.hasOutput('customOutputs', {
+      Value: JSON.stringify(clientConfigPartial),
+    });
+  });
+
+  void it('uses stackName as the CFN stack name', () => {
+    const app = new App();
+    const backend = defineBackend(
+      {},
+      { app, stackName: 'MyProductionBackend' },
+    );
+
+    assert.equal(backend.stack.node.id, 'MyProductionBackend');
+  });
+
+  void it('sets BACKEND_NAMESPACE and BACKEND_NAME context on the customer App', () => {
+    const app = new App();
+    defineBackend({}, { app, stackName: 'StagingStack' });
+
+    assert.equal(
+      app.node.tryGetContext('amplify-backend-namespace'),
+      'StagingStack',
+    );
+    assert.equal(app.node.tryGetContext('amplify-backend-name'), 'default');
+    assert.equal(app.node.tryGetContext('amplify-backend-type'), 'standalone');
+  });
+});

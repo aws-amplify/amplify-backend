@@ -7,6 +7,7 @@ if (isBrowser()) {
 }
 
 export { defineBackend } from './backend_factory.js';
+export type { StandaloneConfig } from './backend_factory.js';
 export * from './backend.js';
 export * from './secret.js';
 

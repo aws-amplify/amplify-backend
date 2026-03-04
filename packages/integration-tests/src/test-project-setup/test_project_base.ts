@@ -81,6 +81,13 @@ export abstract class TestProjectBase {
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .run();
+    } else if (backendIdentifier.type === 'standalone') {
+      await ampxCli(['pipeline-deploy'], this.projectDirPath, {
+        env: {
+          CI: 'true',
+          ...environment,
+        },
+      }).run();
     } else {
       await ampxCli(
         [

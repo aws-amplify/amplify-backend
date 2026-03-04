@@ -2,7 +2,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { CDKContextKey } from '@aws-amplify/platform-core';
 import { defineBackend } from '@aws-amplify/backend';
-import { Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 
@@ -43,6 +43,60 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
     delete process.env.CDK_CONTEXT_JSON;
   }
 };
+
+/**
+ * Synthesizes `defineBackend` CDK templates using standalone mode (custom CDK App).
+ */
+export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
+  <T extends Record<string, ConstructFactory<ResourceProvider>>>(
+    constructFactories: T,
+  ) => {
+    if (Object.keys(constructFactories).length === 0) {
+      throw new Error('constructFactories must have at least one entry');
+    }
+    const app = new App();
+    const backend = defineBackend(constructFactories, {
+      app,
+      stackName: 'StandaloneTestStack',
+    });
+
+    // find some construct in the backend to compute the root stack from
+    const firstResourceProvider = backend[Object.keys(constructFactories)[0]];
+    const firstConstruct = Object.values(firstResourceProvider.resources).find(
+      (value) => value instanceof Construct,
+    );
+
+    if (!firstConstruct) {
+      throw new Error(
+        'Could not find a construct to compute the root stack from',
+      );
+    }
+
+    const result = {
+      root: Template.fromStack(backend.stack),
+    } as Partial<{ [K in keyof T]: Template }> & { root: Template };
+
+    for (const [key, resourceRecord] of Object.entries(backend)) {
+      if (typeof resourceRecord === 'function') {
+        continue;
+      }
+      if (!('resources' in resourceRecord)) {
+        continue;
+      }
+      const firstConstruct = Object.values(resourceRecord.resources).find(
+        (value) => value instanceof Construct,
+      );
+      if (!firstConstruct) {
+        throw new Error(
+          'Could not find a construct in the resources exposed by resourceRecord',
+        );
+      }
+      result[key as keyof T] = Template.fromStack(
+        Stack.of(firstConstruct),
+      ) as never;
+    }
+    return result as { [K in keyof T]: Template } & { root: Template };
+  };
 
 const backendTemplatesCollector: SynthesizeBackendTemplates = <
   T extends Record<string, ConstructFactory<ResourceProvider>>,

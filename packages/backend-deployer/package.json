@@ -31,6 +31,9 @@
     "@aws-cdk/toolkit-lib": "1.16.0",
     "minimatch": "10.0.1"
   },
+  "devDependencies": {
+    "fast-check": "^4.5.3"
+  },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
     "typescript": "^5.0.0"

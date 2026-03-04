@@ -3,7 +3,7 @@ import {
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -14,10 +14,13 @@ import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
+import { CDKContextKey, ObjectAccumulator } from '@aws-amplify/platform-core';
 import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import {
@@ -25,7 +28,6 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -148,13 +150,56 @@ export class BackendFactory<
 }
 
 /**
- * Creates a new Amplify backend instance and returns it
+ * Options for standalone deployment mode.
+ */
+export type StandaloneConfig = {
+  /** CDK App instance that owns the synthesis lifecycle. */
+  app: App;
+  /** CloudFormation stack name. */
+  stackName: string;
+};
+
+/**
+ * Creates a new Amplify backend instance and returns it.
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
+ * @param standalone - optional StandaloneConfig for deploying without Amplify Hosting.
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
+  standalone?: StandaloneConfig,
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  let stack: Stack;
+  if (standalone) {
+    const { app, stackName } = standalone;
+
+    // Set CDK context so downstream constructs see standalone deployment metadata.
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'standalone');
+    app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, stackName);
+    app.node.setContext(CDKContextKey.BACKEND_NAME, 'default');
+
+    stack = new Stack(app, stackName);
+
+    const amplifyOutdir = path.resolve(
+      process.cwd(),
+      '.amplify/artifacts/cdk.out',
+    );
+
+    // The deployer emits 'amplifySynth' after importing backend.ts to trigger synthesis.
+    process.once('message', (message) => {
+      if (message !== 'amplifySynth') {
+        return;
+      }
+      const assembly = app.synth({ errorOnDuplicateSynth: false });
+      if (path.resolve(assembly.directory) !== amplifyOutdir) {
+        fs.mkdirSync(amplifyOutdir, { recursive: true });
+        fs.cpSync(assembly.directory, amplifyOutdir, { recursive: true });
+      }
+    });
+  } else {
+    // Standard Amplify CLI path — create the default stack from CDK context.
+    stack = createDefaultStack();
+  }
+  const backend = new BackendFactory(constructFactories, stack);
   return {
     ...backend.resources,
     createStack: backend.createStack,

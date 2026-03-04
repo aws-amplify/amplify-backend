@@ -62,6 +62,9 @@ runs:
       if: inputs.link_cli == 'true'
       shell: bash
       run: cd packages/cli && npm link
+    - name: Patch data-construct for standalone support
+      shell: bash
+      run: bash scripts/patch_standalone_data_construct.sh
     - name: Select E2E test account
       uses: ./.github/actions/select_e2e_account
       id: selectE2EAccount

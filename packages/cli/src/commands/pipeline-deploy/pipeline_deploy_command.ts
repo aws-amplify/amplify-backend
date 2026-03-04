@@ -17,8 +17,8 @@ export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
 
 type PipelineDeployCommandOptionsCamelCase = {
-  branch: string;
-  appId: string;
+  branch?: string;
+  appId?: string;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
@@ -69,16 +69,26 @@ export class PipelineDeployCommand
       });
     }
 
-    const backendId: BackendIdentifier = {
-      namespace: args.appId,
-      name: args.branch,
-      type: 'branch',
-    };
-    await this.backendDeployer.deploy(backendId, {
+    // Build placeholder identifier from CLI args
+    const backendId: BackendIdentifier =
+      args.appId && args.branch
+        ? { namespace: args.appId, name: args.branch, type: 'branch' }
+        : { namespace: 'standalone', name: 'default', type: 'standalone' };
+
+    const result = await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
+      branch: args.branch,
+      appId: args.appId,
     });
+
+    // For standalone, use the CFN stack name for client config generation.
+    const clientConfigIdentifier =
+      result.stackName && result.backendId?.type === 'standalone'
+        ? { stackName: result.stackName }
+        : (result.backendId ?? backendId);
+
     await this.clientConfigGenerator.generateClientConfigToFile(
-      backendId,
+      clientConfigIdentifier,
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
       args.outputsFormat,
@@ -90,13 +100,14 @@ export class PipelineDeployCommand
       .version(false)
       .option('branch', {
         describe: 'Name of the git branch being deployed',
-        demandOption: true,
+        demandOption: false,
         type: 'string',
         array: false,
       })
       .option('app-id', {
-        describe: 'The app id of the target Amplify app',
-        demandOption: true,
+        describe:
+          'The app id of the target Amplify app. Required for Amplify Hosting deployments, must be omitted when backend.ts uses a custom CDK App.',
+        demandOption: false,
         type: 'string',
         array: false,
       })
@@ -119,15 +130,6 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigFormat),
-      })
-      .check(async (argv) => {
-        if (argv['branch'].length === 0 || argv['app-id'].length === 0) {
-          throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --branch or --app-id',
-            resolution: '--branch and --app-id must be at least 1 character',
-          });
-        }
-        return true;
       });
   };
 }

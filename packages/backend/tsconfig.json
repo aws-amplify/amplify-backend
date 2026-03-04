@@ -3,8 +3,8 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../backend-auth" },
-    { "path": "../backend-function" },
     { "path": "../backend-data" },
+    { "path": "../backend-function" },
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
     { "path": "../backend-secret" },
