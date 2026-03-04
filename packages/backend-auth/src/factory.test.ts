@@ -262,6 +262,129 @@ void describe('AmplifyAuthFactory', () => {
     });
   });
 
+  void it('resolves preTokenGeneration trigger with v2_0 version using object form', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_22_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      triggers: {
+        preTokenGeneration: { handler: funcStub, version: 'v2_0' },
+      },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        PreTokenGenerationConfig: {
+          LambdaArn: { Ref: Match.stringLikeRegexp('testFunc') },
+          LambdaVersion: 'V2_0',
+        },
+      },
+    });
+  });
+
+  void it('resolves preTokenGeneration trigger with v3_0 version using object form', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_22_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      triggers: {
+        preTokenGeneration: { handler: funcStub, version: 'v3_0' },
+      },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        PreTokenGenerationConfig: {
+          LambdaArn: { Ref: Match.stringLikeRegexp('testFunc') },
+          LambdaVersion: 'V3_0',
+        },
+      },
+    });
+  });
+
+  void it('resolves preTokenGeneration trigger with v1_0 version using object form', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_22_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      triggers: {
+        preTokenGeneration: { handler: funcStub, version: 'v1_0' },
+      },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        PreTokenGenerationConfig: {
+          LambdaArn: { Ref: Match.stringLikeRegexp('testFunc') },
+          LambdaVersion: 'V1_0',
+        },
+      },
+    });
+  });
+
   void describe('getResourceAccessAcceptor', () => {
     void it('attaches policies to the authenticated role', () => {
       const backendAuth = authFactory.getInstance(getInstanceProps);
