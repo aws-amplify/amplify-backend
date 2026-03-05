@@ -8,6 +8,10 @@ if (isBrowser()) {
 
 export { defineBackend } from './backend_factory.js';
 export type { StandaloneConfig } from './backend_factory.js';
+export { defineFrontend, getContext } from './frontend_factory.js';
+export type { FrontendConfig } from './frontend_factory.js';
+export { definePipeline } from './pipeline_factory.js';
+export type { PipelineConfig, PipelineStage } from './pipeline_factory.js';
 export * from './backend.js';
 export * from './secret.js';
 

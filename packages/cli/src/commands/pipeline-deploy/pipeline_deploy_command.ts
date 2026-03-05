@@ -12,6 +12,8 @@ import {
 } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { format } from '@aws-amplify/cli-core';
+import { FrontendDeployer } from './frontend_deployer.js';
+import { PipelineStackDeployer } from './pipeline_stack_deployer.js';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -19,6 +21,8 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch?: string;
   appId?: string;
+  infrastructure?: boolean;
+  pipeline?: boolean;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
@@ -30,19 +34,12 @@ type PipelineDeployCommandOptionsCamelCase = {
 export class PipelineDeployCommand
   implements CommandModule<object, PipelineDeployCommandOptions>
 {
-  /**
-   * @inheritDoc
-   */
+  /** @inheritDoc */
   readonly command: string;
-
-  /**
-   * @inheritDoc
-   */
+  /** @inheritDoc */
   readonly describe: string;
 
-  /**
-   * Creates top level entry point for deploy command.
-   */
+  /** Creates top level entry point for deploy command. */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendDeployer: BackendDeployer,
@@ -53,12 +50,16 @@ export class PipelineDeployCommand
       'Command to deploy backends in a custom CI/CD pipeline. This command is not intended to be used locally.';
   }
 
-  /**
-   * @inheritDoc
-   */
   handler = async (
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>,
   ): Promise<void> => {
+    // --pipeline can be run locally (it deploys the pipeline stack, not the app)
+    if (args.pipeline) {
+      const pipelineDeployer = new PipelineStackDeployer();
+      await pipelineDeployer.deployPipeline(process.cwd());
+      return;
+    }
+
     if (!this.isCiEnvironment) {
       throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
         message:
@@ -93,6 +94,12 @@ export class PipelineDeployCommand
       args.outputsOutDir,
       args.outputsFormat,
     );
+
+    // Deploy frontend if --infrastructure is set
+    if (args.infrastructure) {
+      const frontendDeployer = new FrontendDeployer();
+      await frontendDeployer.deployFrontend(process.cwd());
+    }
   };
 
   builder = (yargs: Argv): Argv<PipelineDeployCommandOptions> => {
@@ -110,6 +117,20 @@ export class PipelineDeployCommand
         demandOption: false,
         type: 'string',
         array: false,
+      })
+      .option('infrastructure', {
+        describe:
+          'Deploy backend + frontend infrastructure. Deploys amplify/frontend.ts if present.',
+        demandOption: false,
+        type: 'boolean',
+        default: false,
+      })
+      .option('pipeline', {
+        describe:
+          'Deploy the CI/CD pipeline defined in amplify/pipeline.ts. Can be run locally.',
+        demandOption: false,
+        type: 'boolean',
+        default: false,
       })
       .option('outputs-out-dir', {
         describe:

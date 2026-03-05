@@ -90,15 +90,51 @@ export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvide
 
 export { defineData }
 
+// @public
+export const defineFrontend: (config: FrontendConfig) => void;
+
 export { defineFunction }
 
+// @public
+export const definePipeline: (config: PipelineConfig) => void;
+
 export { defineStorage }
+
+// @public (undocumented)
+export type FrontendConfig = {
+    stackName: string;
+    buildCommand: string;
+    buildOutputDir: string;
+};
 
 export { FunctionResources }
 
 export { GenerateContainerEntryProps }
 
+// @public (undocumented)
+export const getContext: () => {
+    stage: string;
+};
+
 export { ImportPathVerifier }
+
+// @public (undocumented)
+export type PipelineConfig = {
+    stackName: string;
+    source: {
+        provider: 'github';
+        owner: string;
+        repo: string;
+        branch: string;
+        tokenSecretName: string;
+    };
+    stages: PipelineStage[];
+};
+
+// @public (undocumented)
+export type PipelineStage = {
+    name: string;
+};
 
 export { referenceAuth }
 
