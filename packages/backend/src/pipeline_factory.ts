@@ -7,6 +7,7 @@ import path from 'node:path';
 
 export type PipelineStage = {
   name: string;
+  requireApproval?: boolean;
 };
 
 export type PipelineConfig = {
@@ -22,21 +23,21 @@ export type PipelineConfig = {
 };
 
 /**
- * Defines a CI/CD pipeline (CodePipeline + CodeBuild) that deploys
+ * Defines a CI/CD pipeline (CodePipeline V2 + CodeBuild) that deploys
  * backend + frontend on every push.
  * Call from amplify/pipeline.ts.
  */
 export const definePipeline = (config: PipelineConfig): void => {
-  const frontendOutDir = path.resolve(
+  const pipelineOutDir = path.resolve(
     process.cwd(),
     '.amplify/artifacts/pipeline.out',
   );
-  const app = new App({ outdir: frontendOutDir });
+  const app = new App({ outdir: pipelineOutDir });
   const stack = new Stack(app, config.stackName);
 
   const sourceOutput = new codepipeline.Artifact('SourceOutput');
   const sourceAction = new codepipelineActions.GitHubSourceAction({
-    actionName: 'GitHub_Source',
+    actionName: 'Checkout',
     owner: config.source.owner,
     repo: config.source.repo,
     branch: config.source.branch,
@@ -45,79 +46,159 @@ export const definePipeline = (config: PipelineConfig): void => {
     trigger: codepipelineActions.GitHubTrigger.WEBHOOK,
   });
 
-  // CodeBuild project that runs the deploy
-  const buildProject = new codebuild.PipelineProject(stack, 'DeployProject', {
-    buildSpec: codebuild.BuildSpec.fromObject({
-      version: '0.2',
-      phases: {
-        install: {
-          'runtime-versions': {
-            nodejs: '20',
+  const installCommands = [
+    'npm ci',
+    'git clone --branch feat/iac-demo --single-branch https://github.com/aws-amplify/amplify-backend.git /tmp/amplify-backend',
+    'cd /tmp/amplify-backend && npm ci && npm run build',
+    'cd /tmp/amplify-backend/packages/backend && npm link',
+    'cd /tmp/amplify-backend/packages/cli && npm link',
+    'cd $CODEBUILD_SRC_DIR && npm link @aws-amplify/backend @aws-amplify/backend-cli',
+  ];
+
+  // Self-mutation project
+  const selfMutateProject = new codebuild.PipelineProject(
+    stack,
+    'SelfMutateProject',
+    {
+      buildSpec: codebuild.BuildSpec.fromObject({
+        version: '0.2',
+        phases: {
+          install: {
+            'runtime-versions': { nodejs: '20' },
+            commands: installCommands,
           },
-          commands: [
-            'npm ci',
-            'git clone --branch feat/iac-demo --single-branch https://github.com/aws-amplify/amplify-backend.git /tmp/amplify-backend',
-            'cd /tmp/amplify-backend && npm ci && npm run build',
-            'cd /tmp/amplify-backend/packages/backend && npm link',
-            'cd /tmp/amplify-backend/packages/cli && npm link',
-            'cd $CODEBUILD_SRC_DIR && npm link @aws-amplify/backend @aws-amplify/backend-cli',
-          ],
+          build: {
+            commands: ['npx ampx pipeline-deploy --pipeline'],
+          },
         },
-        build: {
-          commands: ['npx ampx pipeline-deploy --infrastructure'],
+      }),
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        computeType: codebuild.ComputeType.MEDIUM,
+        environmentVariables: {
+          CI: { value: 'true' },
         },
-      },
-    }),
-    environment: {
-      buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
-      computeType: codebuild.ComputeType.MEDIUM,
-      environmentVariables: {
-        CI: { value: 'true' },
       },
     },
-  });
+  );
 
-  // Grant the build project broad permissions for deploying CDK stacks
-  buildProject.addToRolePolicy(
+  selfMutateProject.addToRolePolicy(
     new iam.PolicyStatement({
       actions: [
         'cloudformation:*',
         'iam:*',
-        'lambda:*',
-        'cognito-idp:*',
-        'cognito-identity:*',
-        'appsync:*',
         's3:*',
-        'cloudfront:*',
         'ssm:*',
         'sts:AssumeRole',
+        'codepipeline:*',
+        'codebuild:*',
       ],
       resources: ['*'],
     }),
   );
 
-  const buildAction = new codepipelineActions.CodeBuildAction({
-    actionName: 'Deploy_Infrastructure',
-    project: buildProject,
-    input: sourceOutput,
-  });
+  // Build pipeline stages
+  const pipelineStages: codepipeline.StageProps[] = [
+    {
+      stageName: 'Source',
+      actions: [sourceAction],
+    },
+    {
+      stageName: 'UpdatePipeline',
+      actions: [
+        new codepipelineActions.CodeBuildAction({
+          actionName: 'SelfMutate',
+          project: selfMutateProject,
+          input: sourceOutput,
+        }),
+      ],
+    },
+  ];
+
+  for (const stage of config.stages) {
+    const capitalizedName =
+      stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
+
+    const deployProject = new codebuild.PipelineProject(
+      stack,
+      `Deploy${capitalizedName}`,
+      {
+        buildSpec: codebuild.BuildSpec.fromObject({
+          version: '0.2',
+          phases: {
+            install: {
+              'runtime-versions': { nodejs: '20' },
+              commands: installCommands,
+            },
+            build: {
+              commands: ['npx ampx pipeline-deploy --infrastructure'],
+            },
+          },
+        }),
+        environment: {
+          buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+          computeType: codebuild.ComputeType.MEDIUM,
+          environmentVariables: {
+            CI: { value: 'true' },
+            AMPLIFY_STAGE: { value: stage.name },
+          },
+        },
+      },
+    );
+
+    deployProject.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'cloudformation:*',
+          'iam:*',
+          'lambda:*',
+          'cognito-idp:*',
+          'cognito-identity:*',
+          'appsync:*',
+          's3:*',
+          'cloudfront:*',
+          'ssm:*',
+          'sts:AssumeRole',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    const stageActions: codepipeline.IAction[] = [];
+
+    // Add manual approval before deploy if configured
+    if (stage.requireApproval) {
+      stageActions.push(
+        new codepipelineActions.ManualApprovalAction({
+          actionName: 'Approve',
+          runOrder: 1,
+        }),
+      );
+    }
+
+    stageActions.push(
+      new codepipelineActions.CodeBuildAction({
+        actionName: 'DeployBackendAndFrontend',
+        project: deployProject,
+        input: sourceOutput,
+        runOrder: stage.requireApproval ? 2 : 1,
+      }),
+    );
+
+    pipelineStages.push({
+      stageName: capitalizedName,
+      actions: stageActions,
+    });
+  }
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
-    pipelineName: `${config.stackName}-pipeline`,
-    stages: [
-      {
-        stageName: 'Source',
-        actions: [sourceAction],
-      },
-      {
-        stageName: 'Deploy',
-        actions: [buildAction],
-      },
-    ],
+    pipelineName: `${config.stackName}`,
+    pipelineType: codepipeline.PipelineType.V2,
+    stages: pipelineStages,
   });
 
   new CfnOutput(stack, 'PipelineName', {
-    value: `${config.stackName}-pipeline`,
+    value: config.stackName,
   });
 
   // Register synth listener

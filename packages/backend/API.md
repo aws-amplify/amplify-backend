@@ -134,6 +134,7 @@ export type PipelineConfig = {
 // @public (undocumented)
 export type PipelineStage = {
     name: string;
+    requireApproval?: boolean;
 };
 
 export { referenceAuth }
