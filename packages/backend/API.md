@@ -5,6 +5,7 @@
 ```ts
 
 import { a } from '@aws-amplify/data-schema';
+import { aurora } from '@aws-amplify/backend-data';
 import { AuthCfnResources } from '@aws-amplify/plugin-types';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
@@ -22,17 +23,20 @@ import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
+import { definePostgresData } from '@aws-amplify/backend-data';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend-function/runtime';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { rds } from '@aws-amplify/backend-data';
 import { referenceAuth } from '@aws-amplify/backend-auth';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntry } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
+import { supabase } from '@aws-amplify/backend-data';
 
 declare namespace __export__function__runtime {
     export {
@@ -42,6 +46,8 @@ declare namespace __export__function__runtime {
 export { __export__function__runtime }
 
 export { a }
+
+export { aurora }
 
 export { AuthCfnResources }
 
@@ -91,6 +97,8 @@ export { defineData }
 
 export { defineFunction }
 
+export { definePostgresData }
+
 export { defineStorage }
 
 export { FunctionResources }
@@ -98,6 +106,8 @@ export { FunctionResources }
 export { GenerateContainerEntryProps }
 
 export { ImportPathVerifier }
+
+export { rds }
 
 export { referenceAuth }
 
@@ -109,6 +119,8 @@ export const secret: (name: string) => BackendSecret;
 export { SsmEnvironmentEntriesGenerator }
 
 export { SsmEnvironmentEntry }
+
+export { supabase }
 
 // (No @packageDocumentation comment for this package)
 

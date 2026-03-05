@@ -6,11 +6,19 @@
 
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
+import { AmplifyGraphqlApi } from '@aws-amplify/graphql-api-construct';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendSecret } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
+import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
+import * as rds_2 from 'aws-cdk-lib/aws-rds';
 
 // @public
 export type AmplifyGen1DynamoDbTableMapping = {
@@ -25,11 +33,83 @@ export type ApiKeyAuthorizationModeProps = {
 };
 
 // @public
+export const aurora: (config: AuroraProviderConfig) => AuroraProvider;
+
+// @public
+export class AuroraConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: AuroraConstructProps);
+    // (undocumented)
+    readonly cluster: rds_2.DatabaseCluster;
+    // (undocumented)
+    readonly connectionSecret: BackendSecret;
+    getSecurityConfig(): SecurityConfig;
+    getVpcConfig(): VpcConfig;
+    // (undocumented)
+    readonly securityGroup: ec2.SecurityGroup;
+    // (undocumented)
+    readonly vpc: ec2.IVpc;
+}
+
+// @public (undocumented)
+export type AuroraConstructProps = {
+    databaseName: string;
+    minCapacity: number;
+    maxCapacity: number;
+    vpcId?: string;
+    backendIdentifier: BackendIdentifier;
+};
+
+// @public
+export class AuroraProvider implements ProvisionedDatabaseProvider {
+    constructor(config: AuroraProviderConfig);
+    createConstruct(scope: Construct, id: string, backendIdentifier: BackendIdentifier): AuroraConstruct;
+    getConnectionConfig(): ConnectionConfig;
+    getSecurityConfig(): SecurityConfig | undefined;
+    getVpcConfig(): VpcConfig | undefined;
+    provision(): void;
+    setConstruct(construct: AuroraConstruct): void;
+    // (undocumented)
+    readonly shouldProvision: boolean;
+    // (undocumented)
+    readonly type: "aurora";
+}
+
+// @public
+export type AuroraProviderConfig = {
+    connectionUri?: BackendSecret;
+    provision?: AuroraProvisionConfig;
+};
+
+// @public
+export type AuroraProvisionConfig = {
+    databaseName?: string;
+    vpcId?: string;
+    minCapacity?: number;
+    maxCapacity?: number;
+};
+
+// @public
 export type AuthorizationModes = {
     defaultAuthorizationMode?: DefaultAuthorizationMode;
     apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
     lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
     oidcAuthorizationMode?: OIDCAuthorizationModeProps;
+};
+
+// @public
+export type ConnectionConfig = ConnectionUri | StructuredConnectionConfig;
+
+// @public
+export type ConnectionUri = {
+    uri: BackendSecret;
+};
+
+// @public
+export type DatabaseProvider = {
+    readonly type: ProviderType;
+    getConnectionConfig: () => ConnectionConfig;
+    getVpcConfig: () => VpcConfig | undefined;
+    getSecurityConfig: () => SecurityConfig | undefined;
 };
 
 // @public
@@ -53,6 +133,9 @@ export type DataProps = {
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
     logging?: DataLoggingOptions;
     migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+    database?: {
+        provider: DatabaseProvider;
+    };
 };
 
 // @public
@@ -63,6 +146,9 @@ export type DefaultAuthorizationMode = 'iam' | 'identityPool' | 'userPool' | 'oi
 
 // @public
 export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
+
+// @public
+export const definePostgresData: (props: PostgresDataProps) => ConstructFactory<AmplifyGraphqlApi>;
 
 // @public
 export type LambdaAuthorizationModeProps = {
@@ -77,6 +163,65 @@ export type OIDCAuthorizationModeProps = {
     clientId?: string;
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
+};
+
+// @public
+export type PostgresDataProps = Omit<DataProps, 'schema' | 'database'> & {
+    provider: DatabaseProvider;
+    schema: DataSchemaInput;
+};
+
+// @public
+export type ProviderType = 'aurora' | 'rds' | 'custom';
+
+// @public
+export type ProvisionedDatabaseProvider = {
+    provision: () => void;
+    readonly shouldProvision: boolean;
+} & DatabaseProvider;
+
+// @public
+export const rds: (config: RDSProviderConfig) => RDSProvider;
+
+// @public
+export class RDSProvider implements DatabaseProvider {
+    constructor(config: RDSProviderConfig);
+    getConnectionConfig(): ConnectionConfig;
+    getSecurityConfig(): SecurityConfig | undefined;
+    getVpcConfig(): VpcConfig | undefined;
+    // (undocumented)
+    readonly type: "rds";
+}
+
+// @public
+export type RDSProviderConfig = {
+    connectionUri: BackendSecret;
+} | StructuredConnectionConfig;
+
+// @public
+export type SecurityConfig = {
+    allowedSecurityGroups?: ISecurityGroup[];
+    allowedCidrBlocks?: string[];
+};
+
+// @public
+export type StructuredConnectionConfig = {
+    host: BackendSecret | string;
+    port: number;
+    database: BackendSecret | string;
+    username: BackendSecret | string;
+    password: BackendSecret;
+    ssl?: boolean | {
+        ca?: string;
+        rejectUnauthorized?: boolean;
+    };
+};
+
+// @public
+export type VpcConfig = {
+    vpc: IVpc;
+    securityGroups?: ISecurityGroup[];
+    allowPublicSubnet?: boolean;
 };
 
 // (No @packageDocumentation comment for this package)
