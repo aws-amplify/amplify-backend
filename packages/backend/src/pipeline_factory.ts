@@ -52,7 +52,7 @@ export const definePipeline = (config: PipelineConfig): void => {
     'cd /tmp/amplify-backend && npm ci && npm run build',
     'cd /tmp/amplify-backend/packages/backend && npm link',
     'cd /tmp/amplify-backend/packages/cli && npm link',
-    'cd $CODEBUILD_SRC_DIR && npm link @aws-amplify/backend @aws-amplify/backend-cli',
+    'cd $CODEBUILD_SRC_DIR && npm link --legacy-peer-deps @aws-amplify/backend @aws-amplify/backend-cli',
   ];
 
   // Self-mutation project
