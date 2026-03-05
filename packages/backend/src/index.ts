@@ -13,7 +13,12 @@ export * from './secret.js';
 // re-export core functionality from category packages
 
 // data
-export { defineData } from '@aws-amplify/backend-data';
+export {
+  defineData,
+  definePostgresData,
+  aurora,
+  rds,
+} from '@aws-amplify/backend-data';
 export { type ClientSchema, a } from '@aws-amplify/data-schema';
 
 // auth

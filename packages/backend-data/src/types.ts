@@ -8,6 +8,7 @@ import {
   LogLevel,
   LogRetention,
 } from '@aws-amplify/plugin-types';
+import { DatabaseProvider } from './providers/types.js';
 
 /**
  * Authorization modes used in by client side Amplify represented in camelCase.
@@ -155,6 +156,13 @@ export type DataProps = {
    * Each element in the array represents a mapping for a specific branch.
    */
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+
+  /**
+   * Database configuration for PostgreSQL support.
+   */
+  database?: {
+    provider: DatabaseProvider;
+  };
 };
 
 export type AmplifyDataError =

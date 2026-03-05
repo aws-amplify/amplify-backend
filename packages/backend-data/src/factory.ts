@@ -3,10 +3,12 @@ import {
   AmplifyFunction,
   AmplifyResourceGroupName,
   AuthResources,
+  BackendIdentifier,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  DeploymentType,
   GenerateContainerEntryProps,
   ReferenceAuthResources,
   ResourceProvider,
@@ -22,6 +24,7 @@ import { generateModelsSync } from '@aws-amplify/graphql-generator';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
 import {
+  ProviderConnectionConfig,
   combineCDKSchemas,
   convertSchemaToCDK,
   isCombinedSchema,
@@ -52,6 +55,8 @@ import {
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
+import { isProvisionedProvider } from './providers/types.js';
+import { AuroraProvider } from './providers/aurora_provider.js';
 const modelIntrospectionSchemaKey = 'modelIntrospectionSchema.json';
 const defaultName = 'amplifyData';
 
@@ -138,6 +143,67 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     backendSecretResolver,
     stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
+    // Handle database provider provisioning and configuration
+    let providerConnectionConfig: ProviderConnectionConfig | undefined;
+
+    if (this.props.database?.provider) {
+      const provider = this.props.database.provider;
+
+      // Provision database if provider supports it
+      if (isProvisionedProvider(provider) && provider.shouldProvision) {
+        // For Aurora provider, create the CDK construct
+        if (provider instanceof AuroraProvider) {
+          // Build BackendIdentifier from CDK context. This is the same approach
+          // used by singleton_construct_container.ts in @aws-amplify/backend,
+          // but reconstructed here to avoid a circular dependency.
+          const backendIdentifier: BackendIdentifier = {
+            namespace: scope.node.getContext(CDKContextKey.BACKEND_NAMESPACE),
+            name: scope.node.getContext(CDKContextKey.BACKEND_NAME),
+            type: scope.node.getContext(
+              CDKContextKey.DEPLOYMENT_TYPE,
+            ) as DeploymentType,
+          };
+          provider.createConstruct(
+            scope,
+            `${this.name}AuroraCluster`,
+            backendIdentifier,
+          );
+        }
+      }
+
+      // Get connection configuration from provider
+      const connectionConfig = provider.getConnectionConfig();
+      const vpcConfig = provider.getVpcConfig();
+
+      // Convert to format expected by schema conversion
+      if ('uri' in connectionConfig) {
+        providerConnectionConfig = {
+          connectionUri: connectionConfig.uri,
+        };
+
+        // Add VPC config if available
+        if (vpcConfig) {
+          // When natGateways=0, CDK creates no private subnets — only public
+          // and isolated. The SQL Lambda must run in isolated subnets (which
+          // have VPC endpoints for SSM access), so fall back to those.
+          const subnets =
+            vpcConfig.vpc.privateSubnets?.length > 0
+              ? vpcConfig.vpc.privateSubnets
+              : vpcConfig.vpc.isolatedSubnets;
+          providerConnectionConfig.vpcConfig = {
+            vpcId: vpcConfig.vpc.vpcId,
+            securityGroupIds:
+              vpcConfig.securityGroups?.map((sg) => sg.securityGroupId) || [],
+            subnetAvailabilityZones:
+              subnets?.map((subnet) => ({
+                availabilityZone: subnet.availabilityZone,
+                subnetId: subnet.subnetId,
+              })) || [],
+          };
+        }
+      }
+    }
+
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
     const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
@@ -200,6 +266,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             backendSecretResolver,
             stableBackendIdentifiers,
             importedTableName,
+            providerConnectionConfig,
           ),
         );
       });

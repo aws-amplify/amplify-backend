@@ -18,6 +18,7 @@ import type {
   DataSchemaInput,
 } from './types.js';
 import type {
+  BackendSecret,
   BackendSecretResolver,
   StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
@@ -80,11 +81,27 @@ const SQL_DB_TYPES = {
 } as const;
 
 /**
+ * Provider connection configuration type
+ */
+export type ProviderConnectionConfig = {
+  connectionUri: BackendSecret;
+  vpcConfig?: {
+    vpcId: string;
+    securityGroupIds: string[];
+    subnetAvailabilityZones: {
+      availabilityZone: string;
+      subnetId: string;
+    }[];
+  };
+};
+
+/**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
  * @param stableBackendIdentifiers backend identifiers
  * @param importedTableName table name to use for imported models. If not defined the model is not imported.
+ * @param providerConnectionConfig optional provider connection configuration to override schema config
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
@@ -92,6 +109,7 @@ export const convertSchemaToCDK = (
   backendSecretResolver: BackendSecretResolver,
   stableBackendIdentifiers: StableBackendIdentifiers,
   importedTableName?: string,
+  providerConnectionConfig?: ProviderConnectionConfig,
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -110,8 +128,17 @@ export const convertSchemaToCDK = (
     const provisionStrategyName =
       stableBackendIdentifiers.getStableBackendHash();
 
+    // Use provider config if provided, otherwise use schema's embedded config
+    const databaseConfig = providerConnectionConfig
+      ? {
+          engine: 'postgresql' as const,
+          connectionUri: providerConnectionConfig.connectionUri,
+          vpcConfig: providerConnectionConfig.vpcConfig,
+        }
+      : schema.data.configuration.database;
+
     const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
-      schema.data.configuration.database,
+      databaseConfig,
       customSqlDataSourceStrategies,
       backendSecretResolver,
       provisionStrategyName,

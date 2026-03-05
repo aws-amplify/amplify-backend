@@ -1,4 +1,5 @@
 export { defineData } from './factory.js';
+export { definePostgresData } from './postgres_factory.js';
 export {
   ApiKeyAuthorizationModeProps,
   LambdaAuthorizationModeProps,
@@ -12,3 +13,12 @@ export {
   DataLogLevel,
   AmplifyGen1DynamoDbTableMapping,
 } from './types.js';
+export {
+  aurora,
+  rds,
+  DatabaseProvider,
+  ProvisionedDatabaseProvider,
+  ConnectionConfig,
+  VpcConfig,
+  SecurityConfig,
+} from './providers/index.js';
