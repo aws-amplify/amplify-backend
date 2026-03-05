@@ -111,7 +111,7 @@ export { FunctionResources }
 
 export { GenerateContainerEntryProps }
 
-// @public (undocumented)
+// @public
 export const getContext: () => {
     stage: string;
 };

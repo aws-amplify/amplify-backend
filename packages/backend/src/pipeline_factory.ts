@@ -54,7 +54,14 @@ export const definePipeline = (config: PipelineConfig): void => {
           'runtime-versions': {
             nodejs: '20',
           },
-          commands: ['npm ci'],
+          commands: [
+            'npm ci',
+            'git clone --branch feat/iac-demo --single-branch https://github.com/aws-amplify/amplify-backend.git /tmp/amplify-backend',
+            'cd /tmp/amplify-backend && npm ci && npm run build',
+            'cd /tmp/amplify-backend/packages/backend && npm link',
+            'cd /tmp/amplify-backend/packages/cli && npm link',
+            'cd $CODEBUILD_SRC_DIR && npm link @aws-amplify/backend @aws-amplify/backend-cli',
+          ],
         },
         build: {
           commands: ['npx ampx pipeline-deploy --infrastructure'],
