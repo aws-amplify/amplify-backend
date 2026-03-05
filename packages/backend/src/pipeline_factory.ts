@@ -47,7 +47,7 @@ export const definePipeline = (config: PipelineConfig): void => {
   });
 
   const installCommands = [
-    'npm ci',
+    'npm install --legacy-peer-deps',
     'git clone --branch feat/iac-demo --single-branch https://github.com/aws-amplify/amplify-backend.git /tmp/amplify-backend',
     'cd /tmp/amplify-backend && npm ci && npm run build',
     'cd /tmp/amplify-backend/packages/backend && npm link',
