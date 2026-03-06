@@ -3312,6 +3312,49 @@ void describe('Auth construct', () => {
       });
     });
 
+    void it('throws when AUTO relyingPartyId is used in standalone mode', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'standalone');
+      stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      stack.node.setContext('amplify-backend-name', 'main');
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              webAuthn: true,
+            },
+          }),
+        {
+          message:
+            /WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments/,
+        },
+      );
+    });
+
+    void it('does not throw for standalone with explicit relyingPartyId', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'standalone');
+      stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      stack.node.setContext('amplify-backend-name', 'main');
+      assert.doesNotThrow(() => {
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+            webAuthn: {
+              relyingPartyId: 'app.example.com',
+            },
+          },
+        });
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        WebAuthnRelyingPartyID: 'app.example.com',
+      });
+    });
+
     void it('does not configure passwordless when not enabled', () => {
       const app = new App();
       const stack = new Stack(app);
