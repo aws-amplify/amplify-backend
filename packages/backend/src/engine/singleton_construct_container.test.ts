@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { SingletonConstructContainer } from './singleton_construct_container.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
@@ -59,6 +59,29 @@ void describe('SingletonConstructContainer', () => {
       const instance2 = container.getOrCompute(initializer);
 
       assert.strictEqual(instance1, instance2);
+    });
+
+    void it('passes suppressTemplateIndentation to getStackFor when set on generator', () => {
+      const stackResolver = new NestedStackResolver(
+        stack,
+        new AttributionMetadataStorage(),
+      );
+      const getStackForSpy = mock.method(stackResolver, 'getStackFor');
+      const container = new SingletonConstructContainer(stackResolver);
+
+      container.getOrCompute({
+        resourceGroupName: 'testGroup',
+        suppressTemplateIndentation: true,
+        generateContainerEntry: ({ scope }) => ({
+          resources: {
+            bucket: new Bucket(scope, 'testBucket'),
+          },
+        }),
+      });
+
+      assert.equal(getStackForSpy.mock.calls.length, 1);
+      assert.equal(getStackForSpy.mock.calls[0].arguments[0], 'testGroup');
+      assert.equal(getStackForSpy.mock.calls[0].arguments[1], true);
     });
 
     void it('returns correct cached value for each initializer', () => {

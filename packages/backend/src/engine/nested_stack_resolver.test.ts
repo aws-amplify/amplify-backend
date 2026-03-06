@@ -34,6 +34,40 @@ void describe('NestedStackResolver', () => {
 
       assert.strictEqual(testStack1, testStack2);
     });
+
+    void it('creates a nested stack with suppressTemplateIndentation when set to true', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const stackResolver = new NestedStackResolver(
+        stack,
+        new AttributionMetadataStorage(),
+      );
+      const testStack = stackResolver.getStackFor('test', true);
+
+      assert.equal(testStack instanceof NestedStack, true);
+      assert.equal(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (testStack as any)['_suppressTemplateIndentation'],
+        true,
+      );
+    });
+
+    void it('creates a nested stack without suppressTemplateIndentation by default', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const stackResolver = new NestedStackResolver(
+        stack,
+        new AttributionMetadataStorage(),
+      );
+      const testStack = stackResolver.getStackFor('test');
+
+      assert.equal(testStack instanceof NestedStack, true);
+      assert.equal(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (testStack as any)['_suppressTemplateIndentation'],
+        false,
+      );
+    });
   });
   void describe('createCustomStack', () => {
     void it('attaches attribution metadata to stack', () => {
@@ -60,6 +94,23 @@ void describe('NestedStackResolver', () => {
       );
       stackResolver.createCustomStack('test');
       assert.throws(() => stackResolver.createCustomStack('test'));
+    });
+
+    void it('creates a custom stack with suppressTemplateIndentation when set to true', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const stackResolver = new NestedStackResolver(
+        stack,
+        new AttributionMetadataStorage(),
+      );
+      const customStack = stackResolver.createCustomStack('test1', true);
+
+      assert.equal(customStack instanceof NestedStack, true);
+      assert.equal(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (customStack as any)['_suppressTemplateIndentation'],
+        true,
+      );
     });
   });
 });

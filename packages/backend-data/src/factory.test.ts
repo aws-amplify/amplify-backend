@@ -279,6 +279,61 @@ void describe('DataFactory', () => {
     });
   });
 
+  void it('passes suppressTemplateIndentation to the generator when set to true', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+      suppressTemplateIndentation: true,
+    });
+
+    const capturedGenerators: Array<{ suppressTemplateIndentation?: boolean }> =
+      [];
+    const originalGetOrCompute =
+      constructContainer.getOrCompute.bind(constructContainer);
+    mock
+      .method(constructContainer, 'getOrCompute')
+      .mock.mockImplementation((generator) => {
+        capturedGenerators.push(generator);
+        return originalGetOrCompute(generator);
+      });
+
+    dataFactory.getInstance(getInstanceProps);
+
+    assert.equal(capturedGenerators.length > 0, true);
+    const dataGenerator = capturedGenerators.find(
+      (g) => 'suppressTemplateIndentation' in g,
+    );
+    assert.notEqual(dataGenerator, undefined);
+    assert.equal(dataGenerator!.suppressTemplateIndentation, true);
+  });
+
+  void it('does not set suppressTemplateIndentation on the generator by default', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+    });
+
+    const capturedGenerators: Array<{ suppressTemplateIndentation?: boolean }> =
+      [];
+    const originalGetOrCompute =
+      constructContainer.getOrCompute.bind(constructContainer);
+    mock
+      .method(constructContainer, 'getOrCompute')
+      .mock.mockImplementation((generator) => {
+        capturedGenerators.push(generator);
+        return originalGetOrCompute(generator);
+      });
+
+    dataFactory.getInstance(getInstanceProps);
+
+    assert.equal(capturedGenerators.length > 0, true);
+    const dataGenerator = capturedGenerators.find(
+      (g) => 'suppressTemplateIndentation' in g,
+    );
+    assert.notEqual(dataGenerator, undefined);
+    assert.equal(dataGenerator!.suppressTemplateIndentation, undefined);
+  });
+
   void it('does not throw if no auth resources are registered and only api key is provided', () => {
     resetFactoryCount();
     dataFactory = defineData({
