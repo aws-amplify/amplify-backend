@@ -2,4 +2,4 @@
 '@aws-amplify/backend-auth': patch
 ---
 
-add AdminLinkProviderForUser action to manageUsers ActionMap
+add AdminLinkProviderForUser action to a new manageProviderForUser ActionMap
