@@ -412,10 +412,14 @@ export class CfnDeploymentProgressLogger {
     stackName: string,
   ): string | undefined => {
     const parts = stackName.split('-');
-    if (parts && parts.length === 7 && parts[3] === 'sandbox') {
+    if (
+      parts &&
+      parts.length === 7 &&
+      (parts[3] === 'sandbox' || parts[3] === 'standalone')
+    ) {
       return this.rootStackDisplay + '/' + parts[5].slice(0, -8) + ' stack';
     } else if (parts && parts.length === 5) {
-      if (parts[3] === 'sandbox') {
+      if (parts[3] === 'sandbox' || parts[3] === 'standalone') {
         return this.rootStackDisplay;
       }
     }
