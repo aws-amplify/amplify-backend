@@ -25,6 +25,10 @@ const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
       app.node.setContext('amplify-backend-name', 'testEnvName');
       app.node.setContext('amplify-backend-namespace', 'testBackendId');
       break;
+    case 'standalone':
+      app.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      app.node.setContext('amplify-backend-name', 'default');
+      break;
   }
 
   const stack = new Stack(app);
@@ -173,6 +177,22 @@ void describe('Backend', () => {
     new BackendFactory({}, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('does not register branch linker for standalone deployments', () => {
+    const rootStack = createStackAndSetContext('standalone');
+    new BackendFactory({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('sets deployment type to standalone in platform output', () => {
+    const rootStack = createStackAndSetContext('standalone');
+    new BackendFactory({}, rootStack);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.hasOutput('deploymentType', {
+      Value: 'standalone',
+    });
   });
 
   void describe('createStack', () => {

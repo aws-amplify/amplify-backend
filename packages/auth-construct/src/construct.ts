@@ -1231,6 +1231,16 @@ export class AmplifyAuth
       }
     }
 
+    // Standalone deployments have no Amplify Hosting domain.
+    if (deploymentType === 'standalone') {
+      throw new Error(
+        'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +
+          'Set an explicit relyingPartyId matching your hosting domain. ' +
+          'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
+      );
+    }
+
+    // For sandbox or undefined (pure CDK usage), default to localhost
     return 'localhost';
   };
 
