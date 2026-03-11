@@ -221,8 +221,8 @@ void describe('sandbox command', () => {
     await commandRunner.runCommand('sandbox');
 
     // Similar to the previous test's 0ms timeout. Without this tests in github action are failing
-    // but working locally
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // but working locally. Increased to 10ms for Node 18 compatibility.
+    await new Promise((resolve) => setTimeout(resolve, 10));
     const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
     if (sigIntHandlerFn) sigIntHandlerFn();
 
