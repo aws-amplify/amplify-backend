@@ -207,7 +207,7 @@ void describe('sandbox command', () => {
 
   void it('Prints stopping sandbox and instructions to delete sandbox when users send ctrl+c', async (contextual) => {
     // Mock process and extract the sigint handler after calling the sandbox command
-    const processSignal = contextual.mock.method(process, 'on', () => {
+    const processSignal = contextual.mock.method(process, 'once', () => {
       /* no op */
     });
     const sandboxStartMock = contextual.mock.method(
