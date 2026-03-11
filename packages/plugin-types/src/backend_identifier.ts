@@ -56,4 +56,22 @@ export type BackendIdentifier =
        * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
        */
       hash?: Readonly<string>;
+    }
+  | {
+      /**
+       * The deployment identifier for the standalone deployment.
+       */
+      namespace: Readonly<ProjectName>;
+      /**
+       * The deployment name for the standalone deployment.
+       */
+      name: Readonly<BranchName>;
+      /**
+       * Const that determines this BackendIdentifier is for a standalone backend (without Amplify Hosting)
+       */
+      type: Readonly<Extract<DeploymentType, 'standalone'>>;
+      /**
+       * Optional hash for consistent stack naming in cases where namespace or name contain characters that can't be serialized into a stack name
+       */
+      hash?: Readonly<string>;
     };
