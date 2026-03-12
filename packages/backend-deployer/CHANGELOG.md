@@ -1,5 +1,16 @@
 # @aws-amplify/backend-deployer
 
+## 2.1.6
+
+### Patch Changes
+
+- 0ee9189: Bump @aws-cdk/toolkit-lib from 1.6.1 to 1.16.0 to support latest cloud assembly schema versions.
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+
 ## 2.1.5
 
 ### Patch Changes
