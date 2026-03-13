@@ -159,6 +159,7 @@
   "regexes",
   "renderer",
   "repo",
+  "repos",
   "resolvers",
   "retryable",
   "rewritable",
