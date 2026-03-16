@@ -34,4 +34,8 @@ runs:
         fail-on-cache-miss: true
     # Rebuild native modules for the current platform (needed for @parcel/watcher)
     - shell: bash
-      run: npm rebuild @parcel/watcher
+      run: |
+        echo "Rebuilding @parcel/watcher for platform: ${{ runner.os }}"
+        npm rebuild @parcel/watcher --verbose
+        echo "Verifying @parcel/watcher installation..."
+        ls -la node_modules/@parcel/ || true
