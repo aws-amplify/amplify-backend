@@ -228,6 +228,7 @@ jobs:
         run: |
           npx tsx scripts/set_baseline_dependency_versions.ts
           npm install
+          npm rebuild @parcel/watcher
           # print out diff for auditing or troubleshooting
           git diff
           npm run build
