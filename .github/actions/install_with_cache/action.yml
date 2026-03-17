@@ -39,11 +39,3 @@ runs:
           echo "Installing CDK Lib version ${{ inputs.cdk-lib-version }}"
           npm install --no-save aws-cdk-lib@${{ inputs.cdk-lib-version }}
         fi
-    # Rebuild native modules for the current platform when cache is restored (needed for @parcel/watcher)
-    - if: steps.npm-cache.outputs.cache-hit == 'true'
-      shell: bash
-      run: |
-        echo "Rebuilding @parcel/watcher for platform: ${{ runner.os }}"
-        npm rebuild @parcel/watcher --verbose
-        echo "Verifying @parcel/watcher installation..."
-        ls -la node_modules/@parcel/ || true

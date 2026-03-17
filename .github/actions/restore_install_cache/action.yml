@@ -32,10 +32,3 @@ runs:
           packages/**/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}
         fail-on-cache-miss: true
-    # Rebuild native modules for the current platform (needed for @parcel/watcher)
-    - shell: bash
-      run: |
-        echo "Rebuilding @parcel/watcher for platform: ${{ runner.os }}"
-        npm rebuild @parcel/watcher --verbose
-        echo "Verifying @parcel/watcher installation..."
-        ls -la node_modules/@parcel/ || true
