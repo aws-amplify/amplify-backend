@@ -153,6 +153,8 @@ export type StreamingResponseChunk = {
   | {
       // turn complete
       stopReason: string;
+      metrics: {latencyMs: number};
+      usage: {inputTokens: number, outputTokens: number, totalTokens: number};
       contentBlockDoneAtIndex?: never;
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;

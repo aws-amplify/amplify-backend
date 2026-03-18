@@ -11,6 +11,7 @@ import {
   Tool,
   ToolConfiguration,
   ToolInputSchema,
+  //TokenUsage, //check if this exists
 } from '@aws-sdk/client-bedrock-runtime';
 import {
   ConversationTurnEvent,
@@ -113,7 +114,7 @@ export class BedrockConverseAdapter {
         inferenceConfig: inferenceConfiguration,
         toolConfig,
       };
-      this.logger.info('Sending Bedrock Converse request');
+      this.logger.info('Sending Bedrock Converse request'); //converse
       this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput),
@@ -175,6 +176,10 @@ export class BedrockConverseAdapter {
     let blockIndex = 0;
     let lastBlockIndex = 0;
     let stopReason = '';
+    let latencyMs = 0;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let totalTokens = 0;
     // Accumulates client facing content per turn.
     // So that upstream can persist full message at the end of the streaming.
     const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
@@ -195,7 +200,7 @@ export class BedrockConverseAdapter {
       bedrockResponse = await this.bedrockClient.send(
         new ConverseStreamCommand(converseCommandInput),
       );
-      this.logger.info(
+      this.logger.info( //stream
         `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
       );
       if (!bedrockResponse.stream) {
@@ -304,6 +309,11 @@ export class BedrockConverseAdapter {
             }
           } else if (chunk.messageStop) {
             stopReason = chunk.messageStop.stopReason ?? '';
+          } else if (chunk.metadata) {
+            latencyMs = chunk.metadata.metrics.latencyMs; //check this
+            inputTokens = chunk.metadata.usage.inputTokens;
+            outputTokens = chunk.metadata.usage.outputTokens;
+            totalTokens = chunk.metadata.usage.totalTokens;
           }
           processedBedrockChunks++;
           if (processedBedrockChunks % 1000 === 0) {
@@ -330,6 +340,8 @@ export class BedrockConverseAdapter {
           associatedUserMessageId: this.event.currentMessageId,
           contentBlockIndex: lastBlockIndex,
           stopReason: stopReason,
+          metrics: {latencyMs},
+          usage: {inputTokens, outputTokens, totalTokens,}, //check this
         };
         return;
       }
@@ -359,6 +371,8 @@ export class BedrockConverseAdapter {
       associatedUserMessageId: this.event.currentMessageId,
       contentBlockIndex: lastBlockIndex,
       stopReason: stopReason,
+      metrics: {latencyMs},
+      usage: {inputTokens, outputTokens, totalTokens,}, //check this
     };
   }
 

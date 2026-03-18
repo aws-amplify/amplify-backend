@@ -119,6 +119,8 @@ const schema = a.schema({
 
       // when message is complete
       stopReason: a.string(),
+      metrics: {latency: a.integer()}, //check this
+      usage: {inputTokens: a.integer(), outputTokens: a.integer(), totalTokens: a.integer()},
 
       // error
       errors: a.ref('MockConversationTurnError').array(),

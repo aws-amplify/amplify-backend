@@ -92,6 +92,14 @@ const messageItemSelectionSet = `
                     toolUseId
                   }
                 }
+                  metrics {
+                  latencyMs
+                }
+                usage {
+                  inputTokens
+                  outputTokens
+                  totalTokens
+                }
 `;
 
 /**
@@ -164,7 +172,7 @@ export class ConversationMessageHistoryRetriever {
       }
       const aiContext = current.aiContext;
       const content = aiContext
-        ? [...current.content, { text: JSON.stringify(aiContext) }]
+        ? [...current.content, { text: JSON.stringify(aiContext) }]//TODO add usage and latency! but only for the response!!
         : current.content;
 
       acc.push({ role: current.role, content });
@@ -176,7 +184,7 @@ export class ConversationMessageHistoryRetriever {
       if (correspondingAssistantMessage) {
         acc.push({
           role: correspondingAssistantMessage.role,
-          content: correspondingAssistantMessage.content,
+          content: correspondingAssistantMessage.content, //TODO add usage and latency! but only for the response!!
         });
       }
       return acc;
