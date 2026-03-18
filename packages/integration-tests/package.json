@@ -34,7 +34,7 @@
     "@smithy/types": "^4.9.0",
     "@types/lodash.ismatch": "^4.4.9",
     "@zip.js/zip.js": "^2.7.52",
-    "aws-amplify": "^6.0.16",
+    "aws-amplify": "^6.16.3",
     "aws-appsync-auth-link": "^3.0.7",
     "aws-cdk": "^2.1107.0",
     "aws-cdk-lib": "^2.234.1",
