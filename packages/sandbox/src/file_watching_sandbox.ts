@@ -533,6 +533,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           chunk.includes(prohibitedStrings),
         )
       ) {
+        // Suppress Node.js deprecation warnings routed through stderr
+        // (e.g. AWS SDK Node.js version deprecation notices)
+        if (
+          typeof chunk === 'string' &&
+          chunk.includes('Warning: NodeDeprecationWarning')
+        ) {
+          return true;
+        }
         this.printer.log(
           typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
         );

@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/platform-core": "^1.11.0",
-    "@aws-sdk/client-cloudformation": "^3.936.0",
+    "@aws-sdk/client-cloudformation": "^3.1009.0",
     "@inquirer/prompts": "^7.3.2",
     "@opentelemetry/api": "^1.9.0",
     "execa": "^9.5.1",
