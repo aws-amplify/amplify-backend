@@ -15,12 +15,12 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "aws-cdk-lib": "^2.234.1",
+    "aws-cdk-lib": "^2.241.0",
     "constructs": "^10.0.0",
     "@aws-sdk/types": "^3.734.0"
   },
   "dependencies": {
-    "@aws-cdk/toolkit-lib": "1.16.0"
+    "@aws-cdk/toolkit-lib": "1.18.1"
   },
   "imports": {
     "#package.json": "./package.json"
