@@ -155,6 +155,101 @@ export type DataProps = {
    * Each element in the array represents a mapping for a specific branch.
    */
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+
+  /**
+   * Enable automatic partitioning of resolvers across multiple nested stacks.
+   *
+   * When your schema grows large (many types, fields, resolvers), a single
+   * CloudFormation template can exceed the 1MB limit. This option automatically
+   * distributes resolvers across multiple nested stacks to avoid this limit.
+   *
+   * Each nested stack has its own 1MB limit, effectively multiplying your
+   * available template space.
+   *
+   * **When to use:**
+   * - Schema with 100+ types
+   * - Custom resolvers for many fields
+   * - Encountering "Template may not exceed 1000000 bytes" errors
+   *
+   * **Trade-offs:**
+   * - Slightly longer deployment times (multiple stacks deploy sequentially)
+   * - More CloudFormation stacks in your account
+   *
+   * @default true (enabled by default to prevent template size issues)
+   * @example
+   * ```typescript
+   * // Enable (default)
+   * export const data = defineData({
+   *   schema,
+   *   enableAutoPartitioning: true,
+   * });
+   *
+   * // Disable (not recommended for large schemas)
+   * export const data = defineData({
+   *   schema,
+   *   enableAutoPartitioning: false,
+   * });
+   * ```
+   */
+  enableAutoPartitioning?: boolean;
+
+  /**
+   * Advanced configuration for partitioning behavior.
+   * Only applicable when `enableAutoPartitioning` is true.
+   *
+   * Manages CloudFormation limits:
+   * - Template size: 1MB per stack
+   * - Resources: 500 per stack
+   * - Outputs: 200 per stack (cross-stack references)
+   *
+   * @default undefined (uses sensible defaults)
+   * @example
+   * ```typescript
+   * export const data = defineData({
+   *   schema,
+   *   enableAutoPartitioning: true,
+   *   partitioningConfig: {
+   *     maxResolversPerStack: 150, // More conservative split
+   *     stackSizeThreshold: 600000, // 600KB threshold
+   *   },
+   * });
+   * ```
+   */
+  partitioningConfig?: {
+    /**
+     * Maximum template size per stack in bytes
+     * @default 750000 (750KB - leaves 250KB safety margin)
+     */
+    readonly stackSizeThreshold?: number;
+
+    /**
+     * Maximum resolvers per stack
+     * CloudFormation limit: 500 resources per stack
+     * Each resolver = 1-5 resources (simple vs pipeline)
+     *
+     * @default 200 (conservative for ~250 resources total)
+     */
+    readonly maxResolversPerStack?: number;
+
+    /**
+     * Group related resolvers (same GraphQL type) together
+     * Improves deployment performance and reduces cross-stack references
+     *
+     * @default true
+     */
+    readonly groupRelatedResolvers?: boolean;
+
+    /**
+     * Maximum cross-stack references (outputs) per stack
+     * CloudFormation limit: 200 outputs per stack
+     *
+     * Note: Our architecture minimizes this by keeping tables and
+     * data sources in the primary stack with the API.
+     *
+     * @default 150 (leaves safety margin for 200 limit)
+     */
+    readonly maxCrossStackReferences?: number;
+  };
 };
 
 export type AmplifyDataError =
