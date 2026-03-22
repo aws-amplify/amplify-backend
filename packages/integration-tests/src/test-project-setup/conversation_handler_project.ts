@@ -116,9 +116,7 @@ type ConversationTurnAppSyncResponseChunk = {
 /**
  * Creates conversation handler test project.
  */
-export class ConversationHandlerTestProjectCreator
-  implements TestProjectCreator
-{
+export class ConversationHandlerTestProjectCreator implements TestProjectCreator {
   readonly name = 'conversation-handler';
 
   /**

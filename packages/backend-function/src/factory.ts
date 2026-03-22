@@ -665,9 +665,8 @@ class AmplifyFunction
         ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2') // use aws cdk v2 in node 16
         : require.resolve('./lambda-shims/resolve_ssm_params');
 
-    const invokeSsmResolverFile = require.resolve(
-      './lambda-shims/invoke_ssm_shim',
-    );
+    const invokeSsmResolverFile =
+      require.resolve('./lambda-shims/invoke_ssm_shim');
 
     /**
      * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content

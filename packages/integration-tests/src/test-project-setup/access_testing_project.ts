@@ -61,9 +61,7 @@ if (process.versions.node) {
 /**
  * Creates access testing projects with typescript idioms.
  */
-export class AccessTestingProjectTestProjectCreator
-  implements TestProjectCreator
-{
+export class AccessTestingProjectTestProjectCreator implements TestProjectCreator {
   readonly name = 'access-testing';
 
   /**

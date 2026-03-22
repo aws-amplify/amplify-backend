@@ -57,9 +57,10 @@ export type SandboxEventHandlerCreator = (
 /**
  * Command that starts sandbox.
  */
-export class SandboxCommand
-  implements CommandModule<object, SandboxCommandOptionsKebabCase>
-{
+export class SandboxCommand implements CommandModule<
+  object,
+  SandboxCommandOptionsKebabCase
+> {
   /**
    * @inheritDoc
    */

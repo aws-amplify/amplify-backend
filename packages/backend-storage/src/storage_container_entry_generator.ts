@@ -15,9 +15,7 @@ import { TagName } from '@aws-amplify/platform-core';
 /**
  * Generates a single instance of storage resources
  */
-export class StorageContainerEntryGenerator
-  implements ConstructContainerEntryGenerator
-{
+export class StorageContainerEntryGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: AmplifyResourceGroupName = 'storage';
 
   /**
