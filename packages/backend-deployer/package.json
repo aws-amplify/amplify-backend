@@ -29,13 +29,13 @@
     "tsx": "4.19.4",
     "strip-ansi": "^7.1.0",
     "@aws-cdk/toolkit-lib": "1.16.0",
-    "minimatch": "10.0.1"
+    "minimatch": "10.2.3"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
     "typescript": "^5.0.0"
   },
   "overrides": {
-    "minimatch": "10.0.1"
+    "minimatch": "10.2.3"
   }
 }
