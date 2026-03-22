@@ -17,6 +17,8 @@ allow-licenses:
   - ISC
   - JSON
   - MIT
+  - MIT AND MITNFA
+  - Artistic-2.0 AND ISC
   - NTP
   - OLDAP-2.8
   - OpenSSL
