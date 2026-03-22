@@ -715,9 +715,10 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run lint
         env:
-          # increase v8's old memory section max size to ~15.5 GB
+          # Cap heap at ~6 GB so V8 GCs aggressively within the runner's ~7 GB RAM.
+          # A higher limit (e.g. 14782) causes V8 to defer GC and get OOM-killed.
           # see https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-          NODE_OPTIONS: '--max-old-space-size=14782'
+          NODE_OPTIONS: '--max-old-space-size=6144'
   check_dependencies:
     runs-on: ubuntu-latest
     needs:
@@ -764,9 +765,10 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:api
         env:
-          # increase v8's old memory section max size to ~15.5 GB
+          # Cap heap per process; the concurrent_workspace_script limits parallelism
+          # to avoid OOM when multiple api-extractor instances run simultaneously.
           # see https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-          NODE_OPTIONS: '--max-old-space-size=14782'
+          NODE_OPTIONS: '--max-old-space-size=4096'
   check_create_amplify_deps:
     runs-on: ubuntu-latest
     needs:
