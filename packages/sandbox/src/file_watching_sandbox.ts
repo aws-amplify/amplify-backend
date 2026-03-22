@@ -527,15 +527,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   private interceptStderr = () => {
     process.stderr.write = (chunk) => {
-      if (
-        typeof chunk !== 'string' ||
-        !['Bundling asset'].some((prohibitedStrings) =>
-          chunk.includes(prohibitedStrings),
-        )
-      ) {
-        this.printer.log(
-          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
-        );
+      if (typeof chunk === 'string') {
+        // Suppress known noisy stderr messages that should not be
+        // forwarded to the printer (they inflate mock call counts in
+        // tests and clutter sandbox output).
+        if (
+          chunk.includes('Bundling asset') ||
+          chunk.includes('NodeDeprecationWarning')
+        ) {
+          return true;
+        }
+        this.printer.log(chunk);
+      } else {
+        this.printer.log(chunk.toLocaleString());
       }
       return true;
     };
