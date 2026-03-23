@@ -984,3 +984,19 @@ jobs:
         uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70 # version 4.3.2
         with:
           config-file: ./.github/dependency_review_config.yml
+        env:
+          # Redirect step summary to a temp file to avoid GitHub's 1MB step summary size limit.
+          # Large lockfile diffs can produce summaries exceeding the limit, causing the step to fail.
+          GITHUB_STEP_SUMMARY: /tmp/dependency-review-summary.md
+      - name: Write dependency review summary
+        if: always()
+        run: |
+          if [ -f /tmp/dependency-review-summary.md ]; then
+            summary_size=$(wc -c < /tmp/dependency-review-summary.md)
+            if [ "$summary_size" -gt 1000000 ]; then
+              head -c 900000 /tmp/dependency-review-summary.md >> "$GITHUB_STEP_SUMMARY"
+              printf '\n\n---\n⚠️ Summary was truncated because it exceeded the 1MB GitHub limit.\n' >> "$GITHUB_STEP_SUMMARY"
+            else
+              cat /tmp/dependency-review-summary.md >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
