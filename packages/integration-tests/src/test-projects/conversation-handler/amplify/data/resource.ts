@@ -91,6 +91,16 @@ const schema = a.schema({
     message: a.string(),
   }),
 
+  MockMetrics: a.customType({
+    latencyMs: a.integer(),
+  }),
+
+  MockUsage: a.customType({
+    inputTokens: a.integer(),
+    outputTokens: a.integer(),
+    totalTokens: a.integer(),
+  }),
+
   ConversationMessageAssistantResponse: a
     .model({
       conversationId: a.id(),
@@ -119,8 +129,8 @@ const schema = a.schema({
 
       // when message is complete
       stopReason: a.string(),
-      metrics: {latency: a.integer()}, //check this
-      usage: {inputTokens: a.integer(), outputTokens: a.integer(), totalTokens: a.integer()},
+      metrics: a.ref('MockMetrics'),
+      usage: a.ref('MockUsage'),
 
       // error
       errors: a.ref('MockConversationTurnError').array(),
