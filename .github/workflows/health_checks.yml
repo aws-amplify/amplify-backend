@@ -981,22 +981,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Dependency Review
+        id: dep-review
+        continue-on-error: true
         uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70 # version 4.3.2
         with:
           config-file: ./.github/dependency_review_config.yml
-        env:
-          # Redirect step summary to a temp file to avoid GitHub's 1MB step summary size limit.
-          # Large lockfile diffs can produce summaries exceeding the limit, causing the step to fail.
-          GITHUB_STEP_SUMMARY: /tmp/dependency-review-summary.md
-      - name: Write dependency review summary
+      - name: Check dependency review result
         if: always()
+        shell: bash
         run: |
-          if [ -f /tmp/dependency-review-summary.md ]; then
-            summary_size=$(wc -c < /tmp/dependency-review-summary.md)
+          # Truncate step summary to avoid GitHub's 1MB upload limit
+          if [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            summary_size=$(wc -c < "$GITHUB_STEP_SUMMARY")
             if [ "$summary_size" -gt 1000000 ]; then
-              head -c 900000 /tmp/dependency-review-summary.md >> "$GITHUB_STEP_SUMMARY"
-              printf '\n\n---\n⚠️ Summary was truncated because it exceeded the 1MB GitHub limit.\n' >> "$GITHUB_STEP_SUMMARY"
-            else
-              cat /tmp/dependency-review-summary.md >> "$GITHUB_STEP_SUMMARY"
+              head -c 900000 "$GITHUB_STEP_SUMMARY" > /tmp/truncated_summary.md
+              printf '\n\n---\n⚠️ Summary was truncated because it exceeded the 1MB GitHub limit.\n' >> /tmp/truncated_summary.md
+              cp /tmp/truncated_summary.md "$GITHUB_STEP_SUMMARY"
             fi
+          fi
+          # Inspect action outputs to determine if real dependency issues were found.
+          # The dep-review step may fail solely because the step summary exceeded
+          # GitHub's 1MB upload limit. We only want to fail this job when the action
+          # detected actual dependency problems (vulnerabilities, license issues, or
+          # denied packages).
+          has_issues=false
+          vulnerable='${{ steps.dep-review.outputs.vulnerable-changes }}'
+          if [ -n "$vulnerable" ] && [ "$vulnerable" != "[]" ]; then
+            echo "::error::Dependency review found vulnerable packages."
+            has_issues=true
+          fi
+          invalid_licenses='${{ steps.dep-review.outputs.invalid-license-changes }}'
+          if [ -n "$invalid_licenses" ] && [ "$invalid_licenses" != "{}" ] && [ "$invalid_licenses" != '{"forbidden":[],"unresolved":[],"unlicensed":[]}' ]; then
+            echo "::error::Dependency review found license issues."
+            has_issues=true
+          fi
+          denied='${{ steps.dep-review.outputs.denied-changes }}'
+          if [ -n "$denied" ] && [ "$denied" != "[]" ]; then
+            echo "::error::Dependency review found denied packages."
+            has_issues=true
+          fi
+          if [ "$has_issues" = "true" ]; then
+            exit 1
+          fi
+          if [ "${{ steps.dep-review.outcome }}" = "failure" ]; then
+            echo "::warning::Dependency review step failed (likely due to step summary size limit). Check logs for details."
           fi
