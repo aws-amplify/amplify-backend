@@ -1010,11 +1010,11 @@ jobs:
             echo "::error::Dependency review found vulnerable packages."
             has_issues=true
           fi
-          invalid_licenses='${{ steps.dep-review.outputs.invalid-license-changes }}'
-          if [ -n "$invalid_licenses" ] && [ "$invalid_licenses" != "{}" ] && [ "$invalid_licenses" != '{"forbidden":[],"unresolved":[],"unlicensed":[]}' ]; then
-            echo "::error::Dependency review found license issues."
-            has_issues=true
-          fi
+          # Note: invalid-license-changes check intentionally omitted.
+          # In a monorepo, workspace packages with bumped versions trigger false-positive
+          # license detection failures because they are not published to npm. The action
+          # itself still enforces allow-licenses via the config file; this custom step
+          # only needs to catch vulnerabilities and denied packages.
           denied='${{ steps.dep-review.outputs.denied-changes }}'
           if [ -n "$denied" ] && [ "$denied" != "[]" ]; then
             echo "::error::Dependency review found denied packages."
