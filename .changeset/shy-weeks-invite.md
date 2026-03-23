@@ -15,6 +15,7 @@
 '@aws-amplify/form-generator': patch
 '@aws-amplify/model-generator': patch
 '@aws-amplify/platform-core': patch
+'@aws-amplify/seed': patch
 ---
 
 Fix high and critical Dependabot vulnerabilities: upgrade minimatch to 10.2.3, add npm overrides for fast-xml-parser, flatted, immutable, @isaacs/brace-expansion, and qs. Fix prettier formatting across codebase.
