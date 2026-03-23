@@ -200,7 +200,8 @@ export class BedrockConverseAdapter {
       bedrockResponse = await this.bedrockClient.send(
         new ConverseStreamCommand(converseCommandInput),
       );
-      this.logger.info( //stream
+      this.logger.info(
+        //stream
         `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
       );
       if (!bedrockResponse.stream) {
@@ -264,6 +265,7 @@ export class BedrockConverseAdapter {
               blockDeltaIndex++;
             }
           } else if (chunk.contentBlockStop) {
+            this.logger.debug(`now in chunk.contentBlockStop`);
             if (toolUseBlock) {
               if (toolUseInput) {
                 toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
@@ -309,11 +311,14 @@ export class BedrockConverseAdapter {
             }
           } else if (chunk.messageStop) {
             stopReason = chunk.messageStop.stopReason ?? '';
+            this.logger.debug(
+              `Bedrock stop reason received: stopReason=${chunk.messageStop.stopReason ?? ''}`,
+            );
           } else if (chunk.metadata) {
-            latencyMs = chunk.metadata.metrics.latencyMs; //check this
-            inputTokens = chunk.metadata.usage.inputTokens;
-            outputTokens = chunk.metadata.usage.outputTokens;
-            totalTokens = chunk.metadata.usage.totalTokens;
+            latencyMs = chunk.metadata.metrics?.latencyMs ?? 0;
+            inputTokens = chunk.metadata.usage?.inputTokens ?? 0;
+            outputTokens = chunk.metadata.usage?.outputTokens ?? 0;
+            totalTokens = chunk.metadata.usage?.totalTokens ?? 0;
           }
           processedBedrockChunks++;
           if (processedBedrockChunks % 1000 === 0) {
@@ -340,8 +345,8 @@ export class BedrockConverseAdapter {
           associatedUserMessageId: this.event.currentMessageId,
           contentBlockIndex: lastBlockIndex,
           stopReason: stopReason,
-          metrics: {latencyMs},
-          usage: {inputTokens, outputTokens, totalTokens,}, //check this
+          metrics: { latencyMs },
+          usage: { inputTokens, outputTokens, totalTokens }, //check this
         };
         return;
       }
@@ -371,8 +376,8 @@ export class BedrockConverseAdapter {
       associatedUserMessageId: this.event.currentMessageId,
       contentBlockIndex: lastBlockIndex,
       stopReason: stopReason,
-      metrics: {latencyMs},
-      usage: {inputTokens, outputTokens, totalTokens,}, //check this
+      metrics: { latencyMs },
+      usage: { inputTokens, outputTokens, totalTokens }, //check this
     };
   }
 
