@@ -15,6 +15,7 @@
 '@aws-amplify/form-generator': patch
 '@aws-amplify/model-generator': patch
 '@aws-amplify/platform-core': patch
+'@aws-amplify/plugin-types': patch
 '@aws-amplify/seed': patch
 ---
 
