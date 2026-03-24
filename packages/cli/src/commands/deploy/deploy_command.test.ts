@@ -4,7 +4,10 @@ import assert from 'node:assert';
 import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
-import { TestCommandRunner } from '../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../test-utils/command_runner.js';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = {
@@ -100,26 +103,35 @@ void describe('deploy command', () => {
   });
 
   void it('rejects identifier with spaces', async () => {
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier "my app"',
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier "my app"'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /Invalid --identifier/);
+        return true;
+      },
     );
-    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
   void it('rejects identifier starting with a number', async () => {
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier 123app',
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier 123app'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /Invalid --identifier/);
+        return true;
+      },
     );
-    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
   void it('rejects identifier with special characters', async () => {
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier my_app!',
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my_app!'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /Invalid --identifier/);
+        return true;
+      },
     );
-    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 

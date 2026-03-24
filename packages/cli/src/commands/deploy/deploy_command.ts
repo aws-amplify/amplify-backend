@@ -62,6 +62,17 @@ export class DeployCommand
   handler = async (
     args: ArgumentsCamelCase<DeployCommandOptions>,
   ): Promise<void> => {
+    // Validate identifier before deploying
+    if (
+      !IDENTIFIER_PATTERN.test(args.identifier) ||
+      args.identifier.length > IDENTIFIER_MAX_LENGTH
+    ) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message: `Invalid --identifier: "${args.identifier}"`,
+        resolution: `--identifier must be 1-${IDENTIFIER_MAX_LENGTH} characters, start with a letter, and contain only alphanumeric characters and hyphens.`,
+      });
+    }
+
     // Standalone deployments use a single stack per identifier.
     // The 'default' name is a convention: standalone does not have
     // branch-based naming, so a fixed name is used.
@@ -127,18 +138,6 @@ export class DeployCommand
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigFormat),
-      })
-      .check((argv) => {
-        if (
-          !IDENTIFIER_PATTERN.test(argv.identifier) ||
-          argv.identifier.length > IDENTIFIER_MAX_LENGTH
-        ) {
-          throw new AmplifyUserError('InvalidCommandInputError', {
-            message: `Invalid --identifier: "${argv.identifier}"`,
-            resolution: `--identifier must be 1-${IDENTIFIER_MAX_LENGTH} characters, start with a letter, and contain only alphanumeric characters and hyphens.`,
-          });
-        }
-        return true;
       });
   };
 }
