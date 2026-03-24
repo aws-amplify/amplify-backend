@@ -24,11 +24,10 @@ void describe('deploy command', () => {
     destroy: mockDestroyFn,
   };
 
-  const getCommandRunner = (isCI = false) => {
+  const getCommandRunner = () => {
     const deployCommand = new DeployCommand(
       clientConfigGenerator as never,
       mockDeployer,
-      isCI,
     ) as unknown as import('yargs').CommandModule<object, DeployCommandOptions>;
     const parser = yargs().command(deployCommand);
     return new TestCommandRunner(parser);
@@ -39,18 +38,6 @@ void describe('deploy command', () => {
     mockDeployFn.mock.resetCalls();
   });
 
-  void it('throws error if not in CI environment', async () => {
-    await assert.rejects(
-      () =>
-        getCommandRunner(false).runCommand('deploy --identifier my-app-prod'),
-      (err: { error: { name: string } }) => {
-        assert.strictEqual(err.error.name, 'DeployNotInCiError');
-        return true;
-      },
-    );
-    assert.equal(generateClientConfigMock.mock.callCount(), 0);
-  });
-
   void it('deploys with standalone type and correct identifier', async () => {
     mockDeployFn.mock.mockImplementationOnce(() =>
       Promise.resolve({
@@ -58,16 +45,17 @@ void describe('deploy command', () => {
       }),
     );
 
-    await getCommandRunner(true).runCommand('deploy --identifier my-app-prod');
+    await getCommandRunner().runCommand('deploy --identifier my-app-prod');
 
     assert.strictEqual(mockDeployFn.mock.callCount(), 1);
-    const [deployedId, deployProps] = mockDeployFn.mock.calls[0].arguments;
-    assert.deepStrictEqual(deployedId, {
+    const callArgs = mockDeployFn.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(callArgs[0], {
       namespace: 'my-app-prod',
       name: 'default',
       type: 'standalone',
     });
-    assert.deepStrictEqual(deployProps, {
+    assert.deepStrictEqual(callArgs[1], {
       validateAppSources: true,
     });
   });
@@ -79,21 +67,17 @@ void describe('deploy command', () => {
       }),
     );
 
-    await getCommandRunner(true).runCommand('deploy --identifier my-app-prod');
+    await getCommandRunner().runCommand('deploy --identifier my-app-prod');
 
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[0],
-      { stackName: 'my-app-prod' },
-    );
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      DEFAULT_CLIENT_CONFIG_VERSION,
-    );
+    const configArgs = generateClientConfigMock.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(configArgs[0], { stackName: 'my-app-prod' });
+    assert.deepStrictEqual(configArgs[1], DEFAULT_CLIENT_CONFIG_VERSION);
   });
 
   void it('fails if --identifier is not provided', async () => {
-    const output = await getCommandRunner(true).runCommand('deploy');
+    const output = await getCommandRunner().runCommand('deploy');
     assert.match(output, /Missing required argument/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
@@ -105,14 +89,13 @@ void describe('deploy command', () => {
       }),
     );
 
-    await getCommandRunner(true).runCommand(
+    await getCommandRunner().runCommand(
       'deploy --identifier my-app --outputs-out-dir src',
     );
 
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      'src',
-    );
+    const configArgs = generateClientConfigMock.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(configArgs[2], 'src');
   });
 });

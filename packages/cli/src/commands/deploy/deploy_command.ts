@@ -1,4 +1,3 @@
-import _isCI from 'is-ci';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -11,7 +10,6 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { format } from '@aws-amplify/cli-core';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
@@ -45,7 +43,6 @@ export class DeployCommand
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendDeployer: BackendDeployer,
-    private readonly isCiEnvironment: typeof _isCI = _isCI,
   ) {
     this.command = 'deploy';
     this.describe = 'Deploy Amplify backend resources without Amplify Hosting.';
@@ -57,16 +54,6 @@ export class DeployCommand
   handler = async (
     args: ArgumentsCamelCase<DeployCommandOptions>,
   ): Promise<void> => {
-    if (!this.isCiEnvironment) {
-      throw new AmplifyUserError('DeployNotInCiError', {
-        message:
-          'It looks like this command is being run outside of a CI/CD workflow.',
-        resolution: `To deploy locally use ${format.normalizeAmpxCommand(
-          'sandbox',
-        )} instead. To deploy in CI, set CI=true in your environment.`,
-      });
-    }
-
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
       name: 'default',
