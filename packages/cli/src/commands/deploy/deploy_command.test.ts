@@ -98,4 +98,49 @@ void describe('deploy command', () => {
       .arguments as unknown as unknown[];
     assert.deepStrictEqual(configArgs[2], 'src');
   });
+
+  void it('rejects identifier with spaces', async () => {
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier "my app"'),
+      (err: { error: { name: string } }) => {
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('rejects identifier starting with a number', async () => {
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier 123app'),
+      (err: { error: { name: string } }) => {
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('rejects identifier with special characters', async () => {
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my_app!'),
+      (err: { error: { name: string } }) => {
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('accepts valid identifier with hyphens', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+      }),
+    );
+
+    await getCommandRunner().runCommand('deploy --identifier my-app-prod-v2');
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+  });
 });

@@ -9,7 +9,11 @@ import {
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
+import { printer } from '@aws-amplify/cli-core';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
@@ -20,6 +24,10 @@ type DeployCommandOptionsCamelCase = {
   outputsVersion: string;
   outputsOutDir?: string;
 };
+
+// CloudFormation stack name constraints
+const IDENTIFIER_PATTERN = /^[A-Za-z][A-Za-z0-9-]*$/;
+const IDENTIFIER_MAX_LENGTH = 128;
 
 /**
  * Deploys Amplify backend resources without Amplify Hosting.
@@ -54,6 +62,9 @@ export class DeployCommand
   handler = async (
     args: ArgumentsCamelCase<DeployCommandOptions>,
   ): Promise<void> => {
+    // Standalone deployments use a single stack per identifier.
+    // The 'default' name is a convention: standalone does not have
+    // branch-based naming, so a fixed name is used.
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
       name: 'default',
@@ -64,6 +75,9 @@ export class DeployCommand
       validateAppSources: true,
     });
 
+    // Client config for standalone uses { stackName } instead of
+    // { appId, branch } because there is no Amplify Hosting app.
+    // This resolves via the StackIdentifier path in deployed-backend-client.
     const clientConfigIdentifier = { stackName: args.identifier };
 
     await this.clientConfigGenerator.generateClientConfigToFile(
@@ -71,6 +85,13 @@ export class DeployCommand
       args.outputsVersion as ClientConfigVersion,
       args.outputsOutDir,
       args.outputsFormat,
+    );
+
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
+    printer.log(`Deployment complete.`);
+    printer.log(`Stack name: ${stackName}`);
+    printer.log(
+      `To remove this deployment: aws cloudformation delete-stack --stack-name ${stackName}`,
     );
   };
 
@@ -108,10 +129,13 @@ export class DeployCommand
         choices: Object.values(ClientConfigFormat),
       })
       .check((argv) => {
-        if (argv.identifier.length === 0) {
+        if (
+          !IDENTIFIER_PATTERN.test(argv.identifier) ||
+          argv.identifier.length > IDENTIFIER_MAX_LENGTH
+        ) {
           throw new AmplifyUserError('InvalidCommandInputError', {
-            message: 'Invalid --identifier',
-            resolution: '--identifier must be at least 1 character',
+            message: `Invalid --identifier: "${argv.identifier}"`,
+            resolution: `--identifier must be 1-${IDENTIFIER_MAX_LENGTH} characters, start with a letter, and contain only alphanumeric characters and hyphens.`,
           });
         }
         return true;
