@@ -100,35 +100,26 @@ void describe('deploy command', () => {
   });
 
   void it('rejects identifier with spaces', async () => {
-    await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier "my app"'),
-      (err: { error: { name: string } }) => {
-        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
-        return true;
-      },
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier "my app"',
     );
+    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
   void it('rejects identifier starting with a number', async () => {
-    await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier 123app'),
-      (err: { error: { name: string } }) => {
-        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
-        return true;
-      },
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier 123app',
     );
+    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
   void it('rejects identifier with special characters', async () => {
-    await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my_app!'),
-      (err: { error: { name: string } }) => {
-        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
-        return true;
-      },
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier my_app!',
     );
+    assert.match(output, /Invalid --identifier/);
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
