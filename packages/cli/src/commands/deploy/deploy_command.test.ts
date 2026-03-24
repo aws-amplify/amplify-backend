@@ -54,7 +54,7 @@ void describe('deploy command', () => {
     const callArgs = mockDeployFn.mock.calls[0]
       .arguments as unknown as unknown[];
     assert.deepStrictEqual(callArgs[0], {
-      namespace: 'my-app-prod',
+      namespace: 'amplify-my-app-prod',
       name: 'default',
       type: 'standalone',
     });
@@ -75,7 +75,7 @@ void describe('deploy command', () => {
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
     const configArgs = generateClientConfigMock.mock.calls[0]
       .arguments as unknown as unknown[];
-    assert.deepStrictEqual(configArgs[0], { stackName: 'my-app-prod' });
+    assert.deepStrictEqual(configArgs[0], { stackName: 'amplify-my-app-prod' });
     assert.deepStrictEqual(configArgs[1], DEFAULT_CLIENT_CONFIG_VERSION);
   });
 

@@ -77,7 +77,7 @@ export class DeployCommand
     // The 'default' name is a convention: standalone does not have
     // branch-based naming, so a fixed name is used.
     const backendId: BackendIdentifier = {
-      namespace: args.identifier,
+      namespace: `amplify-${args.identifier}`,
       name: 'default',
       type: 'standalone',
     };
@@ -89,7 +89,7 @@ export class DeployCommand
     // Client config for standalone uses { stackName } instead of
     // { appId, branch } because there is no Amplify Hosting app.
     // This resolves via the StackIdentifier path in deployed-backend-client.
-    const clientConfigIdentifier = { stackName: args.identifier };
+    const clientConfigIdentifier = { stackName: `amplify-${args.identifier}` };
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       clientConfigIdentifier,
