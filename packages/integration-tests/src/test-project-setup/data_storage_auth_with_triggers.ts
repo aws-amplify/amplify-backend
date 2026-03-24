@@ -17,6 +17,7 @@ import {
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 import {
   CloudTrailClient,
@@ -24,6 +25,16 @@ import {
 } from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import isMatch from 'lodash.ismatch';
+import { generateClientConfig } from '@aws-amplify/client-config';
+import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
+import {
+  ApolloClient,
+  ApolloLink,
+  HttpLink,
+  InMemoryCache,
+  gql,
+} from '@apollo/client/core';
+import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -57,6 +68,9 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       e2eToolingClientConfig,
     ),
     private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig,
+    ),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -75,6 +89,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.iamClient,
       this.cloudTrailClient,
       this.resourceFinder,
+      this.cognitoIdentityProviderClient,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
@@ -141,6 +156,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly iamClient: IAMClient,
     private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder,
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
   ) {
     super(
       name,
@@ -333,6 +349,69 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           },
         },
       ]),
+    );
+
+    // Verify Cognito auth sign-up/sign-in works
+    const clientConfig = await generateClientConfig(backendId, '1.4');
+    assert.ok(clientConfig.auth, 'Client config should have auth section');
+    assert.ok(clientConfig.data, 'Client config should have data section');
+
+    const authFactory = new AmplifyAuthCredentialsFactory(
+      this.cognitoIdentityProviderClient,
+      clientConfig.auth,
+    );
+    const { iamCredentials, accessToken } =
+      await authFactory.getNewAuthenticatedUserCredentials();
+    assert.ok(accessToken, 'Should receive a valid JWT access token');
+    assert.ok(iamCredentials, 'Should receive valid IAM credentials');
+
+    // Verify GraphQL API works with a mutation and query
+    const httpLink = new HttpLink({ uri: clientConfig.data.url });
+    const link = ApolloLink.from([
+      createAuthLink({
+        url: clientConfig.data.url,
+        region: clientConfig.data.aws_region,
+        auth: {
+          type: AUTH_TYPE.AMAZON_COGNITO_USER_POOLS,
+          jwtToken: accessToken,
+        },
+      }),
+      httpLink,
+    ]);
+    const apolloClient = new ApolloClient({ link, cache: new InMemoryCache() });
+
+    const createResult = await apolloClient.mutate({
+      mutation: gql`
+        mutation CreateTodo($input: CreateTodoInput!) {
+          createTodo(input: $input) {
+            id
+            content
+          }
+        }
+      `,
+      variables: { input: { content: 'standalone-e2e-test' } },
+    });
+    assert.ok(
+      createResult.data.createTodo.id,
+      'Mutation should return created record with id',
+    );
+
+    const queryResult = await apolloClient.query({
+      query: gql`
+        query ListTodos {
+          listTodos {
+            items {
+              id
+              content
+            }
+          }
+        }
+      `,
+      fetchPolicy: 'no-cache',
+    });
+    assert.ok(
+      queryResult.data.listTodos.items.length > 0,
+      'Query should return at least one Todo record',
     );
   }
 
