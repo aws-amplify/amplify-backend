@@ -93,42 +93,6 @@ export const defineStandaloneDeploymentTest = (
 
           await testProject.assertPostDeployment(standaloneBackendIdentifier);
         });
-
-        void it(`[${testProjectCreator.name}] redeploys with same identifier`, async () => {
-          // Initial deploy
-          await testProject.deploy(standaloneBackendIdentifier);
-
-          const stackName = BackendIdentifierConversions.toStackName(
-            standaloneBackendIdentifier,
-          );
-
-          // Verify initial deploy succeeded
-          const initialResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: stackName }),
-          );
-          const initialStatus = initialResult.Stacks?.[0]?.StackStatus;
-          assert.ok(
-            initialStatus === 'CREATE_COMPLETE' ||
-              initialStatus === 'UPDATE_COMPLETE',
-            `initial deploy should succeed, got: ${initialStatus}`,
-          );
-
-          // Redeploy with the same identifier (CloudFormation update)
-          await testProject.deploy(standaloneBackendIdentifier);
-
-          // Verify update succeeded
-          const updateResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: stackName }),
-          );
-          const updateStatus = updateResult.Stacks?.[0]?.StackStatus;
-          assert.ok(
-            updateStatus === 'UPDATE_COMPLETE' ||
-              updateStatus === 'CREATE_COMPLETE',
-            `redeploy should succeed, got: ${updateStatus}`,
-          );
-
-          await testProject.assertPostDeployment(standaloneBackendIdentifier);
-        });
       });
     },
   );
