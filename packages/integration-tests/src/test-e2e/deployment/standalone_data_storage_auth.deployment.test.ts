@@ -55,24 +55,17 @@ void describe(
     });
 
     void it('redeploys with modifications and verifies update succeeds', async () => {
-      // Initial deploy
+      // 1. Initial deploy
       await testProject.deploy(standaloneBackendIdentifier);
+
+      // 2. Verify initial deployment
+      await testProject.assertPostDeployment(standaloneBackendIdentifier);
 
       const stackName = BackendIdentifierConversions.toStackName(
         standaloneBackendIdentifier,
       );
 
-      // Verify initial deploy
-      const initialResult = await cfnClient.send(
-        new DescribeStacksCommand({ StackName: stackName }),
-      );
-      assert.ok(
-        initialResult.Stacks?.[0]?.StackStatus === 'CREATE_COMPLETE' ||
-          initialResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
-        `initial deploy should succeed, got: ${initialResult.Stacks?.[0]?.StackStatus}`,
-      );
-
-      // Apply project updates (modified data schema, updated Lambda handler)
+      // 3. Apply project updates (modified data schema, updated Lambda handler)
       const updates = await testProject.getUpdates();
       for (const update of updates) {
         for (const replacement of update.replacements) {
@@ -82,10 +75,10 @@ void describe(
         }
       }
 
-      // Redeploy with the same identifier
+      // 4. Redeploy with the same identifier
       await testProject.deploy(standaloneBackendIdentifier);
 
-      // Verify update succeeded
+      // 5. Verify update succeeded and resources are correct
       const updateResult = await cfnClient.send(
         new DescribeStacksCommand({ StackName: stackName }),
       );
