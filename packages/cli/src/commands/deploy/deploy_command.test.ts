@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
   TestCommandError,
   TestCommandRunner,
@@ -54,8 +55,8 @@ void describe('deploy command', () => {
     const callArgs = mockDeployFn.mock.calls[0]
       .arguments as unknown as unknown[];
     assert.deepStrictEqual(callArgs[0], {
-      namespace: 'amplify-my-app-prod',
-      name: 'default',
+      namespace: 'my-app-prod',
+      name: 'stack',
       type: 'standalone',
     });
     assert.deepStrictEqual(callArgs[1], {
@@ -75,7 +76,12 @@ void describe('deploy command', () => {
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
     const configArgs = generateClientConfigMock.mock.calls[0]
       .arguments as unknown as unknown[];
-    assert.deepStrictEqual(configArgs[0], { stackName: 'amplify-my-app-prod' });
+    const expectedStackName = BackendIdentifierConversions.toStackName({
+      namespace: 'my-app-prod',
+      name: 'stack',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(configArgs[0], { stackName: expectedStackName });
     assert.deepStrictEqual(configArgs[1], DEFAULT_CLIENT_CONFIG_VERSION);
   });
 

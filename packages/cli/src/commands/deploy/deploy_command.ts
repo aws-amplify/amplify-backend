@@ -77,8 +77,8 @@ export class DeployCommand
     // The 'default' name is a convention: standalone does not have
     // branch-based naming, so a fixed name is used.
     const backendId: BackendIdentifier = {
-      namespace: `amplify-${args.identifier}`,
-      name: 'default',
+      namespace: args.identifier,
+      name: 'stack',
       type: 'standalone',
     };
 
@@ -88,8 +88,11 @@ export class DeployCommand
 
     // Client config for standalone uses { stackName } instead of
     // { appId, branch } because there is no Amplify Hosting app.
-    // This resolves via the StackIdentifier path in deployed-backend-client.
-    const clientConfigIdentifier = { stackName: `amplify-${args.identifier}` };
+    // This resolves via the StackIdentifier path in deployed-backend-client,
+    // which passes stackName directly to CloudFormation APIs like
+    // GetTemplateSummary — so it must be the full CFN stack name.
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
+    const clientConfigIdentifier = { stackName };
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       clientConfigIdentifier,
@@ -98,7 +101,6 @@ export class DeployCommand
       args.outputsFormat,
     );
 
-    const stackName = BackendIdentifierConversions.toStackName(backendId);
     printer.log(`Deployment complete.`);
     printer.log(`Stack name: ${stackName}`);
     printer.log(
