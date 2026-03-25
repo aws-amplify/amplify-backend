@@ -1,4 +1,4 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import {
   createTestDirectory,
   deleteTestDirectory,
@@ -37,66 +37,69 @@ void describe(
       await deleteTestDirectory(rootTestDir);
     });
 
-    let standaloneBackendIdentifier: BackendIdentifier;
-    let testProject: TestProjectBase;
+    void describe('standalone deploys data-storage-auth', () => {
+      let testProject: TestProjectBase;
+      let standaloneBackendIdentifier: BackendIdentifier;
 
-    beforeEach(async () => {
-      testProject = await testProjectCreator.createProject(rootTestDir);
-      standaloneBackendIdentifier = {
-        namespace: `standalone-e2e-${shortUuid()}`,
-        name: 'stack',
-        type: 'standalone',
-      };
-    });
-
-    afterEach(async () => {
-      await testProject.tearDown(standaloneBackendIdentifier, true);
-    });
-
-    void it('deploys and verifies full stack via standalone', async () => {
-      await testProject.deploy(standaloneBackendIdentifier);
-      await testProject.assertPostDeployment(standaloneBackendIdentifier);
-    });
-
-    void it('redeploys with modifications and verifies update succeeds', async () => {
-      // Use a consistent shared secret name across both deploys (same pattern as sandbox tests)
       const sharedSecretsEnv = {
         [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
       };
 
-      // 1. Initial deploy
-      await testProject.deploy(standaloneBackendIdentifier, sharedSecretsEnv);
+      before(async () => {
+        testProject = await testProjectCreator.createProject(rootTestDir);
+        standaloneBackendIdentifier = {
+          namespace: `standalone-e2e-${shortUuid()}`,
+          name: 'stack',
+          type: 'standalone',
+        };
+      });
 
-      // 2. Verify initial deployment
-      await testProject.assertPostDeployment(standaloneBackendIdentifier);
+      after(async () => {
+        await testProject.tearDown(standaloneBackendIdentifier, true);
+      });
 
-      const stackName = BackendIdentifierConversions.toStackName(
-        standaloneBackendIdentifier,
-      );
+      void describe('in sequence', { concurrency: false }, () => {
+        void it('deploys and verifies full stack via standalone', async () => {
+          await testProject.deploy(
+            standaloneBackendIdentifier,
+            sharedSecretsEnv,
+          );
+          await testProject.assertPostDeployment(standaloneBackendIdentifier);
+        });
 
-      // 3. Apply project updates (modified data schema, updated Lambda handler)
-      const updates = await testProject.getUpdates();
-      for (const update of updates) {
-        for (const replacement of update.replacements) {
-          await fsp.cp(replacement.source, replacement.destination, {
-            force: true,
-          });
-        }
-      }
+        void it('redeploys with modifications and verifies update succeeds', async () => {
+          const stackName = BackendIdentifierConversions.toStackName(
+            standaloneBackendIdentifier,
+          );
 
-      // 4. Redeploy with the same identifier and shared secret
-      await testProject.deploy(standaloneBackendIdentifier, sharedSecretsEnv);
+          // Apply project updates (modified data schema, updated Lambda handler)
+          const updates = await testProject.getUpdates();
+          for (const update of updates) {
+            for (const replacement of update.replacements) {
+              await fsp.cp(replacement.source, replacement.destination, {
+                force: true,
+              });
+            }
+          }
 
-      // 5. Verify update succeeded and resources are correct
-      const updateResult = await cfnClient.send(
-        new DescribeStacksCommand({ StackName: stackName }),
-      );
-      assert.ok(
-        updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
-        `redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
-      );
+          // Redeploy with the same identifier and shared secret
+          await testProject.deploy(
+            standaloneBackendIdentifier,
+            sharedSecretsEnv,
+          );
 
-      await testProject.assertPostDeployment(standaloneBackendIdentifier);
+          // Verify update succeeded and resources are correct
+          const updateResult = await cfnClient.send(
+            new DescribeStacksCommand({ StackName: stackName }),
+          );
+          assert.ok(
+            updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
+            `redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
+          );
+
+          await testProject.assertPostDeployment(standaloneBackendIdentifier);
+        });
+      });
     });
   },
 );

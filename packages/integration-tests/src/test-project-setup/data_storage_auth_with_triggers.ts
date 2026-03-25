@@ -206,8 +206,11 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   /**
    * @inheritdoc
    */
-  override async tearDown(backendIdentifier: BackendIdentifier) {
-    await super.tearDown(backendIdentifier);
+  override async tearDown(
+    backendIdentifier: BackendIdentifier,
+    waitForStackDeletion: boolean = false,
+  ) {
+    await super.tearDown(backendIdentifier, waitForStackDeletion);
     await this.clearDeployEnvironment(backendIdentifier);
     await this.assertExpectedCleanup();
   }
