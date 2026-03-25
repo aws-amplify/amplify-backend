@@ -1,5 +1,18 @@
 # @aws-amplify/backend
 
+## 1.22.0
+
+### Minor Changes
+
+- 1d109e9: drop support of Node 16 functions
+
+### Patch Changes
+
+- Updated dependencies [1d109e9]
+- Updated dependencies [1d109e9]
+  - @aws-amplify/backend-auth@1.9.3
+  - @aws-amplify/backend-function@1.18.0
+
 ## 1.21.1
 
 ### Patch Changes
