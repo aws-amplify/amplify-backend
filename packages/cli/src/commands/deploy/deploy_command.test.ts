@@ -5,6 +5,7 @@ import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { ParameterNotFound } from '@aws-sdk/client-ssm';
 import {
   TestCommandError,
   TestCommandRunner,
@@ -28,10 +29,25 @@ void describe('deploy command', () => {
     destroy: mockDestroyFn,
   };
 
+  const mockMiddleware = {
+    ensureAwsCredentialAndRegion: mock.fn(() => undefined),
+  };
+
+  // Default: bootstrapped (version 21)
+  const mockSsmSend = mock.fn(() =>
+    Promise.resolve({ Parameter: { Value: '21' } }),
+  );
+  const mockSsmClient = {
+    send: mockSsmSend,
+    config: { region: () => Promise.resolve('us-east-1') },
+  };
+
   const getCommandRunner = () => {
     const deployCommand = new DeployCommand(
       clientConfigGenerator as never,
       mockDeployer,
+      mockMiddleware as never,
+      mockSsmClient as never,
     ) as unknown as import('yargs').CommandModule<object, DeployCommandOptions>;
     const parser = yargs().command(deployCommand);
     return new TestCommandRunner(parser);
@@ -40,6 +56,11 @@ void describe('deploy command', () => {
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
     mockDeployFn.mock.resetCalls();
+    mockSsmSend.mock.resetCalls();
+    // Reset to bootstrapped by default
+    mockSsmSend.mock.mockImplementation(() =>
+      Promise.resolve({ Parameter: { Value: '21' } }),
+    );
   });
 
   void it('deploys with standalone type and correct identifier', async () => {
@@ -108,6 +129,20 @@ void describe('deploy command', () => {
     assert.deepStrictEqual(configArgs[2], 'src');
   });
 
+  void it('passes --profile argument through', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+      }),
+    );
+
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app --profile my-profile',
+    );
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+  });
+
   void it('rejects identifier with spaces', async () => {
     await assert.rejects(
       () => getCommandRunner().runCommand('deploy --identifier "my app"'),
@@ -151,5 +186,27 @@ void describe('deploy command', () => {
     await getCommandRunner().runCommand('deploy --identifier my-app-prod-v2');
 
     assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+  });
+
+  void it('shows bootstrap message when region is not bootstrapped', async () => {
+    mockSsmSend.mock.mockImplementation(() =>
+      Promise.reject(
+        new ParameterNotFound({
+          message: 'Parameter not found',
+          $metadata: {},
+        }),
+      ),
+    );
+
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier my-app',
+    );
+
+    assert.match(output, /has not been bootstrapped/);
+    assert.match(
+      output,
+      /console\.aws\.amazon\.com\/amplify\/create\/bootstrap/,
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 });

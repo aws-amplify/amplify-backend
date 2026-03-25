@@ -13,13 +13,21 @@ import {
   AmplifyUserError,
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
-import { printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
+import { CommandMiddleware } from '../../command_middleware.js';
+import {
+  GetParameterCommand,
+  ParameterNotFound,
+  SSMClient,
+  SSMServiceException,
+} from '@aws-sdk/client-ssm';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
 
 type DeployCommandOptionsCamelCase = {
   identifier: string;
+  profile: string | undefined;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
@@ -28,6 +36,15 @@ type DeployCommandOptionsCamelCase = {
 // CloudFormation stack name constraints
 const IDENTIFIER_PATTERN = /^[A-Za-z][A-Za-z0-9-]*$/;
 const IDENTIFIER_MAX_LENGTH = 128;
+
+// CDK bootstrap version parameter (same as sandbox uses)
+const CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME =
+  // eslint-disable-next-line spellcheck/spell-checker
+  '/cdk-bootstrap/hnb659fds/version';
+const CDK_MIN_BOOTSTRAP_VERSION = 6;
+
+const getBootstrapUrl = (region: string) =>
+  `https://${region}.console.aws.amazon.com/amplify/create/bootstrap?region=${region}`;
 
 /**
  * Deploys Amplify backend resources without Amplify Hosting.
@@ -51,6 +68,8 @@ export class DeployCommand
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendDeployer: BackendDeployer,
+    private readonly commandMiddleware: CommandMiddleware,
+    private readonly ssmClient: SSMClient,
   ) {
     this.command = 'deploy';
     this.describe = 'Deploy Amplify backend resources without Amplify Hosting.';
@@ -71,6 +90,20 @@ export class DeployCommand
         message: `Invalid --identifier: "${args.identifier}"`,
         resolution: `--identifier must be 1-${IDENTIFIER_MAX_LENGTH} characters, start with a letter, and contain only alphanumeric characters and hyphens.`,
       });
+    }
+
+    // Check CDK bootstrap before deploying
+    const bootstrapped = await this.isBootstrapped();
+    const region = await this.ssmClient.config.region();
+    if (!bootstrapped) {
+      printer.log(
+        `The region ${format.highlight(
+          region,
+        )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then re-run the deploy command.`,
+      );
+      const bootstrapUrl = getBootstrapUrl(region);
+      printer.log(`Open ${bootstrapUrl} in the browser.`);
+      return;
     }
 
     // Standalone deployments use a single stack per identifier.
@@ -140,6 +173,61 @@ export class DeployCommand
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigFormat),
-      });
+      })
+      .option('profile', {
+        describe: 'An AWS profile name.',
+        type: 'string',
+        array: false,
+      })
+      .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion]);
+  };
+
+  /**
+   * Checks if a given region has been bootstrapped with >= min version using
+   * CDK bootstrap version parameter stored in parameter store.
+   */
+  private isBootstrapped = async (): Promise<boolean> => {
+    try {
+      const { Parameter: parameter } = await this.ssmClient.send(
+        new GetParameterCommand({
+          Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
+        }),
+      );
+
+      const bootstrapVersion = parameter?.Value;
+      if (
+        !bootstrapVersion ||
+        Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
+      ) {
+        return false;
+      }
+      return true;
+    } catch (e) {
+      if (e instanceof ParameterNotFound) {
+        return false;
+      }
+      if (
+        e instanceof SSMServiceException &&
+        [
+          'UnrecognizedClientException',
+          'AccessDeniedException',
+          'NotAuthorized',
+          'ExpiredTokenException',
+          'ExpiredToken',
+          'InvalidSignatureException',
+        ].includes(e.name)
+      ) {
+        throw new AmplifyUserError(
+          'SSMCredentialsError',
+          {
+            message: `${e.name}: ${e.message}`,
+            resolution:
+              'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+          },
+          e,
+        );
+      }
+      throw e;
+    }
   };
 }
