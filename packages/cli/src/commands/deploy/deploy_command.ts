@@ -103,6 +103,11 @@ export class DeployCommand
       );
       const bootstrapUrl = getBootstrapUrl(region);
       printer.log(`Open ${bootstrapUrl} in the browser.`);
+      printer.log(
+        format.dim(
+          'Note: This check requires ssm:GetParameter permission on /cdk-bootstrap/* resources.',
+        ),
+      );
       return;
     }
 
@@ -195,9 +200,11 @@ export class DeployCommand
       );
 
       const bootstrapVersion = parameter?.Value;
+      const versionNumber = Number(bootstrapVersion);
       if (
         !bootstrapVersion ||
-        Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
+        isNaN(versionNumber) ||
+        versionNumber < CDK_MIN_BOOTSTRAP_VERSION
       ) {
         return false;
       }

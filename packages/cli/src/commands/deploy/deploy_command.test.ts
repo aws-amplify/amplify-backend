@@ -238,6 +238,19 @@ void describe('deploy command', () => {
     assert.strictEqual(mockDeployFn.mock.callCount(), 1);
   });
 
+  void it('handles non-numeric bootstrap version string', async () => {
+    mockSsmSend.mock.mockImplementation(() =>
+      Promise.resolve({ Parameter: { Value: 'corrupted' } }),
+    );
+
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier my-app',
+    );
+
+    assert.match(output, /has not been bootstrapped/);
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
   void it('wraps AccessDeniedException in SSMCredentialsError', async () => {
     mockSsmSend.mock.mockImplementation(() => {
       throw new SSMServiceException({
