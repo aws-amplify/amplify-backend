@@ -126,22 +126,24 @@ export class ConversationTurnResponseSender {
   };
 
   private createStreamingMutationRequest = (chunk: StreamingResponseChunk) => {
-    const query = `
-        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
-            ${this.event.responseMutation.name}(input: $input) {
-                ${this.event.responseMutation.selectionSet}
-            }
-        }
+    const query = `                                                                                                                                                                                            
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {                                                                                                                 
+            ${this.event.responseMutation.name}(input: $input) {                                                                                                                                               
+                ${this.event.responseMutation.selectionSet}                                                                                                                                                    
+            }                                                                                                                                                                                                  
+        }                                                                                                                                                                                                      
     `;
-    chunk = {
+    const serializedChunk = {
       ...chunk,
       accumulatedTurnContent: this.serializeContent(
         chunk.accumulatedTurnContent,
       ),
+      ...(chunk.metrics && { metrics: JSON.stringify(chunk.metrics) }),
+      ...(chunk.usage && { usage: JSON.stringify(chunk.usage) }),
     };
-    const variables: MutationStreamingResponseInput = {
-      input: chunk,
-    };
+    const variables = {
+      input: serializedChunk,
+    } as MutationStreamingResponseInput;
     return { query, variables };
   };
 
