@@ -33,8 +33,7 @@
     "@aws-amplify/platform-core": "^1.10.4",
     "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
     "@aws-sdk/client-cognito-identity": "^3.936.0",
-    "@types/aws-lambda": "^8.10.119",
-    "aws-lambda": "^1.0.7"
+    "@types/aws-lambda": "^8.10.119"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
