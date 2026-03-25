@@ -88,6 +88,6 @@ const retry = async <T>(action: () => Promise<T>) => {
   } catch (err) {
     console.log(err);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    return action();
+    return await action();
   }
 };
