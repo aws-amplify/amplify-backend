@@ -203,9 +203,9 @@ void describe('deploy command', () => {
     );
 
     assert.match(output, /has not been bootstrapped/);
-    assert.match(
-      output,
-      /console\.aws\.amazon\.com\/amplify\/create\/bootstrap/,
+    assert.ok(
+      output.includes('console.aws.amazon.com/amplify/create/bootstrap'),
+      'output should contain the bootstrap URL',
     );
     assert.equal(mockDeployFn.mock.callCount(), 0);
   });
