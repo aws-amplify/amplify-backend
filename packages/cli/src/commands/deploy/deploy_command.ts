@@ -112,7 +112,7 @@ export class DeployCommand
     }
 
     // Standalone deployments use a single stack per identifier.
-    // The 'default' name is a convention: standalone does not have
+    // The 'stack' name is a convention: standalone does not have
     // branch-based naming, so a fixed name is used.
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
