@@ -35,6 +35,19 @@ import {
   gql,
 } from '@apollo/client/core';
 import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
+import crypto from 'node:crypto';
+import { SemVer } from 'semver';
+
+// TODO: this is a work around
+// it seems like as of amplify v6 , some of the code only runs in the browser ...
+// see https://github.com/aws-amplify/amplify-js/issues/12751
+if (process.versions.node) {
+  // node >= 20 now exposes crypto by default. This workaround is not needed: https://github.com/nodejs/node/pull/42083
+  if (new SemVer(process.versions.node).major < 20) {
+    // @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
+    globalThis.crypto = crypto;
+  }
+}
 
 /**
  * Creates test projects with data, storage, and auth categories.

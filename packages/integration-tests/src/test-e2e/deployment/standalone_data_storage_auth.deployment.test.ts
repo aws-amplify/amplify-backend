@@ -17,6 +17,10 @@ import {
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import fsp from 'fs/promises';
+import {
+  amplifySharedSecretNameKey,
+  createAmplifySharedSecretName,
+} from '../../shared_secret.js';
 
 const testProjectCreator = new DataStorageAuthWithTriggerTestProjectCreator();
 
@@ -55,8 +59,13 @@ void describe(
     });
 
     void it('redeploys with modifications and verifies update succeeds', async () => {
+      // Use a consistent shared secret name across both deploys (same pattern as sandbox tests)
+      const sharedSecretsEnv = {
+        [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
+      };
+
       // 1. Initial deploy
-      await testProject.deploy(standaloneBackendIdentifier);
+      await testProject.deploy(standaloneBackendIdentifier, sharedSecretsEnv);
 
       // 2. Verify initial deployment
       await testProject.assertPostDeployment(standaloneBackendIdentifier);
@@ -75,8 +84,8 @@ void describe(
         }
       }
 
-      // 4. Redeploy with the same identifier
-      await testProject.deploy(standaloneBackendIdentifier);
+      // 4. Redeploy with the same identifier and shared secret
+      await testProject.deploy(standaloneBackendIdentifier, sharedSecretsEnv);
 
       // 5. Verify update succeeded and resources are correct
       const updateResult = await cfnClient.send(
