@@ -5,7 +5,7 @@ import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { ParameterNotFound } from '@aws-sdk/client-ssm';
+import { ParameterNotFound, SSMServiceException } from '@aws-sdk/client-ssm';
 import {
   TestCommandError,
   TestCommandRunner,
@@ -208,5 +208,107 @@ void describe('deploy command', () => {
       'output should contain the bootstrap URL',
     );
     assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('skips deploy when bootstrap version is too low', async () => {
+    mockSsmSend.mock.mockImplementation(() =>
+      Promise.resolve({ Parameter: { Value: '3' } }),
+    );
+
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier my-app',
+    );
+
+    assert.match(output, /has not been bootstrapped/);
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('proceeds with deploy when bootstrap version is exactly minimum', async () => {
+    mockSsmSend.mock.mockImplementation(() =>
+      Promise.resolve({ Parameter: { Value: '6' } }),
+    );
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.resolve({
+        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+      }),
+    );
+
+    await getCommandRunner().runCommand('deploy --identifier my-app');
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+  });
+
+  void it('wraps AccessDeniedException in SSMCredentialsError', async () => {
+    mockSsmSend.mock.mockImplementation(() => {
+      throw new SSMServiceException({
+        name: 'AccessDeniedException',
+        message: 'User is not authorized',
+        $fault: 'client',
+        $metadata: {},
+      });
+    });
+
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /AccessDeniedException/);
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('wraps ExpiredTokenException in SSMCredentialsError', async () => {
+    mockSsmSend.mock.mockImplementation(() => {
+      throw new SSMServiceException({
+        name: 'ExpiredTokenException',
+        message: 'The security token included in the request is expired',
+        $fault: 'client',
+        $metadata: {},
+      });
+    });
+
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /ExpiredTokenException/);
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('wraps InvalidSignatureException in SSMCredentialsError', async () => {
+    mockSsmSend.mock.mockImplementation(() => {
+      throw new SSMServiceException({
+        name: 'InvalidSignatureException',
+        message: 'The request signature does not match',
+        $fault: 'client',
+        $metadata: {},
+      });
+    });
+
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /InvalidSignatureException/);
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('propagates deployment failures', async () => {
+    mockDeployFn.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('CFN deployment failed')),
+    );
+
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      (err: TestCommandError) => {
+        assert.match(err.error.message, /CFN deployment failed/);
+        return true;
+      },
+    );
   });
 });
