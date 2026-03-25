@@ -54,7 +54,7 @@ export const synthesizeStandaloneBackendTemplates: SynthesizeBackendTemplates =
     try {
       process.env.CDK_CONTEXT_JSON = JSON.stringify({
         [CDKContextKey.BACKEND_NAMESPACE]: 'testStandaloneId',
-        [CDKContextKey.BACKEND_NAME]: 'default',
+        [CDKContextKey.BACKEND_NAME]: 'stack',
         [CDKContextKey.DEPLOYMENT_TYPE]: 'standalone',
       });
       return backendTemplatesCollector(constructFactories);
