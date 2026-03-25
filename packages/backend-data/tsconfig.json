@@ -3,8 +3,8 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "exclude": ["src/assets", "lib"],
   "references": [
-    { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
+    { "path": "../backend-output-schemas" },
     { "path": "../plugin-types" },
     { "path": "../backend-platform-test-stubs" },
     { "path": "../platform-core" },
