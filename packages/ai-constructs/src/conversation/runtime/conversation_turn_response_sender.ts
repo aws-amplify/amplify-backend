@@ -126,12 +126,12 @@ export class ConversationTurnResponseSender {
   };
 
   private createStreamingMutationRequest = (chunk: StreamingResponseChunk) => {
-    const query = `                                                                                                                                                                                            
-        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {                                                                                                                 
-            ${this.event.responseMutation.name}(input: $input) {                                                                                                                                               
-                ${this.event.responseMutation.selectionSet}                                                                                                                                                    
-            }                                                                                                                                                                                                  
-        }                                                                                                                                                                                                      
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
+            }
+        }
     `;
     const serializedChunk = {
       ...chunk,
