@@ -81,6 +81,14 @@ export abstract class TestProjectBase {
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .run();
+    } else if (backendIdentifier.type === 'standalone') {
+      await ampxCli(
+        ['deploy', '--identifier', backendIdentifier.namespace],
+        this.projectDirPath,
+        {
+          env: environment,
+        },
+      ).run();
     } else {
       await ampxCli(
         [
