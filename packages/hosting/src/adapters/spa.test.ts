@@ -89,4 +89,70 @@ void describe('spaAdapter', () => {
       },
     );
   });
+
+  void it('excludes source map files by default', () => {
+    // Add .map files to build output
+    fs.writeFileSync(path.join(buildDir, 'main.js.map'), '{"sourcemap":true}');
+    fs.writeFileSync(path.join(buildDir, 'assets', 'style.css.map'), '{}');
+
+    spaAdapter(buildDir, tmpDir);
+
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'main.js.map')),
+      'Source maps should be excluded from static output',
+    );
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'assets', 'style.css.map')),
+      'Nested source maps should be excluded',
+    );
+    // But main.js should still be there
+    assert.ok(
+      fs.existsSync(path.join(staticDir, 'main.js')),
+      'Non-map files should be copied',
+    );
+  });
+
+  void it('excludes .DS_Store and thumbs.db', () => {
+    fs.writeFileSync(path.join(buildDir, '.DS_Store'), '');
+    fs.writeFileSync(path.join(buildDir, 'thumbs.db'), '');
+
+    spaAdapter(buildDir, tmpDir);
+
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, '.DS_Store')),
+      '.DS_Store should be excluded',
+    );
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'thumbs.db')),
+      'thumbs.db should be excluded',
+    );
+  });
+
+  void it('excludes .tsbuildinfo files', () => {
+    fs.writeFileSync(path.join(buildDir, 'tsconfig.tsbuildinfo'), '{}');
+
+    spaAdapter(buildDir, tmpDir);
+
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'tsconfig.tsbuildinfo')),
+      '.tsbuildinfo should be excluded',
+    );
+  });
+
+  void it('skips symlinks', () => {
+    const targetFile = path.join(tmpDir, 'secret.txt');
+    fs.writeFileSync(targetFile, 'secret-data');
+    fs.symlinkSync(targetFile, path.join(buildDir, 'symlink.txt'));
+
+    spaAdapter(buildDir, tmpDir);
+
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'symlink.txt')),
+      'Symlinks should not be copied',
+    );
+  });
 });

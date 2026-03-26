@@ -3,9 +3,8 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack, StackProps } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
-import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { AmplifyHostingConstruct } from './hosting-construct.js';
 import { DeployManifest } from '../manifest/types.js';
 
@@ -88,6 +87,28 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
       },
       VersioningConfiguration: {
         Status: 'Enabled',
+      },
+    });
+  });
+
+  void it('creates S3 lifecycle rule with 90-day expiration', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      LifecycleConfiguration: {
+        Rules: Match.arrayWith([
+          Match.objectLike({
+            ExpirationInDays: 90,
+            Prefix: 'builds/',
+            Status: 'Enabled',
+          }),
+        ]),
       },
     });
   });
@@ -309,6 +330,49 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
       'Should have BucketDeployment custom resource',
     );
   });
+
+  void it('enables compression on static behavior', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            Compress: true,
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('retains S3 bucket when retainOnDelete is true', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+      retainOnDelete: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    const buckets = template.findResources('AWS::S3::Bucket');
+    // Find the hosting bucket (not the autoDeleteObjects custom resource bucket)
+    let foundRetain = false;
+    for (const [, bucket] of Object.entries(buckets)) {
+      const bucketObj = bucket as Record<string, unknown>;
+      if (bucketObj.DeletionPolicy === 'Retain') {
+        foundRetain = true;
+      }
+    }
+    assert.ok(foundRetain, 'Bucket should have Retain deletion policy');
+  });
 });
 
 // ================================================================
@@ -344,6 +408,10 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     fs.writeFileSync(
       path.join(defaultDir, 'run.sh'),
       '#!/bin/bash\nexec node server.js',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.js'),
+      'exports.handler = async () => ({ statusCode: 502, body: "SSR bootstrap failed" });',
     );
   });
 
@@ -392,7 +460,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     );
   });
 
-  void it('creates Lambda function with Web Adapter configuration', () => {
+  void it('creates Lambda function with index.handler and Web Adapter configuration', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: ssrManifest,
@@ -404,8 +472,10 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
 
     template.hasResourceProperties('AWS::Lambda::Function', {
       Runtime: 'nodejs20.x',
+      Handler: 'index.handler',
       MemorySize: 512,
       Timeout: 30,
+      ReservedConcurrentExecutions: 100,
       Environment: {
         Variables: Match.objectLike({
           AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
@@ -413,6 +483,35 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
           PORT: '3000',
         }),
       },
+    });
+  });
+
+  void it('creates Lambda with explicit least-privilege role', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Verify IAM role with LambdaBasicExecutionRole managed policy
+    template.hasResourceProperties('AWS::IAM::Role', {
+      AssumeRolePolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Principal: Match.objectLike({
+              Service: 'lambda.amazonaws.com',
+            }),
+          }),
+        ]),
+      }),
+      ManagedPolicyArns: Match.arrayWith([
+        Match.objectLike({
+          'Fn::Join': Match.anyValue(),
+        }),
+      ]),
     });
   });
 
@@ -485,6 +584,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
             Match.objectLike({
               PathPattern: '/_next/static/*',
               AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+              Compress: true,
             }),
           ]),
         }),
@@ -492,7 +592,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     );
   });
 
-  void it('default behavior routes to Lambda (allows all HTTP methods)', () => {
+  void it('default behavior routes to Lambda (allows all HTTP methods) with compression', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: ssrManifest,
@@ -507,6 +607,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       Match.objectLike({
         DistributionConfig: Match.objectLike({
           DefaultCacheBehavior: Match.objectLike({
+            Compress: true,
             AllowedMethods: [
               'GET',
               'HEAD',
@@ -547,7 +648,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     }
   });
 
-  void it('does NOT create SPA error responses for SSR', () => {
+  void it('creates SSR 5xx error responses', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: ssrManifest,
@@ -557,18 +658,23 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
 
     const template = Template.fromStack(stack);
 
-    const distributions = template.findResources(
+    template.hasResourceProperties(
       'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 502,
+              ResponsePagePath: '/_error.html',
+            }),
+            Match.objectLike({
+              ErrorCode: 503,
+              ResponsePagePath: '/_error.html',
+            }),
+          ]),
+        }),
+      }),
     );
-    for (const [, dist] of Object.entries(distributions)) {
-      const config = (dist as Record<string, Record<string, unknown>>)
-        .Properties?.DistributionConfig as Record<string, unknown>;
-      assert.strictEqual(
-        config?.CustomErrorResponses,
-        undefined,
-        'SSR mode should not have custom error responses',
-      );
-    }
   });
 
   void it('creates CloudFront Function for Build ID rewriting', () => {
@@ -634,6 +740,109 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     assert.ok(
       Object.keys(customResources).length > 0,
       'Should have BucketDeployment custom resource',
+    );
+  });
+
+  void it('uses custom compute config when provided', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+      compute: {
+        memorySize: 1024,
+        timeout: 60,
+        reservedConcurrency: 50,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      MemorySize: 1024,
+      Timeout: 60,
+      ReservedConcurrentExecutions: 50,
+    });
+  });
+});
+
+// ================================================================
+// Security headers
+// ================================================================
+
+void describe('AmplifyHostingConstruct — security headers', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-headers-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates ResponseHeadersPolicy with CSP', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            ContentSecurityPolicy: Match.objectLike({
+              ContentSecurityPolicy: Match.stringLikeRegexp("default-src 'self'"),
+              Override: false,
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('sets override: true for HSTS, X-Content-Type, X-Frame-Options, XSS, Referrer', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            StrictTransportSecurity: Match.objectLike({
+              Override: true,
+            }),
+            ContentTypeOptions: Match.objectLike({
+              Override: true,
+            }),
+            FrameOptions: Match.objectLike({
+              Override: true,
+            }),
+            XSSProtection: Match.objectLike({
+              Override: true,
+            }),
+            ReferrerPolicy: Match.objectLike({
+              Override: true,
+            }),
+          }),
+        }),
+      }),
     );
   });
 });
@@ -758,6 +967,22 @@ void describe('AmplifyHostingConstruct — custom domain', () => {
     assert.ok(construct.certificate, 'Should expose certificate');
     assert.ok(construct.hostedZone, 'Should expose hostedZone');
   });
+
+  void it('throws when domain name does not match hosted zone', () => {
+    const stack = createEnvStack();
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: spaManifestForDomain,
+          staticAssetPath: staticDir,
+          domain: { domainName: 'app.other.com', hostedZone: 'example.com' },
+        }),
+      (error: Error) => {
+        assert.ok(error.name === 'InvalidDomainConfigError');
+        return true;
+      },
+    );
+  });
 });
 
 // ================================================================
@@ -859,6 +1084,32 @@ void describe('AmplifyHostingConstruct — WAF', () => {
     });
   });
 
+  void it('includes RateLimitRule', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: 'RateLimitRule',
+          Action: { Block: {} },
+          Statement: {
+            RateBasedStatement: {
+              Limit: 2000,
+              AggregateKeyType: 'IP',
+            },
+          },
+        }),
+      ]),
+    });
+  });
+
   void it('associates WebACL with CloudFront distribution', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
@@ -923,5 +1174,62 @@ void describe('AmplifyHostingConstruct — WAF', () => {
     });
 
     assert.ok(construct.webAcl, 'Should expose webAcl when WAF is enabled');
+  });
+});
+
+// ================================================================
+// Access logging
+// ================================================================
+
+void describe('AmplifyHostingConstruct — access logging', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-logging-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates log bucket when accessLogging is enabled', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+      accessLogging: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should have at least 2 buckets: hosting bucket + log bucket
+    const buckets = template.findResources('AWS::S3::Bucket');
+    assert.ok(
+      Object.keys(buckets).length >= 2,
+      `Should have at least 2 S3 buckets (hosting + log), got ${Object.keys(buckets).length}`,
+    );
+  });
+
+  void it('does not create log bucket when accessLogging is not set', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should have exactly 1 hosting bucket (autoDeleteObjects may create an additional resource)
+    const buckets = template.findResources('AWS::S3::Bucket');
+    assert.ok(
+      Object.keys(buckets).length <= 1,
+      `Should have at most 1 S3 bucket without logging, got ${Object.keys(buckets).length}`,
+    );
   });
 });

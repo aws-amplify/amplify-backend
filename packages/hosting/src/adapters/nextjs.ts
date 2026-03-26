@@ -2,29 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
+import { copyDirRecursive } from './utils.js';
 
 const HOSTING_DIR = '.amplify-hosting';
 const STATIC_DIR = 'static';
 const COMPUTE_DIR = 'compute';
 const DEFAULT_COMPUTE_NAME = 'default';
 const MANIFEST_FILENAME = 'deploy-manifest.json';
-
-/**
- * Copy a directory recursively.
- */
-const copyDirRecursive = (src: string, dest: string): void => {
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
-};
 
 /**
  * Generate the run.sh bootstrap script for Lambda Web Adapter.
@@ -59,6 +43,34 @@ const detectNextVersion = (projectDir: string): string | undefined => {
     }
   }
   return undefined;
+};
+
+/**
+ * Pre-flight check: verify that next.config has output: 'standalone'.
+ * Called before running the Next.js adapter to give clear error messages.
+ */
+export const checkNextConfig = (projectDir: string): void => {
+  const configFiles = ['next.config.js', 'next.config.mjs', 'next.config.ts'];
+  for (const configFile of configFiles) {
+    const configPath = path.join(projectDir, configFile);
+    if (fs.existsSync(configPath)) {
+      const content = fs.readFileSync(configPath, 'utf-8');
+      if (!content.includes('standalone')) {
+        throw new AmplifyUserError('NextjsStandaloneRequiredError', {
+          message: `Next.js config at ${configFile} does not appear to have output: 'standalone' set.`,
+          resolution:
+            'Add `output: "standalone"` to your next.config.js/mjs/ts. This is required for Lambda deployment. See: https://nextjs.org/docs/app/api-reference/next-config-js/output',
+        });
+      }
+      return;
+    }
+  }
+  // No config file found — Next.js defaults to no standalone output
+  throw new AmplifyUserError('NextjsConfigNotFoundError', {
+    message: 'No next.config.js/mjs/ts found in project root.',
+    resolution:
+      'Create a next.config.js with `output: "standalone"` set. This is required for Lambda deployment.',
+  });
 };
 
 /**
@@ -112,7 +124,8 @@ export const nextjsAdapter = (
   }
 
   // 1. Copy standalone server → .amplify-hosting/compute/default/
-  copyDirRecursive(standaloneDir, computeDir);
+  //    No exclude patterns for compute — we need everything including .map for debugging
+  copyDirRecursive(standaloneDir, computeDir, { excludePatterns: [] });
 
   // 2. Copy .next/static/ → .amplify-hosting/static/_next/static/
   //    These are hashed immutable assets served by CloudFront from S3
@@ -126,7 +139,7 @@ export const nextjsAdapter = (
 
     // Also copy to compute for fallback serving
     const computeStaticDir = path.join(computeDir, '.next', 'static');
-    copyDirRecursive(staticDir, computeStaticDir);
+    copyDirRecursive(staticDir, computeStaticDir, { excludePatterns: [] });
   }
 
   // 3. Copy public/ → .amplify-hosting/static/ (public assets like favicon, robots.txt)
@@ -136,14 +149,20 @@ export const nextjsAdapter = (
 
     // Also copy to compute/default/public/ for server-side serving
     const computePublicDir = path.join(computeDir, 'public');
-    copyDirRecursive(publicDir, computePublicDir);
+    copyDirRecursive(publicDir, computePublicDir, { excludePatterns: [] });
   }
 
   // 4. Generate run.sh bootstrap script for Lambda Web Adapter
   const runScriptPath = path.join(computeDir, 'run.sh');
   fs.writeFileSync(runScriptPath, generateRunScript(), { mode: 0o755 });
 
-  // 5. Generate deploy manifest
+  // 5. Write a fallback handler (Lambda Web Adapter intercepts, but this prevents HandlerNotFound)
+  fs.writeFileSync(
+    path.join(computeDir, 'index.js'),
+    'exports.handler = async (event) => { return { statusCode: 502, body: "SSR bootstrap failed" }; };\n',
+  );
+
+  // 6. Generate deploy manifest
   const nextVersion = detectNextVersion(projectDir);
 
   const manifest: DeployManifest = {

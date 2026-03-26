@@ -6,11 +6,6 @@ import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
 
 /**
- * Supported framework types.
- */
-export type FrameworkType = 'nextjs' | 'spa' | 'static';
-
-/**
  * An adapter function that transforms a build output directory into the
  * canonical .amplify-hosting/ directory structure.
  */
@@ -20,11 +15,33 @@ export type FrameworkAdapterFn = (
 ) => DeployManifest;
 
 /**
+ * Built-in adapter registry.
+ * Custom adapters can be registered at runtime via registerAdapter().
+ */
+const adapterRegistry = new Map<string, FrameworkAdapterFn>([
+  ['nextjs', nextjsAdapter],
+  ['spa', spaAdapter],
+  ['static', spaAdapter],
+]);
+
+/**
+ * Register a custom framework adapter at runtime.
+ * @param framework - framework identifier string
+ * @param adapter - adapter function
+ */
+export const registerAdapter = (
+  framework: string,
+  adapter: FrameworkAdapterFn,
+): void => {
+  adapterRegistry.set(framework, adapter);
+};
+
+/**
  * Detect the framework from the project's package.json.
  * @param projectDir - absolute path to the project root
  * @returns the detected framework type
  */
-export const detectFramework = (projectDir: string): FrameworkType => {
+export const detectFramework = (projectDir: string): string => {
   const packageJsonPath = path.join(projectDir, 'package.json');
 
   if (!fs.existsSync(packageJsonPath)) {
@@ -54,21 +71,18 @@ export const detectFramework = (projectDir: string): FrameworkType => {
 
 /**
  * Get the adapter function for the given framework type.
+ * Looks up the adapter registry (built-in + custom registered adapters).
  * @param framework - the framework type
  * @returns the adapter function
  */
-export const getAdapter = (framework: FrameworkType): FrameworkAdapterFn => {
-  switch (framework) {
-    case 'nextjs':
-      return nextjsAdapter;
-    case 'spa':
-    case 'static':
-      return spaAdapter;
-    default:
-      throw new AmplifyUserError('UnsupportedFrameworkError', {
-        message: `Framework "${String(framework)}" is not yet supported.`,
-        resolution:
-          'Use framework: "nextjs", "spa", or "static" in your defineHosting configuration.',
-      });
+export const getAdapter = (framework: string): FrameworkAdapterFn => {
+  const adapter = adapterRegistry.get(framework);
+  if (!adapter) {
+    throw new AmplifyUserError('UnsupportedFrameworkError', {
+      message: `Framework "${framework}" is not supported.`,
+      resolution:
+        'Use a built-in framework (nextjs, spa, static) or provide a customAdapter in your defineHosting configuration.',
+    });
   }
+  return adapter;
 };

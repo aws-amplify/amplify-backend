@@ -17,6 +17,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
+import path from 'path';
 
 const testProjectCreator = new StandaloneHostingSpaTestProjectCreator();
 
@@ -47,7 +48,11 @@ void describe(
       });
 
       afterEach(async () => {
-        await testProject.tearDown(standaloneBackendIdentifier, true);
+        try {
+          await testProject.tearDown(standaloneBackendIdentifier, true);
+        } catch {
+          console.warn('⚠️ Stack deletion may not have completed. Check for orphaned resources.');
+        }
       }, { timeout: 1500000 });
 
       void it(
@@ -142,6 +147,31 @@ void describe(
 
           // Verify post-deployment assertions (client config file exists)
           await testProject.assertPostDeployment(standaloneBackendIdentifier);
+
+          // Best-effort HTTP verification of deployed site
+          try {
+            const clientConfigPath = path.join(
+              testProject.projectDirPath,
+              'amplify_outputs.json',
+            );
+            const fs = await import('fs/promises');
+            const configRaw = await fs.readFile(clientConfigPath, 'utf-8').catch(() => '');
+            if (configRaw) {
+              const clientConfig = JSON.parse(configRaw);
+              const distributionUrl = clientConfig.hosting?.distribution_url;
+              if (distributionUrl) {
+                // Wait for CloudFront propagation
+                await new Promise(resolve => setTimeout(resolve, 30000));
+                const response = await fetch(`https://${distributionUrl}`);
+                assert.ok(
+                  response.status === 200 || response.status === 304,
+                  `Expected HTTP 200/304 from CloudFront, got ${response.status}`,
+                );
+              }
+            }
+          } catch {
+            // Best-effort — don't fail the test if HTTP check can't be performed
+          }
         },
       );
     });

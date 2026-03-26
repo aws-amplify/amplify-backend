@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { nextjsAdapter, generateRunScript } from './nextjs.js';
+import { nextjsAdapter, generateRunScript, checkNextConfig } from './nextjs.js';
 
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
@@ -134,6 +134,22 @@ void describe('nextjsAdapter', () => {
     assert.ok(content.includes('HOSTNAME=0.0.0.0'));
   });
 
+  void it('writes fallback index.js handler', () => {
+    nextjsAdapter(nextDir, tmpDir);
+
+    const indexJsPath = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+      'index.js',
+    );
+    assert.ok(fs.existsSync(indexJsPath));
+    const content = fs.readFileSync(indexJsPath, 'utf-8');
+    assert.ok(content.includes('exports.handler'));
+    assert.ok(content.includes('502'));
+  });
+
   void it('copies public/ directory to static/ and compute/', () => {
     // Create public/ directory
     const publicDir = path.join(tmpDir, 'public');
@@ -231,6 +247,28 @@ void describe('nextjsAdapter', () => {
       ),
     );
   });
+
+  void it('skips symlinks in copyDirRecursive', () => {
+    // Create a symlink inside standalone dir
+    const standaloneDir = path.join(nextDir, 'standalone');
+    const targetFile = path.join(tmpDir, 'secret.txt');
+    fs.writeFileSync(targetFile, 'secret-data');
+    fs.symlinkSync(targetFile, path.join(standaloneDir, 'symlink.txt'));
+
+    nextjsAdapter(nextDir, tmpDir);
+
+    // Symlink should NOT be copied
+    const computeDir = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+    );
+    assert.ok(
+      !fs.existsSync(path.join(computeDir, 'symlink.txt')),
+      'Symlinks should not be copied',
+    );
+  });
 });
 
 void describe('generateRunScript', () => {
@@ -241,5 +279,57 @@ void describe('generateRunScript', () => {
     assert.ok(script.includes('HOSTNAME=0.0.0.0'));
     assert.ok(script.includes('NODE_ENV=production'));
     assert.ok(script.includes('exec node server.js'));
+  });
+});
+
+void describe('checkNextConfig', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextcfg-test-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('does not throw when config has standalone', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'next.config.js'),
+      'module.exports = { output: "standalone" };',
+    );
+    assert.doesNotThrow(() => checkNextConfig(tmpDir));
+  });
+
+  void it('throws NextjsStandaloneRequiredError when config lacks standalone', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'next.config.js'),
+      'module.exports = { reactStrictMode: true };',
+    );
+    assert.throws(
+      () => checkNextConfig(tmpDir),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'NextjsStandaloneRequiredError');
+        return true;
+      },
+    );
+  });
+
+  void it('throws NextjsConfigNotFoundError when no config exists', () => {
+    assert.throws(
+      () => checkNextConfig(tmpDir),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'NextjsConfigNotFoundError');
+        return true;
+      },
+    );
+  });
+
+  void it('checks next.config.mjs', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'next.config.mjs'),
+      'export default { output: "standalone" };',
+    );
+    assert.doesNotThrow(() => checkNextConfig(tmpDir));
   });
 });

@@ -2,27 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
+import { copyDirRecursive } from './utils.js';
 
 const HOSTING_DIR = '.amplify-hosting';
 const STATIC_DIR = 'static';
 const MANIFEST_FILENAME = 'deploy-manifest.json';
-
-/**
- * Copy a directory recursively.
- */
-const copyDirRecursive = (src: string, dest: string): void => {
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
-};
 
 /**
  * SPA adapter — transforms a built SPA output directory into the canonical
@@ -53,6 +37,7 @@ export const spaAdapter = (
   }
 
   // Copy all build output to .amplify-hosting/static/
+  // Default exclude patterns skip source maps, OS metadata, and build artifacts
   copyDirRecursive(buildOutputDir, staticDir);
 
   // Generate deploy manifest

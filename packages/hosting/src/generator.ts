@@ -1,4 +1,6 @@
+import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import {
   AmplifyResourceGroupName,
   ConstructContainerEntryGenerator,
@@ -7,15 +9,55 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Tags } from 'aws-cdk-lib';
-import { TagName } from '@aws-amplify/platform-core';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { HostingProps, HostingResources } from './types.js';
 import {
   AmplifyHostingConstruct,
   AmplifyHostingConstructProps,
 } from './constructs/hosting-construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
+import { checkNextConfig } from './adapters/nextjs.js';
 import { getHostingOutputDir, parseManifest } from './manifest/parser.js';
 import { runBuild } from './build/runner.js';
+
+const LOCK_FILE = path.join(os.tmpdir(), 'amplify-hosting-deploy.lock');
+const LOCK_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour stale lock timeout
+
+/**
+ * Acquire a file-based deploy lock to prevent concurrent deployments.
+ */
+const acquireLock = (): void => {
+  if (fs.existsSync(LOCK_FILE)) {
+    try {
+      const lockData = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf-8'));
+      if (Date.now() - lockData.timestamp < LOCK_TIMEOUT_MS) {
+        throw new AmplifyUserError('DeploymentInProgressError', {
+          message: `Another deployment appears to be in progress (started ${Math.round((Date.now() - lockData.timestamp) / 1000)}s ago).`,
+          resolution: `Wait for the other deployment to complete. If no deployment is running, delete ${LOCK_FILE}`,
+        });
+      }
+    } catch (e) {
+      if ((e as Error).name === 'DeploymentInProgressError') throw e;
+      // Corrupted lock file, remove it
+    }
+    fs.unlinkSync(LOCK_FILE);
+  }
+  fs.writeFileSync(
+    LOCK_FILE,
+    JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+  );
+};
+
+/**
+ * Release the deploy lock.
+ */
+const releaseLock = (): void => {
+  try {
+    fs.unlinkSync(LOCK_FILE);
+  } catch {
+    /* ignore — may already be deleted */
+  }
+};
 
 /**
  * Generates hosting construct entries for the construct container.
@@ -36,12 +78,28 @@ export class AmplifyHostingGenerator
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<HostingResources> => {
+    acquireLock();
+    try {
+      return this.doGenerateContainerEntry(scope);
+    } finally {
+      releaseLock();
+    }
+  };
+
+  private doGenerateContainerEntry = (
+    scope: import('constructs').Construct,
+  ): ResourceProvider<HostingResources> => {
     // Determine the project directory (one level above amplify/)
     const projectDir = process.cwd();
 
     // Auto-detect or use explicit framework
     const framework =
       this.props.framework ?? detectFramework(projectDir);
+
+    // Next.js pre-flight validation
+    if (framework === 'nextjs') {
+      checkNextConfig(projectDir);
+    }
 
     // Run the build command if provided
     if (this.props.buildCommand) {
@@ -59,8 +117,8 @@ export class AmplifyHostingGenerator
       ? buildOutputDir
       : path.join(projectDir, buildOutputDir);
 
-    // Get the adapter and run it to produce .amplify-hosting/
-    const adapter = getAdapter(framework);
+    // Get the adapter (custom or registry) and run it to produce .amplify-hosting/
+    const adapter = this.props.customAdapter ?? getAdapter(framework);
     const manifest = adapter(absoluteBuildOutputDir, projectDir);
 
     // Resolve paths
@@ -74,6 +132,9 @@ export class AmplifyHostingGenerator
       computeBasePath,
       domain: this.props.domain,
       waf: this.props.waf,
+      compute: this.props.compute,
+      retainOnDelete: this.props.retainOnDelete,
+      accessLogging: this.props.accessLogging,
       name: this.name,
     };
 

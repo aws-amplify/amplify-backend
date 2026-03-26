@@ -1,6 +1,9 @@
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as nodeFs from 'fs';
+import * as nodePath from 'path';
+import * as nodeOs from 'os';
 import {
   Distribution,
   ViewerProtocolPolicy,
@@ -19,6 +22,7 @@ import {
   ResponseHeadersPolicy,
   HeadersFrameOption,
   HeadersReferrerPolicy,
+  ErrorResponse,
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
   S3BucketOrigin,
@@ -42,7 +46,11 @@ import {
   FunctionUrl,
   CfnPermission,
 } from 'aws-cdk-lib/aws-lambda';
-import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  Role,
+  ServicePrincipal,
+  ManagedPolicy,
+} from 'aws-cdk-lib/aws-iam';
 import {
   DnsValidatedCertificate,
   ICertificate,
@@ -57,7 +65,9 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest, ComputeResource } from '../manifest/types.js';
-import { HostingResources } from '../types.js';
+import { ComputeConfig, HostingResources } from '../types.js';
+
+// ---- Constants ----
 
 /**
  * Account ID for the public Lambda Web Adapter layer.
@@ -66,23 +76,45 @@ import { HostingResources } from '../types.js';
 const LAMBDA_WEB_ADAPTER_ACCOUNT = '753240598075';
 
 /**
- * Layer name and version for the Lambda Web Adapter (x86-64).
+ * Layer name for the Lambda Web Adapter (x86-64).
  */
 const LAMBDA_WEB_ADAPTER_LAYER_NAME = 'LambdaAdapterLayerX86-64';
-const LAMBDA_WEB_ADAPTER_LAYER_VERSION = '22';
+
+/**
+ * Lambda Web Adapter layer version. Update this when upgrading Lambda Web Adapter.
+ */
+const LAMBDA_WEB_ADAPTER_VERSION = 22;
+
+/** Default Lambda memory in MB */
+const DEFAULT_LAMBDA_MEMORY_MB = 512;
+
+/** Default Lambda timeout in seconds */
+const DEFAULT_LAMBDA_TIMEOUT_SECONDS = 30;
+
+/** Default Lambda reserved concurrent executions */
+const DEFAULT_LAMBDA_RESERVED_CONCURRENCY = 100;
+
+/** S3 lifecycle expiration for old builds (days) */
+const BUILD_EXPIRATION_DAYS = 90;
+
+/**
+ * Generic error page HTML for SSR 5xx errors.
+ */
+const SSR_ERROR_PAGE_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Service Temporarily Unavailable</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb;color:#374151}
+.c{text-align:center;max-width:480px;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#6b7280}</style></head>
+<body><div class="c"><h1>Service Temporarily Unavailable</h1><p>We're working on it. Please try again in a few moments.</p></div></body></html>`;
+
+// ---- Public interfaces ----
 
 /**
  * Domain configuration for custom domain support.
  */
 export interface HostingDomainConfig {
-  /**
-   * The fully-qualified domain name (e.g., 'www.example.com' or 'example.com').
-   */
   domainName: string;
-
-  /**
-   * The Route 53 hosted zone name (e.g., 'example.com').
-   */
   hostedZone: string;
 }
 
@@ -90,48 +122,22 @@ export interface HostingDomainConfig {
  * WAF configuration for CloudFront protection.
  */
 export interface HostingWafConfig {
-  /**
-   * Whether WAF is enabled.
-   */
   enabled: boolean;
 }
 
 export interface AmplifyHostingConstructProps {
-  /**
-   * The validated deploy manifest.
-   */
   manifest: DeployManifest;
-
-  /**
-   * Absolute path to the .amplify-hosting/static/ directory.
-   */
   staticAssetPath: string;
-
-  /**
-   * Absolute path to the .amplify-hosting/compute/ directory.
-   * Required when the manifest has compute routes (SSR).
-   */
   computeBasePath?: string;
-
-  /**
-   * Custom domain configuration.
-   * When provided, creates ACM certificate (us-east-1), Route 53 A record,
-   * and configures CloudFront alternate domain name.
-   */
   domain?: HostingDomainConfig;
-
-  /**
-   * WAF configuration.
-   * When enabled, creates a WAFv2 WebACL with AWS managed rule groups
-   * and associates it with the CloudFront distribution.
-   */
   waf?: HostingWafConfig;
-
-  /**
-   * Optional friendly name.
-   */
+  compute?: ComputeConfig;
+  retainOnDelete?: boolean;
+  accessLogging?: boolean;
   name?: string;
 }
+
+// ---- Exported helpers ----
 
 /**
  * Generate CloudFront Function code that prepends the build ID prefix to request URIs.
@@ -162,6 +168,8 @@ export const generateBuildId = (): string => {
   return `${timestamp}-${random}`;
 };
 
+// ---- Main construct ----
+
 /**
  * Unified, manifest-driven hosting construct.
  *
@@ -171,10 +179,7 @@ export const generateBuildId = (): string => {
  * Conditional features based on props:
  * - Compute routes in manifest → Lambda + Function URL + split CloudFront behaviors
  * - domain config → ACM certificate (us-east-1) + Route 53 A record + CF aliases
- * - waf.enabled → WAFv2 WebACL with managed rule groups
- *
- * The construct never knows which framework produced the manifest — adapters
- * are just plugins that emit different manifests.
+ * - waf.enabled → WAFv2 WebACL with managed rule groups + rate limiting
  */
 export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
@@ -198,23 +203,9 @@ export class AmplifyHostingConstruct extends Construct {
     const region = Stack.of(this).region;
     const account = Stack.of(this).account;
 
-    // ---- S3 Bucket (always created — private, OAC-secured) ----
-    this.bucket = new Bucket(this, 'HostingBucket', {
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      encryption: BucketEncryption.S3_MANAGED,
-      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      versioned: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-      lifecycleRules: [{
-        id: 'DeleteOldBuilds',
-        prefix: 'builds/',
-        expiration: Duration.days(30),
-        enabled: true,
-      }],
-    });
+    // ---- Core resources ----
+    this.bucket = this.createBucket(props);
 
-    // ---- CloudFront Function for Build ID rewriting (atomic deploys) ----
     const buildIdFunction = new CloudFrontFunction(
       this,
       'BuildIdRewriteFunction',
@@ -225,10 +216,9 @@ export class AmplifyHostingConstruct extends Construct {
       },
     );
 
-    // ---- S3 origin with OAC (always created) ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(this.bucket);
 
-    // ---- Check whether manifest has compute routes ----
+    // ---- Compute resources (conditional) ----
     const computeRoutes = manifest.routes.filter(
       (r) => r.target.kind === 'Compute',
     );
@@ -236,7 +226,6 @@ export class AmplifyHostingConstruct extends Construct {
       computeRoutes.length > 0 &&
       (manifest.computeResources?.length ?? 0) > 0;
 
-    // ---- Conditionally create Lambda + Function URL for SSR ----
     let lambdaOrigin:
       | ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
       | undefined;
@@ -244,220 +233,58 @@ export class AmplifyHostingConstruct extends Construct {
     if (hasCompute) {
       const computeResource =
         manifest.computeResources![0] as ComputeResource;
-      const computeDir = `${props.computeBasePath!}/${computeResource.name}`;
-
-      const webAdapterLayerArn = `arn:aws:lambda:${region}:${LAMBDA_WEB_ADAPTER_ACCOUNT}:layer:${LAMBDA_WEB_ADAPTER_LAYER_NAME}:${LAMBDA_WEB_ADAPTER_LAYER_VERSION}`;
-
-      const ssrFn = new LambdaFunction(this, 'SsrFunction', {
-        runtime: Runtime.NODEJS_20_X,
-        handler: computeResource.entrypoint,
-        code: Code.fromAsset(computeDir),
-        architecture: Architecture.X86_64,
-        memorySize: 512,
-        timeout: Duration.seconds(30),
-        layers: [
-          LayerVersion.fromLayerVersionArn(
-            this,
-            'WebAdapterLayer',
-            webAdapterLayerArn,
-          ),
-        ],
-        environment: {
-          AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
-          AWS_LWA_INVOKE_MODE: 'response_stream',
-          PORT: '3000',
-        },
-      });
-
-      const fnUrl = ssrFn.addFunctionUrl({
-        authType: FunctionUrlAuthType.AWS_IAM,
-        invokeMode: InvokeMode.RESPONSE_STREAM,
-      });
-
-      this.ssrFunction = ssrFn;
-      this.functionUrl = fnUrl;
-
-      lambdaOrigin = FunctionUrlOrigin.withOriginAccessControl(fnUrl);
+      const result = this.createSsrFunction(
+        props,
+        computeResource,
+        region,
+      );
+      (this as { ssrFunction?: LambdaFunction }).ssrFunction = result.ssrFn;
+      (this as { functionUrl?: FunctionUrl }).functionUrl = result.fnUrl;
+      lambdaOrigin = FunctionUrlOrigin.withOriginAccessControl(result.fnUrl);
     }
 
-    // ---- Custom Domain: ACM Certificate (us-east-1) ----
+    // ---- Custom domain resources (conditional) ----
     if (props.domain) {
-      const zone = HostedZone.fromLookup(this, 'HostedZone', {
-        domainName: props.domain.hostedZone,
-      });
-      this.hostedZone = zone;
-
-      // DnsValidatedCertificate handles cross-region automatically —
-      // creates the certificate in us-east-1 (required for CloudFront)
-      // with DNS validation records in the hosted zone.
-      this.certificate = new DnsValidatedCertificate(this, 'Certificate', {
-        domainName: props.domain.domainName,
-        subjectAlternativeNames: [props.domain.domainName],
-        hostedZone: zone,
-        region: 'us-east-1',
-      });
+      this.validateDomainConfig(props.domain);
+      const domainResult = this.createDomainResources(props.domain);
+      (this as { certificate?: ICertificate }).certificate = domainResult.certificate;
+      (this as { hostedZone?: IHostedZone }).hostedZone = domainResult.zone;
     }
 
-    // ---- WAF: WebACL with AWS Managed Rule Groups ----
+    // ---- WAF (conditional) ----
     if (props.waf?.enabled) {
-      // WAFv2 WebACL for CloudFront must use scope CLOUDFRONT.
-      // When the stack is not in us-east-1, CloudFormation automatically
-      // handles CLOUDFRONT-scoped WAF ACLs as global resources.
-      this.webAcl = new CfnWebACL(this, 'WebAcl', {
-        defaultAction: { allow: {} },
-        scope: 'CLOUDFRONT',
-        visibilityConfig: {
-          cloudWatchMetricsEnabled: true,
-          metricName: `${props.name ?? 'amplifyHosting'}WebAcl`,
-          sampledRequestsEnabled: true,
-        },
-        rules: [
-          {
-            name: 'AWSManagedRulesCommonRuleSet',
-            priority: 1,
-            overrideAction: { none: {} },
-            statement: {
-              managedRuleGroupStatement: {
-                vendorName: 'AWS',
-                name: 'AWSManagedRulesCommonRuleSet',
-              },
-            },
-            visibilityConfig: {
-              cloudWatchMetricsEnabled: true,
-              metricName: 'AWSManagedRulesCommonRuleSet',
-              sampledRequestsEnabled: true,
-            },
-          },
-          {
-            name: 'AWSManagedRulesKnownBadInputsRuleSet',
-            priority: 2,
-            overrideAction: { none: {} },
-            statement: {
-              managedRuleGroupStatement: {
-                vendorName: 'AWS',
-                name: 'AWSManagedRulesKnownBadInputsRuleSet',
-              },
-            },
-            visibilityConfig: {
-              cloudWatchMetricsEnabled: true,
-              metricName: 'AWSManagedRulesKnownBadInputsRuleSet',
-              sampledRequestsEnabled: true,
-            },
-          },
-        ],
+      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(props.name);
+    }
+
+    // ---- Access log bucket (conditional) ----
+    let logBucket: Bucket | undefined;
+    if (props.accessLogging) {
+      logBucket = new Bucket(this, 'AccessLogBucket', {
+        blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+        encryption: BucketEncryption.S3_MANAGED,
+        objectOwnership: ObjectOwnership.BUCKET_OWNER_PREFERRED,
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+        lifecycleRules: [{
+          id: 'ExpireAccessLogs',
+          expiration: Duration.days(90),
+          enabled: true,
+        }],
       });
     }
 
-    // ---- Build CloudFront behaviors from manifest routes ----
-    const additionalBehaviors: Record<string, BehaviorOptions> = {};
+    // ---- Security headers ----
+    const securityHeadersPolicy = this.createSecurityHeadersPolicy();
 
-    // ---- Security Response Headers Policy ----
-    const securityHeadersPolicy = new ResponseHeadersPolicy(this, 'SecurityHeaders', {
-      securityHeadersBehavior: {
-        strictTransportSecurity: {
-          accessControlMaxAge: Duration.days(730),
-          includeSubdomains: true,
-          preload: true,
-          override: false,
-        },
-        contentTypeOptions: { override: false },
-        frameOptions: { frameOption: HeadersFrameOption.SAMEORIGIN, override: false },
-        xssProtection: { protection: true, modeBlock: true, override: false },
-        referrerPolicy: {
-          referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-          override: false,
-        },
-      },
-    });
-
-    const makeStaticBehavior = (): BehaviorOptions => ({
-      origin: s3Origin,
-      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-      cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
-      cachePolicy: CachePolicy.CACHING_OPTIMIZED,
-      responseHeadersPolicy: securityHeadersPolicy,
-      functionAssociations: [
-        {
-          function: buildIdFunction,
-          eventType: FunctionEventType.VIEWER_REQUEST,
-        },
-      ],
-    });
-
-    const makeComputeBehavior = (): BehaviorOptions => ({
-      origin: lambdaOrigin!,
-      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      allowedMethods: AllowedMethods.ALLOW_ALL,
-      cachePolicy: CachePolicy.CACHING_DISABLED,
-      originRequestPolicy:
-        OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-      responseHeadersPolicy: securityHeadersPolicy,
-    });
-
-    // Process non-catch-all routes into additionalBehaviors
-    for (const route of manifest.routes) {
-      if (route.path === '/*') {
-        continue; // Catch-all becomes defaultBehavior
-      }
-
-      if (route.target.kind === 'Compute' && lambdaOrigin) {
-        additionalBehaviors[route.path] = makeComputeBehavior();
-      } else {
-        additionalBehaviors[route.path] = makeStaticBehavior();
-      }
-    }
-
-    // Determine default behavior from catch-all route
-    const catchAllRoute = manifest.routes.find((r) => r.path === '/*');
-    const defaultIsCompute =
-      catchAllRoute?.target.kind === 'Compute' && hasCompute;
-
-    const defaultBehavior = defaultIsCompute
-      ? makeComputeBehavior()
-      : makeStaticBehavior();
-
-    // ---- CloudFront Distribution ----
-    const isSpaOnly = !hasCompute;
-
-    this.distribution = new Distribution(this, 'HostingDistribution', {
-      defaultBehavior,
-      additionalBehaviors:
-        Object.keys(additionalBehaviors).length > 0
-          ? additionalBehaviors
-          : undefined,
-      defaultRootObject: isSpaOnly ? 'index.html' : undefined,
-      httpVersion: HttpVersion.HTTP2_AND_3,
-      priceClass: PriceClass.PRICE_CLASS_100,
-      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
-      // Custom domain: alternate domain names + certificate
-      ...(this.certificate && props.domain
-        ? {
-            domainNames: [props.domain.domainName],
-            certificate: this.certificate,
-          }
-        : {}),
-      // WAF association
-      ...(this.webAcl ? { webAclId: this.webAcl.attrArn } : {}),
-      // SPA error handling: 403/404 → index.html (only for SPA/static)
-      ...(isSpaOnly
-        ? {
-            errorResponses: [
-              {
-                httpStatus: 403,
-                responseHttpStatus: 200,
-                responsePagePath: '/index.html',
-                ttl: Duration.seconds(0),
-              },
-              {
-                httpStatus: 404,
-                responseHttpStatus: 200,
-                responsePagePath: '/index.html',
-                ttl: Duration.seconds(0),
-              },
-            ],
-          }
-        : {}),
+    // ---- CloudFront distribution ----
+    this.distribution = this.createDistribution({
+      props,
+      s3Origin,
+      lambdaOrigin,
+      buildIdFunction,
+      securityHeadersPolicy,
+      hasCompute,
+      logBucket,
     });
 
     // ---- Route 53 A Record (only when custom domain configured) ----
@@ -504,16 +331,26 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // ---- Atomic Deployment (always created — uploads static assets) ----
-    const assetDeployment = new BucketDeployment(this, 'AssetDeployment', {
+    // ---- Upload SSR error page for 5xx responses ----
+    if (hasCompute) {
+      const errorPageDir = this.createErrorPage(buildId);
+      new BucketDeployment(this, 'ErrorPageDeployment', {
+        sources: [Source.asset(errorPageDir)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        prune: false,
+      });
+    }
+
+    // ---- Atomic Deployment (uploads static assets + invalidates CloudFront) ----
+    new BucketDeployment(this, 'AssetDeployment', {
       sources: [Source.asset(props.staticAssetPath)],
       destinationBucket: this.bucket,
       destinationKeyPrefix: `builds/${buildId}/`,
       prune: false,
+      distribution: this.distribution,
+      distributionPaths: ['/*'],
     });
-
-    // Ensure CloudFront Function is only updated AFTER assets are uploaded
-    buildIdFunction.node.addDependency(assetDeployment);
 
     // ---- Determine the primary URL ----
     this.distributionUrl = props.domain
@@ -543,5 +380,395 @@ export class AmplifyHostingConstruct extends Construct {
       distribution: this.distribution,
       distributionUrl: this.distributionUrl,
     };
+  }
+
+  // ---- Private methods ----
+
+  /**
+   * Create the S3 bucket with lifecycle rules and appropriate removal policy.
+   */
+  private createBucket(props: AmplifyHostingConstructProps): Bucket {
+    const retainOnDelete = props.retainOnDelete ?? false;
+    return new Bucket(this, 'HostingBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      versioned: true,
+      removalPolicy: retainOnDelete ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      autoDeleteObjects: !retainOnDelete,
+      lifecycleRules: [{
+        id: 'DeleteOldBuilds',
+        prefix: 'builds/',
+        expiration: Duration.days(BUILD_EXPIRATION_DAYS),
+        enabled: true,
+      }],
+    });
+  }
+
+  /**
+   * Create the SSR Lambda function, Function URL, and least-privilege IAM role.
+   */
+  private createSsrFunction(
+    props: AmplifyHostingConstructProps,
+    computeResource: ComputeResource,
+    region: string,
+  ): { ssrFn: LambdaFunction; fnUrl: FunctionUrl } {
+    const computeDir = `${props.computeBasePath!}/${computeResource.name}`;
+    const compute = props.compute ?? {};
+
+    const webAdapterLayerArn = `arn:aws:lambda:${region}:${LAMBDA_WEB_ADAPTER_ACCOUNT}:layer:${LAMBDA_WEB_ADAPTER_LAYER_NAME}:${LAMBDA_WEB_ADAPTER_VERSION}`;
+
+    // Explicit least-privilege role — only CloudWatch Logs
+    const ssrRole = new Role(this, 'SsrFunctionRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        ManagedPolicy.fromManagedPolicyArn(
+          this,
+          'LambdaBasicExecution',
+          'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+        ),
+      ],
+    });
+
+    const ssrFn = new LambdaFunction(this, 'SsrFunction', {
+      runtime: Runtime.NODEJS_20_X,
+      handler: 'index.handler', // Dummy — Lambda Web Adapter intercepts execution
+      code: Code.fromAsset(computeDir),
+      architecture: Architecture.X86_64,
+      memorySize: compute.memorySize ?? DEFAULT_LAMBDA_MEMORY_MB,
+      timeout: Duration.seconds(compute.timeout ?? DEFAULT_LAMBDA_TIMEOUT_SECONDS),
+      reservedConcurrentExecutions: compute.reservedConcurrency ?? DEFAULT_LAMBDA_RESERVED_CONCURRENCY,
+      role: ssrRole,
+      layers: [
+        LayerVersion.fromLayerVersionArn(
+          this,
+          'WebAdapterLayer',
+          webAdapterLayerArn,
+        ),
+      ],
+      environment: {
+        AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
+        AWS_LWA_INVOKE_MODE: 'response_stream',
+        PORT: '3000',
+      },
+    });
+
+    const fnUrl = ssrFn.addFunctionUrl({
+      authType: FunctionUrlAuthType.AWS_IAM,
+      invokeMode: InvokeMode.RESPONSE_STREAM,
+    });
+
+    return { ssrFn, fnUrl };
+  }
+
+  /**
+   * Create WAFv2 WebACL with AWS Managed Rule Groups and rate limiting.
+   */
+  private createWafWebAcl(name?: string): CfnWebACL {
+    return new CfnWebACL(this, 'WebAcl', {
+      defaultAction: { allow: {} },
+      scope: 'CLOUDFRONT',
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: `${name ?? 'amplifyHosting'}WebAcl`,
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: 'AWSManagedRulesCommonRuleSet',
+          priority: 1,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: 'AWS',
+              name: 'AWSManagedRulesCommonRuleSet',
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: 'AWSManagedRulesCommonRuleSet',
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: 'AWSManagedRulesKnownBadInputsRuleSet',
+          priority: 2,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: 'AWS',
+              name: 'AWSManagedRulesKnownBadInputsRuleSet',
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: 'AWSManagedRulesKnownBadInputsRuleSet',
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: 'RateLimitRule',
+          priority: 3,
+          action: { block: {} },
+          statement: {
+            rateBasedStatement: {
+              limit: 2000,
+              aggregateKeyType: 'IP',
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: 'RateLimitRule',
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * Create custom domain resources: ACM certificate and Route 53 hosted zone lookup.
+   */
+  private createDomainResources(domain: HostingDomainConfig): {
+    certificate: ICertificate;
+    zone: IHostedZone;
+  } {
+    const zone = HostedZone.fromLookup(this, 'HostedZone', {
+      domainName: domain.hostedZone,
+    });
+
+    const certificate = new DnsValidatedCertificate(this, 'Certificate', {
+      domainName: domain.domainName,
+      subjectAlternativeNames: [domain.domainName],
+      hostedZone: zone,
+      region: 'us-east-1',
+    });
+
+    return { certificate, zone };
+  }
+
+  /**
+   * Validate that the domain name belongs to the hosted zone.
+   */
+  private validateDomainConfig(domain: HostingDomainConfig): void {
+    if (
+      !domain.domainName.endsWith(domain.hostedZone) &&
+      domain.domainName !== domain.hostedZone
+    ) {
+      throw new AmplifyUserError('InvalidDomainConfigError', {
+        message: `Domain name '${domain.domainName}' is not within hosted zone '${domain.hostedZone}'.`,
+        resolution: `Ensure the domain name ends with the hosted zone. For example, if hostedZone is 'example.com', domainName could be 'www.example.com' or 'example.com'.`,
+      });
+    }
+  }
+
+  /**
+   * Create the security response headers policy with CSP and HSTS.
+   */
+  private createSecurityHeadersPolicy(): ResponseHeadersPolicy {
+    return new ResponseHeadersPolicy(this, 'SecurityHeaders', {
+      securityHeadersBehavior: {
+        strictTransportSecurity: {
+          accessControlMaxAge: Duration.days(730),
+          includeSubdomains: true,
+          preload: true,
+          override: true,
+        },
+        contentTypeOptions: { override: true },
+        frameOptions: {
+          frameOption: HeadersFrameOption.SAMEORIGIN,
+          override: true,
+        },
+        xssProtection: {
+          protection: true,
+          modeBlock: true,
+          override: true,
+        },
+        referrerPolicy: {
+          referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          override: true,
+        },
+        contentSecurityPolicy: {
+          contentSecurityPolicy:
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",
+          override: false, // Customer can override via their own headers
+        },
+      },
+    });
+  }
+
+  /**
+   * Create the CloudFront distribution with all behaviors.
+   */
+  private createDistribution(opts: {
+    props: AmplifyHostingConstructProps;
+    s3Origin: ReturnType<typeof S3BucketOrigin.withOriginAccessControl>;
+    lambdaOrigin?: ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>;
+    buildIdFunction: CloudFrontFunction;
+    securityHeadersPolicy: ResponseHeadersPolicy;
+    hasCompute: boolean;
+    logBucket?: Bucket;
+  }): Distribution {
+    const {
+      props,
+      s3Origin,
+      lambdaOrigin,
+      buildIdFunction,
+      securityHeadersPolicy,
+      hasCompute,
+      logBucket,
+    } = opts;
+
+    const additionalBehaviors: Record<string, BehaviorOptions> = {};
+
+    const makeStaticBehavior = (): BehaviorOptions => ({
+      origin: s3Origin,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+      cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+      compress: true,
+      responseHeadersPolicy: securityHeadersPolicy,
+      functionAssociations: [
+        {
+          function: buildIdFunction,
+          eventType: FunctionEventType.VIEWER_REQUEST,
+        },
+      ],
+    });
+
+    const makeComputeBehavior = (): BehaviorOptions => ({
+      origin: lambdaOrigin!,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: AllowedMethods.ALLOW_ALL,
+      cachePolicy: CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy:
+        OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      responseHeadersPolicy: securityHeadersPolicy,
+    });
+
+    // Process non-catch-all routes into additionalBehaviors
+    for (const route of props.manifest.routes) {
+      if (route.path === '/*') {
+        continue; // Catch-all becomes defaultBehavior
+      }
+
+      if (route.target.kind === 'Compute' && lambdaOrigin) {
+        additionalBehaviors[route.path] = makeComputeBehavior();
+      } else {
+        additionalBehaviors[route.path] = makeStaticBehavior();
+      }
+    }
+
+    // Determine default behavior from catch-all route
+    const catchAllRoute = props.manifest.routes.find((r) => r.path === '/*');
+    const defaultIsCompute =
+      catchAllRoute?.target.kind === 'Compute' && hasCompute;
+
+    const defaultBehavior = defaultIsCompute
+      ? makeComputeBehavior()
+      : makeStaticBehavior();
+
+    const isSpaOnly = !hasCompute;
+
+    // SSR error responses for 5xx
+    const ssrErrorResponses: ErrorResponse[] = hasCompute
+      ? [
+          {
+            httpStatus: 502,
+            responseHttpStatus: 502,
+            responsePagePath: '/_error.html',
+            ttl: Duration.seconds(10),
+          },
+          {
+            httpStatus: 503,
+            responseHttpStatus: 503,
+            responsePagePath: '/_error.html',
+            ttl: Duration.seconds(10),
+          },
+          {
+            httpStatus: 504,
+            responseHttpStatus: 504,
+            responsePagePath: '/_error.html',
+            ttl: Duration.seconds(10),
+          },
+        ]
+      : [];
+
+    return new Distribution(this, 'HostingDistribution', {
+      defaultBehavior,
+      additionalBehaviors:
+        Object.keys(additionalBehaviors).length > 0
+          ? additionalBehaviors
+          : undefined,
+      defaultRootObject: isSpaOnly ? 'index.html' : undefined,
+      httpVersion: HttpVersion.HTTP2_AND_3,
+      priceClass: PriceClass.PRICE_CLASS_100,
+      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
+      // Custom domain: alternate domain names + certificate
+      ...(this.certificate && props.domain
+        ? {
+            domainNames: [props.domain.domainName],
+            certificate: this.certificate,
+          }
+        : {}),
+      // WAF association
+      ...(this.webAcl ? { webAclId: this.webAcl.attrArn } : {}),
+      // Access logging
+      ...(logBucket ? { enableLogging: true, logBucket } : {}),
+      // Error responses
+      errorResponses: [
+        // SPA error handling: 403/404 → index.html (only for SPA/static)
+        ...(isSpaOnly
+          ? [
+              {
+                httpStatus: 403,
+                responseHttpStatus: 200,
+                responsePagePath: '/index.html',
+                ttl: Duration.seconds(0),
+              },
+              {
+                httpStatus: 404,
+                responseHttpStatus: 200,
+                responsePagePath: '/index.html',
+                ttl: Duration.seconds(0),
+              },
+            ]
+          : []),
+        // SSR 5xx error pages
+        ...ssrErrorResponses,
+      ].length > 0
+        ? [
+            ...(isSpaOnly
+              ? [
+                  {
+                    httpStatus: 403,
+                    responseHttpStatus: 200,
+                    responsePagePath: '/index.html',
+                    ttl: Duration.seconds(0),
+                  },
+                  {
+                    httpStatus: 404,
+                    responseHttpStatus: 200,
+                    responsePagePath: '/index.html',
+                    ttl: Duration.seconds(0),
+                  },
+                ]
+              : []),
+            ...ssrErrorResponses,
+          ]
+        : undefined,
+    });
+  }
+
+  /**
+   * Create a temporary directory with the SSR error page HTML.
+   * Returns the path to a temp directory containing _error.html.
+   */
+  private createErrorPage(buildId: string): string {
+    const dir = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), 'hosting-error-page-'));
+    nodeFs.writeFileSync(nodePath.join(dir, '_error.html'), SSR_ERROR_PAGE_HTML);
+    return dir;
   }
 }

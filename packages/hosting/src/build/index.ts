@@ -22,7 +22,7 @@ export interface BuildAndPrepareOptions {
   /**
    * Framework type. Auto-detected from package.json if not specified.
    */
-  framework?: 'nextjs' | 'spa' | 'static';
+  framework?: string;
 
   /**
    * Absolute path to the project root directory.

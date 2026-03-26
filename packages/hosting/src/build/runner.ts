@@ -31,6 +31,19 @@ export interface BuildRunnerResult {
 }
 
 /**
+ * Format build output for error messages.
+ * Shows first 1000 + last 1000 characters to capture both the error context
+ * and the final failure lines.
+ */
+const formatBuildOutput = (output: string): string => {
+  if (!output) return 'No build output captured.';
+  if (output.length <= 2000) return output;
+  const first = output.slice(0, 1000);
+  const last = output.slice(-1000);
+  return `${first}\n\n... (${output.length - 2000} chars truncated) ...\n\n${last}`;
+};
+
+/**
  * Execute a build command as a child process.
  *
  * Runs the user's build command (e.g., 'npm run build') synchronously
@@ -75,9 +88,8 @@ export const runBuild = (options: BuildRunnerOptions): BuildRunnerResult => {
       resolution: [
         'Check your build command and fix any errors.',
         'Verify all dependencies are installed (run "npm install").',
-        buildOutput
-          ? `Build output:\n${buildOutput.slice(-2000)}`
-          : 'No build output captured.',
+        'Run your build command locally to see full output.',
+        `Build output:\n${formatBuildOutput(buildOutput)}`,
       ].join('\n'),
     });
   }

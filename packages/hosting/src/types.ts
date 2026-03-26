@@ -1,5 +1,24 @@
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { FrameworkAdapterFn } from './adapters/index.js';
+
+/**
+ * Open union type for framework names.
+ * Provides autocomplete for built-in frameworks while accepting any string.
+ */
+export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
+
+/**
+ * Compute (Lambda) configuration for SSR frameworks.
+ */
+export interface ComputeConfig {
+  /** Lambda memory size in MB. Default: 512 */
+  memorySize?: number;
+  /** Lambda timeout in seconds. Default: 30 */
+  timeout?: number;
+  /** Lambda reserved concurrent executions. Default: 100 */
+  reservedConcurrency?: number;
+}
 
 /**
  * Configuration for defineHosting.
@@ -19,11 +38,12 @@ export interface HostingProps {
 
   /**
    * Framework type — auto-detected from package.json or set explicitly.
+   * Accepts built-in values ('nextjs', 'spa', 'static') or any custom string.
    */
-  framework?: 'nextjs' | 'spa' | 'static';
+  framework?: FrameworkType;
 
   /**
-   * Custom domain configuration (Phase 3 — types accepted now).
+   * Custom domain configuration.
    */
   domain?: {
     domainName: string;
@@ -31,11 +51,35 @@ export interface HostingProps {
   };
 
   /**
-   * WAF configuration (Phase 3 — types accepted now).
+   * WAF configuration.
    */
   waf?: {
     enabled: boolean;
   };
+
+  /**
+   * Custom framework adapter for unsupported frameworks.
+   * When provided, this adapter is used instead of the built-in registry lookup.
+   */
+  customAdapter?: FrameworkAdapterFn;
+
+  /**
+   * Compute (Lambda) configuration for SSR.
+   * Controls memory, timeout, and concurrency settings.
+   */
+  compute?: ComputeConfig;
+
+  /**
+   * If true, the S3 bucket is retained on stack deletion instead of being destroyed.
+   * Default: false (bucket is destroyed with all objects on stack delete).
+   */
+  retainOnDelete?: boolean;
+
+  /**
+   * Enable CloudFront access logging to an S3 bucket.
+   * Default: false. Adds a dedicated log bucket when enabled.
+   */
+  accessLogging?: boolean;
 
   /**
    * Optional friendly name for the hosting resource.

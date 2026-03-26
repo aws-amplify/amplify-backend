@@ -108,7 +108,11 @@ void describe(
       });
 
       afterEach(async () => {
-        await testProject.tearDown(standaloneBackendIdentifier, true);
+        try {
+          await testProject.tearDown(standaloneBackendIdentifier, true);
+        } catch {
+          console.warn('⚠️ Stack deletion may not have completed. Check for orphaned resources.');
+        }
       }, { timeout: 1500000 });
 
       void it(
