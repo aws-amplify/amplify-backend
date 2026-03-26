@@ -21,9 +21,9 @@
       "require": "./lib/adapters/index.js"
     },
     "./constructs": {
-      "types": "./lib/constructs/hosting-construct.d.ts",
-      "import": "./lib/constructs/hosting-construct.js",
-      "require": "./lib/constructs/hosting-construct.js"
+      "types": "./lib/constructs/hosting_construct.d.ts",
+      "import": "./lib/constructs/hosting_construct.js",
+      "require": "./lib/constructs/hosting_construct.js"
     }
   },
   "main": "lib/index.js",

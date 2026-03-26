@@ -1,11 +1,11 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template, Match } from 'aws-cdk-lib/assertions';
-import { AmplifyHostingConstruct } from './hosting-construct.js';
+import { Match, Template } from 'aws-cdk-lib/assertions';
+import { AmplifyHostingConstruct } from './hosting_construct.js';
 import { DeployManifest } from '../manifest/types.js';
 
 // ---- Helpers ----
@@ -1345,6 +1345,7 @@ void describe('AmplifyHostingConstruct — S3 lifecycle', () => {
     assert.ok(Array.isArray(rules), 'Should have lifecycle rules');
 
     const noncurrentRule = rules.find(
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- CDK CloudFormation property name
       (r: unknown) => (r as { Id?: string }).Id === 'ExpireNoncurrentVersions',
     );
     assert.ok(noncurrentRule, 'Should have ExpireNoncurrentVersions rule');

@@ -6,89 +6,91 @@
 
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-
-// @public
-export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
-    constructor(props: HostingProps, importStack?: string | undefined);
-    // (undocumented)
-    static factoryCount: number;
-    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => BackendHosting;
-    // (undocumented)
-    readonly provides = "HostingResources";
-}
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
 
 // @public
-export interface ComputeResource {
-    entrypoint: string;
+export type ComputeConfig = {
+    memorySize?: number;
+    timeout?: number;
+    reservedConcurrency?: number;
+};
+
+// @public
+export type ComputeResource = {
     name: string;
     runtime: string;
-}
+    entrypoint: string;
+};
 
 // @public
 export const defineHosting: (props?: HostingProps) => ConstructFactory<BackendHosting>;
 
 // @public
-export interface DeployManifest {
-    buildId?: string;
-    // (undocumented)
-    computeResources?: ComputeResource[];
-    // (undocumented)
-    framework: FrameworkMetadata;
-    // (undocumented)
-    routes: ManifestRoute[];
-    // (undocumented)
+export type DeployManifest = {
     version: 1;
-}
+    routes: ManifestRoute[];
+    computeResources?: ComputeResource[];
+    framework: FrameworkMetadata;
+    buildId?: string;
+};
 
 // @public
-export interface FrameworkMetadata {
-    // (undocumented)
+export type FrameworkMetadata = {
     name: string;
-    // (undocumented)
     version?: string;
-}
+};
 
 // @public
-export interface HostingProps {
+export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
+
+// @public
+export type HostingProps = {
     buildCommand?: string;
     buildOutputDir?: string;
+    framework?: FrameworkType;
     domain?: {
         domainName: string;
         hostedZone: string;
     };
-    framework?: 'nextjs' | 'spa' | 'static';
-    name?: string;
     waf?: {
         enabled: boolean;
+        rateLimit?: number;
     };
-}
+    customAdapter?: FrameworkAdapterFn;
+    compute?: ComputeConfig;
+    retainOnDelete?: boolean;
+    accessLogging?: boolean;
+    contentSecurityPolicy?: string;
+    name?: string;
+};
 
 // @public
-export interface HostingResources {
+export type HostingResources = {
     bucket: Bucket;
     distribution: Distribution;
     distributionUrl: string;
-}
+};
 
 // @public
-export interface ManifestRoute {
+export type ManifestRoute = {
     path: string;
     target: RouteTarget;
-}
+};
 
 // @public
-export interface RouteTarget {
-    cacheControl?: string;
-    // (undocumented)
+export type RouteTarget = {
     kind: 'Static' | 'Compute' | 'ImageOptimization';
     src?: string;
-}
+    cacheControl?: string;
+};
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:67:3 - (ae-forgotten-export) The symbol "FrameworkAdapterFn" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

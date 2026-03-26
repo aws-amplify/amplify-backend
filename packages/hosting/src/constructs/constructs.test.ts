@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
-  generateBuildIdFunctionCode,
   generateBuildId,
-} from './hosting-construct.js';
+  generateBuildIdFunctionCode,
+} from './hosting_construct.js';
 
 void describe('generateBuildIdFunctionCode', () => {
   void it('generates CF Function code containing the build ID', () => {

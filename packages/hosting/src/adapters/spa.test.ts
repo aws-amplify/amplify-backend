@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -175,13 +175,16 @@ void describe('spaAdapter', () => {
     fs.unlinkSync(path.join(buildDir, 'index.html'));
 
     const warnings: string[] = [];
-    const originalWarn = console.warn;
-    console.warn = (msg: string) => warnings.push(msg);
+    const originalWrite = process.stderr.write;
+    process.stderr.write = ((chunk: string) => {
+      warnings.push(chunk);
+      return true;
+    }) as typeof process.stderr.write;
 
     try {
       spaAdapter(buildDir, tmpDir);
     } finally {
-      console.warn = originalWarn;
+      process.stderr.write = originalWrite;
     }
 
     assert.ok(

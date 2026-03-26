@@ -183,6 +183,7 @@ void describe(
                 );
               }
             }
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
           } catch {
             // Best-effort — don't fail the test if HTTP check can't be performed
           }

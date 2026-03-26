@@ -13,7 +13,7 @@ import { HostingProps, HostingResources } from './types.js';
 import {
   AmplifyHostingConstruct,
   AmplifyHostingConstructProps,
-} from './constructs/hosting-construct.js';
+} from './constructs/hosting_construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
 import { checkNextConfig } from './adapters/nextjs.js';
 import { getHostingOutputDir } from './manifest/parser.js';
@@ -71,8 +71,9 @@ const acquireLock = (projectDir: string): void => {
 const releaseLock = (projectDir: string): void => {
   try {
     fs.unlinkSync(getLockFilePath(projectDir));
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
   } catch {
-    /* ignore — may already be deleted */
+    // Lock file may already be deleted by another process; safe to ignore
   }
 };
 
@@ -85,6 +86,9 @@ export class AmplifyHostingGenerator
   readonly resourceGroupName: AmplifyResourceGroupName = 'hosting';
   private readonly name: string;
 
+  /**
+   * Create a new hosting generator with the given props.
+   */
   constructor(
     private readonly props: HostingProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
@@ -113,7 +117,7 @@ export class AmplifyHostingGenerator
       this.props.framework ?? detectFramework(projectDir);
 
     if (!this.props.framework) {
-      console.log(`Detected framework: ${framework} (from package.json)`);
+      process.stdout.write(`Detected framework: ${framework} (from package.json)\n`);
     }
 
     // Next.js pre-flight validation

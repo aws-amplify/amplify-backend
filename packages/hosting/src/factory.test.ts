@@ -101,7 +101,6 @@ void describe('AmplifyHostingFactory', () => {
       verify: (
         _importStack: string | undefined,
         expectedImportingFile: string,
-        _errorMessage: string,
       ) => {
         verifiedPath = expectedImportingFile;
       },
@@ -113,8 +112,9 @@ void describe('AmplifyHostingFactory', () => {
     // This will fail because there's no real build dir, but import verification happens first
     try {
       factory.getInstance(getInstanceProps);
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
     } catch {
-      // Expected — no real build output
+      // Expected — no real build output directory in unit tests
     }
 
     assert.ok(verifiedPath?.includes('amplify'));

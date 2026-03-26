@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
-import { copyDirRecursive } from './utils.js';
+import { copyDirRecursive } from './copy.js';
 
 const HOSTING_DIR = '.amplify-hosting';
 const STATIC_DIR = 'static';
@@ -79,10 +79,8 @@ export const checkNextConfig = (projectDir: string): void => {
 /**
  * Next.js adapter — transforms .next/ build output into the canonical
  * .amplify-hosting/ directory structure with compute + static routes.
- *
  * Expects `next.config.js` to have `output: 'standalone'` set, which
  * produces a self-contained server at `.next/standalone/server.js`.
- *
  * @param buildOutputDir - absolute path to the .next/ directory
  * @param projectDir - absolute path to the project root
  * @returns the generated DeployManifest

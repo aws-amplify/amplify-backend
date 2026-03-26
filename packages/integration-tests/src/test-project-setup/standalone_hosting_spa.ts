@@ -15,6 +15,9 @@ export class StandaloneHostingSpaTestProjectCreator
 {
   readonly name = 'standalone-hosting-spa';
 
+  /**
+   * Create test project creator with optional AWS client overrides.
+   */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
       e2eToolingClientConfig,

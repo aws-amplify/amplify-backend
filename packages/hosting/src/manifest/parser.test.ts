@@ -1,9 +1,9 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { parseManifest, getHostingOutputDir } from './parser.js';
+import { getHostingOutputDir, parseManifest } from './parser.js';
 
 void describe('parseManifest', () => {
   let tmpDir: string;
@@ -86,7 +86,8 @@ void describe('parseManifest', () => {
 
 void describe('getHostingOutputDir', () => {
   void it('returns .amplify-hosting path', () => {
-    const result = getHostingOutputDir('/my/project');
-    assert.strictEqual(result, '/my/project/.amplify-hosting');
+    const testDir = path.join(path.sep, 'my', 'project');
+    const result = getHostingOutputDir(testDir);
+    assert.strictEqual(result, path.join(testDir, '.amplify-hosting'));
   });
 });

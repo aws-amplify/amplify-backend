@@ -1,9 +1,9 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { nextjsAdapter, generateRunScript, checkNextConfig } from './nextjs.js';
+import { checkNextConfig, generateRunScript, nextjsAdapter } from './nextjs.js';
 
 void describe('nextjsAdapter', () => {
   let tmpDir: string;

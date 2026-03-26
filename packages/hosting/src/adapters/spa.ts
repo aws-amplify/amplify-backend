@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
-import { copyDirRecursive } from './utils.js';
+import { copyDirRecursive } from './copy.js';
 
 const HOSTING_DIR = '.amplify-hosting';
 const STATIC_DIR = 'static';
@@ -11,7 +11,6 @@ const MANIFEST_FILENAME = 'deploy-manifest.json';
 /**
  * SPA adapter — transforms a built SPA output directory into the canonical
  * .amplify-hosting/ directory structure with a deploy manifest.
- *
  * @param buildOutputDir - absolute path to the build output (e.g., dist/)
  * @param projectDir - absolute path to the project root
  * @returns the generated DeployManifest
@@ -38,9 +37,9 @@ export const spaAdapter = (
   }
 
   if (!files.includes('index.html')) {
-    console.warn(
+    process.stderr.write(
       `Warning: No index.html found in build output directory (${buildOutputDir}). ` +
-        'SPA routing may not work correctly without an index.html.',
+        'SPA routing may not work correctly without an index.html.\n',
     );
   }
 

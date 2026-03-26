@@ -12,19 +12,19 @@ export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
  * Compute (Lambda) configuration for SSR frameworks.
  * Ignored for SPA and static site deployments.
  */
-export interface ComputeConfig {
+export type ComputeConfig = {
   /** Lambda memory size in MB. Default: 512 */
   memorySize?: number;
   /** Lambda timeout in seconds. Default: 30 */
   timeout?: number;
   /** Reserved concurrent executions. Default: undefined (no reservation). */
   reservedConcurrency?: number;
-}
+};
 
 /**
  * Configuration for defineHosting.
  */
-export interface HostingProps {
+export type HostingProps = {
   /**
    * Optional build command (e.g., 'npm run build').
    * Used by adapters to build the project before deploying.
@@ -94,12 +94,12 @@ export interface HostingProps {
    * Optional friendly name for the hosting resource.
    */
   name?: string;
-}
+};
 
 /**
  * CDK resources created by the hosting construct.
  */
-export interface HostingResources {
+export type HostingResources = {
   /**
    * The S3 bucket storing hosting assets.
    */
@@ -114,4 +114,4 @@ export interface HostingResources {
    * The URL of the deployed site.
    */
   distributionUrl: string;
-}
+};

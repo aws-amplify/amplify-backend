@@ -5,51 +5,51 @@ import * as nodeFs from 'fs';
 import * as nodePath from 'path';
 import * as nodeOs from 'os';
 import {
-  Distribution,
-  ViewerProtocolPolicy,
-  CachePolicy,
-  OriginRequestPolicy,
   AllowedMethods,
-  HttpVersion,
-  PriceClass,
+  BehaviorOptions,
+  CachePolicy,
+  CachedMethods,
   Function as CloudFrontFunction,
+  Distribution,
+  ErrorResponse,
   FunctionCode,
   FunctionEventType,
   FunctionRuntime,
-  CachedMethods,
-  BehaviorOptions,
-  SecurityPolicyProtocol,
-  ResponseHeadersPolicy,
   HeadersFrameOption,
   HeadersReferrerPolicy,
-  ErrorResponse,
+  HttpVersion,
+  OriginRequestPolicy,
+  PriceClass,
+  ResponseHeadersPolicy,
+  SecurityPolicyProtocol,
+  ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
-  S3BucketOrigin,
   FunctionUrlOrigin,
+  S3BucketOrigin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import {
-  Bucket,
   BlockPublicAccess,
+  Bucket,
   BucketEncryption,
   ObjectOwnership,
 } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import {
-  Function as LambdaFunction,
-  Runtime,
-  Code,
   Architecture,
+  CfnPermission,
+  Code,
+  FunctionUrl,
   FunctionUrlAuthType,
   InvokeMode,
+  Function as LambdaFunction,
   LayerVersion,
-  FunctionUrl,
-  CfnPermission,
+  Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 import {
+  ManagedPolicy,
   Role,
   ServicePrincipal,
-  ManagedPolicy,
 } from 'aws-cdk-lib/aws-iam';
 import {
   DnsValidatedCertificate,
@@ -64,7 +64,7 @@ import {
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { DeployManifest, ComputeResource } from '../manifest/types.js';
+import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { ComputeConfig, HostingResources } from '../types.js';
 
 // ---- Constants ----
@@ -133,26 +133,29 @@ const SSR_ERROR_PAGE_HTML = `<!DOCTYPE html>
 .c{text-align:center;max-width:480px;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#6b7280}</style></head>
 <body><div class="c"><h1>Service Temporarily Unavailable</h1><p>We're working on it. Please try again in a few moments.</p></div></body></html>`;
 
-// ---- Public interfaces ----
+// ---- Public types ----
 
 /**
  * Domain configuration for custom domain support.
  */
-export interface HostingDomainConfig {
+export type HostingDomainConfig = {
   domainName: string;
   hostedZone: string;
-}
+};
 
 /**
  * WAF configuration for CloudFront protection.
  */
-export interface HostingWafConfig {
+export type HostingWafConfig = {
   enabled: boolean;
   /** Requests per 5-minute window per IP. Default: 1000 */
   rateLimit?: number;
-}
+};
 
-export interface AmplifyHostingConstructProps {
+/**
+ * Props for the AmplifyHostingConstruct.
+ */
+export type AmplifyHostingConstructProps = {
   manifest: DeployManifest;
   staticAssetPath: string;
   computeBasePath?: string;
@@ -164,7 +167,7 @@ export interface AmplifyHostingConstructProps {
   /** Custom Content-Security-Policy header value. If not set, a restrictive default is used. */
   contentSecurityPolicy?: string;
   name?: string;
-}
+};
 
 // ---- Exported helpers ----
 
@@ -173,7 +176,7 @@ export interface AmplifyHostingConstructProps {
  * This enables atomic deploys — all assets are stored under `builds/{buildId}/`.
  */
 export const generateBuildIdFunctionCode = (buildId: string): string => {
-  if (!/^[a-zA-Z0-9\-]{1,64}$/.test(buildId)) {
+  if (!/^[a-zA-Z0-9-]{1,64}$/.test(buildId)) {
     throw new AmplifyUserError('InvalidBuildIdError', {
       message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
       resolution: 'Ensure build ID contains only letters, numbers, and hyphens.',
@@ -220,6 +223,9 @@ export class AmplifyHostingConstruct extends Construct {
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
 
+  /**
+   * Create a new manifest-driven hosting construct with the given props.
+   */
   constructor(
     scope: Construct,
     id: string,
@@ -362,7 +368,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- Upload SSR error page for 5xx responses ----
     if (hasCompute) {
-      const errorPageDir = this.createErrorPage(buildId);
+      const errorPageDir = this.createErrorPage();
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.asset(errorPageDir)],
         destinationBucket: this.bucket,
@@ -797,7 +803,7 @@ export class AmplifyHostingConstruct extends Construct {
    * Create a temporary directory with the SSR error page HTML.
    * Returns the path to a temp directory containing _error.html.
    */
-  private createErrorPage(buildId: string): string {
+  private createErrorPage(): string {
     const dir = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), 'hosting-error-page-'));
     nodeFs.writeFileSync(nodePath.join(dir, '_error.html'), SSR_ERROR_PAGE_HTML);
     return dir;

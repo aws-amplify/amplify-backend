@@ -31,21 +31,19 @@ const matchesExcludePattern = (
   });
 };
 
-export interface CopyDirOptions {
+export type CopyDirOptions = {
   /**
    * File name patterns to exclude. Matched by suffix or exact name.
    * Defaults to DEFAULT_EXCLUDE_PATTERNS if not provided.
    * Pass an empty array to copy everything.
    */
   excludePatterns?: string[];
-}
+};
 
 /**
  * Copy a directory recursively with safety measures.
- *
  * Uses Node.js built-in `cpSync` (stable since Node 16.7+) with `dereference: false`
  * to skip symbolic links atomically, preventing TOCTOU races.
- *
  * @param src - source directory path
  * @param dest - destination directory path
  * @param options - optional configuration for excluding files
