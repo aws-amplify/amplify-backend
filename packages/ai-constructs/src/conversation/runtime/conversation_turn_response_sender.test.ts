@@ -300,6 +300,51 @@ void describe('Conversation turn response sender', () => {
     });
   });
 
+  void it('serializes metrics and usage to JSON when streaming', async () => {
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent,
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider,
+    );
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () => Promise.resolve(),
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      userAgentProvider,
+      graphqlRequestExecutor,
+    );
+    const chunk: StreamingResponseChunk = {
+      accumulatedTurnContent: [{ text: 'testContent' }],
+      associatedUserMessageId: 'testAssociatedUserMessageId',
+      contentBlockIndex: 0,
+      conversationId: 'testConversationId',
+      stopReason: 'end_turn',
+      metrics: { latencyMs: 150 },
+      usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+    };
+    await sender.sendResponseChunk(chunk);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationStreamingResponseInput>;
+    // metrics and usage should be serialized to JSON strings
+    assert.strictEqual(
+      (request.variables.input as Record<string, unknown>).metrics,
+      JSON.stringify({ latencyMs: 150 }),
+    );
+    assert.strictEqual(
+      (request.variables.input as Record<string, unknown>).usage,
+      JSON.stringify({ inputTokens: 10, outputTokens: 20, totalTokens: 30 }),
+    );
+  });
+
   void it('sends errors response back to appsync', async () => {
     const userAgentProvider = new UserAgentProvider(
       {} as unknown as ConversationTurnEvent,
