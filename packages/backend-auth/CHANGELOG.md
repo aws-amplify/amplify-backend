@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 1.9.3
+
+### Patch Changes
+
+- 1d109e9: remove aws-lambda package, @types/aws-lambda is sufficent
+
 ## 1.9.2
 
 ### Patch Changes
