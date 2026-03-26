@@ -5,6 +5,7 @@ import { versionedStorageOutputSchema } from './storage/index.js';
 import { versionedStackOutputSchema } from './stack/index.js';
 import { versionedCustomOutputSchema } from './custom';
 import { versionedFunctionOutputSchema } from './function/index.js';
+import { versionedHostingOutputSchema } from './hosting/index.js';
 import { versionedAIConversationOutputSchema } from './ai/conversation/index.js';
 
 /**
@@ -86,6 +87,20 @@ export * from './function/index.js';
 export const functionOutputKey = 'AWS::Amplify::Function';
 
 /**
+ * ---------- Hosting exports ----------
+ */
+
+/**
+ * re-export the hosting output schema
+ */
+export * from './hosting/index.js';
+
+/**
+ * Expected key that hosting output is stored under
+ */
+export const hostingOutputKey = 'AWS::Amplify::Hosting';
+
+/**
  * ---------- AI conversation exports ----------
  */
 
@@ -114,6 +129,7 @@ export const unifiedBackendOutputSchema = z.object({
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
   [customOutputKey]: versionedCustomOutputSchema.optional(),
   [functionOutputKey]: versionedFunctionOutputSchema.optional(),
+  [hostingOutputKey]: versionedHostingOutputSchema.optional(),
   [aiConversationOutputKey]: versionedAIConversationOutputSchema.optional(),
 });
 /**
