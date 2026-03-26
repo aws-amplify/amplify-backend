@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { generateBuildIdFunctionCode } from './static-hosting.js';
-import { generateBuildId } from './atomic-deployment.js';
+import {
+  generateBuildIdFunctionCode,
+  generateBuildId,
+} from './hosting-construct.js';
 
 void describe('generateBuildIdFunctionCode', () => {
   void it('generates CF Function code containing the build ID', () => {
@@ -34,7 +36,6 @@ void describe('generateBuildId', () => {
     const ids = new Set<string>();
     for (let i = 0; i < 10; i++) {
       ids.add(generateBuildId());
-      // Small delay to ensure different timestamps
     }
     // Due to rapid execution, some might collide, but most should be unique
     assert.ok(ids.size >= 1);

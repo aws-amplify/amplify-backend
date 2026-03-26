@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { spaAdapter } from './spa.js';
+import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
 
 /**
@@ -58,15 +59,16 @@ export const detectFramework = (projectDir: string): FrameworkType => {
  */
 export const getAdapter = (framework: FrameworkType): FrameworkAdapterFn => {
   switch (framework) {
+    case 'nextjs':
+      return nextjsAdapter;
     case 'spa':
     case 'static':
       return spaAdapter;
     default:
       throw new AmplifyUserError('UnsupportedFrameworkError', {
-        message: `Framework "${framework}" is not yet supported.`,
+        message: `Framework "${String(framework)}" is not yet supported.`,
         resolution:
-          'Use framework: "spa" or "static" in your defineHosting configuration. ' +
-          'Next.js SSR support is planned for a future release.',
+          'Use framework: "nextjs", "spa", or "static" in your defineHosting configuration.',
       });
   }
 };

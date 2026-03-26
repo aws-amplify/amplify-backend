@@ -68,14 +68,8 @@ void describe('getAdapter', () => {
     assert.ok(typeof adapter === 'function');
   });
 
-  void it('throws UnsupportedFrameworkError for nextjs (Phase 2)', () => {
-    assert.throws(
-      () => getAdapter('nextjs'),
-      (error: Error) => {
-        assert.ok(error.name === 'UnsupportedFrameworkError');
-        assert.ok(error.message.includes('nextjs'));
-        return true;
-      },
-    );
+  void it('returns nextjs adapter for "nextjs" framework', () => {
+    const adapter = getAdapter('nextjs');
+    assert.ok(typeof adapter === 'function');
   });
 });

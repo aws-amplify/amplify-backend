@@ -22,6 +22,7 @@ import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
+import { defineHosting } from '@aws-amplify/hosting';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
@@ -90,6 +91,8 @@ export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvide
 export { defineData }
 
 export { defineFunction }
+
+export { defineHosting }
 
 export { defineStorage }
 

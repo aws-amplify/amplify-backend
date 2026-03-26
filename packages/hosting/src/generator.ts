@@ -54,13 +54,15 @@ export class AmplifyHostingGenerator
     const adapter = getAdapter(framework);
     const manifest = adapter(absoluteBuildOutputDir, projectDir);
 
-    // Resolve the static asset path
+    // Resolve paths
     const hostingOutputDir = getHostingOutputDir(projectDir);
     const staticAssetPath = path.join(hostingOutputDir, 'static');
+    const computeBasePath = path.join(hostingOutputDir, 'compute');
 
     const constructProps: AmplifyHostingConstructProps = {
       manifest,
       staticAssetPath,
+      computeBasePath,
       name: this.name,
     };
 
