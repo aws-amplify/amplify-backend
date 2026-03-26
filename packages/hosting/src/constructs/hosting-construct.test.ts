@@ -3,8 +3,9 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Stack, StackProps } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { AmplifyHostingConstruct } from './hosting-construct.js';
 import { DeployManifest } from '../manifest/types.js';
 
@@ -634,5 +635,293 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       Object.keys(customResources).length > 0,
       'Should have BucketDeployment custom resource',
     );
+  });
+});
+
+// ================================================================
+// Custom domain configuration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — custom domain', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForDomain: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'domain-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-domain-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  // HostedZone.fromLookup requires env with account/region
+  const createEnvStack = (): Stack => {
+    const app = new App();
+    return new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+  };
+
+  void it('creates ACM certificate when domain is configured', () => {
+    const stack = createEnvStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // DnsValidatedCertificate creates a custom resource for the cert
+    const customResources = template.findResources(
+      'AWS::CloudFormation::CustomResource',
+    );
+    const certResources = Object.entries(customResources).filter(
+      ([, r]) => {
+        const props = (r as Record<string, Record<string, unknown>>).Properties;
+        return props?.DomainName === 'www.example.com';
+      },
+    );
+    assert.ok(
+      certResources.length > 0,
+      'Should create a certificate custom resource for the domain',
+    );
+  });
+
+  void it('adds alternate domain name to CloudFront distribution', () => {
+    const stack = createEnvStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          Aliases: ['www.example.com'],
+        }),
+      }),
+    );
+  });
+
+  void it('creates Route53 A record pointing to CloudFront', () => {
+    const stack = createEnvStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::Route53::RecordSet', {
+      Name: 'www.example.com.',
+      Type: 'A',
+    });
+  });
+
+  void it('outputs custom domain URL instead of CloudFront URL', () => {
+    const stack = createEnvStack();
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    assert.strictEqual(construct.distributionUrl, 'https://www.example.com');
+  });
+
+  void it('exposes certificate and hostedZone on the construct', () => {
+    const stack = createEnvStack();
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    assert.ok(construct.certificate, 'Should expose certificate');
+    assert.ok(construct.hostedZone, 'Should expose hostedZone');
+  });
+});
+
+// ================================================================
+// WAF configuration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — WAF', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForWaf: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'waf-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-waf-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const createStack = (): Stack => {
+    const app = new App();
+    return new Stack(app, 'TestStack');
+  };
+
+  void it('creates WAFv2 WebACL when waf.enabled is true', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Scope: 'CLOUDFRONT',
+      DefaultAction: { Allow: {} },
+    });
+  });
+
+  void it('includes AWSManagedRulesCommonRuleSet', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: 'AWSManagedRulesCommonRuleSet',
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesCommonRuleSet',
+            },
+          },
+        }),
+      ]),
+    });
+  });
+
+  void it('includes AWSManagedRulesKnownBadInputsRuleSet', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: 'AWSManagedRulesKnownBadInputsRuleSet',
+          Statement: {
+            ManagedRuleGroupStatement: {
+              VendorName: 'AWS',
+              Name: 'AWSManagedRulesKnownBadInputsRuleSet',
+            },
+          },
+        }),
+      ]),
+    });
+  });
+
+  void it('associates WebACL with CloudFront distribution', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          WebACLId: Match.anyValue(),
+        }),
+      }),
+    );
+  });
+
+  void it('does NOT create WAF when waf.enabled is false', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: false },
+    });
+
+    const template = Template.fromStack(stack);
+
+    const webAcls = template.findResources('AWS::WAFv2::WebACL');
+    assert.strictEqual(
+      Object.keys(webAcls).length,
+      0,
+      'Should not create WebACL when waf.enabled is false',
+    );
+  });
+
+  void it('does NOT create WAF when waf prop is omitted', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    const webAcls = template.findResources('AWS::WAFv2::WebACL');
+    assert.strictEqual(
+      Object.keys(webAcls).length,
+      0,
+      'Should not create WebACL when waf is omitted',
+    );
+  });
+
+  void it('exposes webAcl on the construct when enabled', () => {
+    const stack = createStack();
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    assert.ok(construct.webAcl, 'Should expose webAcl when WAF is enabled');
   });
 });

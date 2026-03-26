@@ -38,6 +38,18 @@ import {
   CfnPermission,
 } from 'aws-cdk-lib/aws-lambda';
 import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  DnsValidatedCertificate,
+  ICertificate,
+} from 'aws-cdk-lib/aws-certificatemanager';
+import {
+  ARecord,
+  HostedZone,
+  IHostedZone,
+  RecordTarget,
+} from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { DeployManifest, ComputeResource } from '../manifest/types.js';
 import { HostingResources } from '../types.js';
 
@@ -52,6 +64,31 @@ const LAMBDA_WEB_ADAPTER_ACCOUNT = '753240598075';
  */
 const LAMBDA_WEB_ADAPTER_LAYER_NAME = 'LambdaAdapterLayerX86-64';
 const LAMBDA_WEB_ADAPTER_LAYER_VERSION = '22';
+
+/**
+ * Domain configuration for custom domain support.
+ */
+export interface HostingDomainConfig {
+  /**
+   * The fully-qualified domain name (e.g., 'www.example.com' or 'example.com').
+   */
+  domainName: string;
+
+  /**
+   * The Route 53 hosted zone name (e.g., 'example.com').
+   */
+  hostedZone: string;
+}
+
+/**
+ * WAF configuration for CloudFront protection.
+ */
+export interface HostingWafConfig {
+  /**
+   * Whether WAF is enabled.
+   */
+  enabled: boolean;
+}
 
 export interface AmplifyHostingConstructProps {
   /**
@@ -69,6 +106,20 @@ export interface AmplifyHostingConstructProps {
    * Required when the manifest has compute routes (SSR).
    */
   computeBasePath?: string;
+
+  /**
+   * Custom domain configuration.
+   * When provided, creates ACM certificate (us-east-1), Route 53 A record,
+   * and configures CloudFront alternate domain name.
+   */
+  domain?: HostingDomainConfig;
+
+  /**
+   * WAF configuration.
+   * When enabled, creates a WAFv2 WebACL with AWS managed rule groups
+   * and associates it with the CloudFront distribution.
+   */
+  waf?: HostingWafConfig;
 
   /**
    * Optional friendly name.
@@ -103,9 +154,10 @@ export const generateBuildId = (): string => {
  * Always creates: S3 bucket (private, BLOCK_ALL), CloudFront distribution,
  * OAC, atomic deployment with Build ID.
  *
- * If the manifest has compute routes → also creates Lambda function (with
- * Web Adapter), Function URL (streaming), and additional CloudFront behaviors
- * routing compute paths to Lambda.
+ * Conditional features based on props:
+ * - Compute routes in manifest → Lambda + Function URL + split CloudFront behaviors
+ * - domain config → ACM certificate (us-east-1) + Route 53 A record + CF aliases
+ * - waf.enabled → WAFv2 WebACL with managed rule groups
  *
  * The construct never knows which framework produced the manifest — adapters
  * are just plugins that emit different manifests.
@@ -116,6 +168,9 @@ export class AmplifyHostingConstruct extends Construct {
   readonly distributionUrl: string;
   readonly ssrFunction?: LambdaFunction;
   readonly functionUrl?: FunctionUrl;
+  readonly certificate?: ICertificate;
+  readonly hostedZone?: IHostedZone;
+  readonly webAcl?: CfnWebACL;
 
   constructor(
     scope: Construct,
@@ -205,6 +260,74 @@ export class AmplifyHostingConstruct extends Construct {
       lambdaOrigin = FunctionUrlOrigin.withOriginAccessControl(fnUrl);
     }
 
+    // ---- Custom Domain: ACM Certificate (us-east-1) ----
+    if (props.domain) {
+      const zone = HostedZone.fromLookup(this, 'HostedZone', {
+        domainName: props.domain.hostedZone,
+      });
+      this.hostedZone = zone;
+
+      // DnsValidatedCertificate handles cross-region automatically —
+      // creates the certificate in us-east-1 (required for CloudFront)
+      // with DNS validation records in the hosted zone.
+      this.certificate = new DnsValidatedCertificate(this, 'Certificate', {
+        domainName: props.domain.domainName,
+        subjectAlternativeNames: [props.domain.domainName],
+        hostedZone: zone,
+        region: 'us-east-1',
+      });
+    }
+
+    // ---- WAF: WebACL with AWS Managed Rule Groups ----
+    if (props.waf?.enabled) {
+      // WAFv2 WebACL for CloudFront must use scope CLOUDFRONT.
+      // When the stack is not in us-east-1, CloudFormation automatically
+      // handles CLOUDFRONT-scoped WAF ACLs as global resources.
+      this.webAcl = new CfnWebACL(this, 'WebAcl', {
+        defaultAction: { allow: {} },
+        scope: 'CLOUDFRONT',
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: `${props.name ?? 'amplifyHosting'}WebAcl`,
+          sampledRequestsEnabled: true,
+        },
+        rules: [
+          {
+            name: 'AWSManagedRulesCommonRuleSet',
+            priority: 1,
+            overrideAction: { none: {} },
+            statement: {
+              managedRuleGroupStatement: {
+                vendorName: 'AWS',
+                name: 'AWSManagedRulesCommonRuleSet',
+              },
+            },
+            visibilityConfig: {
+              cloudWatchMetricsEnabled: true,
+              metricName: 'AWSManagedRulesCommonRuleSet',
+              sampledRequestsEnabled: true,
+            },
+          },
+          {
+            name: 'AWSManagedRulesKnownBadInputsRuleSet',
+            priority: 2,
+            overrideAction: { none: {} },
+            statement: {
+              managedRuleGroupStatement: {
+                vendorName: 'AWS',
+                name: 'AWSManagedRulesKnownBadInputsRuleSet',
+              },
+            },
+            visibilityConfig: {
+              cloudWatchMetricsEnabled: true,
+              metricName: 'AWSManagedRulesKnownBadInputsRuleSet',
+              sampledRequestsEnabled: true,
+            },
+          },
+        ],
+      });
+    }
+
     // ---- Build CloudFront behaviors from manifest routes ----
     const additionalBehaviors: Record<string, BehaviorOptions> = {};
 
@@ -265,6 +388,15 @@ export class AmplifyHostingConstruct extends Construct {
       defaultRootObject: isSpaOnly ? 'index.html' : undefined,
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: PriceClass.PRICE_CLASS_100,
+      // Custom domain: alternate domain names + certificate
+      ...(this.certificate && props.domain
+        ? {
+            domainNames: [props.domain.domainName],
+            certificate: this.certificate,
+          }
+        : {}),
+      // WAF association
+      ...(this.webAcl ? { webAclId: this.webAcl.attrArn } : {}),
       // SPA error handling: 403/404 → index.html (only for SPA/static)
       ...(isSpaOnly
         ? {
@@ -285,6 +417,17 @@ export class AmplifyHostingConstruct extends Construct {
           }
         : {}),
     });
+
+    // ---- Route 53 A Record (only when custom domain configured) ----
+    if (props.domain && this.hostedZone) {
+      new ARecord(this, 'DnsRecord', {
+        zone: this.hostedZone,
+        recordName: props.domain.domainName,
+        target: RecordTarget.fromAlias(
+          new CloudFrontTarget(this.distribution),
+        ),
+      });
+    }
 
     // ---- Fix CloudFront OAC permissions for Lambda Function URL ----
     if (hasCompute && this.ssrFunction) {
@@ -315,13 +458,23 @@ export class AmplifyHostingConstruct extends Construct {
       prune: false,
     });
 
-    this.distributionUrl = `https://${this.distribution.distributionDomainName}`;
+    // ---- Determine the primary URL ----
+    this.distributionUrl = props.domain
+      ? `https://${props.domain.domainName}`
+      : `https://${this.distribution.distributionDomainName}`;
 
     // ---- Outputs ----
     new CfnOutput(this, 'DistributionUrl', {
       value: this.distributionUrl,
-      description: 'CloudFront distribution URL for the hosted site',
+      description: 'URL for the hosted site',
     });
+
+    if (props.domain) {
+      new CfnOutput(this, 'CustomDomain', {
+        value: props.domain.domainName,
+        description: 'Custom domain name for the hosted site',
+      });
+    }
   }
 
   /**

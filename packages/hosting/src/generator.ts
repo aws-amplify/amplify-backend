@@ -63,6 +63,8 @@ export class AmplifyHostingGenerator
       manifest,
       staticAssetPath,
       computeBasePath,
+      domain: this.props.domain,
+      waf: this.props.waf,
       name: this.name,
     };
 
