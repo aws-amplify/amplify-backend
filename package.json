@@ -54,11 +54,6 @@
     "url": "https://github.com/aws-amplify/amplify-backend/issues"
   },
   "homepage": "https://github.com/aws-amplify/amplify-backend#readme",
-  "overrides": {
-    "@microsoft/api-extractor": {
-      "minimatch": "3.1.2"
-    }
-  },
   "devDependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
@@ -75,7 +70,7 @@
     "@changesets/get-release-plan": "^4.0.0",
     "@changesets/types": "^6.0.0",
     "@graphql-codegen/core": "^4.0.0",
-    "@microsoft/api-extractor": "7.43.8",
+    "@microsoft/api-extractor": "^7.57.7",
     "@octokit/rest": "^22.0.1",
     "@octokit/webhooks-types": "^7.5.1",
     "@shopify/eslint-plugin": "^43.0.0",

@@ -863,7 +863,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       const content = chunks.reduce((accumulated, current) => {
         if (current.contentBlockText) {
           // Only validate padding if the field is present
-          // aws-amplify 6.14.4 no longer always includes the 'p' field
           if (current.p) {
             assert.ok(
               current.p.length > 0,

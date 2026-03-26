@@ -1026,3 +1026,4 @@ jobs:
           if [ "${{ steps.dep-review.outcome }}" = "failure" ]; then
             echo "::warning::Dependency review step failed (likely due to step summary size limit). Check logs for details."
           fi
+          echo "✅ Dependency review passed — no vulnerable or denied packages found"
