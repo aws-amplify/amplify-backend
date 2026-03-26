@@ -11,7 +11,6 @@ import {
   Tool,
   ToolConfiguration,
   ToolInputSchema,
-  //TokenUsage, //check if this exists
 } from '@aws-sdk/client-bedrock-runtime';
 import {
   ConversationTurnEvent,
@@ -114,7 +113,7 @@ export class BedrockConverseAdapter {
         inferenceConfig: inferenceConfiguration,
         toolConfig,
       };
-      this.logger.info('Sending Bedrock Converse request'); //converse
+      this.logger.info('Sending Bedrock Converse request');
       this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput),
@@ -201,7 +200,6 @@ export class BedrockConverseAdapter {
         new ConverseStreamCommand(converseCommandInput),
       );
       this.logger.info(
-        //stream
         `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`,
       );
       if (!bedrockResponse.stream) {
@@ -265,7 +263,6 @@ export class BedrockConverseAdapter {
               blockDeltaIndex++;
             }
           } else if (chunk.contentBlockStop) {
-            this.logger.debug(`now in chunk.contentBlockStop`);
             if (toolUseBlock) {
               if (toolUseInput) {
                 toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
@@ -346,7 +343,7 @@ export class BedrockConverseAdapter {
           contentBlockIndex: lastBlockIndex,
           stopReason: stopReason,
           metrics: { latencyMs },
-          usage: { inputTokens, outputTokens, totalTokens }, //check this
+          usage: { inputTokens, outputTokens, totalTokens },
         };
         return;
       }
@@ -377,7 +374,7 @@ export class BedrockConverseAdapter {
       contentBlockIndex: lastBlockIndex,
       stopReason: stopReason,
       metrics: { latencyMs },
-      usage: { inputTokens, outputTokens, totalTokens }, //check this
+      usage: { inputTokens, outputTokens, totalTokens },
     };
   }
 
