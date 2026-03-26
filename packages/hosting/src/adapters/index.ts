@@ -53,11 +53,15 @@ export const detectFramework = (projectDir: string): string => {
   try {
     packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
   } catch (error) {
-    throw new AmplifyUserError('PackageJsonParseError', {
-      message: `Failed to parse package.json at ${packageJsonPath}`,
-      resolution:
-        'Fix JSON syntax errors in package.json, or set framework explicitly: defineHosting({ framework: "spa" })',
-    }, error as Error);
+    throw new AmplifyUserError(
+      'PackageJsonParseError',
+      {
+        message: `Failed to parse package.json at ${packageJsonPath}`,
+        resolution:
+          'Fix JSON syntax errors in package.json, or set framework explicitly: defineHosting({ framework: "spa" })',
+      },
+      error as Error,
+    );
   }
 
   const deps = {

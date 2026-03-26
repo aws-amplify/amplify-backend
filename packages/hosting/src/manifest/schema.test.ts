@@ -67,8 +67,8 @@ void describe('Deploy Manifest Schema', () => {
       framework: { name: 'spa' },
     });
     assert.ok(!result.success, 'Should reject empty routes');
-    const routeIssue = result.error?.issues.find(
-      (i) => i.path.includes('routes'),
+    const routeIssue = result.error?.issues.find((i) =>
+      i.path.includes('routes'),
     );
     assert.ok(routeIssue, 'Error should reference routes field');
   });
@@ -114,7 +114,10 @@ void describe('Deploy Manifest Schema', () => {
       routes: [{ path: '/*', target: { kind: 'Static' } }],
       framework: { name: 'static' },
     });
-    assert.ok(result.success, 'Should accept manifest with only required fields');
+    assert.ok(
+      result.success,
+      'Should accept manifest with only required fields',
+    );
     assert.strictEqual(result.data?.computeResources, undefined);
     assert.strictEqual(result.data?.buildId, undefined);
   });

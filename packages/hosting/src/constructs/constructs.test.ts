@@ -48,10 +48,7 @@ void describe('generateBuildIdFunctionCode — runtime behavior', () => {
   ): { uri: string; querystring: Record<string, { value: string }> } => {
     const code = generateBuildIdFunctionCode(buildId);
     // The generated code defines `function handler(event)` which returns request.
-    const wrapped = new Function(
-      'event',
-      `${code}\nreturn handler(event);`,
-    );
+    const wrapped = new Function('event', `${code}\nreturn handler(event);`);
     const event = {
       request: {
         uri,

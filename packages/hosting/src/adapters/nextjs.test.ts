@@ -28,14 +28,8 @@ void describe('nextjsAdapter', () => {
     // Create mock .next/static/ with hashed assets
     const staticDir = path.join(nextDir, 'static');
     fs.mkdirSync(path.join(staticDir, 'chunks'), { recursive: true });
-    fs.writeFileSync(
-      path.join(staticDir, 'chunks', 'main-abc123.js'),
-      'chunk',
-    );
-    fs.writeFileSync(
-      path.join(staticDir, 'buildManifest.json'),
-      '{}',
-    );
+    fs.writeFileSync(path.join(staticDir, 'chunks', 'main-abc123.js'), 'chunk');
+    fs.writeFileSync(path.join(staticDir, 'buildManifest.json'), '{}');
   });
 
   afterEach(() => {
@@ -95,9 +89,7 @@ void describe('nextjsAdapter', () => {
       '_next',
       'static',
     );
-    assert.ok(
-      fs.existsSync(path.join(staticDir, 'chunks', 'main-abc123.js')),
-    );
+    assert.ok(fs.existsSync(path.join(staticDir, 'chunks', 'main-abc123.js')));
     assert.ok(fs.existsSync(path.join(staticDir, 'buildManifest.json')));
   });
 
@@ -244,9 +236,7 @@ void describe('nextjsAdapter', () => {
     // Second run should clean
     nextjsAdapter(nextDir, tmpDir);
     assert.ok(
-      !fs.existsSync(
-        path.join(tmpDir, '.amplify-hosting', 'stale.txt'),
-      ),
+      !fs.existsSync(path.join(tmpDir, '.amplify-hosting', 'stale.txt')),
     );
   });
 

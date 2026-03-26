@@ -113,11 +113,12 @@ export class AmplifyHostingGenerator
     projectDir: string,
   ): ResourceProvider<HostingResources> => {
     // Auto-detect or use explicit framework
-    const framework =
-      this.props.framework ?? detectFramework(projectDir);
+    const framework = this.props.framework ?? detectFramework(projectDir);
 
     if (!this.props.framework) {
-      process.stdout.write(`Detected framework: ${framework} (from package.json)\n`);
+      process.stdout.write(
+        `Detected framework: ${framework} (from package.json)\n`,
+      );
     }
 
     // Next.js pre-flight validation
@@ -134,8 +135,8 @@ export class AmplifyHostingGenerator
     }
 
     // Default build output dirs per framework
-    const buildOutputDir = this.props.buildOutputDir ??
-      getDefaultBuildOutputDir(framework);
+    const buildOutputDir =
+      this.props.buildOutputDir ?? getDefaultBuildOutputDir(framework);
 
     const absoluteBuildOutputDir = path.isAbsolute(buildOutputDir)
       ? buildOutputDir

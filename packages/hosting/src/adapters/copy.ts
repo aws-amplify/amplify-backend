@@ -6,9 +6,9 @@ import * as path from 'path';
  * Source maps, OS metadata, and build artifacts that should not be public.
  */
 export const DEFAULT_EXCLUDE_PATTERNS = [
-  '.map',       // Source maps
-  '.DS_Store',  // macOS metadata
-  'thumbs.db',  // Windows metadata
+  '.map', // Source maps
+  '.DS_Store', // macOS metadata
+  'thumbs.db', // Windows metadata
   '.tsbuildinfo', // TypeScript incremental build info
 ];
 
@@ -26,7 +26,8 @@ const matchesExcludePattern = (
     // Exact match (e.g., '.DS_Store', 'thumbs.db')
     if (lowerName === lowerPattern) return true;
     // Suffix/extension match (e.g., '.map', '.tsbuildinfo')
-    if (lowerPattern.startsWith('.') && lowerName.endsWith(lowerPattern)) return true;
+    if (lowerPattern.startsWith('.') && lowerName.endsWith(lowerPattern))
+      return true;
     return false;
   });
 };

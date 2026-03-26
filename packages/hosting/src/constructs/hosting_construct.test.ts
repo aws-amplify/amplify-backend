@@ -57,9 +57,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
   let staticDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-spa-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-spa-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -224,9 +222,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
         for (const statement of policyDoc.Statement) {
           const stmtObj = statement as Record<string, unknown>;
           if (stmtObj.Effect === 'Allow' && stmtObj.Principal === '*') {
-            assert.fail(
-              'Bucket policy should not grant public access to "*"',
-            );
+            assert.fail('Bucket policy should not grant public access to "*"');
           }
         }
       }
@@ -385,9 +381,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
   let computeDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-ssr-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-ssr-test-'));
     staticDir = path.join(tmpDir, 'static');
     computeDir = path.join(tmpDir, 'compute');
 
@@ -774,9 +768,7 @@ void describe('AmplifyHostingConstruct — security headers', () => {
   let staticDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-headers-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-headers-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -801,7 +793,8 @@ void describe('AmplifyHostingConstruct — security headers', () => {
         ResponseHeadersPolicyConfig: Match.objectLike({
           SecurityHeadersConfig: Match.objectLike({
             ContentSecurityPolicy: Match.objectLike({
-              ContentSecurityPolicy: Match.stringLikeRegexp("default-src 'self'"),
+              ContentSecurityPolicy:
+                Match.stringLikeRegexp("default-src 'self'"),
               Override: false,
             }),
           }),
@@ -862,9 +855,7 @@ void describe('AmplifyHostingConstruct — custom domain', () => {
   };
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-domain-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-domain-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -896,12 +887,10 @@ void describe('AmplifyHostingConstruct — custom domain', () => {
     const customResources = template.findResources(
       'AWS::CloudFormation::CustomResource',
     );
-    const certResources = Object.entries(customResources).filter(
-      ([, r]) => {
-        const props = (r as Record<string, Record<string, unknown>>).Properties;
-        return props?.DomainName === 'www.example.com';
-      },
-    );
+    const certResources = Object.entries(customResources).filter(([, r]) => {
+      const props = (r as Record<string, Record<string, unknown>>).Properties;
+      return props?.DomainName === 'www.example.com';
+    });
     assert.ok(
       certResources.length > 0,
       'Should create a certificate custom resource for the domain',
@@ -1000,9 +989,7 @@ void describe('AmplifyHostingConstruct — WAF', () => {
   };
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-waf-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-waf-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -1210,9 +1197,7 @@ void describe('AmplifyHostingConstruct — access logging', () => {
   let staticDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-logging-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-logging-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -1267,9 +1252,7 @@ void describe('AmplifyHostingConstruct — custom CSP', () => {
   let staticDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-csp-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-csp-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -1314,9 +1297,7 @@ void describe('AmplifyHostingConstruct — S3 lifecycle', () => {
   let staticDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-lifecycle-test-'),
-    );
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-lifecycle-test-'));
     staticDir = path.join(tmpDir, 'static');
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
@@ -1337,11 +1318,16 @@ void describe('AmplifyHostingConstruct — S3 lifecycle', () => {
 
     // Find the hosting bucket and verify lifecycle rules
     const buckets = template.findResources('AWS::S3::Bucket');
-    const hostingBucketKey = Object.keys(buckets).find((key) => key.includes('HostingBucket'));
+    const hostingBucketKey = Object.keys(buckets).find((key) =>
+      key.includes('HostingBucket'),
+    );
     assert.ok(hostingBucketKey, 'Should find HostingBucket resource');
 
-    const props = (buckets[hostingBucketKey!] as Record<string, Record<string, unknown>>).Properties;
-    const rules = (props?.LifecycleConfiguration as Record<string, unknown[]>)?.Rules;
+    const props = (
+      buckets[hostingBucketKey!] as Record<string, Record<string, unknown>>
+    ).Properties;
+    const rules = (props?.LifecycleConfiguration as Record<string, unknown[]>)
+      ?.Rules;
     assert.ok(Array.isArray(rules), 'Should have lifecycle rules');
 
     const noncurrentRule = rules.find(

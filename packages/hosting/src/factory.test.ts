@@ -1,9 +1,6 @@
 import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
-import {
-  AmplifyHostingFactory,
-  defineHosting,
-} from './factory.js';
+import { AmplifyHostingFactory, defineHosting } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   BackendOutputEntry,

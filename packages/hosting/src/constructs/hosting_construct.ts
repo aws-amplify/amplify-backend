@@ -46,11 +46,7 @@ import {
   LayerVersion,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
-import {
-  ManagedPolicy,
-  Role,
-  ServicePrincipal,
-} from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   DnsValidatedCertificate,
   ICertificate,
@@ -179,7 +175,8 @@ export const generateBuildIdFunctionCode = (buildId: string): string => {
   if (!/^[a-zA-Z0-9-]{1,64}$/.test(buildId)) {
     throw new AmplifyUserError('InvalidBuildIdError', {
       message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
-      resolution: 'Ensure build ID contains only letters, numbers, and hyphens.',
+      resolution:
+        'Ensure build ID contains only letters, numbers, and hyphens.',
     });
   }
   return `function handler(event) {
@@ -258,21 +255,15 @@ export class AmplifyHostingConstruct extends Construct {
       (r) => r.target.kind === 'Compute',
     );
     const hasCompute =
-      computeRoutes.length > 0 &&
-      (manifest.computeResources?.length ?? 0) > 0;
+      computeRoutes.length > 0 && (manifest.computeResources?.length ?? 0) > 0;
 
     let lambdaOrigin:
       | ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
       | undefined;
 
     if (hasCompute) {
-      const computeResource =
-        manifest.computeResources![0] as ComputeResource;
-      const result = this.createSsrFunction(
-        props,
-        computeResource,
-        region,
-      );
+      const computeResource = manifest.computeResources![0] as ComputeResource;
+      const result = this.createSsrFunction(props, computeResource, region);
       (this as { ssrFunction?: LambdaFunction }).ssrFunction = result.ssrFn;
       (this as { functionUrl?: FunctionUrl }).functionUrl = result.fnUrl;
       lambdaOrigin = FunctionUrlOrigin.withOriginAccessControl(result.fnUrl);
@@ -282,13 +273,17 @@ export class AmplifyHostingConstruct extends Construct {
     if (props.domain) {
       this.validateDomainConfig(props.domain);
       const domainResult = this.createDomainResources(props.domain);
-      (this as { certificate?: ICertificate }).certificate = domainResult.certificate;
+      (this as { certificate?: ICertificate }).certificate =
+        domainResult.certificate;
       (this as { hostedZone?: IHostedZone }).hostedZone = domainResult.zone;
     }
 
     // ---- WAF (conditional) ----
     if (props.waf?.enabled) {
-      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(props.name, props.waf.rateLimit);
+      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(
+        props.name,
+        props.waf.rateLimit,
+      );
     }
 
     // ---- Access log bucket (conditional) ----
@@ -300,16 +295,20 @@ export class AmplifyHostingConstruct extends Construct {
         objectOwnership: ObjectOwnership.BUCKET_OWNER_PREFERRED,
         removalPolicy: RemovalPolicy.DESTROY,
         autoDeleteObjects: true,
-        lifecycleRules: [{
-          id: 'ExpireAccessLogs',
-          expiration: Duration.days(90),
-          enabled: true,
-        }],
+        lifecycleRules: [
+          {
+            id: 'ExpireAccessLogs',
+            expiration: Duration.days(90),
+            enabled: true,
+          },
+        ],
       });
     }
 
     // ---- Security headers ----
-    const securityHeadersPolicy = this.createSecurityHeadersPolicy(props.contentSecurityPolicy);
+    const securityHeadersPolicy = this.createSecurityHeadersPolicy(
+      props.contentSecurityPolicy,
+    );
 
     // ---- CloudFront distribution ----
     this.distribution = this.createDistribution({
@@ -327,23 +326,23 @@ export class AmplifyHostingConstruct extends Construct {
       new ARecord(this, 'DnsRecord', {
         zone: this.hostedZone,
         recordName: props.domain.domainName,
-        target: RecordTarget.fromAlias(
-          new CloudFrontTarget(this.distribution),
-        ),
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
       });
     }
 
     // ---- S3 Bucket Policy for OAC (CloudFront read access) ----
-    this.bucket.addToResourcePolicy(new iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [this.bucket.arnForObjects('*')],
-      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
-      conditions: {
-        StringEquals: {
-          'AWS:SourceArn': `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+    this.bucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:GetObject'],
+        resources: [this.bucket.arnForObjects('*')],
+        principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+        conditions: {
+          StringEquals: {
+            'AWS:SourceArn': `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+          },
         },
-      },
-    }));
+      }),
+    );
 
     // ---- Fix CloudFront OAC permissions for Lambda Function URL ----
     if (hasCompute && this.ssrFunction) {
@@ -429,7 +428,9 @@ export class AmplifyHostingConstruct extends Construct {
       encryption: BucketEncryption.S3_MANAGED,
       objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
       versioned: true,
-      removalPolicy: retainOnDelete ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      removalPolicy: retainOnDelete
+        ? RemovalPolicy.RETAIN
+        : RemovalPolicy.DESTROY,
       autoDeleteObjects: !retainOnDelete,
       lifecycleRules: [
         {
@@ -491,7 +492,9 @@ export class AmplifyHostingConstruct extends Construct {
       code: Code.fromAsset(computeDir),
       architecture: Architecture.X86_64,
       memorySize: compute.memorySize ?? DEFAULT_LAMBDA_MEMORY_MB,
-      timeout: Duration.seconds(compute.timeout ?? DEFAULT_LAMBDA_TIMEOUT_SECONDS),
+      timeout: Duration.seconds(
+        compute.timeout ?? DEFAULT_LAMBDA_TIMEOUT_SECONDS,
+      ),
       reservedConcurrentExecutions: compute.reservedConcurrency,
       role: ssrRole,
       layers: [
@@ -620,7 +623,9 @@ export class AmplifyHostingConstruct extends Construct {
   /**
    * Create the security response headers policy with CSP and HSTS.
    */
-  private createSecurityHeadersPolicy(customCsp?: string): ResponseHeadersPolicy {
+  private createSecurityHeadersPolicy(
+    customCsp?: string,
+  ): ResponseHeadersPolicy {
     const defaultCsp =
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
 
@@ -700,8 +705,7 @@ export class AmplifyHostingConstruct extends Construct {
       allowedMethods: AllowedMethods.ALLOW_ALL,
       cachePolicy: CachePolicy.CACHING_DISABLED,
       compress: true,
-      originRequestPolicy:
-        OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: securityHeadersPolicy,
     });
 
@@ -804,8 +808,13 @@ export class AmplifyHostingConstruct extends Construct {
    * Returns the path to a temp directory containing _error.html.
    */
   private createErrorPage(): string {
-    const dir = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), 'hosting-error-page-'));
-    nodeFs.writeFileSync(nodePath.join(dir, '_error.html'), SSR_ERROR_PAGE_HTML);
+    const dir = nodeFs.mkdtempSync(
+      nodePath.join(nodeOs.tmpdir(), 'hosting-error-page-'),
+    );
+    nodeFs.writeFileSync(
+      nodePath.join(dir, '_error.html'),
+      SSR_ERROR_PAGE_HTML,
+    );
     return dir;
   }
 }

@@ -58,7 +58,10 @@ export const checkNextConfig = (projectDir: string): void => {
     if (fs.existsSync(configPath)) {
       const content = fs.readFileSync(configPath, 'utf-8');
       // Check for output property set to 'standalone' — tolerates various formatting
-      if (!/output\s*[:=]\s*['"]standalone['"]/.test(content) && !content.includes('standalone')) {
+      if (
+        !/output\s*[:=]\s*['"]standalone['"]/.test(content) &&
+        !content.includes('standalone')
+      ) {
         throw new AmplifyUserError('NextjsStandaloneRequiredError', {
           message: `Next.js config at ${configFile} does not appear to have output: 'standalone' set.`,
           resolution:
@@ -121,11 +124,7 @@ export const nextjsAdapter = (
   }
 
   const hostingDir = path.join(projectDir, HOSTING_DIR);
-  const computeDir = path.join(
-    hostingDir,
-    COMPUTE_DIR,
-    DEFAULT_COMPUTE_NAME,
-  );
+  const computeDir = path.join(hostingDir, COMPUTE_DIR, DEFAULT_COMPUTE_NAME);
   const hostingStaticDir = path.join(hostingDir, STATIC_DIR);
 
   // Clean previous hosting output
@@ -141,11 +140,7 @@ export const nextjsAdapter = (
   //    These are hashed immutable assets served by CloudFront from S3.
   //    NOT copied to compute — CloudFront serves /_next/static/* directly from S3.
   if (fs.existsSync(staticDir)) {
-    const destStaticNextDir = path.join(
-      hostingStaticDir,
-      '_next',
-      'static',
-    );
+    const destStaticNextDir = path.join(hostingStaticDir, '_next', 'static');
     copyDirRecursive(staticDir, destStaticNextDir);
   }
 

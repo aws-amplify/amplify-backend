@@ -57,10 +57,7 @@ void describe('detectFramework', () => {
   });
 
   void it('throws PackageJsonParseError for corrupted package.json', () => {
-    fs.writeFileSync(
-      path.join(tmpDir, 'package.json'),
-      '{ invalid json !!!',
-    );
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{ invalid json !!!');
 
     assert.throws(
       () => detectFramework(tmpDir),

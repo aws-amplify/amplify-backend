@@ -5,6 +5,7 @@ Deploy static sites, SPAs, and SSR (Next.js) applications to AWS using CloudFron
 ## Quick Start
 
 ### SPA (React, Vue, etc.)
+
 ```typescript
 // amplify/hosting/resource.ts
 import { defineHosting } from '@aws-amplify/hosting';
@@ -18,6 +19,7 @@ export const hosting = defineHosting({
 ### Next.js (SSR)
 
 > **⚠️ Prerequisite:** Your `next.config.js` must have `output: 'standalone'` set before building.
+>
 > ```js
 > // next.config.js
 > module.exports = { output: 'standalone' };
@@ -34,6 +36,7 @@ export const hosting = defineHosting({
 ```
 
 ### Wire into backend
+
 ```typescript
 // amplify/backend.ts
 import { defineBackend } from '@aws-amplify/backend';
@@ -43,6 +46,7 @@ defineBackend({ hosting });
 ```
 
 ### Deploy
+
 ```bash
 npx ampx deploy --identifier prod
 ```
@@ -55,25 +59,26 @@ npx ampx deploy --identifier prod
 4. **CloudFormation Deploy** — AWS provisions/updates all resources
 
 **Timelines:**
+
 - **First deploy:** ~15-20 minutes (CloudFront distribution provisioning is the bottleneck)
 - **Subsequent deploys:** ~5 minutes (asset upload + cache invalidation)
 - **Stack deletion:** ~20-40 minutes (CloudFront must be fully disabled before removal)
 
 ## Configuration
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `framework` | `'nextjs' \| 'spa' \| 'static' \| string` | auto-detected | Framework type. Auto-detected from package.json. |
-| `buildCommand` | `string` | - | Build command to run before deployment. |
-| `buildOutputDir` | `string` | framework-dependent | Build output directory. |
-| `domain` | `{ domainName, hostedZone }` | - | Custom domain with SSL. Requires Route53 hosted zone. |
-| `waf` | `{ enabled, rateLimit? }` | - | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
-| `customAdapter` | `FrameworkAdapterFn` | - | Custom framework adapter for unsupported frameworks. |
-| `compute` | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR. |
-| `contentSecurityPolicy` | `string` | restrictive default | Custom CSP header value. |
-| `retainOnDelete` | `boolean` | `false` | Retain S3 bucket on stack deletion. |
-| `accessLogging` | `boolean` | `false` | Enable CloudFront access logs to S3. |
-| `name` | `string` | - | Optional resource name. |
+| Prop                    | Type                                              | Default                  | Description                                                        |
+| ----------------------- | ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------ |
+| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                   |
+| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                            |
+| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                            |
+| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.              |
+| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
+| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.               |
+| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                      |
+| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                           |
+| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                |
+| `accessLogging`         | `boolean`                                         | `false`                  | Enable CloudFront access logs to S3.                               |
+| `name`                  | `string`                                          | -                        | Optional resource name.                                            |
 
 ## Architecture
 
@@ -104,6 +109,7 @@ defineHosting({
 ### Changing Your Custom Domain
 
 Changing `domainName` after initial deploy causes **5-30 minutes of downtime** while the certificate is replaced and CloudFront is reconfigured. For zero-downtime domain migration:
+
 1. Create a new stack with the new domain
 2. Verify the new site works
 3. Update DNS to point to the new CloudFront distribution
@@ -149,8 +155,8 @@ Customize SSR Lambda settings:
 defineHosting({
   framework: 'nextjs',
   compute: {
-    memorySize: 1024,       // MB (default: 512)
-    timeout: 60,            // seconds (default: 30)
+    memorySize: 1024, // MB (default: 512)
+    timeout: 60, // seconds (default: 30)
     reservedConcurrency: 50, // concurrent executions (default: none)
   },
 });
@@ -159,13 +165,17 @@ defineHosting({
 ## Troubleshooting
 
 ### "Next.js standalone output not found"
+
 Add `output: 'standalone'` to your `next.config.js` and rebuild.
 
 ### Build fails but error message is unclear
+
 Run your build command locally (`npm run build`) to see full output. The deploy shows first 1000 + last 1000 characters.
 
 ### CloudFront returns 403
+
 This should not happen with the OAC bucket policy. If it does, check that the S3 bucket policy includes the CloudFront distribution ARN.
 
 ### Deploy takes very long
+
 First deploy creates a CloudFront distribution (~15-20 min). Subsequent deploys are faster (~5 min).

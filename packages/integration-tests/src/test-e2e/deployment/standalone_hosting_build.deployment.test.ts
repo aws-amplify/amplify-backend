@@ -107,78 +107,80 @@ void describe(
         };
       });
 
-      afterEach(async () => {
-        try {
-          await testProject.tearDown(standaloneBackendIdentifier, true);
-        } catch {
-          console.warn('⚠️ Stack deletion may not have completed. Check for orphaned resources.');
-        }
-      }, { timeout: 1500000 });
-
-      void it(
-        `[${testProjectCreator.name}] deploys hosting with build command`,
+      afterEach(
         async () => {
-          await testProject.deploy(standaloneBackendIdentifier);
-
-          const stackName = BackendIdentifierConversions.toStackName(
-            standaloneBackendIdentifier,
-          );
-
-          const describeResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: stackName }),
-          );
-          assert.ok(describeResult.Stacks && describeResult.Stacks.length > 0);
-          const stack = describeResult.Stacks![0];
-          assert.ok(
-            stack.StackStatus === 'CREATE_COMPLETE' ||
-              stack.StackStatus === 'UPDATE_COMPLETE',
-            `stack should be in a successful state, got: ${stack.StackStatus}`,
-          );
-
-          // List all resources across root and nested stacks
-          const rootResources = await cfnClient.send(
-            new ListStackResourcesCommand({ StackName: stackName }),
-          );
-          const allResourceTypes: string[] = [];
-          const nestedStackIds: string[] = [];
-
-          for (const r of rootResources.StackResourceSummaries ?? []) {
-            allResourceTypes.push(r.ResourceType!);
-            if (r.ResourceType === 'AWS::CloudFormation::Stack') {
-              nestedStackIds.push(r.PhysicalResourceId!);
-            }
-          }
-
-          for (const nestedStackId of nestedStackIds) {
-            const nestedResources = await cfnClient.send(
-              new ListStackResourcesCommand({ StackName: nestedStackId }),
+          try {
+            await testProject.tearDown(standaloneBackendIdentifier, true);
+          } catch {
+            console.warn(
+              '⚠️ Stack deletion may not have completed. Check for orphaned resources.',
             );
-            for (const r of nestedResources.StackResourceSummaries ?? []) {
-              allResourceTypes.push(r.ResourceType!);
-            }
           }
-
-          // Verify standard hosting resources
-          assert.ok(
-            allResourceTypes.includes('AWS::S3::Bucket'),
-            'Should have S3 bucket',
-          );
-          assert.ok(
-            allResourceTypes.includes('AWS::CloudFront::Distribution'),
-            'Should have CloudFront distribution',
-          );
-          assert.ok(
-            allResourceTypes.includes('AWS::CloudFront::OriginAccessControl'),
-            'Should have OAC',
-          );
-          assert.ok(
-            allResourceTypes.includes('AWS::CloudFront::Function'),
-            'Should have CloudFront Function',
-          );
-
-          await testProject.assertPostDeployment(standaloneBackendIdentifier);
         },
+        { timeout: 1500000 },
       );
+
+      void it(`[${testProjectCreator.name}] deploys hosting with build command`, async () => {
+        await testProject.deploy(standaloneBackendIdentifier);
+
+        const stackName = BackendIdentifierConversions.toStackName(
+          standaloneBackendIdentifier,
+        );
+
+        const describeResult = await cfnClient.send(
+          new DescribeStacksCommand({ StackName: stackName }),
+        );
+        assert.ok(describeResult.Stacks && describeResult.Stacks.length > 0);
+        const stack = describeResult.Stacks![0];
+        assert.ok(
+          stack.StackStatus === 'CREATE_COMPLETE' ||
+            stack.StackStatus === 'UPDATE_COMPLETE',
+          `stack should be in a successful state, got: ${stack.StackStatus}`,
+        );
+
+        // List all resources across root and nested stacks
+        const rootResources = await cfnClient.send(
+          new ListStackResourcesCommand({ StackName: stackName }),
+        );
+        const allResourceTypes: string[] = [];
+        const nestedStackIds: string[] = [];
+
+        for (const r of rootResources.StackResourceSummaries ?? []) {
+          allResourceTypes.push(r.ResourceType!);
+          if (r.ResourceType === 'AWS::CloudFormation::Stack') {
+            nestedStackIds.push(r.PhysicalResourceId!);
+          }
+        }
+
+        for (const nestedStackId of nestedStackIds) {
+          const nestedResources = await cfnClient.send(
+            new ListStackResourcesCommand({ StackName: nestedStackId }),
+          );
+          for (const r of nestedResources.StackResourceSummaries ?? []) {
+            allResourceTypes.push(r.ResourceType!);
+          }
+        }
+
+        // Verify standard hosting resources
+        assert.ok(
+          allResourceTypes.includes('AWS::S3::Bucket'),
+          'Should have S3 bucket',
+        );
+        assert.ok(
+          allResourceTypes.includes('AWS::CloudFront::Distribution'),
+          'Should have CloudFront distribution',
+        );
+        assert.ok(
+          allResourceTypes.includes('AWS::CloudFront::OriginAccessControl'),
+          'Should have OAC',
+        );
+        assert.ok(
+          allResourceTypes.includes('AWS::CloudFront::Function'),
+          'Should have CloudFront Function',
+        );
+
+        await testProject.assertPostDeployment(standaloneBackendIdentifier);
+      });
     });
   },
 );

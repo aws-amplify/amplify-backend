@@ -16,9 +16,7 @@ export type BackendHosting = ResourceProvider<HostingResources>;
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
-export class AmplifyHostingFactory
-  implements ConstructFactory<BackendHosting>
-{
+export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
   // Publicly accessible for testing purposes.
   static factoryCount = 0;
 
@@ -65,9 +63,7 @@ export class AmplifyHostingFactory
         getInstanceProps,
       );
     }
-    return constructContainer.getOrCompute(
-      this.generator,
-    ) as BackendHosting;
+    return constructContainer.getOrCompute(this.generator) as BackendHosting;
   };
 }
 

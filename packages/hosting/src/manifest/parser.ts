@@ -18,7 +18,8 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
   if (!fs.existsSync(manifestPath)) {
     throw new AmplifyUserError('ManifestNotFoundError', {
       message: `Deploy manifest not found at ${manifestPath}`,
-      resolution: `Ensure your framework adapter produces a ${MANIFEST_FILENAME} in the ${HOSTING_DIR}/ directory. ` +
+      resolution:
+        `Ensure your framework adapter produces a ${MANIFEST_FILENAME} in the ${HOSTING_DIR}/ directory. ` +
         `If using a custom build, create ${HOSTING_DIR}/${MANIFEST_FILENAME} manually.`,
     });
   }
