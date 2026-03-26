@@ -276,9 +276,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
  * Translator for the Auth portion of ClientConfig in V1.3
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class AuthClientConfigContributorV1_3
-  implements ClientConfigContributor
-{
+export class AuthClientConfigContributorV1_3 implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Auth portion of the ClientConfig
    */
@@ -448,9 +446,7 @@ export class AuthClientConfigContributorV1_3
  * Translator for the Auth portion of ClientConfig in V1.2
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class AuthClientConfigContributorV1_1
-  implements ClientConfigContributor
-{
+export class AuthClientConfigContributorV1_1 implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Auth portion of the ClientConfig
    */
@@ -713,9 +709,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
  * Translator for the Storage portion of ClientConfig in V1.1
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class StorageClientConfigContributorV1_1
-  implements ClientConfigContributor
-{
+export class StorageClientConfigContributorV1_1 implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */
@@ -758,9 +752,7 @@ export class StorageClientConfigContributorV1_1
 /**
  * Translator for the Storage portion of ClientConfig in V1
  */
-export class StorageClientConfigContributorV1
-  implements ClientConfigContributor
-{
+export class StorageClientConfigContributorV1 implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */

@@ -42,6 +42,7 @@
   "commonjs",
   "corepack",
   "cors",
+  "cpus",
   "cron",
   "ctor",
   "darwin",

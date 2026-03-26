@@ -655,13 +655,11 @@ class AmplifyFunction
 
     const shims = [require.resolve('./lambda-shims/cjs_shim')];
 
-    const ssmResolverFile = require.resolve(
-      './lambda-shims/resolve_ssm_params',
-    );
+    const ssmResolverFile =
+      require.resolve('./lambda-shims/resolve_ssm_params');
 
-    const invokeSsmResolverFile = require.resolve(
-      './lambda-shims/invoke_ssm_shim',
-    );
+    const invokeSsmResolverFile =
+      require.resolve('./lambda-shims/invoke_ssm_shim');
 
     /**
      * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content

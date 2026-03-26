@@ -70,7 +70,7 @@
     "@changesets/get-release-plan": "^4.0.0",
     "@changesets/types": "^6.0.0",
     "@graphql-codegen/core": "^4.0.0",
-    "@microsoft/api-extractor": "7.43.8",
+    "@microsoft/api-extractor": "^7.57.7",
     "@octokit/rest": "^22.0.1",
     "@octokit/webhooks-types": "^7.5.1",
     "@shopify/eslint-plugin": "^43.0.0",
@@ -114,8 +114,5 @@
     "*.json": "prettier --write",
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
-  },
-  "overrides": {
-    "minimatch": "10.0.1"
   }
 }

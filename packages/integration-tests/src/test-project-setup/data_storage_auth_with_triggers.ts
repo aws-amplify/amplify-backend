@@ -28,9 +28,7 @@ import isMatch from 'lodash.ismatch';
 /**
  * Creates test projects with data, storage, and auth categories.
  */
-export class DataStorageAuthWithTriggerTestProjectCreator
-  implements TestProjectCreator
-{
+export class DataStorageAuthWithTriggerTestProjectCreator implements TestProjectCreator {
   readonly name = 'data-storage-auth';
 
   /**
