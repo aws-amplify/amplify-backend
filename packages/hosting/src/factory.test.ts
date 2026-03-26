@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import {
   AmplifyHostingFactory,
   defineHosting,
-  BackendHosting,
 } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import {

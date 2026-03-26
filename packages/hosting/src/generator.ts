@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import {
   AmplifyResourceGroupName,
   ConstructContainerEntryGenerator,
@@ -17,43 +16,61 @@ import {
 } from './constructs/hosting-construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
 import { checkNextConfig } from './adapters/nextjs.js';
-import { getHostingOutputDir, parseManifest } from './manifest/parser.js';
+import { getHostingOutputDir } from './manifest/parser.js';
 import { runBuild } from './build/runner.js';
 
-const LOCK_FILE = path.join(os.tmpdir(), 'amplify-hosting-deploy.lock');
+// Lock file in project directory — avoids insecure temp dir (CodeQL js/file-system-race, js/insecure-temporary-file)
+const getLockFilePath = (projectDir: string): string =>
+  path.join(projectDir, '.amplify-hosting-deploy.lock');
+
 const LOCK_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour stale lock timeout
 
 /**
  * Acquire a file-based deploy lock to prevent concurrent deployments.
+ * Uses exclusive-create (wx) flag for atomic lock acquisition — no TOCTOU race.
  */
-const acquireLock = (): void => {
-  if (fs.existsSync(LOCK_FILE)) {
-    try {
-      const lockData = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf-8'));
-      if (Date.now() - lockData.timestamp < LOCK_TIMEOUT_MS) {
-        throw new AmplifyUserError('DeploymentInProgressError', {
-          message: `Another deployment appears to be in progress (started ${Math.round((Date.now() - lockData.timestamp) / 1000)}s ago).`,
-          resolution: `Wait for the other deployment to complete. If no deployment is running, delete ${LOCK_FILE}`,
-        });
+const acquireLock = (projectDir: string): void => {
+  const lockFile = getLockFilePath(projectDir);
+  try {
+    fs.writeFileSync(
+      lockFile,
+      JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+      { flag: 'wx', mode: 0o600 },
+    );
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+      // Lock file exists — check if stale
+      try {
+        const lockData = JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+        if (Date.now() - lockData.timestamp < LOCK_TIMEOUT_MS) {
+          throw new AmplifyUserError('DeploymentInProgressError', {
+            message: `Another deployment appears to be in progress (started ${Math.round((Date.now() - lockData.timestamp) / 1000)}s ago).`,
+            resolution: `Wait for the other deployment to complete. If no deployment is running, delete ${lockFile}`,
+          });
+        }
+      } catch (e) {
+        if ((e as Error).name === 'DeploymentInProgressError') throw e;
+        // Corrupted lock file — fall through to replace it
       }
-    } catch (e) {
-      if ((e as Error).name === 'DeploymentInProgressError') throw e;
-      // Corrupted lock file, remove it
+      // Stale or corrupted lock — remove and retry atomically
+      fs.unlinkSync(lockFile);
+      fs.writeFileSync(
+        lockFile,
+        JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+        { flag: 'wx', mode: 0o600 },
+      );
+      return;
     }
-    fs.unlinkSync(LOCK_FILE);
+    throw err;
   }
-  fs.writeFileSync(
-    LOCK_FILE,
-    JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
-  );
 };
 
 /**
  * Release the deploy lock.
  */
-const releaseLock = (): void => {
+const releaseLock = (projectDir: string): void => {
   try {
-    fs.unlinkSync(LOCK_FILE);
+    fs.unlinkSync(getLockFilePath(projectDir));
   } catch {
     /* ignore — may already be deleted */
   }
@@ -78,20 +95,19 @@ export class AmplifyHostingGenerator
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<HostingResources> => {
-    acquireLock();
+    const projectDir = process.cwd();
+    acquireLock(projectDir);
     try {
-      return this.doGenerateContainerEntry(scope);
+      return this.doGenerateContainerEntry(scope, projectDir);
     } finally {
-      releaseLock();
+      releaseLock(projectDir);
     }
   };
 
   private doGenerateContainerEntry = (
     scope: import('constructs').Construct,
+    projectDir: string,
   ): ResourceProvider<HostingResources> => {
-    // Determine the project directory (one level above amplify/)
-    const projectDir = process.cwd();
-
     // Auto-detect or use explicit framework
     const framework =
       this.props.framework ?? detectFramework(projectDir);
