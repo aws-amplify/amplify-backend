@@ -55,6 +55,21 @@ void describe('detectFramework', () => {
 
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
+
+  void it('throws PackageJsonParseError for corrupted package.json', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      '{ invalid json !!!',
+    );
+
+    assert.throws(
+      () => detectFramework(tmpDir),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'PackageJsonParseError');
+        return true;
+      },
+    );
+  });
 });
 
 void describe('getAdapter', () => {

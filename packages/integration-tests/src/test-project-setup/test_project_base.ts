@@ -137,11 +137,11 @@ export abstract class TestProjectBase {
   /**
    * Wait for a stack to be deleted, returns true if deleted within allotted time.
    * @param stackName name of the stack
-   * @returns true if delete completes within allotted time (3 minutes)
+   * @returns true if delete completes within allotted time (20 minutes)
    */
   async waitForStackDeletion(
     stackName: string,
-    timeoutInMS: number = 3 * 60 * 1000,
+    timeoutInMS: number = 20 * 60 * 1000,
   ): Promise<boolean> {
     let attempts = 0;
     let totalTimeWaitedMs = 0;

@@ -10,13 +10,14 @@ export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
 
 /**
  * Compute (Lambda) configuration for SSR frameworks.
+ * Ignored for SPA and static site deployments.
  */
 export interface ComputeConfig {
   /** Lambda memory size in MB. Default: 512 */
   memorySize?: number;
   /** Lambda timeout in seconds. Default: 30 */
   timeout?: number;
-  /** Lambda reserved concurrent executions. Default: 100 */
+  /** Reserved concurrent executions. Default: undefined (no reservation). */
   reservedConcurrency?: number;
 }
 
@@ -55,6 +56,8 @@ export interface HostingProps {
    */
   waf?: {
     enabled: boolean;
+    /** Requests per 5-minute window per IP. Default: 1000 */
+    rateLimit?: number;
   };
 
   /**
@@ -64,8 +67,8 @@ export interface HostingProps {
   customAdapter?: FrameworkAdapterFn;
 
   /**
-   * Compute (Lambda) configuration for SSR.
-   * Controls memory, timeout, and concurrency settings.
+   * Lambda compute configuration for SSR frameworks (e.g., Next.js).
+   * Ignored for SPA and static site deployments.
    */
   compute?: ComputeConfig;
 
@@ -80,6 +83,12 @@ export interface HostingProps {
    * Default: false. Adds a dedicated log bucket when enabled.
    */
   accessLogging?: boolean;
+
+  /**
+   * Custom Content-Security-Policy header value.
+   * If not set, a restrictive default is used.
+   */
+  contentSecurityPolicy?: string;
 
   /**
    * Optional friendly name for the hosting resource.

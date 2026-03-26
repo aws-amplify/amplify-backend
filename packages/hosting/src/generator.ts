@@ -96,6 +96,10 @@ export class AmplifyHostingGenerator
     const framework =
       this.props.framework ?? detectFramework(projectDir);
 
+    if (!this.props.framework) {
+      console.log(`Detected framework: ${framework} (from package.json)`);
+    }
+
     // Next.js pre-flight validation
     if (framework === 'nextjs') {
       checkNextConfig(projectDir);
@@ -135,6 +139,7 @@ export class AmplifyHostingGenerator
       compute: this.props.compute,
       retainOnDelete: this.props.retainOnDelete,
       accessLogging: this.props.accessLogging,
+      contentSecurityPolicy: this.props.contentSecurityPolicy,
       name: this.name,
     };
 

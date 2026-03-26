@@ -475,7 +475,6 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       Handler: 'index.handler',
       MemorySize: 512,
       Timeout: 30,
-      ReservedConcurrentExecutions: 100,
       Environment: {
         Variables: Match.objectLike({
           AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
@@ -1101,7 +1100,7 @@ void describe('AmplifyHostingConstruct — WAF', () => {
           Action: { Block: {} },
           Statement: {
             RateBasedStatement: {
-              Limit: 2000,
+              Limit: 1000,
               AggregateKeyType: 'IP',
             },
           },
@@ -1175,6 +1174,31 @@ void describe('AmplifyHostingConstruct — WAF', () => {
 
     assert.ok(construct.webAcl, 'Should expose webAcl when WAF is enabled');
   });
+
+  void it('uses custom rateLimit when provided', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWaf,
+      staticAssetPath: staticDir,
+      waf: { enabled: true, rateLimit: 5000 },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Rules: Match.arrayWith([
+        Match.objectLike({
+          Name: 'RateLimitRule',
+          Statement: {
+            RateBasedStatement: {
+              Limit: 5000,
+              AggregateKeyType: 'IP',
+            },
+          },
+        }),
+      ]),
+    });
+  });
 });
 
 // ================================================================
@@ -1230,6 +1254,103 @@ void describe('AmplifyHostingConstruct — access logging', () => {
     assert.ok(
       Object.keys(buckets).length <= 1,
       `Should have at most 1 S3 bucket without logging, got ${Object.keys(buckets).length}`,
+    );
+  });
+});
+
+// ================================================================
+// Custom Content-Security-Policy
+// ================================================================
+
+void describe('AmplifyHostingConstruct — custom CSP', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-csp-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('uses custom CSP when provided', () => {
+    const stack = createStack();
+    const customCsp = "default-src 'none'; script-src 'self'";
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+      contentSecurityPolicy: customCsp,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            ContentSecurityPolicy: Match.objectLike({
+              ContentSecurityPolicy: customCsp,
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+});
+
+// ================================================================
+// S3 bucket lifecycle — noncurrent version expiration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — S3 lifecycle', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-lifecycle-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('includes NoncurrentVersionExpiration lifecycle rule', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Find the hosting bucket and verify lifecycle rules
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const hostingBucketKey = Object.keys(buckets).find((key) => key.includes('HostingBucket'));
+    assert.ok(hostingBucketKey, 'Should find HostingBucket resource');
+
+    const props = (buckets[hostingBucketKey!] as Record<string, Record<string, unknown>>).Properties;
+    const rules = (props?.LifecycleConfiguration as Record<string, unknown[]>)?.Rules;
+    assert.ok(Array.isArray(rules), 'Should have lifecycle rules');
+
+    const noncurrentRule = rules.find(
+      (r: unknown) => (r as { Id?: string }).Id === 'ExpireNoncurrentVersions',
+    );
+    assert.ok(noncurrentRule, 'Should have ExpireNoncurrentVersions rule');
+    assert.ok(
+      (noncurrentRule as Record<string, unknown>).NoncurrentVersionExpiration,
+      'Rule should have NoncurrentVersionExpiration',
     );
   });
 });

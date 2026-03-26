@@ -91,8 +91,33 @@ const DEFAULT_LAMBDA_MEMORY_MB = 512;
 /** Default Lambda timeout in seconds */
 const DEFAULT_LAMBDA_TIMEOUT_SECONDS = 30;
 
-/** Default Lambda reserved concurrent executions */
-const DEFAULT_LAMBDA_RESERVED_CONCURRENCY = 100;
+/**
+ * Regions known to host the Lambda Web Adapter public layer.
+ * Source: https://github.com/awslabs/aws-lambda-web-adapter
+ * This list may need updating as new regions are added.
+ */
+const LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS = new Set([
+  'us-east-1',
+  'us-east-2',
+  'us-west-1',
+  'us-west-2',
+  'eu-west-1',
+  'eu-west-2',
+  'eu-west-3',
+  'eu-central-1',
+  'eu-north-1',
+  'ap-southeast-1',
+  'ap-southeast-2',
+  'ap-northeast-1',
+  'ap-northeast-2',
+  'ap-northeast-3',
+  'ap-south-1',
+  'sa-east-1',
+  'ca-central-1',
+  'me-south-1',
+  'af-south-1',
+  'eu-south-1',
+]);
 
 /** S3 lifecycle expiration for old builds (days) */
 const BUILD_EXPIRATION_DAYS = 90;
@@ -123,6 +148,8 @@ export interface HostingDomainConfig {
  */
 export interface HostingWafConfig {
   enabled: boolean;
+  /** Requests per 5-minute window per IP. Default: 1000 */
+  rateLimit?: number;
 }
 
 export interface AmplifyHostingConstructProps {
@@ -134,6 +161,8 @@ export interface AmplifyHostingConstructProps {
   compute?: ComputeConfig;
   retainOnDelete?: boolean;
   accessLogging?: boolean;
+  /** Custom Content-Security-Policy header value. If not set, a restrictive default is used. */
+  contentSecurityPolicy?: string;
   name?: string;
 }
 
@@ -253,7 +282,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- WAF (conditional) ----
     if (props.waf?.enabled) {
-      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(props.name);
+      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(props.name, props.waf.rateLimit);
     }
 
     // ---- Access log bucket (conditional) ----
@@ -274,7 +303,7 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- Security headers ----
-    const securityHeadersPolicy = this.createSecurityHeadersPolicy();
+    const securityHeadersPolicy = this.createSecurityHeadersPolicy(props.contentSecurityPolicy);
 
     // ---- CloudFront distribution ----
     this.distribution = this.createDistribution({
@@ -396,12 +425,19 @@ export class AmplifyHostingConstruct extends Construct {
       versioned: true,
       removalPolicy: retainOnDelete ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
       autoDeleteObjects: !retainOnDelete,
-      lifecycleRules: [{
-        id: 'DeleteOldBuilds',
-        prefix: 'builds/',
-        expiration: Duration.days(BUILD_EXPIRATION_DAYS),
-        enabled: true,
-      }],
+      lifecycleRules: [
+        {
+          id: 'DeleteOldBuilds',
+          prefix: 'builds/',
+          expiration: Duration.days(BUILD_EXPIRATION_DAYS),
+          enabled: true,
+        },
+        {
+          id: 'ExpireNoncurrentVersions',
+          noncurrentVersionExpiration: Duration.days(30),
+          enabled: true,
+        },
+      ],
     });
   }
 
@@ -415,6 +451,19 @@ export class AmplifyHostingConstruct extends Construct {
   ): { ssrFn: LambdaFunction; fnUrl: FunctionUrl } {
     const computeDir = `${props.computeBasePath!}/${computeResource.name}`;
     const compute = props.compute ?? {};
+
+    // Validate region supports Lambda Web Adapter (skip if region is an unresolved token)
+    if (
+      !region.includes('${') &&
+      !LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS.has(region)
+    ) {
+      throw new AmplifyUserError('UnsupportedRegionError', {
+        message: `Lambda Web Adapter layer is not available in region '${region}'.`,
+        resolution:
+          'SSR hosting requires a supported region. ' +
+          'See https://github.com/awslabs/aws-lambda-web-adapter for supported regions.',
+      });
+    }
 
     const webAdapterLayerArn = `arn:aws:lambda:${region}:${LAMBDA_WEB_ADAPTER_ACCOUNT}:layer:${LAMBDA_WEB_ADAPTER_LAYER_NAME}:${LAMBDA_WEB_ADAPTER_VERSION}`;
 
@@ -437,7 +486,7 @@ export class AmplifyHostingConstruct extends Construct {
       architecture: Architecture.X86_64,
       memorySize: compute.memorySize ?? DEFAULT_LAMBDA_MEMORY_MB,
       timeout: Duration.seconds(compute.timeout ?? DEFAULT_LAMBDA_TIMEOUT_SECONDS),
-      reservedConcurrentExecutions: compute.reservedConcurrency ?? DEFAULT_LAMBDA_RESERVED_CONCURRENCY,
+      reservedConcurrentExecutions: compute.reservedConcurrency,
       role: ssrRole,
       layers: [
         LayerVersion.fromLayerVersionArn(
@@ -464,7 +513,7 @@ export class AmplifyHostingConstruct extends Construct {
   /**
    * Create WAFv2 WebACL with AWS Managed Rule Groups and rate limiting.
    */
-  private createWafWebAcl(name?: string): CfnWebACL {
+  private createWafWebAcl(name?: string, rateLimit?: number): CfnWebACL {
     return new CfnWebACL(this, 'WebAcl', {
       defaultAction: { allow: {} },
       scope: 'CLOUDFRONT',
@@ -512,7 +561,7 @@ export class AmplifyHostingConstruct extends Construct {
           action: { block: {} },
           statement: {
             rateBasedStatement: {
-              limit: 2000,
+              limit: rateLimit ?? 1000,
               aggregateKeyType: 'IP',
             },
           },
@@ -565,7 +614,10 @@ export class AmplifyHostingConstruct extends Construct {
   /**
    * Create the security response headers policy with CSP and HSTS.
    */
-  private createSecurityHeadersPolicy(): ResponseHeadersPolicy {
+  private createSecurityHeadersPolicy(customCsp?: string): ResponseHeadersPolicy {
+    const defaultCsp =
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
+
     return new ResponseHeadersPolicy(this, 'SecurityHeaders', {
       securityHeadersBehavior: {
         strictTransportSecurity: {
@@ -589,9 +641,8 @@ export class AmplifyHostingConstruct extends Construct {
           override: true,
         },
         contentSecurityPolicy: {
-          contentSecurityPolicy:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",
-          override: false, // Customer can override via their own headers
+          contentSecurityPolicy: customCsp ?? defaultCsp,
+          override: false,
         },
       },
     });
@@ -672,29 +723,49 @@ export class AmplifyHostingConstruct extends Construct {
 
     const isSpaOnly = !hasCompute;
 
-    // SSR error responses for 5xx
-    const ssrErrorResponses: ErrorResponse[] = hasCompute
-      ? [
-          {
-            httpStatus: 502,
-            responseHttpStatus: 502,
-            responsePagePath: '/_error.html',
-            ttl: Duration.seconds(10),
-          },
-          {
-            httpStatus: 503,
-            responseHttpStatus: 503,
-            responsePagePath: '/_error.html',
-            ttl: Duration.seconds(10),
-          },
-          {
-            httpStatus: 504,
-            responseHttpStatus: 504,
-            responsePagePath: '/_error.html',
-            ttl: Duration.seconds(10),
-          },
-        ]
-      : [];
+    // Build error responses list once
+    const errorResponses: ErrorResponse[] = [
+      // SPA error handling: 403/404 → index.html (only for SPA/static)
+      ...(isSpaOnly
+        ? [
+            {
+              httpStatus: 403,
+              responseHttpStatus: 200,
+              responsePagePath: '/index.html',
+              ttl: Duration.seconds(0),
+            },
+            {
+              httpStatus: 404,
+              responseHttpStatus: 200,
+              responsePagePath: '/index.html',
+              ttl: Duration.seconds(0),
+            },
+          ]
+        : []),
+      // SSR 5xx error pages
+      ...(hasCompute
+        ? [
+            {
+              httpStatus: 502,
+              responseHttpStatus: 502,
+              responsePagePath: '/_error.html',
+              ttl: Duration.seconds(10),
+            },
+            {
+              httpStatus: 503,
+              responseHttpStatus: 503,
+              responsePagePath: '/_error.html',
+              ttl: Duration.seconds(10),
+            },
+            {
+              httpStatus: 504,
+              responseHttpStatus: 504,
+              responsePagePath: '/_error.html',
+              ttl: Duration.seconds(10),
+            },
+          ]
+        : []),
+    ];
 
     return new Distribution(this, 'HostingDistribution', {
       defaultBehavior,
@@ -718,47 +789,7 @@ export class AmplifyHostingConstruct extends Construct {
       // Access logging
       ...(logBucket ? { enableLogging: true, logBucket } : {}),
       // Error responses
-      errorResponses: [
-        // SPA error handling: 403/404 → index.html (only for SPA/static)
-        ...(isSpaOnly
-          ? [
-              {
-                httpStatus: 403,
-                responseHttpStatus: 200,
-                responsePagePath: '/index.html',
-                ttl: Duration.seconds(0),
-              },
-              {
-                httpStatus: 404,
-                responseHttpStatus: 200,
-                responsePagePath: '/index.html',
-                ttl: Duration.seconds(0),
-              },
-            ]
-          : []),
-        // SSR 5xx error pages
-        ...ssrErrorResponses,
-      ].length > 0
-        ? [
-            ...(isSpaOnly
-              ? [
-                  {
-                    httpStatus: 403,
-                    responseHttpStatus: 200,
-                    responsePagePath: '/index.html',
-                    ttl: Duration.seconds(0),
-                  },
-                  {
-                    httpStatus: 404,
-                    responseHttpStatus: 200,
-                    responsePagePath: '/index.html',
-                    ttl: Duration.seconds(0),
-                  },
-                ]
-              : []),
-            ...ssrErrorResponses,
-          ]
-        : undefined,
+      errorResponses: errorResponses.length > 0 ? errorResponses : undefined,
     });
   }
 

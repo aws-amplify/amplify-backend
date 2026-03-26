@@ -14,6 +14,16 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./adapters": {
+      "types": "./lib/adapters/index.d.ts",
+      "import": "./lib/adapters/index.js",
+      "require": "./lib/adapters/index.js"
+    },
+    "./constructs": {
+      "types": "./lib/constructs/hosting-construct.d.ts",
+      "import": "./lib/constructs/hosting-construct.js",
+      "require": "./lib/constructs/hosting-construct.js"
     }
   },
   "main": "lib/index.js",

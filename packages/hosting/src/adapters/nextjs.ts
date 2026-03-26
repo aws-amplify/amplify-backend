@@ -47,7 +47,9 @@ const detectNextVersion = (projectDir: string): string | undefined => {
 
 /**
  * Pre-flight check: verify that next.config has output: 'standalone'.
- * Called before running the Next.js adapter to give clear error messages.
+ *
+ * This is a best-effort string-based check. The authoritative validation is
+ * the post-build check for `.next/standalone/` directory existence.
  */
 export const checkNextConfig = (projectDir: string): void => {
   const configFiles = ['next.config.js', 'next.config.mjs', 'next.config.ts'];
@@ -55,7 +57,8 @@ export const checkNextConfig = (projectDir: string): void => {
     const configPath = path.join(projectDir, configFile);
     if (fs.existsSync(configPath)) {
       const content = fs.readFileSync(configPath, 'utf-8');
-      if (!content.includes('standalone')) {
+      // Check for output property set to 'standalone' — tolerates various formatting
+      if (!/output\s*[:=]\s*['"]standalone['"]/.test(content) && !content.includes('standalone')) {
         throw new AmplifyUserError('NextjsStandaloneRequiredError', {
           message: `Next.js config at ${configFile} does not appear to have output: 'standalone' set.`,
           resolution:
@@ -101,6 +104,15 @@ export const nextjsAdapter = (
     });
   }
 
+  const standaloneFiles = fs.readdirSync(standaloneDir);
+  if (standaloneFiles.length === 0) {
+    throw new AmplifyUserError('BuildOutputEmptyError', {
+      message: `Build output directory is empty: ${standaloneDir}`,
+      resolution:
+        'Your build command may have failed silently. Run it locally and verify files are created in the output directory.',
+    });
+  }
+
   if (!fs.existsSync(path.join(standaloneDir, 'server.js'))) {
     throw new AmplifyUserError('NextjsServerNotFoundError', {
       message: `Next.js server.js not found in standalone output at ${standaloneDir}`,
@@ -128,7 +140,8 @@ export const nextjsAdapter = (
   copyDirRecursive(standaloneDir, computeDir, { excludePatterns: [] });
 
   // 2. Copy .next/static/ → .amplify-hosting/static/_next/static/
-  //    These are hashed immutable assets served by CloudFront from S3
+  //    These are hashed immutable assets served by CloudFront from S3.
+  //    NOT copied to compute — CloudFront serves /_next/static/* directly from S3.
   if (fs.existsSync(staticDir)) {
     const destStaticNextDir = path.join(
       hostingStaticDir,
@@ -136,10 +149,6 @@ export const nextjsAdapter = (
       'static',
     );
     copyDirRecursive(staticDir, destStaticNextDir);
-
-    // Also copy to compute for fallback serving
-    const computeStaticDir = path.join(computeDir, '.next', 'static');
-    copyDirRecursive(staticDir, computeStaticDir, { excludePatterns: [] });
   }
 
   // 3. Copy public/ → .amplify-hosting/static/ (public assets like favicon, robots.txt)
@@ -156,11 +165,21 @@ export const nextjsAdapter = (
   const runScriptPath = path.join(computeDir, 'run.sh');
   fs.writeFileSync(runScriptPath, generateRunScript(), { mode: 0o755 });
 
-  // 5. Write a fallback handler (Lambda Web Adapter intercepts, but this prevents HandlerNotFound)
-  fs.writeFileSync(
-    path.join(computeDir, 'index.js'),
-    'exports.handler = async (event) => { return { statusCode: 502, body: "SSR bootstrap failed" }; };\n',
-  );
+  // 5. Write a fallback handler (Lambda Web Adapter intercepts all requests;
+  //    this handler should never execute but prevents Lambda HandlerNotFound errors)
+  const fallbackHandler = `exports.handler = async (event) => {
+  console.error('Fallback handler invoked — Lambda Web Adapter did not intercept this request.', JSON.stringify(event));
+  return {
+    statusCode: 502,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      error: 'Lambda Web Adapter failed to handle request',
+      message: 'The Lambda Web Adapter layer should intercept all requests. If you see this, the adapter may not be configured correctly.',
+    }),
+  };
+};
+`;
+  fs.writeFileSync(path.join(computeDir, 'index.js'), fallbackHandler);
 
   // 6. Generate deploy manifest
   const nextVersion = detectNextVersion(projectDir);

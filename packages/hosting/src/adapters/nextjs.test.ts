@@ -101,7 +101,7 @@ void describe('nextjsAdapter', () => {
     assert.ok(fs.existsSync(path.join(staticDir, 'buildManifest.json')));
   });
 
-  void it('dual-copies static assets to compute for fallback', () => {
+  void it('does NOT copy static assets to compute (served from S3 via CloudFront)', () => {
     nextjsAdapter(nextDir, tmpDir);
 
     const computeStaticDir = path.join(
@@ -113,7 +113,8 @@ void describe('nextjsAdapter', () => {
       'static',
     );
     assert.ok(
-      fs.existsSync(path.join(computeStaticDir, 'chunks', 'main-abc123.js')),
+      !fs.existsSync(computeStaticDir),
+      'Static assets should not be in compute package — CloudFront serves them from S3',
     );
   });
 
@@ -134,7 +135,7 @@ void describe('nextjsAdapter', () => {
     assert.ok(content.includes('HOSTNAME=0.0.0.0'));
   });
 
-  void it('writes fallback index.js handler', () => {
+  void it('writes fallback index.js handler with diagnostic message', () => {
     nextjsAdapter(nextDir, tmpDir);
 
     const indexJsPath = path.join(
@@ -148,6 +149,7 @@ void describe('nextjsAdapter', () => {
     const content = fs.readFileSync(indexJsPath, 'utf-8');
     assert.ok(content.includes('exports.handler'));
     assert.ok(content.includes('502'));
+    assert.ok(content.includes('Lambda Web Adapter'));
   });
 
   void it('copies public/ directory to static/ and compute/', () => {

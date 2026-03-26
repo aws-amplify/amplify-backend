@@ -28,6 +28,22 @@ export const spaAdapter = (
     });
   }
 
+  const files = fs.readdirSync(buildOutputDir);
+  if (files.length === 0) {
+    throw new AmplifyUserError('BuildOutputEmptyError', {
+      message: `Build output directory is empty: ${buildOutputDir}`,
+      resolution:
+        'Your build command may have failed silently. Run it locally and verify files are created in the output directory.',
+    });
+  }
+
+  if (!files.includes('index.html')) {
+    console.warn(
+      `Warning: No index.html found in build output directory (${buildOutputDir}). ` +
+        'SPA routing may not work correctly without an index.html.',
+    );
+  }
+
   const hostingDir = path.join(projectDir, HOSTING_DIR);
   const staticDir = path.join(hostingDir, STATIC_DIR);
 

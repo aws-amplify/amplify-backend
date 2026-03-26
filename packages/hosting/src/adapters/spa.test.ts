@@ -155,4 +155,38 @@ void describe('spaAdapter', () => {
       'Symlinks should not be copied',
     );
   });
+
+  void it('throws BuildOutputEmptyError for empty build directory', () => {
+    const emptyDir = path.join(tmpDir, 'empty-build');
+    fs.mkdirSync(emptyDir, { recursive: true });
+
+    assert.throws(
+      () => spaAdapter(emptyDir, tmpDir),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'BuildOutputEmptyError');
+        assert.ok(error.message.includes('empty'));
+        return true;
+      },
+    );
+  });
+
+  void it('warns when no index.html is found', () => {
+    // Remove index.html from build dir
+    fs.unlinkSync(path.join(buildDir, 'index.html'));
+
+    const warnings: string[] = [];
+    const originalWarn = console.warn;
+    console.warn = (msg: string) => warnings.push(msg);
+
+    try {
+      spaAdapter(buildDir, tmpDir);
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    assert.ok(
+      warnings.some((w) => w.includes('index.html')),
+      'Should warn about missing index.html',
+    );
+  });
 });

@@ -43,8 +43,8 @@ export interface CopyDirOptions {
 /**
  * Copy a directory recursively with safety measures.
  *
- * - Skips symbolic links to prevent path traversal attacks
- * - Skips files matching exclude patterns (source maps, OS metadata, etc.)
+ * Uses Node.js built-in `cpSync` (stable since Node 16.7+) with `dereference: false`
+ * to skip symbolic links atomically, preventing TOCTOU races.
  *
  * @param src - source directory path
  * @param dest - destination directory path
@@ -57,21 +57,20 @@ export const copyDirRecursive = (
 ): void => {
   const excludePatterns = options?.excludePatterns ?? DEFAULT_EXCLUDE_PATTERNS;
 
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isSymbolicLink()) {
-      continue; // Skip symlinks to prevent path traversal
-    }
-    if (matchesExcludePattern(entry.name, excludePatterns)) {
-      continue; // Skip excluded files
-    }
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath, options);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
+  fs.cpSync(src, dest, {
+    recursive: true,
+    dereference: false,
+    filter: (source) => {
+      const fileName = path.basename(source);
+      // Always allow the root source directory itself
+      if (source === src) return true;
+      // Skip symlinks (cpSync with dereference:false copies them as-is; filter them out entirely)
+      try {
+        if (fs.lstatSync(source).isSymbolicLink()) return false;
+      } catch {
+        return false;
+      }
+      return !matchesExcludePattern(fileName, excludePatterns);
+    },
+  });
 };

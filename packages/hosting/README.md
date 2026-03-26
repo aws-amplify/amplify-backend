@@ -16,6 +16,13 @@ export const hosting = defineHosting({
 ```
 
 ### Next.js (SSR)
+
+> **⚠️ Prerequisite:** Your `next.config.js` must have `output: 'standalone'` set before building.
+> ```js
+> // next.config.js
+> module.exports = { output: 'standalone' };
+> ```
+
 ```typescript
 // amplify/hosting/resource.ts
 import { defineHosting } from '@aws-amplify/hosting';
@@ -24,12 +31,6 @@ export const hosting = defineHosting({
   framework: 'nextjs',
   buildCommand: 'npm run build',
 });
-```
-
-**⚠️ Next.js Requirement:** Your `next.config.js` must have `output: 'standalone'` set:
-```js
-// next.config.js
-module.exports = { output: 'standalone' };
 ```
 
 ### Wire into backend
@@ -46,6 +47,18 @@ defineBackend({ hosting });
 npx ampx deploy --identifier prod
 ```
 
+## What Happens During Deploy?
+
+1. **Build** — your build command runs (e.g., `npm run build`)
+2. **Adapter** — the framework adapter transforms build output into the canonical `.amplify-hosting/` structure
+3. **CDK Synth** — CDK synthesizes a CloudFormation template with S3, CloudFront, Lambda (for SSR), etc.
+4. **CloudFormation Deploy** — AWS provisions/updates all resources
+
+**Timelines:**
+- **First deploy:** ~15-20 minutes (CloudFront distribution provisioning is the bottleneck)
+- **Subsequent deploys:** ~5 minutes (asset upload + cache invalidation)
+- **Stack deletion:** ~20-40 minutes (CloudFront must be fully disabled before removal)
+
 ## Configuration
 
 | Prop | Type | Default | Description |
@@ -54,18 +67,13 @@ npx ampx deploy --identifier prod
 | `buildCommand` | `string` | - | Build command to run before deployment. |
 | `buildOutputDir` | `string` | framework-dependent | Build output directory. |
 | `domain` | `{ domainName, hostedZone }` | - | Custom domain with SSL. Requires Route53 hosted zone. |
-| `waf` | `{ enabled: boolean }` | - | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
+| `waf` | `{ enabled, rateLimit? }` | - | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
 | `customAdapter` | `FrameworkAdapterFn` | - | Custom framework adapter for unsupported frameworks. |
-| `compute` | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, 100 }` | Lambda configuration for SSR. |
+| `compute` | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR. |
+| `contentSecurityPolicy` | `string` | restrictive default | Custom CSP header value. |
 | `retainOnDelete` | `boolean` | `false` | Retain S3 bucket on stack deletion. |
 | `accessLogging` | `boolean` | `false` | Enable CloudFront access logs to S3. |
 | `name` | `string` | - | Optional resource name. |
-
-## Deployment Timeline
-
-- **First deploy:** ~15-20 minutes (CloudFront distribution creation)
-- **Subsequent deploys:** ~5 minutes (asset upload + cache invalidation)
-- **Stack deletion:** ~20-40 minutes (CloudFront distribution must be disabled first)
 
 ## Architecture
 
@@ -87,19 +95,27 @@ defineHosting({
 });
 ```
 
-**First deploy with a custom domain takes longer** (2-5 extra minutes with Route53, potentially much longer with external DNS) because ACM certificate validation blocks the CloudFormation stack until the certificate is issued. This is inherent to CDK/CloudFormation's synchronous model and cannot be avoided. Subsequent deploys with an already-validated certificate are fast.
+**First deploy with a custom domain takes longer** (2-5 extra minutes with Route53, potentially much longer with external DNS) because ACM certificate validation blocks the CloudFormation stack until the certificate is issued.
+
+**External DNS users:** You must manually create a CNAME record for ACM validation. CloudFormation will wait up to 72 hours for certificate validation before timing out and rolling back.
 
 **Recommendation:** Keep your Route53 hosted zone in the same AWS account for the smoothest experience. DNS validation records are created automatically.
 
-**Note:** Changing `domainName` after initial deploy causes 5-30 minutes of downtime (certificate replacement).
+### Changing Your Custom Domain
+
+Changing `domainName` after initial deploy causes **5-30 minutes of downtime** while the certificate is replaced and CloudFront is reconfigured. For zero-downtime domain migration:
+1. Create a new stack with the new domain
+2. Verify the new site works
+3. Update DNS to point to the new CloudFront distribution
+4. Delete the old stack
 
 ## WAF (Web Application Firewall)
 
-Enables AWS Managed Rules (Common Rule Set + Known Bad Inputs) and IP-based rate limiting (2000 req/5min/IP).
+Enables AWS Managed Rules (Common Rule Set + Known Bad Inputs) and IP-based rate limiting (1000 req/5min/IP default).
 
 ```typescript
 defineHosting({
-  waf: { enabled: true },
+  waf: { enabled: true, rateLimit: 2000 },
 });
 ```
 
@@ -110,7 +126,8 @@ defineHosting({
 For frameworks not built in (Astro, Remix, etc.), provide a custom adapter:
 
 ```typescript
-import { defineHosting, FrameworkAdapterFn } from '@aws-amplify/hosting';
+import { defineHosting } from '@aws-amplify/hosting';
+import type { FrameworkAdapterFn } from '@aws-amplify/hosting/adapters';
 
 const myAdapter: FrameworkAdapterFn = (buildOutputDir, projectDir) => ({
   version: 1,
@@ -134,7 +151,7 @@ defineHosting({
   compute: {
     memorySize: 1024,       // MB (default: 512)
     timeout: 60,            // seconds (default: 30)
-    reservedConcurrency: 50, // concurrent executions (default: 100)
+    reservedConcurrency: 50, // concurrent executions (default: none)
   },
 });
 ```
