@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   Distribution,
   ViewerProtocolPolicy,
@@ -14,6 +15,10 @@ import {
   FunctionRuntime,
   CachedMethods,
   BehaviorOptions,
+  SecurityPolicyProtocol,
+  ResponseHeadersPolicy,
+  HeadersFrameOption,
+  HeadersReferrerPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
   S3BucketOrigin,
@@ -50,6 +55,7 @@ import {
 } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest, ComputeResource } from '../manifest/types.js';
 import { HostingResources } from '../types.js';
 
@@ -132,6 +138,12 @@ export interface AmplifyHostingConstructProps {
  * This enables atomic deploys — all assets are stored under `builds/{buildId}/`.
  */
 export const generateBuildIdFunctionCode = (buildId: string): string => {
+  if (!/^[a-zA-Z0-9\-]{1,64}$/.test(buildId)) {
+    throw new AmplifyUserError('InvalidBuildIdError', {
+      message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
+      resolution: 'Ensure build ID contains only letters, numbers, and hyphens.',
+    });
+  }
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
@@ -145,7 +157,9 @@ export const generateBuildIdFunctionCode = (buildId: string): string => {
  * Generate a unique Build ID based on the current timestamp.
  */
 export const generateBuildId = (): string => {
-  return Date.now().toString(36);
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `${timestamp}-${random}`;
 };
 
 /**
@@ -192,6 +206,12 @@ export class AmplifyHostingConstruct extends Construct {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      lifecycleRules: [{
+        id: 'DeleteOldBuilds',
+        prefix: 'builds/',
+        expiration: Duration.days(30),
+        enabled: true,
+      }],
     });
 
     // ---- CloudFront Function for Build ID rewriting (atomic deploys) ----
@@ -331,12 +351,32 @@ export class AmplifyHostingConstruct extends Construct {
     // ---- Build CloudFront behaviors from manifest routes ----
     const additionalBehaviors: Record<string, BehaviorOptions> = {};
 
+    // ---- Security Response Headers Policy ----
+    const securityHeadersPolicy = new ResponseHeadersPolicy(this, 'SecurityHeaders', {
+      securityHeadersBehavior: {
+        strictTransportSecurity: {
+          accessControlMaxAge: Duration.days(730),
+          includeSubdomains: true,
+          preload: true,
+          override: false,
+        },
+        contentTypeOptions: { override: false },
+        frameOptions: { frameOption: HeadersFrameOption.SAMEORIGIN, override: false },
+        xssProtection: { protection: true, modeBlock: true, override: false },
+        referrerPolicy: {
+          referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          override: false,
+        },
+      },
+    });
+
     const makeStaticBehavior = (): BehaviorOptions => ({
       origin: s3Origin,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
       cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+      responseHeadersPolicy: securityHeadersPolicy,
       functionAssociations: [
         {
           function: buildIdFunction,
@@ -352,6 +392,7 @@ export class AmplifyHostingConstruct extends Construct {
       cachePolicy: CachePolicy.CACHING_DISABLED,
       originRequestPolicy:
         OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      responseHeadersPolicy: securityHeadersPolicy,
     });
 
     // Process non-catch-all routes into additionalBehaviors
@@ -388,6 +429,7 @@ export class AmplifyHostingConstruct extends Construct {
       defaultRootObject: isSpaOnly ? 'index.html' : undefined,
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: PriceClass.PRICE_CLASS_100,
+      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       // Custom domain: alternate domain names + certificate
       ...(this.certificate && props.domain
         ? {
@@ -429,6 +471,18 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
+    // ---- S3 Bucket Policy for OAC (CloudFront read access) ----
+    this.bucket.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [this.bucket.arnForObjects('*')],
+      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      conditions: {
+        StringEquals: {
+          'AWS:SourceArn': `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+        },
+      },
+    }));
+
     // ---- Fix CloudFront OAC permissions for Lambda Function URL ----
     if (hasCompute && this.ssrFunction) {
       for (const child of this.distribution.node.findAll()) {
@@ -451,12 +505,15 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- Atomic Deployment (always created — uploads static assets) ----
-    new BucketDeployment(this, 'AssetDeployment', {
+    const assetDeployment = new BucketDeployment(this, 'AssetDeployment', {
       sources: [Source.asset(props.staticAssetPath)],
       destinationBucket: this.bucket,
       destinationKeyPrefix: `builds/${buildId}/`,
       prune: false,
     });
+
+    // Ensure CloudFront Function is only updated AFTER assets are uploaded
+    buildIdFunction.node.addDependency(assetDeployment);
 
     // ---- Determine the primary URL ----
     this.distributionUrl = props.domain

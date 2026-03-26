@@ -47,5 +47,5 @@ export const deployManifestSchema = z.object({
     .min(1, 'At least one route is required in the manifest'),
   computeResources: z.array(computeResourceSchema).optional(),
   framework: frameworkMetadataSchema,
-  buildId: z.string().optional(),
+  buildId: z.string().regex(/^[a-zA-Z0-9\-]{1,64}$/, 'buildId must be alphanumeric with hyphens, max 64 chars').optional(),
 });

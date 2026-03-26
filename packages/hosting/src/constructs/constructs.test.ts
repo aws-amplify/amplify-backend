@@ -37,13 +37,13 @@ void describe('generateBuildId', () => {
     for (let i = 0; i < 10; i++) {
       ids.add(generateBuildId());
     }
-    // Due to rapid execution, some might collide, but most should be unique
-    assert.ok(ids.size >= 1);
+    // Due to random suffix, all 10 should be unique
+    assert.ok(ids.size === 10);
   });
 
-  void it('generates base-36 encoded string', () => {
+  void it('generates base-36 encoded string with hyphen separator', () => {
     const buildId = generateBuildId();
-    // base-36 contains only 0-9 and a-z
-    assert.ok(/^[0-9a-z]+$/.test(buildId));
+    // format: {timestamp}-{random}, both base-36
+    assert.ok(/^[0-9a-z]+-[0-9a-z]+$/.test(buildId));
   });
 });

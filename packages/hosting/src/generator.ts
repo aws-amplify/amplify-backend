@@ -15,6 +15,7 @@ import {
 } from './constructs/hosting-construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
 import { getHostingOutputDir, parseManifest } from './manifest/parser.js';
+import { runBuild } from './build/runner.js';
 
 /**
  * Generates hosting construct entries for the construct container.
@@ -41,6 +42,14 @@ export class AmplifyHostingGenerator
     // Auto-detect or use explicit framework
     const framework =
       this.props.framework ?? detectFramework(projectDir);
+
+    // Run the build command if provided
+    if (this.props.buildCommand) {
+      runBuild({
+        command: this.props.buildCommand,
+        cwd: projectDir,
+      });
+    }
 
     // Default build output dirs per framework
     const buildOutputDir = this.props.buildOutputDir ??

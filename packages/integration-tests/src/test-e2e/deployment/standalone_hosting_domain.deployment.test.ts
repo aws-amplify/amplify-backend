@@ -102,7 +102,7 @@ void describe(
 
       afterEach(async () => {
         await testProject.tearDown(standaloneBackendIdentifier, true);
-      });
+      }, { timeout: 1500000 });
 
       void it(
         `[${testProjectCreator.name}] deploys hosting with custom domain + WAF`,
