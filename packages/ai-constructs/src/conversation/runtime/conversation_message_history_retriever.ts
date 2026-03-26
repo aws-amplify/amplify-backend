@@ -92,7 +92,7 @@ const messageItemSelectionSet = `
                     toolUseId
                   }
                 }
-                  metrics {
+                metrics {
                   latencyMs
                 }
                 usage {
@@ -172,7 +172,7 @@ export class ConversationMessageHistoryRetriever {
       }
       const aiContext = current.aiContext;
       const content = aiContext
-        ? [...current.content, { text: JSON.stringify(aiContext) }]//TODO add usage and latency! but only for the response!!
+        ? [...current.content, { text: JSON.stringify(aiContext) }]
         : current.content;
 
       acc.push({ role: current.role, content });
@@ -184,7 +184,7 @@ export class ConversationMessageHistoryRetriever {
       if (correspondingAssistantMessage) {
         acc.push({
           role: correspondingAssistantMessage.role,
-          content: correspondingAssistantMessage.content, //TODO add usage and latency! but only for the response!!
+          content: correspondingAssistantMessage.content,
         });
       }
       return acc;
