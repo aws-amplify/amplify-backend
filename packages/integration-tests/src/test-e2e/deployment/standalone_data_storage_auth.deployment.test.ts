@@ -49,7 +49,7 @@ void describe(
         testProject = await testProjectCreator.createProject(rootTestDir);
         standaloneBackendIdentifier = {
           namespace: `standalone-e2e-${shortUuid()}`,
-          name: 'backend',
+          name: 'stack',
           type: 'standalone',
         };
       });

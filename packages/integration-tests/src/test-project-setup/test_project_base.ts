@@ -82,21 +82,13 @@ export abstract class TestProjectBase {
         .do(interruptSandbox())
         .run();
     } else if (backendIdentifier.type === 'standalone') {
-      const args = [
-        'deploy',
-        '--identifier',
-        backendIdentifier.namespace,
-        '--yes',
-      ];
-      // Derive deploy flag from identifier name
-      if (backendIdentifier.name === 'backend') {
-        args.push('--backend');
-      } else if (backendIdentifier.name === 'hosting') {
-        args.push('--frontend');
-      }
-      await ampxCli(args, this.projectDirPath, {
-        env: environment,
-      }).run();
+      await ampxCli(
+        ['deploy', '--identifier', backendIdentifier.namespace],
+        this.projectDirPath,
+        {
+          env: environment,
+        },
+      ).run();
     } else {
       await ampxCli(
         [
@@ -145,11 +137,11 @@ export abstract class TestProjectBase {
   /**
    * Wait for a stack to be deleted, returns true if deleted within allotted time.
    * @param stackName name of the stack
-   * @returns true if delete completes within allotted time (20 minutes)
+   * @returns true if delete completes within allotted time (3 minutes)
    */
   async waitForStackDeletion(
     stackName: string,
-    timeoutInMS: number = 20 * 60 * 1000,
+    timeoutInMS: number = 3 * 60 * 1000,
   ): Promise<boolean> {
     let attempts = 0;
     let totalTimeWaitedMs = 0;

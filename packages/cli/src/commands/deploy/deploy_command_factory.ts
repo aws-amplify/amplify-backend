@@ -45,11 +45,12 @@ export const createDeployCommand = (): CommandModule<
     cdkEventsBridgeIoHost,
     new SDKProfileResolverProvider().resolve,
   );
+  const backendDeployer = backendDeployerFactory.getInstance();
   const commandMiddleware = new CommandMiddleware(printer);
   const ssmClient = new SSMClient();
   return new DeployCommand(
     clientConfigGenerator,
-    backendDeployerFactory,
+    backendDeployer,
     commandMiddleware,
     ssmClient,
   );
