@@ -61,9 +61,9 @@ void describe('generateBuildIdFunctionCode — runtime behavior', () => {
     return wrapped(event);
   };
 
-  void it('rewrites root path /', () => {
+  void it('rewrites root path / to /builds/{buildId}/index.html', () => {
     const result = simulateCfFunction('abc123', '/');
-    assert.strictEqual(result.uri, '/builds/abc123/');
+    assert.strictEqual(result.uri, '/builds/abc123/index.html');
   });
 
   void it('rewrites a normal path', () => {

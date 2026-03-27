@@ -111,7 +111,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
     });
   });
 
-  void it('creates CloudFront distribution with defaultRootObject', () => {
+  void it('does NOT set defaultRootObject (CloudFront Function handles root rewrite)', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
@@ -120,15 +120,20 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
 
     const template = Template.fromStack(stack);
 
-    template.hasResourceProperties(
+    // The CloudFront Function handles '/' → '/index.html' rewriting,
+    // so defaultRootObject is not needed and would cause double translation.
+    const distributions = template.findResources(
       'AWS::CloudFront::Distribution',
-      Match.objectLike({
-        DistributionConfig: Match.objectLike({
-          DefaultRootObject: 'index.html',
-          HttpVersion: 'http2and3',
-        }),
-      }),
     );
+    for (const [, dist] of Object.entries(distributions)) {
+      const config = (dist as Record<string, Record<string, unknown>>)
+        .Properties?.DistributionConfig as Record<string, unknown>;
+      assert.strictEqual(
+        config?.DefaultRootObject,
+        undefined,
+        'SPA mode should not set DefaultRootObject (CF Function handles root rewrite)',
+      );
+    }
   });
 
   void it('creates OAC (not OAI)', () => {
@@ -192,12 +197,12 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
             Match.objectLike({
               ErrorCode: 403,
               ResponseCode: 200,
-              ResponsePagePath: '/index.html',
+              ResponsePagePath: '/builds/spa-test-1/index.html',
             }),
             Match.objectLike({
               ErrorCode: 404,
               ResponseCode: 200,
-              ResponsePagePath: '/index.html',
+              ResponsePagePath: '/builds/spa-test-1/index.html',
             }),
           ]),
         }),
@@ -658,11 +663,11 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
           CustomErrorResponses: Match.arrayWith([
             Match.objectLike({
               ErrorCode: 502,
-              ResponsePagePath: '/_error.html',
+              ResponsePagePath: '/builds/ssr-test-1/_error.html',
             }),
             Match.objectLike({
               ErrorCode: 503,
-              ResponsePagePath: '/_error.html',
+              ResponsePagePath: '/builds/ssr-test-1/_error.html',
             }),
           ]),
         }),

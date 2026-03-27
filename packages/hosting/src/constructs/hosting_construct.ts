@@ -185,6 +185,10 @@ export const generateBuildIdFunctionCode = (buildId: string): string => {
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
+  // Append index.html for directory-style paths (e.g. "/" or "/about/")
+  if (uri.endsWith('/')) {
+    uri = uri + 'index.html';
+  }
   // Prepend build ID prefix for atomic deployment
   request.uri = '/builds/${buildId}' + uri;
   return request;
@@ -322,6 +326,7 @@ export class AmplifyHostingConstruct extends Construct {
       securityHeadersPolicy,
       hasCompute,
       logBucket,
+      buildId,
     });
 
     // ---- Route 53 A Record (only when custom domain configured) ----
@@ -685,6 +690,7 @@ export class AmplifyHostingConstruct extends Construct {
     securityHeadersPolicy: ResponseHeadersPolicy;
     hasCompute: boolean;
     logBucket?: Bucket;
+    buildId: string;
   }): Distribution {
     const {
       props,
@@ -694,6 +700,7 @@ export class AmplifyHostingConstruct extends Construct {
       securityHeadersPolicy,
       hasCompute,
       logBucket,
+      buildId,
     } = opts;
 
     const additionalBehaviors: Record<string, BehaviorOptions> = {};
@@ -749,6 +756,8 @@ export class AmplifyHostingConstruct extends Construct {
     const isSpaOnly = !hasCompute;
 
     // Build error responses list once
+    // Error response page paths go directly to S3 (bypass CloudFront Functions),
+    // so they must include the full /builds/{buildId}/ prefix.
     const errorResponses: ErrorResponse[] = [
       // SPA error handling: 403/404 → index.html (only for SPA/static)
       ...(isSpaOnly
@@ -756,13 +765,13 @@ export class AmplifyHostingConstruct extends Construct {
             {
               httpStatus: 403,
               responseHttpStatus: 200,
-              responsePagePath: '/index.html',
+              responsePagePath: `/builds/${buildId}/index.html`,
               ttl: Duration.seconds(0),
             },
             {
               httpStatus: 404,
               responseHttpStatus: 200,
-              responsePagePath: '/index.html',
+              responsePagePath: `/builds/${buildId}/index.html`,
               ttl: Duration.seconds(0),
             },
           ]
@@ -773,19 +782,19 @@ export class AmplifyHostingConstruct extends Construct {
             {
               httpStatus: 502,
               responseHttpStatus: 502,
-              responsePagePath: '/_error.html',
+              responsePagePath: `/builds/${buildId}/_error.html`,
               ttl: Duration.seconds(10),
             },
             {
               httpStatus: 503,
               responseHttpStatus: 503,
-              responsePagePath: '/_error.html',
+              responsePagePath: `/builds/${buildId}/_error.html`,
               ttl: Duration.seconds(10),
             },
             {
               httpStatus: 504,
               responseHttpStatus: 504,
-              responsePagePath: '/_error.html',
+              responsePagePath: `/builds/${buildId}/_error.html`,
               ttl: Duration.seconds(10),
             },
           ]
@@ -798,7 +807,9 @@ export class AmplifyHostingConstruct extends Construct {
         Object.keys(additionalBehaviors).length > 0
           ? additionalBehaviors
           : undefined,
-      defaultRootObject: isSpaOnly ? 'index.html' : undefined,
+      // defaultRootObject is NOT used because the CloudFront Function handles
+      // URI rewriting (including '/' → '/index.html') before the origin request.
+      // Using both would cause double translation.
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: props.priceClass ?? PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
