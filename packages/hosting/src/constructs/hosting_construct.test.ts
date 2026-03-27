@@ -459,7 +459,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     );
   });
 
-  void it('creates Lambda function with index.handler and Web Adapter configuration', () => {
+  void it('creates Lambda function with run.sh handler and Web Adapter configuration', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: ssrManifest,
@@ -471,7 +471,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
 
     template.hasResourceProperties('AWS::Lambda::Function', {
       Runtime: 'nodejs20.x',
-      Handler: 'index.handler',
+      Handler: 'run.sh',
       MemorySize: 512,
       Timeout: 30,
       Environment: {

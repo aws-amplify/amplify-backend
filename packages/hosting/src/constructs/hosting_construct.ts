@@ -494,7 +494,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     const ssrFn = new LambdaFunction(this, 'SsrFunction', {
       runtime: Runtime.NODEJS_20_X,
-      handler: 'index.handler', // Dummy — Lambda Web Adapter intercepts execution
+      handler: 'run.sh', // Lambda Web Adapter's /opt/bootstrap executes this as the server entrypoint
       code: Code.fromAsset(computeDir),
       architecture: Architecture.X86_64,
       memorySize: compute.memorySize ?? DEFAULT_LAMBDA_MEMORY_MB,
