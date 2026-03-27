@@ -20,7 +20,7 @@ void describe('runBuild', () => {
 
   void it('executes a successful command and returns stdout', () => {
     const result = runBuild({
-      command: 'echo "build success"',
+      command: 'node -e "process.stdout.write(\'build success\')"',
       cwd: tmpDir,
     });
 
@@ -30,7 +30,8 @@ void describe('runBuild', () => {
 
   void it('creates files during build (side effect)', () => {
     runBuild({
-      command: 'echo "<html></html>" > index.html',
+      command:
+        'node -e "require(\'fs\').writeFileSync(\'index.html\', \'<html></html>\')"',
       cwd: tmpDir,
     });
 
@@ -44,7 +45,7 @@ void describe('runBuild', () => {
     assert.throws(
       () =>
         runBuild({
-          command: 'exit 1',
+          command: 'node -e "process.exit(1)"',
           cwd: tmpDir,
         }),
       (error: Error) => {
@@ -59,7 +60,8 @@ void describe('runBuild', () => {
     assert.throws(
       () =>
         runBuild({
-          command: 'echo "some error" >&2 && exit 2',
+          command:
+            'node -e "process.stderr.write(\'some error\'); process.exit(2)"',
           cwd: tmpDir,
         }),
       (error: Error) => {
@@ -85,7 +87,7 @@ void describe('runBuild', () => {
 
   void it('passes custom environment variables', () => {
     const result = runBuild({
-      command: 'echo $MY_TEST_VAR',
+      command: 'node -e "process.stdout.write(process.env.MY_TEST_VAR)"',
       cwd: tmpDir,
       env: { MY_TEST_VAR: 'hello_from_env' },
     });
@@ -98,7 +100,7 @@ void describe('runBuild', () => {
     fs.mkdirSync(subDir);
 
     const result = runBuild({
-      command: 'pwd',
+      command: 'node -e "process.stdout.write(process.cwd())"',
       cwd: subDir,
     });
 

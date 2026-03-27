@@ -12,3 +12,4 @@ export {
   ComputeResource,
   FrameworkMetadata,
 } from './manifest/types.js';
+export { FrameworkAdapterFn } from './adapters/index.js';

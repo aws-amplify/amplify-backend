@@ -39,6 +39,9 @@ export type DeployManifest = {
 };
 
 // @public
+export type FrameworkAdapterFn = (buildOutputDir: string, projectDir: string) => DeployManifest;
+
+// @public
 export type FrameworkMetadata = {
     name: string;
     version?: string;
@@ -87,10 +90,6 @@ export type RouteTarget = {
     src?: string;
     cacheControl?: string;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:67:3 - (ae-forgotten-export) The symbol "FrameworkAdapterFn" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
