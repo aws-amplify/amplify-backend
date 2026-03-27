@@ -345,6 +345,44 @@ void describe('Conversation turn response sender', () => {
     );
   });
 
+  void it('does not include metrics and usage for non-stop-reason chunks', async () => {
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent,
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider,
+    );
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () => Promise.resolve(),
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      userAgentProvider,
+      graphqlRequestExecutor,
+    );
+    const chunk: StreamingResponseChunk = {
+      accumulatedTurnContent: [{ text: 'testContent' }],
+      associatedUserMessageId: 'testAssociatedUserMessageId',
+      contentBlockIndex: 0,
+      contentBlockDeltaIndex: 0,
+      conversationId: 'testConversationId',
+      contentBlockText: 'testBlockText',
+    };
+    await sender.sendResponseChunk(chunk);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationStreamingResponseInput>;
+    const input = request.variables.input as Record<string, unknown>;
+    assert.strictEqual(input.metrics, undefined);
+    assert.strictEqual(input.usage, undefined);
+  });
+
   void it('sends errors response back to appsync', async () => {
     const userAgentProvider = new UserAgentProvider(
       {} as unknown as ConversationTurnEvent,
