@@ -3,7 +3,12 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { checkNextConfig, generateRunScript, nextjsAdapter } from './nextjs.js';
+import {
+  checkNextConfig,
+  generateRunScript,
+  nextjsAdapter,
+  scanPublicRoutes,
+} from './nextjs.js';
 
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
@@ -180,6 +185,59 @@ void describe('nextjsAdapter', () => {
     );
   });
 
+  void it('emits public asset routes in manifest between /_next/static/* and /*', () => {
+    // Create public/ with files and directories
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(path.join(publicDir, 'images'), { recursive: true });
+    fs.writeFileSync(path.join(publicDir, 'favicon.ico'), 'icon');
+    fs.writeFileSync(path.join(publicDir, 'images', 'logo.svg'), '<svg></svg>');
+
+    const manifest = nextjsAdapter(nextDir, tmpDir);
+
+    // Find route indices
+    const staticIdx = manifest.routes.findIndex(
+      (r) => r.path === '/_next/static/*',
+    );
+    const catchAllIdx = manifest.routes.findIndex((r) => r.path === '/*');
+    const faviconIdx = manifest.routes.findIndex(
+      (r) => r.path === '/favicon.ico',
+    );
+    const imagesIdx = manifest.routes.findIndex((r) => r.path === '/images/*');
+
+    // Public routes must exist
+    assert.ok(faviconIdx >= 0, 'Should have /favicon.ico route');
+    assert.ok(imagesIdx >= 0, 'Should have /images/* route');
+
+    // Order: /_next/static/* < public routes < /*
+    assert.ok(
+      staticIdx < faviconIdx,
+      '/_next/static/* should come before /favicon.ico',
+    );
+    assert.ok(
+      faviconIdx < catchAllIdx,
+      '/favicon.ico should come before /* catch-all',
+    );
+    assert.ok(
+      imagesIdx < catchAllIdx,
+      '/images/* should come before /* catch-all',
+    );
+
+    // Verify they are Static routes with correct cache-control
+    const faviconRoute = manifest.routes[faviconIdx];
+    assert.strictEqual(faviconRoute.target.kind, 'Static');
+    assert.strictEqual(
+      faviconRoute.target.cacheControl,
+      'public, max-age=86400',
+    );
+
+    const imagesRoute = manifest.routes[imagesIdx];
+    assert.strictEqual(imagesRoute.target.kind, 'Static');
+    assert.strictEqual(
+      imagesRoute.target.cacheControl,
+      'public, max-age=86400',
+    );
+  });
+
   void it('writes deploy-manifest.json', () => {
     nextjsAdapter(nextDir, tmpDir);
 
@@ -323,5 +381,95 @@ void describe('checkNextConfig', () => {
       'export default { output: "standalone" };',
     );
     assert.doesNotThrow(() => checkNextConfig(tmpDir));
+  });
+});
+
+void describe('scanPublicRoutes', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-public-routes-test-'),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('returns routes for files and directories in public/', () => {
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(path.join(publicDir, 'images'), { recursive: true });
+    fs.writeFileSync(path.join(publicDir, 'favicon.ico'), 'icon');
+    fs.writeFileSync(path.join(publicDir, 'robots.txt'), 'robots');
+    fs.writeFileSync(path.join(publicDir, 'images', 'logo.svg'), '<svg></svg>');
+
+    const routes = scanPublicRoutes(tmpDir);
+
+    // Should have routes for favicon.ico, robots.txt (files) and images (dir)
+    assert.strictEqual(routes.length, 3);
+
+    const faviconRoute = routes.find((r) => r.path === '/favicon.ico');
+    assert.ok(faviconRoute, 'Should have /favicon.ico route');
+    assert.strictEqual(faviconRoute!.target.kind, 'Static');
+    assert.strictEqual(
+      faviconRoute!.target.cacheControl,
+      'public, max-age=86400',
+    );
+
+    const robotsRoute = routes.find((r) => r.path === '/robots.txt');
+    assert.ok(robotsRoute, 'Should have /robots.txt route');
+    assert.strictEqual(robotsRoute!.target.kind, 'Static');
+
+    const imagesRoute = routes.find((r) => r.path === '/images/*');
+    assert.ok(imagesRoute, 'Should have /images/* route');
+    assert.strictEqual(imagesRoute!.target.kind, 'Static');
+    assert.strictEqual(
+      imagesRoute!.target.cacheControl,
+      'public, max-age=86400',
+    );
+  });
+
+  void it('returns empty array when public/ does not exist', () => {
+    const routes = scanPublicRoutes(tmpDir);
+    assert.deepStrictEqual(routes, []);
+  });
+
+  void it('filters out dotfiles', () => {
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(publicDir, { recursive: true });
+    fs.writeFileSync(path.join(publicDir, '.DS_Store'), '');
+    fs.writeFileSync(path.join(publicDir, '.gitkeep'), '');
+    fs.writeFileSync(path.join(publicDir, 'favicon.ico'), 'icon');
+
+    const routes = scanPublicRoutes(tmpDir);
+
+    // Only favicon.ico should be included — dotfiles filtered out
+    assert.strictEqual(routes.length, 1);
+    assert.strictEqual(routes[0].path, '/favicon.ico');
+  });
+
+  void it('ignores symlinks in public/', () => {
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(publicDir, { recursive: true });
+    fs.writeFileSync(path.join(publicDir, 'real.txt'), 'real');
+
+    const targetFile = path.join(tmpDir, 'outside.txt');
+    fs.writeFileSync(targetFile, 'outside');
+    fs.symlinkSync(targetFile, path.join(publicDir, 'symlink.txt'));
+
+    const routes = scanPublicRoutes(tmpDir);
+
+    // Only real.txt — symlinks are ignored
+    assert.strictEqual(routes.length, 1);
+    assert.strictEqual(routes[0].path, '/real.txt');
+  });
+
+  void it('returns empty array for empty public/ directory', () => {
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(publicDir, { recursive: true });
+
+    const routes = scanPublicRoutes(tmpDir);
+    assert.deepStrictEqual(routes, []);
   });
 });

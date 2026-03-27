@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { DeployManifest } from '../manifest/types.js';
+import { DeployManifest, ManifestRoute } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
 
@@ -10,6 +10,12 @@ const STATIC_DIR = 'static';
 const COMPUTE_DIR = 'compute';
 const DEFAULT_COMPUTE_NAME = 'default';
 const MANIFEST_FILENAME = 'deploy-manifest.json';
+
+/**
+ * Cache-Control for public/ assets. These can change between deploys but
+ * are served under build-id-keyed paths, so a moderate TTL is safe.
+ */
+const PUBLIC_ASSET_CACHE_CONTROL = 'public, max-age=86400';
 
 /**
  * Generate the run.sh bootstrap script for Lambda Web Adapter.
@@ -78,6 +84,59 @@ export const checkNextConfig = (projectDir: string): void => {
     resolution:
       'Create a next.config.js with `output: "standalone"` set. This is required for Lambda deployment.',
   });
+};
+
+/**
+ * Scan the `public/` directory and return static routes for top-level entries.
+ *
+ * Files (e.g. `favicon.ico`) → `{ path: '/favicon.ico', ... }`
+ * Directories (e.g. `images/`) → `{ path: '/images/*', ... }`
+ *
+ * Dotfiles (e.g. `.DS_Store`) are excluded. Returns an empty array when
+ * `public/` does not exist.
+ *
+ * NOTE: Each route becomes a CloudFront behavior. CloudFront has a default
+ * limit of 25 behaviors per distribution. Most Next.js apps have fewer than
+ * 10 top-level entries in `public/`, so this is fine. If a project exceeds
+ * the limit, request a quota increase or consolidate public assets into
+ * fewer top-level directories.
+ */
+export const scanPublicRoutes = (projectDir: string): ManifestRoute[] => {
+  const publicDir = path.join(projectDir, 'public');
+  if (!fs.existsSync(publicDir)) {
+    return [];
+  }
+
+  const entries = fs.readdirSync(publicDir, { withFileTypes: true });
+  const routes: ManifestRoute[] = [];
+
+  for (const entry of entries) {
+    // Skip dotfiles (e.g. .DS_Store, .gitkeep)
+    if (entry.name.startsWith('.')) {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      routes.push({
+        path: `/${entry.name}/*`,
+        target: {
+          kind: 'Static',
+          cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
+        },
+      });
+    } else if (entry.isFile()) {
+      routes.push({
+        path: `/${entry.name}`,
+        target: {
+          kind: 'Static',
+          cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
+        },
+      });
+    }
+    // Symlinks and other special entries are ignored
+  }
+
+  return routes;
 };
 
 /**
@@ -178,9 +237,13 @@ export const nextjsAdapter = (
   // 6. Generate deploy manifest
   const nextVersion = detectNextVersion(projectDir);
 
+  // Scan public/ for top-level entries to route via S3 instead of Lambda
+  const publicRoutes = scanPublicRoutes(projectDir);
+
   const manifest: DeployManifest = {
     version: 1,
     routes: [
+      // Immutable hashed assets — longest cache
       {
         path: '/_next/static/*',
         target: {
@@ -188,6 +251,9 @@ export const nextjsAdapter = (
           cacheControl: 'public, max-age=31536000, immutable',
         },
       },
+      // Public assets (favicon.ico, images/, etc.) — served from S3
+      ...publicRoutes,
+      // Catch-all — everything else goes to Lambda (SSR)
       {
         path: '/*',
         target: {
