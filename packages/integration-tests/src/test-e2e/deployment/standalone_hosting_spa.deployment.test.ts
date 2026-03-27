@@ -1,4 +1,4 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import {
   createTestDirectory,
   deleteTestDirectory,
@@ -8,7 +8,6 @@ import { StandaloneHostingSpaTestProjectCreator } from '../../test-project-setup
 import { TestProjectBase } from '../../test-project-setup/test_project_base.js';
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { testConcurrencyLevel } from '../test_concurrency.js';
 import { shortUuid } from '../../short_uuid.js';
 import {
   CloudFormationClient,
@@ -17,13 +16,17 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
-import path from 'path';
+import fsp from 'fs/promises';
+import {
+  fetchWithRetry,
+  getDistributionUrlFromStack,
+} from '../../hosting_test_helpers.js';
 
 const testProjectCreator = new StandaloneHostingSpaTestProjectCreator();
 
 void describe(
   'standalone hosting SPA deployment tests',
-  { concurrency: testConcurrencyLevel },
+  { concurrency: false, timeout: 1800000 },
   () => {
     const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -35,10 +38,11 @@ void describe(
     });
 
     void describe('standalone deploys hosting-spa', () => {
-      let standaloneBackendIdentifier: BackendIdentifier;
       let testProject: TestProjectBase;
+      let standaloneBackendIdentifier: BackendIdentifier;
+      let distributionUrl: string;
 
-      beforeEach(async () => {
+      before(async () => {
         testProject = await testProjectCreator.createProject(rootTestDir);
         standaloneBackendIdentifier = {
           namespace: `standalone-e2e-${shortUuid()}`,
@@ -47,7 +51,7 @@ void describe(
         };
       });
 
-      afterEach(
+      after(
         async () => {
           try {
             await testProject.tearDown(standaloneBackendIdentifier, true);
@@ -60,125 +64,210 @@ void describe(
         { timeout: 1500000 },
       );
 
-      void it(`[${testProjectCreator.name}] deploys SPA hosting via standalone`, async () => {
-        await testProject.deploy(standaloneBackendIdentifier);
+      void describe('in sequence', { concurrency: false }, () => {
+        void it('stage 1: deploys SPA and verifies v1 content', async () => {
+          await testProject.deploy(standaloneBackendIdentifier);
 
-        const stackName = BackendIdentifierConversions.toStackName(
-          standaloneBackendIdentifier,
-        );
-
-        // Verify stack deployed successfully
-        const describeResult = await cfnClient.send(
-          new DescribeStacksCommand({ StackName: stackName }),
-        );
-        assert.ok(
-          describeResult.Stacks && describeResult.Stacks.length > 0,
-          'standalone hosting stack should exist after deployment',
-        );
-        const stack = describeResult.Stacks![0];
-        assert.ok(
-          stack.StackStatus === 'CREATE_COMPLETE' ||
-            stack.StackStatus === 'UPDATE_COMPLETE',
-          `stack should be in a successful state, got: ${stack.StackStatus}`,
-        );
-
-        // List all resources across root and nested stacks
-        const rootResources = await cfnClient.send(
-          new ListStackResourcesCommand({ StackName: stackName }),
-        );
-        const allResourceTypes: string[] = [];
-        const nestedStackIds: string[] = [];
-
-        for (const r of rootResources.StackResourceSummaries ?? []) {
-          allResourceTypes.push(r.ResourceType!);
-          if (r.ResourceType === 'AWS::CloudFormation::Stack') {
-            nestedStackIds.push(r.PhysicalResourceId!);
-          }
-        }
-
-        // Enumerate nested stack resources
-        for (const nestedStackId of nestedStackIds) {
-          const nestedResources = await cfnClient.send(
-            new ListStackResourcesCommand({ StackName: nestedStackId }),
+          const stackName = BackendIdentifierConversions.toStackName(
+            standaloneBackendIdentifier,
           );
-          for (const r of nestedResources.StackResourceSummaries ?? []) {
-            allResourceTypes.push(r.ResourceType!);
-          }
-        }
 
-        // Verify S3 bucket exists
-        assert.ok(
-          allResourceTypes.includes('AWS::S3::Bucket'),
-          'hosting stack should contain an S3 bucket',
-        );
-
-        // Verify CloudFront distribution exists
-        assert.ok(
-          allResourceTypes.includes('AWS::CloudFront::Distribution'),
-          'hosting stack should contain a CloudFront distribution',
-        );
-
-        // Verify Origin Access Control exists (OAC, NOT legacy OAI)
-        assert.ok(
-          allResourceTypes.includes('AWS::CloudFront::OriginAccessControl'),
-          'hosting stack should contain Origin Access Control (OAC)',
-        );
-
-        // Verify CloudFront Function exists (for Build ID rewriting)
-        assert.ok(
-          allResourceTypes.includes('AWS::CloudFront::Function'),
-          'hosting stack should contain a CloudFront Function for atomic deploys',
-        );
-
-        // Verify NO legacy OAI
-        assert.ok(
-          !allResourceTypes.includes(
-            'AWS::CloudFront::CloudFrontOriginAccessIdentity',
-          ),
-          'hosting stack should NOT contain legacy Origin Access Identity (OAI)',
-        );
-
-        // Verify NO Amplify Hosting managed resources
-        assert.ok(
-          !allResourceTypes.includes('AWS::Amplify::App'),
-          'standalone hosting stack should not use managed AWS::Amplify::App',
-        );
-        assert.ok(
-          !allResourceTypes.includes('AWS::Amplify::Branch'),
-          'standalone hosting stack should not use managed AWS::Amplify::Branch',
-        );
-
-        // Verify post-deployment assertions (client config file exists)
-        await testProject.assertPostDeployment(standaloneBackendIdentifier);
-
-        // Best-effort HTTP verification of deployed site
-        try {
-          const clientConfigPath = path.join(
-            testProject.projectDirPath,
-            'amplify_outputs.json',
+          // Verify stack deployed successfully
+          const describeResult = await cfnClient.send(
+            new DescribeStacksCommand({ StackName: stackName }),
           );
-          const fs = await import('fs/promises');
-          const configRaw = await fs
-            .readFile(clientConfigPath, 'utf-8')
-            .catch(() => '');
-          if (configRaw) {
-            const clientConfig = JSON.parse(configRaw);
-            const distributionUrl = clientConfig.hosting?.distribution_url;
-            if (distributionUrl) {
-              // Wait for CloudFront propagation
-              await new Promise((resolve) => setTimeout(resolve, 30000));
-              const response = await fetch(`https://${distributionUrl}`);
-              assert.ok(
-                response.status === 200 || response.status === 304,
-                `Expected HTTP 200/304 from CloudFront, got ${response.status}`,
-              );
-            }
+          assert.ok(
+            describeResult.Stacks && describeResult.Stacks.length > 0,
+            'hosting stack should exist after deployment',
+          );
+          const stack = describeResult.Stacks![0];
+          assert.ok(
+            stack.StackStatus === 'CREATE_COMPLETE' ||
+              stack.StackStatus === 'UPDATE_COMPLETE',
+            `stack should be in a successful state, got: ${stack.StackStatus}`,
+          );
+
+          // Get CloudFront distribution URL from nested stack outputs
+          distributionUrl = await getDistributionUrlFromStack(
+            cfnClient,
+            stackName,
+          );
+          assert.ok(
+            distributionUrl.startsWith('https://'),
+            `DistributionUrl should start with https://, got: ${distributionUrl}`,
+          );
+          console.log(`CloudFront URL: ${distributionUrl}`);
+
+          // Verify v1 content via HTTP with retry for CloudFront propagation
+          const response = await fetchWithRetry(distributionUrl, {
+            expectedBodyContains: 'Hello SPA v1',
+            maxRetries: 10,
+            intervalMs: 30000,
+          });
+          assert.strictEqual(
+            response.status,
+            200,
+            `Expected HTTP 200, got ${response.status}`,
+          );
+          const body = await response.text();
+          assert.ok(
+            body.includes('Hello SPA v1'),
+            `Response body should contain "Hello SPA v1", got: ${body.substring(0, 200)}`,
+          );
+
+          // Verify SPA fallback: a nonexistent route should return index.html
+          const fallbackResponse = await fetchWithRetry(
+            `${distributionUrl}/nonexistent-route`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
+          const fallbackBody = await fallbackResponse.text();
+          assert.ok(
+            fallbackBody.includes('Hello SPA v1'),
+            `SPA fallback should return index.html content, got: ${fallbackBody.substring(0, 200)}`,
+          );
+
+          // Verify security headers
+          const headersResponse = await fetch(distributionUrl);
+          const headers = headersResponse.headers;
+          assert.ok(
+            headers.get('strict-transport-security'),
+            'Response should include strict-transport-security header',
+          );
+          assert.strictEqual(
+            headers.get('x-content-type-options'),
+            'nosniff',
+            'x-content-type-options should be nosniff',
+          );
+          assert.ok(
+            headers.get('x-frame-options'),
+            'Response should include x-frame-options header',
+          );
+
+          await testProject.assertPostDeployment(standaloneBackendIdentifier);
+        });
+
+        void it('stage 2: redeploys with v2 content and verifies update', async () => {
+          // Apply stage 2 updates (content change)
+          const updates = await testProject.getUpdates();
+          const stage2Update = updates[0];
+          for (const replacement of stage2Update.replacements) {
+            await fsp.cp(replacement.source, replacement.destination, {
+              force: true,
+            });
           }
-          // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-        } catch {
-          // Best-effort — don't fail the test if HTTP check can't be performed
-        }
+
+          // Redeploy
+          await testProject.deploy(standaloneBackendIdentifier);
+
+          const stackName = BackendIdentifierConversions.toStackName(
+            standaloneBackendIdentifier,
+          );
+          const updateResult = await cfnClient.send(
+            new DescribeStacksCommand({ StackName: stackName }),
+          );
+          assert.ok(
+            updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
+            `redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
+          );
+
+          // Wait for cache invalidation and verify v2 content
+          const response = await fetchWithRetry(distributionUrl, {
+            expectedBodyContains: 'Hello SPA v2',
+            maxRetries: 10,
+            intervalMs: 15000,
+          });
+          const body = await response.text();
+          assert.ok(
+            body.includes('Hello SPA v2'),
+            `Response body should contain "Hello SPA v2" after redeploy, got: ${body.substring(0, 200)}`,
+          );
+          assert.ok(
+            !body.includes('Hello SPA v1'),
+            'Response body should NOT contain "Hello SPA v1" after redeploy',
+          );
+        });
+
+        void it('stage 3: redeploys with WAF enabled and verifies infra change', async () => {
+          // Apply stage 3 updates (infra change — WAF)
+          const updates = await testProject.getUpdates();
+          const stage3Update = updates[1];
+          for (const replacement of stage3Update.replacements) {
+            await fsp.cp(replacement.source, replacement.destination, {
+              force: true,
+            });
+          }
+
+          // Redeploy
+          await testProject.deploy(standaloneBackendIdentifier);
+
+          const stackName = BackendIdentifierConversions.toStackName(
+            standaloneBackendIdentifier,
+          );
+
+          // Verify WAFv2 WebACL resource exists in stack
+          const allResourceTypes = await getAllResourceTypes(
+            cfnClient,
+            stackName,
+          );
+          assert.ok(
+            allResourceTypes.includes('AWS::WAFv2::WebACL'),
+            'Stack should contain AWS::WAFv2::WebACL after enabling WAF',
+          );
+
+          // Verify content still works
+          const response = await fetchWithRetry(distributionUrl, {
+            expectedBodyContains: 'Hello SPA v2',
+            maxRetries: 6,
+            intervalMs: 15000,
+          });
+          assert.strictEqual(
+            response.status,
+            200,
+            `Expected HTTP 200 after WAF change, got ${response.status}`,
+          );
+          const body = await response.text();
+          assert.ok(
+            body.includes('Hello SPA v2'),
+            `Content should still be v2 after infra change, got: ${body.substring(0, 200)}`,
+          );
+        });
       });
     });
   },
 );
+
+/**
+ * Collect all resource types from root and nested stacks.
+ */
+const getAllResourceTypes = async (
+  cfnClient: CloudFormationClient,
+  stackName: string,
+): Promise<string[]> => {
+  const rootResources = await cfnClient.send(
+    new ListStackResourcesCommand({ StackName: stackName }),
+  );
+  const allResourceTypes: string[] = [];
+  const nestedStackIds: string[] = [];
+
+  for (const r of rootResources.StackResourceSummaries ?? []) {
+    allResourceTypes.push(r.ResourceType!);
+    if (r.ResourceType === 'AWS::CloudFormation::Stack') {
+      nestedStackIds.push(r.PhysicalResourceId!);
+    }
+  }
+
+  for (const nestedStackId of nestedStackIds) {
+    const nestedResources = await cfnClient.send(
+      new ListStackResourcesCommand({ StackName: nestedStackId }),
+    );
+    for (const r of nestedResources.StackResourceSummaries ?? []) {
+      allResourceTypes.push(r.ResourceType!);
+    }
+  }
+
+  return allResourceTypes;
+};

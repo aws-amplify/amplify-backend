@@ -1,6 +1,8 @@
-import { TestProjectBase } from './test_project_base.js';
+import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { pathToFileURL } from 'url';
+import { fileURLToPath } from 'url';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
@@ -66,4 +68,57 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
     `${this.sourceProjectDirPath}/amplify`,
     import.meta.url,
   );
+
+  private readonly sourceProjectUpdateV2DirURL: URL = new URL(
+    `${this.sourceProjectDirPath}/update-v2`,
+    import.meta.url,
+  );
+
+  private readonly sourceProjectUpdateV3DirURL: URL = new URL(
+    `${this.sourceProjectDirPath}/update-v3`,
+    import.meta.url,
+  );
+
+  /**
+   * Returns update definitions for stage 2 (content change) and stage 3 (infra change).
+   */
+  override async getUpdates(): Promise<TestProjectUpdate[]> {
+    return [
+      {
+        // Stage 2: update static-site content from v1 to v2
+        replacements: [
+          {
+            source: pathToFileURL(
+              path.join(
+                fileURLToPath(this.sourceProjectUpdateV2DirURL),
+                'static-site',
+                'index.html',
+              ),
+            ),
+            destination: pathToFileURL(
+              path.join(this.projectDirPath, 'static-site', 'index.html'),
+            ),
+          },
+        ],
+      },
+      {
+        // Stage 3: add WAF to hosting resource
+        replacements: [
+          {
+            source: pathToFileURL(
+              path.join(
+                fileURLToPath(this.sourceProjectUpdateV3DirURL),
+                'amplify',
+                'hosting',
+                'resource.ts',
+              ),
+            ),
+            destination: pathToFileURL(
+              path.join(this.projectAmplifyDirPath, 'hosting', 'resource.ts'),
+            ),
+          },
+        ],
+      },
+    ];
+  }
 }
