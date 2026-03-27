@@ -1,4 +1,4 @@
-import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { FrameworkAdapterFn } from './adapters/index.js';
 
@@ -89,6 +89,12 @@ export type HostingProps = {
    * If not set, a restrictive default is used.
    */
   contentSecurityPolicy?: string;
+
+  /**
+   * CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe).
+   * Use PRICE_CLASS_ALL for global distribution.
+   */
+  priceClass?: PriceClass;
 
   /**
    * Optional friendly name for the hosting resource.

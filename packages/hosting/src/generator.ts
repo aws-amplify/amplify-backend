@@ -18,6 +18,7 @@ import { detectFramework, getAdapter } from './adapters/index.js';
 import { checkNextConfig } from './adapters/nextjs.js';
 import { getHostingOutputDir } from './manifest/parser.js';
 import { runBuild } from './build/runner.js';
+import { getDefaultBuildOutputDir } from './defaults.js';
 
 // Lock file in project directory — avoids insecure temp dir (CodeQL js/file-system-race, js/insecure-temporary-file)
 const getLockFilePath = (projectDir: string): string =>
@@ -52,13 +53,34 @@ const acquireLock = (projectDir: string): void => {
         if ((e as Error).name === 'DeploymentInProgressError') throw e;
         // Corrupted lock file — fall through to replace it
       }
-      // Stale or corrupted lock — remove and retry atomically
-      fs.unlinkSync(lockFile);
-      fs.writeFileSync(
-        lockFile,
-        JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
-        { flag: 'wx', mode: 0o600 },
-      );
+      // Stale or corrupted lock — try to take over atomically
+      try {
+        fs.unlinkSync(lockFile);
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // Another process already removed it — that's fine
+      }
+      // Try to create — if another process beat us, we'll get EEXIST
+      try {
+        fs.writeFileSync(
+          lockFile,
+          JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+          { flag: 'wx', mode: 0o600 },
+        );
+      } catch (retryErr: unknown) {
+        if ((retryErr as NodeJS.ErrnoException).code === 'EEXIST') {
+          throw new AmplifyUserError(
+            'DeploymentInProgressError',
+            {
+              message: 'Another deployment acquired the lock.',
+              resolution:
+                'Wait for the other deployment to finish, or delete the lock file manually.',
+            },
+            retryErr as Error,
+          );
+        }
+        throw retryErr;
+      }
       return;
     }
     throw err;
@@ -161,6 +183,7 @@ export class AmplifyHostingGenerator
       retainOnDelete: this.props.retainOnDelete,
       accessLogging: this.props.accessLogging,
       contentSecurityPolicy: this.props.contentSecurityPolicy,
+      priceClass: this.props.priceClass,
       name: this.name,
     };
 
@@ -188,19 +211,3 @@ export class AmplifyHostingGenerator
     };
   };
 }
-
-/**
- * Get the default build output directory for a given framework.
- */
-const getDefaultBuildOutputDir = (framework: string): string => {
-  switch (framework) {
-    case 'nextjs':
-      return '.next';
-    case 'spa':
-      return 'dist';
-    case 'static':
-      return 'public';
-    default:
-      return 'dist';
-  }
-};

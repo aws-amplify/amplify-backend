@@ -5,6 +5,7 @@ import { runBuild } from './runner.js';
 import { detectFramework, getAdapter } from '../adapters/index.js';
 import { getHostingOutputDir, parseManifest } from '../manifest/parser.js';
 import { DeployManifest } from '../manifest/types.js';
+import { getDefaultBuildOutputDir } from '../defaults.js';
 
 export interface BuildAndPrepareOptions {
   /**
@@ -48,22 +49,6 @@ export interface BuildAndPrepareResult {
 }
 
 /**
- * Get the default build output directory for a given framework.
- */
-const getDefaultBuildOutputDir = (framework: string): string => {
-  switch (framework) {
-    case 'nextjs':
-      return '.next';
-    case 'spa':
-      return 'dist';
-    case 'static':
-      return 'public';
-    default:
-      return 'dist';
-  }
-};
-
-/**
  * Orchestrate the full build pipeline: detect framework → run build → run
  * adapter → validate manifest.
  *
@@ -80,6 +65,17 @@ export const buildAndPrepare = (
   const manifestPath = path.join(hostingOutputDir, 'deploy-manifest.json');
   if (fs.existsSync(manifestPath)) {
     const manifest = parseManifest(hostingOutputDir);
+
+    // Validate that the static/ directory exists
+    const staticDir = path.join(hostingOutputDir, 'static');
+    if (!fs.existsSync(staticDir)) {
+      throw new AmplifyUserError('StaticDirNotFoundError', {
+        message: `Static directory not found at ${staticDir}`,
+        resolution:
+          'Ensure your adapter creates a static/ directory inside .amplify-hosting/',
+      });
+    }
+
     return {
       manifest,
       hostingOutputDir,

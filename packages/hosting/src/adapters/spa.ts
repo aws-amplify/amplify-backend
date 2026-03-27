@@ -69,7 +69,6 @@ export const spaAdapter = (
     ],
     framework: {
       name: 'spa',
-      version: '1.0.0',
     },
   };
 

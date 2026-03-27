@@ -3,6 +3,7 @@ import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
+import { SSR_DEFAULT_PORT } from '../defaults.js';
 
 const HOSTING_DIR = '.amplify-hosting';
 const STATIC_DIR = 'static';
@@ -17,7 +18,7 @@ const MANIFEST_FILENAME = 'deploy-manifest.json';
  */
 export const generateRunScript = (): string => {
   return `#!/bin/bash
-export PORT=3000
+export PORT=${SSR_DEFAULT_PORT}
 export HOSTNAME=0.0.0.0
 export NODE_ENV=production
 exec node server.js

@@ -7,6 +7,7 @@
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
@@ -68,6 +69,7 @@ export type HostingProps = {
     retainOnDelete?: boolean;
     accessLogging?: boolean;
     contentSecurityPolicy?: string;
+    priceClass?: PriceClass;
     name?: string;
 };
 

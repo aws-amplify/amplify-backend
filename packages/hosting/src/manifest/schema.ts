@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BUILD_ID_PATTERN } from '../defaults.js';
 
 /**
  * Zod schema for the RouteTarget.
@@ -50,7 +51,7 @@ export const deployManifestSchema = z.object({
   buildId: z
     .string()
     .regex(
-      /^[a-zA-Z0-9-]{1,64}$/,
+      BUILD_ID_PATTERN,
       'buildId must be alphanumeric with hyphens, max 64 chars',
     )
     .optional(),

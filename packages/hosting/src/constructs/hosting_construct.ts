@@ -62,6 +62,7 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { ComputeConfig, HostingResources } from '../types.js';
+import { BUILD_ID_PATTERN, SSR_DEFAULT_PORT } from '../defaults.js';
 
 // ---- Constants ----
 
@@ -162,6 +163,8 @@ export type AmplifyHostingConstructProps = {
   accessLogging?: boolean;
   /** Custom Content-Security-Policy header value. If not set, a restrictive default is used. */
   contentSecurityPolicy?: string;
+  /** CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe). Use PRICE_CLASS_ALL for global distribution. */
+  priceClass?: PriceClass;
   name?: string;
 };
 
@@ -172,7 +175,7 @@ export type AmplifyHostingConstructProps = {
  * This enables atomic deploys — all assets are stored under `builds/{buildId}/`.
  */
 export const generateBuildIdFunctionCode = (buildId: string): string => {
-  if (!/^[a-zA-Z0-9-]{1,64}$/.test(buildId)) {
+  if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new AmplifyUserError('InvalidBuildIdError', {
       message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
       resolution:
@@ -478,10 +481,8 @@ export class AmplifyHostingConstruct extends Construct {
     const ssrRole = new Role(this, 'SsrFunctionRole', {
       assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
       managedPolicies: [
-        ManagedPolicy.fromManagedPolicyArn(
-          this,
-          'LambdaBasicExecution',
-          'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+        ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole',
         ),
       ],
     });
@@ -507,7 +508,7 @@ export class AmplifyHostingConstruct extends Construct {
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
         AWS_LWA_INVOKE_MODE: 'response_stream',
-        PORT: '3000',
+        PORT: String(SSR_DEFAULT_PORT),
       },
     });
 
@@ -523,6 +524,14 @@ export class AmplifyHostingConstruct extends Construct {
    * Create WAFv2 WebACL with AWS Managed Rule Groups and rate limiting.
    */
   private createWafWebAcl(name?: string, rateLimit?: number): CfnWebACL {
+    if (rateLimit !== undefined && rateLimit < 100) {
+      throw new AmplifyUserError('InvalidWafConfigError', {
+        message: `WAF rate limit must be at least 100 (got ${rateLimit}). This is an AWS WAFv2 requirement.`,
+        resolution:
+          'Set waf.rateLimit to 100 or higher, or omit it to use the default (1000).',
+      });
+    }
+
     return new CfnWebACL(this, 'WebAcl', {
       defaultAction: { allow: {} },
       scope: 'CLOUDFRONT',
@@ -595,6 +604,12 @@ export class AmplifyHostingConstruct extends Construct {
       domainName: domain.hostedZone,
     });
 
+    // DnsValidatedCertificate is deprecated since CDK v2.69.0, but the replacement
+    // (Certificate + crossRegionReferences: true) requires a two-stack architecture,
+    // is still experimental after 3+ years, cannot use HostedZone.fromLookup(), and
+    // has its own stack deletion bug (https://github.com/aws/aws-cdk/issues/34813).
+    // We'll migrate when crossRegionReferences stabilizes.
+    // See also: https://github.com/aws/aws-cdk/issues/30326
     const certificate = new DnsValidatedCertificate(this, 'Certificate', {
       domainName: domain.domainName,
       subjectAlternativeNames: [domain.domainName],
@@ -785,7 +800,7 @@ export class AmplifyHostingConstruct extends Construct {
           : undefined,
       defaultRootObject: isSpaOnly ? 'index.html' : undefined,
       httpVersion: HttpVersion.HTTP2_AND_3,
-      priceClass: PriceClass.PRICE_CLASS_100,
+      priceClass: props.priceClass ?? PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
       // Custom domain: alternate domain names + certificate
       ...(this.certificate && props.domain

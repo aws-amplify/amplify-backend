@@ -17,7 +17,7 @@ export type BackendHosting = ResourceProvider<HostingResources>;
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
 export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
-  // Publicly accessible for testing purposes.
+  // Publicly writable for testing (reset between tests).
   static factoryCount = 0;
 
   readonly provides = 'HostingResources';

@@ -121,7 +121,7 @@ Enables AWS Managed Rules (Common Rule Set + Known Bad Inputs) and IP-based rate
 
 ```typescript
 defineHosting({
-  waf: { enabled: true, rateLimit: 2000 },
+  waf: { enabled: true, rateLimit: 1000 },
 });
 ```
 
