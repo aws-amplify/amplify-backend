@@ -62,6 +62,13 @@ export class StandaloneHostingSsrTestProjectCreator
     const destPublicDir = path.join(projectRoot, 'public');
     await fs.cp(sourcePublicDir, destPublicDir, { recursive: true });
 
+    // Copy next.config.js (required by the nextjs adapter pre-flight check)
+    const sourceNextConfig = new URL(
+      `${project.sourceProjectDirPath}/next.config.js`,
+      import.meta.url,
+    );
+    await fs.cp(sourceNextConfig, path.join(projectRoot, 'next.config.js'));
+
     return project;
   };
 }
