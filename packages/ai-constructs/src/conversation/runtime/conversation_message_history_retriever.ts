@@ -92,14 +92,6 @@ const messageItemSelectionSet = `
                     toolUseId
                   }
                 }
-                metrics {
-                  latencyMs
-                }
-                usage {
-                  inputTokens
-                  outputTokens
-                  totalTokens
-                }
 `;
 
 /**

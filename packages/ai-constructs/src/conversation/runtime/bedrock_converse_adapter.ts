@@ -175,6 +175,9 @@ export class BedrockConverseAdapter {
     let blockIndex = 0;
     let lastBlockIndex = 0;
     let stopReason = '';
+    // The following metadata´ are overwritten on each iteration of the tool-use loop.
+    // Only the final iteration's values are reported, as intermediate iterations
+    // are tool-use round-trips and the final iteration contains the actual model response.
     let latencyMs = 0;
     let inputTokens = 0;
     let outputTokens = 0;

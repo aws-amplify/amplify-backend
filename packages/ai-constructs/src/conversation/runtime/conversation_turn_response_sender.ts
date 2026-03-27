@@ -15,8 +15,16 @@ export type MutationResponseInput = {
   };
 };
 
+export type SerializedStreamingResponseChunk = Omit<
+  StreamingResponseChunk,
+  'metrics' | 'usage'
+> & {
+  metrics?: string;
+  usage?: string;
+};
+
 export type MutationStreamingResponseInput = {
-  input: StreamingResponseChunk;
+  input: SerializedStreamingResponseChunk;
 };
 
 export type MutationErrorsResponseInput = {
@@ -133,17 +141,19 @@ export class ConversationTurnResponseSender {
             }
         }
     `;
-    const serializedChunk = {
-      ...chunk,
+
+    const { metrics, usage, ...rest } = chunk;
+    const serializedChunk: SerializedStreamingResponseChunk = {
+      ...rest,
       accumulatedTurnContent: this.serializeContent(
         chunk.accumulatedTurnContent,
       ),
-      ...(chunk.metrics && { metrics: JSON.stringify(chunk.metrics) }),
-      ...(chunk.usage && { usage: JSON.stringify(chunk.usage) }),
+      ...(metrics && { metrics: JSON.stringify(metrics) }),
+      ...(usage && { usage: JSON.stringify(usage) }),
     };
     const variables = {
       input: serializedChunk,
-    } as MutationStreamingResponseInput;
+    };
     return { query, variables };
   };
 
