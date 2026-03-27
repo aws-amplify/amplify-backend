@@ -75,7 +75,7 @@ const LAMBDA_WEB_ADAPTER_ACCOUNT = '753240598075';
 /**
  * Layer name for the Lambda Web Adapter (x86-64).
  */
-const LAMBDA_WEB_ADAPTER_LAYER_NAME = 'LambdaAdapterLayerX86-64';
+const LAMBDA_WEB_ADAPTER_LAYER_NAME = 'LambdaAdapterLayerX86';
 
 /**
  * Lambda Web Adapter layer version. Update this when upgrading Lambda Web Adapter.
