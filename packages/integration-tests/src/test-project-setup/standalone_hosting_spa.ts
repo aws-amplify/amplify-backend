@@ -1,8 +1,7 @@
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { pathToFileURL } from 'url';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';

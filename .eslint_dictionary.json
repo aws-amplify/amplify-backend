@@ -148,6 +148,7 @@
   "nodir",
   "noncurrent",
   "noreply",
+  "nosniff",
   "npmrc",
   "npx",
   "nullability",

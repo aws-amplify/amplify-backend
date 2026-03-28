@@ -14,14 +14,14 @@ import {
   DescribeStacksCommand,
   ListStackResourcesCommand,
 } from '@aws-sdk/client-cloudformation';
-import { LambdaClient, GetFunctionCommand } from '@aws-sdk/client-lambda';
+import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import fsp from 'fs/promises';
 import {
   fetchWithRetry,
   getDistributionUrlFromStack,
-} from '../../hosting_test_helpers.js';
+} from '../../hosting_test_support.js';
 
 const testProjectCreator = new StandaloneHostingSsrTestProjectCreator();
 

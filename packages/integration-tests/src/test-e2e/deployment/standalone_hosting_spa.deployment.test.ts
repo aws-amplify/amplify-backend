@@ -20,7 +20,7 @@ import fsp from 'fs/promises';
 import {
   fetchWithRetry,
   getDistributionUrlFromStack,
-} from '../../hosting_test_helpers.js';
+} from '../../hosting_test_support.js';
 
 const testProjectCreator = new StandaloneHostingSpaTestProjectCreator();
 
