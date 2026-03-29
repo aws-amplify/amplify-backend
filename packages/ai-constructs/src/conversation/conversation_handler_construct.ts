@@ -3,7 +3,7 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Stack, Tags } from 'aws-cdk-lib';
+import { Annotations, Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import {
   ApplicationLogLevel,
@@ -85,6 +85,35 @@ export class ConversationHandlerFunction
   implements ResourceProvider<FunctionResources>
 {
   static readonly eventVersion: ConversationTurnEventVersion = '1.0';
+
+  // Known Bedrock inference profile prefixes.
+  // Model IDs starting with these prefixes are inference profiles
+  // that require special IAM policy handling.
+  private static readonly inferenceProfilePrefixes = new Set([
+    'global',
+    'us',
+    'eu',
+    'apac',
+    'au',
+    'ca',
+    'jp',
+    'us-gov',
+  ]);
+
+  // Known Bedrock foundation model providers used to extract the
+  // underlying model ID from an inference profile identifier.
+  private static readonly knownProviders = new Set([
+    'amazon',
+    'anthropic',
+    'cohere',
+    'deepseek',
+    'meta',
+    'mistral',
+    'stability',
+    'twelvelabs',
+    'writer',
+  ]);
+
   resources: FunctionResources;
 
   /**
@@ -222,14 +251,20 @@ export class ConversationHandlerFunction
 
   /**
    * Adds IAM permissions for Bedrock models to the Lambda function.
-   * Handles both regular foundation models and global cross-region inference profiles.
+   * Handles regular foundation models, regional inference profiles, and
+   * global cross-region inference profiles.
    *
-   * For global inference profiles (modelId starts with "global."), this creates a three-part
-   * IAM policy as required by AWS Bedrock:
+   * For regional inference profiles (e.g. modelId starts with "us.", "eu."),
+   * this creates a two-part IAM policy:
+   * 1. Access to the inference profile in the requesting region (with account)
+   * 2. Access to the foundation model in the requesting region
+   *
+   * For global inference profiles (modelId starts with "global."), this creates
+   * a three-part IAM policy as required by AWS Bedrock:
    * 1. Access to the inference profile in the requesting region
    * 2. Access to the foundation model in the requesting region
    * 3. Access to the global foundation model (enables cross-region routing)
-   * @see https://docs.aws.amazon.com/bedrock/latest/userguide/global-cross-region-inference.html
+   * @see https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html
    */
   private addBedrockModelPermissions = (handler: IFunction): void => {
     const currentRegion = Stack.of(this).region;
@@ -256,6 +291,19 @@ export class ConversationHandlerFunction
         );
       }
     });
+
+    // Emit CDK warning for inference profiles
+    const inferenceProfileModels = this.props.models.filter((model) =>
+      this.isInferenceProfile(model.modelId),
+    );
+    if (inferenceProfileModels.length > 0) {
+      const modelIds = inferenceProfileModels.map((m) => m.modelId).join(', ');
+      Annotations.of(this).addWarning(
+        `Using Bedrock inference profile(s): ${modelIds}. ` +
+          'Ensure these inference profiles are available in your deployment region. ' +
+          'See: https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html',
+      );
+    }
   };
 
   /**
@@ -268,24 +316,28 @@ export class ConversationHandlerFunction
   ): Record<string, string[]> => {
     const resources = {
       regularModels: [] as string[],
-      globalInferenceProfiles: [] as string[],
-      globalRegionalModels: [] as string[],
+      inferenceProfiles: [] as string[],
+      inferenceProfileFoundationModels: [] as string[],
       globalCrossRegionModels: [] as string[],
     };
 
     this.props.models.forEach((model) => {
-      if (this.isGlobalInferenceProfile(model.modelId)) {
+      if (this.isInferenceProfile(model.modelId)) {
         const foundationModelId = this.extractFoundationModelId(model.modelId);
 
-        resources.globalInferenceProfiles.push(
+        resources.inferenceProfiles.push(
           this.buildInferenceProfileArn(region, account, model.modelId),
         );
-        resources.globalRegionalModels.push(
+        resources.inferenceProfileFoundationModels.push(
           this.buildFoundationModelArn(region, foundationModelId),
         );
-        resources.globalCrossRegionModels.push(
-          this.buildGlobalFoundationModelArn(foundationModelId),
-        );
+
+        // Global profiles additionally need the global foundation model ARN
+        if (this.isGlobalInferenceProfile(model.modelId)) {
+          resources.globalCrossRegionModels.push(
+            this.buildGlobalFoundationModelArn(foundationModelId),
+          );
+        }
       } else {
         resources.regularModels.push(
           this.buildFoundationModelArn(model.region ?? region, model.modelId),
@@ -296,11 +348,25 @@ export class ConversationHandlerFunction
     return resources;
   };
 
+  private isInferenceProfile = (modelId: string): boolean => {
+    const firstSegment = modelId.split('.')[0];
+    return ConversationHandlerFunction.inferenceProfilePrefixes.has(
+      firstSegment,
+    );
+  };
+
   private isGlobalInferenceProfile = (modelId: string): boolean =>
     modelId.startsWith('global.');
 
-  private extractFoundationModelId = (inferenceProfileId: string): string =>
-    inferenceProfileId.replace(/^global\./, '');
+  private extractFoundationModelId = (inferenceProfileId: string): string => {
+    const segments = inferenceProfileId.split('.');
+    const providerIndex = segments.findIndex((segment) =>
+      ConversationHandlerFunction.knownProviders.has(segment),
+    );
+    return providerIndex >= 0
+      ? segments.slice(providerIndex).join('.')
+      : inferenceProfileId;
+  };
 
   private buildInferenceProfileArn = (
     region: string,

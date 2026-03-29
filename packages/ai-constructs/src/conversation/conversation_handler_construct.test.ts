@@ -415,7 +415,7 @@ void describe('Conversation Handler Function construct', () => {
     });
   });
 
-  void describe('global inference profiles', () => {
+  void describe('inference profiles', () => {
     void it('creates three-part IAM policy for global inference profile', () => {
       const app = new App();
       const stack = new Stack(app, 'TestStack', {
@@ -638,6 +638,243 @@ void describe('Conversation Handler Function construct', () => {
           ],
         },
       });
+    });
+
+    void it('creates two-part IAM policy for us. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            // Part 1: Inference profile access (with account)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1:123456789012:inference-profile/us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            // Part 2: Foundation model access in region (no account)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates two-part IAM policy for eu. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'eu-west-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:eu-west-1:123456789012:inference-profile/eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates two-part IAM policy for apac. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'ap-southeast-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-southeast-1:123456789012:inference-profile/apac.anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('handles mix of regional and global inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+          {
+            modelId: 'global.anthropic.claude-haiku-4-5-20251001-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            // Inference profiles (both regional and global)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:us-east-1:123456789012:inference-profile/us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                'arn:aws:bedrock:us-east-1:123456789012:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0',
+              ],
+            },
+            // Foundation models in region (both)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+              ],
+            },
+            // Global cross-region model (only for global. prefix)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('emits CDK warning for inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+
+      const messages = app
+        .synth()
+        .getStackByName('TestStack')
+        .messages.filter((m) => m.level === 'warning');
+      assert.ok(messages.length > 0, 'Expected at least one warning');
+      assert.ok(
+        messages.some((m) =>
+          String(m.entry.data).includes(
+            'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          ),
+        ),
+        'Expected warning to mention inference profile model ID',
+      );
+    });
+
+    void it('does not emit CDK warning for foundation models', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
+            region: 'us-east-1',
+          },
+        ],
+      });
+
+      const messages = app
+        .synth()
+        .getStackByName('TestStack')
+        .messages.filter((m) => m.level === 'warning');
+      const inferenceProfileWarnings = messages.filter((m) =>
+        String(m.entry.data).includes('inference profile'),
+      );
+      assert.strictEqual(
+        inferenceProfileWarnings.length,
+        0,
+        'Expected no inference profile warnings for foundation models',
+      );
     });
   });
 });
