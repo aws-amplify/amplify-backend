@@ -89,6 +89,7 @@ export class ConversationHandlerFunction
   // Known Bedrock inference profile prefixes.
   // Model IDs starting with these prefixes are inference profiles
   // that require special IAM policy handling.
+  // Source: https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html
   private static readonly inferenceProfilePrefixes = new Set([
     'global',
     'us',
@@ -102,6 +103,7 @@ export class ConversationHandlerFunction
 
   // Known Bedrock foundation model providers used to extract the
   // underlying model ID from an inference profile identifier.
+  // Source: https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html
   private static readonly knownProviders = new Set([
     'amazon',
     'anthropic',
@@ -365,7 +367,7 @@ export class ConversationHandlerFunction
     );
     return providerIndex >= 0
       ? segments.slice(providerIndex).join('.')
-      : inferenceProfileId;
+      : segments.slice(1).join('.');
   };
 
   private buildInferenceProfileArn = (
