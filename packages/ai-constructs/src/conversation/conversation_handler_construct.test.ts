@@ -762,6 +762,168 @@ void describe('Conversation Handler Function construct', () => {
       });
     });
 
+    void it('creates two-part IAM policy for au. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'ap-southeast-2', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'au.anthropic.claude-sonnet-4-6',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            // Part 1: Inference profile access (with account)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-southeast-2:123456789012:inference-profile/au.anthropic.claude-sonnet-4-6',
+            },
+            // Part 2: Foundation model access in region (no account)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-sonnet-4-6',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates two-part IAM policy for jp. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'ap-northeast-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-northeast-1:123456789012:inference-profile/jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates two-part IAM policy for ca. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'ca-central-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'ca.amazon.nova-lite-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ca-central-1:123456789012:inference-profile/ca.amazon.nova-lite-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-lite-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates two-part IAM policy for us-gov. regional inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-gov-west-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'us-gov.anthropic.claude-3-7-sonnet-20250219-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-gov-west-1:123456789012:inference-profile/us-gov.anthropic.claude-3-7-sonnet-20250219-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-gov-west-1::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
     void it('handles mix of regional and global inference profiles', () => {
       const app = new App();
       const stack = new Stack(app, 'TestStack', {
