@@ -66,19 +66,20 @@ npx ampx deploy --identifier prod
 
 ## Configuration
 
-| Prop                    | Type                                              | Default                  | Description                                                        |
-| ----------------------- | ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------ |
-| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                   |
-| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                            |
-| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                            |
-| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.              |
-| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
-| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.               |
-| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                      |
-| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                           |
-| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                |
-| `accessLogging`         | `boolean`                                         | `false`                  | Enable CloudFront access logs to S3.                               |
-| `name`                  | `string`                                          | -                        | Optional resource name.                                            |
+| Prop                    | Type                                              | Default                  | Description                                                            |
+| ----------------------- | ------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------- |
+| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                       |
+| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                                |
+| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                                |
+| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.                  |
+| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.     |
+| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.                   |
+| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                          |
+| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                               |
+| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                    |
+| `accessLogging`         | `boolean`                                         | `false`                  | Enable CloudFront access logs to S3.                                   |
+| `priceClass`            | `PriceClass`                                      | `PRICE_CLASS_100`        | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
+| `name`                  | `string`                                          | -                        | Optional resource name.                                                |
 
 ## Architecture
 

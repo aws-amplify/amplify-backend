@@ -8,7 +8,11 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Tags } from 'aws-cdk-lib';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CDKContextKey,
+  TagName,
+} from '@aws-amplify/platform-core';
 import { HostingProps, HostingResources } from './types.js';
 import {
   AmplifyHostingConstruct,
@@ -121,6 +125,26 @@ export class AmplifyHostingGenerator
   generateContainerEntry = ({
     scope,
   }: GenerateContainerEntryProps): ResourceProvider<HostingResources> => {
+    const deploymentType = scope.node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    );
+
+    if (deploymentType === 'sandbox') {
+      process.stderr.write(
+        '[Hosting] defineHosting is not supported in sandbox mode. Hosting will be deployed when you run ampx deploy.\n',
+      );
+      return { resources: {} as HostingResources };
+    }
+
+    if (deploymentType === 'branch') {
+      throw new AmplifyUserError('HostingNotSupportedError', {
+        message:
+          'defineHosting is not supported with pipeline-deploy (amplify hosting).',
+        resolution:
+          'Use `npx ampx deploy --identifier <name>` for standalone deployments with hosting.',
+      });
+    }
+
     const projectDir = process.cwd();
     acquireLock(projectDir);
     try {
@@ -195,15 +219,8 @@ export class AmplifyHostingGenerator
 
     Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, this.name);
 
-    // Store outputs for client config generation
-    this.getInstanceProps.outputStorageStrategy.addBackendOutputEntry(
-      'AWS::Amplify::Hosting',
-      {
-        version: '1',
-        payload: {
-          distributionUrl: hostingConstruct.distributionUrl,
-        },
-      },
+    process.stderr.write(
+      `\nHosting URL: ${hostingConstruct.distributionUrl}\n`,
     );
 
     return {

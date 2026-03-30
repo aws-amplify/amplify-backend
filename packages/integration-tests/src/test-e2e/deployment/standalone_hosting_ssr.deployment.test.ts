@@ -18,6 +18,7 @@ import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import fsp from 'fs/promises';
+import path from 'path';
 import {
   fetchWithRetry,
   getDistributionUrlFromStack,
@@ -41,14 +42,21 @@ void describe(
 
     void describe('standalone deploys hosting-ssr', () => {
       let testProject: TestProjectBase;
-      let standaloneBackendIdentifier: BackendIdentifier;
+      const namespace = `standalone-e2e-${shortUuid()}`;
+      let backendIdentifier: BackendIdentifier;
+      let frontendIdentifier: BackendIdentifier;
       let distributionUrl: string;
 
       before(async () => {
         testProject = await testProjectCreator.createProject(rootTestDir);
-        standaloneBackendIdentifier = {
-          namespace: `standalone-e2e-${shortUuid()}`,
-          name: 'stack',
+        backendIdentifier = {
+          namespace,
+          name: 'backend',
+          type: 'standalone',
+        };
+        frontendIdentifier = {
+          namespace,
+          name: 'frontend',
           type: 'standalone',
         };
       });
@@ -56,10 +64,17 @@ void describe(
       after(
         async () => {
           try {
-            await testProject.tearDown(standaloneBackendIdentifier, true);
+            await testProject.tearDown(frontendIdentifier, true);
           } catch {
-            console.warn(
-              '⚠️ Stack deletion may not have completed. Check for orphaned resources.',
+            process.stderr.write(
+              '⚠️ Frontend stack deletion may not have completed. Check for orphaned resources.\n',
+            );
+          }
+          try {
+            await testProject.tearDown(backendIdentifier, true);
+          } catch {
+            process.stderr.write(
+              '⚠️ Backend stack deletion may not have completed. Check for orphaned resources.\n',
             );
           }
         },
@@ -67,38 +82,66 @@ void describe(
       );
 
       void describe('in sequence', { concurrency: false }, () => {
-        void it('stage 1: deploys SSR and verifies server-rendered content', async () => {
-          await testProject.deploy(standaloneBackendIdentifier);
+        void it('stage 1: deploys backend and verifies outputs', async () => {
+          await testProject.deploy(backendIdentifier, undefined, 'backend');
 
-          const stackName = BackendIdentifierConversions.toStackName(
-            standaloneBackendIdentifier,
-          );
+          const backendStackName =
+            BackendIdentifierConversions.toStackName(backendIdentifier);
 
-          // Verify stack deployed successfully
+          // Verify backend stack deployed successfully
           const describeResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: stackName }),
+            new DescribeStacksCommand({ StackName: backendStackName }),
           );
           assert.ok(
             describeResult.Stacks && describeResult.Stacks.length > 0,
-            'hosting SSR stack should exist after deployment',
+            'backend stack should exist after deployment',
           );
           const stack = describeResult.Stacks![0];
           assert.ok(
             stack.StackStatus === 'CREATE_COMPLETE' ||
               stack.StackStatus === 'UPDATE_COMPLETE',
-            `stack should be in a successful state, got: ${stack.StackStatus}`,
+            `backend stack should be in a successful state, got: ${stack.StackStatus}`,
           );
 
-          // Get CloudFront distribution URL from nested stack outputs
+          // Verify amplify_outputs.json is readable after backend deploy
+          const outputsPath = path.join(
+            testProject.projectDirPath,
+            'amplify_outputs.json',
+          );
+          await fsp.readFile(outputsPath, 'utf-8');
+        });
+
+        void it('stage 2: deploys frontend SSR and verifies server-rendered content', async () => {
+          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
+
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
+
+          // Verify frontend stack deployed successfully
+          const describeResult = await cfnClient.send(
+            new DescribeStacksCommand({ StackName: frontendStackName }),
+          );
+          assert.ok(
+            describeResult.Stacks && describeResult.Stacks.length > 0,
+            'frontend SSR stack should exist after deployment',
+          );
+          const stack = describeResult.Stacks![0];
+          assert.ok(
+            stack.StackStatus === 'CREATE_COMPLETE' ||
+              stack.StackStatus === 'UPDATE_COMPLETE',
+            `frontend stack should be in a successful state, got: ${stack.StackStatus}`,
+          );
+
+          // Get CloudFront distribution URL from frontend stack
           distributionUrl = await getDistributionUrlFromStack(
             cfnClient,
-            stackName,
+            frontendStackName,
           );
           assert.ok(
             distributionUrl.startsWith('https://'),
             `DistributionUrl should start with https://, got: ${distributionUrl}`,
           );
-          console.log(`CloudFront URL: ${distributionUrl}`);
+          process.stderr.write(`CloudFront URL: ${distributionUrl}\n`);
 
           // Verify SSR content via HTTP with retry for CloudFront/Lambda propagation
           const response = await fetchWithRetry(distributionUrl, {
@@ -156,10 +199,10 @@ void describe(
             'Response should include x-frame-options header',
           );
 
-          await testProject.assertPostDeployment(standaloneBackendIdentifier);
+          await testProject.assertPostDeployment(backendIdentifier);
         });
 
-        void it('stage 2: redeploys with v2 SSR content and verifies update', async () => {
+        void it('stage 3: redeploys frontend with v2 SSR content and verifies update', async () => {
           // Apply stage 2 updates (server.js content change)
           const updates = await testProject.getUpdates();
           const stage2Update = updates[0];
@@ -169,14 +212,13 @@ void describe(
             });
           }
 
-          // Redeploy
-          await testProject.deploy(standaloneBackendIdentifier);
+          // Redeploy frontend only
+          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
 
-          const stackName = BackendIdentifierConversions.toStackName(
-            standaloneBackendIdentifier,
-          );
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
           const updateResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: stackName }),
+            new DescribeStacksCommand({ StackName: frontendStackName }),
           );
           assert.ok(
             updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
@@ -211,7 +253,7 @@ void describe(
           );
         });
 
-        void it('stage 3: redeploys with compute change and verifies infra update', async () => {
+        void it('stage 4: redeploys frontend with compute change and verifies infra update', async () => {
           // Apply stage 3 updates (infra change — memorySize)
           const updates = await testProject.getUpdates();
           const stage3Update = updates[1];
@@ -221,21 +263,20 @@ void describe(
             });
           }
 
-          // Redeploy
-          await testProject.deploy(standaloneBackendIdentifier);
+          // Redeploy frontend only
+          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
 
-          const stackName = BackendIdentifierConversions.toStackName(
-            standaloneBackendIdentifier,
-          );
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
 
           // Verify Lambda memory config changed to 512
           const ssrFunctionName = await findLambdaFunctionName(
             cfnClient,
-            stackName,
+            frontendStackName,
           );
           assert.ok(
             ssrFunctionName,
-            'Should find SSR Lambda function in stack',
+            'Should find SSR Lambda function in frontend stack',
           );
 
           const functionConfig = await lambdaClient.send(

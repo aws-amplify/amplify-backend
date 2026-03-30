@@ -23,6 +23,7 @@ import {
  */
 const resetFactoryCount = () => {
   AmplifyHostingFactory.factoryCount = 0;
+  AmplifyHostingFactory.lastInstance = undefined;
 };
 
 void describe('AmplifyHostingFactory', () => {
@@ -75,13 +76,21 @@ void describe('AmplifyHostingFactory', () => {
     );
   });
 
-  void it('throws on multiple defineHosting calls', () => {
+  void it('returns same instance when re-evaluated from same call site', () => {
+    const makeFactory = () => defineHosting({ framework: 'spa' });
+    const first = makeFactory();
+    const second = makeFactory();
+
+    assert.strictEqual(first, second);
+  });
+
+  void it('throws on duplicate defineHosting from different call sites', () => {
     defineHosting({ framework: 'spa' });
 
     assert.throws(
-      () => defineHosting({ framework: 'spa' }),
-      (error: Error) => {
-        assert.ok(error.message.includes('Multiple `defineHosting` calls'));
+      () => defineHosting({ framework: 'nextjs' }),
+      (err: Error) => {
+        assert.ok(err.message.includes('Multiple `defineHosting` calls'));
         return true;
       },
     );

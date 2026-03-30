@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
  * Vends stacks for a resource grouping
  */
 export type StackResolver = {
+  rootStack: Stack;
   getStackFor: (resourceGroupName: string) => Stack;
   createCustomStack: (name: string) => Stack;
 };
@@ -20,7 +21,7 @@ export class NestedStackResolver implements StackResolver {
    * Initialize with a root stack
    */
   constructor(
-    private readonly rootStack: Stack,
+    readonly rootStack: Stack,
     private readonly attributionMetadataStorage: AttributionMetadataStorage,
   ) {}
 

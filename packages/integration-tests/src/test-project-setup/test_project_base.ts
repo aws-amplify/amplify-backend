@@ -73,6 +73,7 @@ export abstract class TestProjectBase {
   async deploy(
     backendIdentifier: BackendIdentifier,
     environment?: Record<string, string>,
+    deployScope?: 'backend' | 'frontend',
   ) {
     if (backendIdentifier.type === 'sandbox') {
       await ampxCli(['sandbox'], this.projectDirPath, {
@@ -82,13 +83,15 @@ export abstract class TestProjectBase {
         .do(interruptSandbox())
         .run();
     } else if (backendIdentifier.type === 'standalone') {
-      await ampxCli(
-        ['deploy', '--identifier', backendIdentifier.namespace],
-        this.projectDirPath,
-        {
-          env: environment,
-        },
-      ).run();
+      const args = ['deploy', '--identifier', backendIdentifier.namespace];
+      if (deployScope === 'backend') {
+        args.push('--backend');
+      } else if (deployScope === 'frontend') {
+        args.push('--frontend');
+      }
+      await ampxCli(args, this.projectDirPath, {
+        env: environment,
+      }).run();
     } else {
       await ampxCli(
         [

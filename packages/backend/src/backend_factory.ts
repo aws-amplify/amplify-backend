@@ -25,7 +25,11 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CDKContextKey,
+  ObjectAccumulator,
+} from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -110,8 +114,32 @@ export class BackendFactory<
     // now invoke all the factories and collect the constructs into this.resources
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.resources = {} as any;
+    const deployScope = stack.node.tryGetContext(CDKContextKey.DEPLOY_SCOPE) as
+      | string
+      | undefined;
+
+    // If frontend-only deploy, check if any factory provides hosting
+    if (deployScope === 'frontend') {
+      const hasHosting = Object.values(constructFactories).some(
+        (factory) => factory.provides === 'HostingResources',
+      );
+      if (!hasHosting) {
+        throw new AmplifyUserError('NoHostingDefinedError', {
+          message:
+            'No hosting resources defined in this project. Skipping frontend deployment.',
+          resolution:
+            'Add defineHosting() to your backend definition to enable hosting deployment.',
+        });
+      }
+    }
+
     Object.entries(constructFactories).forEach(
       ([resourceName, constructFactory]) => {
+        const isHosting = constructFactory.provides === 'HostingResources';
+        // Two-phase deploy filtering: skip resources not in the current deploy scope
+        if (deployScope === 'backend' && isHosting) return;
+        if (deployScope === 'frontend' && !isHosting) return;
+
         // The type inference on this.resources is not happy about this assignment because it doesn't know the exact type of .getInstance()
         // However, the assignment is okay because we are iterating over the entries of constructFactories and assigning the resource name to the corresponding instance
         this.resources[resourceName as keyof T] = constructFactory.getInstance(

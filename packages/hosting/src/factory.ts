@@ -12,6 +12,25 @@ import { AmplifyHostingGenerator } from './generator.js';
 export type BackendHosting = ResourceProvider<HostingResources>;
 
 /**
+ * Extract the caller frame from a stack trace.
+ * Skips internal frames (Error, constructor, defineHosting) to find the
+ * user's call site — the location where defineHosting() was invoked.
+ */
+const getCallerFrame = (stack: string | undefined): string | undefined => {
+  if (!stack) return undefined;
+  const lines = stack.split('\n');
+  // Skip frames from this file (factory.ts) to find the external caller
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('at ')) continue;
+    if (trimmed.includes('factory.ts') || trimmed.includes('factory.js'))
+      continue;
+    return trimmed;
+  }
+  return undefined;
+};
+
+/**
  * Singleton factory for AmplifyHosting that can be used in Amplify project files.
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
@@ -19,6 +38,8 @@ export type BackendHosting = ResourceProvider<HostingResources>;
 export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
   // Publicly writable for testing (reset between tests).
   static factoryCount = 0;
+  static lastInstance: AmplifyHostingFactory | undefined;
+  private static creationCallerFrame: string | undefined;
 
   readonly provides = 'HostingResources';
 
@@ -32,6 +53,15 @@ export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
     private readonly importStack = new Error().stack,
   ) {
     if (AmplifyHostingFactory.factoryCount > 0) {
+      const callerFrame = getCallerFrame(importStack);
+      // Same call site = two-phase deploy re-evaluation via tsImport
+      if (
+        AmplifyHostingFactory.lastInstance &&
+        AmplifyHostingFactory.creationCallerFrame === callerFrame
+      ) {
+        return AmplifyHostingFactory.lastInstance;
+      }
+      // Different call site = actual duplicate defineHosting() call
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
           'Multiple `defineHosting` calls are not allowed within an Amplify backend',
@@ -39,6 +69,8 @@ export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
       });
     }
     AmplifyHostingFactory.factoryCount++;
+    AmplifyHostingFactory.lastInstance = this;
+    AmplifyHostingFactory.creationCallerFrame = getCallerFrame(importStack);
   }
 
   /**

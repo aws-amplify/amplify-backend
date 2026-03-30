@@ -53,6 +53,8 @@ export const runBuild = (options: BuildRunnerOptions): BuildRunnerResult => {
   const { command, cwd, env } = options;
 
   try {
+    process.stderr.write(`\nBuilding with: ${command}\n`);
+
     // buildCommand comes from the user's defineHosting() config in their source code.
     // This has the same trust level as any other code in their project.
     // Shell execution is intentional to support compound commands (e.g., "npm ci && npm run build").

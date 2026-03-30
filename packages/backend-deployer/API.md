@@ -36,6 +36,7 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
+    deployScope?: 'backend' | 'frontend';
 };
 
 // @public (undocumented)

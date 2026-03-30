@@ -89,7 +89,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
     });
   });
 
-  void it('creates S3 lifecycle rule with 90-day expiration', () => {
+  void it('creates S3 lifecycle rule with 365-day expiration', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
@@ -102,7 +102,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
       LifecycleConfiguration: {
         Rules: Match.arrayWith([
           Match.objectLike({
-            ExpirationInDays: 90,
+            ExpirationInDays: 365,
             Prefix: 'builds/',
             Status: 'Enabled',
           }),
@@ -720,6 +720,52 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
 
     assert.ok(construct.ssrFunction, 'SSR mode should expose ssrFunction');
     assert.ok(construct.functionUrl, 'SSR mode should expose functionUrl');
+  });
+
+  void it('patches Lambda::Permission FunctionName to point to SSR function (not Function URL)', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Find all Lambda::Permission resources that grant InvokeFunctionUrl
+    const permissions = template.findResources('AWS::Lambda::Permission');
+    const invokeFnUrlPerms = Object.entries(permissions).filter(([, perm]) => {
+      const props = (perm as Record<string, Record<string, unknown>>)
+        .Properties;
+      return props?.Action === 'lambda:InvokeFunctionUrl';
+    });
+
+    assert.ok(
+      invokeFnUrlPerms.length > 0,
+      'Should have at least one lambda:InvokeFunctionUrl permission',
+    );
+
+    // Verify each patched permission's FunctionName references the SSR function ARN
+    // (via Fn::GetAtt on the Lambda function), NOT the Function URL
+    for (const [, perm] of invokeFnUrlPerms) {
+      const props = (perm as Record<string, Record<string, unknown>>)
+        .Properties;
+      const fnName = props?.FunctionName as Record<string, unknown> | undefined;
+      assert.ok(
+        fnName,
+        'Patched permission should have a FunctionName property',
+      );
+      // CDK resolves functionArn as { "Fn::GetAtt": ["SsrFunction...", "Arn"] }
+      const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
+      assert.ok(
+        getAtt && getAtt[1] === 'Arn',
+        `FunctionName should reference the SSR function Arn via Fn::GetAtt, got: ${JSON.stringify(fnName)}`,
+      );
+      assert.ok(
+        getAtt[0].includes('SsrFunction'),
+        `FunctionName should reference the SsrFunction logical ID, got: ${getAtt[0]}`,
+      );
+    }
   });
 
   void it('deploys static assets with BucketDeployment', () => {

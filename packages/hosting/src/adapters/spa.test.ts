@@ -170,26 +170,17 @@ void describe('spaAdapter', () => {
     );
   });
 
-  void it('warns when no index.html is found', () => {
+  void it('throws MissingIndexHtmlError when no index.html is found', () => {
     // Remove index.html from build dir
     fs.unlinkSync(path.join(buildDir, 'index.html'));
 
-    const warnings: string[] = [];
-    const originalWrite = process.stderr.write;
-    process.stderr.write = ((chunk: string) => {
-      warnings.push(chunk);
-      return true;
-    }) as typeof process.stderr.write;
-
-    try {
-      spaAdapter(buildDir, tmpDir);
-    } finally {
-      process.stderr.write = originalWrite;
-    }
-
-    assert.ok(
-      warnings.some((w) => w.includes('index.html')),
-      'Should warn about missing index.html',
+    assert.throws(
+      () => spaAdapter(buildDir, tmpDir),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'MissingIndexHtmlError');
+        assert.ok(error.message.includes('index.html'));
+        return true;
+      },
     );
   });
 });

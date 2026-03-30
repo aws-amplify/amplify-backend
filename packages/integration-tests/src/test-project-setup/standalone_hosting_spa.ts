@@ -101,7 +101,7 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
         ],
       },
       {
-        // Stage 3: add WAF to hosting resource
+        // Stage 3: enable access logging on hosting resource
         replacements: [
           {
             source: pathToFileURL(

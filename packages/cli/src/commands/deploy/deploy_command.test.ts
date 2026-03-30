@@ -4,12 +4,18 @@ import assert from 'node:assert';
 import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
 import { ParameterNotFound, SSMServiceException } from '@aws-sdk/client-ssm';
 import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
+
+const deployResult = () =>
+  Promise.resolve({ deploymentTimes: { synthesisTime: 0, totalTime: 0 } });
 
 void describe('deploy command', () => {
   const clientConfigGenerator = {
@@ -57,40 +63,121 @@ void describe('deploy command', () => {
     generateClientConfigMock.mock.resetCalls();
     mockDeployFn.mock.resetCalls();
     mockSsmSend.mock.resetCalls();
-    // Reset to bootstrapped by default
+    // Reset implementations to defaults
+    generateClientConfigMock.mock.mockImplementation(() => Promise.resolve());
     mockSsmSend.mock.mockImplementation(() =>
       Promise.resolve({ Parameter: { Value: '21' } }),
     );
   });
 
-  void it('deploys with standalone type and correct identifier', async () => {
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
-    );
+  void it('bare deploy deploys backend then frontend', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand('deploy --identifier my-app-prod');
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 2);
+
+    const backendCallArgs = mockDeployFn.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(backendCallArgs[0], {
+      namespace: 'my-app-prod',
+      name: 'backend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(backendCallArgs[1], {
+      validateAppSources: true,
+      deployScope: 'backend',
+    });
+
+    const frontendCallArgs = mockDeployFn.mock.calls[1]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(frontendCallArgs[0], {
+      namespace: 'my-app-prod',
+      name: 'frontend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(frontendCallArgs[1], {
+      validateAppSources: true,
+      deployScope: 'frontend',
+    });
+  });
+
+  void it('--backend deploys only backend stack', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+
+    await getCommandRunner().runCommand('deploy --identifier my-app --backend');
 
     assert.strictEqual(mockDeployFn.mock.callCount(), 1);
     const callArgs = mockDeployFn.mock.calls[0]
       .arguments as unknown as unknown[];
     assert.deepStrictEqual(callArgs[0], {
-      namespace: 'my-app-prod',
-      name: 'stack',
+      namespace: 'my-app',
+      name: 'backend',
       type: 'standalone',
     });
     assert.deepStrictEqual(callArgs[1], {
       validateAppSources: true,
+      deployScope: 'backend',
     });
   });
 
-  void it('generates client config with stackName identifier', async () => {
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
+  void it('--frontend deploys only frontend stack', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app --frontend',
     );
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    const callArgs = mockDeployFn.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(callArgs[0], {
+      namespace: 'my-app',
+      name: 'frontend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(callArgs[1], {
+      validateAppSources: true,
+      deployScope: 'frontend',
+    });
+  });
+
+  void it('--backend --frontend deploys both stacks same as bare deploy', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app --backend --frontend',
+    );
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 2);
+
+    const backendCallArgs = mockDeployFn.mock.calls[0]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(backendCallArgs[0], {
+      namespace: 'my-app',
+      name: 'backend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(backendCallArgs[1], {
+      validateAppSources: true,
+      deployScope: 'backend',
+    });
+
+    const frontendCallArgs = mockDeployFn.mock.calls[1]
+      .arguments as unknown as unknown[];
+    assert.deepStrictEqual(frontendCallArgs[0], {
+      namespace: 'my-app',
+      name: 'frontend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(frontendCallArgs[1], {
+      validateAppSources: true,
+      deployScope: 'frontend',
+    });
+  });
+
+  void it('generates client config from backend stack', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand('deploy --identifier my-app-prod');
 
@@ -99,11 +186,47 @@ void describe('deploy command', () => {
       .arguments as unknown as unknown[];
     const expectedStackName = BackendIdentifierConversions.toStackName({
       namespace: 'my-app-prod',
-      name: 'stack',
+      name: 'backend',
       type: 'standalone',
     });
     assert.deepStrictEqual(configArgs[0], { stackName: expectedStackName });
     assert.deepStrictEqual(configArgs[1], DEFAULT_CLIENT_CONFIG_VERSION);
+  });
+
+  void it('--frontend generates client config before deploying frontend', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app --frontend',
+    );
+
+    // Should generate client config (from existing backend stack) before frontend deploy
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
+    const configArgs = generateClientConfigMock.mock.calls[0]
+      .arguments as unknown as unknown[];
+    const expectedStackName = BackendIdentifierConversions.toStackName({
+      namespace: 'my-app',
+      name: 'backend',
+      type: 'standalone',
+    });
+    assert.deepStrictEqual(configArgs[0], { stackName: expectedStackName });
+  });
+
+  void it('--frontend throws BackendNotDeployedError when backend stack does not exist', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+    generateClientConfigMock.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('Stack does not exist')),
+    );
+
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+      (err: TestCommandError) => {
+        assert.match(err.error.message, /Backend has not been deployed yet/);
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
   });
 
   void it('fails if --identifier is not provided', async () => {
@@ -113,14 +236,10 @@ void describe('deploy command', () => {
   });
 
   void it('allows --outputs-out-dir argument', async () => {
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
-    );
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand(
-      'deploy --identifier my-app --outputs-out-dir src',
+      'deploy --identifier my-app --outputs-out-dir src --backend',
     );
 
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
@@ -130,17 +249,13 @@ void describe('deploy command', () => {
   });
 
   void it('passes --profile argument through', async () => {
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
-    );
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand(
       'deploy --identifier my-app --profile my-profile',
     );
 
-    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.ok(mockDeployFn.mock.callCount() > 0);
   });
 
   void it('rejects identifier with spaces', async () => {
@@ -177,15 +292,11 @@ void describe('deploy command', () => {
   });
 
   void it('accepts valid identifier with hyphens', async () => {
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
-    );
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand('deploy --identifier my-app-prod-v2');
 
-    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.ok(mockDeployFn.mock.callCount() > 0);
   });
 
   void it('shows bootstrap message when region is not bootstrapped', async () => {
@@ -227,15 +338,11 @@ void describe('deploy command', () => {
     mockSsmSend.mock.mockImplementation(() =>
       Promise.resolve({ Parameter: { Value: '6' } }),
     );
-    mockDeployFn.mock.mockImplementationOnce(() =>
-      Promise.resolve({
-        deploymentTimes: { synthesisTime: 0, totalTime: 0 },
-      }),
-    );
+    mockDeployFn.mock.mockImplementation(deployResult);
 
     await getCommandRunner().runCommand('deploy --identifier my-app');
 
-    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.ok(mockDeployFn.mock.callCount() > 0);
   });
 
   void it('handles non-numeric bootstrap version string', async () => {
@@ -320,6 +427,99 @@ void describe('deploy command', () => {
       () => getCommandRunner().runCommand('deploy --identifier my-app'),
       (err: TestCommandError) => {
         assert.match(err.error.message, /CFN deployment failed/);
+        return true;
+      },
+    );
+  });
+
+  void it('backend state is preserved when frontend deployment fails', async () => {
+    let callCount = 0;
+    mockDeployFn.mock.mockImplementation(() => {
+      callCount++;
+      // First call (backend) succeeds, second call (frontend) fails
+      if (callCount === 1) {
+        return Promise.resolve({
+          deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+        });
+      }
+      return Promise.reject(new Error('Frontend deployment failed'));
+    });
+
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      (err: TestCommandError) => {
+        assert.match(err.error.message, /Frontend deployment failed/);
+        return true;
+      },
+    );
+
+    // Backend deploy was called and completed successfully (call 1),
+    // frontend deploy was called and failed (call 2).
+    // Backend state is preserved — no rollback of the first deploy.
+    assert.strictEqual(mockDeployFn.mock.callCount(), 2);
+    assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
+  });
+
+  void it('--frontend re-throws non-stack-not-found errors from generateClientConfigToFile', async () => {
+    mockDeployFn.mock.mockImplementation(deployResult);
+    generateClientConfigMock.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('Access Denied')),
+    );
+
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+      (err: TestCommandError) => {
+        assert.match(err.error.message, /Access Denied/);
+        return true;
+      },
+    );
+    assert.equal(mockDeployFn.mock.callCount(), 0);
+  });
+
+  void it('bare deploy skips frontend phase silently when no hosting defined', async () => {
+    let callCount = 0;
+    mockDeployFn.mock.mockImplementation(() => {
+      callCount++;
+      // First call (backend) succeeds
+      if (callCount === 1) {
+        return Promise.resolve({
+          deploymentTimes: { synthesisTime: 0, totalTime: 0 },
+        });
+      }
+      // Second call (frontend) throws NoHostingDefinedError
+      return Promise.reject(
+        new AmplifyUserError('NoHostingDefinedError', {
+          message: 'No hosting resources defined in this project.',
+          resolution: 'Add defineHosting() to your backend definition.',
+        }),
+      );
+    });
+
+    // Should NOT throw — bare deploy swallows NoHostingDefinedError
+    const output = await getCommandRunner().runCommand(
+      'deploy --identifier my-app',
+    );
+
+    assert.strictEqual(mockDeployFn.mock.callCount(), 2);
+    assert.match(output, /Deployment complete/);
+  });
+
+  void it('--frontend flag propagates NoHostingDefinedError when no hosting defined', async () => {
+    mockDeployFn.mock.mockImplementation(() =>
+      Promise.reject(
+        new AmplifyUserError('NoHostingDefinedError', {
+          message: 'No hosting resources defined in this project.',
+          resolution: 'Add defineHosting() to your backend definition.',
+        }),
+      ),
+    );
+
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+      (err: TestCommandError) => {
+        assert.match(err.error.message, /No hosting resources defined/);
         return true;
       },
     );

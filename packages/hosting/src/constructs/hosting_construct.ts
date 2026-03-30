@@ -117,7 +117,7 @@ const LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS = new Set([
 ]);
 
 /** S3 lifecycle expiration for old builds (days) */
-const BUILD_EXPIRATION_DAYS = 90;
+const BUILD_EXPIRATION_DAYS = 365;
 
 /**
  * Generic error page HTML for SSR 5xx errors.
@@ -354,6 +354,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- Fix CloudFront OAC permissions for Lambda Function URL ----
     if (hasCompute && this.ssrFunction) {
+      let permissionPatched = false;
       for (const child of this.distribution.node.findAll()) {
         if (
           child instanceof CfnPermission &&
@@ -363,7 +364,14 @@ export class AmplifyHostingConstruct extends Construct {
             'FunctionName',
             this.ssrFunction.functionArn,
           );
+          permissionPatched = true;
         }
+      }
+      if (!permissionPatched) {
+        throw new Error(
+          'Failed to patch Lambda Function URL permission for CloudFront OAC. ' +
+            'This is a CDK construct bug — please open an issue.',
+        );
       }
 
       this.ssrFunction.addPermission('CloudFrontOACInvokeFunction', {
@@ -435,6 +443,7 @@ export class AmplifyHostingConstruct extends Construct {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
       objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      enforceSSL: true,
       versioned: true,
       removalPolicy: retainOnDelete
         ? RemovalPolicy.RETAIN
@@ -527,6 +536,10 @@ export class AmplifyHostingConstruct extends Construct {
 
   /**
    * Create WAFv2 WebACL with AWS Managed Rule Groups and rate limiting.
+   *
+   * NOTE: WAFv2 WebACLs with scope CLOUDFRONT must be created in us-east-1.
+   * Cross-region WAF support (e.g. via a separate us-east-1 stack) is deferred.
+   * Until then, WAF only works when the hosting stack deploys to us-east-1.
    */
   private createWafWebAcl(name?: string, rateLimit?: number): CfnWebACL {
     if (rateLimit !== undefined && rateLimit < 100) {

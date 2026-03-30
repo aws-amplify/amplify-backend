@@ -13,6 +13,7 @@ import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  deployScope?: 'backend' | 'frontend';
 };
 
 export type DeployResult = {

@@ -72,12 +72,6 @@ export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 // @public
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
-// @public (undocumented)
-export type HostingOutput = z.infer<typeof versionedHostingOutputSchema>;
-
-// @public
-export const hostingOutputKey = "AWS::Amplify::Hosting";
-
 // @public
 export const platformOutputKey = "AWS::Amplify::Platform";
 
@@ -362,26 +356,6 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     }>]>>;
-    "AWS::Amplify::Hosting": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-        version: z.ZodLiteral<"1">;
-        payload: z.ZodObject<{
-            distributionUrl: z.ZodString;
-        }, "strip", z.ZodTypeAny, {
-            distributionUrl: string;
-        }, {
-            distributionUrl: string;
-        }>;
-    }, "strip", z.ZodTypeAny, {
-        version: "1";
-        payload: {
-            distributionUrl: string;
-        };
-    }, {
-        version: "1";
-        payload: {
-            distributionUrl: string;
-        };
-    }>]>>;
     "AWS::Amplify::AI::Conversation": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
@@ -469,12 +443,6 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     } | undefined;
-    "AWS::Amplify::Hosting"?: {
-        version: "1";
-        payload: {
-            distributionUrl: string;
-        };
-    } | undefined;
     "AWS::Amplify::AI::Conversation"?: {
         version: "1";
         payload: {
@@ -546,12 +514,6 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             definedFunctions: string;
-        };
-    } | undefined;
-    "AWS::Amplify::Hosting"?: {
-        version: "1";
-        payload: {
-            distributionUrl: string;
         };
     } | undefined;
     "AWS::Amplify::AI::Conversation"?: {
@@ -804,28 +766,6 @@ export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z
         awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
         awsAppsyncConflictResolutionMode?: string | undefined;
         awsAppsyncApiKey?: string | undefined;
-    };
-}>]>;
-
-// @public (undocumented)
-export const versionedHostingOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
-    version: z.ZodLiteral<"1">;
-    payload: z.ZodObject<{
-        distributionUrl: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        distributionUrl: string;
-    }, {
-        distributionUrl: string;
-    }>;
-}, "strip", z.ZodTypeAny, {
-    version: "1";
-    payload: {
-        distributionUrl: string;
-    };
-}, {
-    version: "1";
-    payload: {
-        distributionUrl: string;
     };
 }>]>;
 

@@ -10,6 +10,7 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import {
+  AmplifyError,
   AmplifyUserError,
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
@@ -31,6 +32,8 @@ type DeployCommandOptionsCamelCase = {
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
+  backend: boolean;
+  frontend: boolean;
 };
 
 // CloudFormation stack name constraints
@@ -111,39 +114,95 @@ export class DeployCommand
       return;
     }
 
-    // Standalone deployments use a single stack per identifier.
-    // The 'stack' name is a convention: standalone does not have
-    // branch-based naming, so a fixed name is used.
+    const deployBackend = args.backend || (!args.backend && !args.frontend);
+    const deployFrontend = args.frontend || (!args.backend && !args.frontend);
+    const isBareCommand = !args.backend && !args.frontend;
+
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
-      name: 'stack',
+      name: 'backend',
       type: 'standalone',
     };
 
-    await this.backendDeployer.deploy(backendId, {
-      validateAppSources: true,
-    });
+    if (deployBackend) {
+      await this.backendDeployer.deploy(backendId, {
+        validateAppSources: true,
+        deployScope: 'backend',
+      });
 
-    // Client config for standalone uses { stackName } instead of
-    // { appId, branch } because there is no Amplify Hosting app.
-    // This resolves via the StackIdentifier path in deployed-backend-client,
-    // which passes stackName directly to CloudFormation APIs like
-    // GetTemplateSummary — so it must be the full CFN stack name.
-    const stackName = BackendIdentifierConversions.toStackName(backendId);
-    const clientConfigIdentifier = { stackName };
+      const backendStackName =
+        BackendIdentifierConversions.toStackName(backendId);
+      await this.clientConfigGenerator.generateClientConfigToFile(
+        { stackName: backendStackName },
+        args.outputsVersion as ClientConfigVersion,
+        args.outputsOutDir,
+        args.outputsFormat,
+      );
+      printer.log(`Backend deployment complete.`);
+      printer.log(`Backend stack: ${backendStackName}`);
+    }
 
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      clientConfigIdentifier,
-      args.outputsVersion as ClientConfigVersion,
-      args.outputsOutDir,
-      args.outputsFormat,
-    );
+    if (deployFrontend) {
+      try {
+        const frontendId: BackendIdentifier = {
+          namespace: args.identifier,
+          name: 'frontend',
+          type: 'standalone',
+        };
 
-    printer.log(`Deployment complete.`);
-    printer.log(`Stack name: ${stackName}`);
-    printer.log(
-      `To remove this deployment: aws cloudformation delete-stack --stack-name ${stackName}`,
-    );
+        if (!deployBackend) {
+          const backendStackName =
+            BackendIdentifierConversions.toStackName(backendId);
+          try {
+            await this.clientConfigGenerator.generateClientConfigToFile(
+              { stackName: backendStackName },
+              args.outputsVersion as ClientConfigVersion,
+              args.outputsOutDir,
+              args.outputsFormat,
+            );
+          } catch (error) {
+            // Only treat stack-not-found errors as "backend not deployed".
+            // Re-throw credential errors, network errors, etc. as-is.
+            if (
+              error instanceof Error &&
+              error.message.includes('does not exist')
+            ) {
+              throw new AmplifyUserError(
+                'BackendNotDeployedError',
+                {
+                  message: `Backend has not been deployed yet. Run 'ampx deploy --backend' first, or run 'ampx deploy' without flags to deploy everything.`,
+                  resolution: `Deploy the backend first with: ampx deploy --identifier ${args.identifier} --backend`,
+                },
+                error,
+              );
+            }
+            throw error;
+          }
+        }
+
+        await this.backendDeployer.deploy(frontendId, {
+          validateAppSources: true,
+          deployScope: 'frontend',
+        });
+
+        const frontendStackName =
+          BackendIdentifierConversions.toStackName(frontendId);
+        printer.log(`Frontend deployment complete.`);
+        printer.log(`Frontend stack: ${frontendStackName}`);
+      } catch (error) {
+        // For bare "ampx deploy" on projects without hosting, skip frontend silently.
+        // If user explicitly passed --frontend, let the error propagate.
+        const isNoHostingError =
+          isBareCommand &&
+          AmplifyError.isAmplifyError(error) &&
+          error.name === 'NoHostingDefinedError';
+        if (!isNoHostingError) {
+          throw error;
+        }
+      }
+    }
+
+    printer.log('Deployment complete.');
   };
 
   /**
@@ -183,6 +242,18 @@ export class DeployCommand
         describe: 'An AWS profile name.',
         type: 'string',
         array: false,
+      })
+      .option('backend', {
+        describe:
+          'Deploy only backend resources (auth, data, storage). Skips hosting.',
+        type: 'boolean',
+        default: false,
+      })
+      .option('frontend', {
+        describe:
+          'Deploy only hosting resources. Requires backend to be deployed first.',
+        type: 'boolean',
+        default: false,
       })
       .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion]);
   };

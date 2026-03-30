@@ -186,6 +186,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   override async deploy(
     backendIdentifier: BackendIdentifier,
     environment: Record<string, string> = {},
+    deployScope?: 'backend' | 'frontend',
   ) {
     this.amplifySharedSecret =
       amplifySharedSecretNameKey in environment
@@ -200,7 +201,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
 
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, env);
+    await super.deploy(backendIdentifier, env, deployScope);
   }
 
   /**

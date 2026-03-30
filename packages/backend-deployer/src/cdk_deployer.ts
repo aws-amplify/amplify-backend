@@ -60,6 +60,7 @@ export class CDKDeployer implements BackendDeployer {
     const cx = await this.getCdkCloudAssembly(
       backendId,
       deployProps?.secretLastUpdated?.getTime(),
+      deployProps?.deployScope,
     );
     // Initiate synth for the cloud executable and send a message for display.
     const synthStartTime = Date.now();
@@ -226,6 +227,7 @@ export class CDKDeployer implements BackendDeployer {
   private getCdkCloudAssembly = (
     backendId: BackendIdentifier,
     secretLastUpdated?: number,
+    deployScope?: 'backend' | 'frontend',
   ) => {
     const contextParams: {
       [key: string]: unknown;
@@ -240,6 +242,9 @@ export class CDKDeployer implements BackendDeployer {
     contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
     contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
     contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
+    if (deployScope) {
+      contextParams[CDKContextKey.DEPLOY_SCOPE] = deployScope;
+    }
     return this.cdkToolkit.fromAssemblyBuilder(
       async () => {
         await tsImport(

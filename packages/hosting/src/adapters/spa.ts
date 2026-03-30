@@ -37,10 +37,10 @@ export const spaAdapter = (
   }
 
   if (!files.includes('index.html')) {
-    process.stderr.write(
-      `Warning: No index.html found in build output directory (${buildOutputDir}). ` +
-        'SPA routing may not work correctly without an index.html.\n',
-    );
+    throw new AmplifyUserError('MissingIndexHtmlError', {
+      message: 'No index.html found in the build output directory.',
+      resolution: `Ensure your build command produces an index.html file in the output directory (${buildOutputDir}).`,
+    });
   }
 
   const hostingDir = path.join(projectDir, HOSTING_DIR);

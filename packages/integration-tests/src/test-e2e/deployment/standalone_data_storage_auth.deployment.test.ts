@@ -49,7 +49,7 @@ void describe(
         testProject = await testProjectCreator.createProject(rootTestDir);
         standaloneBackendIdentifier = {
           namespace: `standalone-e2e-${shortUuid()}`,
-          name: 'stack',
+          name: 'backend',
           type: 'standalone',
         };
       });
@@ -63,6 +63,7 @@ void describe(
           await testProject.deploy(
             standaloneBackendIdentifier,
             sharedSecretsEnv,
+            'backend',
           );
           await testProject.assertPostDeployment(standaloneBackendIdentifier);
         });
@@ -86,6 +87,7 @@ void describe(
           await testProject.deploy(
             standaloneBackendIdentifier,
             sharedSecretsEnv,
+            'backend',
           );
 
           // Verify update succeeded and resources are correct

@@ -44,25 +44,25 @@ export const fetchWithRetry = async (
         ) {
           return response;
         }
-        console.log(
-          `Attempt ${attempt}/${maxRetries}: status=${response.status}, body contains "${expectedBodyContains}": ${body.includes(expectedBodyContains)}`,
+        process.stderr.write(
+          `Attempt ${attempt}/${maxRetries}: status=${response.status}, body contains "${expectedBodyContains}": ${body.includes(expectedBodyContains)}\n`,
         );
         lastResponse = response;
       } else {
-        console.log(
-          `Attempt ${attempt}/${maxRetries}: status=${response.status}, expected=${expectedStatus}`,
+        process.stderr.write(
+          `Attempt ${attempt}/${maxRetries}: status=${response.status}, expected=${expectedStatus}\n`,
         );
         lastResponse = response;
       }
     } catch (error) {
-      console.log(
-        `Attempt ${attempt}/${maxRetries}: fetch error: ${(error as Error).message}`,
+      process.stderr.write(
+        `Attempt ${attempt}/${maxRetries}: fetch error: ${(error as Error).message}\n`,
       );
       lastError = error as Error;
     }
 
     if (attempt < maxRetries) {
-      console.log(`Waiting ${intervalMs}ms before retry...`);
+      process.stderr.write(`Waiting ${intervalMs}ms before retry...\n`);
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
   }

@@ -193,8 +193,8 @@ export const nextjsAdapter = (
   }
 
   // 1. Copy standalone server → .amplify-hosting/compute/default/
-  //    No exclude patterns for compute — we need everything including .map for debugging
-  copyDirRecursive(standaloneDir, computeDir, { excludePatterns: [] });
+  //    Excludes source maps (.map) and other non-essential files by default.
+  copyDirRecursive(standaloneDir, computeDir);
 
   // 2. Copy .next/static/ → .amplify-hosting/static/_next/static/
   //    These are hashed immutable assets served by CloudFront from S3.

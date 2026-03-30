@@ -108,6 +108,8 @@ export enum CDKContextKey {
     // (undocumented)
     BACKEND_NAMESPACE = "amplify-backend-namespace",
     // (undocumented)
+    DEPLOY_SCOPE = "amplify-deploy-scope",
+    // (undocumented)
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }
 
