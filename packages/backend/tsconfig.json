@@ -4,7 +4,6 @@
   "references": [
     { "path": "../backend-auth" },
     { "path": "../backend-function" },
-    { "path": "../hosting" },
     { "path": "../backend-data" },
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
