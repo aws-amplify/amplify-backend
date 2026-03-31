@@ -63,7 +63,6 @@ void describe(
           await testProject.deploy(
             standaloneBackendIdentifier,
             sharedSecretsEnv,
-            'backend',
           );
           await testProject.assertPostDeployment(standaloneBackendIdentifier);
         });
@@ -87,7 +86,6 @@ void describe(
           await testProject.deploy(
             standaloneBackendIdentifier,
             sharedSecretsEnv,
-            'backend',
           );
 
           // Verify update succeeded and resources are correct

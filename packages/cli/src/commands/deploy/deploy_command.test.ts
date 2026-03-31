@@ -13,6 +13,7 @@ import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
+import fs from 'fs';
 
 const deployResult = () =>
   Promise.resolve({ deploymentTimes: { synthesisTime: 0, totalTime: 0 } });
@@ -44,9 +45,6 @@ void describe('deploy command', () => {
 
   // Control whether hosting file exists
   let hostingExists = true;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const backendLocatorModule = await import('@aws-amplify/platform-core');
-  const originalBackendLocator = backendLocatorModule.BackendLocator;
 
   const mockGetInstance = mock.fn((locator?: unknown) => {
     if (locator) {
@@ -98,12 +96,16 @@ void describe('deploy command', () => {
     mockHostingDeployFn.mock.mockImplementation(deployResult);
     hostingExists = true;
 
-    // Mock BackendLocator to control exists() result
-    mock.method(
-      originalBackendLocator.prototype,
-      'exists',
-      () => hostingExists,
-    );
+    // Mock fs.existsSync to control whether hosting entry point "exists".
+    // BackendLocator.exists() delegates to fs.existsSync for each supported
+    // extension, so returning `hostingExists` here controls the locator result.
+    const originalExistsSync = fs.existsSync;
+    mock.method(fs, 'existsSync', (filePath: string) => {
+      if (typeof filePath === 'string' && filePath.includes('hosting')) {
+        return hostingExists;
+      }
+      return originalExistsSync(filePath);
+    });
   });
 
   void it('bare deploy with hosting.ts present deploys both', async () => {

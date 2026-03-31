@@ -35,8 +35,13 @@ void describe('defineHosting', () => {
     assert.throws(
       () => defineHosting({ framework: 'spa', buildOutputDir: '/tmp/test' }),
       (err: Error) => {
+        // CDK throws when getContext() can't find the key, or our code
+        // throws if the value is present but not a string.
+        const isContextError =
+          err.message.includes('CDK context value is not a string') ||
+          err.message.includes('No context value present for');
         assert.ok(
-          err.message.includes('CDK context value is not a string'),
+          isContextError,
           `Expected context error, got: ${err.message}`,
         );
         return true;
