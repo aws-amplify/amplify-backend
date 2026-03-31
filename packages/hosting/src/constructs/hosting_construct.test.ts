@@ -1587,7 +1587,7 @@ void describe('AmplifyHostingConstruct — Lambda CloudFront-only permission', (
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('creates CloudFrontOnly permission restricting Function URL invocation', () => {
+  void it('grants InvokeFunctionUrl via patched CDK permission (not a separate CloudFrontOnly permission)', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: ssrManifest,
@@ -1597,43 +1597,69 @@ void describe('AmplifyHostingConstruct — Lambda CloudFront-only permission', (
 
     const template = Template.fromStack(stack);
 
-    // Find all Lambda::Permission resources that grant InvokeFunctionUrl
+    // The CDK-patched CfnPermission already grants lambda:InvokeFunctionUrl.
+    // There should be NO separate CloudFrontOnly permission (it was redundant).
     const permissions = template.findResources('AWS::Lambda::Permission');
-    const cloudFrontOnlyPerms = Object.entries(permissions).filter(
-      ([key, perm]) => {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        return (
-          key.includes('CloudFrontOnly') &&
-          props?.Action === 'lambda:InvokeFunctionUrl'
-        );
-      },
+    const cloudFrontOnlyPerms = Object.keys(permissions).filter((key) =>
+      key.includes('CloudFrontOnly'),
     );
+
+    assert.strictEqual(
+      cloudFrontOnlyPerms.length,
+      0,
+      'Should not have a separate CloudFrontOnly permission — the patched CDK permission covers InvokeFunctionUrl',
+    );
+
+    // Verify that InvokeFunctionUrl IS still granted (via the patched CDK permission)
+    const invokeFnUrlPerms = Object.entries(permissions).filter(([, perm]) => {
+      const props = (perm as Record<string, Record<string, unknown>>)
+        .Properties;
+      return props?.Action === 'lambda:InvokeFunctionUrl';
+    });
 
     assert.ok(
-      cloudFrontOnlyPerms.length > 0,
-      'Should have a CloudFrontOnly permission for lambda:InvokeFunctionUrl',
+      invokeFnUrlPerms.length > 0,
+      'Should still have a lambda:InvokeFunctionUrl permission (from CDK-patched CfnPermission)',
+    );
+  });
+
+  void it('grants CloudFrontOACInvokeFunction with lambda:InvokeFunction action', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    const permissions = template.findResources('AWS::Lambda::Permission');
+    const oacInvokePerms = Object.entries(permissions).filter(([key, perm]) => {
+      const props = (perm as Record<string, Record<string, unknown>>)
+        .Properties;
+      return (
+        key.includes('CloudFrontOACInvokeFunction') &&
+        props?.Action === 'lambda:InvokeFunction'
+      );
+    });
+
+    assert.ok(
+      oacInvokePerms.length > 0,
+      'Should have a CloudFrontOACInvokeFunction permission for lambda:InvokeFunction',
     );
 
-    // Verify the permission references cloudfront.amazonaws.com as principal
-    for (const [, perm] of cloudFrontOnlyPerms) {
+    for (const [, perm] of oacInvokePerms) {
       const props = (perm as Record<string, Record<string, unknown>>)
         .Properties;
       assert.strictEqual(
         props?.Principal,
         'cloudfront.amazonaws.com',
-        'CloudFrontOnly permission should use cloudfront.amazonaws.com principal',
-      );
-      // Verify SourceArn constrains to the specific distribution
-      const sourceArn = props?.SourceArn as Record<string, unknown> | string;
-      assert.ok(
-        sourceArn,
-        'CloudFrontOnly permission should have a SourceArn condition',
+        'OAC permission should use cloudfront.amazonaws.com principal',
       );
     }
   });
 
-  void it('does NOT create CloudFrontOnly permission for SPA (no Lambda)', () => {
+  void it('does NOT create CloudFront Lambda permissions for SPA (no Lambda)', () => {
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
@@ -1643,14 +1669,16 @@ void describe('AmplifyHostingConstruct — Lambda CloudFront-only permission', (
     const template = Template.fromStack(stack);
 
     const permissions = template.findResources('AWS::Lambda::Permission');
-    const cloudFrontOnlyPerms = Object.keys(permissions).filter((key) =>
-      key.includes('CloudFrontOnly'),
+    const cloudFrontPerms = Object.keys(permissions).filter(
+      (key) =>
+        key.includes('CloudFrontOnly') ||
+        key.includes('CloudFrontOACInvokeFunction'),
     );
 
     assert.strictEqual(
-      cloudFrontOnlyPerms.length,
+      cloudFrontPerms.length,
       0,
-      'SPA mode should not have CloudFrontOnly Lambda permission',
+      'SPA mode should not have CloudFront Lambda permissions',
     );
   });
 });

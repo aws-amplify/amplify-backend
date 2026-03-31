@@ -126,7 +126,7 @@ export class BackendFactory<
       if (!hasHosting) {
         throw new AmplifyUserError('NoHostingDefinedError', {
           message:
-            'No hosting resources defined in this project. Skipping frontend deployment.',
+            'Cannot deploy frontend: no hosting definition found in the backend configuration.',
           resolution:
             'Add defineHosting() to your backend definition to enable hosting deployment.',
         });

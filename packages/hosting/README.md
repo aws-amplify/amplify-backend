@@ -194,6 +194,25 @@ defineHosting({
 });
 ```
 
+## Content Security Policy (CSP)
+
+The default CSP is intentionally restrictive:
+
+```
+default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'
+```
+
+**`unsafe-eval` is NOT included** in the default policy. This was a deliberate security decision — `eval()` and `new Function()` are common XSS vectors. Most modern frameworks (including Next.js) work without `unsafe-eval`.
+
+However, some libraries (e.g., certain template engines, older chart libraries) require `eval()` at runtime. If your app needs it, use the `contentSecurityPolicy` prop to override:
+
+```typescript
+defineHosting({
+  contentSecurityPolicy:
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",
+});
+```
+
 ## Troubleshooting
 
 ### "Next.js standalone output not found"

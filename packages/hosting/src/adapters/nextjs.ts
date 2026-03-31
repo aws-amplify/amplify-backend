@@ -221,7 +221,12 @@ export const nextjsAdapter = (
   // 5. Write a fallback handler (Lambda Web Adapter intercepts all requests;
   //    this handler should never execute but prevents Lambda HandlerNotFound errors)
   const fallbackHandler = `exports.handler = async (event) => {
-  console.error('Fallback handler invoked — Lambda Web Adapter did not intercept this request.', JSON.stringify(event));
+  const safeContext = {
+    path: event.rawPath,
+    method: event.requestContext?.http?.method,
+    sourceIp: event.requestContext?.http?.sourceIp,
+  };
+  process.stderr.write('Fallback handler invoked — Lambda Web Adapter did not intercept this request. ' + JSON.stringify(safeContext) + '\\n');
   return {
     statusCode: 502,
     headers: { 'Content-Type': 'application/json' },

@@ -59,6 +59,7 @@ import {
 } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { ComputeConfig, HostingResources } from '../types.js';
@@ -360,6 +361,12 @@ export class AmplifyHostingConstruct extends Construct {
     );
 
     // ---- Fix CloudFront OAC permissions for Lambda Function URL ----
+    //
+    // CDK's FunctionUrlOrigin.withOriginAccessControl() auto-generates a
+    // CfnPermission for lambda:InvokeFunctionUrl, but sets FunctionName to the
+    // Function URL resource instead of the Lambda function ARN (CDK bug).
+    // We patch FunctionName so CloudFront can invoke the function via its URL.
+    // See: https://github.com/aws/aws-cdk/issues/21771
     if (hasCompute && this.ssrFunction) {
       let permissionPatched = false;
       for (const child of this.distribution.node.findAll()) {
@@ -377,20 +384,16 @@ export class AmplifyHostingConstruct extends Construct {
       if (!permissionPatched) {
         throw new Error(
           'Failed to patch Lambda Function URL permission for CloudFront OAC. ' +
-            'This is a CDK construct bug — please open an issue.',
+            'This is a CDK construct bug — see https://github.com/aws/aws-cdk/issues/21771',
         );
       }
 
+      // Separate permission for lambda:InvokeFunction (not InvokeFunctionUrl).
+      // OAC requires both actions: InvokeFunctionUrl for streaming via the URL,
+      // and InvokeFunction for the CloudFront → Lambda direct invocation path.
       this.ssrFunction.addPermission('CloudFrontOACInvokeFunction', {
         principal: new ServicePrincipal('cloudfront.amazonaws.com'),
         action: 'lambda:InvokeFunction',
-        sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
-      });
-
-      // Restrict Function URL invocation to only this CloudFront distribution
-      this.ssrFunction.addPermission('CloudFrontOnly', {
-        principal: new ServicePrincipal('cloudfront.amazonaws.com'),
-        action: 'lambda:InvokeFunctionUrl',
         sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
       });
     }
@@ -492,7 +495,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     // Validate region supports Lambda Web Adapter (skip if region is an unresolved token)
     if (
-      !region.includes('${') &&
+      !Token.isUnresolved(region) &&
       !LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS.has(region)
     ) {
       throw new AmplifyUserError('UnsupportedRegionError', {
@@ -526,6 +529,8 @@ export class AmplifyHostingConstruct extends Construct {
       ),
       reservedConcurrentExecutions: compute.reservedConcurrency,
       role: ssrRole,
+      // Bound log retention to avoid unbounded CloudWatch cost
+      logRetention: RetentionDays.TWO_WEEKS,
       layers: [
         LayerVersion.fromLayerVersionArn(
           this,

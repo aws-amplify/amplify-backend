@@ -360,7 +360,7 @@ void describe('BackendFactory deploy scope filtering', () => {
           ),
         (err: Error) => {
           assert.equal(err.name, 'NoHostingDefinedError');
-          assert.match(err.message, /No hosting resources defined/);
+          assert.match(err.message, /Cannot deploy frontend/);
           return true;
         },
       );

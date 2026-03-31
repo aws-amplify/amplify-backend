@@ -490,7 +490,8 @@ void describe('deploy command', () => {
       // Second call (frontend) throws NoHostingDefinedError
       return Promise.reject(
         new AmplifyUserError('NoHostingDefinedError', {
-          message: 'No hosting resources defined in this project.',
+          message:
+            'Cannot deploy frontend: no hosting definition found in the backend configuration.',
           resolution: 'Add defineHosting() to your backend definition.',
         }),
       );
@@ -509,7 +510,8 @@ void describe('deploy command', () => {
     mockDeployFn.mock.mockImplementation(() =>
       Promise.reject(
         new AmplifyUserError('NoHostingDefinedError', {
-          message: 'No hosting resources defined in this project.',
+          message:
+            'Cannot deploy frontend: no hosting definition found in the backend configuration.',
           resolution: 'Add defineHosting() to your backend definition.',
         }),
       ),
@@ -519,7 +521,7 @@ void describe('deploy command', () => {
       () =>
         getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
       (err: TestCommandError) => {
-        assert.match(err.error.message, /No hosting resources defined/);
+        assert.match(err.error.message, /Cannot deploy frontend/);
         return true;
       },
     );
