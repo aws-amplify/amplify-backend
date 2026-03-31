@@ -128,6 +128,37 @@ defineHosting({
 
 **Cost:** ~$5/month base + $1/million requests. Use for production apps with security requirements.
 
+### WAF Region Requirement
+
+WAF with CloudFront scope requires deployment in `us-east-1`. Deploying with WAF enabled in other regions will fail with a clear error message.
+
+## Two-Phase Deploy
+
+`ampx deploy` uses a two-phase deployment model:
+
+1. **Backend phase** (`ampx deploy --backend`): Deploys auth, data, and storage resources. Generates `amplify_outputs.json`.
+2. **Frontend phase** (`ampx deploy --frontend`): Runs your build command (with `amplify_outputs.json` available), then deploys hosting resources.
+
+Running `ampx deploy` without flags deploys both phases sequentially.
+
+### Flags
+
+| Flag         | Behavior                                                     |
+| ------------ | ------------------------------------------------------------ |
+| (none)       | Deploy backend + frontend                                    |
+| `--backend`  | Deploy backend only (skip hosting)                           |
+| `--frontend` | Deploy frontend only (requires backend to be deployed first) |
+
+## Limitations
+
+### Sandbox
+
+`defineHosting` is not supported in `ampx sandbox`. Hosting resources are silently skipped during sandbox development. Use `ampx deploy --identifier <name>` for full hosting deployment.
+
+### Pipeline Deploy
+
+`defineHosting` is not supported with `ampx pipeline-deploy` (branch deployments). Use `ampx deploy` for standalone hosting deployment.
+
 ## Custom Framework Adapters
 
 For frameworks not built in (Astro, Remix, etc.), provide a custom adapter:

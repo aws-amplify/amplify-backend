@@ -88,7 +88,7 @@ export type ManifestRoute = {
 
 // @public
 export type RouteTarget = {
-    kind: 'Static' | 'Compute' | 'ImageOptimization';
+    kind: 'Static' | 'Compute';
     src?: string;
     cacheControl?: string;
 };

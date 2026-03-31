@@ -2,7 +2,7 @@
  * Target type for a route in the deploy manifest.
  */
 export type RouteTarget = {
-  kind: 'Static' | 'Compute' | 'ImageOptimization';
+  kind: 'Static' | 'Compute';
   /** For Compute routes, the name of the compute resource. */
   src?: string;
   /** Cache-Control header value for static assets. */

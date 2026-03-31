@@ -5,7 +5,7 @@ import { BUILD_ID_PATTERN } from '../defaults.js';
  * Zod schema for the RouteTarget.
  */
 export const routeTargetSchema = z.object({
-  kind: z.enum(['Static', 'Compute', 'ImageOptimization']),
+  kind: z.enum(['Static', 'Compute']),
   src: z.string().optional(),
   cacheControl: z.string().optional(),
 });

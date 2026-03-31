@@ -1392,3 +1392,265 @@ void describe('AmplifyHostingConstruct — S3 lifecycle', () => {
     );
   });
 });
+
+// ================================================================
+// WAF region validation
+// ================================================================
+
+void describe('AmplifyHostingConstruct — WAF region validation', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForWafRegion: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'waf-region-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-waf-region-test-'));
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('throws WafRegionError when WAF enabled in non-us-east-1 region', () => {
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'eu-west-1' },
+    });
+
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: spaManifestForWafRegion,
+          staticAssetPath: staticDir,
+          waf: { enabled: true },
+        }),
+      (error: Error) => {
+        assert.ok(error.name === 'WafRegionError');
+        assert.ok(error.message.includes('us-east-1'));
+        return true;
+      },
+    );
+  });
+
+  void it('allows WAF in us-east-1', () => {
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWafRegion,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    assert.ok(construct.webAcl, 'WAF WebACL should be created in us-east-1');
+  });
+
+  void it('allows WAF when region is unresolved token (no env set)', () => {
+    const app = new App();
+    const stack = new Stack(app, 'TestStack');
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForWafRegion,
+      staticAssetPath: staticDir,
+      waf: { enabled: true },
+    });
+
+    assert.ok(
+      construct.webAcl,
+      'WAF WebACL should be created when region is an unresolved token',
+    );
+  });
+});
+
+// ================================================================
+// CSP hardening — no unsafe-eval
+// ================================================================
+
+void describe('AmplifyHostingConstruct — CSP hardening', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-csp-hardening-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('default CSP does NOT contain unsafe-eval', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    const policies = template.findResources(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+    );
+    for (const [, policy] of Object.entries(policies)) {
+      const secHeaders = (
+        (policy as Record<string, Record<string, unknown>>).Properties
+          ?.ResponseHeadersPolicyConfig as Record<string, unknown>
+      )?.SecurityHeadersConfig as Record<string, Record<string, unknown>>;
+      const cspValue = secHeaders?.ContentSecurityPolicy
+        ?.ContentSecurityPolicy as string;
+      if (cspValue) {
+        assert.ok(
+          !cspValue.includes('unsafe-eval'),
+          `CSP should not contain unsafe-eval, got: ${cspValue}`,
+        );
+      }
+    }
+  });
+
+  void it('default CSP contains unsafe-inline for Next.js compatibility', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            ContentSecurityPolicy: Match.objectLike({
+              ContentSecurityPolicy: Match.stringLikeRegexp("'unsafe-inline'"),
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+});
+
+// ================================================================
+// Lambda Function URL — CloudFront-only resource policy
+// ================================================================
+
+void describe('AmplifyHostingConstruct — Lambda CloudFront-only permission', () => {
+  let tmpDir: string;
+  let staticDir: string;
+  let computeDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-lambda-perm-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    computeDir = path.join(tmpDir, 'compute');
+
+    fs.mkdirSync(path.join(staticDir, '_next', 'static'), { recursive: true });
+    fs.writeFileSync(
+      path.join(staticDir, '_next', 'static', 'main.js'),
+      'chunk',
+    );
+
+    const defaultDir = path.join(computeDir, 'default');
+    fs.mkdirSync(defaultDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(defaultDir, 'server.js'),
+      'require("http").createServer().listen(3000)',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'run.sh'),
+      '#!/bin/bash\nexec node server.js',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.js'),
+      'exports.handler = async () => ({ statusCode: 502, body: "SSR bootstrap failed" });',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates CloudFrontOnly permission restricting Function URL invocation', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Find all Lambda::Permission resources that grant InvokeFunctionUrl
+    const permissions = template.findResources('AWS::Lambda::Permission');
+    const cloudFrontOnlyPerms = Object.entries(permissions).filter(
+      ([key, perm]) => {
+        const props = (perm as Record<string, Record<string, unknown>>)
+          .Properties;
+        return (
+          key.includes('CloudFrontOnly') &&
+          props?.Action === 'lambda:InvokeFunctionUrl'
+        );
+      },
+    );
+
+    assert.ok(
+      cloudFrontOnlyPerms.length > 0,
+      'Should have a CloudFrontOnly permission for lambda:InvokeFunctionUrl',
+    );
+
+    // Verify the permission references cloudfront.amazonaws.com as principal
+    for (const [, perm] of cloudFrontOnlyPerms) {
+      const props = (perm as Record<string, Record<string, unknown>>)
+        .Properties;
+      assert.strictEqual(
+        props?.Principal,
+        'cloudfront.amazonaws.com',
+        'CloudFrontOnly permission should use cloudfront.amazonaws.com principal',
+      );
+      // Verify SourceArn constrains to the specific distribution
+      const sourceArn = props?.SourceArn as Record<string, unknown> | string;
+      assert.ok(
+        sourceArn,
+        'CloudFrontOnly permission should have a SourceArn condition',
+      );
+    }
+  });
+
+  void it('does NOT create CloudFrontOnly permission for SPA (no Lambda)', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    const permissions = template.findResources('AWS::Lambda::Permission');
+    const cloudFrontOnlyPerms = Object.keys(permissions).filter((key) =>
+      key.includes('CloudFrontOnly'),
+    );
+
+    assert.strictEqual(
+      cloudFrontOnlyPerms.length,
+      0,
+      'SPA mode should not have CloudFrontOnly Lambda permission',
+    );
+  });
+});

@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as nodeFs from 'fs';
 import * as nodePath from 'path';
@@ -287,6 +287,13 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- WAF (conditional) ----
     if (props.waf?.enabled) {
+      if (!Token.isUnresolved(region) && region !== 'us-east-1') {
+        throw new AmplifyUserError('WafRegionError', {
+          message: `WAF with CloudFront scope must be deployed in us-east-1, but the current region is ${region}.`,
+          resolution:
+            'Either deploy to us-east-1, disable WAF (waf: { enabled: false }), or use a separate us-east-1 stack for WAF.',
+        });
+      }
       (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(
         props.name,
         props.waf.rateLimit,
@@ -377,6 +384,13 @@ export class AmplifyHostingConstruct extends Construct {
       this.ssrFunction.addPermission('CloudFrontOACInvokeFunction', {
         principal: new ServicePrincipal('cloudfront.amazonaws.com'),
         action: 'lambda:InvokeFunction',
+        sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+      });
+
+      // Restrict Function URL invocation to only this CloudFront distribution
+      this.ssrFunction.addPermission('CloudFrontOnly', {
+        principal: new ServicePrincipal('cloudfront.amazonaws.com'),
+        action: 'lambda:InvokeFunctionUrl',
         sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
       });
     }
@@ -660,7 +674,7 @@ export class AmplifyHostingConstruct extends Construct {
     customCsp?: string,
   ): ResponseHeadersPolicy {
     const defaultCsp =
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
 
     return new ResponseHeadersPolicy(this, 'SecurityHeaders', {
       securityHeadersBehavior: {
