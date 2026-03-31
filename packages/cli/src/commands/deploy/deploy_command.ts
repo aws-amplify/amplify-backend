@@ -1,5 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { BackendDeployer } from '@aws-amplify/backend-deployer';
+import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -10,9 +10,9 @@ import {
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import {
-  AmplifyError,
   AmplifyUserError,
   BackendIdentifierConversions,
+  BackendLocator,
 } from '@aws-amplify/platform-core';
 import { format, printer } from '@aws-amplify/cli-core';
 import { CommandMiddleware } from '../../command_middleware.js';
@@ -22,6 +22,7 @@ import {
   SSMClient,
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
+import path from 'path';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
@@ -70,7 +71,7 @@ export class DeployCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly backendDeployer: BackendDeployer,
+    private readonly backendDeployerFactory: BackendDeployerFactory,
     private readonly commandMiddleware: CommandMiddleware,
     private readonly ssmClient: SSMClient,
   ) {
@@ -116,7 +117,6 @@ export class DeployCommand
 
     const deployBackend = args.backend || (!args.backend && !args.frontend);
     const deployFrontend = args.frontend || (!args.backend && !args.frontend);
-    const isBareCommand = !args.backend && !args.frontend;
 
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
@@ -125,9 +125,9 @@ export class DeployCommand
     };
 
     if (deployBackend) {
-      await this.backendDeployer.deploy(backendId, {
+      const backendDeployer = this.backendDeployerFactory.getInstance();
+      await backendDeployer.deploy(backendId, {
         validateAppSources: true,
-        deployScope: 'backend',
       });
 
       const backendStackName =
@@ -143,14 +143,25 @@ export class DeployCommand
     }
 
     if (deployFrontend) {
-      try {
-        const frontendId: BackendIdentifier = {
-          namespace: args.identifier,
-          name: 'frontend',
-          type: 'standalone',
-        };
+      const hostingLocator = new BackendLocator(
+        process.cwd(),
+        path.join('amplify', 'hosting'),
+      );
 
+      if (!hostingLocator.exists()) {
+        // If user explicitly asked for --frontend, throw an error
+        if (args.frontend) {
+          throw new AmplifyUserError('FileConventionError', {
+            message: 'Cannot deploy frontend: no amplify/hosting.ts found.',
+            resolution:
+              'Create an amplify/hosting.ts file that calls defineHosting(), or remove the --frontend flag.',
+          });
+        }
+        // Bare deploy without hosting.ts → skip frontend silently
+      } else {
+        // Hosting file exists — deploy it
         if (!deployBackend) {
+          // --frontend only: generate client config from existing backend stack
           const backendStackName =
             BackendIdentifierConversions.toStackName(backendId);
           try {
@@ -180,25 +191,21 @@ export class DeployCommand
           }
         }
 
-        await this.backendDeployer.deploy(frontendId, {
+        const hostingId: BackendIdentifier = {
+          namespace: args.identifier,
+          name: 'hosting',
+          type: 'standalone',
+        };
+        const hostingDeployer =
+          this.backendDeployerFactory.getInstance(hostingLocator);
+        await hostingDeployer.deploy(hostingId, {
           validateAppSources: true,
-          deployScope: 'frontend',
         });
 
-        const frontendStackName =
-          BackendIdentifierConversions.toStackName(frontendId);
+        const hostingStackName =
+          BackendIdentifierConversions.toStackName(hostingId);
         printer.log(`Frontend deployment complete.`);
-        printer.log(`Frontend stack: ${frontendStackName}`);
-      } catch (error) {
-        // For bare "ampx deploy" on projects without hosting, skip frontend silently.
-        // If user explicitly passed --frontend, let the error propagate.
-        const isNoHostingError =
-          isBareCommand &&
-          AmplifyError.isAmplifyError(error) &&
-          error.name === 'NoHostingDefinedError';
-        if (!isNoHostingError) {
-          throw error;
-        }
+        printer.log(`Frontend stack: ${hostingStackName}`);
       }
     }
 
