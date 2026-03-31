@@ -53,7 +53,7 @@ void describe(
         };
         frontendIdentifier = {
           namespace,
-          name: 'frontend',
+          name: 'hosting',
           type: 'standalone',
         };
       });
@@ -80,7 +80,7 @@ void describe(
 
       void describe('in sequence', { concurrency: false }, () => {
         void it('deploys backend with auth, data, storage and verifies amplify_outputs.json', async () => {
-          await testProject.deploy(backendIdentifier, undefined, 'backend');
+          await testProject.deploy(backendIdentifier);
 
           const backendStackName =
             BackendIdentifierConversions.toStackName(backendIdentifier);
@@ -138,7 +138,7 @@ void describe(
         });
 
         void it('deploys frontend and verifies CloudFront URL returns 200', async () => {
-          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
+          await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);

@@ -56,7 +56,7 @@ void describe(
         };
         frontendIdentifier = {
           namespace,
-          name: 'frontend',
+          name: 'hosting',
           type: 'standalone',
         };
       });
@@ -83,7 +83,7 @@ void describe(
 
       void describe('in sequence', { concurrency: false }, () => {
         void it('stage 1: deploys backend and verifies outputs', async () => {
-          await testProject.deploy(backendIdentifier, undefined, 'backend');
+          await testProject.deploy(backendIdentifier);
 
           const backendStackName =
             BackendIdentifierConversions.toStackName(backendIdentifier);
@@ -112,7 +112,7 @@ void describe(
         });
 
         void it('stage 2: deploys frontend SSR and verifies server-rendered content', async () => {
-          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
+          await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
@@ -213,7 +213,7 @@ void describe(
           }
 
           // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
+          await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
@@ -264,7 +264,7 @@ void describe(
           }
 
           // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier, undefined, 'frontend');
+          await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
