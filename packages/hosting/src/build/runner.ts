@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
-export interface BuildRunnerOptions {
+export type BuildRunnerOptions = {
   /**
    * The build command to execute (e.g., 'npm run build').
    */
@@ -16,9 +16,9 @@ export interface BuildRunnerOptions {
    * Optional environment variables to set during the build.
    */
   env?: Record<string, string>;
-}
+};
 
-export interface BuildRunnerResult {
+export type BuildRunnerResult = {
   /**
    * The stdout output from the build command.
    */
@@ -28,7 +28,7 @@ export interface BuildRunnerResult {
    * The exit code (always 0 on success since errors throw).
    */
   exitCode: 0;
-}
+};
 
 /**
  * Format build output for error messages.

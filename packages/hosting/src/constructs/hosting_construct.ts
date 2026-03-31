@@ -116,7 +116,7 @@ const LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS = new Set([
   'eu-south-1',
 ]);
 
-/** S3 lifecycle expiration for old builds (days) */
+/** Retain build artifacts for 1 year to support rollback scenarios */
 const BUILD_EXPIRATION_DAYS = 365;
 
 /**

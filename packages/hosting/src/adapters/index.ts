@@ -16,25 +16,12 @@ export type FrameworkAdapterFn = (
 
 /**
  * Built-in adapter registry.
- * Custom adapters can be registered at runtime via registerAdapter().
  */
 const adapterRegistry = new Map<string, FrameworkAdapterFn>([
   ['nextjs', nextjsAdapter],
   ['spa', spaAdapter],
   ['static', spaAdapter],
 ]);
-
-/**
- * Register a custom framework adapter at runtime.
- * @param framework - framework identifier string
- * @param adapter - adapter function
- */
-export const registerAdapter = (
-  framework: string,
-  adapter: FrameworkAdapterFn,
-): void => {
-  adapterRegistry.set(framework, adapter);
-};
 
 /**
  * Detect the framework from the project's package.json.
@@ -79,7 +66,7 @@ export const detectFramework = (projectDir: string): string => {
 
 /**
  * Get the adapter function for the given framework type.
- * Looks up the adapter registry (built-in + custom registered adapters).
+ * Looks up the adapter registry.
  * @param framework - the framework type
  * @returns the adapter function
  */

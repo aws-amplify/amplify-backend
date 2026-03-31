@@ -162,7 +162,7 @@ export class AmplifyHostingGenerator
     const framework = this.props.framework ?? detectFramework(projectDir);
 
     if (!this.props.framework) {
-      process.stdout.write(
+      process.stderr.write(
         `Detected framework: ${framework} (from package.json)\n`,
       );
     }

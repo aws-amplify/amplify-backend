@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { detectFramework, getAdapter, registerAdapter } from './index.js';
+import { detectFramework, getAdapter } from './index.js';
 
 void describe('detectFramework', () => {
   let tmpDir: string;
@@ -94,19 +94,5 @@ void describe('getAdapter', () => {
         return true;
       },
     );
-  });
-});
-
-void describe('registerAdapter', () => {
-  void it('registers and retrieves a custom adapter', () => {
-    const customAdapter = () => ({
-      version: 1 as const,
-      routes: [{ path: '/*', target: { kind: 'Static' as const } }],
-      framework: { name: 'custom' },
-    });
-
-    registerAdapter('custom-test', customAdapter);
-    const retrieved = getAdapter('custom-test');
-    assert.strictEqual(retrieved, customAdapter);
   });
 });
