@@ -1,4 +1,4 @@
-export { BackendHosting, defineHosting } from './factory.js';
+export { BackendHosting, defineHosting, HostingResult } from './factory.js';
 export {
   ComputeConfig,
   FrameworkType,

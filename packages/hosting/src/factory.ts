@@ -1,109 +1,343 @@
-import * as path from 'path';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { App, NestedStack, Stack, Tags } from 'aws-cdk-lib';
 import {
-  ConstructContainerEntryGenerator,
-  ConstructFactory,
-  ConstructFactoryGetInstanceProps,
+  AmplifyUserError,
+  BackendIdentifierConversions,
+  CDKContextKey,
+  TagName,
+} from '@aws-amplify/platform-core';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
+import {
+  BackendIdentifier,
+  DeploymentType,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { HostingProps, HostingResources } from './types.js';
-import { AmplifyHostingGenerator } from './generator.js';
+import {
+  AmplifyHostingConstruct,
+  AmplifyHostingConstructProps,
+} from './constructs/hosting_construct.js';
+import { detectFramework, getAdapter } from './adapters/index.js';
+import { checkNextConfig } from './adapters/nextjs.js';
+import { getHostingOutputDir } from './manifest/parser.js';
+import { runBuild } from './build/runner.js';
+import { getDefaultBuildOutputDir } from './defaults.js';
+import { fileURLToPath } from 'node:url';
+import * as path from 'path';
+import * as fs from 'fs';
+import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 
 export type BackendHosting = ResourceProvider<HostingResources>;
 
+// Lock file in project directory — avoids insecure temp dir
+const getLockFilePath = (projectDir: string): string =>
+  path.join(projectDir, '.amplify-hosting-deploy.lock');
+
+const LOCK_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour stale lock timeout
+
 /**
- * Extract the caller frame from a stack trace.
- * Skips internal frames (Error, constructor, defineHosting) to find the
- * user's call site — the location where defineHosting() was invoked.
+ * Acquire a file-based deploy lock to prevent concurrent deployments.
+ * Uses exclusive-create (wx) flag for atomic lock acquisition — no TOCTOU race.
  */
-const getCallerFrame = (stack: string | undefined): string | undefined => {
-  if (!stack) return undefined;
-  const lines = stack.split('\n');
-  // Skip frames from this file (factory.ts) to find the external caller
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('at ')) continue;
-    if (trimmed.includes('factory.ts') || trimmed.includes('factory.js'))
-      continue;
-    return trimmed;
+const acquireLock = (projectDir: string): void => {
+  const lockFile = getLockFilePath(projectDir);
+  try {
+    fs.writeFileSync(
+      lockFile,
+      JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+      { flag: 'wx', mode: 0o600 },
+    );
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+      // Lock file exists — check if stale
+      try {
+        const lockData = JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+        if (Date.now() - lockData.timestamp < LOCK_TIMEOUT_MS) {
+          throw new AmplifyUserError('DeploymentInProgressError', {
+            message: `Another deployment appears to be in progress (started ${Math.round((Date.now() - lockData.timestamp) / 1000)}s ago).`,
+            resolution: `Wait for the other deployment to complete. If no deployment is running, delete ${lockFile}`,
+          });
+        }
+      } catch (e) {
+        if ((e as Error).name === 'DeploymentInProgressError') throw e;
+        // Corrupted lock file — fall through to replace it
+      }
+      // Stale or corrupted lock — try to take over atomically
+      try {
+        fs.unlinkSync(lockFile);
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // Another process already removed it — that's fine
+      }
+      try {
+        fs.writeFileSync(
+          lockFile,
+          JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+          { flag: 'wx', mode: 0o600 },
+        );
+      } catch (retryErr: unknown) {
+        if ((retryErr as NodeJS.ErrnoException).code === 'EEXIST') {
+          throw new AmplifyUserError(
+            'DeploymentInProgressError',
+            {
+              message: 'Another deployment acquired the lock.',
+              resolution:
+                'Wait for the other deployment to finish, or delete the lock file manually.',
+            },
+            retryErr as Error,
+          );
+        }
+        throw retryErr;
+      }
+      return;
+    }
+    throw err;
   }
-  return undefined;
 };
 
 /**
- * Singleton factory for AmplifyHosting that can be used in Amplify project files.
- *
- * Exported for testing purpose only & should NOT be exported out of the package.
+ * Release the deploy lock.
  */
-export class AmplifyHostingFactory implements ConstructFactory<BackendHosting> {
-  // Publicly writable for testing (reset between tests).
-  static factoryCount = 0;
-  static lastInstance: AmplifyHostingFactory | undefined;
-  private static creationCallerFrame: string | undefined;
-
-  readonly provides = 'HostingResources';
-
-  private generator: ConstructContainerEntryGenerator;
-
-  /**
-   * Set the properties that will be used to initialize hosting.
-   */
-  constructor(
-    private readonly props: HostingProps,
-    private readonly importStack = new Error().stack,
-  ) {
-    if (AmplifyHostingFactory.factoryCount > 0) {
-      const callerFrame = getCallerFrame(importStack);
-      // Same call site = two-phase deploy re-evaluation via tsImport
-      if (
-        AmplifyHostingFactory.lastInstance &&
-        AmplifyHostingFactory.creationCallerFrame === callerFrame
-      ) {
-        return AmplifyHostingFactory.lastInstance;
-      }
-      // Different call site = actual duplicate defineHosting() call
-      throw new AmplifyUserError('MultipleSingletonResourcesError', {
-        message:
-          'Multiple `defineHosting` calls are not allowed within an Amplify backend',
-        resolution: 'Remove all but one `defineHosting` call',
-      });
-    }
-    AmplifyHostingFactory.factoryCount++;
-    AmplifyHostingFactory.lastInstance = this;
-    AmplifyHostingFactory.creationCallerFrame = getCallerFrame(importStack);
+const releaseLock = (projectDir: string): void => {
+  try {
+    fs.unlinkSync(getLockFilePath(projectDir));
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    // Lock file may already be deleted by another process; safe to ignore
   }
+};
 
-  /**
-   * Get a singleton instance of AmplifyHosting.
-   */
-  getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps,
-  ): BackendHosting => {
-    const { constructContainer, importPathVerifier, resourceNameValidator } =
-      getInstanceProps;
-    importPathVerifier?.verify(
-      this.importStack,
-      path.join('amplify', 'hosting', 'resource'),
-      'Amplify Hosting must be defined in amplify/hosting/resource.ts',
-    );
-    if (this.props.name) {
-      resourceNameValidator?.validate(this.props.name);
-    }
-    if (!this.generator) {
-      this.generator = new AmplifyHostingGenerator(
-        this.props,
-        getInstanceProps,
-      );
-    }
-    return constructContainer.getOrCompute(this.generator) as BackendHosting;
-  };
-}
+const rootStackTypeIdentifier = 'hosting';
 
 /**
- * Provide the settings that will be used for frontend hosting.
+ * Read backend identifier from CDK context.
+ */
+const getBackendIdentifier = (scope: App): BackendIdentifier => {
+  const backendNamespace = scope.node.getContext(
+    CDKContextKey.BACKEND_NAMESPACE,
+  );
+  if (typeof backendNamespace !== 'string') {
+    throw new Error(
+      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`,
+    );
+  }
+  const backendName = scope.node.getContext(CDKContextKey.BACKEND_NAME);
+  if (typeof backendName !== 'string') {
+    throw new Error(
+      `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`,
+    );
+  }
+  const deploymentType: DeploymentType = scope.node.getContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+  );
+  const expectedDeploymentTypeValues = ['sandbox', 'branch', 'standalone'];
+  if (!expectedDeploymentTypeValues.includes(deploymentType)) {
+    throw new Error(
+      `${CDKContextKey.DEPLOYMENT_TYPE} CDK context value is not in (${expectedDeploymentTypeValues.join(', ')})`,
+    );
+  }
+  return {
+    type: deploymentType,
+    namespace: backendNamespace,
+    name: backendName,
+  };
+};
+
+/**
+ * The return type of `defineHosting()`.
+ */
+export type HostingResult = {
+  /**
+   * The CDK resources created by hosting.
+   */
+  resources: HostingResources;
+  /**
+   * The root hosting stack.
+   */
+  stack: Stack;
+  /**
+   * Create an additional CDK stack for custom resources.
+   */
+  createStack: (name: string) => Stack;
+};
+
+/**
+ * Create the hosting infrastructure as a standalone CDK entry point.
+ *
+ * This is called in `amplify/hosting.ts` and creates its own CDK App + Stack.
+ * The CLI deploys this as a separate CloudFormation stack from the backend.
+ * @example
+ * ```ts
+ * // amplify/hosting.ts
+ * import { defineHosting } from '@aws-amplify/hosting';
+ *
+ * const hosting = defineHosting({
+ *   framework: 'nextjs',
+ *   buildCommand: 'npm run build',
+ * });
+ *
+ * // Optional: add custom resources
+ * const monitoring = hosting.createStack('monitoring');
+ * ```
  * @see https://docs.amplify.aws/hosting/
  */
-export const defineHosting = (
-  props: HostingProps = {},
-): ConstructFactory<BackendHosting> =>
-  new AmplifyHostingFactory(props, new Error().stack);
+export const defineHosting = (props: HostingProps = {}): HostingResult => {
+  const app = new App();
+  const backendId = getBackendIdentifier(app);
+
+  const rootStack = new Stack(
+    app,
+    BackendIdentifierConversions.toStackName(backendId),
+  );
+
+  new AttributionMetadataStorage().storeAttributionMetadata(
+    rootStack,
+    rootStackTypeIdentifier,
+    fileURLToPath(new URL('../package.json', import.meta.url)),
+  );
+
+  const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+    rootStack,
+  );
+
+  outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
+    version: '1',
+    payload: {
+      deploymentType: backendId.type,
+      region: rootStack.region,
+    },
+  });
+
+  Tags.of(rootStack).add('created-by', 'amplify');
+  if (backendId.type === 'standalone') {
+    Tags.of(rootStack).add('amplify:branch-name', backendId.name);
+    Tags.of(rootStack).add('amplify:deployment-type', 'standalone');
+  }
+
+  // Listen for synth signal from CDK Toolkit
+  process.once('message', (message) => {
+    if (message === 'amplifySynth') {
+      app.synth({ errorOnDuplicateSynth: false });
+    }
+  });
+
+  // Build the hosting construct inside a nested stack
+  const hostingNestedStack = new NestedStack(rootStack, 'hosting');
+  const resources = buildHostingConstruct(props, hostingNestedStack);
+
+  // Track custom stacks to prevent duplicates
+  const customStacks: Record<string, Stack> = {};
+
+  const createStack = (name: string): Stack => {
+    if (customStacks[name]) {
+      throw new Error(`Custom stack named ${name} has already been created`);
+    }
+    const stack = new NestedStack(rootStack, name);
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      stack,
+      'custom',
+      fileURLToPath(new URL('../package.json', import.meta.url)),
+    );
+    customStacks[name] = stack;
+    return stack;
+  };
+
+  return {
+    resources,
+    stack: rootStack,
+    createStack,
+  };
+};
+
+/**
+ * Build the hosting construct from props.
+ * Handles framework detection, build execution, adapter invocation,
+ * and CDK construct creation.
+ */
+const buildHostingConstruct = (
+  props: HostingProps,
+  scope: Stack,
+): HostingResources => {
+  const projectDir = process.cwd();
+  acquireLock(projectDir);
+  try {
+    return doBuildHostingConstruct(props, scope, projectDir);
+  } finally {
+    releaseLock(projectDir);
+  }
+};
+
+const doBuildHostingConstruct = (
+  props: HostingProps,
+  scope: Stack,
+  projectDir: string,
+): HostingResources => {
+  const name = props.name ?? 'amplifyHosting';
+
+  // Auto-detect or use explicit framework
+  const framework = props.framework ?? detectFramework(projectDir);
+
+  if (!props.framework) {
+    process.stderr.write(
+      `Detected framework: ${framework} (from package.json)\n`,
+    );
+  }
+
+  // Next.js pre-flight validation
+  if (framework === 'nextjs') {
+    checkNextConfig(projectDir);
+  }
+
+  // Run the build command if provided
+  if (props.buildCommand) {
+    runBuild({
+      command: props.buildCommand,
+      cwd: projectDir,
+    });
+  }
+
+  // Default build output dirs per framework
+  const buildOutputDir =
+    props.buildOutputDir ?? getDefaultBuildOutputDir(framework);
+
+  const absoluteBuildOutputDir = path.isAbsolute(buildOutputDir)
+    ? buildOutputDir
+    : path.join(projectDir, buildOutputDir);
+
+  // Get the adapter (custom or registry) and run it to produce .amplify-hosting/
+  const adapter = props.customAdapter ?? getAdapter(framework);
+  const manifest = adapter(absoluteBuildOutputDir, projectDir);
+
+  // Resolve paths
+  const hostingOutputDir = getHostingOutputDir(projectDir);
+  const staticAssetPath = path.join(hostingOutputDir, 'static');
+  const computeBasePath = path.join(hostingOutputDir, 'compute');
+
+  const constructProps: AmplifyHostingConstructProps = {
+    manifest,
+    staticAssetPath,
+    computeBasePath,
+    domain: props.domain,
+    waf: props.waf,
+    compute: props.compute,
+    retainOnDelete: props.retainOnDelete,
+    accessLogging: props.accessLogging,
+    contentSecurityPolicy: props.contentSecurityPolicy,
+    priceClass: props.priceClass,
+    name,
+  };
+
+  const hostingConstruct = new AmplifyHostingConstruct(
+    scope,
+    name,
+    constructProps,
+  );
+
+  Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, name);
+
+  process.stderr.write(`\nHosting URL: ${hostingConstruct.distributionUrl}\n`);
+
+  return hostingConstruct.getResources();
+};
