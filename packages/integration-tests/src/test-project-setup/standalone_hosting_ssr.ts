@@ -40,7 +40,7 @@ export class StandaloneHostingSsrTestProjectCreator
       this.amplifyClient,
     );
 
-    // Copy the amplify/ directory (backend.ts + hosting/resource.ts)
+    // Copy the amplify/ directory (backend.ts + hosting.ts)
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
@@ -129,12 +129,11 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
               path.join(
                 fileURLToPath(this.sourceProjectUpdateV3DirURL),
                 'amplify',
-                'hosting',
-                'resource.ts',
+                'hosting.ts',
               ),
             ),
             destination: pathToFileURL(
-              path.join(this.projectAmplifyDirPath, 'hosting', 'resource.ts'),
+              path.join(this.projectAmplifyDirPath, 'hosting.ts'),
             ),
           },
         ],

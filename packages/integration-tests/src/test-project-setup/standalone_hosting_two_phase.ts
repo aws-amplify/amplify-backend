@@ -41,7 +41,7 @@ export class StandaloneHostingTwoPhaseTestProjectCreator
       this.amplifyClient,
     );
 
-    // Copy the amplify/ directory (backend.ts + auth/ + data/ + storage/ + hosting/)
+    // Copy the amplify/ directory (backend.ts + hosting.ts + auth/ + data/ + storage/)
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,

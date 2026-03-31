@@ -5,10 +5,10 @@
 ```ts
 
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
@@ -28,7 +28,7 @@ export type ComputeResource = {
 };
 
 // @public
-export const defineHosting: (props?: HostingProps) => ConstructFactory<BackendHosting>;
+export const defineHosting: (props?: HostingProps) => HostingResult;
 
 // @public
 export type DeployManifest = {
@@ -78,6 +78,13 @@ export type HostingResources = {
     bucket: Bucket;
     distribution: Distribution;
     distributionUrl: string;
+};
+
+// @public
+export type HostingResult = {
+    resources: HostingResources;
+    stack: Stack;
+    createStack: (name: string) => Stack;
 };
 
 // @public

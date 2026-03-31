@@ -89,7 +89,8 @@ export class BackendIdentifierConversions {
 
 // @public
 export class BackendLocator {
-    constructor(rootDir?: string);
+    constructor(rootDir?: string, basePath?: string);
+    exists: () => boolean;
     // (undocumented)
     locate: () => string;
 }
@@ -107,8 +108,6 @@ export enum CDKContextKey {
     BACKEND_NAME = "amplify-backend-name",
     // (undocumented)
     BACKEND_NAMESPACE = "amplify-backend-namespace",
-    // (undocumented)
-    DEPLOY_SCOPE = "amplify-deploy-scope",
     // (undocumented)
     DEPLOYMENT_TYPE = "amplify-backend-type"
 }

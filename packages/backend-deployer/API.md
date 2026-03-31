@@ -6,6 +6,7 @@
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendLocator } from '@aws-amplify/platform-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 
@@ -18,7 +19,7 @@ export type BackendDeployer = {
 // @public
 export class BackendDeployerFactory {
     constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter, backendDeployerIOHost: AmplifyIOHost, sdkProfileResolver: SDKProfileResolver);
-    getInstance(): BackendDeployer;
+    getInstance(locator?: BackendLocator): BackendDeployer;
 }
 
 // @public (undocumented)
@@ -36,7 +37,6 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
-    deployScope?: 'backend' | 'frontend';
 };
 
 // @public (undocumented)
