@@ -3,10 +3,7 @@ import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
-
-const HOSTING_DIR = '.amplify-hosting';
-const STATIC_DIR = 'static';
-const MANIFEST_FILENAME = 'deploy-manifest.json';
+import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
 
 /**
  * SPA adapter — transforms a built SPA output directory into the canonical

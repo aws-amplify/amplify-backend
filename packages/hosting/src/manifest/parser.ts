@@ -3,9 +3,7 @@ import * as path from 'path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { deployManifestSchema } from './schema.js';
 import { DeployManifest } from './types.js';
-
-const MANIFEST_FILENAME = 'deploy-manifest.json';
-const HOSTING_DIR = '.amplify-hosting';
+import { HOSTING_DIR, MANIFEST_FILENAME } from '../constants.js';
 
 /**
  * Parse and validate the deploy manifest from the hosting output directory.

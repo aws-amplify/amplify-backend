@@ -64,32 +64,32 @@ const acquireLock = (projectDir: string): void => {
         if ((e as Error).name === 'DeploymentInProgressError') throw e;
         // Corrupted lock file — fall through to replace it
       }
-      // Stale or corrupted lock — try to take over atomically
+      // Stale or corrupted lock — take over atomically via rename
+      const tempLockFile = `${lockFile}.${process.pid}.tmp`;
+      fs.writeFileSync(
+        tempLockFile,
+        JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+        { mode: 0o600 },
+      );
       try {
-        fs.unlinkSync(lockFile);
-        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-      } catch {
-        // Another process already removed it — that's fine
-      }
-      try {
-        fs.writeFileSync(
-          lockFile,
-          JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
-          { flag: 'wx', mode: 0o600 },
-        );
-      } catch (retryErr: unknown) {
-        if ((retryErr as NodeJS.ErrnoException).code === 'EEXIST') {
-          throw new AmplifyUserError(
-            'DeploymentInProgressError',
-            {
-              message: 'Another deployment acquired the lock.',
-              resolution:
-                'Wait for the other deployment to finish, or delete the lock file manually.',
-            },
-            retryErr as Error,
-          );
+        fs.renameSync(tempLockFile, lockFile); // Atomic on POSIX
+      } catch (renameErr) {
+        // Another process won the race — clean up our temp file
+        try {
+          fs.unlinkSync(tempLockFile);
+          // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+        } catch {
+          /* ignore */
         }
-        throw retryErr;
+        throw new AmplifyUserError(
+          'DeploymentInProgressError',
+          {
+            message:
+              'Another deployment acquired the lock while cleaning stale lock.',
+            resolution: `Wait for the other deployment to complete, or delete ${lockFile}`,
+          },
+          renameErr as Error,
+        );
       }
       return;
     }
@@ -166,9 +166,22 @@ export type HostingResult = {
 /**
  * Create the hosting infrastructure as a standalone CDK entry point.
  *
- * This is called in `amplify/hosting.ts` and creates its own CDK App + Stack.
- * The CLI deploys this as a separate CloudFormation stack from the backend.
- * @example
+ * **⚠️ Important:** This must be called in a SEPARATE file (`amplify/hosting.ts`),
+ * NOT inside `amplify/backend.ts`. Hosting deploys as an independent CloudFormation
+ * stack so it can be deployed separately from the backend (e.g., frontend-only deploys).
+ *
+ * The CLI calls this file as a separate CDK app via `ampx deploy`.
+ * @example SPA (React, Vue, etc.)
+ * ```ts
+ * // amplify/hosting.ts
+ * import { defineHosting } from '@aws-amplify/hosting';
+ *
+ * defineHosting({
+ *   framework: 'spa',
+ *   buildCommand: 'npm run build',
+ * });
+ * ```
+ * @example Next.js SSR
  * ```ts
  * // amplify/hosting.ts
  * import { defineHosting } from '@aws-amplify/hosting';
@@ -181,6 +194,8 @@ export type HostingResult = {
  * // Optional: add custom resources
  * const monitoring = hosting.createStack('monitoring');
  * ```
+ * @param props - Hosting configuration (framework, build command, domain, etc.). All optional.
+ * @returns Hosting result containing CDK resources, root stack, and a `createStack` helper.
  * @see https://docs.amplify.aws/hosting/
  */
 export const defineHosting = (props: HostingProps = {}): HostingResult => {

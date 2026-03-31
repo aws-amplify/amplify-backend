@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -351,18 +351,30 @@ void describe('checkNextConfig', () => {
     assert.doesNotThrow(() => checkNextConfig(tmpDir));
   });
 
-  void it('throws NextjsStandaloneRequiredError when config lacks standalone', () => {
+  void it('warns but does not throw when config lacks standalone', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'next.config.js'),
       'module.exports = { reactStrictMode: true };',
     );
-    assert.throws(
-      () => checkNextConfig(tmpDir),
-      (error: Error) => {
-        assert.strictEqual(error.name, 'NextjsStandaloneRequiredError');
-        return true;
+    const stderrWrites: string[] = [];
+    const originalWrite = process.stderr.write.bind(process.stderr);
+    mock.method(
+      process.stderr,
+      'write',
+      (chunk: string | Uint8Array, ...args: unknown[]) => {
+        if (typeof chunk === 'string') {
+          stderrWrites.push(chunk);
+        }
+        return originalWrite(chunk, ...(args as []));
       },
     );
+    // Should not throw — only warn
+    assert.doesNotThrow(() => checkNextConfig(tmpDir));
+    const warningMsg = stderrWrites.find((msg) =>
+      msg.includes('may not have output'),
+    );
+    assert.ok(warningMsg, 'Expected a warning about standalone config');
+    mock.restoreAll();
   });
 
   void it('throws NextjsConfigNotFoundError when no config exists', () => {

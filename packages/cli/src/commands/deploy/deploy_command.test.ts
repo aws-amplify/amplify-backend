@@ -502,4 +502,22 @@ void describe('deploy command', () => {
     );
     assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
   });
+
+  void it('rejects --backend and --frontend together', async () => {
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --backend --frontend',
+        ),
+      (err: TestCommandError) => {
+        assert.match(
+          err.output,
+          /Cannot specify both --backend and --frontend/,
+        );
+        return true;
+      },
+    );
+    assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+    assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+  });
 });

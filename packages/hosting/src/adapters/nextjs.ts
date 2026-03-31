@@ -4,12 +4,10 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { DeployManifest, ManifestRoute } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
+import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
 
-const HOSTING_DIR = '.amplify-hosting';
-const STATIC_DIR = 'static';
 const COMPUTE_DIR = 'compute';
 const DEFAULT_COMPUTE_NAME = 'default';
-const MANIFEST_FILENAME = 'deploy-manifest.json';
 
 /**
  * Cache-Control for public/ assets. These can change between deploys but
@@ -65,15 +63,11 @@ export const checkNextConfig = (projectDir: string): void => {
     if (fs.existsSync(configPath)) {
       const content = fs.readFileSync(configPath, 'utf-8');
       // Check for output property set to 'standalone' — tolerates various formatting
-      if (
-        !/output\s*[:=]\s*['"]standalone['"]/.test(content) &&
-        !content.includes('standalone')
-      ) {
-        throw new AmplifyUserError('NextjsStandaloneRequiredError', {
-          message: `Next.js config at ${configFile} does not appear to have output: 'standalone' set.`,
-          resolution:
-            'Add `output: "standalone"` to your next.config.js/mjs/ts. This is required for Lambda deployment. See: https://nextjs.org/docs/app/api-reference/next-config-js/output',
-        });
+      if (!/output\s*[:=]\s*['"]standalone['"]/.test(content)) {
+        process.stderr.write(
+          `Warning: Next.js config at ${configFile} may not have output: 'standalone' set. ` +
+            `The build will proceed, but deployment requires .next/standalone/ to exist.\n`,
+        );
       }
       return;
     }
@@ -134,6 +128,12 @@ export const scanPublicRoutes = (projectDir: string): ManifestRoute[] => {
       });
     }
     // Symlinks and other special entries are ignored
+  }
+
+  if (routes.length > 20) {
+    process.stderr.write(
+      `Warning: Found ${routes.length} top-level entries in public/. CloudFront has a default limit of 25 cache behaviors. Consider consolidating assets into fewer top-level directories.\n`,
+    );
   }
 
   return routes;

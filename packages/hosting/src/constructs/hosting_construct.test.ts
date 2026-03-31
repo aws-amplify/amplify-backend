@@ -984,6 +984,39 @@ void describe('AmplifyHostingConstruct — custom domain', () => {
     });
   });
 
+  void it('creates Route53 AAAA record for IPv6 pointing to CloudFront', () => {
+    const stack = createEnvStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::Route53::RecordSet', {
+      Name: 'www.example.com.',
+      Type: 'AAAA',
+    });
+  });
+
+  void it('creates both A and AAAA records when domain is configured', () => {
+    const stack = createEnvStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'www.example.com', hostedZone: 'example.com' },
+    });
+
+    const template = Template.fromStack(stack);
+    const records = template.findResources('AWS::Route53::RecordSet');
+    const recordTypes = Object.values(records).map(
+      (r) => (r as Record<string, Record<string, unknown>>).Properties?.Type,
+    );
+    assert.ok(recordTypes.includes('A'), 'Should have an A record');
+    assert.ok(recordTypes.includes('AAAA'), 'Should have an AAAA record');
+  });
+
   void it('outputs custom domain URL instead of CloudFront URL', () => {
     const stack = createEnvStack();
     const construct = new AmplifyHostingConstruct(stack, 'Hosting', {

@@ -53,6 +53,8 @@ import {
 } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   ARecord,
+  // eslint-disable-next-line spellcheck/spell-checker
+  AaaaRecord,
   HostedZone,
   IHostedZone,
   RecordTarget,
@@ -222,11 +224,11 @@ export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
   readonly distribution: Distribution;
   readonly distributionUrl: string;
-  readonly ssrFunction?: LambdaFunction;
-  readonly functionUrl?: FunctionUrl;
-  readonly certificate?: ICertificate;
-  readonly hostedZone?: IHostedZone;
-  readonly webAcl?: CfnWebACL;
+  ssrFunction?: LambdaFunction;
+  functionUrl?: FunctionUrl;
+  certificate?: ICertificate;
+  hostedZone?: IHostedZone;
+  webAcl?: CfnWebACL;
 
   /**
    * Create a new manifest-driven hosting construct with the given props.
@@ -272,8 +274,8 @@ export class AmplifyHostingConstruct extends Construct {
     if (hasCompute) {
       const computeResource = manifest.computeResources![0] as ComputeResource;
       const result = this.createSsrFunction(props, computeResource, region);
-      (this as { ssrFunction?: LambdaFunction }).ssrFunction = result.ssrFn;
-      (this as { functionUrl?: FunctionUrl }).functionUrl = result.fnUrl;
+      this.ssrFunction = result.ssrFn;
+      this.functionUrl = result.fnUrl;
       lambdaOrigin = FunctionUrlOrigin.withOriginAccessControl(result.fnUrl);
     }
 
@@ -281,9 +283,8 @@ export class AmplifyHostingConstruct extends Construct {
     if (props.domain) {
       this.validateDomainConfig(props.domain);
       const domainResult = this.createDomainResources(props.domain);
-      (this as { certificate?: ICertificate }).certificate =
-        domainResult.certificate;
-      (this as { hostedZone?: IHostedZone }).hostedZone = domainResult.zone;
+      this.certificate = domainResult.certificate;
+      this.hostedZone = domainResult.zone;
     }
 
     // ---- WAF (conditional) ----
@@ -295,10 +296,7 @@ export class AmplifyHostingConstruct extends Construct {
             'Either deploy to us-east-1, disable WAF (waf: { enabled: false }), or use a separate us-east-1 stack for WAF.',
         });
       }
-      (this as { webAcl?: CfnWebACL }).webAcl = this.createWafWebAcl(
-        props.name,
-        props.waf.rateLimit,
-      );
+      this.webAcl = this.createWafWebAcl(props.name, props.waf.rateLimit);
     }
 
     // ---- Access log bucket (conditional) ----
@@ -337,9 +335,15 @@ export class AmplifyHostingConstruct extends Construct {
       buildId,
     });
 
-    // ---- Route 53 A Record (only when custom domain configured) ----
+    // ---- Route 53 DNS records (only when custom domain configured) ----
     if (props.domain && this.hostedZone) {
       new ARecord(this, 'DnsRecord', {
+        zone: this.hostedZone,
+        recordName: props.domain.domainName,
+        target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+      });
+      // eslint-disable-next-line spellcheck/spell-checker
+      new AaaaRecord(this, 'DnsRecordIpv6', {
         zone: this.hostedZone,
         recordName: props.domain.domainName,
         target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
@@ -407,6 +411,13 @@ export class AmplifyHostingConstruct extends Construct {
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,
       });
+      // Clean up temp dir — Source.asset() captured the path during synth
+      try {
+        nodeFs.rmSync(errorPageDir, { recursive: true, force: true });
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        /* ignore */
+      }
     }
 
     // ---- Atomic Deployment (uploads static assets + invalidates CloudFront) ----
@@ -490,7 +501,13 @@ export class AmplifyHostingConstruct extends Construct {
     computeResource: ComputeResource,
     region: string,
   ): { ssrFn: LambdaFunction; fnUrl: FunctionUrl } {
-    const computeDir = `${props.computeBasePath!}/${computeResource.name}`;
+    if (!props.computeBasePath) {
+      throw new AmplifyUserError('MissingComputeBasePathError', {
+        message: 'computeBasePath is required for SSR deployments.',
+        resolution: 'This is an internal error. Please report it.',
+      });
+    }
+    const computeDir = `${props.computeBasePath}/${computeResource.name}`;
     const compute = props.compute ?? {};
 
     // Validate region supports Lambda Web Adapter (skip if region is an unresolved token)

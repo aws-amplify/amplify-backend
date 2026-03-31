@@ -2,15 +2,26 @@
 
 Deploy static sites, SPAs, and SSR (Next.js) applications to AWS using CloudFront + S3 + Lambda.
 
+## ⚠️ Important: Separate File Required
+
+Hosting **must** be defined in `amplify/hosting.ts` — a separate file from `amplify/backend.ts`. This is because hosting deploys as an independent CloudFormation stack, allowing you to deploy frontend and backend independently.
+
+```
+amplify/
+├── backend.ts      ← defineBackend() — auth, data, storage
+├── hosting.ts      ← defineHosting() — CloudFront, S3, Lambda
+└── ...
+```
+
 ## Quick Start
 
 ### SPA (React, Vue, etc.)
 
 ```typescript
-// amplify/hosting/resource.ts
+// amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
 
-export const hosting = defineHosting({
+defineHosting({
   framework: 'spa',
   buildCommand: 'npm run build',
 });
@@ -26,30 +37,53 @@ export const hosting = defineHosting({
 > ```
 
 ```typescript
-// amplify/hosting/resource.ts
+// amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
 
-export const hosting = defineHosting({
+defineHosting({
   framework: 'nextjs',
   buildCommand: 'npm run build',
 });
 ```
 
-### Wire into backend
-
-```typescript
-// amplify/backend.ts
-import { defineBackend } from '@aws-amplify/backend';
-import { hosting } from './hosting/resource';
-
-defineBackend({ hosting });
-```
-
 ### Deploy
 
 ```bash
+# Deploy everything (backend + frontend)
 npx ampx deploy --identifier prod
+
+# Deploy only backend (auth, data, storage)
+npx ampx deploy --identifier prod --backend
+
+# Deploy only frontend (hosting) — requires backend deployed first
+npx ampx deploy --identifier prod --frontend
 ```
+
+## Common Mistakes
+
+❌ **WRONG — Do NOT add hosting to defineBackend:**
+
+```typescript
+// amplify/backend.ts — THIS IS WRONG
+import { defineBackend } from '@aws-amplify/backend';
+import { hosting } from './hosting/resource';
+
+defineBackend({ hosting }); // ❌ Will not work
+```
+
+✅ **CORRECT — Use a separate amplify/hosting.ts file:**
+
+```typescript
+// amplify/hosting.ts — THIS IS CORRECT
+import { defineHosting } from '@aws-amplify/hosting';
+
+defineHosting({
+  framework: 'spa',
+  buildCommand: 'npm run build',
+});
+```
+
+Hosting is a standalone CDK entry point. The CLI discovers `amplify/hosting.ts` automatically and deploys it as a separate CloudFormation stack.
 
 ## What Happens During Deploy?
 
@@ -93,6 +127,9 @@ npx ampx deploy --identifier prod
 Requires a Route53 hosted zone in the same AWS account. ACM certificate is automatically created and validated via DNS.
 
 ```typescript
+// amplify/hosting.ts
+import { defineHosting } from '@aws-amplify/hosting';
+
 defineHosting({
   domain: {
     domainName: 'app.example.com',
@@ -121,6 +158,9 @@ Changing `domainName` after initial deploy causes **5-30 minutes of downtime** w
 Enables AWS Managed Rules (Common Rule Set + Known Bad Inputs) and IP-based rate limiting (1000 req/5min/IP default).
 
 ```typescript
+// amplify/hosting.ts
+import { defineHosting } from '@aws-amplify/hosting';
+
 defineHosting({
   waf: { enabled: true, rateLimit: 1000 },
 });
@@ -149,6 +189,8 @@ Running `ampx deploy` without flags deploys both phases sequentially.
 | `--backend`  | Deploy backend only (skip hosting)                           |
 | `--frontend` | Deploy frontend only (requires backend to be deployed first) |
 
+**Note:** `--backend` and `--frontend` are mutually exclusive. Specifying both is an error.
+
 ## Limitations
 
 ### Sandbox
@@ -164,6 +206,7 @@ Running `ampx deploy` without flags deploys both phases sequentially.
 For frameworks not built in (Astro, Remix, etc.), provide a custom adapter:
 
 ```typescript
+// amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
 import type { FrameworkAdapterFn } from '@aws-amplify/hosting/adapters';
 
@@ -173,7 +216,7 @@ const myAdapter: FrameworkAdapterFn = (buildOutputDir, projectDir) => ({
   framework: { name: 'my-framework' },
 });
 
-export const hosting = defineHosting({
+defineHosting({
   customAdapter: myAdapter,
   buildCommand: 'npm run build',
 });
@@ -184,6 +227,9 @@ export const hosting = defineHosting({
 Customize SSR Lambda settings:
 
 ```typescript
+// amplify/hosting.ts
+import { defineHosting } from '@aws-amplify/hosting';
+
 defineHosting({
   framework: 'nextjs',
   compute: {
@@ -207,6 +253,9 @@ default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-
 However, some libraries (e.g., certain template engines, older chart libraries) require `eval()` at runtime. If your app needs it, use the `contentSecurityPolicy` prop to override:
 
 ```typescript
+// amplify/hosting.ts
+import { defineHosting } from '@aws-amplify/hosting';
+
 defineHosting({
   contentSecurityPolicy:
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",

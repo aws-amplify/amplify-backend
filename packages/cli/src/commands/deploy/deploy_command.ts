@@ -96,6 +96,14 @@ export class DeployCommand
       });
     }
 
+    if (args.backend && args.frontend) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message: 'Cannot specify both --backend and --frontend flags.',
+        resolution:
+          'Use one flag to deploy selectively, or omit both to deploy everything.',
+      });
+    }
+
     // Check CDK bootstrap before deploying
     const bootstrapped = await this.isBootstrapped();
     const region = await this.ssmClient.config.region();
