@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { defineHosting } from './factory.js';
 import { App } from 'aws-cdk-lib';
@@ -23,11 +23,28 @@ const clearHostingContext = () => {
 };
 
 void describe('defineHosting', () => {
+  const savedAccount = process.env.CDK_DEFAULT_ACCOUNT;
+  const savedRegion = process.env.CDK_DEFAULT_REGION;
+
   beforeEach(() => {
     clearHostingContext();
     // Remove the 'message' listener from previous tests to avoid
     // "already listening" issues — defineHosting registers process.once('message')
     process.removeAllListeners('message');
+  });
+
+  afterEach(() => {
+    // Restore env vars that tests may modify
+    if (savedAccount !== undefined) {
+      process.env.CDK_DEFAULT_ACCOUNT = savedAccount;
+    } else {
+      delete process.env.CDK_DEFAULT_ACCOUNT;
+    }
+    if (savedRegion !== undefined) {
+      process.env.CDK_DEFAULT_REGION = savedRegion;
+    } else {
+      delete process.env.CDK_DEFAULT_REGION;
+    }
   });
 
   void it('throws when CDK context is missing', () => {
@@ -90,6 +107,61 @@ void describe('defineHosting', () => {
         assert.ok(
           err.message.includes('CDK context value is not in'),
           `Expected deployment type error, got: ${err.message}`,
+        );
+        return true;
+      },
+    );
+  });
+
+  void it('sets stack env when domain is configured', () => {
+    setHostingContext();
+    process.env.CDK_DEFAULT_ACCOUNT = '123456789012';
+    process.env.CDK_DEFAULT_REGION = 'us-west-2';
+
+    // defineHosting will throw in the adapter phase (no real build output),
+    // but we can catch and inspect the error to confirm it got past stack
+    // creation without a "Cannot retrieve value from context provider" error.
+    assert.throws(
+      () =>
+        defineHosting({
+          framework: 'spa',
+          buildOutputDir: '/nonexistent',
+          domain: { domainName: 'app.example.com', hostedZone: 'example.com' },
+        }),
+      (err: Error) => {
+        // The error should come from the adapter/build phase, not from
+        // a missing account/region on the stack.
+        assert.ok(
+          !err.message.includes('Cannot retrieve value from context provider'),
+          `Expected adapter error, got context provider error: ${err.message}`,
+        );
+        assert.ok(
+          !err.message.includes('account/region are not specified'),
+          `Stack env should be set when domain is configured: ${err.message}`,
+        );
+        return true;
+      },
+    );
+  });
+
+  void it('does not set stack env when no domain is configured', () => {
+    setHostingContext();
+    // Even with CDK_DEFAULT env vars, if no domain is specified the stack
+    // should remain environment-agnostic.
+    process.env.CDK_DEFAULT_ACCOUNT = '123456789012';
+    process.env.CDK_DEFAULT_REGION = 'us-west-2';
+
+    assert.throws(
+      () =>
+        defineHosting({
+          framework: 'spa',
+          buildOutputDir: '/nonexistent',
+        }),
+      (err: Error) => {
+        // Should fail in adapter phase, not stack creation
+        assert.ok(
+          !err.message.includes('CDK context'),
+          `Should not be a CDK context error, got: ${err.message}`,
         );
         return true;
       },

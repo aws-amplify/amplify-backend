@@ -202,9 +202,23 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
   const app = new App();
   const backendId = getBackendIdentifier(app);
 
+  // HostedZone.fromLookup() (used for custom domains) requires the stack to
+  // have an explicit env so CDK can make Route 53 API calls at synth time.
+  const stackEnv = props.domain
+    ? {
+        account:
+          process.env.CDK_DEFAULT_ACCOUNT ??
+          process.env.AWS_ACCOUNT_ID ??
+          undefined,
+        region:
+          process.env.CDK_DEFAULT_REGION ?? process.env.AWS_REGION ?? undefined,
+      }
+    : undefined;
+
   const rootStack = new Stack(
     app,
     BackendIdentifierConversions.toStackName(backendId),
+    { env: stackEnv },
   );
 
   new AttributionMetadataStorage().storeAttributionMetadata(
