@@ -82,7 +82,12 @@ export abstract class TestProjectBase {
         .do(interruptSandbox())
         .run();
     } else if (backendIdentifier.type === 'standalone') {
-      const args = ['deploy', '--identifier', backendIdentifier.namespace];
+      const args = [
+        'deploy',
+        '--identifier',
+        backendIdentifier.namespace,
+        '--yes',
+      ];
       // Derive deploy flag from identifier name
       if (backendIdentifier.name === 'backend') {
         args.push('--backend');
