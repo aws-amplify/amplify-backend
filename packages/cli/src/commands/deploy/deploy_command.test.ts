@@ -13,6 +13,7 @@ import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import fs from 'fs';
 
 const deployResult = () =>
@@ -111,7 +112,9 @@ void describe('deploy command', () => {
   void it('bare deploy with hosting.ts present deploys both', async () => {
     hostingExists = true;
 
-    await getCommandRunner().runCommand('deploy --identifier my-app-prod');
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app-prod --yes',
+    );
 
     // Backend deployer called once
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 1);
@@ -144,7 +147,7 @@ void describe('deploy command', () => {
     hostingExists = false;
 
     const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app',
+      'deploy --identifier my-app --yes',
     );
 
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 1);
@@ -157,7 +160,9 @@ void describe('deploy command', () => {
   });
 
   void it('--backend deploys only backend stack', async () => {
-    await getCommandRunner().runCommand('deploy --identifier my-app --backend');
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app --backend --yes',
+    );
 
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 1);
     const callArgs = mockBackendDeployFn.mock.calls[0]
@@ -181,7 +186,7 @@ void describe('deploy command', () => {
     hostingExists = true;
 
     await getCommandRunner().runCommand(
-      'deploy --identifier my-app --frontend',
+      'deploy --identifier my-app --frontend --yes',
     );
 
     assert.strictEqual(
@@ -204,7 +209,9 @@ void describe('deploy command', () => {
 
     await assert.rejects(
       () =>
-        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --frontend --yes',
+        ),
       (err: TestCommandError) => {
         assert.match(
           err.error.message,
@@ -218,7 +225,9 @@ void describe('deploy command', () => {
   });
 
   void it('generates client config from backend stack', async () => {
-    await getCommandRunner().runCommand('deploy --identifier my-app-prod');
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app-prod --yes',
+    );
 
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
     const configArgs = generateClientConfigMock.mock.calls[0]
@@ -236,7 +245,7 @@ void describe('deploy command', () => {
     hostingExists = true;
 
     await getCommandRunner().runCommand(
-      'deploy --identifier my-app --frontend',
+      'deploy --identifier my-app --frontend --yes',
     );
 
     // Should generate client config (from existing backend stack) before hosting deploy
@@ -259,7 +268,9 @@ void describe('deploy command', () => {
 
     await assert.rejects(
       () =>
-        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --frontend --yes',
+        ),
       (err: TestCommandError) => {
         assert.match(err.error.message, /Backend has not been deployed yet/);
         return true;
@@ -276,7 +287,7 @@ void describe('deploy command', () => {
 
   void it('allows --outputs-out-dir argument', async () => {
     await getCommandRunner().runCommand(
-      'deploy --identifier my-app --outputs-out-dir src --backend',
+      'deploy --identifier my-app --outputs-out-dir src --backend --yes',
     );
 
     assert.strictEqual(generateClientConfigMock.mock.callCount(), 1);
@@ -287,7 +298,7 @@ void describe('deploy command', () => {
 
   void it('passes --profile argument through', async () => {
     await getCommandRunner().runCommand(
-      'deploy --identifier my-app --profile my-profile',
+      'deploy --identifier my-app --profile my-profile --yes',
     );
 
     assert.ok(mockBackendDeployFn.mock.callCount() > 0);
@@ -327,7 +338,9 @@ void describe('deploy command', () => {
   });
 
   void it('accepts valid identifier with hyphens', async () => {
-    await getCommandRunner().runCommand('deploy --identifier my-app-prod-v2');
+    await getCommandRunner().runCommand(
+      'deploy --identifier my-app-prod-v2 --yes',
+    );
 
     assert.ok(mockBackendDeployFn.mock.callCount() > 0);
   });
@@ -343,7 +356,7 @@ void describe('deploy command', () => {
     );
 
     const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app',
+      'deploy --identifier my-app --yes',
     );
 
     assert.match(output, /has not been bootstrapped/);
@@ -360,7 +373,7 @@ void describe('deploy command', () => {
     );
 
     const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app',
+      'deploy --identifier my-app --yes',
     );
 
     assert.match(output, /has not been bootstrapped/);
@@ -372,7 +385,7 @@ void describe('deploy command', () => {
       Promise.resolve({ Parameter: { Value: '6' } }),
     );
 
-    await getCommandRunner().runCommand('deploy --identifier my-app');
+    await getCommandRunner().runCommand('deploy --identifier my-app --yes');
 
     assert.ok(mockBackendDeployFn.mock.callCount() > 0);
   });
@@ -383,7 +396,7 @@ void describe('deploy command', () => {
     );
 
     const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app',
+      'deploy --identifier my-app --yes',
     );
 
     assert.match(output, /has not been bootstrapped/);
@@ -401,7 +414,7 @@ void describe('deploy command', () => {
     });
 
     await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
       (err: TestCommandError) => {
         assert.match(err.output, /AccessDeniedException/);
         return true;
@@ -421,7 +434,7 @@ void describe('deploy command', () => {
     });
 
     await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
       (err: TestCommandError) => {
         assert.match(err.output, /ExpiredTokenException/);
         return true;
@@ -441,7 +454,7 @@ void describe('deploy command', () => {
     });
 
     await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
       (err: TestCommandError) => {
         assert.match(err.output, /InvalidSignatureException/);
         return true;
@@ -456,7 +469,7 @@ void describe('deploy command', () => {
     );
 
     await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
       (err: TestCommandError) => {
         assert.match(err.error.message, /CFN deployment failed/);
         return true;
@@ -471,7 +484,7 @@ void describe('deploy command', () => {
     );
 
     await assert.rejects(
-      () => getCommandRunner().runCommand('deploy --identifier my-app'),
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
       (err: TestCommandError) => {
         assert.match(err.error.message, /Frontend deployment failed/);
         return true;
@@ -494,7 +507,9 @@ void describe('deploy command', () => {
 
     await assert.rejects(
       () =>
-        getCommandRunner().runCommand('deploy --identifier my-app --frontend'),
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --frontend --yes',
+        ),
       (err: TestCommandError) => {
         assert.match(err.error.message, /Access Denied/);
         return true;
@@ -519,5 +534,79 @@ void describe('deploy command', () => {
     );
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
     assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+  });
+
+  void describe('preview confirmation prompt', () => {
+    void it('shows prompt when --yes is not passed and proceeds on confirmation', async (contextual) => {
+      contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+        Promise.resolve(true),
+      );
+
+      await getCommandRunner().runCommand('deploy --identifier my-app');
+
+      assert.ok(
+        mockBackendDeployFn.mock.callCount() > 0,
+        'deploy should proceed after user confirms',
+      );
+    });
+
+    void it('aborts deployment when user declines the prompt', async (contextual) => {
+      contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+        Promise.resolve(false),
+      );
+
+      const output = await getCommandRunner().runCommand(
+        'deploy --identifier my-app',
+      );
+
+      assert.match(output, /Deployment canceled/);
+      assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+      assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+    });
+
+    void it('--yes bypasses the prompt entirely', async (contextual) => {
+      const yesOrNoMock = contextual.mock.method(
+        AmplifyPrompter,
+        'yesOrNo',
+        () => Promise.resolve(false),
+      );
+
+      await getCommandRunner().runCommand('deploy --identifier my-app --yes');
+
+      assert.strictEqual(
+        yesOrNoMock.mock.callCount(),
+        0,
+        'prompt should not be called when --yes is passed',
+      );
+      assert.ok(
+        mockBackendDeployFn.mock.callCount() > 0,
+        'deploy should proceed without prompting',
+      );
+    });
+
+    void it('-y alias bypasses the prompt', async (contextual) => {
+      const yesOrNoMock = contextual.mock.method(
+        AmplifyPrompter,
+        'yesOrNo',
+        () => Promise.resolve(false),
+      );
+
+      await getCommandRunner().runCommand('deploy --identifier my-app -y');
+
+      assert.strictEqual(
+        yesOrNoMock.mock.callCount(),
+        0,
+        'prompt should not be called when -y is passed',
+      );
+      assert.ok(
+        mockBackendDeployFn.mock.callCount() > 0,
+        'deploy should proceed without prompting',
+      );
+    });
+
+    void it('shows --yes in help output', async () => {
+      const output = await getCommandRunner().runCommand('deploy --help');
+      assert.match(output, /--yes/);
+    });
   });
 });
