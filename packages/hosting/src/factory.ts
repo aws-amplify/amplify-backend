@@ -366,7 +366,5 @@ const doBuildHostingConstruct = (
 
   Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, name);
 
-  process.stderr.write(`\nHosting URL: ${hostingConstruct.distributionUrl}\n`);
-
   return hostingConstruct.getResources();
 };
