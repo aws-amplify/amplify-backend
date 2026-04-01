@@ -1,0 +1,6 @@
+import { defineHosting } from '@aws-amplify/hosting';
+defineHosting({
+    framework: 'nextjs',
+    buildOutputDir: '.next',
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaG9zdGluZy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbImhvc3RpbmcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUFFLGFBQWEsRUFBRSxNQUFNLHNCQUFzQixDQUFDO0FBRXJELGFBQWEsQ0FBQztJQUNaLFNBQVMsRUFBRSxRQUFRO0lBQ25CLGNBQWMsRUFBRSxPQUFPO0NBQ3hCLENBQUMsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGRlZmluZUhvc3RpbmcgfSBmcm9tICdAYXdzLWFtcGxpZnkvaG9zdGluZyc7XG5cbmRlZmluZUhvc3Rpbmcoe1xuICBmcmFtZXdvcms6ICduZXh0anMnLFxuICBidWlsZE91dHB1dERpcjogJy5uZXh0Jyxcbn0pO1xuIl19

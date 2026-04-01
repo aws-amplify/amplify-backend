@@ -45,7 +45,7 @@ export const defineStandaloneDeploymentTest = (
           testProject = await testProjectCreator.createProject(rootTestDir);
           standaloneBackendIdentifier = {
             namespace: `standalone-e2e-${shortUuid()}`,
-            name: 'stack',
+            name: 'backend',
             type: 'standalone',
           };
         });
@@ -55,7 +55,7 @@ export const defineStandaloneDeploymentTest = (
         });
 
         void it(`[${testProjectCreator.name}] deploys via standalone`, async () => {
-          await testProject.deploy(standaloneBackendIdentifier);
+          await testProject.deploy(standaloneBackendIdentifier, undefined);
 
           const stackName = BackendIdentifierConversions.toStackName(
             standaloneBackendIdentifier,

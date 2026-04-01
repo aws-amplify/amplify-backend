@@ -9,15 +9,6 @@ import {
   PipelineDeployCommand,
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
-import {
-  BackendDeployerFactory,
-  BackendDeployerOutputFormatter,
-} from '@aws-amplify/backend-deployer';
-import {
-  LogLevel,
-  PackageManagerControllerFactory,
-  Printer,
-} from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import {
   ClientConfigFormat,
@@ -27,7 +18,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import fs from 'fs';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -40,30 +31,22 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve(),
   );
-  const mockIoHost: AmplifyIOHost = {
-    notify: mock.fn(),
-    requestResponse: mock.fn(),
-  };
-  const mockProfileResolver = mock.fn();
 
-  const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd(),
-    new Printer(LogLevel.DEBUG),
+  const mockDeployFn = mock.fn(() =>
+    Promise.resolve({ deploymentTimes: { synthesisTime: 0, totalTime: 0 } }),
   );
-  const formatterStub: BackendDeployerOutputFormatter = {
-    normalizeAmpxCommand: () => 'test command',
+  const mockDestroyFn = mock.fn(() =>
+    Promise.resolve({ deploymentTimes: { synthesisTime: 0, totalTime: 0 } }),
+  );
+  const mockBackendDeployer = {
+    deploy: mockDeployFn,
+    destroy: mockDestroyFn,
   };
+
   const getCommandRunner = (isCI = false) => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
       clientConfigGenerator,
-      backendDeployer,
+      mockBackendDeployer,
       isCI,
     ) as CommandModule<object, PipelineDeployCommandOptions>;
     const parser = yargs().command(deployCommand);
@@ -72,6 +55,10 @@ void describe('deploy command', () => {
 
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
+    mockDeployFn.mock.resetCalls();
+    mockDeployFn.mock.mockImplementation(() =>
+      Promise.resolve({ deploymentTimes: { synthesisTime: 0, totalTime: 0 } }),
+    );
   });
 
   void it('shows the command description with --help', async () => {
@@ -111,22 +98,11 @@ void describe('deploy command', () => {
   });
 
   void it('executes backend deployer in CI environments', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --app-id abc --branch test-branch',
     );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
       {
         name: 'test-branch',
         namespace: 'abc',
@@ -140,22 +116,11 @@ void describe('deploy command', () => {
   });
 
   void it('allows --outputs-out-dir argument', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --app-id abc --branch test-branch --outputs-out-dir src',
     );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
       {
         name: 'test-branch',
         namespace: 'abc',
@@ -179,22 +144,11 @@ void describe('deploy command', () => {
   });
 
   void it('allows --outputs-version argument to generate legacy config', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --app-id abc --branch test-branch --outputs-version 0',
     );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
       {
         name: 'test-branch',
         namespace: 'abc',
@@ -218,22 +172,11 @@ void describe('deploy command', () => {
   });
 
   void it('allows --outputs-format argument', async () => {
-    const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub,
-      mockIoHost,
-      mockProfileResolver,
-    );
-    const mockDeploy = mock.method(
-      backendDeployerFactory.getInstance(),
-      'deploy',
-      () => Promise.resolve(),
-    );
     await getCommandRunner(true).runCommand(
       'pipeline-deploy --app-id abc --branch test-branch --outputs-format dart',
     );
-    assert.strictEqual(mockDeploy.mock.callCount(), 1);
-    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
       {
         name: 'test-branch',
         namespace: 'abc',
@@ -282,5 +225,29 @@ void describe('deploy command', () => {
         return true;
       },
     );
+  });
+
+  void it('does not deploy hosting even when hosting.ts exists', async (contextual) => {
+    // Simulate amplify/hosting.ts existing on disk.
+    // If someone adds code that checks for hosting.ts and deploys it,
+    // this mock ensures that code path is exercised.
+    contextual.mock.method(fs, 'existsSync', () => true);
+
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch test-branch',
+    );
+    // deploy must be called exactly once — for the backend only.
+    // A second call would indicate hosting leaked into pipeline-deploy.
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
   });
 });
