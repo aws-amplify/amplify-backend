@@ -696,7 +696,7 @@ export class AmplifyHostingConstruct extends Construct {
     customCsp?: string,
   ): ResponseHeadersPolicy {
     const defaultCsp =
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
 
     return new ResponseHeadersPolicy(this, 'SecurityHeaders', {
       securityHeadersBehavior: {

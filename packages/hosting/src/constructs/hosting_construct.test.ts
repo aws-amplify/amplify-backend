@@ -1576,6 +1576,30 @@ void describe('AmplifyHostingConstruct — CSP hardening', () => {
       }),
     );
   });
+
+  void it('default CSP allows wss: in connect-src for AppSync subscriptions', () => {
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest,
+      staticAssetPath: staticDir,
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            ContentSecurityPolicy: Match.objectLike({
+              ContentSecurityPolicy:
+                Match.stringLikeRegexp('connect-src.*wss:'),
+            }),
+          }),
+        }),
+      }),
+    );
+  });
 });
 
 // ================================================================
