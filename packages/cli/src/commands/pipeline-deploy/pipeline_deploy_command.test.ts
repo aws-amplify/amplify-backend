@@ -18,6 +18,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import fs from 'fs';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -224,5 +225,29 @@ void describe('deploy command', () => {
         return true;
       },
     );
+  });
+
+  void it('does not deploy hosting even when hosting.ts exists', async (contextual) => {
+    // Simulate amplify/hosting.ts existing on disk.
+    // If someone adds code that checks for hosting.ts and deploys it,
+    // this mock ensures that code path is exercised.
+    contextual.mock.method(fs, 'existsSync', () => true);
+
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch test-branch',
+    );
+    // deploy must be called exactly once — for the backend only.
+    // A second call would indicate hosting leaked into pipeline-deploy.
+    assert.strictEqual(mockDeployFn.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeployFn.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
   });
 });
