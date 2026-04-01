@@ -14,7 +14,7 @@ import {
   BackendIdentifierConversions,
   BackendLocator,
 } from '@aws-amplify/platform-core';
-import { format, printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import { CommandMiddleware } from '../../command_middleware.js';
 import {
   GetParameterCommand,
@@ -35,6 +35,7 @@ type DeployCommandOptionsCamelCase = {
   outputsOutDir?: string;
   backend: boolean;
   frontend: boolean;
+  yes: boolean | undefined;
 };
 
 // CloudFormation stack name constraints
@@ -102,6 +103,18 @@ export class DeployCommand
         resolution:
           'Use one flag to deploy selectively, or omit both to deploy everything.',
       });
+    }
+
+    // ampx deploy is a preview feature — confirm before proceeding
+    if (!args.yes) {
+      const confirmed = await AmplifyPrompter.yesOrNo({
+        message:
+          '⚠️  ampx deploy is a PREVIEW release — not intended for production use. Please confirm you are using this only for testing',
+      });
+      if (!confirmed) {
+        printer.log('Deployment cancelled.');
+        return;
+      }
     }
 
     // Check CDK bootstrap before deploying
@@ -269,6 +282,13 @@ export class DeployCommand
           'Deploy only hosting resources. Requires backend to be deployed first.',
         type: 'boolean',
         default: false,
+      })
+      .option('yes', {
+        describe:
+          'Skip the preview confirmation prompt (useful for CI/testing).',
+        type: 'boolean',
+        array: false,
+        alias: 'y',
       })
       .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion]);
   };
