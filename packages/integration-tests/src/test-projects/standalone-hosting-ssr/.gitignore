@@ -1,0 +1,2 @@
+# Override root .gitignore — JS fixture files in this test project must be committed
+!*.js

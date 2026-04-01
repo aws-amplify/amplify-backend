@@ -391,4 +391,50 @@ void describe('sandbox command', () => {
       } as SandboxFunctionStreamingOptions,
     );
   });
+
+  void it('does not deploy hosting even when hosting.ts exists', async () => {
+    // fs.existsSync is already mocked to return true at file level,
+    // so amplify/hosting.ts "exists" on disk for this test.
+
+    // Create a dedicated factory with a spied getInstance to verify
+    // only one sandbox instance is requested (no separate hosting sandbox).
+    const sandboxFactory = new SandboxSingletonFactory(
+      () =>
+        Promise.resolve({
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        }),
+      mockProfileResolver,
+      printer,
+      format,
+    );
+    const factorySandbox = await sandboxFactory.getInstance();
+    const localStartMock = mock.method(factorySandbox, 'start', () =>
+      Promise.resolve(),
+    );
+    const getInstanceSpy = mock.method(sandboxFactory, 'getInstance', () =>
+      Promise.resolve(factorySandbox),
+    );
+
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [],
+      clientConfigGeneratorAdapterMock,
+      commandMiddleware,
+      undefined,
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    const localRunner = new TestCommandRunner(parser);
+
+    await localRunner.runCommand('sandbox');
+
+    // The command must only request a single sandbox instance (the backend one).
+    // If someone adds a hosting sandbox, getInstance would be called more than once.
+    assert.strictEqual(getInstanceSpy.mock.callCount(), 1);
+
+    // sandbox.start() must be called exactly once — for the backend only.
+    // A second call would indicate hosting leaked into sandbox.
+    assert.strictEqual(localStartMock.mock.callCount(), 1);
+  });
 });

@@ -1,0 +1,7 @@
+import { defineHosting } from '@aws-amplify/hosting';
+defineHosting({
+    framework: 'nextjs',
+    buildOutputDir: '.next',
+    compute: { memorySize: 512 },
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaG9zdGluZy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbImhvc3RpbmcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUFFLGFBQWEsRUFBRSxNQUFNLHNCQUFzQixDQUFDO0FBRXJELGFBQWEsQ0FBQztJQUNaLFNBQVMsRUFBRSxRQUFRO0lBQ25CLGNBQWMsRUFBRSxPQUFPO0lBQ3ZCLE9BQU8sRUFBRSxFQUFFLFVBQVUsRUFBRSxHQUFHLEVBQUU7Q0FDN0IsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgZGVmaW5lSG9zdGluZyB9IGZyb20gJ0Bhd3MtYW1wbGlmeS9ob3N0aW5nJztcblxuZGVmaW5lSG9zdGluZyh7XG4gIGZyYW1ld29yazogJ25leHRqcycsXG4gIGJ1aWxkT3V0cHV0RGlyOiAnLm5leHQnLFxuICBjb21wdXRlOiB7IG1lbW9yeVNpemU6IDUxMiB9LFxufSk7XG4iXX0=

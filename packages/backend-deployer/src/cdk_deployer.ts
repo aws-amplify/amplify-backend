@@ -221,7 +221,7 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   /**
-   * Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
+   * Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts or hosting.ts
    */
   private getCdkCloudAssembly = (
     backendId: BackendIdentifier,
