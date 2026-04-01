@@ -185,6 +185,32 @@ void describe(
             body.includes('Hello Two-Phase v1'),
             `Response body should contain "Hello Two-Phase v1", got: ${body.substring(0, 200)}`,
           );
+
+          // Verify security headers
+          const headersResponse = await fetch(distributionUrl);
+          const headers = headersResponse.headers;
+          assert.ok(
+            headers.get('strict-transport-security'),
+            'Response should include strict-transport-security header',
+          );
+          assert.strictEqual(
+            headers.get('x-content-type-options'),
+            'nosniff',
+            'x-content-type-options should be nosniff',
+          );
+          assert.ok(
+            headers.get('x-frame-options'),
+            'Response should include x-frame-options header',
+          );
+          const csp = headers.get('content-security-policy');
+          assert.ok(
+            csp,
+            'Response should include content-security-policy header',
+          );
+          assert.ok(
+            csp!.includes('wss:'),
+            `content-security-policy connect-src should include wss:, got: ${csp}`,
+          );
         });
 
         void it('verifies the page content includes expected markers', async () => {

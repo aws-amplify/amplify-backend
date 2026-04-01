@@ -198,6 +198,15 @@ void describe(
             headers.get('x-frame-options'),
             'Response should include x-frame-options header',
           );
+          const csp = headers.get('content-security-policy');
+          assert.ok(
+            csp,
+            'Response should include content-security-policy header',
+          );
+          assert.ok(
+            csp!.includes('wss:'),
+            `content-security-policy connect-src should include wss:, got: ${csp}`,
+          );
 
           await testProject.assertPostDeployment(backendIdentifier);
         });
