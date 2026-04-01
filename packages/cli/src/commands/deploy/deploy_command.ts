@@ -109,10 +109,10 @@ export class DeployCommand
     if (!args.yes) {
       const confirmed = await AmplifyPrompter.yesOrNo({
         message:
-          '⚠️  ampx deploy is a PREVIEW release — not intended for production use. Please confirm you are using this only for testing',
+          '⚠️  ampx deploy is a PREVIEW release — not intended for production use. Do you want to continue?',
       });
       if (!confirmed) {
-        printer.log('Deployment cancelled.');
+        printer.log('Deployment canceled.');
         return;
       }
     }

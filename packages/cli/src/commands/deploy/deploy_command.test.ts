@@ -559,7 +559,7 @@ void describe('deploy command', () => {
         'deploy --identifier my-app',
       );
 
-      assert.match(output, /Deployment cancelled/);
+      assert.match(output, /Deployment canceled/);
       assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
       assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
     });

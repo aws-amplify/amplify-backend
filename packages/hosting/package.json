@@ -20,7 +20,7 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local",
-    "postinstall": "echo '\\n⚠️  @aws-amplify/hosting is a PREVIEW release — not for production use\\n'"
+    "postinstall": "node -e \"console.log('\\n⚠️  @aws-amplify/hosting is a PREVIEW release — not for production use\\n')\""
   },
   "license": "Apache-2.0",
   "dependencies": {
