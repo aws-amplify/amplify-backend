@@ -5,10 +5,53 @@
 ```ts
 
 import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import { Construct } from 'constructs';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
+import { FunctionUrl } from 'aws-cdk-lib/aws-lambda';
+import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
+
+// @public
+export class AmplifyHostingConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: AmplifyHostingConstructProps);
+    // (undocumented)
+    readonly bucket: Bucket;
+    // (undocumented)
+    certificate?: ICertificate;
+    // (undocumented)
+    readonly distribution: Distribution;
+    // (undocumented)
+    readonly distributionUrl: string;
+    // (undocumented)
+    functionUrl?: FunctionUrl;
+    getResources(): HostingResources;
+    // (undocumented)
+    hostedZone?: IHostedZone;
+    // (undocumented)
+    ssrFunction?: Function_2;
+    // (undocumented)
+    webAcl?: CfnWebACL;
+}
+
+// @public
+export type AmplifyHostingConstructProps = {
+    manifest: DeployManifest;
+    staticAssetPath: string;
+    computeBasePath?: string;
+    domain?: HostingDomainConfig;
+    waf?: HostingWafConfig;
+    compute?: ComputeConfig;
+    retainOnDelete?: boolean;
+    accessLogging?: boolean;
+    contentSecurityPolicy?: string;
+    priceClass?: PriceClass;
+    name?: string;
+};
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
@@ -52,6 +95,31 @@ export type FrameworkMetadata = {
 export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
 
 // @public
+export const generateBuildId: () => string;
+
+// @public
+export const generateBuildIdFunctionCode: (buildId: string) => string;
+
+// @public
+export type HostingDomainConfig = {
+    domainName: string;
+    hostedZone: string;
+    certificate?: ICertificate;
+};
+
+// @public
+export class HostingError extends Error {
+    constructor(code: string, opts: {
+        message: string;
+        resolution: string;
+    }, cause?: Error);
+    // (undocumented)
+    readonly code: string;
+    // (undocumented)
+    readonly resolution: string;
+}
+
+// @public
 export type HostingProps = {
     buildCommand?: string;
     buildOutputDir?: string;
@@ -85,6 +153,12 @@ export type HostingResult = {
     resources: HostingResources;
     stack: Stack;
     createStack: (name: string) => Stack;
+};
+
+// @public
+export type HostingWafConfig = {
+    enabled: boolean;
+    rateLimit?: number;
 };
 
 // @public

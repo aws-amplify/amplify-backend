@@ -3,8 +3,10 @@
  * Replaces AmplifyUserError for standalone construct usage.
  *
  * Constructor signature matches AmplifyUserError so the replacement is mechanical:
- *   new AmplifyUserError('Code', { message, resolution }, cause?)
- *   new HostingError('Code', { message, resolution }, cause?)
+ * @example
+ * ```
+ * throw new HostingError('Code', { message: 'msg', resolution: 'fix' }, cause);
+ * ```
  */
 export class HostingError extends Error {
   public readonly resolution: string;
