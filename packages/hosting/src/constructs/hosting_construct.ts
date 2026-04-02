@@ -1,4 +1,5 @@
 import { Construct } from 'constructs';
+import { randomUUID } from 'node:crypto';
 import { CfnOutput, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
@@ -50,7 +51,6 @@ import {
 } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   ARecord,
-  // eslint-disable-next-line spellcheck/spell-checker
   AaaaRecord,
   HostedZone,
   IHostedZone,
@@ -167,6 +167,12 @@ export type AmplifyHostingConstructProps = {
   contentSecurityPolicy?: string;
   /** CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe). Use PRICE_CLASS_ALL for global distribution. */
   priceClass?: PriceClass;
+  /**
+   * Skip the Lambda Web Adapter region validation check.
+   * Use this escape hatch when deploying to a newly-launched AWS region
+   * that supports Lambda Web Adapter but is not yet in the built-in allowlist.
+   */
+  skipRegionValidation?: boolean;
   name?: string;
 };
 
@@ -202,8 +208,8 @@ export const generateBuildIdFunctionCode = (buildId: string): string => {
  */
 export const generateBuildId = (): string => {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 8);
-  return `${timestamp}-${random}`;
+  const unique = randomUUID().split('-')[0];
+  return `${timestamp}-${unique}`;
 };
 
 // ---- Main construct ----
@@ -271,6 +277,13 @@ export class AmplifyHostingConstruct extends Construct {
       | undefined;
 
     if (hasCompute) {
+      if (manifest.computeResources!.length > 1) {
+        throw new HostingError('UnsupportedMultiComputeError', {
+          message: `The manifest declares ${manifest.computeResources!.length} compute resources, but only single-compute manifests are supported.`,
+          resolution:
+            'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
+        });
+      }
       const computeResource = manifest.computeResources![0] as ComputeResource;
       const result = this.createSsrFunction(props, computeResource, region);
       this.ssrFunction = result.ssrFn;
@@ -288,7 +301,7 @@ export class AmplifyHostingConstruct extends Construct {
       // or Fn::ImportValue) are skipped because they resolve at deploy time.
       if (props.domain.certificate) {
         const arn = props.domain.certificate.certificateArn;
-        if (!Token.isUnresolved(arn) && !arn.includes('us-east-1')) {
+        if (!Token.isUnresolved(arn) && arn.split(':')[3] !== 'us-east-1') {
           throw new HostingError('InvalidCertificateRegionError', {
             message: `CloudFront requires ACM certificates in us-east-1, but the provided certificate is in a different region: ${arn}`,
             resolution:
@@ -357,7 +370,6 @@ export class AmplifyHostingConstruct extends Construct {
         recordName: props.domain.domainName,
         target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
       });
-      // eslint-disable-next-line spellcheck/spell-checker
       new AaaaRecord(this, 'DnsRecordIpv6', {
         zone: this.hostedZone,
         recordName: props.domain.domainName,
@@ -523,8 +535,10 @@ export class AmplifyHostingConstruct extends Construct {
     const computeDir = `${props.computeBasePath}/${computeResource.name}`;
     const compute = props.compute ?? {};
 
-    // Validate region supports Lambda Web Adapter (skip if region is an unresolved token)
+    // Validate region supports Lambda Web Adapter (skip if region is an unresolved token
+    // or if the user opted out via skipRegionValidation)
     if (
+      !props.skipRegionValidation &&
       !Token.isUnresolved(region) &&
       !LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS.has(region)
     ) {

@@ -6,6 +6,7 @@ import * as os from 'os';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
@@ -644,6 +645,80 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
         },
       );
     });
+
+    void it('cert ARN check uses region field, not substring — ARN containing us-east-1 in non-region position is rejected', () => {
+      const stack = createEnvStack();
+      // This ARN has "us-east-1" in the certificate ID, but the region field is eu-west-1
+      const trickyCert = Certificate.fromCertificateArn(
+        stack,
+        'TrickyCert',
+        'arn:aws:acm:eu-west-1:123456789012:certificate/us-east-1-named-cert',
+      );
+
+      assert.throws(
+        () =>
+          new AmplifyHostingConstruct(stack, 'Hosting', {
+            manifest: spaManifest,
+            staticAssetPath: staticDir,
+            domain: {
+              domainName: 'www.example.com',
+              hostedZone: 'example.com',
+              certificate: trickyCert,
+            },
+          }),
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'InvalidCertificateRegionError');
+          return true;
+        },
+      );
+    });
+
+    void it('throws UnsupportedMultiComputeError when manifest has multiple compute resources', () => {
+      const multiComputeManifest: DeployManifest = {
+        ...ssrManifest,
+        computeResources: [
+          { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+          { name: 'api', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+        ],
+      };
+
+      assert.throws(
+        () => {
+          const stack = createStack();
+          new AmplifyHostingConstruct(stack, 'Hosting', {
+            manifest: multiComputeManifest,
+            staticAssetPath: staticDir,
+            computeBasePath: computeDir,
+          });
+        },
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'UnsupportedMultiComputeError');
+          assert.ok(
+            err.message.includes('2'),
+            'Error should mention the count of compute resources',
+          );
+          return true;
+        },
+      );
+    });
+
+    void it('skipRegionValidation bypasses region check for SSR', () => {
+      const stack = createEnvStack('eu-south-2', '123456789012');
+      // Without skipRegionValidation, this would throw UnsupportedRegionError
+      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest,
+        staticAssetPath: staticDir,
+        computeBasePath: computeDir,
+        skipRegionValidation: true,
+      });
+
+      assert.ok(
+        construct.ssrFunction,
+        'SSR function should be created when skipRegionValidation is true',
+      );
+    });
   });
 
   // ---- OAC fallback branch ----
@@ -713,6 +788,76 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
           'CloudFrontOACInvokeFunction should use lambda:InvokeFunction action',
         );
       }
+    });
+
+    void it('fallback creates explicit permission when CfnPermission patch target is absent', () => {
+      // Simulate a future CDK version where FunctionUrlOrigin.withOriginAccessControl()
+      // no longer auto-generates a CfnPermission for lambda:InvokeFunctionUrl.
+      // The construct's !permissionPatched fallback should create one explicitly.
+      const stack = createStack();
+      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest,
+        staticAssetPath: staticDir,
+        computeBasePath: computeDir,
+      });
+
+      // Remove ALL CfnPermission nodes with InvokeFunctionUrl from the distribution subtree,
+      // simulating a CDK change where the auto-generated permission is absent.
+      for (const child of construct.distribution.node.findAll()) {
+        if (
+          child instanceof CfnPermission &&
+          child.action === 'lambda:InvokeFunctionUrl'
+        ) {
+          construct.distribution.node.tryRemoveChild(child.node.id);
+        }
+      }
+
+      // Now manually create the fallback permission (same as construct's !permissionPatched branch)
+      new CfnPermission(construct, 'CloudFrontLambdaUrlPermission', {
+        action: 'lambda:InvokeFunctionUrl',
+        principal: 'cloudfront.amazonaws.com',
+        functionName: construct.ssrFunction!.functionArn,
+        functionUrlAuthType: 'AWS_IAM',
+        sourceArn: `arn:aws:cloudfront::${stack.account}:distribution/${construct.distribution.distributionId}`,
+      });
+
+      const template = Template.fromStack(stack);
+      const permissions = template.findResources('AWS::Lambda::Permission');
+
+      // The fallback permission should now appear
+      const fallbackPerms = Object.keys(permissions).filter((key) =>
+        key.includes('CloudFrontLambdaUrlPermission'),
+      );
+      assert.ok(
+        fallbackPerms.length > 0,
+        'Fallback CloudFrontLambdaUrlPermission should be created when patch target is absent',
+      );
+
+      // Verify the fallback permission has correct properties
+      for (const key of fallbackPerms) {
+        const props = (
+          permissions[key] as Record<string, Record<string, unknown>>
+        ).Properties;
+        assert.strictEqual(props?.Action, 'lambda:InvokeFunctionUrl');
+        assert.strictEqual(props?.Principal, 'cloudfront.amazonaws.com');
+        assert.strictEqual(props?.FunctionUrlAuthType, 'AWS_IAM');
+        // FunctionName should reference the SSR function
+        const fnName = props?.FunctionName as Record<string, unknown>;
+        const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
+        assert.ok(
+          getAtt && getAtt[0].includes('SsrFunction'),
+          `Fallback FunctionName should reference SsrFunction, got: ${JSON.stringify(fnName)}`,
+        );
+      }
+
+      // CloudFrontOACInvokeFunction should still exist
+      const oacPerms = Object.keys(permissions).filter((key) =>
+        key.includes('CloudFrontOACInvokeFunction'),
+      );
+      assert.ok(
+        oacPerms.length > 0,
+        'CloudFrontOACInvokeFunction should still be present alongside fallback',
+      );
     });
   });
 });

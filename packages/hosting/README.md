@@ -27,6 +27,8 @@ defineHosting({
 });
 ```
 
+> **Note:** `defineHosting()` is designed to be invoked by the Amplify CLI (`ampx deploy`). It synthesizes a CloudFormation template only when it receives an internal `'amplifySynth'` IPC message from the CLI. Running `amplify/hosting.ts` directly with `npx cdk synth` or `node` will **not** produce a CloudFormation template. If you need to use the hosting construct in a standalone CDK app, use `AmplifyHostingConstruct` from `@aws-amplify/hosting/constructs` instead — see [Standalone CDK Usage](#standalone-cdk-usage-no-amplify-cli) below.
+
 ### Next.js (SSR)
 
 > **⚠️ Prerequisite:** Your `next.config.js` must have `output: 'standalone'` set before building.
@@ -100,20 +102,22 @@ Hosting is a standalone CDK entry point. The CLI discovers `amplify/hosting.ts` 
 
 ## Configuration
 
-| Prop                    | Type                                              | Default                  | Description                                                            |
-| ----------------------- | ------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------- |
-| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                       |
-| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                                |
-| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                                |
-| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.                  |
-| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.     |
-| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.                   |
-| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                          |
-| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                               |
-| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                    |
-| `accessLogging`         | `boolean`                                         | `false`                  | Enable CloudFront access logs to S3.                                   |
-| `priceClass`            | `PriceClass`                                      | `PRICE_CLASS_100`        | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
-| `name`                  | `string`                                          | -                        | Optional resource name.                                                |
+| Prop                    | Type                                              | Default                  | Description                                                        |
+| ----------------------- | ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------ |
+| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                   |
+| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                            |
+| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                            |
+| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.              |
+| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
+| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.               |
+| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                      |
+| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                           |
+| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                |
+
+> **⚠️ Production warning:** By default `retainOnDelete` is `false`, which means the S3 bucket and **all hosted assets are permanently deleted** when the CloudFormation stack is destroyed. This is convenient for dev/test but **risky for production**. For production stacks, set `retainOnDelete: true` to preserve the bucket on stack deletion. In standalone CDK usage, you can also set `removalPolicy: RemovalPolicy.RETAIN` on the construct's bucket directly.
+> | `accessLogging` | `boolean` | `false` | Enable CloudFront access logs to S3. |
+> | `priceClass` | `PriceClass` | `PRICE_CLASS_100` | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
+> | `name` | `string` | - | Optional resource name. |
 
 ## Architecture
 

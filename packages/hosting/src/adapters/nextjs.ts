@@ -230,10 +230,7 @@ export const nextjsAdapter = (
   return {
     statusCode: 502,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      error: 'Lambda Web Adapter failed to handle request',
-      message: 'The Lambda Web Adapter layer should intercept all requests. If you see this, the adapter may not be configured correctly.',
-    }),
+    body: JSON.stringify({ error: 'Internal Server Error' }),
   };
 };
 `;

@@ -50,6 +50,7 @@ export type AmplifyHostingConstructProps = {
     accessLogging?: boolean;
     contentSecurityPolicy?: string;
     priceClass?: PriceClass;
+    skipRegionValidation?: boolean;
     name?: string;
 };
 

@@ -5,6 +5,9 @@ import { spaAdapter } from './spa.js';
 import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
 
+export { spaAdapter } from './spa.js';
+export { nextjsAdapter } from './nextjs.js';
+
 /**
  * An adapter function that transforms a build output directory into the
  * canonical .amplify-hosting/ directory structure.
