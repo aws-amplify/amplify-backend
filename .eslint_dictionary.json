@@ -143,6 +143,7 @@
   "mjs",
   "mkdtemp",
   "modelgen",
+  "monorepo",
   "msg",
   "multifactor",
   "mysql",
