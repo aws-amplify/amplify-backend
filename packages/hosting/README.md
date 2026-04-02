@@ -262,6 +262,247 @@ defineHosting({
 });
 ```
 
+## Standalone CDK Usage (No Amplify CLI)
+
+`AmplifyHostingConstruct` works as a standard CDK L3 construct in any CDK project — no Amplify CLI, no `defineHosting()`, no `amplify/` directory required.
+
+### Sub-path Imports
+
+Use sub-path imports to pull in only what you need:
+
+```typescript
+// The construct itself
+import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
+
+// Adapters for framework detection and build output transformation
+import {
+  spaAdapter,
+  nextjsAdapter,
+  detectFramework,
+  getAdapter,
+} from '@aws-amplify/hosting/adapters';
+
+// Error type for catch clauses
+import { HostingError } from '@aws-amplify/hosting/error';
+
+// Manifest types for custom adapters
+import type {
+  DeployManifest,
+  ManifestRoute,
+  ComputeResource,
+} from '@aws-amplify/hosting';
+```
+
+> **Dependency note:** The sub-path imports (`/constructs`, `/adapters`, `/error`) do **not** import any `@aws-amplify/*` packages at runtime. Only the main entry point (`@aws-amplify/hosting`) re-exports the `defineHosting()` factory which depends on `@aws-amplify/plugin-types` and other Amplify packages. If you only use sub-path imports, your project does not need any Amplify packages installed.
+
+### SPA Example (Vanilla CDK)
+
+```typescript
+import { App, Stack } from 'aws-cdk-lib';
+import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
+import type { DeployManifest } from '@aws-amplify/hosting';
+
+const app = new App();
+const stack = new Stack(app, 'MySpaStack', {
+  env: { account: '123456789012', region: 'us-east-1' },
+});
+
+const manifest: DeployManifest = {
+  version: 1,
+  routes: [{ path: '/*', target: { kind: 'Static' } }],
+  framework: { name: 'spa' },
+  buildId: 'my-build-001',
+};
+
+const hosting = new AmplifyHostingConstruct(stack, 'Hosting', {
+  manifest,
+  staticAssetPath: './dist', // your build output directory
+});
+
+// Access created resources for composition with other constructs
+console.log(hosting.distributionUrl); // https://d111111abcdef8.cloudfront.net
+console.log(hosting.bucket.bucketName); // auto-generated bucket name
+```
+
+### Next.js SSR Example (Vanilla CDK)
+
+```typescript
+import { App, Stack } from 'aws-cdk-lib';
+import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
+import type { DeployManifest } from '@aws-amplify/hosting';
+
+const app = new App();
+const stack = new Stack(app, 'MyNextjsStack', {
+  env: { account: '123456789012', region: 'us-east-1' },
+});
+
+const manifest: DeployManifest = {
+  version: 1,
+  routes: [
+    {
+      path: '/_next/static/*',
+      target: {
+        kind: 'Static',
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+    },
+    { path: '/favicon.ico', target: { kind: 'Static' } },
+    { path: '/*', target: { kind: 'Compute', src: 'default' } },
+  ],
+  computeResources: [
+    { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+  ],
+  framework: { name: 'nextjs', version: '15.0.0' },
+  buildId: 'nextjs-build-001',
+};
+
+new AmplifyHostingConstruct(stack, 'Hosting', {
+  manifest,
+  staticAssetPath: './.next/static', // Static assets directory
+  computeBasePath: './.next/standalone', // Directory containing compute resources
+  compute: {
+    memorySize: 1024, // MB
+    timeout: 60, // seconds
+  },
+});
+```
+
+### Custom Domain with BYO Certificate
+
+```typescript
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
+
+// Certificate MUST be in us-east-1 — CloudFront requirement
+const cert = Certificate.fromCertificateArn(
+  stack,
+  'MyCert',
+  'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
+);
+
+new AmplifyHostingConstruct(stack, 'Hosting', {
+  manifest,
+  staticAssetPath: './dist',
+  domain: {
+    domainName: 'app.example.com',
+    hostedZone: 'example.com',
+    certificate: cert, // BYO cert — skips deprecated DnsValidatedCertificate
+  },
+});
+```
+
+> **Important:** CloudFront requires ACM certificates to be in `us-east-1`. If you provide a certificate from another region, the construct throws an `InvalidCertificateRegionError` at synth time (for concrete ARNs). For cross-stack token ARNs, CloudFront will reject the certificate at deploy time.
+
+### Writing a Custom Adapter
+
+The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`) scan framework build output and produce this manifest. You can write your own adapter for any framework (Astro, Remix, SvelteKit, etc.).
+
+**The `DeployManifest` interface:**
+
+```typescript
+type DeployManifest = {
+  version: 1;
+  routes: ManifestRoute[]; // URL patterns → Static or Compute targets
+  computeResources?: ComputeResource[]; // Lambda functions (for SSR)
+  framework: { name: string; version?: string };
+  buildId?: string; // For atomic deployments (auto-generated if omitted)
+};
+
+type ManifestRoute = {
+  path: string; // e.g., '/*', '/_next/static/*', '/favicon.ico'
+  target: {
+    kind: 'Static' | 'Compute';
+    src?: string; // Compute resource name (for kind: 'Compute')
+    cacheControl?: string; // Cache-Control header for static assets
+  };
+};
+
+type ComputeResource = {
+  name: string; // Subdirectory name in computeBasePath
+  runtime: string; // e.g., 'nodejs20.x'
+  entrypoint: string; // e.g., 'run.sh'
+};
+```
+
+**Skeleton adapter for a custom framework:**
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+import type { DeployManifest, ManifestRoute } from '@aws-amplify/hosting';
+
+/**
+ * Custom adapter for Astro (example).
+ * Scans Astro's build output and returns a DeployManifest.
+ */
+export const astroAdapter = (
+  buildOutputDir: string,
+  _projectDir: string,
+): DeployManifest => {
+  // 1. Validate build output exists
+  if (!fs.existsSync(buildOutputDir)) {
+    throw new Error(`Build output not found at ${buildOutputDir}`);
+  }
+
+  // 2. Scan for static vs. server-rendered content
+  const hasServerDir = fs.existsSync(path.join(buildOutputDir, 'server'));
+  const routes: ManifestRoute[] = [];
+
+  // 3. Add static asset routes
+  routes.push({
+    path: '/_astro/*',
+    target: {
+      kind: 'Static',
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  // 4. Add compute route if SSR is detected
+  if (hasServerDir) {
+    routes.push({
+      path: '/*',
+      target: { kind: 'Compute', src: 'default' },
+    });
+  } else {
+    routes.push({
+      path: '/*',
+      target: { kind: 'Static' },
+    });
+  }
+
+  // 5. Return the manifest
+  return {
+    version: 1,
+    routes,
+    ...(hasServerDir
+      ? {
+          computeResources: [
+            { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+          ],
+        }
+      : {}),
+    framework: { name: 'astro' },
+  };
+};
+```
+
+**Using a custom adapter with the construct:**
+
+```typescript
+import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
+import { astroAdapter } from './astro-adapter';
+
+const manifest = astroAdapter('./dist', process.cwd());
+
+new AmplifyHostingConstruct(stack, 'Hosting', {
+  manifest,
+  staticAssetPath: './dist/client',
+  computeBasePath: './dist/server', // only if SSR
+});
+```
+
+The key insight is that **any framework can be supported** by writing an adapter that scans the build output and returns a `DeployManifest`. The construct handles all AWS resource creation (S3, CloudFront, Lambda, OAC, etc.) based on the manifest.
+
 ## Troubleshooting
 
 ### "Next.js standalone output not found"

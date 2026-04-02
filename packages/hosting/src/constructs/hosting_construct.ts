@@ -281,6 +281,22 @@ export class AmplifyHostingConstruct extends Construct {
     // ---- Custom domain resources (conditional) ----
     if (props.domain) {
       this.validateDomainConfig(props.domain);
+
+      // Best-effort region check for BYO certificates — CloudFront requires
+      // ACM certificates in us-east-1. If the ARN is a concrete (non-token)
+      // string, verify the region segment. Token ARNs (from cross-stack refs
+      // or Fn::ImportValue) are skipped because they resolve at deploy time.
+      if (props.domain.certificate) {
+        const arn = props.domain.certificate.certificateArn;
+        if (!Token.isUnresolved(arn) && !arn.includes('us-east-1')) {
+          throw new HostingError('InvalidCertificateRegionError', {
+            message: `CloudFront requires ACM certificates in us-east-1, but the provided certificate is in a different region: ${arn}`,
+            resolution:
+              'Create or import your ACM certificate in the us-east-1 region, then pass it to the certificate prop.',
+          });
+        }
+      }
+
       const domainResult = this.createDomainResources(props.domain);
       this.certificate = domainResult.certificate;
       this.hostedZone = domainResult.zone;

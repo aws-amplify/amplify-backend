@@ -68,6 +68,28 @@ void describe('parseManifest', () => {
     );
   });
 
+  void it('throws ManifestReadError when file is not readable', () => {
+    const manifestPath = path.join(tmpDir, 'deploy-manifest.json');
+    fs.writeFileSync(manifestPath, '{}');
+    // Remove read permission so readFileSync fails
+    fs.chmodSync(manifestPath, 0o000);
+
+    assert.throws(
+      () => parseManifest(tmpDir),
+      (error: Error) => {
+        assert.ok(
+          error.name === 'ManifestReadError',
+          `Expected ManifestReadError, got ${error.name}`,
+        );
+        assert.ok(error.cause, 'ManifestReadError should have a cause');
+        return true;
+      },
+    );
+
+    // Restore permissions for cleanup
+    fs.chmodSync(manifestPath, 0o644);
+  });
+
   void it('throws ManifestValidationError for invalid schema', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'deploy-manifest.json'),

@@ -589,5 +589,130 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
         },
       );
     });
+
+    void it('throws UnsupportedRegionError for SSR in unsupported region', () => {
+      assert.throws(
+        () => {
+          const stack = createEnvStack('eu-south-2', '123456789012');
+          new AmplifyHostingConstruct(stack, 'Hosting', {
+            manifest: ssrManifest,
+            staticAssetPath: staticDir,
+            computeBasePath: computeDir,
+          });
+        },
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'UnsupportedRegionError');
+          assert.ok(
+            err.message.includes('eu-south-2'),
+            'Error message should mention the unsupported region',
+          );
+          assert.ok(err.resolution);
+          return true;
+        },
+      );
+    });
+
+    void it('throws InvalidCertificateRegionError for BYO cert not in us-east-1', () => {
+      const stack = createEnvStack();
+      const wrongRegionCert = Certificate.fromCertificateArn(
+        stack,
+        'WrongRegionCert',
+        'arn:aws:acm:eu-west-1:123456789012:certificate/wrong-region',
+      );
+
+      assert.throws(
+        () =>
+          new AmplifyHostingConstruct(stack, 'Hosting', {
+            manifest: spaManifest,
+            staticAssetPath: staticDir,
+            domain: {
+              domainName: 'www.example.com',
+              hostedZone: 'example.com',
+              certificate: wrongRegionCert,
+            },
+          }),
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'InvalidCertificateRegionError');
+          assert.ok(
+            err.message.includes('eu-west-1'),
+            'Error message should mention the incorrect region',
+          );
+          assert.ok(err.resolution.includes('us-east-1'));
+          return true;
+        },
+      );
+    });
+  });
+
+  // ---- OAC fallback branch ----
+
+  void describe('OAC fallback branch', () => {
+    void it('OAC patch succeeds — no explicit fallback permission needed', () => {
+      // When CDK auto-generates the CfnPermission for lambda:InvokeFunctionUrl,
+      // the construct patches it in-place. Verify the patch succeeded by
+      // checking FunctionName points to SsrFunction (not the FunctionUrl).
+      // The fallback construct ID 'CloudFrontLambdaUrlPermission' should NOT
+      // appear because the patch succeeded.
+      const stack = createStack();
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest,
+        staticAssetPath: staticDir,
+        computeBasePath: computeDir,
+      });
+
+      const template = Template.fromStack(stack);
+      const permissions = template.findResources('AWS::Lambda::Permission');
+
+      // Find any permission keyed with the fallback construct ID
+      const fallbackPerms = Object.keys(permissions).filter((key) =>
+        key.includes('CloudFrontLambdaUrlPermission'),
+      );
+      assert.strictEqual(
+        fallbackPerms.length,
+        0,
+        'Fallback permission should NOT be created when patch succeeds',
+      );
+
+      // The patched permission should have correct FunctionName
+      const patchedPerms = Object.entries(permissions).filter(([, perm]) => {
+        const props = (perm as Record<string, Record<string, unknown>>)
+          .Properties;
+        return props?.Action === 'lambda:InvokeFunctionUrl';
+      });
+      assert.ok(
+        patchedPerms.length > 0,
+        'Patched InvokeFunctionUrl permission should exist',
+      );
+      for (const [, perm] of patchedPerms) {
+        const props = (perm as Record<string, Record<string, unknown>>)
+          .Properties;
+        const fnName = props?.FunctionName as Record<string, unknown>;
+        const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
+        assert.ok(
+          getAtt && getAtt[0].includes('SsrFunction'),
+          'Patched FunctionName should reference SsrFunction',
+        );
+      }
+
+      // The separate InvokeFunction permission should always be present
+      const invokePerms = Object.entries(permissions).filter(([key]) =>
+        key.includes('CloudFrontOACInvokeFunction'),
+      );
+      assert.ok(
+        invokePerms.length > 0,
+        'CloudFrontOACInvokeFunction should always be created for SSR',
+      );
+      for (const [, perm] of invokePerms) {
+        const props = (perm as Record<string, Record<string, unknown>>)
+          .Properties;
+        assert.strictEqual(
+          props?.Action,
+          'lambda:InvokeFunction',
+          'CloudFrontOACInvokeFunction should use lambda:InvokeFunction action',
+        );
+      }
+    });
   });
 });
