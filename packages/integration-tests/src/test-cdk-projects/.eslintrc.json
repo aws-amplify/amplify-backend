@@ -1,7 +1,6 @@
 {
   "rules": {
     "check-file/filename-naming-convention": "off",
-    "import/no-extraneous-dependencies": "off",
     "jsdoc/require-jsdoc": "off",
     "unicorn/filename-case": "off"
   }

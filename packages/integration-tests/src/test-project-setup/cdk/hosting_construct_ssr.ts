@@ -110,9 +110,7 @@ module.exports = nextConfig;
 }
 
 class HostingConstructSsrTestCdkProject extends TestCdkProjectBase {
-  private readonly cfnClient = new CloudFormationClient(
-    e2eToolingClientConfig,
-  );
+  private readonly cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
   assertPostDeployment = async (): Promise<void> => {
     // Retrieve the CloudFront distribution URL from stack outputs
@@ -177,9 +175,10 @@ class HostingConstructSsrTestCdkProject extends TestCdkProjectBase {
       'Response should include x-frame-options header',
     );
     const csp = headers.get('content-security-policy');
+    assert.ok(csp, 'Response should include content-security-policy header');
     assert.ok(
-      csp,
-      'Response should include content-security-policy header',
+      csp!.includes('wss:'),
+      `content-security-policy connect-src should include wss:, got: ${csp}`,
     );
 
     // Verify stack has Lambda resources (proves SSR path was created)
