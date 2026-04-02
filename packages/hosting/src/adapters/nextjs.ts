@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 import { DeployManifest, ManifestRoute } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
@@ -73,7 +73,7 @@ export const checkNextConfig = (projectDir: string): void => {
     }
   }
   // No config file found — Next.js defaults to no standalone output
-  throw new AmplifyUserError('NextjsConfigNotFoundError', {
+  throw new HostingError('NextjsConfigNotFoundError', {
     message: 'No next.config.js/mjs/ts found in project root.',
     resolution:
       'Create a next.config.js with `output: "standalone"` set. This is required for Lambda deployment.',
@@ -157,7 +157,7 @@ export const nextjsAdapter = (
 
   // Validate that standalone output exists
   if (!fs.existsSync(standaloneDir)) {
-    throw new AmplifyUserError('NextjsStandaloneNotFoundError', {
+    throw new HostingError('NextjsStandaloneNotFoundError', {
       message: `Next.js standalone output not found at ${standaloneDir}`,
       resolution:
         'Ensure your next.config.js (or next.config.mjs) has `output: "standalone"` set, ' +
@@ -167,7 +167,7 @@ export const nextjsAdapter = (
 
   const standaloneFiles = fs.readdirSync(standaloneDir);
   if (standaloneFiles.length === 0) {
-    throw new AmplifyUserError('BuildOutputEmptyError', {
+    throw new HostingError('BuildOutputEmptyError', {
       message: `Build output directory is empty: ${standaloneDir}`,
       resolution:
         'Your build command may have failed silently. Run it locally and verify files are created in the output directory.',
@@ -175,7 +175,7 @@ export const nextjsAdapter = (
   }
 
   if (!fs.existsSync(path.join(standaloneDir, 'server.js'))) {
-    throw new AmplifyUserError('NextjsServerNotFoundError', {
+    throw new HostingError('NextjsServerNotFoundError', {
       message: `Next.js server.js not found in standalone output at ${standaloneDir}`,
       resolution:
         'Ensure `next build` completed successfully with `output: "standalone"` ' +

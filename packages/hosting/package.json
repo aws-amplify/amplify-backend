@@ -14,6 +14,21 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./constructs": {
+      "types": "./lib/constructs/hosting_construct.d.ts",
+      "import": "./lib/constructs/hosting_construct.js",
+      "require": "./lib/constructs/hosting_construct.js"
+    },
+    "./adapters": {
+      "types": "./lib/adapters/index.d.ts",
+      "import": "./lib/adapters/index.js",
+      "require": "./lib/adapters/index.js"
+    },
+    "./error": {
+      "types": "./lib/hosting_error.d.ts",
+      "import": "./lib/hosting_error.js",
+      "require": "./lib/hosting_error.js"
     }
   },
   "main": "lib/index.js",
