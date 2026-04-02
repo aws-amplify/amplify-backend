@@ -5,8 +5,6 @@ export type RouteTarget = {
   kind: 'Static' | 'Compute';
   /** For Compute routes, the name of the compute resource. */
   src?: string;
-  /** Cache-Control header value for static assets. */
-  cacheControl?: string;
 };
 
 /**

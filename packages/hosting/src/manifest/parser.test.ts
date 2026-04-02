@@ -24,7 +24,6 @@ void describe('parseManifest', () => {
           path: '/*',
           target: {
             kind: 'Static',
-            cacheControl: 'public, max-age=0, must-revalidate',
           },
         },
       ],

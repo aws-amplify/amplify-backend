@@ -229,11 +229,11 @@ export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
   readonly distribution: Distribution;
   readonly distributionUrl: string;
-  ssrFunction?: LambdaFunction;
-  functionUrl?: FunctionUrl;
-  certificate?: ICertificate;
-  hostedZone?: IHostedZone;
-  webAcl?: CfnWebACL;
+  readonly ssrFunction?: LambdaFunction;
+  readonly functionUrl?: FunctionUrl;
+  readonly certificate?: ICertificate;
+  readonly hostedZone?: IHostedZone;
+  readonly webAcl?: CfnWebACL;
 
   /**
    * Create a new manifest-driven hosting construct with the given props.
@@ -712,8 +712,8 @@ export class AmplifyHostingConstruct extends Construct {
    */
   private validateDomainConfig(domain: HostingDomainConfig): void {
     if (
-      !domain.domainName.endsWith(domain.hostedZone) &&
-      domain.domainName !== domain.hostedZone
+      domain.domainName !== domain.hostedZone &&
+      !domain.domainName.endsWith('.' + domain.hostedZone)
     ) {
       throw new HostingError('InvalidDomainConfigError', {
         message: `Domain name '${domain.domainName}' is not within hosted zone '${domain.hostedZone}'.`,

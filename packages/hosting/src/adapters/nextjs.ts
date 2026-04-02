@@ -10,12 +10,6 @@ const COMPUTE_DIR = 'compute';
 const DEFAULT_COMPUTE_NAME = 'default';
 
 /**
- * Cache-Control for public/ assets. These can change between deploys but
- * are served under build-id-keyed paths, so a moderate TTL is safe.
- */
-const PUBLIC_ASSET_CACHE_CONTROL = 'public, max-age=86400';
-
-/**
  * Generate the run.sh bootstrap script for Lambda Web Adapter.
  * This is the Lambda handler entrypoint; the Web Adapter invokes it
  * and proxies HTTP traffic to the Next.js server on PORT.
@@ -115,7 +109,6 @@ export const scanPublicRoutes = (projectDir: string): ManifestRoute[] => {
         path: `/${entry.name}/*`,
         target: {
           kind: 'Static',
-          cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
         },
       });
     } else if (entry.isFile()) {
@@ -123,7 +116,6 @@ export const scanPublicRoutes = (projectDir: string): ManifestRoute[] => {
         path: `/${entry.name}`,
         target: {
           kind: 'Static',
-          cacheControl: PUBLIC_ASSET_CACHE_CONTROL,
         },
       });
     }
@@ -250,7 +242,6 @@ export const nextjsAdapter = (
         path: '/_next/static/*',
         target: {
           kind: 'Static',
-          cacheControl: 'public, max-age=31536000, immutable',
         },
       },
       // Public assets (favicon.ico, images/, etc.) — served from S3

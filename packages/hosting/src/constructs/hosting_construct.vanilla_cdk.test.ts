@@ -42,7 +42,6 @@ void describe('Vanilla CDK project integration', () => {
         path: '/_next/static/*',
         target: {
           kind: 'Static',
-          cacheControl: 'public, max-age=31536000, immutable',
         },
       },
       {

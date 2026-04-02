@@ -22,20 +22,20 @@ export class AmplifyHostingConstruct extends Construct {
     // (undocumented)
     readonly bucket: Bucket;
     // (undocumented)
-    certificate?: ICertificate;
+    readonly certificate?: ICertificate;
     // (undocumented)
     readonly distribution: Distribution;
     // (undocumented)
     readonly distributionUrl: string;
     // (undocumented)
-    functionUrl?: FunctionUrl;
+    readonly functionUrl?: FunctionUrl;
     getResources(): HostingResources;
     // (undocumented)
-    hostedZone?: IHostedZone;
+    readonly hostedZone?: IHostedZone;
     // (undocumented)
-    ssrFunction?: Function_2;
+    readonly ssrFunction?: Function_2;
     // (undocumented)
-    webAcl?: CfnWebACL;
+    readonly webAcl?: CfnWebACL;
 }
 
 // @public
@@ -172,7 +172,6 @@ export type ManifestRoute = {
 export type RouteTarget = {
     kind: 'Static' | 'Compute';
     src?: string;
-    cacheControl?: string;
 };
 
 // (No @packageDocumentation comment for this package)

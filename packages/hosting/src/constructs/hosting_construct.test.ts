@@ -29,7 +29,6 @@ const ssrManifest: DeployManifest = {
       path: '/_next/static/*',
       target: {
         kind: 'Static',
-        cacheControl: 'public, max-age=31536000, immutable',
       },
     },
     {
@@ -1053,6 +1052,48 @@ void describe('AmplifyHostingConstruct — custom domain', () => {
         assert.ok(error.name === 'InvalidDomainConfigError');
         return true;
       },
+    );
+  });
+
+  void it('rejects domain that is a suffix match without dot separator (evilexample.com)', () => {
+    const stack = createEnvStack();
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: spaManifestForDomain,
+          staticAssetPath: staticDir,
+          domain: {
+            domainName: 'evilexample.com',
+            hostedZone: 'example.com',
+          },
+        }),
+      (error: Error) => {
+        assert.ok(error.name === 'InvalidDomainConfigError');
+        return true;
+      },
+    );
+  });
+
+  void it('accepts subdomain (app.example.com) for hosted zone example.com', () => {
+    const stack = createEnvStack();
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'app.example.com', hostedZone: 'example.com' },
+    });
+    assert.ok(construct.certificate, 'Should create certificate for subdomain');
+  });
+
+  void it('accepts exact match (example.com) for hosted zone example.com', () => {
+    const stack = createEnvStack();
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForDomain,
+      staticAssetPath: staticDir,
+      domain: { domainName: 'example.com', hostedZone: 'example.com' },
+    });
+    assert.ok(
+      construct.certificate,
+      'Should create certificate for exact match',
     );
   });
 });
