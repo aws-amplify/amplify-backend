@@ -1,9 +1,6 @@
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as nodeFs from 'fs';
-import * as nodePath from 'path';
-import * as nodeOs from 'os';
 import {
   AllowedMethods,
   BehaviorOptions,
@@ -62,7 +59,7 @@ import {
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { ComputeConfig, HostingResources } from '../types.js';
 import { BUILD_ID_PATTERN, SSR_DEFAULT_PORT } from '../defaults.js';
@@ -141,6 +138,8 @@ const SSR_ERROR_PAGE_HTML = `<!DOCTYPE html>
 export type HostingDomainConfig = {
   domainName: string;
   hostedZone: string;
+  /** BYO certificate — avoids deprecated DnsValidatedCertificate when provided. */
+  certificate?: ICertificate;
 };
 
 /**
@@ -179,7 +178,7 @@ export type AmplifyHostingConstructProps = {
  */
 export const generateBuildIdFunctionCode = (buildId: string): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
-    throw new AmplifyUserError('InvalidBuildIdError', {
+    throw new HostingError('InvalidBuildIdError', {
       message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
       resolution:
         'Ensure build ID contains only letters, numbers, and hyphens.',
@@ -290,7 +289,7 @@ export class AmplifyHostingConstruct extends Construct {
     // ---- WAF (conditional) ----
     if (props.waf?.enabled) {
       if (!Token.isUnresolved(region) && region !== 'us-east-1') {
-        throw new AmplifyUserError('WafRegionError', {
+        throw new HostingError('WafRegionError', {
           message: `WAF with CloudFront scope must be deployed in us-east-1, but the current region is ${region}.`,
           resolution:
             'Either deploy to us-east-1, disable WAF (waf: { enabled: false }), or use a separate us-east-1 stack for WAF.',
@@ -385,11 +384,17 @@ export class AmplifyHostingConstruct extends Construct {
           permissionPatched = true;
         }
       }
+
+      // Fallback: if CDK changes its internal structure and we can't find the
+      // auto-generated permission, create an explicit one instead of failing.
       if (!permissionPatched) {
-        throw new Error(
-          'Failed to patch Lambda Function URL permission for CloudFront OAC. ' +
-            'This is a CDK construct bug — see https://github.com/aws/aws-cdk/issues/21771',
-        );
+        new CfnPermission(this, 'CloudFrontLambdaUrlPermission', {
+          action: 'lambda:InvokeFunctionUrl',
+          principal: 'cloudfront.amazonaws.com',
+          functionName: this.ssrFunction.functionArn,
+          functionUrlAuthType: 'AWS_IAM',
+          sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+        });
       }
 
       // Separate permission for lambda:InvokeFunction (not InvokeFunctionUrl).
@@ -404,20 +409,12 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- Upload SSR error page for 5xx responses ----
     if (hasCompute) {
-      const errorPageDir = this.createErrorPage();
       new BucketDeployment(this, 'ErrorPageDeployment', {
-        sources: [Source.asset(errorPageDir)],
+        sources: [Source.data('_error.html', this.getErrorPageHtml())],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,
       });
-      // Clean up temp dir — Source.asset() captured the path during synth
-      try {
-        nodeFs.rmSync(errorPageDir, { recursive: true, force: true });
-        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-      } catch {
-        /* ignore */
-      }
     }
 
     // ---- Atomic Deployment (uploads static assets + invalidates CloudFront) ----
@@ -502,7 +499,7 @@ export class AmplifyHostingConstruct extends Construct {
     region: string,
   ): { ssrFn: LambdaFunction; fnUrl: FunctionUrl } {
     if (!props.computeBasePath) {
-      throw new AmplifyUserError('MissingComputeBasePathError', {
+      throw new HostingError('MissingComputeBasePathError', {
         message: 'computeBasePath is required for SSR deployments.',
         resolution: 'This is an internal error. Please report it.',
       });
@@ -515,7 +512,7 @@ export class AmplifyHostingConstruct extends Construct {
       !Token.isUnresolved(region) &&
       !LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS.has(region)
     ) {
-      throw new AmplifyUserError('UnsupportedRegionError', {
+      throw new HostingError('UnsupportedRegionError', {
         message: `Lambda Web Adapter layer is not available in region '${region}'.`,
         resolution:
           'SSR hosting requires a supported region. ' +
@@ -579,7 +576,7 @@ export class AmplifyHostingConstruct extends Construct {
    */
   private createWafWebAcl(name?: string, rateLimit?: number): CfnWebACL {
     if (rateLimit !== undefined && rateLimit < 100) {
-      throw new AmplifyUserError('InvalidWafConfigError', {
+      throw new HostingError('InvalidWafConfigError', {
         message: `WAF rate limit must be at least 100 (got ${rateLimit}). This is an AWS WAFv2 requirement.`,
         resolution:
           'Set waf.rateLimit to 100 or higher, or omit it to use the default (1000).',
@@ -649,6 +646,8 @@ export class AmplifyHostingConstruct extends Construct {
 
   /**
    * Create custom domain resources: ACM certificate and Route 53 hosted zone lookup.
+   * If a certificate is provided via domain.certificate, it is used directly
+   * (avoids the deprecated DnsValidatedCertificate).
    */
   private createDomainResources(domain: HostingDomainConfig): {
     certificate: ICertificate;
@@ -657,6 +656,10 @@ export class AmplifyHostingConstruct extends Construct {
     const zone = HostedZone.fromLookup(this, 'HostedZone', {
       domainName: domain.hostedZone,
     });
+
+    if (domain.certificate) {
+      return { certificate: domain.certificate, zone };
+    }
 
     // DnsValidatedCertificate is deprecated since CDK v2.69.0, but the replacement
     // (Certificate + crossRegionReferences: true) requires a two-stack architecture,
@@ -682,7 +685,7 @@ export class AmplifyHostingConstruct extends Construct {
       !domain.domainName.endsWith(domain.hostedZone) &&
       domain.domainName !== domain.hostedZone
     ) {
-      throw new AmplifyUserError('InvalidDomainConfigError', {
+      throw new HostingError('InvalidDomainConfigError', {
         message: `Domain name '${domain.domainName}' is not within hosted zone '${domain.hostedZone}'.`,
         resolution: `Ensure the domain name ends with the hosted zone. For example, if hostedZone is 'example.com', domainName could be 'www.example.com' or 'example.com'.`,
       });
@@ -879,17 +882,10 @@ export class AmplifyHostingConstruct extends Construct {
   }
 
   /**
-   * Create a temporary directory with the SSR error page HTML.
-   * Returns the path to a temp directory containing _error.html.
+   * Return the SSR error page HTML string.
+   * Used with Source.data() to deploy inline — no temporary filesystem operations.
    */
-  private createErrorPage(): string {
-    const dir = nodeFs.mkdtempSync(
-      nodePath.join(nodeOs.tmpdir(), 'hosting-error-page-'),
-    );
-    nodeFs.writeFileSync(
-      nodePath.join(dir, '_error.html'),
-      SSR_ERROR_PAGE_HTML,
-    );
-    return dir;
+  private getErrorPageHtml(): string {
+    return SSR_ERROR_PAGE_HTML;
   }
 }
