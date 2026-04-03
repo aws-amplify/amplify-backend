@@ -1,8 +1,5 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
 
 void describe('sub-path exports', () => {
   void it('resolves ./constructs', () => {
