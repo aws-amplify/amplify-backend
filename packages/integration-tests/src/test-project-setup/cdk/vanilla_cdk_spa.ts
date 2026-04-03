@@ -36,15 +36,6 @@ export class VanillaCdkSpaTestCdkProjectCreator
       e2eProjectDir,
     );
 
-    // Patch cdk.json to use tsx instead of ts-node (ts-node is not in monorepo deps)
-    const cdkJsonPath = path.join(projectRoot, 'cdk.json');
-    const cdkJson = JSON.parse(await fs.readFile(cdkJsonPath, 'utf-8'));
-    cdkJson.app = cdkJson.app.replace(
-      /npx ts-node[^\s]*(\s+--\S+)*/g,
-      'npx tsx',
-    );
-    await fs.writeFile(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
-
     // Copy CDK stack source to lib/
     const sourceProjectDirPath = path.resolve(
       testCdkProjectsSourceRoot,
