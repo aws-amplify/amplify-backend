@@ -26,3 +26,5 @@ testDir
 *.js
 *.d.ts
 *.map
+
+.roko/
