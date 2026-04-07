@@ -65,7 +65,7 @@ const server = http.createServer(async (req, res) => {
       );
 
       if (result.data && 'listTodos' in result.data) {
-        graphqlResult = JSON.stringify(result.data.listTodos);
+        graphqlResult = JSON.stringify(result.data);
         backendStatus = 'connected';
       } else if (result.errors) {
         graphqlResult = 'errors:' + JSON.stringify(result.errors);
