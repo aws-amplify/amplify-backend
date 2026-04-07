@@ -33,8 +33,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.8.0",
-    "@aws-amplify/plugin-types": "^1.11.2",
-    "@aws-sdk/client-bedrock-runtime": "^3.936.0",
+    "@aws-amplify/plugin-types": "^1.12.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1025.0",
     "@smithy/types": "^4.9.0",
     "json-schema-to-ts": "^3.1.1"
   },
