@@ -24,7 +24,6 @@ import { checkNextConfig } from './adapters/nextjs.js';
 import { getHostingOutputDir } from './manifest/parser.js';
 import { runBuild } from './build/runner.js';
 import { getDefaultBuildOutputDir } from './defaults.js';
-import { fileURLToPath } from 'node:url';
 import * as path from 'path';
 import * as fs from 'fs';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -224,7 +223,7 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
   new AttributionMetadataStorage().storeAttributionMetadata(
     rootStack,
     rootStackTypeIdentifier,
-    fileURLToPath(new URL('../package.json', import.meta.url)),
+    path.resolve(__dirname, '..', 'package.json'),
   );
 
   const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
@@ -267,7 +266,7 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       'custom',
-      fileURLToPath(new URL('../package.json', import.meta.url)),
+      path.resolve(__dirname, '..', 'package.json'),
     );
     customStacks[name] = stack;
     return stack;

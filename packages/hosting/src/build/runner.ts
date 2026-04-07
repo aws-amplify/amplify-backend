@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 
 export type BuildRunnerOptions = {
   /**
@@ -47,7 +47,7 @@ const formatBuildOutput = (output: string): string => {
  * Execute a build command as a child process.
  *
  * Runs the user's build command (e.g., 'npm run build') synchronously
- * and returns the output. Throws AmplifyUserError if the command fails.
+ * and returns the output. Throws HostingError if the command fails.
  */
 export const runBuild = (options: BuildRunnerOptions): BuildRunnerResult => {
   const { command, cwd, env } = options;
@@ -88,7 +88,7 @@ export const runBuild = (options: BuildRunnerOptions): BuildRunnerResult => {
       .filter(Boolean)
       .join('\n');
 
-    throw new AmplifyUserError('BuildError', {
+    throw new HostingError('BuildError', {
       message: `Build command failed: ${command}`,
       resolution: [
         'Check your build command and fix any errors.',

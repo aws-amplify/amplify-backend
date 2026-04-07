@@ -1,9 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 import { spaAdapter } from './spa.js';
 import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
+
+export { spaAdapter } from './spa.js';
+export { nextjsAdapter } from './nextjs.js';
 
 /**
  * An adapter function that transforms a build output directory into the
@@ -40,7 +43,7 @@ export const detectFramework = (projectDir: string): string => {
   try {
     packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
   } catch (error) {
-    throw new AmplifyUserError(
+    throw new HostingError(
       'PackageJsonParseError',
       {
         message: `Failed to parse package.json at ${packageJsonPath}`,
@@ -73,7 +76,7 @@ export const detectFramework = (projectDir: string): string => {
 export const getAdapter = (framework: string): FrameworkAdapterFn => {
   const adapter = adapterRegistry.get(framework);
   if (!adapter) {
-    throw new AmplifyUserError('UnsupportedFrameworkError', {
+    throw new HostingError('UnsupportedFrameworkError', {
       message: `Framework "${framework}" is not supported.`,
       resolution:
         'Use a built-in framework (nextjs, spa, static) or provide a customAdapter in your defineHosting configuration.',
