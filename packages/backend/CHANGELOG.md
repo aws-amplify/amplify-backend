@@ -1,5 +1,31 @@
 # @aws-amplify/backend
 
+## 1.22.0
+
+### Minor Changes
+
+- 1d109e9: drop support of Node 16 functions
+
+### Patch Changes
+
+- Updated dependencies [1d109e9]
+- Updated dependencies [1d109e9]
+  - @aws-amplify/backend-auth@1.9.3
+  - @aws-amplify/backend-function@1.18.0
+
+## 1.21.1
+
+### Patch Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+- Updated dependencies [3c46984]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+  - @aws-amplify/backend-output-storage@1.3.4
+  - @aws-amplify/client-config@1.10.1
+
 ## 1.21.0
 
 ### Minor Changes
