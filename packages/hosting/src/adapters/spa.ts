@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
 import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
@@ -17,7 +17,7 @@ export const spaAdapter = (
   projectDir: string,
 ): DeployManifest => {
   if (!fs.existsSync(buildOutputDir)) {
-    throw new AmplifyUserError('BuildOutputNotFoundError', {
+    throw new HostingError('BuildOutputNotFoundError', {
       message: `Build output directory not found at ${buildOutputDir}`,
       resolution:
         'Run your build command first, or configure buildOutputDir in defineHosting to point to your build output.',
@@ -26,7 +26,7 @@ export const spaAdapter = (
 
   const files = fs.readdirSync(buildOutputDir);
   if (files.length === 0) {
-    throw new AmplifyUserError('BuildOutputEmptyError', {
+    throw new HostingError('BuildOutputEmptyError', {
       message: `Build output directory is empty: ${buildOutputDir}`,
       resolution:
         'Your build command may have failed silently. Run it locally and verify files are created in the output directory.',
@@ -34,7 +34,7 @@ export const spaAdapter = (
   }
 
   if (!files.includes('index.html')) {
-    throw new AmplifyUserError('MissingIndexHtmlError', {
+    throw new HostingError('MissingIndexHtmlError', {
       message: 'No index.html found in the build output directory.',
       resolution: `Ensure your build command produces an index.html file in the output directory (${buildOutputDir}).`,
     });
@@ -60,7 +60,6 @@ export const spaAdapter = (
         path: '/*',
         target: {
           kind: 'Static',
-          cacheControl: 'public, max-age=0, must-revalidate',
         },
       },
     ],

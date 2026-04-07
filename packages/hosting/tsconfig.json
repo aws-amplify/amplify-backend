@@ -1,6 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "lib": ["DOM", "ESnext"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "allowJs": true
+  },
   "references": [
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
