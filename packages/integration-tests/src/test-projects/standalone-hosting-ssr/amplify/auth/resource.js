@@ -1,0 +1,7 @@
+import { defineAuth } from '@aws-amplify/backend';
+export const auth = defineAuth({
+    loginWith: {
+        email: true,
+    },
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVzb3VyY2UuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi9zcmMvdGVzdC1wcm9qZWN0cy9zdGFuZGFsb25lLWhvc3Rpbmctc3NyL2FtcGxpZnkvYXV0aC9yZXNvdXJjZS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEVBQUUsVUFBVSxFQUFFLE1BQU0sc0JBQXNCLENBQUM7QUFFbEQsTUFBTSxDQUFDLE1BQU0sSUFBSSxHQUFHLFVBQVUsQ0FBQztJQUM3QixTQUFTLEVBQUU7UUFDVCxLQUFLLEVBQUUsSUFBSTtLQUNaO0NBQ0YsQ0FBQyxDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgZGVmaW5lQXV0aCB9IGZyb20gJ0Bhd3MtYW1wbGlmeS9iYWNrZW5kJztcblxuZXhwb3J0IGNvbnN0IGF1dGggPSBkZWZpbmVBdXRoKHtcbiAgbG9naW5XaXRoOiB7XG4gICAgZW1haWw6IHRydWUsXG4gIH0sXG59KTtcbiJdfQ==

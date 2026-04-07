@@ -9,7 +9,8 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
- * Creates a minimal hosting SPA project for standalone deployment E2E testing.
+ * Creates a hosting SPA project with auth, data, and storage
+ * for standalone deployment E2E testing.
  */
 export class StandaloneHostingSpaTestProjectCreator
   implements TestProjectCreator
@@ -40,7 +41,7 @@ export class StandaloneHostingSpaTestProjectCreator
       this.amplifyClient,
     );
 
-    // Copy the amplify/ directory (backend.ts + hosting.ts)
+    // Copy the amplify/ directory (backend.ts + hosting.ts + auth/ + data/ + storage/)
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
@@ -73,18 +74,13 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
     import.meta.url,
   );
 
-  private readonly sourceProjectUpdateV3DirURL: URL = new URL(
-    `${this.sourceProjectDirPath}/update-v3`,
-    import.meta.url,
-  );
-
   /**
-   * Returns update definitions for stage 2 (content change) and stage 3 (infra change).
+   * Returns a single update that applies both v2 content and infra changes
+   * (access logging) in one step for the full deploy test.
    */
   override async getUpdates(): Promise<TestProjectUpdate[]> {
     return [
       {
-        // Stage 2: update static-site content from v1 to v2
         replacements: [
           {
             source: pathToFileURL(
@@ -98,15 +94,10 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
               path.join(this.projectDirPath, 'static-site', 'index.html'),
             ),
           },
-        ],
-      },
-      {
-        // Stage 3: enable access logging on hosting resource
-        replacements: [
           {
             source: pathToFileURL(
               path.join(
-                fileURLToPath(this.sourceProjectUpdateV3DirURL),
+                fileURLToPath(this.sourceProjectUpdateV2DirURL),
                 'amplify',
                 'hosting.ts',
               ),

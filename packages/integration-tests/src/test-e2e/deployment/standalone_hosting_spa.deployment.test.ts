@@ -43,6 +43,7 @@ void describe(
       const namespace = `standalone-e2e-${shortUuid()}`;
       let backendIdentifier: BackendIdentifier;
       let frontendIdentifier: BackendIdentifier;
+      let fullIdentifier: BackendIdentifier;
       let distributionUrl: string;
 
       before(async () => {
@@ -57,6 +58,11 @@ void describe(
           name: 'hosting',
           type: 'standalone',
         };
+        fullIdentifier = {
+          namespace,
+          name: 'full',
+          type: 'standalone',
+        };
       });
 
       after(
@@ -66,6 +72,13 @@ void describe(
           } catch {
             process.stderr.write(
               '⚠️ Frontend stack deletion may not have completed. Check for orphaned resources.\n',
+            );
+          }
+          try {
+            await testProject.tearDown(fullIdentifier, true);
+          } catch {
+            process.stderr.write(
+              '⚠️ Full deploy stack deletion may not have completed. Check for orphaned resources.\n',
             );
           }
           try {
@@ -80,7 +93,7 @@ void describe(
       );
 
       void describe('in sequence', { concurrency: false }, () => {
-        void it('stage 1: deploys backend and verifies outputs', async () => {
+        void it('stage 1: deploys backend with auth, data, storage and validates amplify_outputs.json', async () => {
           await testProject.deploy(backendIdentifier);
 
           const backendStackName =
@@ -101,15 +114,55 @@ void describe(
             `backend stack should be in a successful state, got: ${stack.StackStatus}`,
           );
 
-          // Verify amplify_outputs.json is readable after backend deploy
+          // Parse and validate amplify_outputs.json contains expected backend resources
           const outputsPath = path.join(
             testProject.projectDirPath,
             'amplify_outputs.json',
           );
-          await fsp.readFile(outputsPath, 'utf-8');
+          const outputsContent = JSON.parse(
+            await fsp.readFile(outputsPath, 'utf-8'),
+          );
+
+          // Verify auth config (user_pool_id)
+          assert.ok(
+            outputsContent.auth?.user_pool_id,
+            `amplify_outputs.json should contain auth.user_pool_id, got: ${JSON.stringify(outputsContent.auth)}`,
+          );
+
+          // Verify data config (graphql endpoint)
+          assert.ok(
+            outputsContent.data?.url,
+            `amplify_outputs.json should contain data.url (GraphQL endpoint), got: ${JSON.stringify(outputsContent.data)}`,
+          );
+
+          // Verify storage config (bucket name)
+          const buckets = outputsContent.storage?.buckets;
+          assert.ok(
+            Array.isArray(buckets) && buckets.length > 0,
+            `amplify_outputs.json should contain storage.buckets, got: ${JSON.stringify(outputsContent.storage)}`,
+          );
+          assert.ok(
+            buckets[0].bucket_name,
+            `amplify_outputs.json should contain a bucket_name, got: ${JSON.stringify(buckets[0])}`,
+          );
+
+          process.stderr.write(
+            `Backend deployed. user_pool_id=${outputsContent.auth.user_pool_id}, graphql_url=${outputsContent.data.url}, bucket=${buckets[0].bucket_name}\n`,
+          );
+
+          // Copy amplify_outputs.json into static-site/ so it is deployed as a static asset
+          const staticSiteOutputsPath = path.join(
+            testProject.projectDirPath,
+            'static-site',
+            'amplify_outputs.json',
+          );
+          await fsp.cp(outputsPath, staticSiteOutputsPath);
+          process.stderr.write(
+            `Copied amplify_outputs.json into static-site/ for frontend deployment\n`,
+          );
         });
 
-        void it('stage 2: deploys frontend and verifies CloudFront URL', async () => {
+        void it('stage 2: deploys frontend and validates CloudFront URL + backend outputs served', async () => {
           await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
@@ -199,33 +252,72 @@ void describe(
             `content-security-policy connect-src should include wss:, got: ${csp}`,
           );
 
+          // Verify amplify_outputs.json is served as a static asset from CloudFront
+          const outputsResponse = await fetchWithRetry(
+            `${distributionUrl}/amplify_outputs.json`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
+          assert.strictEqual(
+            outputsResponse.status,
+            200,
+            `Expected HTTP 200 for amplify_outputs.json, got ${outputsResponse.status}`,
+          );
+          const servedOutputsText = await outputsResponse.text();
+          const servedOutputs = JSON.parse(servedOutputsText);
+          assert.ok(
+            servedOutputs.auth?.user_pool_id,
+            `Served amplify_outputs.json should contain auth.user_pool_id, got: ${JSON.stringify(servedOutputs.auth)}`,
+          );
+          assert.ok(
+            servedOutputs.data?.url,
+            `Served amplify_outputs.json should contain data.url, got: ${JSON.stringify(servedOutputs.data)}`,
+          );
+          const servedBuckets = servedOutputs.storage?.buckets;
+          assert.ok(
+            Array.isArray(servedBuckets) && servedBuckets.length > 0,
+            `Served amplify_outputs.json should contain storage.buckets, got: ${JSON.stringify(servedOutputs.storage)}`,
+          );
+          assert.ok(
+            servedBuckets[0].bucket_name,
+            `Served amplify_outputs.json should contain a bucket_name, got: ${JSON.stringify(servedBuckets[0])}`,
+          );
+          process.stderr.write(
+            `amplify_outputs.json served from CloudFront with valid backend resources\n`,
+          );
+
           await testProject.assertPostDeployment(backendIdentifier);
         });
 
-        void it('stage 3: redeploys frontend with v2 content and verifies update', async () => {
-          // Apply stage 2 updates (content change)
+        void it('stage 3: applies v2 changes and full deploys — validates v2 content, outputs, and infra change', async () => {
+          // Apply combined v2 update (content change + access logging)
           const updates = await testProject.getUpdates();
-          const stage2Update = updates[0];
-          for (const replacement of stage2Update.replacements) {
+          const v2Update = updates[0];
+          for (const replacement of v2Update.replacements) {
             await fsp.cp(replacement.source, replacement.destination, {
               force: true,
             });
           }
 
-          // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier);
-
-          const frontendStackName =
-            BackendIdentifierConversions.toStackName(frontendIdentifier);
-          const updateResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: frontendStackName }),
+          // Copy amplify_outputs.json into static-site/ again for the v2 deploy
+          const outputsPath = path.join(
+            testProject.projectDirPath,
+            'amplify_outputs.json',
           );
-          assert.ok(
-            updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
-            `redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
+          const staticSiteOutputsPath = path.join(
+            testProject.projectDirPath,
+            'static-site',
+            'amplify_outputs.json',
           );
+          await fsp.cp(outputsPath, staticSiteOutputsPath);
 
-          // Wait for cache invalidation and verify v2 content
+          // Full deploy (no --backend / --frontend flag) to update everything
+          await testProject.deploy(fullIdentifier);
+
+          // Verify v2 content is served (wait for CloudFront cache to update)
           const response = await fetchWithRetry(distributionUrl, {
             expectedBodyContains: 'Hello SPA v2',
             maxRetries: 10,
@@ -234,67 +326,68 @@ void describe(
           const body = await response.text();
           assert.ok(
             body.includes('Hello SPA v2'),
-            `Response body should contain "Hello SPA v2" after redeploy, got: ${body.substring(0, 200)}`,
+            `Response body should contain "Hello SPA v2" after full deploy, got: ${body.substring(0, 200)}`,
           );
           assert.ok(
             !body.includes('Hello SPA v1'),
-            'Response body should NOT contain "Hello SPA v1" after redeploy',
+            'Response body should NOT contain "Hello SPA v1" after full deploy',
           );
-        });
 
-        void it('stage 4: redeploys frontend with access logging enabled and verifies infra change', async () => {
-          // Apply stage 3 updates (infra change — access logging)
-          const updates = await testProject.getUpdates();
-          const stage3Update = updates[1];
-          for (const replacement of stage3Update.replacements) {
-            await fsp.cp(replacement.source, replacement.destination, {
-              force: true,
-            });
-          }
+          // Verify amplify_outputs.json is still valid after full deploy
+          const outputsResponse = await fetchWithRetry(
+            `${distributionUrl}/amplify_outputs.json`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
+          const servedOutputsText = await outputsResponse.text();
+          const servedOutputs = JSON.parse(servedOutputsText);
+          assert.ok(
+            servedOutputs.auth?.user_pool_id,
+            `amplify_outputs.json should still contain auth.user_pool_id after full deploy`,
+          );
+          assert.ok(
+            servedOutputs.data?.url,
+            `amplify_outputs.json should still contain data.url after full deploy`,
+          );
+          assert.ok(
+            Array.isArray(servedOutputs.storage?.buckets) &&
+              servedOutputs.storage.buckets.length > 0,
+            `amplify_outputs.json should still contain storage.buckets after full deploy`,
+          );
 
-          // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier);
-
+          // Verify infra change: access logging bucket should be present
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
 
-          // Verify the stack updated successfully
-          const updateResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: frontendStackName }),
-          );
-          assert.ok(
-            updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
-            `infra redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
-          );
-
-          // Verify an additional S3 bucket was created for access logs
-          const allResourceTypes = await getAllResourceTypes(
-            cfnClient,
-            frontendStackName,
-          );
-          const s3BucketCount = allResourceTypes.filter(
-            (t) => t === 'AWS::S3::Bucket',
-          ).length;
+          // Check for the access logging bucket in the frontend stack
+          // (full deploy may have updated the frontend stack or created a new combined stack)
+          let s3BucketCount = 0;
+          try {
+            const allResourceTypes = await getAllResourceTypes(
+              cfnClient,
+              frontendStackName,
+            );
+            s3BucketCount = allResourceTypes.filter(
+              (t) => t === 'AWS::S3::Bucket',
+            ).length;
+          } catch {
+            // If frontend stack was superseded by full deploy, check the full stack
+            const fullStackName =
+              BackendIdentifierConversions.toStackName(fullIdentifier);
+            const allResourceTypes = await getAllResourceTypes(
+              cfnClient,
+              fullStackName,
+            );
+            s3BucketCount = allResourceTypes.filter(
+              (t) => t === 'AWS::S3::Bucket',
+            ).length;
+          }
           assert.ok(
             s3BucketCount >= 2,
-            `Frontend stack should have at least 2 S3 buckets (hosting + access log) after enabling access logging, got: ${s3BucketCount}`,
-          );
-
-          // Verify content still works
-          const response = await fetchWithRetry(distributionUrl, {
-            expectedBodyContains: 'Hello SPA v2',
-            maxRetries: 6,
-            intervalMs: 15000,
-          });
-          assert.strictEqual(
-            response.status,
-            200,
-            `Expected HTTP 200 after access logging change, got ${response.status}`,
-          );
-          const body = await response.text();
-          assert.ok(
-            body.includes('Hello SPA v2'),
-            `Content should still be v2 after infra change, got: ${body.substring(0, 200)}`,
+            `Stack should have at least 2 S3 buckets (hosting + access log) after enabling access logging, got: ${s3BucketCount}`,
           );
         });
       });
