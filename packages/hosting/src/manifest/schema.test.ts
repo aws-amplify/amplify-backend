@@ -12,7 +12,6 @@ void describe('Deploy Manifest Schema', () => {
           path: '/*',
           target: {
             kind: 'Static',
-            cacheControl: 'public, max-age=0, must-revalidate',
           },
         },
       ],
@@ -32,7 +31,6 @@ void describe('Deploy Manifest Schema', () => {
           path: '/_next/static/*',
           target: {
             kind: 'Static',
-            cacheControl: 'public, max-age=31536000, immutable',
           },
         },
         {

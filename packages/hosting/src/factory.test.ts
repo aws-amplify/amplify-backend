@@ -37,7 +37,6 @@ const minimalSpaManifest: DeployManifest = {
       path: '/*',
       target: {
         kind: 'Static',
-        cacheControl: 'public, max-age=0, must-revalidate',
       },
     },
   ],

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { HostingError } from '../hosting_error.js';
 import { deployManifestSchema } from './schema.js';
 import { DeployManifest } from './types.js';
 import { HOSTING_DIR, MANIFEST_FILENAME } from '../constants.js';
@@ -14,7 +14,7 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
   const manifestPath = path.join(hostingOutputDir, MANIFEST_FILENAME);
 
   if (!fs.existsSync(manifestPath)) {
-    throw new AmplifyUserError('ManifestNotFoundError', {
+    throw new HostingError('ManifestNotFoundError', {
       message: `Deploy manifest not found at ${manifestPath}`,
       resolution:
         `Ensure your framework adapter produces a ${MANIFEST_FILENAME} in the ${HOSTING_DIR}/ directory. ` +
@@ -26,7 +26,7 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
   try {
     rawContent = fs.readFileSync(manifestPath, 'utf-8');
   } catch (error) {
-    throw new AmplifyUserError(
+    throw new HostingError(
       'ManifestReadError',
       {
         message: `Failed to read deploy manifest at ${manifestPath}`,
@@ -40,7 +40,7 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
   try {
     parsed = JSON.parse(rawContent);
   } catch (error) {
-    throw new AmplifyUserError(
+    throw new HostingError(
       'ManifestParseError',
       {
         message: `Deploy manifest at ${manifestPath} contains invalid JSON`,
@@ -58,7 +58,7 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
       .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
       .join('\n');
 
-    throw new AmplifyUserError('ManifestValidationError', {
+    throw new HostingError('ManifestValidationError', {
       message: `Deploy manifest validation failed:\n${issues}`,
       resolution:
         'Fix the manifest to match the expected schema. See https://docs.amplify.aws/hosting/manifest for details.',

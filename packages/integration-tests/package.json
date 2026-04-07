@@ -11,6 +11,7 @@
     "@aws-amplify/backend-ai": "^1.5.3",
     "@aws-amplify/backend-secret": "^1.4.2",
     "@aws-amplify/cli-core": "^2.2.3",
+    "@aws-amplify/hosting": "^0.1.0",
     "@aws-amplify/client-config": "^1.10.0",
     "@aws-amplify/data-schema": "^1.13.4",
     "@aws-amplify/deployed-backend-client": "^1.8.1",
@@ -49,6 +50,7 @@
     "semver": "^7.6.3",
     "ssh2": "^1.15.0",
     "strip-ansi": "^7.1.0",
+    "ts-node": "^10.9.2",
     "uuid": "^11.1.0",
     "zod": "3.25.17"
   },

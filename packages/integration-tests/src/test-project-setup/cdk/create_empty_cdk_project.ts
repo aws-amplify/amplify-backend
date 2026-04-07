@@ -34,5 +34,16 @@ export const createEmptyCdkProject = async (
     force: true,
   });
 
+  // The generated tsconfig.json sets typeRoots to ["./node_modules/@types"],
+  // which prevents TypeScript from finding @types/node in the monorepo root
+  // after we removed the local node_modules above. Remove the typeRoots
+  // restriction so TypeScript can resolve types from the monorepo root.
+  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
+  const tsconfig = JSON.parse(await fsp.readFile(tsconfigPath, 'utf-8'));
+  if (tsconfig.compilerOptions?.typeRoots) {
+    delete tsconfig.compilerOptions.typeRoots;
+    await fsp.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+  }
+
   return { projectName, projectRoot };
 };

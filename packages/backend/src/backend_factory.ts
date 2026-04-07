@@ -110,7 +110,6 @@ export class BackendFactory<
     // now invoke all the factories and collect the constructs into this.resources
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.resources = {} as any;
-
     Object.entries(constructFactories).forEach(
       ([resourceName, constructFactory]) => {
         // The type inference on this.resources is not happy about this assignment because it doesn't know the exact type of .getInstance()

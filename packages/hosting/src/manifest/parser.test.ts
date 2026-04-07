@@ -24,7 +24,6 @@ void describe('parseManifest', () => {
           path: '/*',
           target: {
             kind: 'Static',
-            cacheControl: 'public, max-age=0, must-revalidate',
           },
         },
       ],
@@ -63,6 +62,27 @@ void describe('parseManifest', () => {
       () => parseManifest(tmpDir),
       (error: Error) => {
         assert.ok(error.name === 'ManifestParseError');
+        return true;
+      },
+    );
+  });
+
+  void it('throws ManifestReadError when file is not readable', () => {
+    // Create a directory named deploy-manifest.json so that existsSync
+    // returns true but readFileSync throws EISDIR. This avoids chmod
+    // (which doesn't restrict read access on Windows) and fs mocks
+    // (which fail in CJS because fs properties are non-configurable).
+    const manifestPath = path.join(tmpDir, 'deploy-manifest.json');
+    fs.mkdirSync(manifestPath);
+
+    assert.throws(
+      () => parseManifest(tmpDir),
+      (error: Error) => {
+        assert.ok(
+          error.name === 'ManifestReadError',
+          `Expected ManifestReadError, got ${error.name}`,
+        );
+        assert.ok(error.cause, 'ManifestReadError should have a cause');
         return true;
       },
     );
