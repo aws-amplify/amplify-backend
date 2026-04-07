@@ -7,7 +7,6 @@ import { BUILD_ID_PATTERN } from '../defaults.js';
 export const routeTargetSchema = z.object({
   kind: z.enum(['Static', 'Compute']),
   src: z.string().optional(),
-  cacheControl: z.string().optional(),
 });
 
 /**

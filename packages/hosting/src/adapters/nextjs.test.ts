@@ -53,7 +53,6 @@ void describe('nextjsAdapter', () => {
     );
     assert.ok(staticRoute, 'Should have /_next/static/* route');
     assert.strictEqual(staticRoute!.target.kind, 'Static');
-    assert.ok(staticRoute!.target.cacheControl?.includes('immutable'));
 
     const catchAllRoute = manifest.routes.find((r) => r.path === '/*');
     assert.ok(catchAllRoute, 'Should have /* catch-all route');
@@ -222,20 +221,12 @@ void describe('nextjsAdapter', () => {
       '/images/* should come before /* catch-all',
     );
 
-    // Verify they are Static routes with correct cache-control
+    // Verify they are Static routes
     const faviconRoute = manifest.routes[faviconIdx];
     assert.strictEqual(faviconRoute.target.kind, 'Static');
-    assert.strictEqual(
-      faviconRoute.target.cacheControl,
-      'public, max-age=86400',
-    );
 
     const imagesRoute = manifest.routes[imagesIdx];
     assert.strictEqual(imagesRoute.target.kind, 'Static');
-    assert.strictEqual(
-      imagesRoute.target.cacheControl,
-      'public, max-age=86400',
-    );
   });
 
   void it('writes deploy-manifest.json', () => {
@@ -424,10 +415,6 @@ void describe('scanPublicRoutes', () => {
     const faviconRoute = routes.find((r) => r.path === '/favicon.ico');
     assert.ok(faviconRoute, 'Should have /favicon.ico route');
     assert.strictEqual(faviconRoute!.target.kind, 'Static');
-    assert.strictEqual(
-      faviconRoute!.target.cacheControl,
-      'public, max-age=86400',
-    );
 
     const robotsRoute = routes.find((r) => r.path === '/robots.txt');
     assert.ok(robotsRoute, 'Should have /robots.txt route');
@@ -436,10 +423,6 @@ void describe('scanPublicRoutes', () => {
     const imagesRoute = routes.find((r) => r.path === '/images/*');
     assert.ok(imagesRoute, 'Should have /images/* route');
     assert.strictEqual(imagesRoute!.target.kind, 'Static');
-    assert.strictEqual(
-      imagesRoute!.target.cacheControl,
-      'public, max-age=86400',
-    );
   });
 
   void it('returns empty array when public/ does not exist', () => {
