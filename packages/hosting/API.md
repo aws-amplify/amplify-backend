@@ -8,12 +8,19 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { Construct } from 'constructs';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Duration } from 'aws-cdk-lib';
 import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { FunctionUrl } from 'aws-cdk-lib/aws-lambda';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { IDistribution } from 'aws-cdk-lib/aws-cloudfront';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IFunctionUrl } from 'aws-cdk-lib/aws-lambda';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { ResponseHeadersPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -58,10 +65,57 @@ export type AmplifyHostingConstructProps = {
 export type BackendHosting = ResourceProvider<HostingResources>;
 
 // @public
+export class CdnConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: CdnConstructProps);
+    // (undocumented)
+    readonly distribution: Distribution;
+    // (undocumented)
+    readonly distributionUrl: string;
+    readonly errorPageHtml: string;
+}
+
+// @public
+export type CdnConstructProps = {
+    bucket: IBucket;
+    manifest: DeployManifest;
+    securityHeadersPolicy: ResponseHeadersPolicy;
+    ssrFunctionUrl?: IFunctionUrl;
+    ssrFunction?: IFunction;
+    webAcl?: CfnWebACL;
+    certificate?: ICertificate;
+    domainName?: string;
+    accessLogBucket?: IBucket;
+    priceClass?: PriceClass;
+    errorPageHtml?: string;
+};
+
+// @public
 export type ComputeConfig = {
     memorySize?: number;
     timeout?: number;
     reservedConcurrency?: number;
+};
+
+// @public
+export class ComputeConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: ComputeConstructProps);
+    // (undocumented)
+    readonly function: Function_2;
+    // (undocumented)
+    readonly functionUrl: FunctionUrl;
+}
+
+// @public
+export type ComputeConstructProps = {
+    computeResource: ComputeResource;
+    computeBasePath: string;
+    bucket: IBucket;
+    memorySize?: number;
+    timeout?: Duration;
+    reservedConcurrency?: number;
+    webAdapterVersion?: number;
+    logRetention?: RetentionDays;
+    skipRegionValidation?: boolean;
 };
 
 // @public
@@ -70,6 +124,9 @@ export type ComputeResource = {
     runtime: string;
     entrypoint: string;
 };
+
+// @public
+export const createSecurityHeadersPolicy: (scope: Construct, id: string, props?: SecurityHeadersProps) => ResponseHeadersPolicy;
 
 // @public
 export const defineHosting: (props?: HostingProps) => HostingResult;
@@ -81,6 +138,25 @@ export type DeployManifest = {
     computeResources?: ComputeResource[];
     framework: FrameworkMetadata;
     buildId?: string;
+};
+
+// @public
+export class DnsConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: DnsConstructProps);
+    // (undocumented)
+    readonly certificate: ICertificate;
+    createDnsRecords(domainName: string, distribution: IDistribution): void;
+    // (undocumented)
+    readonly hostedZone: IHostedZone;
+}
+
+// @public
+export type DnsConstructProps = {
+    domainName: string;
+    hostedZone: string;
+    certificate?: ICertificate;
+    distribution?: IDistribution;
+    skipRegionValidation?: boolean;
 };
 
 // @public
@@ -172,6 +248,43 @@ export type ManifestRoute = {
 export type RouteTarget = {
     kind: 'Static' | 'Compute';
     src?: string;
+};
+
+// @public
+export type SecurityHeadersProps = {
+    contentSecurityPolicy?: string;
+};
+
+// @public
+export class StorageConstruct extends Construct {
+    constructor(scope: Construct, id: string, props?: StorageConstructProps);
+    // (undocumented)
+    readonly accessLogBucket?: Bucket;
+    // (undocumented)
+    readonly bucket: Bucket;
+}
+
+// @public
+export type StorageConstructProps = {
+    retainOnDelete?: boolean;
+    buildRetentionDays?: number;
+    accessLogging?: boolean;
+    accessLogRetentionDays?: number;
+};
+
+// @public
+export class WafConstruct extends Construct {
+    constructor(scope: Construct, id: string, props: WafConstructProps);
+    // (undocumented)
+    readonly webAcl?: CfnWebACL;
+}
+
+// @public
+export type WafConstructProps = {
+    enabled: boolean;
+    rateLimit?: number;
+    metricName?: string;
+    skipRegionValidation?: boolean;
 };
 
 // (No @packageDocumentation comment for this package)
