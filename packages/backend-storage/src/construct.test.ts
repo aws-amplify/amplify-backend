@@ -212,6 +212,26 @@ void describe('AmplifyStorage removalPolicy', () => {
     });
   });
 
+  void it('respects explicit destroy in sandbox', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', {
+      name: 'testName',
+      removalPolicy: 'destroy',
+    });
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: { Ref: 'testBucketIdBucket3B30067A' },
+    });
+  });
+
   void it('defaults to destroy in sandbox when no removalPolicy is specified', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');

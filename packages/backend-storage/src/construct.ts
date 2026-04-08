@@ -67,10 +67,17 @@ export type AmplifyStorageProps = {
   /**
    * The removal policy to apply to the S3 bucket.
    *
-   * 'destroy' - The bucket and all objects will be deleted when the stack is destroyed.
-   * 'retain' - The bucket will be retained when the stack is destroyed.
+   * - `'destroy'` — The bucket and all objects are deleted when the stack is removed.
+   * - `'retain'` — The bucket is preserved when the stack is removed.
    *
-   * Note: Sandbox deployments always use 'destroy' regardless of this setting.
+   * Sandbox deployments (via `npx ampx sandbox`) always use `'destroy'` regardless of this setting.
+   * @example
+   * ```typescript
+   * export const storage = defineStorage({
+   *   name: 'productionData',
+   *   removalPolicy: 'retain',
+   * });
+   * ```
    * @default 'destroy'
    */
   removalPolicy?: 'destroy' | 'retain';
@@ -112,6 +119,13 @@ export class AmplifyStorage
     const isSandbox = deploymentType === 'sandbox';
     const isDestroy =
       isSandbox || (props.removalPolicy ?? 'destroy') === 'destroy';
+
+    if (isSandbox && props.removalPolicy === 'retain') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[@aws-amplify/backend-storage] removalPolicy='retain' is ignored in sandbox deployments. The bucket will use 'destroy' policy. This only applies to sandbox environments.`,
+      );
+    }
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
