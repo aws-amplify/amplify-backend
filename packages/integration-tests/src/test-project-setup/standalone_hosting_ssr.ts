@@ -9,7 +9,8 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
- * Creates a minimal hosting SSR (Next.js) project for standalone deployment E2E testing.
+ * Creates a hosting SSR (Next.js) project with auth, data, and storage
+ * for standalone deployment E2E testing.
  */
 export class StandaloneHostingSsrTestProjectCreator
   implements TestProjectCreator
@@ -40,7 +41,7 @@ export class StandaloneHostingSsrTestProjectCreator
       this.amplifyClient,
     );
 
-    // Copy the amplify/ directory (backend.ts + hosting.ts)
+    // Copy the amplify/ directory (backend.ts + hosting.ts + auth/ + data/ + storage/)
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
@@ -88,18 +89,13 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
     import.meta.url,
   );
 
-  private readonly sourceProjectUpdateV3DirURL: URL = new URL(
-    `${this.sourceProjectDirPath}/update-v3`,
-    import.meta.url,
-  );
-
   /**
-   * Returns update definitions for stage 2 (content change) and stage 3 (infra change).
+   * Returns a single update that applies both v2 server content and infra changes
+   * (memorySize: 512) in one step for the full deploy test.
    */
   override async getUpdates(): Promise<TestProjectUpdate[]> {
     return [
       {
-        // Stage 2: update server.js to serve v2 content
         replacements: [
           {
             source: pathToFileURL(
@@ -119,15 +115,10 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
               ),
             ),
           },
-        ],
-      },
-      {
-        // Stage 3: change compute memorySize
-        replacements: [
           {
             source: pathToFileURL(
               path.join(
-                fileURLToPath(this.sourceProjectUpdateV3DirURL),
+                fileURLToPath(this.sourceProjectUpdateV2DirURL),
                 'amplify',
                 'hosting.ts',
               ),
