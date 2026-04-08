@@ -210,8 +210,8 @@ const createStackAndSetContextWithDeploymentType = (
   return stack;
 };
 
-void describe('AmplifyStorageFactory removalPolicy integration', () => {
-  void it('sets Retain deletion policy when removalPolicy is retain in branch deployment', () => {
+void describe('AmplifyStorageFactory keepOnDelete integration', () => {
+  void it('sets Retain deletion policy when keepOnDelete is true in branch deployment', () => {
     const stack = createStackAndSetContextWithDeploymentType('branch');
 
     const constructContainer = new ConstructContainerStub(
@@ -230,7 +230,7 @@ void describe('AmplifyStorageFactory removalPolicy integration', () => {
 
     const storageConstruct = defineStorage({
       name: 'testName',
-      removalPolicy: 'retain',
+      keepOnDelete: true,
     }).getInstance(getInstanceProps);
 
     const template = Template.fromStack(
@@ -247,7 +247,7 @@ void describe('AmplifyStorageFactory removalPolicy integration', () => {
     template.resourceCountIs('Custom::S3AutoDeleteObjects', 0);
   });
 
-  void it('sets Delete deletion policy with auto-delete when no removalPolicy is specified', () => {
+  void it('sets Delete deletion policy with auto-delete when no keepOnDelete is specified', () => {
     const stack = createStackAndSetContextWithDeploymentType('branch');
 
     const constructContainer = new ConstructContainerStub(
@@ -282,7 +282,7 @@ void describe('AmplifyStorageFactory removalPolicy integration', () => {
     template.resourceCountIs('Custom::S3AutoDeleteObjects', 1);
   });
 
-  void it('forces Delete deletion policy in sandbox even when removalPolicy is retain', () => {
+  void it('forces Delete deletion policy in sandbox even when keepOnDelete is true', () => {
     const stack = createStackAndSetContextWithDeploymentType('sandbox');
 
     const constructContainer = new ConstructContainerStub(
@@ -301,7 +301,7 @@ void describe('AmplifyStorageFactory removalPolicy integration', () => {
 
     const storageConstruct = defineStorage({
       name: 'testName',
-      removalPolicy: 'retain',
+      keepOnDelete: true,
     }).getInstance(getInstanceProps);
 
     const template = Template.fromStack(

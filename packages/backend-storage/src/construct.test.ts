@@ -122,8 +122,8 @@ void describe('AmplifyStorage', () => {
   });
 });
 
-void describe('AmplifyStorage removalPolicy', () => {
-  void it('defaults to destroy when no removalPolicy is specified', () => {
+void describe('AmplifyStorage keepOnDelete', () => {
+  void it('defaults to destroy when no keepOnDelete is specified', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
@@ -143,13 +143,13 @@ void describe('AmplifyStorage removalPolicy', () => {
     });
   });
 
-  void it('sets retain policy when removalPolicy is retain in non-sandbox', () => {
+  void it('sets retain policy when keepOnDelete is true in non-sandbox', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'branch');
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'testBucketId', {
       name: 'testName',
-      removalPolicy: 'retain',
+      keepOnDelete: true,
     });
 
     const template = Template.fromStack(stack);
@@ -164,13 +164,13 @@ void describe('AmplifyStorage removalPolicy', () => {
     template.resourceCountIs('Custom::S3AutoDeleteObjects', 0);
   });
 
-  void it('sets destroy policy when removalPolicy is explicitly destroy', () => {
+  void it('sets destroy policy when keepOnDelete is explicitly false', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'branch');
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'testBucketId', {
       name: 'testName',
-      removalPolicy: 'destroy',
+      keepOnDelete: false,
     });
 
     const template = Template.fromStack(stack);
@@ -188,13 +188,13 @@ void describe('AmplifyStorage removalPolicy', () => {
     });
   });
 
-  void it('forces destroy in sandbox even when removalPolicy is retain', () => {
+  void it('forces destroy in sandbox even when keepOnDelete is true', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'testBucketId', {
       name: 'testName',
-      removalPolicy: 'retain',
+      keepOnDelete: true,
     });
 
     const template = Template.fromStack(stack);
@@ -212,13 +212,13 @@ void describe('AmplifyStorage removalPolicy', () => {
     });
   });
 
-  void it('respects explicit destroy in sandbox', () => {
+  void it('respects explicit keepOnDelete false in sandbox', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
     const stack = new Stack(app);
     new AmplifyStorage(stack, 'testBucketId', {
       name: 'testName',
-      removalPolicy: 'destroy',
+      keepOnDelete: false,
     });
     const template = Template.fromStack(stack);
     const buckets = template.findResources('AWS::S3::Bucket');
@@ -232,7 +232,7 @@ void describe('AmplifyStorage removalPolicy', () => {
     });
   });
 
-  void it('defaults to destroy in sandbox when no removalPolicy is specified', () => {
+  void it('defaults to destroy in sandbox when no keepOnDelete is specified', () => {
     const app = new App();
     app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
     const stack = new Stack(app);

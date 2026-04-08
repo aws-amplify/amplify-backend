@@ -10,6 +10,7 @@ import {
 import {
   BackendOutputStorageStrategy,
   ConstructFactory,
+  DeploymentType,
   FunctionResources,
   ResourceProvider,
   StackProvider,
@@ -65,22 +66,22 @@ export type AmplifyStorageProps = {
     >
   >;
   /**
-   * The removal policy to apply to the S3 bucket.
+   * Whether to keep the S3 bucket when the stack is deleted.
    *
-   * - `'destroy'` — The bucket and all objects are deleted when the stack is removed.
-   * - `'retain'` — The bucket is preserved when the stack is removed.
+   * - `true` — The bucket and its objects are preserved when the stack is removed.
+   * - `false` — The bucket and all objects are deleted when the stack is removed.
    *
-   * Sandbox deployments (via `npx ampx sandbox`) always use `'destroy'` regardless of this setting.
+   * Sandbox deployments (via `npx ampx sandbox`) always delete the bucket regardless of this setting.
    * @example
    * ```typescript
    * export const storage = defineStorage({
    *   name: 'productionData',
-   *   removalPolicy: 'retain',
+   *   keepOnDelete: true,
    * });
    * ```
-   * @default 'destroy'
+   * @default false
    */
-  removalPolicy?: 'destroy' | 'retain';
+  keepOnDelete?: boolean;
 };
 
 export type StorageResources = {
@@ -115,15 +116,14 @@ export class AmplifyStorage
 
     const deploymentType = Stack.of(scope).node.tryGetContext(
       CDKContextKey.DEPLOYMENT_TYPE,
-    );
+    ) as DeploymentType | undefined;
     const isSandbox = deploymentType === 'sandbox';
-    const isDestroy =
-      isSandbox || (props.removalPolicy ?? 'destroy') === 'destroy';
+    const isDestroy = isSandbox || !props.keepOnDelete;
 
-    if (isSandbox && props.removalPolicy === 'retain') {
+    if (isSandbox && props.keepOnDelete) {
       // eslint-disable-next-line no-console
       console.warn(
-        `[@aws-amplify/backend-storage] removalPolicy='retain' is ignored in sandbox deployments. The bucket will use 'destroy' policy. This only applies to sandbox environments.`,
+        `[@aws-amplify/backend-storage] keepOnDelete is ignored in sandbox deployments. The bucket will be deleted. Deploy to a branch to enable retention.`,
       );
     }
 

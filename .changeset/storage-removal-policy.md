@@ -3,4 +3,4 @@
 '@aws-amplify/backend': minor
 ---
 
-Add optional `removalPolicy` prop to `defineStorage()` to support production bucket retention. Sandbox deployments always use DESTROY.
+Add optional keepOnDelete prop to defineStorage() to support production bucket retention. Defaults to false (destroy) for backward compatibility. Sandbox deployments always delete the bucket regardless of this setting.
