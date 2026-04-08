@@ -1,7 +1,7 @@
 import { defineStorage } from '@aws-amplify/backend';
 
 export const storage = defineStorage({
-  name: 'twoPhaseTestBucket',
+  name: 'spaTestBucket',
   access: (allow) => ({
     'public/*': [
       allow.guest.to(['read']),
