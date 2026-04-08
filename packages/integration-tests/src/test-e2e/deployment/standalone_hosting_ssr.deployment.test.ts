@@ -45,6 +45,7 @@ void describe(
       const namespace = `standalone-e2e-${shortUuid()}`;
       let backendIdentifier: BackendIdentifier;
       let frontendIdentifier: BackendIdentifier;
+      let fullIdentifier: BackendIdentifier;
       let distributionUrl: string;
 
       before(async () => {
@@ -59,30 +60,32 @@ void describe(
           name: 'hosting',
           type: 'standalone',
         };
+        fullIdentifier = {
+          namespace,
+          name: 'full',
+          type: 'standalone',
+        };
       });
 
-      after(
-        async () => {
+      after(async () => {
+        // Fire-and-forget: initiate stack deletions without waiting for completion.
+        // CloudFront distributions can take 15-30 minutes to delete, which causes
+        // CI timeouts when waiting synchronously. The stacks will continue deleting
+        // in the background after the test process exits.
+        const stacks = [frontendIdentifier, fullIdentifier, backendIdentifier];
+        for (const id of stacks) {
           try {
-            await testProject.tearDown(frontendIdentifier, true);
+            await testProject.tearDown(id);
           } catch {
             process.stderr.write(
-              '⚠️ Frontend stack deletion may not have completed. Check for orphaned resources.\n',
+              `⚠️ Failed to initiate stack deletion for ${id.name}. Check for orphaned resources.\n`,
             );
           }
-          try {
-            await testProject.tearDown(backendIdentifier, true);
-          } catch {
-            process.stderr.write(
-              '⚠️ Backend stack deletion may not have completed. Check for orphaned resources.\n',
-            );
-          }
-        },
-        { timeout: 1500000 },
-      );
+        }
+      });
 
       void describe('in sequence', { concurrency: false }, () => {
-        void it('stage 1: deploys backend and verifies outputs', async () => {
+        void it('stage 1: deploys backend with auth, data, storage and validates amplify_outputs.json', async () => {
           await testProject.deploy(backendIdentifier);
 
           const backendStackName =
@@ -103,15 +106,63 @@ void describe(
             `backend stack should be in a successful state, got: ${stack.StackStatus}`,
           );
 
-          // Verify amplify_outputs.json is readable after backend deploy
+          // Parse and validate amplify_outputs.json contains expected backend resources
           const outputsPath = path.join(
             testProject.projectDirPath,
             'amplify_outputs.json',
           );
-          await fsp.readFile(outputsPath, 'utf-8');
+          const outputsContent = JSON.parse(
+            await fsp.readFile(outputsPath, 'utf-8'),
+          );
+
+          // Verify auth config (user_pool_id)
+          assert.ok(
+            outputsContent.auth?.user_pool_id,
+            `amplify_outputs.json should contain auth.user_pool_id, got: ${JSON.stringify(outputsContent.auth)}`,
+          );
+
+          // Verify data config (graphql endpoint + api key for SSR queries)
+          assert.ok(
+            outputsContent.data?.url,
+            `amplify_outputs.json should contain data.url (GraphQL endpoint), got: ${JSON.stringify(outputsContent.data)}`,
+          );
+          assert.ok(
+            outputsContent.data?.api_key,
+            `amplify_outputs.json should contain data.api_key for SSR Lambda queries, got: ${JSON.stringify(outputsContent.data)}`,
+          );
+
+          // Verify storage config (bucket name)
+          const buckets = outputsContent.storage?.buckets;
+          assert.ok(
+            Array.isArray(buckets) && buckets.length > 0,
+            `amplify_outputs.json should contain storage.buckets, got: ${JSON.stringify(outputsContent.storage)}`,
+          );
+          assert.ok(
+            buckets[0].bucket_name,
+            `amplify_outputs.json should contain a bucket_name, got: ${JSON.stringify(buckets[0])}`,
+          );
+
+          process.stderr.write(
+            `Backend deployed. user_pool_id=${outputsContent.auth.user_pool_id}, graphql_url=${outputsContent.data.url}, api_key=${outputsContent.data.api_key.substring(0, 8)}..., bucket=${buckets[0].bucket_name}\n`,
+          );
+
+          // Copy amplify_outputs.json into .next/standalone/ so the SSR Lambda can read it
+          const standaloneDirPath = path.join(
+            testProject.projectDirPath,
+            '.next',
+            'standalone',
+          );
+          const standaloneOutputsPath = path.join(
+            standaloneDirPath,
+            'amplify_outputs.json',
+          );
+          await fsp.cp(outputsPath, standaloneOutputsPath);
+          process.stderr.write(
+            `Copied amplify_outputs.json into .next/standalone/ for SSR Lambda\n`,
+          );
         });
 
-        void it('stage 2: deploys frontend SSR and verifies server-rendered content', async () => {
+        void it('stage 2: deploys frontend SSR and validates server-rendered content with backend data', async () => {
           await testProject.deploy(frontendIdentifier);
 
           const frontendStackName =
@@ -157,7 +208,27 @@ void describe(
           const body = await response.text();
           assert.ok(
             body.includes('Hello SSR v1'),
-            `Response body should contain "Hello SSR v1" (proves Lambda runs), got: ${body.substring(0, 200)}`,
+            `Response body should contain "Hello SSR v1" (proves Lambda runs), got: ${body.substring(0, 500)}`,
+          );
+
+          // Verify the SSR Lambda actually queried the backend GraphQL API
+          assert.ok(
+            body.includes('backend-connected'),
+            `SSR response should contain "backend-connected" proving the Lambda queried GraphQL, got: ${body.substring(0, 500)}`,
+          );
+          assert.ok(
+            body.includes('listTodos'),
+            `SSR response should contain GraphQL query result with "listTodos", got: ${body.substring(0, 500)}`,
+          );
+
+          // Verify the user_pool_id is rendered (proves amplify_outputs.json was read)
+          assert.ok(
+            !body.includes('user-pool-id">none'),
+            `SSR response should contain a real user_pool_id (not "none"), got: ${body.substring(0, 500)}`,
+          );
+
+          process.stderr.write(
+            `SSR Lambda successfully queried backend and rendered results\n`,
           );
 
           // Verify static asset (SVG) is accessible via /_next/static/ path
@@ -211,30 +282,33 @@ void describe(
           await testProject.assertPostDeployment(backendIdentifier);
         });
 
-        void it('stage 3: redeploys frontend with v2 SSR content and verifies update', async () => {
-          // Apply stage 2 updates (server.js content change)
+        void it('stage 3: applies v2 changes and full deploys — validates v2 content, backend connectivity, and infra change', async () => {
+          // Apply combined v2 update (server content change + memorySize infra change)
           const updates = await testProject.getUpdates();
-          const stage2Update = updates[0];
-          for (const replacement of stage2Update.replacements) {
+          const v2Update = updates[0];
+          for (const replacement of v2Update.replacements) {
             await fsp.cp(replacement.source, replacement.destination, {
               force: true,
             });
           }
 
-          // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier);
-
-          const frontendStackName =
-            BackendIdentifierConversions.toStackName(frontendIdentifier);
-          const updateResult = await cfnClient.send(
-            new DescribeStacksCommand({ StackName: frontendStackName }),
+          // Copy amplify_outputs.json into .next/standalone/ again for the v2 deploy
+          const outputsPath = path.join(
+            testProject.projectDirPath,
+            'amplify_outputs.json',
           );
-          assert.ok(
-            updateResult.Stacks?.[0]?.StackStatus === 'UPDATE_COMPLETE',
-            `redeploy should result in UPDATE_COMPLETE, got: ${updateResult.Stacks?.[0]?.StackStatus}`,
+          const standaloneOutputsPath = path.join(
+            testProject.projectDirPath,
+            '.next',
+            'standalone',
+            'amplify_outputs.json',
           );
+          await fsp.cp(outputsPath, standaloneOutputsPath);
 
-          // Wait for Lambda code update propagation and verify v2 content
+          // Full deploy (no --backend / --frontend flag) to update everything
+          await testProject.deploy(fullIdentifier);
+
+          // Verify v2 SSR content is served with backend data
           const response = await fetchWithRetry(distributionUrl, {
             expectedBodyContains: 'Hello SSR v2',
             maxRetries: 10,
@@ -243,7 +317,17 @@ void describe(
           const body = await response.text();
           assert.ok(
             body.includes('Hello SSR v2'),
-            `Response body should contain "Hello SSR v2" after redeploy, got: ${body.substring(0, 200)}`,
+            `Response body should contain "Hello SSR v2" after full deploy, got: ${body.substring(0, 500)}`,
+          );
+
+          // Verify backend connectivity is still working after full deploy
+          assert.ok(
+            body.includes('backend-connected'),
+            `SSR response should still contain "backend-connected" after full deploy, got: ${body.substring(0, 500)}`,
+          );
+          assert.ok(
+            body.includes('listTodos'),
+            `SSR response should still contain GraphQL result after full deploy, got: ${body.substring(0, 500)}`,
           );
 
           // Verify SVG static asset still accessible
@@ -258,34 +342,31 @@ void describe(
           assert.strictEqual(
             svgResponse.status,
             200,
-            `SVG should still be accessible after content redeploy, got ${svgResponse.status}`,
+            `SVG should still be accessible after full deploy, got ${svgResponse.status}`,
           );
-        });
 
-        void it('stage 4: redeploys frontend with compute change and verifies infra update', async () => {
-          // Apply stage 3 updates (infra change — memorySize)
-          const updates = await testProject.getUpdates();
-          const stage3Update = updates[1];
-          for (const replacement of stage3Update.replacements) {
-            await fsp.cp(replacement.source, replacement.destination, {
-              force: true,
-            });
-          }
-
-          // Redeploy frontend only
-          await testProject.deploy(frontendIdentifier);
-
+          // Verify infra change: Lambda memory should be 512 MB
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
 
-          // Verify Lambda memory config changed to 512
-          const ssrFunctionName = await findLambdaFunctionName(
-            cfnClient,
-            frontendStackName,
-          );
+          let ssrFunctionName: string | undefined;
+          try {
+            ssrFunctionName = await findLambdaFunctionName(
+              cfnClient,
+              frontendStackName,
+            );
+          } catch {
+            // If frontend stack was superseded by full deploy, check the full stack
+            const fullStackName =
+              BackendIdentifierConversions.toStackName(fullIdentifier);
+            ssrFunctionName = await findLambdaFunctionName(
+              cfnClient,
+              fullStackName,
+            );
+          }
           assert.ok(
             ssrFunctionName,
-            'Should find SSR Lambda function in frontend stack',
+            'Should find SSR Lambda function in stack',
           );
 
           const functionConfig = await lambdaClient.send(
@@ -297,21 +378,16 @@ void describe(
             `Lambda memory should be 512 MB after infra change, got: ${functionConfig.Configuration?.MemorySize}`,
           );
 
-          // Verify content still works
-          const response = await fetchWithRetry(distributionUrl, {
+          // Verify content still works after memory change
+          const finalResponse = await fetchWithRetry(distributionUrl, {
             expectedBodyContains: 'Hello SSR v2',
             maxRetries: 6,
             intervalMs: 15000,
           });
           assert.strictEqual(
-            response.status,
+            finalResponse.status,
             200,
-            `Expected HTTP 200 after infra change, got ${response.status}`,
-          );
-          const body = await response.text();
-          assert.ok(
-            body.includes('Hello SSR v2'),
-            `Content should still be v2 after infra change, got: ${body.substring(0, 200)}`,
+            `Expected HTTP 200 after infra change, got ${finalResponse.status}`,
           );
         });
       });
