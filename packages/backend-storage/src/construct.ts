@@ -16,6 +16,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -63,6 +64,16 @@ export type AmplifyStorageProps = {
       ConstructFactory<ResourceProvider<FunctionResources>>
     >
   >;
+  /**
+   * The removal policy to apply to the S3 bucket.
+   *
+   * 'destroy' - The bucket and all objects will be deleted when the stack is destroyed.
+   * 'retain' - The bucket will be retained when the stack is destroyed.
+   *
+   * Note: Sandbox deployments always use 'destroy' regardless of this setting.
+   * @default 'destroy'
+   */
+  removalPolicy?: 'destroy' | 'retain';
 };
 
 export type StorageResources = {
@@ -95,6 +106,13 @@ export class AmplifyStorage
     this.name = props.name;
     this.stack = Stack.of(scope);
 
+    const deploymentType = Stack.of(scope).node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    );
+    const isSandbox = deploymentType === 'sandbox';
+    const isDestroy =
+      isSandbox || (props.removalPolicy ?? 'destroy') === 'destroy';
+
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
       cors: [
@@ -117,8 +135,8 @@ export class AmplifyStorage
           ],
         },
       ],
-      autoDeleteObjects: true,
-      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: isDestroy,
+      removalPolicy: isDestroy ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       enforceSSL: true,
     };
 
