@@ -67,32 +67,22 @@ void describe(
         };
       });
 
-      after(
-        async () => {
+      after(async () => {
+        // Fire-and-forget: initiate stack deletions without waiting for completion.
+        // CloudFront distributions can take 15-30 minutes to delete, which causes
+        // CI timeouts when waiting synchronously. The stacks will continue deleting
+        // in the background after the test process exits.
+        const stacks = [frontendIdentifier, fullIdentifier, backendIdentifier];
+        for (const id of stacks) {
           try {
-            await testProject.tearDown(frontendIdentifier, true);
+            await testProject.tearDown(id);
           } catch {
             process.stderr.write(
-              '⚠️ Frontend stack deletion may not have completed. Check for orphaned resources.\n',
+              `⚠️ Failed to initiate stack deletion for ${id.name}. Check for orphaned resources.\n`,
             );
           }
-          try {
-            await testProject.tearDown(fullIdentifier, true);
-          } catch {
-            process.stderr.write(
-              '⚠️ Full deploy stack deletion may not have completed. Check for orphaned resources.\n',
-            );
-          }
-          try {
-            await testProject.tearDown(backendIdentifier, true);
-          } catch {
-            process.stderr.write(
-              '⚠️ Backend stack deletion may not have completed. Check for orphaned resources.\n',
-            );
-          }
-        },
-        { timeout: 1500000 },
-      );
+        }
+      });
 
       void describe('in sequence', { concurrency: false }, () => {
         void it('stage 1: deploys backend with auth, data, storage and validates amplify_outputs.json', async () => {
