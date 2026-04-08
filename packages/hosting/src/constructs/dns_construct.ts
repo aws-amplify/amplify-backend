@@ -51,12 +51,16 @@ export type DnsConstructProps = {
 export class DnsConstruct extends Construct {
   readonly certificate: ICertificate;
   readonly hostedZone: IHostedZone;
+  private readonly domainName: string;
+  private dnsRecordsCreated = false;
 
   /**
    * Create DNS and TLS resources for custom domain hosting.
    */
   constructor(scope: Construct, id: string, props: DnsConstructProps) {
     super(scope, id);
+
+    this.domainName = props.domainName;
 
     // Validate domain belongs to hosted zone
     this.validateDomainConfig(props.domainName, props.hostedZone);
@@ -101,7 +105,7 @@ export class DnsConstruct extends Construct {
 
     // Create DNS records if distribution is available now
     if (props.distribution) {
-      this.createDnsRecords(props.domainName, props.distribution);
+      this.createDnsRecords(props.distribution);
     }
   }
 
@@ -110,22 +114,32 @@ export class DnsConstruct extends Construct {
    * Call this after distribution creation when distribution was not passed
    * in the constructor props.
    */
-  createDnsRecords(domainName: string, distribution: IDistribution): void {
+  createDnsRecords(distribution: IDistribution): void {
+    if (this.dnsRecordsCreated) {
+      throw new HostingError('DuplicateDnsRecordsError', {
+        message:
+          'DNS records have already been created. createDnsRecords() can only be called once.',
+        resolution:
+          'Remove the extra createDnsRecords() call. If you passed a distribution to the constructor, records were already created.',
+      });
+    }
+    this.dnsRecordsCreated = true;
+
     new ARecord(this, 'DnsRecord', {
       zone: this.hostedZone,
-      recordName: domainName,
+      recordName: this.domainName,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
     });
     new AaaaRecord(this, 'DnsRecordIpv6', {
       zone: this.hostedZone,
-      recordName: domainName,
+      recordName: this.domainName,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
     });
   }
 
   /**
-   * Validate that the domain name is a proper subdomain of the hosted zone.
-   * Rejects exact match and suffix attacks.
+   * Validate that the domain name belongs to the hosted zone.
+   * Allows exact match (apex domain) and proper subdomains; rejects suffix attacks.
    */
   private validateDomainConfig(domainName: string, hostedZone: string): void {
     if (domainName !== hostedZone && !domainName.endsWith('.' + hostedZone)) {

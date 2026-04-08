@@ -877,6 +877,39 @@ void describe('CdnConstruct', () => {
     });
   });
 
+  // ---- MissingBuildIdError ----
+
+  void describe('MissingBuildIdError', () => {
+    void it('throws HostingError with code MissingBuildIdError when buildId is undefined', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+
+      const manifest: DeployManifest = {
+        version: 1,
+        routes: [{ path: '/*', target: { kind: 'Static' } }],
+        framework: { name: 'spa' },
+        // buildId intentionally omitted
+      };
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest,
+            securityHeadersPolicy: policy,
+          }),
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'MissingBuildIdError');
+          assert.ok(err.message.includes('buildId'));
+          assert.ok(err.resolution);
+          return true;
+        },
+      );
+    });
+  });
+
   // ---- CfnOutput ----
 
   void describe('outputs', () => {

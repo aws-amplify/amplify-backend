@@ -69,7 +69,6 @@ export class WafConstruct extends Construct {
     }
 
     // Validate rate limit minimum
-    const rateLimit = props.rateLimit ?? DEFAULT_RATE_LIMIT;
     if (props.rateLimit !== undefined && props.rateLimit < 100) {
       throw new HostingError('InvalidWafConfigError', {
         message: `WAF rate limit must be at least 100 (got ${props.rateLimit}). This is an AWS WAFv2 requirement.`,
@@ -78,6 +77,7 @@ export class WafConstruct extends Construct {
       });
     }
 
+    const rateLimit = props.rateLimit ?? DEFAULT_RATE_LIMIT;
     const metricPrefix = props.metricName ?? 'amplifyHosting';
 
     this.webAcl = new CfnWebACL(this, 'WebAcl', {

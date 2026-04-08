@@ -6,6 +6,11 @@ import { randomUUID } from 'node:crypto';
 import { HostingError } from './hosting_error.js';
 
 /**
+ * S3 object key for the SSR error page used in CloudFront 5xx error responses.
+ */
+export const ERROR_PAGE_KEY = '_error.html';
+
+/**
  * Get the default build output directory for a given framework.
  */
 export const getDefaultBuildOutputDir = (framework: string): string => {

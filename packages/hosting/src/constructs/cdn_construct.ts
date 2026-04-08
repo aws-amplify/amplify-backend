@@ -25,12 +25,11 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { CfnPermission, IFunction, IFunctionUrl } from 'aws-cdk-lib/aws-lambda';
-import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
-import { generateBuildIdFunctionCode } from '../defaults.js';
+import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
 
 // ---- Constants ----
 
@@ -235,19 +234,19 @@ export class CdnConstruct extends Construct {
             {
               httpStatus: 502,
               responseHttpStatus: 502,
-              responsePagePath: `/builds/${buildId}/_error.html`,
+              responsePagePath: `/builds/${buildId}/${ERROR_PAGE_KEY}`,
               ttl: Duration.seconds(10),
             },
             {
               httpStatus: 503,
               responseHttpStatus: 503,
-              responsePagePath: `/builds/${buildId}/_error.html`,
+              responsePagePath: `/builds/${buildId}/${ERROR_PAGE_KEY}`,
               ttl: Duration.seconds(10),
             },
             {
               httpStatus: 504,
               responseHttpStatus: 504,
-              responsePagePath: `/builds/${buildId}/_error.html`,
+              responsePagePath: `/builds/${buildId}/${ERROR_PAGE_KEY}`,
               ttl: Duration.seconds(10),
             },
           ]
@@ -336,7 +335,7 @@ export class CdnConstruct extends Construct {
       // OAC requires both actions: InvokeFunctionUrl for streaming via the URL,
       // and InvokeFunction for the CloudFront → Lambda direct invocation path.
       props.ssrFunction.addPermission('CloudFrontOACInvokeFunction', {
-        principal: new ServicePrincipal('cloudfront.amazonaws.com'),
+        principal: new iam.ServicePrincipal('cloudfront.amazonaws.com'),
         action: 'lambda:InvokeFunction',
         sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
       });

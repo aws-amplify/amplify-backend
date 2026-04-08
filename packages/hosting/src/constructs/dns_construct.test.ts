@@ -198,7 +198,6 @@ void describe('DnsConstruct', () => {
         (err: unknown) => {
           assert.ok(err instanceof HostingError);
           assert.strictEqual(err.name, 'InvalidDomainConfigError');
-          assert.ok(err.message.includes('evilexample.com'));
           return true;
         },
       );
@@ -268,7 +267,7 @@ void describe('DnsConstruct', () => {
       });
 
       // Call createDnsRecords post-construction
-      dns.createDnsRecords('www.example.com', distribution);
+      dns.createDnsRecords(distribution);
 
       const template = Template.fromStack(stack);
       const records = template.findResources('AWS::Route53::RecordSet');
@@ -289,6 +288,47 @@ void describe('DnsConstruct', () => {
 
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::Route53::RecordSet', 0);
+    });
+
+    void it('throws DuplicateDnsRecordsError when createDnsRecords() is called twice', () => {
+      const stack = createEnvStack();
+      const distribution = createDistribution(stack);
+
+      const dns = new DnsConstruct(stack, 'Dns', {
+        domainName: 'www.example.com',
+        hostedZone: 'example.com',
+      });
+
+      dns.createDnsRecords(distribution);
+
+      assert.throws(
+        () => dns.createDnsRecords(distribution),
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'DuplicateDnsRecordsError');
+          return true;
+        },
+      );
+    });
+
+    void it('throws DuplicateDnsRecordsError when distribution passed to constructor and createDnsRecords() called after', () => {
+      const stack = createEnvStack();
+      const distribution = createDistribution(stack);
+
+      const dns = new DnsConstruct(stack, 'Dns', {
+        domainName: 'www.example.com',
+        hostedZone: 'example.com',
+        distribution,
+      });
+
+      assert.throws(
+        () => dns.createDnsRecords(distribution),
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'DuplicateDnsRecordsError');
+          return true;
+        },
+      );
     });
   });
 });

@@ -13,7 +13,7 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { ComputeConfig, HostingResources } from '../types.js';
-import { generateBuildId } from '../defaults.js';
+import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
 import { ComputeConstruct } from './compute_construct.js';
 import { WafConstruct } from './waf_construct.js';
@@ -62,9 +62,9 @@ export type AmplifyHostingConstructProps = {
   /** CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe). Use PRICE_CLASS_ALL for global distribution. */
   priceClass?: PriceClass;
   /**
-   * Skip the Lambda Web Adapter region validation check.
-   * Use this escape hatch when deploying to a newly-launched AWS region
-   * that supports Lambda Web Adapter but is not yet in the built-in allowlist.
+   * Skips region validation for WAF WebACL (must be us-east-1 for CloudFront),
+   * ACM certificates (must be us-east-1 for CloudFront), and Lambda Web Adapter
+   * compatibility checks. Useful for testing.
    */
   skipRegionValidation?: boolean;
   name?: string;
@@ -145,7 +145,6 @@ export class AmplifyHostingConstruct extends Construct {
       const computeConstruct = new ComputeConstruct(this, 'Compute', {
         computeResource,
         computeBasePath: props.computeBasePath,
-        bucket: this.bucket,
         memorySize: compute.memorySize,
         timeout: compute.timeout
           ? Duration.seconds(compute.timeout)
@@ -209,13 +208,13 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- 7. DNS records (only when custom domain configured) ----
     if (props.domain && dnsConstruct) {
-      dnsConstruct.createDnsRecords(props.domain.domainName, this.distribution);
+      dnsConstruct.createDnsRecords(this.distribution);
     }
 
     // ---- 8. Upload SSR error page for 5xx responses ----
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
-        sources: [Source.data('_error.html', cdn.errorPageHtml)],
+        sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,

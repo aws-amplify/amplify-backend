@@ -12,7 +12,6 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource } from '../manifest/types.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
@@ -79,8 +78,6 @@ export type ComputeConstructProps = {
   computeResource: ComputeResource;
   /** Filesystem path to the directory containing compute resource subdirectories. */
   computeBasePath: string;
-  /** The hosting S3 bucket. Reserved for future use (e.g. granting Lambda read access to assets). */
-  bucket: IBucket;
   /** Lambda memory size in MB. Default: 512. */
   memorySize?: number;
   /** Lambda timeout. Default: 30 seconds. */

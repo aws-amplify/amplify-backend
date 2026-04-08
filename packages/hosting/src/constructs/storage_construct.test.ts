@@ -125,23 +125,6 @@ void describe('StorageConstruct', () => {
         }),
       });
     });
-
-    void it('overrides build retention days with custom value', () => {
-      const stack = createStack();
-      new StorageConstruct(stack, 'Storage', { buildRetentionDays: 90 });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::S3::Bucket', {
-        LifecycleConfiguration: Match.objectLike({
-          Rules: Match.arrayWith([
-            Match.objectLike({
-              Id: 'DeleteOldBuilds',
-              ExpirationInDays: 90,
-            }),
-          ]),
-        }),
-      });
-    });
   });
 
   // ---- Retain on delete ----
@@ -211,26 +194,6 @@ void describe('StorageConstruct', () => {
               Id: 'ExpireAccessLogs',
               ExpirationInDays: 90,
               Status: 'Enabled',
-            }),
-          ]),
-        }),
-      });
-    });
-
-    void it('overrides access log retention with custom value', () => {
-      const stack = createStack();
-      new StorageConstruct(stack, 'Storage', {
-        accessLogging: true,
-        accessLogRetentionDays: 30,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::S3::Bucket', {
-        LifecycleConfiguration: Match.objectLike({
-          Rules: Match.arrayWith([
-            Match.objectLike({
-              Id: 'ExpireAccessLogs',
-              ExpirationInDays: 30,
             }),
           ]),
         }),

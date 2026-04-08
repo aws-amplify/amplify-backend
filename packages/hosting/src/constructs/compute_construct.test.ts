@@ -5,7 +5,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { ComputeConstruct } from './compute_construct.js';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource } from '../manifest/types.js';
@@ -60,11 +59,10 @@ void describe('ComputeConstruct', () => {
   void describe('Lambda defaults', () => {
     void it('creates Lambda with NODEJS_20_X runtime and run.sh handler', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -76,11 +74,10 @@ void describe('ComputeConstruct', () => {
 
     void it('sets default memorySize to 512 MB', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -91,11 +88,10 @@ void describe('ComputeConstruct', () => {
 
     void it('sets default timeout to 30 seconds', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -106,11 +102,10 @@ void describe('ComputeConstruct', () => {
 
     void it('sets environment variables for Lambda Web Adapter', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -131,11 +126,10 @@ void describe('ComputeConstruct', () => {
   void describe('custom overrides', () => {
     void it('overrides memorySize', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
         memorySize: 1024,
       });
       const template = Template.fromStack(stack);
@@ -147,11 +141,10 @@ void describe('ComputeConstruct', () => {
 
     void it('overrides timeout', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
         timeout: Duration.seconds(60),
       });
       const template = Template.fromStack(stack);
@@ -163,11 +156,10 @@ void describe('ComputeConstruct', () => {
 
     void it('sets reservedConcurrency when provided', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
         reservedConcurrency: 10,
       });
       const template = Template.fromStack(stack);
@@ -179,11 +171,10 @@ void describe('ComputeConstruct', () => {
 
     void it('uses custom webAdapterVersion in layer ARN', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
         webAdapterVersion: 25,
       });
       const template = Template.fromStack(stack);
@@ -219,11 +210,10 @@ void describe('ComputeConstruct', () => {
   void describe('Function URL', () => {
     void it('creates Function URL with IAM auth', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -234,11 +224,10 @@ void describe('ComputeConstruct', () => {
 
     void it('creates Function URL with RESPONSE_STREAM invoke mode', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -253,11 +242,10 @@ void describe('ComputeConstruct', () => {
   void describe('Web Adapter layer', () => {
     void it('includes default version 22 in layer ARN', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -278,11 +266,10 @@ void describe('ComputeConstruct', () => {
 
     void it('includes Lambda Web Adapter account 753240598075 in layer ARN', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -305,11 +292,10 @@ void describe('ComputeConstruct', () => {
   void describe('IAM role', () => {
     void it('has AWSLambdaBasicExecutionRole managed policy', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -328,11 +314,10 @@ void describe('ComputeConstruct', () => {
 
     void it('has lambda.amazonaws.com as trusted service', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       const template = Template.fromStack(stack);
 
@@ -355,11 +340,10 @@ void describe('ComputeConstruct', () => {
       assert.throws(
         () => {
           const stack = createEnvStack('eu-south-2', '123456789012');
-          const bucket = new Bucket(stack, 'Bucket');
+
           new ComputeConstruct(stack, 'Compute', {
             computeResource: defaultComputeResource,
             computeBasePath,
-            bucket,
           });
         },
         (err: unknown) => {
@@ -373,22 +357,20 @@ void describe('ComputeConstruct', () => {
 
     void it('succeeds for supported region (us-east-1)', () => {
       const stack = createEnvStack('us-east-1', '123456789012');
-      const bucket = new Bucket(stack, 'Bucket');
+
       const compute = new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       assert.ok(compute.function, 'Should create Lambda function');
     });
 
     void it('bypasses region check with skipRegionValidation', () => {
       const stack = createEnvStack('eu-south-2', '123456789012');
-      const bucket = new Bucket(stack, 'Bucket');
+
       const compute = new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
         skipRegionValidation: true,
       });
       assert.ok(
@@ -400,11 +382,10 @@ void describe('ComputeConstruct', () => {
     void it('skips validation when region is an unresolved token', () => {
       // Stack without explicit env → region is a token
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       const compute = new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
       assert.ok(
         compute.function,
@@ -418,11 +399,10 @@ void describe('ComputeConstruct', () => {
   void describe('construct exports', () => {
     void it('exposes function and functionUrl', () => {
       const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
+
       const compute = new ComputeConstruct(stack, 'Compute', {
         computeResource: defaultComputeResource,
         computeBasePath,
-        bucket,
       });
 
       assert.ok(compute.function, 'Should expose function');
