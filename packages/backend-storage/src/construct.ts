@@ -123,7 +123,7 @@ export class AmplifyStorage
     if (isSandbox && props.keepOnDelete) {
       // eslint-disable-next-line no-console
       console.warn(
-        `[@aws-amplify/backend-storage] keepOnDelete is ignored in sandbox deployments. The bucket will be deleted. Deploy to a branch to enable retention.`,
+        `[@aws-amplify/backend-storage] keepOnDelete is ignored in sandbox deployments. The bucket will be deleted.`,
       );
     }
 
