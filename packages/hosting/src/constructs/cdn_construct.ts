@@ -113,7 +113,16 @@ export class CdnConstruct extends Construct {
     super(scope, id);
 
     const { manifest, bucket } = props;
-    const buildId = manifest.buildId!;
+
+    if (!manifest.buildId) {
+      throw new HostingError('MissingBuildIdError', {
+        message: 'Deploy manifest must include a buildId.',
+        resolution:
+          'Ensure your adapter generates a buildId in the deploy manifest.',
+      });
+    }
+
+    const buildId = manifest.buildId;
     const account = Stack.of(this).account;
     const hasCompute = !!props.ssrFunctionUrl;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;

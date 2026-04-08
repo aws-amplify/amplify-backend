@@ -121,19 +121,13 @@ export class AmplifyHostingConstruct extends Construct {
       computeRoutes.length > 0 && (manifest.computeResources?.length ?? 0) > 0;
 
     if (hasCompute) {
-      if (
-        !manifest.computeResources ||
-        manifest.computeResources.length === 0
-      ) {
-        throw new HostingError('MissingComputeResourcesError', {
-          message:
-            'Manifest has compute routes but no compute resources defined.',
-          resolution: 'Add computeResources to the deploy manifest.',
-        });
-      }
-      if (manifest.computeResources.length > 1) {
+      // hasCompute guarantees computeResources is non-empty, but TypeScript
+      // can't narrow through the boolean variable — assert for the compiler.
+      const computeResources = manifest.computeResources!;
+
+      if (computeResources.length > 1) {
         throw new HostingError('UnsupportedMultiComputeError', {
-          message: `The manifest declares ${manifest.computeResources.length} compute resources, but only single-compute manifests are supported.`,
+          message: `The manifest declares ${computeResources.length} compute resources, but only single-compute manifests are supported.`,
           resolution:
             'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
         });
@@ -145,7 +139,7 @@ export class AmplifyHostingConstruct extends Construct {
         });
       }
 
-      const computeResource = manifest.computeResources[0] as ComputeResource;
+      const computeResource = computeResources[0] as ComputeResource;
       const compute = props.compute ?? {};
 
       const computeConstruct = new ComputeConstruct(this, 'Compute', {

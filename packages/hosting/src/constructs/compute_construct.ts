@@ -79,7 +79,7 @@ export type ComputeConstructProps = {
   computeResource: ComputeResource;
   /** Filesystem path to the directory containing compute resource subdirectories. */
   computeBasePath: string;
-  /** The hosting S3 bucket — the Lambda role is granted read access. */
+  /** The hosting S3 bucket. Reserved for future use (e.g. granting Lambda read access to assets). */
   bucket: IBucket;
   /** Lambda memory size in MB. Default: 512. */
   memorySize?: number;
