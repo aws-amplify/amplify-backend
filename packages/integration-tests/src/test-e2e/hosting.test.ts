@@ -148,7 +148,7 @@ const waitForSuccessfulJobCompletion = async (
   branchName: string,
   jobId: string,
 ) => {
-  const timeoutMs = 10 * 60 * 1000; // 10 minutes;
+  const timeoutMs = 20 * 60 * 1000; // 20 minutes;
   const pollingInterval = 10 * 1000; // 10 seconds;
   const startTime = Date.now();
   while (Date.now() - startTime <= timeoutMs) {
