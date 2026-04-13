@@ -156,3 +156,5 @@ export class AmplifyStorage
     this.accessDefinition = accessOutput;
   };
 }
+
+// e2e baseline test - safe to delete
