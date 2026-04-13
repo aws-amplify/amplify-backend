@@ -120,3 +120,11 @@ void describe('AmplifyStorage', () => {
     });
   });
 });
+
+void describe('e2e baseline validation', () => {
+  void it('no-op test for e2e trigger', () => {
+    // This test exists solely to trigger e2e_hosting CI.
+    // Safe to delete after validation.
+    assert.equal(1, 1);
+  });
+});
