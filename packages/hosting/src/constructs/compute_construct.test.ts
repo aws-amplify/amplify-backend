@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ComputeConstruct } from './compute_construct.js';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource } from '../manifest/types.js';
@@ -407,6 +408,40 @@ void describe('ComputeConstruct', () => {
 
       assert.ok(compute.function, 'Should expose function');
       assert.ok(compute.functionUrl, 'Should expose functionUrl');
+    });
+  });
+
+  // ---- Log retention ----
+
+  void describe('logRetention', () => {
+    void it('uses custom logRetention when provided', () => {
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        computeResource: defaultComputeResource,
+        computeBasePath,
+        logRetention: RetentionDays.ONE_MONTH,
+      });
+
+      // CDK creates a Custom::LogRetention resource that configures log group retention
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 30,
+      });
+    });
+
+    void it('defaults to TWO_WEEKS when logRetention is not set', () => {
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        computeResource: defaultComputeResource,
+        computeBasePath,
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 14,
+      });
     });
   });
 });

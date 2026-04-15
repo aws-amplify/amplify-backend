@@ -12,6 +12,7 @@ import {
   FunctionCode,
   FunctionEventType,
   FunctionRuntime,
+  GeoRestriction,
   HttpVersion,
   OriginRequestPolicy,
   PriceClass,
@@ -76,6 +77,11 @@ export type CdnConstructProps = {
   accessLogBucket?: IBucket;
   /** CloudFront price class. Default: PRICE_CLASS_100 (US, Canada, Europe). */
   priceClass?: PriceClass;
+  /** Geo-restriction configuration for CloudFront distribution. */
+  geoRestriction?: {
+    type: 'whitelist' | 'blacklist';
+    countries: string[];
+  };
   /** Custom error page HTML for SSR 5xx responses. Default: built-in SSR_ERROR_PAGE_HTML. */
   errorPageHtml?: string;
 };
@@ -278,6 +284,16 @@ export class CdnConstruct extends Construct {
       // Access logging
       ...(props.accessLogBucket
         ? { enableLogging: true, logBucket: props.accessLogBucket }
+        : {}),
+      // Geo-restriction
+      ...(props.geoRestriction
+        ? {
+            geoRestriction:
+              props.geoRestriction.type === 'whitelist'
+                ? GeoRestriction.allowlist(...props.geoRestriction.countries)
+                : // eslint-disable-next-line spellcheck/spell-checker
+                  GeoRestriction.denylist(...props.geoRestriction.countries),
+          }
         : {}),
       // Error responses
       errorResponses: errorResponses.length > 0 ? errorResponses : undefined,

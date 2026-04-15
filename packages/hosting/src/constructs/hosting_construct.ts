@@ -9,10 +9,12 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { IKey } from 'aws-cdk-lib/aws-kms';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
-import { ComputeConfig, HostingResources } from '../types.js';
+import { HostingResources } from '../types.js';
 import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
 import { ComputeConstruct } from './compute_construct.js';
@@ -49,25 +51,51 @@ export type HostingWafConfig = {
  * Props for the AmplifyHostingConstruct.
  */
 export type AmplifyHostingConstructProps = {
+  /** Deploy manifest produced by the framework adapter. */
   manifest: DeployManifest;
+  /** Filesystem path to the static assets directory. */
   staticAssetPath: string;
+  /** Filesystem path to the compute resource directory (SSR only). */
   computeBasePath?: string;
-  domain?: HostingDomainConfig;
-  waf?: HostingWafConfig;
-  compute?: ComputeConfig;
-  retainOnDelete?: boolean;
-  accessLogging?: boolean;
-  /** Custom Content-Security-Policy header value. If not set, a restrictive default is used. */
-  contentSecurityPolicy?: string;
-  /** CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe). Use PRICE_CLASS_ALL for global distribution. */
-  priceClass?: PriceClass;
   /**
    * Skips region validation for WAF WebACL (must be us-east-1 for CloudFront),
    * ACM certificates (must be us-east-1 for CloudFront), and Lambda Web Adapter
    * compatibility checks. Useful for testing.
    */
   skipRegionValidation?: boolean;
-  name?: string;
+
+  /** Custom domain configuration. */
+  domain?: HostingDomainConfig;
+  /** WAF configuration. */
+  waf?: HostingWafConfig;
+  /** Compute (Lambda) configuration for SSR frameworks. */
+  compute?: {
+    memorySize?: number;
+    timeout?: Duration;
+    reservedConcurrency?: number;
+    logRetention?: RetentionDays;
+  };
+  /** CDN (CloudFront) configuration. */
+  cdn?: {
+    priceClass?: PriceClass;
+    contentSecurityPolicy?: string;
+    geoRestriction?: {
+      type: 'whitelist' | 'blacklist';
+      countries: string[];
+    };
+  };
+  /** S3 storage configuration. */
+  storage?: {
+    encryption?: 'S3_MANAGED' | 'KMS';
+    encryptionKey?: IKey;
+    retainOnDelete?: boolean;
+    buildRetentionDays?: number;
+  };
+  /** CloudFront access logging configuration. */
+  logging?: {
+    enabled: boolean;
+    retentionDays?: number;
+  };
 };
 
 // ---- Main construct ----
@@ -108,8 +136,12 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- 1. Storage (S3 buckets) ----
     const storage = new StorageConstruct(this, 'Storage', {
-      retainOnDelete: props.retainOnDelete,
-      accessLogging: props.accessLogging,
+      retainOnDelete: props.storage?.retainOnDelete,
+      accessLogging: props.logging?.enabled,
+      encryption: props.storage?.encryption,
+      encryptionKey: props.storage?.encryptionKey,
+      buildRetentionDays: props.storage?.buildRetentionDays,
+      logRetentionDays: props.logging?.retentionDays,
     });
     this.bucket = storage.bucket;
 
@@ -146,10 +178,9 @@ export class AmplifyHostingConstruct extends Construct {
         computeResource,
         computeBasePath: props.computeBasePath,
         memorySize: compute.memorySize,
-        timeout: compute.timeout
-          ? Duration.seconds(compute.timeout)
-          : undefined,
+        timeout: compute.timeout,
         reservedConcurrency: compute.reservedConcurrency,
+        logRetention: compute.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
 
@@ -161,7 +192,6 @@ export class AmplifyHostingConstruct extends Construct {
     const wafConstruct = new WafConstruct(this, 'Waf', {
       enabled: props.waf?.enabled ?? false,
       rateLimit: props.waf?.rateLimit,
-      metricName: props.name,
       skipRegionValidation: props.skipRegionValidation,
     });
     this.webAcl = wafConstruct.webAcl;
@@ -183,7 +213,7 @@ export class AmplifyHostingConstruct extends Construct {
     const securityHeadersPolicy = createSecurityHeadersPolicy(
       this,
       'SecurityHeaders',
-      { contentSecurityPolicy: props.contentSecurityPolicy },
+      { contentSecurityPolicy: props.cdn?.contentSecurityPolicy },
     );
 
     // ---- 6. CloudFront distribution (CDN + OAC patches) ----
@@ -200,7 +230,8 @@ export class AmplifyHostingConstruct extends Construct {
       certificate: this.certificate,
       domainName: props.domain?.domainName,
       accessLogBucket: storage.accessLogBucket,
-      priceClass: props.priceClass,
+      priceClass: props.cdn?.priceClass,
+      geoRestriction: props.cdn?.geoRestriction,
     });
 
     this.distribution = cdn.distribution;

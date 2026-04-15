@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
 import { DeployManifest } from '../manifest/types.js';
@@ -357,7 +357,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      retainOnDelete: true,
+      storage: { retainOnDelete: true },
     });
 
     const template = Template.fromStack(stack);
@@ -794,7 +794,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       computeBasePath: computeDir,
       compute: {
         memorySize: 1024,
-        timeout: 60,
+        timeout: Duration.seconds(60),
         reservedConcurrency: 50,
       },
     });
@@ -1337,7 +1337,7 @@ void describe('AmplifyHostingConstruct — access logging', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      accessLogging: true,
+      logging: { enabled: true },
     });
 
     const template = Template.fromStack(stack);
@@ -1393,7 +1393,7 @@ void describe('AmplifyHostingConstruct — custom CSP', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      contentSecurityPolicy: customCsp,
+      cdn: { contentSecurityPolicy: customCsp },
     });
 
     const template = Template.fromStack(stack);
