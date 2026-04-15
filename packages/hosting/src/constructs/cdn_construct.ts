@@ -127,6 +127,14 @@ export class CdnConstruct extends Construct {
       });
     }
 
+    if (props.geoRestriction && props.geoRestriction.countries.length === 0) {
+      throw new HostingError('EmptyGeoRestrictionError', {
+        message: 'geoRestriction.countries array cannot be empty.',
+        resolution:
+          'Provide at least one ISO 3166-1 alpha-2 country code, or remove the geoRestriction config.',
+      });
+    }
+
     const buildId = manifest.buildId;
     const account = Stack.of(this).account;
     const hasCompute = !!props.ssrFunctionUrl;

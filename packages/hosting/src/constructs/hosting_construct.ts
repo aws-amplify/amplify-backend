@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
 import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import {
@@ -236,6 +237,24 @@ export class AmplifyHostingConstruct extends Construct {
 
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
+
+    // ---- 6a. KMS decrypt grant for CloudFront OAC ----
+    // When the hosting bucket uses KMS encryption, CloudFront OAC needs
+    // kms:Decrypt to read objects via SigV4. Grant on BYO key or CDK auto-key.
+    // NOTE: We scope the grant to the CloudFront service principal but omit a
+    // SourceArn condition referencing the distribution. Adding a Ref to the
+    // distribution here would create a Key→Distribution→Bucket→Key circular
+    // dependency in CloudFormation.
+    const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
+    if (props.storage?.encryption === 'KMS' && kmsKey) {
+      kmsKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['kms:Decrypt'],
+          resources: ['*'],
+          principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+        }),
+      );
+    }
 
     // ---- 7. DNS records (only when custom domain configured) ----
     if (props.domain && dnsConstruct) {
