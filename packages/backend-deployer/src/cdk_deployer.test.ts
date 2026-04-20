@@ -357,4 +357,51 @@ void describe('invokeCDKCommand', () => {
       },
     );
   });
+
+  void it('handles synth-only for branch deployments', async () => {
+    const result = await invoker.synth(branchBackendId);
+    assert.strictEqual(fromAssemblyBuilderMock.mock.callCount(), 1);
+    assert.strictEqual(synthMock.mock.callCount(), 1);
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+    assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
+      contextStore: new MemoryContext({
+        'amplify-backend-namespace': '123',
+        'amplify-backend-name': 'testBranch',
+        'amplify-backend-type': 'branch',
+      }),
+      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    } as AssemblySourceProps);
+    assert.strictEqual(
+      result.cloudAssemblyPath,
+      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    );
+    assert.ok(result.deploymentTimes.synthesisTime !== undefined);
+  });
+
+  void it('enables type checking for synth', async () => {
+    await invoker.synth(branchBackendId, {
+      validateAppSources: true,
+    });
+    assert.strictEqual(tsCompilerMock.mock.callCount(), 1);
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+  });
+
+  void it('returns human readable errors on synth', async () => {
+    synthMock.mock.mockImplementationOnce(() => {
+      throw new Error('Access Denied');
+    });
+
+    await assert.rejects(
+      () => invoker.synth(branchBackendId),
+      (err: AmplifyError<CDKDeploymentError>) => {
+        assert.equal(
+          err.message,
+          'The deployment role does not have sufficient permissions to perform this deployment.',
+        );
+        assert.equal(err.name, 'AccessDeniedError');
+        assert.equal(err.cause?.message, 'Access Denied');
+        return true;
+      },
+    );
+  });
 });
