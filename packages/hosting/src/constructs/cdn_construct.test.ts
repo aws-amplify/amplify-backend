@@ -932,4 +932,101 @@ void describe('CdnConstruct', () => {
       assert.ok(distUrlOutput, 'Should have DistributionUrl output');
     });
   });
+
+  // ---- Geo-restriction ----
+
+  void describe('geo-restriction', () => {
+    void it('applies whitelist geo-restriction to distribution', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+        geoRestriction: {
+          type: 'whitelist',
+          countries: ['US', 'CA', 'GB'],
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::Distribution',
+        Match.objectLike({
+          DistributionConfig: Match.objectLike({
+            Restrictions: Match.objectLike({
+              GeoRestriction: Match.objectLike({
+                RestrictionType: 'whitelist',
+                Locations: ['US', 'CA', 'GB'],
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    void it('applies blacklist geo-restriction to distribution', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+        geoRestriction: {
+          type: 'blacklist',
+          countries: ['CN', 'RU'],
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::Distribution',
+        Match.objectLike({
+          DistributionConfig: Match.objectLike({
+            Restrictions: Match.objectLike({
+              GeoRestriction: Match.objectLike({
+                RestrictionType: 'blacklist',
+                Locations: ['CN', 'RU'],
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    void it('does not apply geo-restriction when not configured', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      const distributions = template.findResources(
+        'AWS::CloudFront::Distribution',
+      );
+      for (const [, dist] of Object.entries(distributions)) {
+        const config = (dist as Record<string, Record<string, unknown>>)
+          .Properties?.DistributionConfig as Record<string, unknown>;
+        const restrictions = config?.Restrictions as
+          | Record<string, Record<string, unknown>>
+          | undefined;
+        if (restrictions?.GeoRestriction) {
+          assert.strictEqual(
+            restrictions.GeoRestriction.RestrictionType,
+            'none',
+            'Default should have no geo-restriction (type=none)',
+          );
+        }
+      }
+    });
+  });
 });

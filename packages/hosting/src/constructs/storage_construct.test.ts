@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Key } from 'aws-cdk-lib/aws-kms';
 import { StorageConstruct } from './storage_construct.js';
 
 // ---- Test helpers ----
@@ -221,6 +222,169 @@ void describe('StorageConstruct', () => {
         0,
         'Should not have AccessLogBucket',
       );
+    });
+  });
+
+  // ---- KMS encryption ----
+
+  void describe('encryption', () => {
+    void it('uses S3_MANAGED encryption by default', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        BucketEncryption: {
+          ServerSideEncryptionConfiguration: [
+            {
+              ServerSideEncryptionByDefault: {
+                SSEAlgorithm: 'AES256',
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    void it('uses S3_MANAGED encryption when explicitly set', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { encryption: 'S3_MANAGED' });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        BucketEncryption: {
+          ServerSideEncryptionConfiguration: [
+            {
+              ServerSideEncryptionByDefault: {
+                SSEAlgorithm: 'AES256',
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    void it('uses KMS encryption when encryption is KMS', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { encryption: 'KMS' });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        BucketEncryption: {
+          ServerSideEncryptionConfiguration: [
+            {
+              ServerSideEncryptionByDefault: {
+                SSEAlgorithm: 'aws:kms',
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    void it('uses BYO KMS key when encryptionKey is provided', () => {
+      const stack = createStack();
+      const key = new Key(stack, 'MyKey');
+      new StorageConstruct(stack, 'Storage', {
+        encryption: 'KMS',
+        encryptionKey: key,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        BucketEncryption: {
+          ServerSideEncryptionConfiguration: [
+            {
+              ServerSideEncryptionByDefault: Match.objectLike({
+                SSEAlgorithm: 'aws:kms',
+                KMSMasterKeyID: Match.anyValue(),
+              }),
+            },
+          ],
+        },
+      });
+    });
+  });
+
+  // ---- buildRetentionDays ----
+
+  void describe('buildRetentionDays', () => {
+    void it('uses custom build retention days', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { buildRetentionDays: 90 });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        LifecycleConfiguration: Match.objectLike({
+          Rules: Match.arrayWith([
+            Match.objectLike({
+              Id: 'DeleteOldBuilds',
+              Prefix: 'builds/',
+              ExpirationInDays: 90,
+              Status: 'Enabled',
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('defaults to 365 days when not specified', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        LifecycleConfiguration: Match.objectLike({
+          Rules: Match.arrayWith([
+            Match.objectLike({
+              Id: 'DeleteOldBuilds',
+              ExpirationInDays: 365,
+            }),
+          ]),
+        }),
+      });
+    });
+  });
+
+  // ---- logRetentionDays ----
+
+  void describe('logRetentionDays', () => {
+    void it('uses custom log retention days for access log bucket', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', {
+        accessLogging: true,
+        logRetentionDays: 30,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        LifecycleConfiguration: Match.objectLike({
+          Rules: Match.arrayWith([
+            Match.objectLike({
+              Id: 'ExpireAccessLogs',
+              ExpirationInDays: 30,
+              Status: 'Enabled',
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('defaults to 90 days for access log bucket', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { accessLogging: true });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        LifecycleConfiguration: Match.objectLike({
+          Rules: Match.arrayWith([
+            Match.objectLike({
+              Id: 'ExpireAccessLogs',
+              ExpirationInDays: 90,
+            }),
+          ]),
+        }),
+      });
     });
   });
 });

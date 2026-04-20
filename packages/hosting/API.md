@@ -8,12 +8,15 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { Construct } from 'constructs';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
+import { Duration } from 'aws-cdk-lib';
 import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { FunctionUrl } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
+import { IKey } from 'aws-cdk-lib/aws-kms';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -43,26 +46,37 @@ export type AmplifyHostingConstructProps = {
     manifest: DeployManifest;
     staticAssetPath: string;
     computeBasePath?: string;
+    skipRegionValidation?: boolean;
     domain?: HostingDomainConfig;
     waf?: HostingWafConfig;
-    compute?: ComputeConfig;
-    retainOnDelete?: boolean;
-    accessLogging?: boolean;
-    contentSecurityPolicy?: string;
-    priceClass?: PriceClass;
-    skipRegionValidation?: boolean;
-    name?: string;
+    compute?: {
+        memorySize?: number;
+        timeout?: Duration;
+        reservedConcurrency?: number;
+        logRetention?: RetentionDays;
+    };
+    cdn?: {
+        priceClass?: PriceClass;
+        contentSecurityPolicy?: string;
+        geoRestriction?: {
+            type: 'whitelist' | 'blacklist';
+            countries: string[];
+        };
+    };
+    storage?: {
+        encryption?: 'S3_MANAGED' | 'KMS';
+        encryptionKey?: IKey;
+        retainOnDelete?: boolean;
+        buildRetentionDays?: number;
+    };
+    logging?: {
+        enabled: boolean;
+        retentionDays?: number;
+    };
 };
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
-
-// @public
-export type ComputeConfig = {
-    memorySize?: number;
-    timeout?: number;
-    reservedConcurrency?: number;
-};
 
 // @public
 export type ComputeResource = {
@@ -125,21 +139,40 @@ export type HostingProps = {
     buildCommand?: string;
     buildOutputDir?: string;
     framework?: FrameworkType;
+    customAdapter?: FrameworkAdapterFn;
     domain?: {
         domainName: string;
         hostedZone: string;
+        certificate?: ICertificate;
     };
     waf?: {
         enabled: boolean;
         rateLimit?: number;
     };
-    customAdapter?: FrameworkAdapterFn;
-    compute?: ComputeConfig;
-    retainOnDelete?: boolean;
-    accessLogging?: boolean;
-    contentSecurityPolicy?: string;
-    priceClass?: PriceClass;
-    name?: string;
+    compute?: {
+        memorySize?: number;
+        timeout?: Duration;
+        reservedConcurrency?: number;
+        logRetention?: RetentionDays;
+    };
+    cdn?: {
+        priceClass?: PriceClass;
+        contentSecurityPolicy?: string;
+        geoRestriction?: {
+            type: 'whitelist' | 'blacklist';
+            countries: string[];
+        };
+    };
+    storage?: {
+        encryption?: 'S3_MANAGED' | 'KMS';
+        encryptionKey?: IKey;
+        retainOnDelete?: boolean;
+        buildRetentionDays?: number;
+    };
+    logging?: {
+        enabled: boolean;
+        retentionDays?: number;
+    };
 };
 
 // @public
