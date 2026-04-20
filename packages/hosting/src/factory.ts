@@ -302,8 +302,6 @@ const doBuildHostingConstruct = (
   scope: Stack,
   projectDir: string,
 ): HostingResources => {
-  const name = props.name ?? 'amplifyHosting';
-
   // Auto-detect or use explicit framework
   const framework = props.framework ?? detectFramework(projectDir);
 
@@ -350,20 +348,18 @@ const doBuildHostingConstruct = (
     domain: props.domain,
     waf: props.waf,
     compute: props.compute,
-    retainOnDelete: props.retainOnDelete,
-    accessLogging: props.accessLogging,
-    contentSecurityPolicy: props.contentSecurityPolicy,
-    priceClass: props.priceClass,
-    name,
+    cdn: props.cdn,
+    storage: props.storage,
+    logging: props.logging,
   };
 
   const hostingConstruct = new AmplifyHostingConstruct(
     scope,
-    name,
+    'amplifyHosting',
     constructProps,
   );
 
-  Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, name);
+  Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, 'amplifyHosting');
 
   return hostingConstruct.getResources();
 };

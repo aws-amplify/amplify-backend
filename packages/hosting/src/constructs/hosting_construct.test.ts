@@ -3,9 +3,13 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Key } from 'aws-cdk-lib/aws-kms';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
+import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 
 // ---- Helpers ----
@@ -357,7 +361,7 @@ void describe('AmplifyHostingConstruct — SPA mode', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      retainOnDelete: true,
+      storage: { retainOnDelete: true },
     });
 
     const template = Template.fromStack(stack);
@@ -794,7 +798,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       computeBasePath: computeDir,
       compute: {
         memorySize: 1024,
-        timeout: 60,
+        timeout: Duration.seconds(60),
         reservedConcurrency: 50,
       },
     });
@@ -1337,7 +1341,7 @@ void describe('AmplifyHostingConstruct — access logging', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      accessLogging: true,
+      logging: { enabled: true },
     });
 
     const template = Template.fromStack(stack);
@@ -1393,7 +1397,7 @@ void describe('AmplifyHostingConstruct — custom CSP', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest,
       staticAssetPath: staticDir,
-      contentSecurityPolicy: customCsp,
+      cdn: { contentSecurityPolicy: customCsp },
     });
 
     const template = Template.fromStack(stack);
@@ -1778,5 +1782,619 @@ void describe('AmplifyHostingConstruct — Lambda CloudFront-only permission', (
       0,
       'SPA mode should not have CloudFront Lambda permissions',
     );
+  });
+});
+
+// ================================================================
+// KMS encryption — integration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — KMS encryption', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForKms: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'kms-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-kms-test-'));
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('uses KMS encryption with BYO key and grants kms:Decrypt to CloudFront', () => {
+    const stack = createStack();
+    const key = new Key(stack, 'MyKey');
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForKms,
+      staticAssetPath: staticDir,
+      storage: { encryption: 'KMS', encryptionKey: key },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Verify S3 bucket uses KMS encryption
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      BucketEncryption: {
+        ServerSideEncryptionConfiguration: [
+          {
+            ServerSideEncryptionByDefault: Match.objectLike({
+              SSEAlgorithm: 'aws:kms',
+              KMSMasterKeyID: Match.anyValue(),
+            }),
+          },
+        ],
+      },
+    });
+
+    // Verify KMS key policy includes kms:Decrypt for CloudFront
+    template.hasResourceProperties('AWS::KMS::Key', {
+      KeyPolicy: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'kms:Decrypt',
+            Effect: 'Allow',
+            Principal: Match.objectLike({
+              Service: 'cloudfront.amazonaws.com',
+            }),
+          }),
+        ]),
+      }),
+    });
+  });
+
+  void it('grants kms:Decrypt on auto-created KMS key (no BYO key)', () => {
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForKms,
+      staticAssetPath: staticDir,
+      storage: { encryption: 'KMS' },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // CDK auto-creates a KMS key — verify the decrypt grant exists
+    template.hasResourceProperties('AWS::KMS::Key', {
+      KeyPolicy: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'kms:Decrypt',
+            Effect: 'Allow',
+            Principal: Match.objectLike({
+              Service: 'cloudfront.amazonaws.com',
+            }),
+          }),
+        ]),
+      }),
+    });
+  });
+
+  void it('does NOT create KMS key when encryption is S3_MANAGED', () => {
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForKms,
+      staticAssetPath: staticDir,
+      storage: { encryption: 'S3_MANAGED' },
+    });
+
+    const template = Template.fromStack(stack);
+    const kmsKeys = template.findResources('AWS::KMS::Key');
+    assert.strictEqual(
+      Object.keys(kmsKeys).length,
+      0,
+      'S3_MANAGED should not create any KMS keys',
+    );
+  });
+});
+
+// ================================================================
+// Geo-restriction — integration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — geo-restriction', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForGeo: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'geo-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-geo-test-'));
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('applies whitelist geo-restriction to CloudFront distribution', () => {
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForGeo,
+      staticAssetPath: staticDir,
+      cdn: { geoRestriction: { type: 'whitelist', countries: ['US', 'CA'] } },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          Restrictions: Match.objectLike({
+            GeoRestriction: Match.objectLike({
+              RestrictionType: 'whitelist',
+              Locations: ['US', 'CA'],
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('throws EmptyGeoRestrictionError for empty countries array', () => {
+    const stack = createStack();
+
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: spaManifestForGeo,
+          staticAssetPath: staticDir,
+          cdn: { geoRestriction: { type: 'whitelist', countries: [] } },
+        }),
+      (err: unknown) => {
+        assert.ok(err instanceof HostingError);
+        assert.strictEqual(err.name, 'EmptyGeoRestrictionError');
+        assert.ok(err.resolution);
+        return true;
+      },
+    );
+  });
+});
+
+// ================================================================
+// Lifecycle durations — integration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — lifecycle durations', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForLifecycle: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'lifecycle-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-lifecycle-int-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('uses custom buildRetentionDays and log retentionDays', () => {
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForLifecycle,
+      staticAssetPath: staticDir,
+      storage: { buildRetentionDays: 30 },
+      logging: { enabled: true, retentionDays: 14 },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Hosting bucket: 30-day build retention
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      LifecycleConfiguration: Match.objectLike({
+        Rules: Match.arrayWith([
+          Match.objectLike({
+            Id: 'DeleteOldBuilds',
+            Prefix: 'builds/',
+            ExpirationInDays: 30,
+            Status: 'Enabled',
+          }),
+        ]),
+      }),
+    });
+
+    // Access log bucket: 14-day expiration
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      LifecycleConfiguration: Match.objectLike({
+        Rules: Match.arrayWith([
+          Match.objectLike({
+            Id: 'ExpireAccessLogs',
+            ExpirationInDays: 14,
+            Status: 'Enabled',
+          }),
+        ]),
+      }),
+    });
+  });
+});
+
+// ================================================================
+// Lambda log retention — integration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — compute logRetention', () => {
+  let tmpDir: string;
+  let staticDir: string;
+  let computeDir: string;
+
+  const ssrManifestForLog: DeployManifest = {
+    version: 1,
+    routes: [
+      { path: '/_next/static/*', target: { kind: 'Static' } },
+      { path: '/*', target: { kind: 'Compute', src: 'default' } },
+    ],
+    computeResources: [
+      { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+    ],
+    framework: { name: 'nextjs', version: '15.0.0' },
+    buildId: 'log-ret-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-log-ret-test-'));
+    staticDir = path.join(tmpDir, 'static');
+    computeDir = path.join(tmpDir, 'compute');
+
+    fs.mkdirSync(path.join(staticDir, '_next', 'static'), { recursive: true });
+    fs.writeFileSync(
+      path.join(staticDir, '_next', 'static', 'main.js'),
+      'chunk',
+    );
+
+    const defaultDir = path.join(computeDir, 'default');
+    fs.mkdirSync(defaultDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(defaultDir, 'server.js'),
+      'require("http").createServer().listen(3000)',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'run.sh'),
+      '#!/bin/bash\nexec node server.js',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.js'),
+      'exports.handler = async () => ({ statusCode: 502 });',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('passes logRetention to the Lambda function via compute group', () => {
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifestForLog,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+      compute: { logRetention: RetentionDays.ONE_MONTH },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('Custom::LogRetention', {
+      RetentionInDays: 30,
+    });
+  });
+});
+
+// ================================================================
+// BYO certificate — integration
+// ================================================================
+
+void describe('AmplifyHostingConstruct — BYO certificate', () => {
+  let tmpDir: string;
+  let staticDir: string;
+
+  const spaManifestForCert: DeployManifest = {
+    version: 1,
+    routes: [{ path: '/*', target: { kind: 'Static' } }],
+    framework: { name: 'spa' },
+    buildId: 'byo-cert-test-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-byo-cert-test-'));
+    staticDir = path.join(tmpDir, 'static');
+    fs.mkdirSync(staticDir, { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const createEnvStack = (): Stack => {
+    const app = new App();
+    return new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+  };
+
+  void it('uses BYO certificate without creating a new ACM certificate', () => {
+    const stack = createEnvStack();
+    const certArn =
+      'arn:aws:acm:us-east-1:123456789012:certificate/byo-cert-abc';
+    const cert = Certificate.fromCertificateArn(stack, 'BYOCert', certArn);
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifestForCert,
+      staticAssetPath: staticDir,
+      domain: {
+        domainName: 'www.example.com',
+        hostedZone: 'example.com',
+        certificate: cert,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // CloudFront should use the BYO certificate
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          Aliases: ['www.example.com'],
+          ViewerCertificate: Match.objectLike({
+            AcmCertificateArn: certArn,
+          }),
+        }),
+      }),
+    );
+
+    // No DnsValidatedCertificate custom resource should be created
+    const customResources = template.findResources(
+      'AWS::CloudFormation::CustomResource',
+    );
+    const certResources = Object.entries(customResources).filter(([, r]) => {
+      const props = (r as Record<string, Record<string, unknown>>).Properties;
+      return props?.DomainName === 'www.example.com';
+    });
+    assert.strictEqual(
+      certResources.length,
+      0,
+      'Should NOT create a new certificate when BYO cert is provided',
+    );
+  });
+});
+
+// ================================================================
+// Kitchen-sink — all grouped props at once
+// ================================================================
+
+void describe('AmplifyHostingConstruct — kitchen-sink integration', () => {
+  let tmpDir: string;
+  let staticDir: string;
+  let computeDir: string;
+
+  const ssrManifestKitchenSink: DeployManifest = {
+    version: 1,
+    routes: [
+      { path: '/_next/static/*', target: { kind: 'Static' } },
+      { path: '/favicon.ico', target: { kind: 'Static' } },
+      { path: '/*', target: { kind: 'Compute', src: 'default' } },
+    ],
+    computeResources: [
+      { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
+    ],
+    framework: { name: 'nextjs', version: '15.0.0' },
+    buildId: 'kitchen-sink-1',
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-kitchen-sink-test-'),
+    );
+    staticDir = path.join(tmpDir, 'static');
+    computeDir = path.join(tmpDir, 'compute');
+
+    fs.mkdirSync(path.join(staticDir, '_next', 'static'), { recursive: true });
+    fs.writeFileSync(
+      path.join(staticDir, '_next', 'static', 'main.js'),
+      'chunk',
+    );
+
+    const defaultDir = path.join(computeDir, 'default');
+    fs.mkdirSync(defaultDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(defaultDir, 'server.js'),
+      'require("http").createServer().listen(3000)',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'run.sh'),
+      '#!/bin/bash\nexec node server.js',
+    );
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.js'),
+      'exports.handler = async () => ({ statusCode: 502 });',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('synthesizes valid template with all grouped props at once', () => {
+    const stack = createStack();
+    const key = new Key(stack, 'HostingKey');
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifestKitchenSink,
+      staticAssetPath: staticDir,
+      computeBasePath: computeDir,
+      storage: {
+        encryption: 'KMS',
+        encryptionKey: key,
+        retainOnDelete: true,
+        buildRetentionDays: 60,
+      },
+      cdn: {
+        contentSecurityPolicy: "default-src 'self'",
+        geoRestriction: { type: 'blacklist', countries: ['CN', 'RU'] },
+      },
+      compute: {
+        memorySize: 1024,
+        timeout: Duration.seconds(60),
+        reservedConcurrency: 50,
+        logRetention: RetentionDays.ONE_MONTH,
+      },
+      logging: { enabled: true, retentionDays: 7 },
+      waf: { enabled: true },
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // CloudFront distribution exists
+    template.resourceCountIs('AWS::CloudFront::Distribution', 1);
+
+    // KMS encryption on S3 bucket
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      BucketEncryption: {
+        ServerSideEncryptionConfiguration: [
+          {
+            ServerSideEncryptionByDefault: Match.objectLike({
+              SSEAlgorithm: 'aws:kms',
+            }),
+          },
+        ],
+      },
+    });
+
+    // Geo-restriction blacklist
+    template.hasResourceProperties(
+      'AWS::CloudFront::Distribution',
+      Match.objectLike({
+        DistributionConfig: Match.objectLike({
+          Restrictions: Match.objectLike({
+            GeoRestriction: Match.objectLike({
+              RestrictionType: 'blacklist',
+              Locations: ['CN', 'RU'],
+            }),
+          }),
+        }),
+      }),
+    );
+
+    // Custom CSP
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            ContentSecurityPolicy: Match.objectLike({
+              ContentSecurityPolicy: "default-src 'self'",
+            }),
+          }),
+        }),
+      }),
+    );
+
+    // Lambda function with custom compute config
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      MemorySize: 1024,
+      Timeout: 60,
+      ReservedConcurrentExecutions: 50,
+    });
+
+    // Lambda log retention (ONE_MONTH = 30 days)
+    template.hasResourceProperties('Custom::LogRetention', {
+      RetentionInDays: 30,
+    });
+
+    // Build retention 60 days
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      LifecycleConfiguration: Match.objectLike({
+        Rules: Match.arrayWith([
+          Match.objectLike({
+            Id: 'DeleteOldBuilds',
+            ExpirationInDays: 60,
+          }),
+        ]),
+      }),
+    });
+
+    // Access log bucket with 7-day retention
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      LifecycleConfiguration: Match.objectLike({
+        Rules: Match.arrayWith([
+          Match.objectLike({
+            Id: 'ExpireAccessLogs',
+            ExpirationInDays: 7,
+          }),
+        ]),
+      }),
+    });
+
+    // WAF enabled
+    template.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Scope: 'CLOUDFRONT',
+    });
+
+    // KMS decrypt grant for CloudFront
+    template.hasResourceProperties('AWS::KMS::Key', {
+      KeyPolicy: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'kms:Decrypt',
+            Principal: Match.objectLike({
+              Service: 'cloudfront.amazonaws.com',
+            }),
+          }),
+        ]),
+      }),
+    });
+
+    // Retain on delete
+    const buckets = template.findResources('AWS::S3::Bucket');
+    let foundRetain = false;
+    for (const [, bucket] of Object.entries(buckets)) {
+      if ((bucket as Record<string, unknown>).DeletionPolicy === 'Retain') {
+        foundRetain = true;
+      }
+    }
+    assert.ok(
+      foundRetain,
+      'Should have at least one bucket with Retain policy',
+    );
+
+    // Construct exposes resources
+    assert.ok(construct.bucket);
+    assert.ok(construct.distribution);
+    assert.ok(construct.distributionUrl.startsWith('https://'));
+    assert.ok(construct.ssrFunction);
+    assert.ok(construct.functionUrl);
+    assert.ok(construct.webAcl);
   });
 });

@@ -1,10 +1,5 @@
 export { BackendHosting, defineHosting, HostingResult } from './factory.js';
-export {
-  ComputeConfig,
-  FrameworkType,
-  HostingProps,
-  HostingResources,
-} from './types.js';
+export { FrameworkType, HostingProps, HostingResources } from './types.js';
 export {
   DeployManifest,
   ManifestRoute,

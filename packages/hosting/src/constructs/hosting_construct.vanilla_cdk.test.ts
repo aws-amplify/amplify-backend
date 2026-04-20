@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
 import { HostingError } from '../hosting_error.js';
@@ -101,7 +101,7 @@ void describe('Vanilla CDK project integration', () => {
     new AmplifyHostingConstruct(stack, 'MyHosting', {
       manifest: createTestSpaManifest(),
       staticAssetPath: staticDir,
-      contentSecurityPolicy: "default-src 'self'",
+      cdn: { contentSecurityPolicy: "default-src 'self'" },
       waf: { enabled: true },
     });
 
@@ -185,7 +185,7 @@ void describe('Vanilla CDK project integration', () => {
     new AmplifyHostingConstruct(stack, 'MyHosting', {
       manifest: createTestSpaManifest(),
       staticAssetPath: staticDir,
-      contentSecurityPolicy: customCsp,
+      cdn: { contentSecurityPolicy: customCsp },
     });
 
     const template = Template.fromStack(stack);
@@ -210,7 +210,7 @@ void describe('Vanilla CDK project integration', () => {
     new AmplifyHostingConstruct(stack, 'MyHosting', {
       manifest: createTestSpaManifest(),
       staticAssetPath: staticDir,
-      accessLogging: true,
+      logging: { enabled: true },
     });
 
     const template = Template.fromStack(stack);
@@ -230,7 +230,7 @@ void describe('Vanilla CDK project integration', () => {
     new AmplifyHostingConstruct(stack, 'MyHosting', {
       manifest: createTestSpaManifest(),
       staticAssetPath: staticDir,
-      retainOnDelete: true,
+      storage: { retainOnDelete: true },
     });
 
     const template = Template.fromStack(stack);
@@ -255,7 +255,7 @@ void describe('Vanilla CDK project integration', () => {
       computeBasePath: computeDir,
       compute: {
         memorySize: 2048,
-        timeout: 120,
+        timeout: Duration.seconds(120),
         reservedConcurrency: 100,
       },
     });
