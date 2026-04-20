@@ -1,4 +1,8 @@
+import { Duration } from 'aws-cdk-lib';
 import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { IKey } from 'aws-cdk-lib/aws-kms';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { FrameworkAdapterFn } from './adapters/index.js';
 
@@ -7,19 +11,6 @@ import { FrameworkAdapterFn } from './adapters/index.js';
  * Provides autocomplete for built-in frameworks while accepting any string.
  */
 export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
-
-/**
- * Compute (Lambda) configuration for SSR frameworks.
- * Ignored for SPA and static site deployments.
- */
-export type ComputeConfig = {
-  /** Lambda memory size in MB. Default: 512 */
-  memorySize?: number;
-  /** Lambda timeout in seconds. Default: 30 */
-  timeout?: number;
-  /** Reserved concurrent executions. Default: undefined (no reservation). */
-  reservedConcurrency?: number;
-};
 
 /**
  * Configuration for defineHosting.
@@ -44,11 +35,19 @@ export type HostingProps = {
   framework?: FrameworkType;
 
   /**
+   * Custom framework adapter for unsupported frameworks.
+   * When provided, this adapter is used instead of the built-in registry lookup.
+   */
+  customAdapter?: FrameworkAdapterFn;
+
+  /**
    * Custom domain configuration.
    */
   domain?: {
     domainName: string;
     hostedZone: string;
+    /** BYO ACM certificate (must be in us-east-1 for CloudFront). */
+    certificate?: ICertificate;
   };
 
   /**
@@ -61,45 +60,58 @@ export type HostingProps = {
   };
 
   /**
-   * Custom framework adapter for unsupported frameworks.
-   * When provided, this adapter is used instead of the built-in registry lookup.
-   */
-  customAdapter?: FrameworkAdapterFn;
-
-  /**
-   * Lambda compute configuration for SSR frameworks (e.g., Next.js).
+   * Compute (Lambda) configuration for SSR frameworks.
    * Ignored for SPA and static site deployments.
    */
-  compute?: ComputeConfig;
+  compute?: {
+    /** Lambda memory size in MB. Default: 512 */
+    memorySize?: number;
+    /** Lambda timeout. Default: 30 seconds. */
+    timeout?: Duration;
+    /** Reserved concurrent executions. Default: undefined (no reservation). */
+    reservedConcurrency?: number;
+    /** CloudWatch log retention for the SSR Lambda. Default: TWO_WEEKS. */
+    logRetention?: RetentionDays;
+  };
 
   /**
-   * If true, the S3 bucket is retained on stack deletion instead of being destroyed.
-   * Default: false (bucket is destroyed with all objects on stack delete).
+   * CDN (CloudFront) configuration.
    */
-  retainOnDelete?: boolean;
+  cdn?: {
+    /** CloudFront price class. Default: PRICE_CLASS_100 (US, Canada, Europe). */
+    priceClass?: PriceClass;
+    /** Custom Content-Security-Policy header value. If not set, a restrictive default is used. */
+    contentSecurityPolicy?: string;
+    /** Geo-restriction configuration for CloudFront distribution. */
+    geoRestriction?: {
+      type: 'whitelist' | 'blacklist';
+      countries: string[];
+    };
+  };
 
   /**
-   * Enable CloudFront access logging to an S3 bucket.
-   * Default: false. Adds a dedicated log bucket when enabled.
+   * S3 storage configuration.
    */
-  accessLogging?: boolean;
+  storage?: {
+    /** Encryption type for the hosting bucket. Default: S3_MANAGED. */
+    encryption?: 'S3_MANAGED' | 'KMS';
+    /** BYO KMS key for bucket encryption (requires encryption: 'KMS'). */
+    encryptionKey?: IKey;
+    /** If true, the S3 bucket is retained on stack deletion. Default: false. */
+    retainOnDelete?: boolean;
+    /** Days to retain build artifacts in S3. Default: 365. */
+    buildRetentionDays?: number;
+  };
 
   /**
-   * Custom Content-Security-Policy header value.
-   * If not set, a restrictive default is used.
+   * CloudFront access logging configuration.
    */
-  contentSecurityPolicy?: string;
-
-  /**
-   * CloudFront price class. Default is PRICE_CLASS_100 (US, Canada, Europe).
-   * Use PRICE_CLASS_ALL for global distribution.
-   */
-  priceClass?: PriceClass;
-
-  /**
-   * Optional friendly name for the hosting resource.
-   */
-  name?: string;
+  logging?: {
+    /** Enable CloudFront access logging to a dedicated S3 bucket. */
+    enabled: boolean;
+    /** Days to retain access logs. Default: 90. */
+    retentionDays?: number;
+  };
 };
 
 /**

@@ -6,6 +6,7 @@ import {
   BucketEncryption,
   ObjectOwnership,
 } from 'aws-cdk-lib/aws-s3';
+import { IKey } from 'aws-cdk-lib/aws-kms';
 
 // ---- Constants ----
 
@@ -25,6 +26,14 @@ export type StorageConstructProps = {
   retainOnDelete?: boolean;
   /** Enable CloudFront access logging to a dedicated S3 bucket. Default: false. */
   accessLogging?: boolean;
+  /** Encryption type for the hosting bucket. Default: S3_MANAGED. */
+  encryption?: 'S3_MANAGED' | 'KMS';
+  /** BYO KMS key for bucket encryption (requires encryption: 'KMS'). */
+  encryptionKey?: IKey;
+  /** Days to retain build artifacts in S3. Default: 365. */
+  buildRetentionDays?: number;
+  /** Days to retain access logs. Default: 90. */
+  logRetentionDays?: number;
 };
 
 // ---- Construct ----
@@ -34,7 +43,7 @@ export type StorageConstructProps = {
  * access log bucket.
  *
  * The hosting bucket is private (BLOCK_ALL), versioned, encrypted with
- * S3-managed keys, and enforces SSL. Lifecycle rules expire old builds
+ * S3-managed keys (or KMS), and enforces SSL. Lifecycle rules expire old builds
  * and noncurrent versions automatically.
  */
 export class StorageConstruct extends Construct {
@@ -48,10 +57,18 @@ export class StorageConstruct extends Construct {
     super(scope, id);
 
     const retainOnDelete = props.retainOnDelete ?? false;
+    const buildRetentionDays =
+      props.buildRetentionDays ?? DEFAULT_BUILD_RETENTION_DAYS;
+
+    const bucketEncryption =
+      props.encryption === 'KMS'
+        ? BucketEncryption.KMS
+        : BucketEncryption.S3_MANAGED;
 
     this.bucket = new Bucket(this, 'HostingBucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      encryption: BucketEncryption.S3_MANAGED,
+      encryption: bucketEncryption,
+      ...(props.encryptionKey ? { encryptionKey: props.encryptionKey } : {}),
       objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
       enforceSSL: true,
       versioned: true,
@@ -63,7 +80,7 @@ export class StorageConstruct extends Construct {
         {
           id: 'DeleteOldBuilds',
           prefix: 'builds/',
-          expiration: Duration.days(DEFAULT_BUILD_RETENTION_DAYS),
+          expiration: Duration.days(buildRetentionDays),
           enabled: true,
         },
         {
@@ -75,6 +92,9 @@ export class StorageConstruct extends Construct {
     });
 
     if (props.accessLogging) {
+      const logRetentionDays =
+        props.logRetentionDays ?? DEFAULT_ACCESS_LOG_RETENTION_DAYS;
+
       /* eslint-disable spellcheck/spell-checker */
       // CloudFront standard logging requires ACL-based writes via the
       // awslogsdelivery canonical user. BUCKET_OWNER_ENFORCED disables ACLs
@@ -92,7 +112,7 @@ export class StorageConstruct extends Construct {
         lifecycleRules: [
           {
             id: 'ExpireAccessLogs',
-            expiration: Duration.days(DEFAULT_ACCESS_LOG_RETENTION_DAYS),
+            expiration: Duration.days(logRetentionDays),
             enabled: true,
           },
         ],
