@@ -1,5 +1,13 @@
 # @aws-amplify/cli-core
 
+## 2.2.5
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/platform-core@1.11.1
+
 ## 2.2.4
 
 ### Patch Changes
