@@ -305,6 +305,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
         logging: cdkLoggingOptions,
+        // Enable automatic partitioning by default
+        enableAutoPartitioning: this.props.enableAutoPartitioning ?? true,
+        // Pass through advanced config if provided
+        partitioningConfig: this.props.partitioningConfig,
       });
     } catch (error) {
       throw new AmplifyUserError(
