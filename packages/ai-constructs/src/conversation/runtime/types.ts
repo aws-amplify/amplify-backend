@@ -133,6 +133,8 @@ export type StreamingResponseChunk = {
       contentBlockDoneAtIndex?: never;
       contentBlockToolUse?: never;
       stopReason?: never;
+      metrics?: never;
+      usage?: never;
     }
   | {
       // end of block. applicable to text blocks
@@ -141,6 +143,8 @@ export type StreamingResponseChunk = {
       contentBlockDeltaIndex?: never;
       contentBlockToolUse?: never;
       stopReason?: never;
+      metrics?: never;
+      usage?: never;
     }
   | {
       // tool use
@@ -149,10 +153,14 @@ export type StreamingResponseChunk = {
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;
       stopReason?: never;
+      metrics?: never;
+      usage?: never;
     }
   | {
       // turn complete
       stopReason: string;
+      metrics: { latencyMs: number };
+      usage: { inputTokens: number; outputTokens: number; totalTokens: number };
       contentBlockDoneAtIndex?: never;
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;
