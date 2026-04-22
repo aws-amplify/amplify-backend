@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -23,13 +23,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "^2.1.4",
+    "@aws-amplify/backend-deployer": "^2.1.7",
     "@aws-amplify/backend-secret": "^1.4.2",
-    "@aws-amplify/cli-core": "^2.2.3",
-    "@aws-amplify/client-config": "^1.9.1",
-    "@aws-amplify/deployed-backend-client": "^1.8.1",
-    "@aws-amplify/platform-core": "^1.10.3",
-    "@aws-amplify/plugin-types": "^1.11.1",
+    "@aws-amplify/cli-core": "^2.2.5",
+    "@aws-amplify/client-config": "^1.10.2",
+    "@aws-amplify/deployed-backend-client": "^1.8.2",
+    "@aws-amplify/platform-core": "^1.11.1",
+    "@aws-amplify/plugin-types": "^1.12.1",
     "@aws-sdk/client-cloudwatch-logs": "^3.936.0",
     "@aws-sdk/client-lambda": "^3.936.0",
     "@aws-sdk/client-ssm": "^3.936.0",
