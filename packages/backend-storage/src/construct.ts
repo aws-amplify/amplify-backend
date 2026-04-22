@@ -86,6 +86,8 @@ export class AmplifyStorage
   readonly isDefault: boolean;
   readonly name: string;
   accessDefinition: StorageAccessDefinitionOutput;
+
+  // AmplifyStorage construct - manages S3 bucket lifecycle
   /**
    * Create a new AmplifyStorage instance
    */
