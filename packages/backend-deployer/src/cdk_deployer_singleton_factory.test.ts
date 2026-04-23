@@ -105,7 +105,7 @@ void describe('BaseCredentials credential provider behavior', () => {
   void it('constructs sdkConfig without baseCredentials when profile is undefined', () => {
     // Verify the fix: when profile is undefined, don't pass baseCredentials at all
     const profile: string | undefined = undefined;
-    
+
     const sdkConfig = profile
       ? {
           baseCredentials: BaseCredentials.awsCliCompatible({ profile }),
@@ -122,7 +122,7 @@ void describe('BaseCredentials credential provider behavior', () => {
 
   void it('constructs sdkConfig with baseCredentials when profile is set', () => {
     const profile: string | undefined = 'dev-profile';
-    
+
     const sdkConfig = profile
       ? {
           baseCredentials: BaseCredentials.awsCliCompatible({ profile }),
