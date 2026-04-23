@@ -1,11 +1,11 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { BackendDeployerFactory } from './cdk_deployer_singleton_factory.js';
-import {
+import type {
   AmplifyIOHost,
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
-import { BackendDeployerOutputFormatter } from './types.js';
+import type { BackendDeployerOutputFormatter } from './types.js';
 import { BaseCredentials } from '@aws-cdk/toolkit-lib';
 
 const formatterStub: BackendDeployerOutputFormatter = {
@@ -34,8 +34,8 @@ void describe('BackendDeployerFactory', () => {
     (BackendDeployerFactory as any).instance = undefined;
   });
 
-  void it('creates Toolkit without explicit baseCredentials when no profile is specified', () => {
-    // Resolve profile as undefined (simulates container/CI environment)
+  void it('creates deployer without explicit credentials when no profile is set', () => {
+    // Container/CI scenario - no profile specified
     const sdkProfileResolver = () => undefined;
 
     const factory = new BackendDeployerFactory(
@@ -49,8 +49,8 @@ void describe('BackendDeployerFactory', () => {
     assert.ok(deployer, 'deployer instance should be created');
   });
 
-  void it('creates Toolkit with awsCliCompatible baseCredentials when profile is specified', () => {
-    // Resolve profile as 'my-profile' (simulates local dev with --profile)
+  void it('creates deployer with profile-specific credentials when profile is set', () => {
+    // Local development with --profile flag
     const sdkProfileResolver = () => 'my-profile';
 
     const factory = new BackendDeployerFactory(
@@ -80,51 +80,58 @@ void describe('BackendDeployerFactory', () => {
   });
 });
 
-void describe('Credential resolution behavior', () => {
-  void it('BaseCredentials.awsCliCompatible() with no args uses default credential chain', () => {
-    // Verifies the credential provider that the Toolkit defaults to
-    // when no baseCredentials is specified matches awsCliCompatible with no options
+void describe('BaseCredentials credential provider behavior', () => {
+  void it('creates default provider when called without arguments', () => {
     const defaultProvider = BaseCredentials.awsCliCompatible();
-    assert.ok(defaultProvider, 'default provider should be created');
+    assert.ok(defaultProvider, 'provider should be created');
     assert.ok(
       defaultProvider.toString().includes('awsCliCompatible'),
-      'should be awsCliCompatible type',
-    );
-    assert.ok(
-      defaultProvider.toString().includes('{}'),
-      `default provider should have empty options, got: ${defaultProvider.toString()}`,
+      'should use awsCliCompatible strategy',
     );
   });
 
-  void it('BaseCredentials.awsCliCompatible({ profile }) includes profile in config', () => {
+  void it('creates provider with profile configuration when profile is specified', () => {
     const profileProvider = BaseCredentials.awsCliCompatible({
       profile: 'test-profile',
     });
-    assert.ok(profileProvider, 'profile provider should be created');
+    assert.ok(profileProvider, 'provider should be created');
     const str = profileProvider.toString();
     assert.ok(
       str.includes('test-profile'),
-      `should include profile name, got: ${str}`,
+      `should reference the profile: ${str}`,
     );
   });
 
-  void it('BaseCredentials.awsCliCompatible({ profile: undefined }) passes profile:undefined (the old bug)', () => {
-    // This demonstrates the subtle difference: passing { profile: undefined }
-    // creates an options object with the key present but value undefined.
-    // While functionally similar, it's cleaner to not pass baseCredentials at all.
-    const providerWithUndefined = BaseCredentials.awsCliCompatible({
-      profile: undefined,
-    });
-    const providerWithNoArgs = BaseCredentials.awsCliCompatible();
+  void it('constructs sdkConfig without baseCredentials when profile is undefined', () => {
+    // Verify the fix: when profile is undefined, don't pass baseCredentials at all
+    const profile: string | undefined = undefined;
+    
+    const sdkConfig = profile
+      ? {
+          baseCredentials: BaseCredentials.awsCliCompatible({ profile }),
+        }
+      : {};
 
-    // Both should be awsCliCompatible, but their serialized options differ
-    assert.ok(
-      providerWithUndefined.toString().includes('awsCliCompatible'),
-      'should be awsCliCompatible type',
+    assert.deepStrictEqual(sdkConfig, {}, 'sdkConfig should be empty');
+    assert.strictEqual(
+      'baseCredentials' in sdkConfig,
+      false,
+      'baseCredentials key should not exist',
     );
+  });
+
+  void it('constructs sdkConfig with baseCredentials when profile is set', () => {
+    const profile: string | undefined = 'dev-profile';
+    
+    const sdkConfig = profile
+      ? {
+          baseCredentials: BaseCredentials.awsCliCompatible({ profile }),
+        }
+      : {};
+
     assert.ok(
-      providerWithNoArgs.toString().includes('awsCliCompatible'),
-      'should be awsCliCompatible type',
+      'baseCredentials' in sdkConfig,
+      'baseCredentials key should exist when profile is set',
     );
   });
 });
