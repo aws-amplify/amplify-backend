@@ -87,29 +87,22 @@ void describe('Container credential resolution integration test', () => {
     // which calls fromIni({ profile }) — reads that specific profile from ~/.aws/credentials
   });
 
-  void it('verifies the old code path passed profile:undefined explicitly', () => {
-    // The OLD (buggy) code always passed:
-    //   baseCredentials: BaseCredentials.awsCliCompatible({ profile: sdkProfileResolver() })
-    // When sdkProfileResolver() returns undefined, this becomes:
-    //   BaseCredentials.awsCliCompatible({ profile: undefined })
-    //
-    // While this SHOULD work the same as awsCliCompatible({}), passing an explicit
-    // { profile: undefined } is semantically different — it creates an options object
-    // where the `profile` key EXISTS with value undefined.
+  void it('verifies default credential chain uses empty options when no profile is set', () => {
+    // The fix ensures that when no --profile flag is passed, we do NOT pass
+    // baseCredentials at all, letting the Toolkit fall back to its default:
+    //   BaseCredentials.awsCliCompatible()
+    // which invokes fromNodeProviderChain() — the full credential chain
+    // including container metadata, env vars, IMDS, etc.
+    const defaultCredentials = BaseCredentials.awsCliCompatible();
+    const str = defaultCredentials.toString();
 
-    const oldBehavior = BaseCredentials.awsCliCompatible({
-      profile: undefined,
-    });
-    const newBehavior = BaseCredentials.awsCliCompatible();
-
-    // Verify the new behavior has clean empty options
-    const newStr = newBehavior.toString();
-
-    // The old behavior serializes as awsCliCompatible({"profile":undefined}) or similar
-    // The new behavior (our fix - Toolkit default) serializes as awsCliCompatible({})
     assert.ok(
-      newStr.includes('{}'),
-      `New (fixed) behavior should have empty options: ${newStr}`,
+      str.includes('awsCliCompatible'),
+      `Should use awsCliCompatible provider: ${str}`,
+    );
+    assert.ok(
+      str.includes('{}'),
+      `Default credentials should have empty options (full chain): ${str}`,
     );
   });
 
