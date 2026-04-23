@@ -8,9 +8,7 @@ import {
 /**
  * Generates GraphQL documents for a given AppSync API
  */
-export class AppSyncGraphqlDocumentGenerator
-  implements GraphqlDocumentGenerator
-{
+export class AppSyncGraphqlDocumentGenerator implements GraphqlDocumentGenerator {
   /**
    * Configures the AppSyncGraphqlDocumentGenerator
    */

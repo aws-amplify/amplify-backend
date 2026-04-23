@@ -17,9 +17,7 @@ import { LockFileReader } from './lock-file-reader/types.js';
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
  */
-export abstract class PackageManagerControllerBase
-  implements PackageManagerController
-{
+export abstract class PackageManagerControllerBase implements PackageManagerController {
   protected readonly binaryRunner: string;
   /**
    * constructor - sets the project root

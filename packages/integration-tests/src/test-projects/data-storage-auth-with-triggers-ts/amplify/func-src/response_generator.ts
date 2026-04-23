@@ -7,7 +7,7 @@ const {
 } = require('ssh2');
 /**
  * This import is for tests to use the generated type generation file.
- * Currently we only use defaultNodeFunction because node16Function has the same environment variables at runtime.
+ * Currently we only use defaultNodeFunction
  */
 import { env } from '$amplify/env/defaultNodeFunction.js';
 

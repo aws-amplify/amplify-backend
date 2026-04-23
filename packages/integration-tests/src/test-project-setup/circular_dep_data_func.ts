@@ -15,9 +15,7 @@ import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 /**
  * Creates test projects with circular dependency between data, and functions
  */
-export class CircularDepDataFuncTestProjectCreator
-  implements TestProjectCreator
-{
+export class CircularDepDataFuncTestProjectCreator implements TestProjectCreator {
   readonly name = 'circular-dep-data-func';
 
   /**

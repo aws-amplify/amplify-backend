@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.18.0
+
+### Minor Changes
+
+- 1d109e9: drop support of Node 16 functions
+
 ## 1.17.0
 
 ### Minor Changes
