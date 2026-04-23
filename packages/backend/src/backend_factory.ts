@@ -131,8 +131,14 @@ export class BackendFactory<
    * Returns a CDK stack within the Amplify project that can be used for creating custom resources.
    * If a stack has already been created with "name" then an error is thrown.
    */
-  createStack = (name: string): Stack => {
-    return this.stackResolver.createCustomStack(name);
+  createStack = (
+    name: string,
+    suppressTemplateIndentation?: boolean,
+  ): Stack => {
+    return this.stackResolver.createCustomStack(
+      name,
+      suppressTemplateIndentation,
+    );
   };
 
   addOutput = (
