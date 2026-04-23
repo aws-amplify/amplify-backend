@@ -6,7 +6,7 @@ import {
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { BackendDeployerOutputFormatter } from './types.js';
-import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
+import { BaseCredentials } from '@aws-cdk/toolkit-lib';
 
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -35,9 +35,6 @@ void describe('BackendDeployerFactory', () => {
   });
 
   void it('creates Toolkit without explicit baseCredentials when no profile is specified', () => {
-    const toolkitConstructorSpy = mock.fn(Toolkit);
-    const OriginalToolkit = Toolkit;
-
     // Resolve profile as undefined (simulates container/CI environment)
     const sdkProfileResolver = () => undefined;
 

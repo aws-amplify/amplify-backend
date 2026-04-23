@@ -12,9 +12,9 @@
  * The bug exists in backend-deployer v2.x+ where the Toolkit API is used.
  * This test verifies the v2.x code path works correctly after our fix.
  */
-import { describe, it, mock, beforeEach, afterEach } from 'node:test';
+import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
+import { BaseCredentials } from '@aws-cdk/toolkit-lib';
 import type {
   AmplifyIOHost,
   PackageManagerController,

@@ -4,7 +4,7 @@
  *
  * This verifies the fix for https://github.com/aws-amplify/amplify-backend/issues/3172
  */
-import { describe, it, mock, beforeEach } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
 import type { AmplifyIOHost } from '@aws-amplify/plugin-types';
@@ -102,8 +102,7 @@ void describe('Container credential resolution integration test', () => {
     });
     const newBehavior = BaseCredentials.awsCliCompatible();
 
-    // Verify they produce different serialized options (the subtle difference)
-    const oldStr = oldBehavior.toString();
+    // Verify the new behavior has clean empty options
     const newStr = newBehavior.toString();
 
     // The old behavior serializes as awsCliCompatible({"profile":undefined}) or similar
