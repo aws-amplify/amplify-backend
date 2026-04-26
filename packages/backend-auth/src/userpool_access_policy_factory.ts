@@ -97,9 +97,7 @@ const iamActionMap: IamActionMap = {
     'cognito-idp:AdminResetUserPassword',
     'cognito-idp:AdminSetUserPassword',
   ],
-  manageProviderForUser: [
-    'cognito-idp:AdminLinkProviderForUser',
-  ],
+  manageProviderForUser: ['cognito-idp:AdminLinkProviderForUser'],
   addUserToGroup: ['cognito-idp:AdminAddUserToGroup'],
   createGroup: ['cognito-idp:CreateGroup'],
   createUser: ['cognito-idp:AdminCreateUser'],
