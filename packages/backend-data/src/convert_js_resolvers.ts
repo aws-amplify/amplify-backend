@@ -1,7 +1,9 @@
 import { Construct } from 'constructs';
 import { AmplifyData } from '@aws-amplify/data-construct';
+import { NestedStack } from 'aws-cdk-lib';
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
 import { JsResolver } from '@aws-amplify/data-schema-types';
+import { CustomResolverStackMap } from './types.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'fs';
@@ -42,6 +44,18 @@ export const defaultJsResolverCode = (
 };
 
 /**
+ * Resolves the nested stack ID by appending the capitalized target stack name to the base name.
+ */
+export const resolveNestedStackId = (
+  baseName: string,
+  targetStackName: string,
+): string => {
+  const capitalizedStackName =
+    targetStackName.charAt(0).toUpperCase() + targetStackName.slice(1);
+  return `${baseName}Custom${capitalizedStackName}`;
+};
+
+/**
  * Converts JS Resolver definition emitted by data-schema into AppSync pipeline
  * resolvers via L1 construct
  */
@@ -49,21 +63,40 @@ export const convertJsResolverDefinition = (
   scope: Construct,
   amplifyApi: AmplifyData,
   jsResolvers: JsResolver[] | undefined,
+  customResolverStackMap?: CustomResolverStackMap,
 ): void => {
   if (!jsResolvers || jsResolvers.length < 1) {
     return;
   }
 
+  const nestedStacks: Record<string, NestedStack> = {};
+
   for (const resolver of jsResolvers) {
+    const resolverMapKey =
+      `${resolver.typeName}.${resolver.fieldName}` as const;
+    const targetStackName = customResolverStackMap?.[resolverMapKey];
+    let targetScope = scope;
+
+    if (targetStackName && targetStackName !== 'data') {
+      const nestedStackId = resolveNestedStackId(
+        amplifyApi.node.id,
+        targetStackName,
+      );
+      if (!nestedStacks[nestedStackId]) {
+        nestedStacks[nestedStackId] = new NestedStack(scope, nestedStackId);
+      }
+      targetScope = nestedStacks[nestedStackId];
+    }
+
     const functions: string[] = resolver.handlers.map((handler, idx) => {
       const fnName = `Fn_${resolver.typeName}_${resolver.fieldName}_${idx + 1}`;
       const s3AssetName = `${fnName}_asset`;
 
-      const asset = new Asset(scope, s3AssetName, {
+      const asset = new Asset(targetScope, s3AssetName, {
         path: resolveEntryPath(handler.entry),
       });
 
-      const fn = new CfnFunctionConfiguration(scope, fnName, {
+      const fn = new CfnFunctionConfiguration(targetScope, fnName, {
         apiId: amplifyApi.apiId,
         dataSourceName: handler.dataSource,
         name: fnName,
@@ -84,7 +117,7 @@ export const convertJsResolverDefinition = (
     const amplifyApiEnvironmentName = isSandboxDeployment
       ? 'NONE'
       : scope.node.tryGetContext(CDKContextKey.BACKEND_NAME);
-    new CfnResolver(scope, resolverName, {
+    new CfnResolver(targetScope, resolverName, {
       apiId: amplifyApi.apiId,
       fieldName: resolver.fieldName,
       typeName: resolver.typeName,
