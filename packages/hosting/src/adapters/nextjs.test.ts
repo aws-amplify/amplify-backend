@@ -129,6 +129,7 @@ void describe('nextjsAdapter', () => {
     assert.ok(content.includes('exec node server.js'));
     assert.ok(content.includes('PORT=3000'));
     assert.ok(content.includes('HOSTNAME=0.0.0.0'));
+    assert.ok(content.includes('set -euo pipefail'));
   });
 
   void it('writes fallback index.js handler with diagnostic message', () => {
@@ -312,13 +313,231 @@ void describe('nextjsAdapter', () => {
   });
 });
 
+void describe('nextjsAdapter — monorepo layout', () => {
+  let tmpDir: string;
+  let nextDir: string;
+  const monorepoRelPath = path.join('my-monorepo', 'apps', 'web');
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-nextjs-monorepo-test-'),
+    );
+    nextDir = path.join(tmpDir, '.next');
+
+    // Simulate monorepo standalone layout:
+    // .next/standalone/my-monorepo/apps/web/server.js
+    const nestedDir = path.join(nextDir, 'standalone', monorepoRelPath);
+    fs.mkdirSync(nestedDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(nestedDir, 'server.js'),
+      'const http = require("http"); http.createServer().listen(3000);',
+    );
+    fs.writeFileSync(path.join(nestedDir, 'package.json'), '{"name":"web"}');
+
+    // Create .next/static/ (same structure regardless of monorepo)
+    const staticDir = path.join(nextDir, 'static');
+    fs.mkdirSync(path.join(staticDir, 'chunks'), { recursive: true });
+    fs.writeFileSync(path.join(staticDir, 'chunks', 'main-abc123.js'), 'chunk');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('detects nested server.js and produces valid manifest', () => {
+    const manifest = nextjsAdapter(nextDir, tmpDir);
+
+    assert.strictEqual(manifest.version, 1);
+    assert.strictEqual(manifest.framework.name, 'nextjs');
+
+    const catchAllRoute = manifest.routes.find((r) => r.path === '/*');
+    assert.ok(catchAllRoute, 'Should have /* catch-all route');
+    assert.strictEqual(catchAllRoute!.target.kind, 'Compute');
+  });
+
+  void it('copies full standalone output to compute/default/', () => {
+    nextjsAdapter(nextDir, tmpDir);
+
+    const computeDir = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+    );
+    // server.js should be at the nested path inside compute
+    assert.ok(
+      fs.existsSync(path.join(computeDir, monorepoRelPath, 'server.js')),
+      'server.js should exist at nested monorepo path in compute',
+    );
+    assert.ok(
+      fs.existsSync(path.join(computeDir, monorepoRelPath, 'package.json')),
+    );
+  });
+
+  void it('generates run.sh with cd to nested server directory', () => {
+    nextjsAdapter(nextDir, tmpDir);
+
+    const runShPath = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+      'run.sh',
+    );
+    const content = fs.readFileSync(runShPath, 'utf-8');
+    assert.ok(
+      content.includes(`cd "${monorepoRelPath}" || exit 1`),
+      `run.sh should cd to "${monorepoRelPath}" with || exit 1`,
+    );
+    assert.ok(content.includes('exec node server.js'));
+  });
+
+  void it('copies public/ relative to nested server.js location', () => {
+    const publicDir = path.join(tmpDir, 'public');
+    fs.mkdirSync(publicDir, { recursive: true });
+    fs.writeFileSync(path.join(publicDir, 'favicon.ico'), 'icon');
+
+    nextjsAdapter(nextDir, tmpDir);
+
+    // public/ should be at compute/default/<monorepoRelPath>/public/
+    const computePublicDir = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+      monorepoRelPath,
+      'public',
+    );
+    assert.ok(
+      fs.existsSync(path.join(computePublicDir, 'favicon.ico')),
+      'public/favicon.ico should be relative to nested server.js',
+    );
+
+    // Static hosting output should still have it at root
+    assert.ok(
+      fs.existsSync(
+        path.join(tmpDir, '.amplify-hosting', 'static', 'favicon.ico'),
+      ),
+    );
+  });
+
+  void it('still throws when server.js not found anywhere', () => {
+    // Remove the nested server.js
+    fs.unlinkSync(
+      path.join(nextDir, 'standalone', monorepoRelPath, 'server.js'),
+    );
+
+    assert.throws(
+      () => nextjsAdapter(nextDir, tmpDir),
+      (error: Error) => {
+        assert.ok(error.name === 'NextjsServerNotFoundError');
+        return true;
+      },
+    );
+  });
+});
+
+void describe('nextjsAdapter — .nft.json exclusion', () => {
+  let tmpDir: string;
+  let nextDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-nft-test-'));
+    nextDir = path.join(tmpDir, '.next');
+
+    const standaloneDir = path.join(nextDir, 'standalone');
+    fs.mkdirSync(standaloneDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(standaloneDir, 'server.js'),
+      'const http = require("http"); http.createServer().listen(3000);',
+    );
+    fs.writeFileSync(
+      path.join(standaloneDir, 'package.json'),
+      '{"name":"standalone"}',
+    );
+
+    // Create .nft.json trace files (Next.js build artifacts)
+    const serverAppDir = path.join(
+      standaloneDir,
+      '.next',
+      'server',
+      'app',
+      '_not-found',
+    );
+    fs.mkdirSync(serverAppDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(serverAppDir, 'page.js.nft.json'),
+      '{"files":[]}',
+    );
+    fs.writeFileSync(
+      path.join(standaloneDir, '.next', 'server', 'middleware.js.nft.json'),
+      '{"files":[]}',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('excludes .nft.json trace files from compute output', () => {
+    nextjsAdapter(nextDir, tmpDir);
+
+    const computeDir = path.join(
+      tmpDir,
+      '.amplify-hosting',
+      'compute',
+      'default',
+    );
+
+    // .nft.json files should NOT be in the compute package
+    assert.ok(
+      !fs.existsSync(
+        path.join(
+          computeDir,
+          '.next',
+          'server',
+          'app',
+          '_not-found',
+          'page.js.nft.json',
+        ),
+      ),
+      '.nft.json files should be excluded from compute output',
+    );
+    assert.ok(
+      !fs.existsSync(
+        path.join(computeDir, '.next', 'server', 'middleware.js.nft.json'),
+      ),
+      '.nft.json files should be excluded from compute output',
+    );
+
+    // But server.js and other files should still be there
+    assert.ok(fs.existsSync(path.join(computeDir, 'server.js')));
+    assert.ok(fs.existsSync(path.join(computeDir, 'package.json')));
+  });
+});
+
 void describe('generateRunScript', () => {
   void it('generates a bash script with correct content', () => {
     const script = generateRunScript();
     assert.ok(script.startsWith('#!/bin/bash'));
+    assert.ok(script.includes('set -euo pipefail'));
     assert.ok(script.includes('PORT=3000'));
     assert.ok(script.includes('HOSTNAME=0.0.0.0'));
     assert.ok(script.includes('NODE_ENV=production'));
+    assert.ok(script.includes('exec node server.js'));
+  });
+
+  void it('does not include cd when serverDir is default', () => {
+    const script = generateRunScript();
+    assert.ok(!script.includes('\ncd '), 'Should not have cd for root server');
+  });
+
+  void it('includes cd command for nested serverDir', () => {
+    const script = generateRunScript('my-monorepo/apps/web');
+    assert.ok(
+      script.includes('cd "my-monorepo/apps/web" || exit 1'),
+      'Should cd to nested directory with || exit 1',
+    );
     assert.ok(script.includes('exec node server.js'));
   });
 });
