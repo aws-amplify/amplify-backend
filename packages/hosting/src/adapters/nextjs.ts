@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest, ManifestRoute } from '../manifest/types.js';
-import { copyDirRecursive } from './copy.js';
+import { DEFAULT_EXCLUDE_PATTERNS, copyDirRecursive } from './copy.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
 import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
 
@@ -13,13 +13,18 @@ const DEFAULT_COMPUTE_NAME = 'default';
  * Generate the run.sh bootstrap script for Lambda Web Adapter.
  * This is the Lambda handler entrypoint; the Web Adapter invokes it
  * and proxies HTTP traffic to the Next.js server on PORT.
+ * @param serverDir - relative directory containing server.js within the compute
+ *   package. Defaults to `'.'` (root). In monorepo standalone layouts, server.js
+ *   is nested (e.g. `'my-monorepo/apps/web'`), requiring a `cd` before exec.
  */
-export const generateRunScript = (): string => {
+export const generateRunScript = (serverDir: string = '.'): string => {
+  const cdCommand = serverDir !== '.' ? `cd "${serverDir}" || exit 1\n` : '';
   return `#!/bin/bash
+set -euo pipefail
 export PORT=${SSR_DEFAULT_PORT}
 export HOSTNAME=0.0.0.0
 export NODE_ENV=production
-exec node server.js
+${cdCommand}exec node server.js
 `;
 };
 
@@ -39,6 +44,35 @@ const detectNextVersion = (projectDir: string): string | undefined => {
       return pkg.version as string;
     } catch {
       return undefined;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Recursively search a directory for `server.js`, skipping `node_modules`.
+ *
+ * In a monorepo with `outputFileTracingRoot` pointing to the workspace root,
+ * Next.js nests server.js at `.next/standalone/<workspace-path>/server.js`
+ * instead of `.next/standalone/server.js`. This function locates it.
+ * @param dir - root directory to start searching
+ * @returns absolute path to server.js, or undefined if not found
+ */
+const findServerJs = (dir: string, depth: number = 20): string | undefined => {
+  if (depth <= 0) return undefined;
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+  for (const entry of entries) {
+    if (entry.name === 'node_modules') continue;
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isFile() && entry.name === 'server.js') return fullPath;
+    if (entry.isDirectory() && !entry.isSymbolicLink()) {
+      const found = findServerJs(fullPath, depth - 1);
+      if (found) return found;
     }
   }
   return undefined;
@@ -166,13 +200,25 @@ export const nextjsAdapter = (
     });
   }
 
+  // Locate server.js — at root for standard projects, nested for monorepos
+  let serverJsRelativeDir = '.';
   if (!fs.existsSync(path.join(standaloneDir, 'server.js'))) {
-    throw new HostingError('NextjsServerNotFoundError', {
-      message: `Next.js server.js not found in standalone output at ${standaloneDir}`,
-      resolution:
-        'Ensure `next build` completed successfully with `output: "standalone"` ' +
-        'in your next.config.js. The file .next/standalone/server.js should exist.',
-    });
+    // Monorepo detection: when outputFileTracingRoot points to the workspace
+    // root, Next.js nests server.js deeper in the standalone directory.
+    const found = findServerJs(standaloneDir);
+    if (found) {
+      serverJsRelativeDir = path.relative(standaloneDir, path.dirname(found));
+      process.stderr.write(
+        `📦 Monorepo detected: server.js found at ${serverJsRelativeDir}/server.js\n`,
+      );
+    } else {
+      throw new HostingError('NextjsServerNotFoundError', {
+        message: `Next.js server.js not found in standalone output at ${standaloneDir}`,
+        resolution:
+          'Ensure `next build` completed successfully with `output: "standalone"` ' +
+          'in your next.config.js. The file .next/standalone/server.js should exist.',
+      });
+    }
   }
 
   const hostingDir = path.join(projectDir, HOSTING_DIR);
@@ -185,8 +231,11 @@ export const nextjsAdapter = (
   }
 
   // 1. Copy standalone server → .amplify-hosting/compute/default/
-  //    Excludes source maps (.map) and other non-essential files by default.
-  copyDirRecursive(standaloneDir, computeDir);
+  //    Excludes source maps, .nft.json trace files, and other non-essential artifacts.
+  process.stderr.write('📂 Copying standalone output to compute package...\n');
+  copyDirRecursive(standaloneDir, computeDir, {
+    excludePatterns: [...DEFAULT_EXCLUDE_PATTERNS, '.nft.json'],
+  });
 
   // 2. Copy .next/static/ → .amplify-hosting/static/_next/static/
   //    These are hashed immutable assets served by CloudFront from S3.
@@ -199,16 +248,26 @@ export const nextjsAdapter = (
   // 3. Copy public/ → .amplify-hosting/static/ (public assets like favicon, robots.txt)
   const publicDir = path.join(projectDir, 'public');
   if (fs.existsSync(publicDir)) {
+    process.stderr.write(
+      '📂 Copying public/ assets to static and compute packages...\n',
+    );
     copyDirRecursive(publicDir, hostingStaticDir);
 
-    // Also copy to compute/default/public/ for server-side serving
-    const computePublicDir = path.join(computeDir, 'public');
+    // Copy to compute for server-side serving — in monorepo layouts, public/
+    // must be relative to where server.js runs, not the standalone root.
+    const computePublicDir = path.join(
+      computeDir,
+      serverJsRelativeDir,
+      'public',
+    );
     copyDirRecursive(publicDir, computePublicDir, { excludePatterns: [] });
   }
 
   // 4. Generate run.sh bootstrap script for Lambda Web Adapter
   const runScriptPath = path.join(computeDir, 'run.sh');
-  fs.writeFileSync(runScriptPath, generateRunScript(), { mode: 0o755 });
+  fs.writeFileSync(runScriptPath, generateRunScript(serverJsRelativeDir), {
+    mode: 0o755,
+  });
 
   // 5. Write a fallback handler (Lambda Web Adapter intercepts all requests;
   //    this handler should never execute but prevents Lambda HandlerNotFound errors)
