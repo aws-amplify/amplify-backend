@@ -3,6 +3,7 @@ import { Duration } from 'aws-cdk-lib';
 import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import {
   FunctionUrl,
@@ -15,10 +16,12 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource, DeployManifest } from '../manifest/types.js';
+import { DeployManifestV2 } from '../manifest/deploy_manifest.js';
 import { HostingResources } from '../types.js';
 import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
 import { ComputeConstruct } from './compute_construct.js';
+import { CacheConstruct } from './cache_construct.js';
 import { WafConstruct } from './waf_construct.js';
 import { DnsConstruct } from './dns_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
@@ -50,10 +53,14 @@ export type HostingWafConfig = {
 
 /**
  * Props for the AmplifyHostingConstruct.
+ *
+ * Accepts either a v1 (DeployManifest) or v2 (DeployManifest) manifest.
+ * When a v2 manifest is provided with cache/imageOptimization/middleware
+ * declarations, the construct provisions the corresponding infrastructure.
  */
 export type AmplifyHostingConstructProps = {
-  /** Deploy manifest produced by the framework adapter. */
-  manifest: DeployManifest;
+  /** Deploy manifest produced by the framework adapter (v1 or v2). */
+  manifest: DeployManifest | DeployManifestV2;
   /** Filesystem path to the static assets directory. */
   staticAssetPath: string;
   /** Filesystem path to the compute resource directory (SSR only). */
@@ -111,6 +118,7 @@ export type AmplifyHostingConstructProps = {
  * - Compute routes in manifest → Lambda + Function URL + split CloudFront behaviors
  * - domain config → ACM certificate (us-east-1) + Route 53 A record + CF aliases
  * - waf.enabled → WAFv2 WebACL with managed rule groups + rate limiting
+ * - manifest v2 cache.enabled → S3 cache bucket + DynamoDB tag table
  */
 export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
@@ -121,6 +129,8 @@ export class AmplifyHostingConstruct extends Construct {
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
+  readonly cacheBucket?: Bucket;
+  readonly cacheTagTable?: Table;
 
   /**
    * Create a new manifest-driven hosting construct with the given props.
@@ -133,6 +143,7 @@ export class AmplifyHostingConstruct extends Construct {
     super(scope, id);
 
     const { manifest } = props;
+    const isV2 = manifest.version === 2;
     const buildId = manifest.buildId ?? generateBuildId();
 
     // ---- 1. Storage (S3 buckets) ----
@@ -147,46 +158,118 @@ export class AmplifyHostingConstruct extends Construct {
     this.bucket = storage.bucket;
 
     // ---- 2. Compute resources (conditional) ----
-    const computeRoutes = manifest.routes.filter(
-      (r) => r.target.kind === 'Compute',
-    );
-    const hasCompute =
-      computeRoutes.length > 0 && (manifest.computeResources?.length ?? 0) > 0;
+    // V1 uses manifest.routes[].target.kind === 'Compute' + manifest.computeResources
+    // V2 uses manifest.serverFunctions (always present for SSR/ISR apps)
+    let hasCompute = false;
 
-    if (hasCompute) {
-      // hasCompute guarantees computeResources is non-empty, but TypeScript
-      // can't narrow through the boolean variable — assert for the compiler.
-      const computeResources = manifest.computeResources!;
+    if (isV2) {
+      const v2Manifest = manifest as DeployManifestV2;
+      hasCompute = v2Manifest.serverFunctions.length > 0;
 
-      if (computeResources.length > 1) {
-        throw new HostingError('UnsupportedMultiComputeError', {
-          message: `The manifest declares ${computeResources.length} compute resources, but only single-compute manifests are supported.`,
-          resolution:
-            'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
+      if (hasCompute) {
+        if (v2Manifest.serverFunctions.length > 1) {
+          throw new HostingError('UnsupportedMultiComputeError', {
+            message: `The manifest declares ${v2Manifest.serverFunctions.length} server functions, but only single-compute manifests are supported.`,
+            resolution:
+              'Consolidate your server-side logic into a single server function. Multi-compute support is not yet available.',
+          });
+        }
+        if (!props.computeBasePath) {
+          throw new HostingError('MissingComputeBasePathError', {
+            message: 'computeBasePath is required for SSR deployments.',
+            resolution: 'This is an internal error. Please report it.',
+          });
+        }
+
+        const serverFn = v2Manifest.serverFunctions[0];
+        const computeResource: ComputeResource = {
+          name: serverFn.name,
+          runtime: serverFn.runtime,
+          entrypoint: serverFn.handler,
+        };
+        const compute = props.compute ?? {};
+
+        const computeConstruct = new ComputeConstruct(this, 'Compute', {
+          computeResource,
+          computeBasePath: props.computeBasePath,
+          memorySize: compute.memorySize ?? serverFn.memorySize,
+          timeout:
+            compute.timeout ??
+            (serverFn.timeout
+              ? Duration.seconds(serverFn.timeout)
+              : undefined),
+          reservedConcurrency: compute.reservedConcurrency,
+          logRetention: compute.logRetention,
+          skipRegionValidation: props.skipRegionValidation,
         });
+
+        this.ssrFunction = computeConstruct.function;
+        this.functionUrl = computeConstruct.functionUrl;
+
+        // Inject any v2 server function environment variables
+        if (serverFn.environment) {
+          for (const [key, value] of Object.entries(serverFn.environment)) {
+            this.ssrFunction.addEnvironment(key, value);
+          }
+        }
       }
-      if (!props.computeBasePath) {
-        throw new HostingError('MissingComputeBasePathError', {
-          message: 'computeBasePath is required for SSR deployments.',
-          resolution: 'This is an internal error. Please report it.',
+    } else {
+      // V1 path
+      const v1Manifest = manifest as DeployManifest;
+      const computeRoutes = v1Manifest.routes.filter(
+        (r) => r.target.kind === 'Compute',
+      );
+      hasCompute =
+        computeRoutes.length > 0 &&
+        (v1Manifest.computeResources?.length ?? 0) > 0;
+
+      if (hasCompute) {
+        const computeResources = v1Manifest.computeResources!;
+
+        if (computeResources.length > 1) {
+          throw new HostingError('UnsupportedMultiComputeError', {
+            message: `The manifest declares ${computeResources.length} compute resources, but only single-compute manifests are supported.`,
+            resolution:
+              'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
+          });
+        }
+        if (!props.computeBasePath) {
+          throw new HostingError('MissingComputeBasePathError', {
+            message: 'computeBasePath is required for SSR deployments.',
+            resolution: 'This is an internal error. Please report it.',
+          });
+        }
+
+        const computeResource = computeResources[0] as ComputeResource;
+        const compute = props.compute ?? {};
+
+        const computeConstruct = new ComputeConstruct(this, 'Compute', {
+          computeResource,
+          computeBasePath: props.computeBasePath,
+          memorySize: compute.memorySize,
+          timeout: compute.timeout,
+          reservedConcurrency: compute.reservedConcurrency,
+          logRetention: compute.logRetention,
+          skipRegionValidation: props.skipRegionValidation,
         });
+
+        this.ssrFunction = computeConstruct.function;
+        this.functionUrl = computeConstruct.functionUrl;
       }
+    }
 
-      const computeResource = computeResources[0] as ComputeResource;
-      const compute = props.compute ?? {};
-
-      const computeConstruct = new ComputeConstruct(this, 'Compute', {
-        computeResource,
-        computeBasePath: props.computeBasePath,
-        memorySize: compute.memorySize,
-        timeout: compute.timeout,
-        reservedConcurrency: compute.reservedConcurrency,
-        logRetention: compute.logRetention,
-        skipRegionValidation: props.skipRegionValidation,
-      });
-
-      this.ssrFunction = computeConstruct.function;
-      this.functionUrl = computeConstruct.functionUrl;
+    // ---- 2a. Cache infrastructure (v2 only, conditional) ----
+    if (isV2) {
+      const v2Manifest = manifest as DeployManifestV2;
+      if (v2Manifest.cache?.enabled) {
+        const cacheConstruct = new CacheConstruct(this, 'Cache', {
+          cacheConfig: v2Manifest.cache,
+          ssrFunction: this.ssrFunction,
+          retainOnDelete: props.storage?.retainOnDelete,
+        });
+        this.cacheBucket = cacheConstruct.cacheBucket;
+        this.cacheTagTable = cacheConstruct.cacheTagTable;
+      }
     }
 
     // ---- 3. WAF (conditional) ----
@@ -218,12 +301,15 @@ export class AmplifyHostingConstruct extends Construct {
     );
 
     // ---- 6. CloudFront distribution (CDN + OAC patches) ----
-    // Stamp the buildId into the manifest so CdnConstruct can read it
-    const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
+    // CdnConstruct expects v1 manifest format for route behaviors.
+    // Convert v2 → v1 shape for CDN routing (the CDN only needs route paths + target kinds).
+    const v1ManifestForCdn: DeployManifest = isV2
+      ? convertV2ToV1ForCdn(manifest as DeployManifestV2, buildId)
+      : { ...(manifest as DeployManifest), buildId };
 
     const cdn = new CdnConstruct(this, 'Cdn', {
       bucket: this.bucket,
-      manifest: manifestWithBuildId,
+      manifest: v1ManifestForCdn,
       securityHeadersPolicy,
       ssrFunctionUrl: this.functionUrl,
       ssrFunction: this.ssrFunction,
@@ -239,12 +325,6 @@ export class AmplifyHostingConstruct extends Construct {
     this.distributionUrl = cdn.distributionUrl;
 
     // ---- 6a. KMS decrypt grant for CloudFront OAC ----
-    // When the hosting bucket uses KMS encryption, CloudFront OAC needs
-    // kms:Decrypt to read objects via SigV4. Grant on BYO key or CDK auto-key.
-    // NOTE: We scope the grant to the CloudFront service principal but omit a
-    // SourceArn condition referencing the distribution. Adding a Ref to the
-    // distribution here would create a Key→Distribution→Bucket→Key circular
-    // dependency in CloudFormation.
     const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
     if (props.storage?.encryption === 'KMS' && kmsKey) {
       kmsKey.addToResourcePolicy(
@@ -293,3 +373,39 @@ export class AmplifyHostingConstruct extends Construct {
     };
   }
 }
+
+// ---- Helpers ----
+
+/**
+ * Convert a DeployManifest to DeployManifest (v1) shape for the CDN construct.
+ * The CDN construct uses route target kinds and compute resource names to
+ * create CloudFront cache behaviors — this mapping preserves that contract.
+ */
+const convertV2ToV1ForCdn = (
+  v2: DeployManifestV2,
+  buildId: string,
+): DeployManifest => {
+  const routes = v2.routes.map((r) => ({
+    path: r.path,
+    target: {
+      kind: (r.type === 'static' ? 'Static' : 'Compute') as
+        | 'Static'
+        | 'Compute',
+      ...(r.functionName ? { src: r.functionName } : {}),
+    },
+  }));
+
+  const computeResources = v2.serverFunctions.map((fn) => ({
+    name: fn.name,
+    runtime: fn.runtime,
+    entrypoint: fn.handler,
+  }));
+
+  return {
+    version: 1,
+    routes,
+    computeResources: computeResources.length > 0 ? computeResources : undefined,
+    framework: { name: v2.framework.name, version: v2.framework.version },
+    buildId,
+  };
+};
