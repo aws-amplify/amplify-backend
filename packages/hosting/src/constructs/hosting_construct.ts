@@ -118,7 +118,7 @@ export type AmplifyHostingConstructProps = {
  * - compute entries → Lambda functions (handler/http-server/edge types)
  * - cache config → S3 cache bucket + DynamoDB tags table + SQS revalidation queue
  * - imageOptimization → separate image Lambda
- * - middleware → Lambda@Edge or CloudFront Function
+ * - middleware → Lambda\@Edge or CloudFront Function
  * - domain config → ACM certificate + Route 53 + CF aliases
  * - waf.enabled → WAFv2 WebACL
  */

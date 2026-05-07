@@ -135,7 +135,7 @@ void describe('spaAdapter', () => {
 
   void it('throws BuildOutputEmptyError for empty build directory', () => {
     const emptyProject = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'hosting-spa-emptybuild-'),
+      path.join(os.tmpdir(), 'hosting-spa-empty-build-'),
     );
     const emptyDist = path.join(emptyProject, 'dist');
     fs.mkdirSync(emptyDist, { recursive: true });

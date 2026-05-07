@@ -402,6 +402,7 @@ void describe('StorageConstruct', () => {
             Match.objectLike({
               Effect: 'Deny',
               Condition: {
+                // eslint-disable-next-line spellcheck/spell-checker
                 Bool: { 'aws:SecureTransport': 'false' },
               },
             }),

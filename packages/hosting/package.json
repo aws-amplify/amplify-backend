@@ -46,13 +46,13 @@
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
-    "@opennextjs/aws": "~3.0.0",
+    "@opennextjs/aws": "~3.10.0",
     "zod": "3.25.17"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
     "constructs": "^10.0.0",
-    "@opennextjs/aws": "~3.0.0"
+    "@opennextjs/aws": "~3.10.0"
   },
   "peerDependenciesMeta": {
     "@opennextjs/aws": {

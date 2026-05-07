@@ -510,49 +510,52 @@ void describe(
           const isrUrl = `${distributionUrl}/isr`;
           process.stderr.write(`ISR functional test: fetching ${isrUrl}\n`);
 
-          const isr1 = await fetchWithRetry(isrUrl, {
+          const isrFetch1 = await fetchWithRetry(isrUrl, {
             expectedStatus: 200,
             maxRetries: 8,
             intervalMs: 15000,
           });
           assert.strictEqual(
-            isr1.status,
+            isrFetch1.status,
             200,
-            `ISR page should return 200, got ${isr1.status}`,
+            `ISR page should return 200, got ${isrFetch1.status}`,
           );
-          const body1 = await isr1.text();
+          const body1 = await isrFetch1.text();
           const timestamp1 = body1.match(/generated at: (\d+)/)?.[1];
           assert.ok(
             timestamp1,
             `ISR page should contain a generation timestamp, got: ${body1.substring(0, 200)}`,
           );
           process.stderr.write(
-            `ISR first fetch: timestamp=${timestamp1}, cache-control=${isr1.headers.get('cache-control')}\n`,
+            `ISR first fetch: timestamp=${timestamp1}, cache-control=${isrFetch1.headers.get('cache-control')}\n`,
           );
 
           // Verify ISR-appropriate cache-control header is set
-          const isrCacheControl = isr1.headers.get('cache-control') ?? '';
+          const isrCacheControl = isrFetch1.headers.get('cache-control') ?? '';
           assert.ok(
+            // eslint-disable-next-line spellcheck/spell-checker
             isrCacheControl.includes('s-maxage') ||
               isrCacheControl.includes('max-age'),
+            // eslint-disable-next-line spellcheck/spell-checker
             `ISR page should have s-maxage or max-age in cache-control, got: ${isrCacheControl}`,
           );
 
+          // eslint-disable-next-line spellcheck/spell-checker
           // Wait for s-maxage=1 to expire, triggering background revalidation
           await new Promise((resolve) => setTimeout(resolve, 3000));
 
           // Second fetch — may serve stale content while revalidation happens in background
-          const isr2 = await fetchWithRetry(isrUrl, {
+          const isrFetch2 = await fetchWithRetry(isrUrl, {
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 5000,
           });
           assert.strictEqual(
-            isr2.status,
+            isrFetch2.status,
             200,
-            `ISR page (2nd fetch) should return 200, got ${isr2.status}`,
+            `ISR page (2nd fetch) should return 200, got ${isrFetch2.status}`,
           );
-          const body2 = await isr2.text();
+          const body2 = await isrFetch2.text();
           assert.ok(
             body2.includes('ISR page generated at:'),
             `ISR page (2nd fetch) should still contain ISR content, got: ${body2.substring(0, 200)}`,
@@ -563,18 +566,19 @@ void describe(
           // Wait for revalidation to complete and CloudFront to pick up new content
           await new Promise((resolve) => setTimeout(resolve, 5000));
 
+          // eslint-disable-next-line spellcheck/spell-checker
           // Third fetch — should have revalidated content (newer timestamp)
-          const isr3 = await fetchWithRetry(isrUrl, {
+          const isrFetch3 = await fetchWithRetry(isrUrl, {
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 5000,
           });
           assert.strictEqual(
-            isr3.status,
+            isrFetch3.status,
             200,
-            `ISR page (3rd fetch) should return 200, got ${isr3.status}`,
+            `ISR page (3rd fetch) should return 200, got ${isrFetch3.status}`,
           );
-          const body3 = await isr3.text();
+          const body3 = await isrFetch3.text();
           const timestamp3 = body3.match(/generated at: (\d+)/)?.[1];
           assert.ok(
             timestamp3,
@@ -602,6 +606,7 @@ void describe(
 
         void it('stage 5: image optimization — /_next/image returns valid image', async () => {
           // Request image optimization endpoint with standard Next.js params
+          // eslint-disable-next-line spellcheck/spell-checker
           const imageUrl = `${distributionUrl}/_next/image?url=%2Frobots.txt&w=640&q=75`;
           process.stderr.write(`Requesting image optimization: ${imageUrl}\n`);
 
@@ -643,6 +648,7 @@ void describe(
           );
 
           // Verify endpoint does not 500 with different parameters
+          // eslint-disable-next-line spellcheck/spell-checker
           const imageUrl2 = `${distributionUrl}/_next/image?url=%2Ftest.png&w=64&q=75`;
           process.stderr.write(
             `Image optimization (alternate params): ${imageUrl2}\n`,
@@ -665,6 +671,7 @@ void describe(
           }
 
           // Verify image optimization with different width parameter
+          // eslint-disable-next-line spellcheck/spell-checker
           const imageUrl3 = `${distributionUrl}/_next/image?url=%2Frobots.txt&w=128&q=90`;
           const imgRes3 = await fetchWithRetry(imageUrl3, {
             expectedStatus: 200,
@@ -681,9 +688,9 @@ void describe(
               ct3.includes('image/'),
               `Expected image content-type for w=128 request, got ${ct3}`,
             );
-            const buf3 = await imgRes3.arrayBuffer();
+            const buffer3 = await imgRes3.arrayBuffer();
             assert.ok(
-              buf3.byteLength > 0,
+              buffer3.byteLength > 0,
               `Image response for w=128 should not be empty`,
             );
           }
@@ -863,14 +870,14 @@ const findIsrResources = async (
       if (
         r.ResourceType === 'AWS::DynamoDB::Table' &&
         (r.LogicalResourceId?.toLowerCase().includes('tag') ||
-          r.LogicalResourceId?.toLowerCase().includes('revalidat'))
+          r.LogicalResourceId?.toLowerCase().includes('revalidate'))
       ) {
         result.dynamoTable = r.PhysicalResourceId!;
       }
 
       if (
         r.ResourceType === 'AWS::SQS::Queue' &&
-        (r.LogicalResourceId?.toLowerCase().includes('revalidat') ||
+        (r.LogicalResourceId?.toLowerCase().includes('revalidate') ||
           r.LogicalResourceId?.toLowerCase().includes('isr'))
       ) {
         result.sqsQueue = r.PhysicalResourceId!;

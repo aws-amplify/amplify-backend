@@ -83,11 +83,14 @@ void describe('Hosting middleware e2e — Lambda@Edge redirect', () => {
       'Expected X-Middleware-Redirect: true header proving redirect is from Lambda@Edge, not origin',
     );
 
+    // eslint-disable-next-line spellcheck/spell-checker
     // The response should NOT have x-amzn-requestid (which indicates origin invocation)
+    // eslint-disable-next-line spellcheck/spell-checker
     const originRequestId = response.headers.get('x-amzn-requestid');
     assert.strictEqual(
       originRequestId,
       null,
+      // eslint-disable-next-line spellcheck/spell-checker
       'Should NOT have x-amzn-requestid header (redirect should happen at edge, not origin)',
     );
   });

@@ -699,8 +699,10 @@ void describe('CdnConstruct', () => {
 
       const template = Template.fromStack(stack);
       // Distribution should NOT have logging
-      const dists = template.findResources('AWS::CloudFront::Distribution');
-      const dist = Object.values(dists)[0] as Record<
+      const distributions = template.findResources(
+        'AWS::CloudFront::Distribution',
+      );
+      const dist = Object.values(distributions)[0] as Record<
         string,
         Record<string, unknown>
       >;
@@ -905,10 +907,10 @@ void describe('CdnConstruct', () => {
         manifest: spaManifest,
         securityHeadersPolicy: policy,
         certificate: cert,
-        domainName: 'mysite.example.com',
+        domainName: 'my-site.example.com',
       });
 
-      assert.strictEqual(cdn.distributionUrl, 'https://mysite.example.com');
+      assert.strictEqual(cdn.distributionUrl, 'https://my-site.example.com');
     });
 
     void it('uses CloudFront domain when no custom domainName', () => {
@@ -1418,6 +1420,7 @@ void describe('CdnConstruct', () => {
           .Properties;
         const fnName = props.FunctionName as Record<string, unknown>;
 
+        // eslint-disable-next-line spellcheck/spell-checker
         // CDK uses { 'Fn::GetAtt': [logicalId, 'Arn'] } or { Ref: logicalId }
         const refId = fnName['Fn::GetAtt']
           ? (fnName['Fn::GetAtt'] as string[])[0]

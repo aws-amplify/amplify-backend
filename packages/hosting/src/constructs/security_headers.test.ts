@@ -168,6 +168,7 @@ void describe('createSecurityHeadersPolicy', () => {
     void it('passes through custom CSP with wss: for WebSocket', () => {
       const stack = createStack();
       const wssCsp =
+        // eslint-disable-next-line spellcheck/spell-checker
         "default-src 'self'; connect-src 'self' https: wss://realtime.example.com";
       createSecurityHeadersPolicy(stack, 'Headers', {
         contentSecurityPolicy: wssCsp,
