@@ -529,17 +529,25 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     process.stderr.write = (chunk) => {
       const message =
         typeof chunk === 'string' ? chunk : chunk.toLocaleString();
-      // Suppress known noisy stderr messages that should not be
-      // forwarded to the printer (they inflate mock call counts in
-      // tests and clutter sandbox output).
-      if (
-        message.includes('Bundling asset') ||
-        message.includes('DeprecationWarning')
-      ) {
+      if (this.isNodeProcessWarning(message)) {
         return true;
       }
       this.printer.log(message);
       return true;
     };
+  };
+
+  /**
+   * Detects Node.js process warnings that should be silently dropped rather
+   * than forwarded to the printer. Covers DeprecationWarning, ExperimentalWarning,
+   * and any other runtime warning emitted via process.emitWarning().
+   */
+  private isNodeProcessWarning = (message: string): boolean => {
+    return (
+      message.includes('Bundling asset') ||
+      message.includes('DeprecationWarning') ||
+      message.includes('ExperimentalWarning') ||
+      /\(node:\d+\).*Warning/.test(message)
+    );
   };
 }
