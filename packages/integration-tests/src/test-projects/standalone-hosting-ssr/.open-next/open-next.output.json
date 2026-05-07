@@ -20,6 +20,10 @@
       "origin": "image-optimization"
     },
     {
+      "pattern": "/api/*",
+      "origin": "default"
+    },
+    {
       "pattern": "/*",
       "origin": "default"
     }

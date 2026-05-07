@@ -283,6 +283,124 @@ void describe(
           await testProject.assertPostDeployment(backendIdentifier);
         });
 
+        void it('stage 2b: functional HTTP assertions — 404, API routing, static caching, middleware rewrite', async () => {
+          // 1. Static asset caching — verify immutable cache-control on /_next/static/ assets
+          const staticAssetUrl = `${distributionUrl}/_next/static/chunks/main-abc123.js`;
+          const staticRes = await fetchWithRetry(staticAssetUrl, {
+            expectedStatus: 200,
+            maxRetries: 5,
+            intervalMs: 10000,
+          });
+          assert.strictEqual(
+            staticRes.status,
+            200,
+            `Static asset should return 200, got ${staticRes.status}`,
+          );
+          const staticCacheControl =
+            staticRes.headers.get('cache-control') ?? '';
+          assert.ok(
+            staticCacheControl.includes('immutable') ||
+              staticCacheControl.includes('max-age=31536000'),
+            `Static asset cache-control should include immutable or max-age=31536000, got: ${staticCacheControl}`,
+          );
+          process.stderr.write(
+            `Static asset caching verified: cache-control=${staticCacheControl}\n`,
+          );
+
+          // 2. Error handling — non-existent route returns 404
+          const notFoundRes = await fetchWithRetry(
+            `${distributionUrl}/this-page-does-not-exist-xyz`,
+            {
+              expectedStatus: 404,
+              maxRetries: 5,
+              intervalMs: 10000,
+            },
+          );
+          assert.strictEqual(
+            notFoundRes.status,
+            404,
+            `Non-existent route should return 404, got ${notFoundRes.status}`,
+          );
+          const notFoundBody = await notFoundRes.text();
+          assert.ok(
+            notFoundBody.includes('Not Found') || notFoundBody.includes('404'),
+            `404 response body should indicate page not found, got: ${notFoundBody.substring(0, 200)}`,
+          );
+          process.stderr.write(`404 handling verified\n`);
+
+          // 3. Multi-compute routing — API route responds correctly
+          const apiRes = await fetchWithRetry(`${distributionUrl}/api/health`, {
+            expectedStatus: 200,
+            maxRetries: 5,
+            intervalMs: 10000,
+          });
+          assert.strictEqual(
+            apiRes.status,
+            200,
+            `API health route should return 200, got ${apiRes.status}`,
+          );
+          const apiBody = (await apiRes.json()) as {
+            status?: string;
+            timestamp?: number;
+          };
+          assert.strictEqual(
+            apiBody.status,
+            'ok',
+            `API health response should have status "ok", got: ${JSON.stringify(apiBody)}`,
+          );
+          assert.ok(
+            apiBody.timestamp,
+            `API health response should include a timestamp, got: ${JSON.stringify(apiBody)}`,
+          );
+          process.stderr.write(
+            `API routing verified: ${JSON.stringify(apiBody)}\n`,
+          );
+
+          // 4. Middleware rewrite — /old-path is transparently served (200, not redirect)
+          const rewriteRes = await fetchWithRetry(
+            `${distributionUrl}/old-path`,
+            {
+              expectedStatus: 200,
+              maxRetries: 5,
+              intervalMs: 10000,
+              fetchInit: { redirect: 'manual' },
+            },
+          );
+          assert.strictEqual(
+            rewriteRes.status,
+            200,
+            `Middleware rewrite should return 200 (transparent), got ${rewriteRes.status}`,
+          );
+          const rewriteBody = await rewriteRes.text();
+          assert.ok(
+            rewriteBody.includes('Rewritten Content') ||
+              rewriteBody.includes('rewrite'),
+            `Rewrite response should contain rewritten content, got: ${rewriteBody.substring(0, 200)}`,
+          );
+          const rewriteHeader =
+            rewriteRes.headers.get('x-middleware-rewrite') ?? '';
+          assert.ok(
+            rewriteHeader.includes('rewritten'),
+            `Rewrite response should include x-middleware-rewrite header, got: ${rewriteHeader}`,
+          );
+          process.stderr.write(
+            `Middleware rewrite verified: x-middleware-rewrite=${rewriteHeader}\n`,
+          );
+
+          // 5. Security headers — verify on API route (different compute path)
+          const apiSecHeaders = apiRes.headers;
+          assert.ok(
+            apiSecHeaders.get('strict-transport-security'),
+            'API response should include strict-transport-security header',
+          );
+          assert.strictEqual(
+            apiSecHeaders.get('x-content-type-options'),
+            'nosniff',
+            `API x-content-type-options should be nosniff, got: ${apiSecHeaders.get('x-content-type-options')}`,
+          );
+          process.stderr.write(`Security headers on API route verified\n`);
+        });
+
         void it('stage 3: ISR — verifies cache infrastructure provisioned and S3 cache populated', async () => {
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
