@@ -1,11 +1,16 @@
 import { Construct } from 'constructs';
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import {
+  Distribution,
+  PriceClass,
+  experimental,
+} from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import {
   FunctionUrl,
+  IVersion,
   Function as LambdaFunction,
 } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
@@ -120,7 +125,10 @@ export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
   readonly distribution: Distribution;
   readonly distributionUrl: string;
-  readonly computeFunctions: Map<string, LambdaFunction> = new Map();
+  readonly computeFunctions: Map<
+    string,
+    LambdaFunction | experimental.EdgeFunction
+  > = new Map();
   readonly computeFunctionUrls: Map<string, FunctionUrl> = new Map();
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
@@ -188,7 +196,6 @@ export class AmplifyHostingConstruct extends Construct {
       }
     }
 
-
     // ---- 3. Cache infrastructure (ISR) ----
     if (manifest.cache) {
       // S3 bucket for ISR cache
@@ -236,21 +243,23 @@ export class AmplifyHostingConstruct extends Construct {
       }
 
       // ISR environment variables
-      cacheFunction.addEnvironment(
-        'CACHE_BUCKET_NAME',
-        this.cacheBucket.bucketName,
-      );
-      if (this.cacheTable) {
+      if (cacheFunction instanceof LambdaFunction) {
         cacheFunction.addEnvironment(
-          'CACHE_TAG_TABLE_NAME',
-          this.cacheTable.tableName,
+          'CACHE_BUCKET_NAME',
+          this.cacheBucket.bucketName,
         );
-      }
-      if (this.revalidationQueue) {
-        cacheFunction.addEnvironment(
-          'REVALIDATION_QUEUE_URL',
-          this.revalidationQueue.queueUrl,
-        );
+        if (this.cacheTable) {
+          cacheFunction.addEnvironment(
+            'CACHE_TAG_TABLE_NAME',
+            this.cacheTable.tableName,
+          );
+        }
+        if (this.revalidationQueue) {
+          cacheFunction.addEnvironment(
+            'REVALIDATION_QUEUE_URL',
+            this.revalidationQueue.queueUrl,
+          );
+        }
       }
     }
 
@@ -279,7 +288,7 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 5. Middleware (Lambda@Edge) ----
-    let middlewareEdgeVersion: LambdaFunction['currentVersion'] | undefined;
+    let middlewareEdgeVersion: IVersion | undefined;
     if (manifest.middleware) {
       const middlewareConstruct = new ComputeConstruct(this, 'Middleware', {
         name: 'middleware',

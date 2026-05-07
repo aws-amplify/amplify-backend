@@ -10,6 +10,7 @@ import {
   LayerVersion,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
+import { experimental } from 'aws-cdk-lib/aws-cloudfront';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { HostingError } from '../hosting_error.js';
@@ -103,7 +104,7 @@ export type ComputeConstructProps = {
  * - **edge**: Lambda@Edge (placeholder — deployed via CloudFront).
  */
 export class ComputeConstruct extends Construct {
-  readonly function: LambdaFunction;
+  readonly function: LambdaFunction | experimental.EdgeFunction;
   readonly functionUrl: FunctionUrl | undefined;
 
   /**
@@ -194,16 +195,16 @@ export class ComputeConstruct extends Construct {
           `⚠️  Edge compute '${props.name}' has environment variables which Lambda@Edge does not support. They will be stripped.\n`,
         );
       }
-      this.function = new LambdaFunction(this, 'Function', {
+      this.function = new experimental.EdgeFunction(this, 'EdgeFunction', {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.handler ?? 'index.handler',
         code: Code.fromAsset(computeResource.bundle),
         architecture: Architecture.X86_64,
         memorySize,
         timeout: Duration.seconds(Math.min(computeResource.timeout ?? 5, 30)),
-        role: ssrRole,
         logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
       });
+      // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region
     } else {
       throw new HostingError('UnsupportedComputeTypeError', {
         message: `Unsupported compute type: "${String(computeResource.type)}"`,
