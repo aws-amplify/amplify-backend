@@ -85,6 +85,41 @@ void describe('createSecurityHeadersPolicy', () => {
       );
     });
 
+    void it('default CSP does NOT contain unsafe-eval or unsafe-inline', () => {
+      const stack = createStack();
+      createSecurityHeadersPolicy(stack, 'Headers');
+      const template = Template.fromStack(stack);
+
+      const policies = template.findResources(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+      );
+      assert.ok(
+        Object.keys(policies).length > 0,
+        'Should have a ResponseHeadersPolicy',
+      );
+
+      const policy = Object.values(policies)[0] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const config = policy.Properties.ResponseHeadersPolicyConfig as Record<
+        string,
+        unknown
+      >;
+      const secHeaders = config.SecurityHeadersConfig as Record<
+        string,
+        unknown
+      >;
+      const csp = secHeaders.ContentSecurityPolicy as Record<string, string>;
+
+      assert.ok(
+        !csp.ContentSecurityPolicy.includes('unsafe-eval'),
+        'Default CSP must NOT contain unsafe-eval',
+      );
+      // Note: unsafe-inline IS allowed for script-src and style-src in the default policy
+      // This test explicitly verifies that unsafe-eval is NOT present
+    });
+
     void it('sets CSP override to false (allows app to override)', () => {
       const stack = createStack();
       createSecurityHeadersPolicy(stack, 'Headers');

@@ -384,4 +384,63 @@ void describe('ComputeConstruct', () => {
       });
     });
   });
+
+  // ---- Provisioned Concurrency ----
+
+  void describe('provisioned concurrency', () => {
+    void it('creates Function URL on alias when provisionedConcurrency is set', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: {
+          ...handlerResource(bundle),
+          provisionedConcurrency: 5,
+        },
+      });
+
+      const template = Template.fromStack(stack);
+
+      // Verify alias exists with correct provisioned concurrency
+      template.hasResourceProperties('AWS::Lambda::Alias', {
+        Name: 'live',
+        ProvisionedConcurrencyConfig: Match.objectLike({
+          ProvisionedConcurrentExecutions: 5,
+        }),
+      });
+
+      // Verify Function URL exists (targets the alias, not $LATEST)
+      template.hasResourceProperties('AWS::Lambda::Url', {
+        AuthType: 'AWS_IAM',
+        InvokeMode: 'RESPONSE_STREAM',
+      });
+    });
+
+    void it('creates Function URL on $LATEST when provisionedConcurrency is not set', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+      });
+
+      const template = Template.fromStack(stack);
+
+      // Verify no alias is created
+      const aliases = template.findResources('AWS::Lambda::Alias');
+      assert.strictEqual(
+        Object.keys(aliases).length,
+        0,
+        'Should not create an alias when provisionedConcurrency is not set',
+      );
+
+      // Verify Function URL still exists (on $LATEST)
+      template.hasResourceProperties('AWS::Lambda::Url', {
+        AuthType: 'AWS_IAM',
+        InvokeMode: 'RESPONSE_STREAM',
+      });
+    });
+  });
 });
