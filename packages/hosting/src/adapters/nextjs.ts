@@ -67,8 +67,8 @@ export const nextjsAdapter = (
   const openNextDir = path.join(projectDir, '.open-next');
   const outputPath = path.join(openNextDir, 'open-next.output.json');
 
-  // Skip the build if output already exists (e.g. pre-built in CI) or explicitly requested
-  if (!skipBuild && !fs.existsSync(outputPath)) {
+  // Run the OpenNext build unless explicitly skipped
+  if (!skipBuild) {
     runOpenNextBuild(projectDir, configPath);
   }
 
@@ -165,16 +165,25 @@ const translateOpenNextOutput = (
     manifest.routes = mapBehaviorsToRoutes(output.behaviors);
   }
 
-  // ISR/Cache detection
+  // ISR/Cache detection — only provision cache infra if ISR is actually used.
+  // Evidence: revalidation-function exists OR cache handler dir exists in output.
   if (output.additionalProps?.disableIncrementalCache !== true) {
-    const computeNames = Object.keys(manifest.compute);
-    if (computeNames.length > 0) {
-      const primaryComputeName = computeNames[0] ?? 'default';
-      manifest.cache = {
-        computeResource: primaryComputeName,
-        tagRevalidation: true, // eslint-disable-line spellcheck/spell-checker
-        revalidationQueue: true, // eslint-disable-line spellcheck/spell-checker
-      };
+    const hasIsrEvidence =
+      fs.existsSync(path.join(openNextDir, 'revalidation-function')) ||
+      fs.existsSync(path.join(openNextDir, 'cache'));
+
+    if (hasIsrEvidence) {
+      const computeNames = Object.keys(manifest.compute);
+      const primaryComputeName =
+        computeNames.find((n) => n === 'default' || n === 'server') ??
+        computeNames[0];
+      if (primaryComputeName) {
+        manifest.cache = {
+          computeResource: primaryComputeName,
+          tagRevalidation: true,
+          revalidationQueue: true,
+        };
+      }
     }
   }
 
@@ -189,7 +198,7 @@ const translateOpenNextOutput = (
         formats: (imgConfig?.formats as string[] | undefined) ?? [
           'webp',
           'avif',
-        ], // eslint-disable-line spellcheck/spell-checker
+        ],
         sizes: (imgConfig?.sizes as number[] | undefined) ?? [
           640, 750, 828, 1080, 1200, 1920, 2048, 3840,
         ],

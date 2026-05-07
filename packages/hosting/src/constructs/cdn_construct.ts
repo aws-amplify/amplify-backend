@@ -14,6 +14,7 @@ import {
   FunctionRuntime,
   GeoRestriction,
   HttpVersion,
+  LambdaEdgeEventType,
   OriginRequestPolicy,
   PriceClass,
   ResponseHeadersPolicy,
@@ -25,7 +26,7 @@ import {
   S3BucketOrigin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { CfnPermission, IFunction, IFunctionUrl } from 'aws-cdk-lib/aws-lambda';
+import { CfnPermission, IFunction, IFunctionUrl, IVersion } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
@@ -60,10 +61,14 @@ export type CdnConstructProps = {
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
   securityHeadersPolicy: ResponseHeadersPolicy;
-  /** Lambda Function URL for primary SSR origin (SSR only). */
+  /** Lambda Function URL for primary SSR origin (SSR only). @deprecated Use computeFunctionUrls */
   ssrFunctionUrl?: IFunctionUrl;
-  /** Lambda function reference for OAC permission patching (SSR only). */
+  /** Lambda function reference for OAC permission patching (SSR only). @deprecated Use computeFunctions */
   ssrFunction?: IFunction;
+  /** Map of compute name → Function URL for per-origin routing. */
+  computeFunctionUrls?: Map<string, IFunctionUrl>;
+  /** Map of compute name → Lambda function for OAC permission patching. */
+  computeFunctions?: Map<string, IFunction>;
   /** WAFv2 WebACL to associate with the distribution. */
   webAcl?: CfnWebACL;
   /** ACM certificate for custom domain TLS. */
@@ -81,6 +86,8 @@ export type CdnConstructProps = {
   };
   /** Custom error page HTML. */
   errorPageHtml?: string;
+  /** Lambda@Edge function version for middleware (viewer-request). */
+  middlewareEdgeFunction?: IVersion;
 };
 
 // ---- Construct ----
@@ -122,7 +129,9 @@ export class CdnConstruct extends Construct {
 
     const buildId = manifest.buildId;
     const account = Stack.of(this).account;
-    const hasCompute = !!props.ssrFunctionUrl;
+    const hasCompute =
+      !!props.ssrFunctionUrl ||
+      (props.computeFunctionUrls && props.computeFunctionUrls.size > 0);
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
     // ---- Build ID rewrite function ----
@@ -139,8 +148,35 @@ export class CdnConstruct extends Construct {
     // ---- Origins ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(bucket);
 
-    const lambdaOrigin = props.ssrFunctionUrl
+    // Per-compute origins: create a FunctionUrlOrigin for each compute function URL
+    const computeOrigins = new Map<
+      string,
+      ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
+    >();
+    if (props.computeFunctionUrls) {
+      for (const [name, fnUrl] of props.computeFunctionUrls) {
+        computeOrigins.set(
+          name,
+          FunctionUrlOrigin.withOriginAccessControl(fnUrl),
+        );
+      }
+    }
+
+    // Primary origin: prefer 'default' > 'server' > first available, or legacy ssrFunctionUrl
+    const primaryOrigin = props.ssrFunctionUrl
       ? FunctionUrlOrigin.withOriginAccessControl(props.ssrFunctionUrl)
+      : computeOrigins.get('default') ??
+        computeOrigins.get('server') ??
+        computeOrigins.values().next().value;
+
+    // ---- Middleware (Lambda@Edge viewer-request) ----
+    const edgeLambdas = props.middlewareEdgeFunction
+      ? [
+          {
+            functionVersion: props.middlewareEdgeFunction,
+            eventType: LambdaEdgeEventType.VIEWER_REQUEST,
+          },
+        ]
       : undefined;
 
     // ---- Behavior helpers ----
@@ -158,16 +194,20 @@ export class CdnConstruct extends Construct {
           eventType: FunctionEventType.VIEWER_REQUEST,
         },
       ],
+      ...(edgeLambdas ? { edgeLambdas } : {}),
     });
 
-    const makeComputeBehavior = (): BehaviorOptions => ({
-      origin: lambdaOrigin!,
+    const makeComputeBehavior = (
+      origin?: ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>,
+    ): BehaviorOptions => ({
+      origin: origin ?? primaryOrigin!,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
       cachePolicy: CachePolicy.CACHING_DISABLED,
       compress: true,
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
+      ...(edgeLambdas ? { edgeLambdas } : {}),
     });
 
     // ---- Route → behavior mapping ----
@@ -196,11 +236,14 @@ export class CdnConstruct extends Construct {
 
       if (isStatic) {
         additionalBehaviors[cfPattern] = makeStaticBehavior();
-      } else if (lambdaOrigin) {
-        additionalBehaviors[cfPattern] = makeComputeBehavior();
       } else {
-        // No compute available — fall back to static
-        additionalBehaviors[cfPattern] = makeStaticBehavior();
+        // Look up per-compute origin, fall back to primary
+        const targetOrigin = computeOrigins.get(route.target) ?? primaryOrigin;
+        if (targetOrigin) {
+          additionalBehaviors[cfPattern] = makeComputeBehavior(targetOrigin);
+        } else {
+          additionalBehaviors[cfPattern] = makeStaticBehavior();
+        }
       }
     }
 
@@ -212,7 +255,9 @@ export class CdnConstruct extends Construct {
       hasCompute;
 
     const defaultBehavior = defaultIsCompute
-      ? makeComputeBehavior()
+      ? makeComputeBehavior(
+          computeOrigins.get(catchAllRoute!.target) ?? primaryOrigin,
+        )
       : makeStaticBehavior();
 
     // ---- Error responses ----
@@ -305,36 +350,46 @@ export class CdnConstruct extends Construct {
     );
 
     // ---- OAC: Lambda Function URL permission patch ----
-    if (hasCompute && props.ssrFunction) {
-      let permissionPatched = false;
+    if (hasCompute) {
+      // Collect all functions that need OAC permissions
+      const allComputeFunctions: Array<{ name: string; fn: IFunction }> = [];
+      if (props.computeFunctions) {
+        for (const [name, fn] of props.computeFunctions) {
+          allComputeFunctions.push({ name, fn });
+        }
+      } else if (props.ssrFunction) {
+        allComputeFunctions.push({ name: 'ssr', fn: props.ssrFunction });
+      }
+
+      // Patch any auto-generated permissions
       for (const child of this.distribution.node.findAll()) {
         if (
           child instanceof CfnPermission &&
           child.action === 'lambda:InvokeFunctionUrl'
         ) {
-          child.addPropertyOverride(
-            'FunctionName',
-            props.ssrFunction.functionArn,
-          );
-          permissionPatched = true;
+          const firstFn = allComputeFunctions[0];
+          if (firstFn) {
+            child.addPropertyOverride('FunctionName', firstFn.fn.functionArn);
+          }
         }
       }
 
-      if (!permissionPatched) {
-        new CfnPermission(this, 'CloudFrontLambdaUrlPermission', {
+      // Grant invoke permissions for each compute function
+      for (const { name, fn } of allComputeFunctions) {
+        new CfnPermission(this, `LambdaUrlPermission-${name}`, {
           action: 'lambda:InvokeFunctionUrl',
           principal: 'cloudfront.amazonaws.com',
-          functionName: props.ssrFunction.functionArn,
+          functionName: fn.functionArn,
           functionUrlAuthType: 'AWS_IAM',
           sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
         });
-      }
 
-      props.ssrFunction.addPermission('CloudFrontOACInvokeFunction', {
-        principal: new iam.ServicePrincipal('cloudfront.amazonaws.com'),
-        action: 'lambda:InvokeFunction',
-        sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
-      });
+        fn.addPermission(`CloudFrontOACInvoke-${name}`, {
+          principal: new iam.ServicePrincipal('cloudfront.amazonaws.com'),
+          action: 'lambda:InvokeFunction',
+          sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+        });
+      }
     }
 
     // ---- Distribution URL ----

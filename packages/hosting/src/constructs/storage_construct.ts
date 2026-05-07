@@ -95,13 +95,11 @@ export class StorageConstruct extends Construct {
       const logRetentionDays =
         props.logRetentionDays ?? DEFAULT_ACCESS_LOG_RETENTION_DAYS;
 
-      /* eslint-disable spellcheck/spell-checker */
       // CloudFront standard logging requires ACL-based writes via the
       // awslogsdelivery canonical user. BUCKET_OWNER_ENFORCED disables ACLs
       // entirely, which would silently prevent log delivery. The hosting
       // bucket uses BUCKET_OWNER_ENFORCED (modern default) but the access
       // log bucket must use BUCKET_OWNER_PREFERRED to support CloudFront logging.
-      /* eslint-enable spellcheck/spell-checker */
       this.accessLogBucket = new Bucket(this, 'AccessLogBucket', {
         blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
         encryption: BucketEncryption.S3_MANAGED,

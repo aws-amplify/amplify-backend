@@ -104,7 +104,7 @@ export type ComputeConstructProps = {
  */
 export class ComputeConstruct extends Construct {
   readonly function: LambdaFunction;
-  readonly functionUrl!: FunctionUrl;
+  readonly functionUrl: FunctionUrl | undefined;
 
   /**
    * Creates a compute resource (Lambda function) based on the compute type.

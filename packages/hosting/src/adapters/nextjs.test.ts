@@ -91,6 +91,10 @@ void describe('nextjsAdapter', () => {
       'export const handler = async () => {};',
     );
     fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    // ISR evidence: revalidation-function directory exists
+    fs.mkdirSync(path.join(openNextDir, 'revalidation-function'), {
+      recursive: true,
+    });
 
     fs.writeFileSync(
       path.join(openNextDir, 'open-next.output.json'),

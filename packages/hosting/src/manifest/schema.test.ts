@@ -265,4 +265,59 @@ void describe('Deploy Manifest Schema', () => {
     });
     assert.ok(result.success, 'Should accept valid custom headers');
   });
+
+  // ---- Route target validation (refine) ----
+
+  void it('rejects route target that does not match any compute resource', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        server: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/api/*', target: 'nonexistent-compute' },
+        { pattern: '/*', target: 'server' },
+      ],
+      buildId: 'test-1',
+    });
+    assert.ok(!result.success, 'Should reject route targeting missing compute');
+    const errorMessage = result.error?.issues[0]?.message ?? '';
+    assert.ok(
+      errorMessage.includes('Route target must reference'),
+      `Expected refine error, got: ${errorMessage}`,
+    );
+  });
+
+  void it('accepts route targets matching compute keys or reserved targets', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        server: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/assets/*', target: 's3' },
+        { pattern: '/_next/image/*', target: 'image-optimization' },
+        { pattern: '/*', target: 'server' },
+      ],
+      buildId: 'test-1',
+    });
+    assert.ok(
+      result.success,
+      'Should accept routes with valid compute keys and reserved targets',
+    );
+  });
 });

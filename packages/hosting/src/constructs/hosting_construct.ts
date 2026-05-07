@@ -157,13 +157,8 @@ export class AmplifyHostingConstruct extends Construct {
     const computeEntries = Object.entries(manifest.compute);
     const hasCompute = computeEntries.length > 0;
 
-    // Primary compute (first handler or http-server type)
-    let primaryFunction: LambdaFunction | undefined;
-    let primaryFunctionUrl: FunctionUrl | undefined;
-
     for (const [name, resource] of computeEntries) {
       if (resource.type === 'edge') {
-        // Edge functions don't support Function URLs (Lambda@Edge restriction)
         const edgeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
           name,
           computeResource: resource,
@@ -188,13 +183,11 @@ export class AmplifyHostingConstruct extends Construct {
       });
 
       this.computeFunctions.set(name, computeConstruct.function);
-      this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
-
-      if (!primaryFunction) {
-        primaryFunction = computeConstruct.function;
-        primaryFunctionUrl = computeConstruct.functionUrl;
+      if (computeConstruct.functionUrl) {
+        this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
       }
     }
+
 
     // ---- 3. Cache infrastructure (ISR) ----
     if (manifest.cache) {
@@ -202,6 +195,7 @@ export class AmplifyHostingConstruct extends Construct {
       this.cacheBucket = new Bucket(this, 'CacheBucket', {
         removalPolicy: RemovalPolicy.DESTROY,
         autoDeleteObjects: true,
+        lifecycleRules: [{ expiration: Duration.days(30) }],
       });
 
       // DynamoDB table for tag-based revalidation
@@ -240,6 +234,24 @@ export class AmplifyHostingConstruct extends Construct {
         this.revalidationQueue.grantSendMessages(cacheFunction);
         this.revalidationQueue.grantConsumeMessages(cacheFunction);
       }
+
+      // ISR environment variables
+      cacheFunction.addEnvironment(
+        'CACHE_BUCKET_NAME',
+        this.cacheBucket.bucketName,
+      );
+      if (this.cacheTable) {
+        cacheFunction.addEnvironment(
+          'CACHE_TAG_TABLE_NAME',
+          this.cacheTable.tableName,
+        );
+      }
+      if (this.revalidationQueue) {
+        cacheFunction.addEnvironment(
+          'REVALIDATION_QUEUE_URL',
+          this.revalidationQueue.queueUrl,
+        );
+      }
     }
 
     // ---- 4. Image optimization Lambda ----
@@ -258,18 +270,35 @@ export class AmplifyHostingConstruct extends Construct {
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);
-      this.computeFunctionUrls.set(
-        'image-optimization',
-        imageConstruct.functionUrl,
-      );
-
-      if (!primaryFunction) {
-        primaryFunction = imageConstruct.function;
-        primaryFunctionUrl = imageConstruct.functionUrl;
+      if (imageConstruct.functionUrl) {
+        this.computeFunctionUrls.set(
+          'image-optimization',
+          imageConstruct.functionUrl,
+        );
       }
     }
 
-    // ---- 5. WAF (conditional) ----
+    // ---- 5. Middleware (Lambda@Edge) ----
+    let middlewareEdgeVersion: LambdaFunction['currentVersion'] | undefined;
+    if (manifest.middleware) {
+      const middlewareConstruct = new ComputeConstruct(this, 'Middleware', {
+        name: 'middleware',
+        computeResource: {
+          type: 'edge',
+          bundle: manifest.middleware.bundle,
+          handler: manifest.middleware.handler,
+          placement: 'global',
+          streaming: false,
+          timeout: 5,
+          memorySize: 128,
+        },
+        skipRegionValidation: props.skipRegionValidation,
+      });
+      this.computeFunctions.set('middleware', middlewareConstruct.function);
+      middlewareEdgeVersion = middlewareConstruct.function.currentVersion;
+    }
+
+    // ---- 6. WAF (conditional) ----
     const wafConstruct = new WafConstruct(this, 'Waf', {
       enabled: props.waf?.enabled ?? false,
       rateLimit: props.waf?.rateLimit,
@@ -304,8 +333,9 @@ export class AmplifyHostingConstruct extends Construct {
       bucket: this.bucket,
       manifest: manifestWithBuildId,
       securityHeadersPolicy,
-      ssrFunctionUrl: primaryFunctionUrl,
-      ssrFunction: primaryFunction,
+      computeFunctionUrls: this.computeFunctionUrls,
+      computeFunctions: this.computeFunctions,
+      middlewareEdgeFunction: middlewareEdgeVersion,
       webAcl: this.webAcl,
       certificate: this.certificate,
       domainName: props.domain?.domainName,
