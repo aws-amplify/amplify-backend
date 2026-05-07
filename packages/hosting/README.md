@@ -166,22 +166,23 @@ SSR responses are streamed using Lambda response streaming (via Function URLs), 
 
 ## Configuration
 
-| Prop                    | Type                                              | Default                  | Description                                                        |
-| ----------------------- | ------------------------------------------------- | ------------------------ | ------------------------------------------------------------------ |
-| `framework`             | `'nextjs' \| 'spa' \| 'static' \| string`         | auto-detected            | Framework type. Auto-detected from package.json.                   |
-| `buildCommand`          | `string`                                          | -                        | Build command to run before deployment.                            |
-| `buildOutputDir`        | `string`                                          | framework-dependent      | Build output directory.                                            |
-| `domain`                | `{ domainName, hostedZone }`                      | -                        | Custom domain with SSL. Requires Route53 hosted zone.              |
-| `waf`                   | `{ enabled, rateLimit? }`                         | -                        | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month. |
-| `customAdapter`         | `FrameworkAdapterFn`                              | -                        | Custom framework adapter for unsupported frameworks.               |
-| `compute`               | `{ memorySize?, timeout?, reservedConcurrency? }` | `{ 512, 30, undefined }` | Lambda configuration for SSR.                                      |
-| `contentSecurityPolicy` | `string`                                          | restrictive default      | Custom CSP header value.                                           |
-| `retainOnDelete`        | `boolean`                                         | `false`                  | Retain S3 bucket on stack deletion.                                |
+| Prop                        | Type                                                             | Default             | Description                                                            |
+| --------------------------- | ---------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------- |
+| `framework`                 | `'nextjs' \| 'spa' \| 'static' \| string`                        | auto-detected       | Framework type. Auto-detected from package.json.                       |
+| `buildCommand`              | `string`                                                         | -                   | Build command to run before deployment.                                |
+| `domain`                    | `{ domainName, hostedZone }`                                     | -                   | Custom domain with SSL. Requires Route53 hosted zone.                  |
+| `waf`                       | `{ enabled, rateLimit? }`                                        | -                   | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.     |
+| `customAdapter`             | `FrameworkAdapterFn`                                             | -                   | Custom framework adapter for unsupported frameworks.                   |
+| `compute`                   | `{ memorySize?, timeout?, logRetention?, reservedConcurrency? }` | `512MB, 30s`        | Lambda configuration for SSR.                                          |
+| `cdn.priceClass`            | `PriceClass`                                                     | `PRICE_CLASS_100`   | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
+| `cdn.contentSecurityPolicy` | `string`                                                         | restrictive default | Custom CSP header value.                                               |
+| `cdn.geoRestriction`        | `{ type, countries }`                                            | -                   | Geo-restriction for CloudFront distribution.                           |
+| `storage.retainOnDelete`    | `boolean`                                                        | `false`             | Retain S3 bucket on stack deletion.                                    |
+| `storage.encryption`        | `'S3_MANAGED' \| 'KMS'`                                          | `'S3_MANAGED'`      | Encryption type for the hosting bucket.                                |
+| `logging.enabled`           | `boolean`                                                        | `false`             | Enable CloudFront access logging to S3.                                |
+| `logging.retentionDays`     | `number`                                                         | `90`                | Days to retain access logs.                                            |
 
-> **⚠️ Production warning:** By default `retainOnDelete` is `false`, which means the S3 bucket and **all hosted assets are permanently deleted** when the CloudFormation stack is destroyed. This is convenient for dev/test but **risky for production**. For production stacks, set `retainOnDelete: true` to preserve the bucket on stack deletion. In standalone CDK usage, you can also set `removalPolicy: RemovalPolicy.RETAIN` on the construct's bucket directly.
-> | `accessLogging` | `boolean` | `false` | Enable CloudFront access logs to S3. |
-> | `priceClass` | `PriceClass` | `PRICE_CLASS_100` | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
-> | `name` | `string` | - | Optional resource name. |
+> **⚠️ Production warning:** By default `storage.retainOnDelete` is `false`, which means the S3 bucket and **all hosted assets are permanently deleted** when the CloudFormation stack is destroyed. This is convenient for dev/test but **risky for production**. For production stacks, set `storage: { retainOnDelete: true }` to preserve the bucket on stack deletion. In standalone CDK usage, you can also set `removalPolicy: RemovalPolicy.RETAIN` on the construct's bucket directly.
 
 ## Custom Domains
 
@@ -290,17 +291,15 @@ defineHosting({
 
 ```typescript
 import type { DeployManifest } from '@aws-amplify/hosting';
+import type { FrameworkAdapterFn } from '@aws-amplify/hosting/adapters';
 import * as path from 'path';
 
-const astroSSRAdapter: FrameworkAdapterFn = (
-  buildOutputDir,
-  projectDir,
-): DeployManifest => ({
+const astroSSRAdapter: FrameworkAdapterFn = (projectDir): DeployManifest => ({
   version: 1,
   compute: {
     server: {
       type: 'handler',
-      bundle: `${buildOutputDir}/server`,
+      bundle: path.join(projectDir, 'dist/server'),
       handler: 'entry.handler',
       placement: 'regional',
       streaming: true,
@@ -310,7 +309,7 @@ const astroSSRAdapter: FrameworkAdapterFn = (
     },
   },
   staticAssets: {
-    directory: `${buildOutputDir}/client`,
+    directory: path.join(projectDir, 'dist/client'),
     cacheControl: 'public, max-age=31536000, immutable',
   },
   routes: [
@@ -435,15 +434,17 @@ default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-
 
 **`unsafe-eval` is NOT included** in the default policy. This was a deliberate security decision — `eval()` and `new Function()` are common XSS vectors. Most modern frameworks (including Next.js) work without `unsafe-eval`.
 
-However, some libraries (e.g., certain template engines, older chart libraries) require `eval()` at runtime. If your app needs it, use the `contentSecurityPolicy` prop to override:
+However, some libraries (e.g., certain template engines, older chart libraries) require `eval()` at runtime. If your app needs it, use the `cdn.contentSecurityPolicy` prop to override:
 
 ```typescript
 // amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
 
 defineHosting({
-  contentSecurityPolicy:
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",
+  cdn: {
+    contentSecurityPolicy:
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-ancestors 'self'",
+  },
 });
 ```
 
@@ -502,7 +503,6 @@ const manifest: DeployManifest = {
 
 const hosting = new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
-  staticAssetPath: './dist',
 });
 
 // Access created resources for composition with other constructs
@@ -556,7 +556,6 @@ const cert = Certificate.fromCertificateArn(
 
 new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
-  staticAssetPath: './dist',
   domain: {
     domainName: 'app.example.com',
     hostedZone: 'example.com',
@@ -582,10 +581,8 @@ import type { DeployManifest, RouteBehavior } from '@aws-amplify/hosting';
  * Custom adapter for Astro (example).
  * Scans Astro's build output and returns a DeployManifest.
  */
-export const astroAdapter = (
-  buildOutputDir: string,
-  _projectDir: string,
-): DeployManifest => {
+export const astroAdapter = (projectDir: string): DeployManifest => {
+  const buildOutputDir = path.join(projectDir, 'dist');
   if (!fs.existsSync(buildOutputDir)) {
     throw new Error(`Build output not found at ${buildOutputDir}`);
   }
@@ -641,11 +638,10 @@ export const astroAdapter = (
 import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
 import { astroAdapter } from './astro-adapter';
 
-const manifest = astroAdapter('./dist', process.cwd());
+const manifest = astroAdapter(process.cwd());
 
 new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
-  staticAssetPath: './dist/client',
 });
 ```
 
