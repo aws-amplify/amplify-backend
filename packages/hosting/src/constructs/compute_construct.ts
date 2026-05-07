@@ -225,9 +225,13 @@ export class ComputeConstruct extends Construct {
         invokeMode,
       });
 
-      if (computeResource.provisionedConcurrency && computeResource.provisionedConcurrency > 0) {
+      if (
+        computeResource.provisionedConcurrency &&
+        computeResource.provisionedConcurrency > 0
+      ) {
         (this.function as LambdaFunction).addAlias('live', {
-          provisionedConcurrentExecutions: computeResource.provisionedConcurrency,
+          provisionedConcurrentExecutions:
+            computeResource.provisionedConcurrency,
         });
       }
     }

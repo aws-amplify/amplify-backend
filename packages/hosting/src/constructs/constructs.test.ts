@@ -21,6 +21,14 @@ const createStack = (): Stack => {
   return new Stack(app, 'TestStack');
 };
 
+const createEnvStack = (
+  region = 'us-east-1',
+  account = '123456789012',
+): Stack => {
+  const app = new App();
+  return new Stack(app, 'TestStack', { env: { account, region } });
+};
+
 let tmpDir: string;
 
 const createStaticDir = (): string => {
@@ -52,7 +60,7 @@ void describe('Middleware provisioning', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir('server');
     const middlewareDir = createBundleDir('middleware');
-    const stack = createStack();
+    const stack = createEnvStack();
 
     const manifest: DeployManifest = {
       version: 1,
@@ -210,7 +218,10 @@ void describe('Cache (ISR) provisioning', () => {
     });
 
     // SQS queue for revalidation
-    assert.ok(construct.revalidationQueue, 'revalidationQueue should be defined');
+    assert.ok(
+      construct.revalidationQueue,
+      'revalidationQueue should be defined',
+    );
     template.hasResourceProperties('AWS::SQS::Queue', {
       VisibilityTimeout: 30,
     });
@@ -465,7 +476,7 @@ void describe('Edge compute type safety', () => {
     const staticDir = createStaticDir();
     const edgeDir = createBundleDir('edge-fn');
     const serverDir = createBundleDir('server-fn');
-    const stack = createStack();
+    const stack = createEnvStack();
 
     const manifest: DeployManifest = {
       version: 1,

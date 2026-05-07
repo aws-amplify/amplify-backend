@@ -1286,7 +1286,7 @@ void describe('AmplifyHostingConstruct — KMS Key Policy', () => {
       const isCfPrincipal =
         service === 'cloudfront.amazonaws.com' ||
         (Array.isArray(service) &&
-          service.includes('cloudfront.amazonaws.com'));
+          service.some((s: string) => s === 'cloudfront.amazonaws.com'));
       return hasDecrypt && isCfPrincipal;
     });
 

@@ -108,7 +108,8 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
     require.resolve('@opennextjs/aws');
   } catch {
     throw new HostingError('MissingDependencyError', {
-      message: '@opennextjs/aws is not installed. It is required for Next.js builds.',
+      message:
+        '@opennextjs/aws is not installed. It is required for Next.js builds.',
       resolution: 'Run: npm install --save-dev @opennextjs/aws',
     });
   }

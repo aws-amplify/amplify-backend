@@ -137,6 +137,6 @@ void describe('AmplifyHostingConstruct — vanilla CDK usage', () => {
 
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::DynamoDB::Table', 1);
-    template.resourceCountIs('AWS::SQS::Queue', 1);
+    template.resourceCountIs('AWS::SQS::Queue', 2);
   });
 });

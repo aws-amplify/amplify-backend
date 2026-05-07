@@ -241,7 +241,7 @@ void describe('ComputeConstruct', () => {
   void describe('edge compute type', () => {
     void it('creates Lambda for edge functions', () => {
       const bundle = createBundleDir();
-      const stack = createStack();
+      const stack = createEnvStack();
 
       new ComputeConstruct(stack, 'Compute', {
         name: 'default',
@@ -257,7 +257,7 @@ void describe('ComputeConstruct', () => {
 
     void it('caps timeout at 30 seconds for edge', () => {
       const bundle = createBundleDir();
-      const stack = createStack();
+      const stack = createEnvStack();
 
       new ComputeConstruct(stack, 'Compute', {
         name: 'default',

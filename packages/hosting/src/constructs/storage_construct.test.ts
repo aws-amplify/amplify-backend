@@ -464,8 +464,12 @@ void describe('StorageConstruct', () => {
         key.includes('AccessLogBucket'),
       );
       assert.ok(accessLogBucket, 'Should find AccessLogBucket');
-      const props = (accessLogBucket[1] as Record<string, Record<string, unknown>>).Properties;
-      const pab = props?.PublicAccessBlockConfiguration as Record<string, boolean> | undefined;
+      const props = (
+        accessLogBucket[1] as Record<string, Record<string, unknown>>
+      ).Properties;
+      const pab = props?.PublicAccessBlockConfiguration as
+        | Record<string, boolean>
+        | undefined;
       assert.strictEqual(pab?.BlockPublicAcls, true);
       assert.strictEqual(pab?.BlockPublicPolicy, true);
       assert.strictEqual(pab?.IgnorePublicAcls, true);
@@ -482,9 +486,13 @@ void describe('StorageConstruct', () => {
         key.includes('AccessLogBucket'),
       );
       assert.ok(accessLogBucket, 'Should find AccessLogBucket');
-      const props = (accessLogBucket[1] as Record<string, Record<string, unknown>>).Properties;
+      const props = (
+        accessLogBucket[1] as Record<string, Record<string, unknown>>
+      ).Properties;
       const encryption = props?.BucketEncryption as Record<string, unknown[]>;
-      const config = encryption?.ServerSideEncryptionConfiguration as Array<Record<string, Record<string, string>>>;
+      const config = encryption?.ServerSideEncryptionConfiguration as Array<
+        Record<string, Record<string, string>>
+      >;
       assert.strictEqual(
         config?.[0]?.ServerSideEncryptionByDefault?.SSEAlgorithm,
         'AES256',

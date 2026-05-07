@@ -232,7 +232,7 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
 
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::DynamoDB::Table', 1);
-      template.resourceCountIs('AWS::SQS::Queue', 1);
+      template.resourceCountIs('AWS::SQS::Queue', 2);
     });
   });
 
