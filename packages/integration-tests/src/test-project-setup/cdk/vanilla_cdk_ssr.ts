@@ -46,42 +46,64 @@ export class VanillaCdkSsrTestCdkProjectCreator
       recursive: true,
     });
 
-    // Create .next/ build output fixture (simulates `next build --output standalone`)
-    const standaloneDir = path.join(projectRoot, '.next', 'standalone');
-    await fs.mkdir(standaloneDir, { recursive: true });
+    // Create .open-next/ build output fixture (simulates OpenNext build output)
+    const openNextDir = path.join(projectRoot, '.open-next');
+    const serverFnDir = path.join(openNextDir, 'server-function');
+    await fs.mkdir(serverFnDir, { recursive: true });
 
-    // Minimal server.js — serves SSR content over HTTP for Lambda Web Adapter
+    // OpenNext output manifest
     await fs.writeFile(
-      path.join(standaloneDir, 'server.js'),
-      `const http = require('http');
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify(
+        {
+          origins: {
+            default: {
+              type: 'function',
+              handler: 'index.handler',
+              streaming: true,
+              runtime: 'nodejs20.x',
+            },
+            s3: { type: 's3' },
+          },
+          behaviors: [
+            { pattern: '/_next/static/*', origin: 's3' },
+            { pattern: '/*', origin: 'default' },
+          ],
+          additionalProps: {
+            disableIncrementalCache: true,
+            imageOptimization: false,
+          },
+        },
+        null,
+        2,
+      ),
+    );
 
-const PORT = process.env.PORT || 3000;
-
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end('<html><body><h1>${SSR_CONTENT_MARKER}</h1><p>Server-rendered by Lambda via AmplifyHostingConstruct in a vanilla CDK app.</p></body></html>');
-});
-
-server.listen(PORT, '0.0.0.0', () => {
-  process.stderr.write('Server running on port ' + PORT + '\\n');
-});
+    // Lambda handler that serves SSR content
+    await fs.writeFile(
+      path.join(serverFnDir, 'index.js'),
+      `exports.handler = async (event) => {
+  return {
+    statusCode: 200,
+    headers: { 'content-type': 'text/html' },
+    body: '<html><body><h1>${SSR_CONTENT_MARKER}</h1><p>Server-rendered by Lambda via AmplifyHostingConstruct in a vanilla CDK app.</p></body></html>',
+    isBase64Encoded: false,
+  };
+};
 `,
     );
 
-    await fs.writeFile(
-      path.join(standaloneDir, 'package.json'),
-      JSON.stringify({ name: 'standalone', private: true }, null, 2),
-    );
-
-    // Create .next/static/ directory with mock assets
-    const staticDir = path.join(projectRoot, '.next', 'static');
-    const chunksDir = path.join(staticDir, 'chunks');
-    await fs.mkdir(chunksDir, { recursive: true });
+    // Create .open-next/assets/ directory with static files
+    const assetsDir = path.join(openNextDir, 'assets', '_next', 'static');
+    await fs.mkdir(assetsDir, { recursive: true });
 
     await fs.writeFile(
-      path.join(staticDir, 'buildManifest.json'),
+      path.join(assetsDir, 'buildManifest.json'),
       JSON.stringify({}),
     );
+
+    const chunksDir = path.join(assetsDir, 'chunks');
+    await fs.mkdir(chunksDir, { recursive: true });
     await fs.writeFile(
       path.join(chunksDir, 'main-abc123.js'),
       '// Mock static chunk\n',
@@ -95,13 +117,11 @@ server.listen(PORT, '0.0.0.0', () => {
       'User-agent: *\nDisallow:\n',
     );
 
-    // Create next.config.js (required by nextjs adapter pre-flight check)
+    // Create next.config.js
     await fs.writeFile(
       path.join(projectRoot, 'next.config.js'),
       `/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'standalone',
-};
+const nextConfig = {};
 
 module.exports = nextConfig;
 `,

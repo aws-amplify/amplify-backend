@@ -1,22 +1,15 @@
-// Minimal standalone server for E2E testing — version 2.
-// Reads amplify_outputs.json and queries the GraphQL API to prove backend connectivity.
-const http = require('http');
+// Lambda handler for E2E testing (OpenNext-style native handler) — V2.
+// Same as v1 but with updated content marker to prove redeployment worked.
 const https = require('https');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
-
-// Load amplify_outputs.json from the same directory as server.js
 let amplifyConfig = {};
 try {
   amplifyConfig = require(path.join(__dirname, 'amplify_outputs.json'));
 } catch (_e) {
-  // amplify_outputs.json not present — will render disconnected state
+  // amplify_outputs.json not present
 }
 
-/**
- * Execute a GraphQL query against the AppSync endpoint using the API key.
- */
 const queryGraphQL = (url, apiKey, query) => {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
@@ -51,7 +44,7 @@ const queryGraphQL = (url, apiKey, query) => {
   });
 };
 
-const server = http.createServer(async (req, res) => {
+exports.handler = async (event) => {
   let backendStatus = 'disconnected';
   let graphqlResult = 'no-query';
   const userPoolId = amplifyConfig.auth?.user_pool_id || 'none';
@@ -77,18 +70,23 @@ const server = http.createServer(async (req, res) => {
     backendStatus = 'error';
   }
 
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(
-    [
-      '<html><body>',
-      '<h1>Hello SSR v2</h1>',
-      '<p>Updated server-rendered content.</p>',
-      '<p data-testid="backend-status">backend-' + backendStatus + '</p>',
-      '<p data-testid="graphql-result">' + graphqlResult + '</p>',
-      '<p data-testid="user-pool-id">' + userPoolId + '</p>',
-      '</body></html>',
-    ].join(''),
-  );
-});
+  const body = [
+    '<html><body>',
+    '<h1>Hello SSR v2</h1>',
+    '<p>Server-rendered by Lambda via OpenNext (v2 deploy).</p>',
+    '<p data-testid="backend-status">backend-' + backendStatus + '</p>',
+    '<p data-testid="graphql-result">' + graphqlResult + '</p>',
+    '<p data-testid="user-pool-id">' + userPoolId + '</p>',
+    '</body></html>',
+  ].join('');
 
-server.listen(PORT, '0.0.0.0');
+  return {
+    statusCode: 200,
+    headers: {
+      'content-type': 'text/html',
+      'cache-control': 's-maxage=60, stale-while-revalidate',
+    },
+    body,
+    isBase64Encoded: false,
+  };
+};

@@ -9,7 +9,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
- * Creates a hosting SSR (Next.js) project with auth, data, and storage
+ * Creates a hosting SSR (Next.js via OpenNext) project with auth, data, and storage
  * for standalone deployment E2E testing.
  */
 export class StandaloneHostingSsrTestProjectCreator
@@ -48,13 +48,13 @@ export class StandaloneHostingSsrTestProjectCreator
       { recursive: true },
     );
 
-    // Copy the .next/ build output directory alongside the amplify/ directory
-    const sourceNextDir = new URL(
-      `${project.sourceProjectDirPath}/.next`,
+    // Copy the .open-next/ build output directory (OpenNext adapter output)
+    const sourceOpenNextDir = new URL(
+      `${project.sourceProjectDirPath}/.open-next`,
       import.meta.url,
     );
-    const destNextDir = path.join(projectRoot, '.next');
-    await fs.cp(sourceNextDir, destNextDir, { recursive: true });
+    const destOpenNextDir = path.join(projectRoot, '.open-next');
+    await fs.cp(sourceOpenNextDir, destOpenNextDir, { recursive: true });
 
     // Copy the public/ directory alongside the amplify/ directory
     const sourcePublicDir = new URL(
@@ -64,7 +64,7 @@ export class StandaloneHostingSsrTestProjectCreator
     const destPublicDir = path.join(projectRoot, 'public');
     await fs.cp(sourcePublicDir, destPublicDir, { recursive: true });
 
-    // Copy next.config.js (required by the nextjs adapter pre-flight check)
+    // Copy next.config.js
     const sourceNextConfig = new URL(
       `${project.sourceProjectDirPath}/next.config.js`,
       import.meta.url,
@@ -101,17 +101,17 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
             source: pathToFileURL(
               path.join(
                 fileURLToPath(this.sourceProjectUpdateV2DirURL),
-                '.next',
-                'standalone',
-                'server.js',
+                '.open-next',
+                'server-function',
+                'index.js',
               ),
             ),
             destination: pathToFileURL(
               path.join(
                 this.projectDirPath,
-                '.next',
-                'standalone',
-                'server.js',
+                '.open-next',
+                'server-function',
+                'index.js',
               ),
             ),
           },

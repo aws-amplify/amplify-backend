@@ -64,12 +64,13 @@ export const nextjsAdapter = (
 ): DeployManifest => {
   const { projectDir, skipBuild, configPath } = options;
 
-  if (!skipBuild) {
-    runOpenNextBuild(projectDir, configPath);
-  }
-
   const openNextDir = path.join(projectDir, '.open-next');
   const outputPath = path.join(openNextDir, 'open-next.output.json');
+
+  // Skip the build if output already exists (e.g. pre-built in CI) or explicitly requested
+  if (!skipBuild && !fs.existsSync(outputPath)) {
+    runOpenNextBuild(projectDir, configPath);
+  }
 
   if (!fs.existsSync(outputPath)) {
     throw new HostingError('OpenNextOutputNotFoundError', {

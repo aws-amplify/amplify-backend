@@ -15,6 +15,10 @@ import {
   ListStackResourcesCommand,
 } from '@aws-sdk/client-cloudformation';
 import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import {
+  S3Client,
+  ListObjectsV2Command,
+} from '@aws-sdk/client-s3';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import fsp from 'fs/promises';
@@ -32,6 +36,7 @@ void describe(
   () => {
     const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     const lambdaClient = new LambdaClient(e2eToolingClientConfig);
+    const s3Client = new S3Client(e2eToolingClientConfig);
 
     before(async () => {
       await createTestDirectory(rootTestDir);
@@ -146,19 +151,18 @@ void describe(
             `Backend deployed. user_pool_id=${outputsContent.auth.user_pool_id}, graphql_url=${outputsContent.data.url}, api_key=${outputsContent.data.api_key.substring(0, 8)}..., bucket=${buckets[0].bucket_name}\n`,
           );
 
-          // Copy amplify_outputs.json into .next/standalone/ so the SSR Lambda can read it
-          const standaloneDirPath = path.join(
+          // Copy amplify_outputs.json into .open-next/server-function/ so the handler can read it
+          const serverFnDir = path.join(
             testProject.projectDirPath,
-            '.next',
-            'standalone',
+            '.open-next',
+            'server-function',
           );
-          const standaloneOutputsPath = path.join(
-            standaloneDirPath,
-            'amplify_outputs.json',
+          await fsp.cp(
+            outputsPath,
+            path.join(serverFnDir, 'amplify_outputs.json'),
           );
-          await fsp.cp(outputsPath, standaloneOutputsPath);
           process.stderr.write(
-            `Copied amplify_outputs.json into .next/standalone/ for SSR Lambda\n`,
+            `Copied amplify_outputs.json into .open-next/server-function/ for SSR Lambda\n`,
           );
         });
 
@@ -282,7 +286,164 @@ void describe(
           await testProject.assertPostDeployment(backendIdentifier);
         });
 
-        void it('stage 3: applies v2 changes and full deploys — validates v2 content, backend connectivity, and infra change', async () => {
+        void it('stage 3: ISR — verifies cache infrastructure provisioned and S3 cache populated', async () => {
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
+
+          // Verify ISR infrastructure was provisioned (S3 cache bucket + DynamoDB + SQS)
+          const isrResources = await findIsrResources(
+            cfnClient,
+            frontendStackName,
+          );
+
+          assert.ok(
+            isrResources.cacheBucket,
+            `ISR cache S3 bucket should be provisioned for Next.js apps with ISR enabled`,
+          );
+          process.stderr.write(
+            `ISR infrastructure: bucket=${isrResources.cacheBucket}, dynamodb=${isrResources.dynamoTable}, sqs=${isrResources.sqsQueue}\n`,
+          );
+
+          // Hit the page to trigger cache population
+          await fetchWithRetry(distributionUrl, {
+            expectedBodyContains: 'Hello SSR v1',
+            maxRetries: 3,
+            intervalMs: 5000,
+          });
+
+          // Wait for async cache write
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+
+          // Verify the cache bucket has content
+          if (isrResources.cacheBucket) {
+            const cacheObjects = await s3Client.send(
+              new ListObjectsV2Command({
+                Bucket: isrResources.cacheBucket,
+                MaxKeys: 10,
+              }),
+            );
+            process.stderr.write(
+              `ISR cache bucket objects: ${JSON.stringify(cacheObjects.Contents?.map((o) => o.Key) ?? [])}\n`,
+            );
+            assert.ok(
+              (cacheObjects.Contents?.length ?? 0) > 0,
+              `ISR cache bucket should have at least one cached entry after hitting SSR page`,
+            );
+          }
+
+          // Second request — should serve from cache (same content)
+          const cachedResponse = await fetchWithRetry(distributionUrl, {
+            expectedBodyContains: 'Hello SSR v1',
+            maxRetries: 3,
+            intervalMs: 5000,
+          });
+          assert.strictEqual(
+            cachedResponse.status,
+            200,
+            `Cached response should return 200`,
+          );
+          const cachedBody = await cachedResponse.text();
+          assert.ok(
+            cachedBody.includes('Hello SSR v1'),
+            `Cached response should still contain "Hello SSR v1"`,
+          );
+          process.stderr.write(`ISR cache hit verified\n`);
+        });
+
+        void it('stage 4: ISR — verifies DynamoDB tag table and SQS revalidation queue provisioned', async () => {
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
+          const isrResources = await findIsrResources(
+            cfnClient,
+            frontendStackName,
+          );
+
+          // DynamoDB table for tag-based revalidation (revalidateTag/revalidatePath)
+          assert.ok(
+            isrResources.dynamoTable,
+            `DynamoDB table for tag-based revalidation should be provisioned. ` +
+              `This supports revalidateTag() and revalidatePath() in Next.js App Router.`,
+          );
+
+          // SQS queue for async background revalidation
+          assert.ok(
+            isrResources.sqsQueue,
+            `SQS queue for async revalidation should be provisioned. ` +
+              `This handles background page regeneration without blocking requests.`,
+          );
+
+          process.stderr.write(
+            `revalidateTag infrastructure verified: DynamoDB=${isrResources.dynamoTable}, SQS=${isrResources.sqsQueue}\n`,
+          );
+        });
+
+        void it('stage 5: image optimization — /_next/image returns WebP', async () => {
+          // Request image optimization endpoint with standard Next.js params
+          const imageUrl = `${distributionUrl}/_next/image?url=%2Frobots.txt&w=640&q=75`;
+          process.stderr.write(
+            `Requesting image optimization: ${imageUrl}\n`,
+          );
+
+          const imageResponse = await fetchWithRetry(imageUrl, {
+            expectedStatus: 200,
+            maxRetries: 8,
+            intervalMs: 15000,
+          });
+
+          assert.strictEqual(
+            imageResponse.status,
+            200,
+            `Expected HTTP 200 from image optimization endpoint, got ${imageResponse.status}`,
+          );
+
+          // Verify Content-Type is image/webp
+          const contentType =
+            imageResponse.headers.get('content-type') ?? '';
+          assert.ok(
+            contentType.includes('image/webp'),
+            `Image optimization response should be image/webp, got: ${contentType}`,
+          );
+
+          // Verify non-empty response body
+          const imageBuffer = await imageResponse.arrayBuffer();
+          assert.ok(
+            imageBuffer.byteLength > 0,
+            `Image response should not be empty, got ${imageBuffer.byteLength} bytes`,
+          );
+
+          // Verify cache headers (optimized images should be aggressively cached)
+          const cacheControl =
+            imageResponse.headers.get('cache-control') ?? '';
+          assert.ok(
+            cacheControl.includes('max-age'),
+            `Image response should have cache-control with max-age, got: ${cacheControl}`,
+          );
+
+          process.stderr.write(
+            `Image optimization verified: content-type=${contentType}, size=${imageBuffer.byteLength}B\n`,
+          );
+        });
+
+        void it('stage 6: verifies multiple Lambda functions (server + image-optimization)', async () => {
+          const frontendStackName =
+            BackendIdentifierConversions.toStackName(frontendIdentifier);
+          const lambdaFunctions = await findAllLambdaFunctions(
+            cfnClient,
+            frontendStackName,
+          );
+
+          process.stderr.write(
+            `Lambda functions: ${JSON.stringify(lambdaFunctions)}\n`,
+          );
+
+          // Should have at least 2: server function + image optimization
+          assert.ok(
+            lambdaFunctions.length >= 2,
+            `Should have at least 2 Lambda functions (server + image-optimization), found ${lambdaFunctions.length}: ${JSON.stringify(lambdaFunctions)}`,
+          );
+        });
+
+        void it('stage 7: applies v2 changes and full deploys — validates v2 content and infra change', async () => {
           // Apply combined v2 update (server content change + memorySize infra change)
           const updates = await testProject.getUpdates();
           const v2Update = updates[0];
@@ -292,18 +453,20 @@ void describe(
             });
           }
 
-          // Copy amplify_outputs.json into .next/standalone/ again for the v2 deploy
+          // Copy amplify_outputs.json into the v2 server function bundle
           const outputsPath = path.join(
             testProject.projectDirPath,
             'amplify_outputs.json',
           );
-          const standaloneOutputsPath = path.join(
+          const serverFnDir = path.join(
             testProject.projectDirPath,
-            '.next',
-            'standalone',
-            'amplify_outputs.json',
+            '.open-next',
+            'server-function',
           );
-          await fsp.cp(outputsPath, standaloneOutputsPath);
+          await fsp.cp(
+            outputsPath,
+            path.join(serverFnDir, 'amplify_outputs.json'),
+          );
 
           // Full deploy (no --backend / --frontend flag) to update everything
           await testProject.deploy(fullIdentifier);
@@ -396,6 +559,108 @@ void describe(
 );
 
 /**
+ * Find ISR-related resources (S3 cache bucket, DynamoDB table, SQS queue).
+ */
+const findIsrResources = async (
+  cfnClient: CloudFormationClient,
+  stackName: string,
+): Promise<{
+  cacheBucket: string | undefined;
+  dynamoTable: string | undefined;
+  sqsQueue: string | undefined;
+}> => {
+  const result = {
+    cacheBucket: undefined as string | undefined,
+    dynamoTable: undefined as string | undefined,
+    sqsQueue: undefined as string | undefined,
+  };
+
+  const scanStack = async (name: string, depth: number) => {
+    if (depth > 3) return;
+
+    const resources = await cfnClient.send(
+      new ListStackResourcesCommand({ StackName: name }),
+    );
+
+    for (const r of resources.StackResourceSummaries ?? []) {
+      if (
+        r.ResourceType === 'AWS::S3::Bucket' &&
+        (r.LogicalResourceId?.toLowerCase().includes('cache') ||
+          r.LogicalResourceId?.toLowerCase().includes('isr'))
+      ) {
+        result.cacheBucket = r.PhysicalResourceId!;
+      }
+
+      if (
+        r.ResourceType === 'AWS::DynamoDB::Table' &&
+        (r.LogicalResourceId?.toLowerCase().includes('tag') ||
+          r.LogicalResourceId?.toLowerCase().includes('revalidat'))
+      ) {
+        result.dynamoTable = r.PhysicalResourceId!;
+      }
+
+      if (
+        r.ResourceType === 'AWS::SQS::Queue' &&
+        (r.LogicalResourceId?.toLowerCase().includes('revalidat') ||
+          r.LogicalResourceId?.toLowerCase().includes('isr'))
+      ) {
+        result.sqsQueue = r.PhysicalResourceId!;
+      }
+
+      if (
+        r.ResourceType === 'AWS::CloudFormation::Stack' &&
+        r.PhysicalResourceId
+      ) {
+        await scanStack(r.PhysicalResourceId, depth + 1);
+      }
+    }
+  };
+
+  await scanStack(stackName, 0);
+  return result;
+};
+
+/**
+ * Find all Lambda function logical resource IDs in a stack (excluding internal CDK resources).
+ */
+const findAllLambdaFunctions = async (
+  cfnClient: CloudFormationClient,
+  stackName: string,
+): Promise<string[]> => {
+  const functions: string[] = [];
+
+  const scanStack = async (name: string, depth: number) => {
+    if (depth > 3) return;
+
+    const resources = await cfnClient.send(
+      new ListStackResourcesCommand({ StackName: name }),
+    );
+
+    for (const r of resources.StackResourceSummaries ?? []) {
+      if (
+        r.ResourceType === 'AWS::Lambda::Function' &&
+        !r.LogicalResourceId?.includes('CustomResource') &&
+        !r.LogicalResourceId?.includes('BucketNotifications') &&
+        !r.LogicalResourceId?.includes('Provider') &&
+        !r.LogicalResourceId?.includes('LogRetention')
+      ) {
+        functions.push(r.LogicalResourceId!);
+      }
+
+      if (
+        r.ResourceType === 'AWS::CloudFormation::Stack' &&
+        r.PhysicalResourceId
+      ) {
+        await scanStack(r.PhysicalResourceId, depth + 1);
+      }
+    }
+  };
+
+  await scanStack(stackName, 0);
+  return functions;
+};
+
+/**
  * Find the SSR Lambda function physical resource name from stack resources.
  */
 const findLambdaFunctionName = async (
@@ -422,7 +687,9 @@ const findLambdaFunctionName = async (
           if (
             nr.LogicalResourceId?.includes('Ssr') ||
             nr.LogicalResourceId?.includes('ssr') ||
-            nr.LogicalResourceId?.includes('Server')
+            nr.LogicalResourceId?.includes('Server') ||
+            nr.LogicalResourceId?.includes('Default') ||
+            nr.LogicalResourceId?.includes('default')
           ) {
             return nr.PhysicalResourceId!;
           }
@@ -445,7 +712,9 @@ const findLambdaFunctionName = async (
               if (
                 dr.LogicalResourceId?.includes('Ssr') ||
                 dr.LogicalResourceId?.includes('ssr') ||
-                dr.LogicalResourceId?.includes('Server')
+                dr.LogicalResourceId?.includes('Server') ||
+                dr.LogicalResourceId?.includes('Default') ||
+                dr.LogicalResourceId?.includes('default')
               ) {
                 return dr.PhysicalResourceId!;
               }
