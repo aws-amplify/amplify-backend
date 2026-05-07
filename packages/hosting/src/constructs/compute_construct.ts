@@ -227,18 +227,23 @@ export class ComputeConstruct extends Construct {
           ? InvokeMode.RESPONSE_STREAM
           : InvokeMode.BUFFERED;
 
-      this.functionUrl = this.function.addFunctionUrl({
-        authType: FunctionUrlAuthType.AWS_IAM,
-        invokeMode,
-      });
-
       if (
         computeResource.provisionedConcurrency &&
         computeResource.provisionedConcurrency > 0
       ) {
-        (this.function as LambdaFunction).addAlias('live', {
+        // Point Function URL at the alias (warm instances) instead of $LATEST
+        const alias = (this.function as LambdaFunction).addAlias('live', {
           provisionedConcurrentExecutions:
             computeResource.provisionedConcurrency,
+        });
+        this.functionUrl = alias.addFunctionUrl({
+          authType: FunctionUrlAuthType.AWS_IAM,
+          invokeMode,
+        });
+      } else {
+        this.functionUrl = this.function.addFunctionUrl({
+          authType: FunctionUrlAuthType.AWS_IAM,
+          invokeMode,
         });
       }
     }

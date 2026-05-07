@@ -385,4 +385,138 @@ void describe('Deploy Manifest Schema', () => {
       'http-server type should not require handler field',
     );
   });
+
+  // ---- http-server entrypoint validation ----
+
+  void it('rejects http-server type without handler or entrypoint', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'http-server',
+          bundle: '/tmp/bundle',
+          port: 3000,
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(
+      !result.success,
+      'Should reject http-server without handler or entrypoint',
+    );
+    const issue = result.error?.issues.find((i) =>
+      i.message.includes('http-server type requires'),
+    );
+    assert.ok(
+      issue,
+      `Expected http-server validation issue, got: ${JSON.stringify(result.error?.issues)}`,
+    );
+  });
+
+  void it('accepts http-server type with handler instead of entrypoint', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'http-server',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          port: 3000,
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(
+      result.success,
+      'http-server type should accept handler as alternative to entrypoint',
+    );
+  });
+
+  // ---- Edge placement validation ----
+
+  void it('rejects edge type with regional placement', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'edge',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(
+      !result.success,
+      'Should reject edge type with regional placement',
+    );
+    const issue = result.error?.issues.find((i) =>
+      i.message.includes('edge type requires placement'),
+    );
+    assert.ok(
+      issue,
+      `Expected edge placement validation issue, got: ${JSON.stringify(result.error?.issues)}`,
+    );
+  });
+
+  // ---- Duplicate route pattern validation ----
+
+  void it('rejects manifest with duplicate route patterns', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        server: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [
+        { pattern: '/api/*', target: 'server' },
+        { pattern: '/api/*', target: 'server' },
+        { pattern: '/*', target: 'static' },
+      ],
+    });
+    assert.ok(!result.success, 'Should reject duplicate route patterns');
+    const issue = result.error?.issues.find((i) =>
+      i.message.includes('Duplicate route patterns'),
+    );
+    assert.ok(
+      issue,
+      `Expected duplicate routes issue, got: ${JSON.stringify(result.error?.issues)}`,
+    );
+    assert.ok(
+      issue?.message.includes('/api/*'),
+      `Should mention the duplicate pattern, got: ${issue?.message}`,
+    );
+  });
+
+  void it('accepts manifest with unique route patterns', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        server: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [
+        { pattern: '/api/*', target: 'server' },
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/*', target: 'server' },
+      ],
+    });
+    assert.ok(result.success, 'Should accept unique route patterns');
+  });
 });

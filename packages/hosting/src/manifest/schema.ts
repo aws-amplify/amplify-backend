@@ -27,6 +27,20 @@ export const computeResourceSchema = z
         path: ['handler'],
       });
     }
+    if (data.type === 'http-server' && !data.handler && !data.entrypoint) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'http-server type requires either handler or entrypoint field',
+        path: ['entrypoint'],
+      });
+    }
+    if (data.type === 'edge' && data.placement !== 'global') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'edge type requires placement to be "global"',
+        path: ['placement'],
+      });
+    }
   });
 
 /**
@@ -127,17 +141,30 @@ export const deployManifestSchema = z
       )
       .optional(),
   })
-  .refine(
-    (data) => {
-      const computeKeys = new Set(Object.keys(data.compute));
-      return data.routes.every(
-        (route) =>
-          RESERVED_TARGETS.has(route.target) || computeKeys.has(route.target),
-      );
-    },
-    {
-      message:
-        'Route target must reference an existing compute resource or a reserved target (static, s3, default)',
-      path: ['routes'],
-    },
-  );
+  .superRefine((data, ctx) => {
+    // Validate route targets reference existing compute resources or reserved targets
+    const computeKeys = new Set(Object.keys(data.compute));
+    const hasInvalidTarget = data.routes.some(
+      (route) =>
+        !RESERVED_TARGETS.has(route.target) && !computeKeys.has(route.target),
+    );
+    if (hasInvalidTarget) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Route target must reference an existing compute resource or a reserved target (static, s3, default)',
+        path: ['routes'],
+      });
+    }
+
+    // Check for duplicate route patterns
+    const patterns = data.routes.map((r) => r.pattern);
+    const duplicates = patterns.filter((p, i) => patterns.indexOf(p) !== i);
+    if (duplicates.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Duplicate route patterns: ${[...new Set(duplicates)].join(', ')}`,
+        path: ['routes'],
+      });
+    }
+  });
