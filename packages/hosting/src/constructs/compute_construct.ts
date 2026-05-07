@@ -104,7 +104,7 @@ export type ComputeConstructProps = {
  */
 export class ComputeConstruct extends Construct {
   readonly function: LambdaFunction;
-  readonly functionUrl: FunctionUrl;
+  readonly functionUrl!: FunctionUrl;
 
   /**
    * Creates a compute resource (Lambda function) based on the compute type.
@@ -185,7 +185,15 @@ export class ComputeConstruct extends Construct {
         },
       });
     } else if (computeResource.type === 'edge') {
-      // Edge function — still Lambda, placed globally via Lambda@Edge
+      // Edge function — Lambda@Edge does not support env vars or Function URLs
+      if (
+        computeResource.environment &&
+        Object.keys(computeResource.environment).length > 0
+      ) {
+        process.stderr.write(
+          `⚠️  Edge compute '${props.name}' has environment variables which Lambda@Edge does not support. They will be stripped.\n`,
+        );
+      }
       this.function = new LambdaFunction(this, 'Function', {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.handler ?? 'index.handler',
@@ -195,9 +203,6 @@ export class ComputeConstruct extends Construct {
         timeout: Duration.seconds(Math.min(computeResource.timeout ?? 5, 30)),
         role: ssrRole,
         logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
-        environment: {
-          ...computeResource.environment,
-        },
       });
     } else {
       throw new HostingError('UnsupportedComputeTypeError', {
@@ -207,16 +212,18 @@ export class ComputeConstruct extends Construct {
       });
     }
 
-    // Response streaming for handler and http-server types
-    const invokeMode =
-      computeResource.streaming !== false
-        ? InvokeMode.RESPONSE_STREAM
-        : InvokeMode.BUFFERED;
+    // Function URL for handler and http-server types (edge functions don't support this)
+    if (computeResource.type !== 'edge') {
+      const invokeMode =
+        computeResource.streaming !== false
+          ? InvokeMode.RESPONSE_STREAM
+          : InvokeMode.BUFFERED;
 
-    this.functionUrl = this.function.addFunctionUrl({
-      authType: FunctionUrlAuthType.AWS_IAM,
-      invokeMode,
-    });
+      this.functionUrl = this.function.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode,
+      });
+    }
   }
 
   private resolveRuntime(runtime?: string): Runtime {

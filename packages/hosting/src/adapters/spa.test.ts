@@ -44,20 +44,21 @@ void describe('spaAdapter', () => {
     assert.ok(fs.existsSync(path.join(staticDir, 'assets', 'style.css')));
   });
 
-  void it('writes deploy-manifest.json to .amplify-hosting/', () => {
-    spaAdapter(tmpDir);
+  void it('returns manifest without writing to disk', () => {
+    const manifest = spaAdapter(tmpDir);
 
     const manifestPath = path.join(
       tmpDir,
       '.amplify-hosting',
       'deploy-manifest.json',
     );
-    assert.ok(fs.existsSync(manifestPath));
-
-    const written = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    assert.strictEqual(written.version, 1);
-    assert.strictEqual(written.routes[0].pattern, '/*');
-    assert.strictEqual(written.routes[0].target, 'static');
+    assert.ok(
+      !fs.existsSync(manifestPath),
+      'Manifest should not be written to disk',
+    );
+    assert.strictEqual(manifest.version, 1);
+    assert.strictEqual(manifest.routes[0].pattern, '/*');
+    assert.strictEqual(manifest.routes[0].target, 'static');
   });
 
   void it('cleans previous hosting output before copying', () => {

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
-import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
+import { HOSTING_DIR, STATIC_DIR } from '../constants.js';
 
 /**
  * SPA adapter — transforms a built SPA output directory into the canonical
@@ -65,13 +65,6 @@ export const spaAdapter = (projectDir: string): DeployManifest => {
       },
     ],
   };
-
-  // Write manifest to .amplify-hosting/deploy-manifest.json
-  fs.writeFileSync(
-    path.join(hostingDir, MANIFEST_FILENAME),
-    JSON.stringify(manifest, null, 2),
-    'utf-8',
-  );
 
   return manifest;
 };

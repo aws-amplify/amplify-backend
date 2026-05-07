@@ -5,7 +5,7 @@
  * The output manifest is framework-agnostic — the L3 construct never knows this
  * came from Next.js.
  */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
@@ -103,13 +103,15 @@ export const nextjsAdapter = (
  * Execute the OpenNext build command.
  */
 const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
-  const args = configPath ? `--config-path ${configPath}` : '';
-  const command = `npx @opennextjs/aws build ${args}`.trim();
+  const execArgs = ['@opennextjs/aws', 'build'];
+  if (configPath) execArgs.push('--config-path', configPath);
 
-  process.stderr.write(`\u{1F528} Running OpenNext build: ${command}\n`);
+  process.stderr.write(
+    `\u{1F528} Running OpenNext build: npx ${execArgs.join(' ')}\n`,
+  );
 
   try {
-    execSync(command, {
+    execFileSync('npx', execArgs, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
@@ -165,10 +167,11 @@ const translateOpenNextOutput = (
 
   // ISR/Cache detection
   if (output.additionalProps?.disableIncrementalCache !== true) {
-    const hasCache = Object.keys(manifest.compute).length > 0;
-    if (hasCache) {
+    const computeNames = Object.keys(manifest.compute);
+    if (computeNames.length > 0) {
+      const primaryComputeName = computeNames[0] ?? 'default';
       manifest.cache = {
-        computeResource: 'default',
+        computeResource: primaryComputeName,
         tagRevalidation: true, // eslint-disable-line spellcheck/spell-checker
         revalidationQueue: true, // eslint-disable-line spellcheck/spell-checker
       };
@@ -179,11 +182,17 @@ const translateOpenNextOutput = (
   if (output.additionalProps?.imageOptimization !== false) {
     const imgDir = path.join(openNextDir, 'image-optimization-function');
     if (fs.existsSync(imgDir)) {
+      const imgConfig = tryReadJson(path.join(imgDir, 'config.json'));
       manifest.imageOptimization = {
         bundle: imgDir,
         handler: 'index.handler',
-        formats: ['webp', 'avif'], // eslint-disable-line spellcheck/spell-checker
-        sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+        formats: (imgConfig?.formats as string[] | undefined) ?? [
+          'webp',
+          'avif',
+        ], // eslint-disable-line spellcheck/spell-checker
+        sizes: (imgConfig?.sizes as number[] | undefined) ?? [
+          640, 750, 828, 1080, 1200, 1920, 2048, 3840,
+        ],
       };
     }
   }

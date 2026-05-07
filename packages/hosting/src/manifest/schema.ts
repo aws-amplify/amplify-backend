@@ -85,28 +85,48 @@ export const customHeaderSchema = z.object({
   headers: z.record(z.string()),
 });
 
+/** Reserved route targets that don't need a corresponding compute entry. */
+const RESERVED_TARGETS = new Set(['static', 's3', 'default']);
+
 /**
  * Zod schema for the complete DeployManifest.
  */
-export const deployManifestSchema = z.object({
-  version: z.literal(1),
-  compute: z.record(computeResourceSchema),
-  staticAssets: z.object({
-    directory: z.string().min(1, 'Static assets directory must not be empty'),
-    cacheControl: z.string().optional(),
-  }),
-  routes: z.array(routeBehaviorSchema).min(1, 'At least one route is required'),
-  cache: cacheConfigSchema.optional(),
-  imageOptimization: imageConfigSchema.optional(),
-  middleware: middlewareConfigSchema.optional(),
-  redirects: z.array(redirectSchema).optional(),
-  rewrites: z.array(rewriteSchema).optional(),
-  headers: z.array(customHeaderSchema).optional(),
-  buildId: z
-    .string()
-    .regex(
-      BUILD_ID_PATTERN,
-      'buildId must be alphanumeric with hyphens, max 64 chars',
-    )
-    .optional(),
-});
+export const deployManifestSchema = z
+  .object({
+    version: z.literal(1),
+    compute: z.record(computeResourceSchema),
+    staticAssets: z.object({
+      directory: z.string().min(1, 'Static assets directory must not be empty'),
+      cacheControl: z.string().optional(),
+    }),
+    routes: z
+      .array(routeBehaviorSchema)
+      .min(1, 'At least one route is required'),
+    cache: cacheConfigSchema.optional(),
+    imageOptimization: imageConfigSchema.optional(),
+    middleware: middlewareConfigSchema.optional(),
+    redirects: z.array(redirectSchema).optional(),
+    rewrites: z.array(rewriteSchema).optional(),
+    headers: z.array(customHeaderSchema).optional(),
+    buildId: z
+      .string()
+      .regex(
+        BUILD_ID_PATTERN,
+        'buildId must be alphanumeric with hyphens, max 64 chars',
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      const computeKeys = new Set(Object.keys(data.compute));
+      return data.routes.every(
+        (route) =>
+          RESERVED_TARGETS.has(route.target) || computeKeys.has(route.target),
+      );
+    },
+    {
+      message:
+        'Route target must reference an existing compute resource or a reserved target (static, s3, default)',
+      path: ['routes'],
+    },
+  );

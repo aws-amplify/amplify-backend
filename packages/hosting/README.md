@@ -271,14 +271,12 @@ For frameworks not built in (Astro, Remix, SvelteKit, etc.), provide a custom ad
 import { defineHosting } from '@aws-amplify/hosting';
 import type { FrameworkAdapterFn } from '@aws-amplify/hosting/adapters';
 import type { DeployManifest } from '@aws-amplify/hosting';
+import * as path from 'path';
 
-const myAdapter: FrameworkAdapterFn = (
-  buildOutputDir,
-  projectDir,
-): DeployManifest => ({
+const myAdapter: FrameworkAdapterFn = (projectDir): DeployManifest => ({
   version: 1,
   compute: {},
-  staticAssets: { directory: buildOutputDir },
+  staticAssets: { directory: path.join(projectDir, 'dist') },
   routes: [{ pattern: '/*', target: 'static' }],
 });
 
@@ -292,6 +290,7 @@ defineHosting({
 
 ```typescript
 import type { DeployManifest } from '@aws-amplify/hosting';
+import * as path from 'path';
 
 const astroSSRAdapter: FrameworkAdapterFn = (
   buildOutputDir,
@@ -487,6 +486,7 @@ import type {
 import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
 import type { DeployManifest } from '@aws-amplify/hosting';
+import * as path from 'path';
 
 const app = new App();
 const stack = new Stack(app, 'MySpaStack', {

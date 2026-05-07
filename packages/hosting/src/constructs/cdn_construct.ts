@@ -357,13 +357,25 @@ export class CdnConstruct extends Construct {
   }
 }
 
+/** Characters that indicate regex syntax — not valid in CloudFront path patterns. */
+const REGEX_INDICATORS = /[\\^${}()|[\]+?]/;
+
 /**
  * Normalize a route pattern into a CloudFront-compatible path pattern.
  *
- * CloudFront uses glob-style patterns (e.g. /_next/static/*)
- * while adapters may emit regex-like patterns or variations.
+ * CloudFront supports only simple glob patterns with `*` and `?` wildcards.
+ * Regex or complex glob syntax is not supported and will cause deployment failures.
  */
 const normalizePatternForCloudFront = (pattern: string): string => {
+  if (REGEX_INDICATORS.test(pattern)) {
+    throw new HostingError('InvalidRoutePatternError', {
+      message: `Route pattern '${pattern}' contains regex syntax which CloudFront does not support.`,
+      resolution:
+        'CloudFront path patterns only support * (match any) and ? (match single char). ' +
+        'Convert regex patterns to glob-style (e.g., /api/* instead of /api/(.*))',
+    });
+  }
+
   // Ensure pattern starts with /
   if (!pattern.startsWith('/')) {
     return `/${pattern}`;

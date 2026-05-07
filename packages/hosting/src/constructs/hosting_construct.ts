@@ -16,6 +16,7 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { DeployManifest } from '../manifest/types.js';
+import { HostingError } from '../hosting_error.js';
 import { HostingResources } from '../types.js';
 import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
@@ -162,8 +163,7 @@ export class AmplifyHostingConstruct extends Construct {
 
     for (const [name, resource] of computeEntries) {
       if (resource.type === 'edge') {
-        // Edge functions are handled differently (via CloudFront)
-        // For now, create as regular Lambda — CloudFront association is in CDN construct
+        // Edge functions don't support Function URLs (Lambda@Edge restriction)
         const edgeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
           name,
           computeResource: resource,
@@ -174,7 +174,6 @@ export class AmplifyHostingConstruct extends Construct {
           skipRegionValidation: props.skipRegionValidation,
         });
         this.computeFunctions.set(name, edgeConstruct.function);
-        this.computeFunctionUrls.set(name, edgeConstruct.functionUrl);
         continue;
       }
 
@@ -226,15 +225,20 @@ export class AmplifyHostingConstruct extends Construct {
       // Grant cache access to the target compute resource
       const cacheComputeName = manifest.cache.computeResource;
       const cacheFunction = this.computeFunctions.get(cacheComputeName);
-      if (cacheFunction) {
-        this.cacheBucket.grantReadWrite(cacheFunction);
-        if (this.cacheTable) {
-          this.cacheTable.grantReadWriteData(cacheFunction);
-        }
-        if (this.revalidationQueue) {
-          this.revalidationQueue.grantSendMessages(cacheFunction);
-          this.revalidationQueue.grantConsumeMessages(cacheFunction);
-        }
+      if (!cacheFunction) {
+        throw new HostingError('CacheComputeResourceNotFoundError', {
+          message: `Cache config references compute resource '${cacheComputeName}' but it was not found in manifest.compute`,
+          resolution:
+            'Ensure cache.computeResource matches a key in the compute map.',
+        });
+      }
+      this.cacheBucket.grantReadWrite(cacheFunction);
+      if (this.cacheTable) {
+        this.cacheTable.grantReadWriteData(cacheFunction);
+      }
+      if (this.revalidationQueue) {
+        this.revalidationQueue.grantSendMessages(cacheFunction);
+        this.revalidationQueue.grantConsumeMessages(cacheFunction);
       }
     }
 
