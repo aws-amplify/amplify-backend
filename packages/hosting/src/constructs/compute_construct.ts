@@ -224,6 +224,12 @@ export class ComputeConstruct extends Construct {
         authType: FunctionUrlAuthType.AWS_IAM,
         invokeMode,
       });
+
+      if (computeResource.provisionedConcurrency && computeResource.provisionedConcurrency > 0) {
+        (this.function as LambdaFunction).addAlias('live', {
+          provisionedConcurrentExecutions: computeResource.provisionedConcurrency,
+        });
+      }
     }
   }
 

@@ -16,6 +16,7 @@ export const computeResourceSchema = z.object({
   memorySize: z.number().positive().optional(),
   timeout: z.number().positive().optional(),
   environment: z.record(z.string()).optional(),
+  provisionedConcurrency: z.number().min(1).optional(),
 });
 
 /**

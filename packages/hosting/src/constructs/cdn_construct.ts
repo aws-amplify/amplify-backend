@@ -66,10 +66,6 @@ export type CdnConstructProps = {
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
   securityHeadersPolicy: ResponseHeadersPolicy;
-  /** Lambda Function URL for primary SSR origin (SSR only). @deprecated Use computeFunctionUrls — will be removed in next major. */
-  ssrFunctionUrl?: IFunctionUrl;
-  /** Lambda function reference for OAC permission patching (SSR only). @deprecated Use computeFunctions — will be removed in next major. */
-  ssrFunction?: IFunction;
   /** Map of compute name → Function URL for per-origin routing. */
   computeFunctionUrls?: Map<string, IFunctionUrl>;
   /** Map of compute name → Lambda function for OAC permission patching. */
@@ -134,9 +130,12 @@ export class CdnConstruct extends Construct {
 
     const buildId = manifest.buildId;
     const account = Stack.of(this).account;
+    const hasComputeRoutes = manifest.routes.some(
+      (r) => r.target !== 'static' && r.target !== 's3',
+    );
     const hasCompute =
-      !!props.ssrFunctionUrl ||
-      (props.computeFunctionUrls && props.computeFunctionUrls.size > 0);
+      (props.computeFunctionUrls && props.computeFunctionUrls.size > 0) ||
+      hasComputeRoutes;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
     // ---- Build ID rewrite function ----
@@ -167,12 +166,11 @@ export class CdnConstruct extends Construct {
       }
     }
 
-    // Primary origin: prefer 'default' > 'server' > first available, or legacy ssrFunctionUrl
-    const primaryOrigin = props.ssrFunctionUrl
-      ? FunctionUrlOrigin.withOriginAccessControl(props.ssrFunctionUrl)
-      : (computeOrigins.get('default') ??
-        computeOrigins.get('server') ??
-        computeOrigins.values().next().value);
+    // Primary origin: prefer 'default' > 'server' > first available
+    const primaryOrigin =
+      computeOrigins.get('default') ??
+      computeOrigins.get('server') ??
+      computeOrigins.values().next().value;
 
     if (hasCompute && !primaryOrigin) {
       throw new HostingError('NoComputeOriginsError', {
@@ -384,8 +382,6 @@ export class CdnConstruct extends Construct {
             computeFnsWithUrls.push({ name, fn });
           }
         }
-      } else if (props.ssrFunction) {
-        computeFnsWithUrls.push({ name: 'ssr', fn: props.ssrFunction });
       }
 
       for (const { name, fn } of computeFnsWithUrls) {

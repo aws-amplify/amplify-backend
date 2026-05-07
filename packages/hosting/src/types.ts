@@ -65,6 +65,8 @@ export type HostingProps = {
     timeout?: Duration;
     /** Reserved concurrent executions. Default: undefined (no reservation). */
     reservedConcurrency?: number;
+    /** Provisioned concurrency for cold-start elimination. Default: undefined (no provisioning). */
+    provisionedConcurrency?: number;
     /** CloudWatch log retention for the SSR Lambda. Default: TWO_WEEKS. */
     logRetention?: RetentionDays;
   };

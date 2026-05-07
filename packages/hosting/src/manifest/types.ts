@@ -79,6 +79,9 @@ export type ComputeResource = {
 
   /** Environment variables */
   environment?: Record<string, string>;
+
+  /** Optional provisioned concurrency for cold-start elimination */
+  provisionedConcurrency?: number;
 };
 
 export type RouteBehavior = {
