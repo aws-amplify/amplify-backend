@@ -204,6 +204,7 @@ export class AmplifyHostingConstruct extends Construct {
         removalPolicy: RemovalPolicy.DESTROY,
         autoDeleteObjects: true,
         blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        enforceSSL: true,
         lifecycleRules: [{ expiration: Duration.days(30) }],
       });
 

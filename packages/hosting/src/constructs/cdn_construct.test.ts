@@ -1529,4 +1529,106 @@ void describe('CdnConstruct', () => {
       }
     });
   });
+
+  // ---- Error page ResponsePagePath with buildId prefix ----
+
+  void describe('error page ResponsePagePath with buildId prefix', () => {
+    void it('SPA error responses use buildId prefix in ResponsePagePath', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 403,
+              ResponseCode: 200,
+              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
+            }),
+            Match.objectLike({
+              ErrorCode: 404,
+              ResponseCode: 200,
+              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('SSR error responses use buildId prefix in ResponsePagePath for 5xx errors', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 502,
+              ResponsePagePath: `/builds/${ssrManifest.buildId}/_error.html`,
+            }),
+            Match.objectLike({
+              ErrorCode: 503,
+              ResponsePagePath: `/builds/${ssrManifest.buildId}/_error.html`,
+            }),
+            Match.objectLike({
+              ErrorCode: 504,
+              ResponsePagePath: `/builds/${ssrManifest.buildId}/_error.html`,
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('error page path pattern includes buildId for atomic deploys', () => {
+      const customBuildId = 'my-custom-build-42';
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      const manifestWithCustomBuildId: DeployManifest = {
+        ...ssrManifest,
+        buildId: customBuildId,
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: manifestWithCustomBuildId,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 502,
+              ResponsePagePath: `/builds/${customBuildId}/_error.html`,
+            }),
+          ]),
+        }),
+      });
+    });
+  });
 });

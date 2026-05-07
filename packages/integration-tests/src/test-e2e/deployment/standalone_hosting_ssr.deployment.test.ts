@@ -284,6 +284,19 @@ void describe(
         });
 
         void it('stage 2b: functional HTTP assertions — 404, API routing, static caching, middleware rewrite', async () => {
+          // Cold start: first request after deployment should complete within 30s
+          const start = Date.now();
+          const coldStartRes = await fetch(distributionUrl);
+          const duration = Date.now() - start;
+          assert.ok(coldStartRes.ok, 'First request should succeed');
+          assert.ok(
+            duration < 30000,
+            `Cold start too slow: ${duration}ms (max 30s)`,
+          );
+          process.stderr.write(
+            `Cold start timing: ${duration}ms (limit: 30000ms)\n`,
+          );
+
           // 1. Static asset caching — verify immutable cache-control on /_next/static/ assets
           const staticAssetUrl = `${distributionUrl}/_next/static/chunks/main-abc123.js`;
           const staticRes = await fetchWithRetry(staticAssetUrl, {
