@@ -926,9 +926,22 @@ void describe('CdnConstruct', () => {
         cdn.distributionUrl.startsWith('https://'),
         'URL should start with https://',
       );
+      const isTokenizedUrl = cdn.distributionUrl.includes('${Token');
+      const isCloudFrontHost = !isTokenizedUrl
+        ? (() => {
+            try {
+              const hostname = new URL(cdn.distributionUrl).hostname;
+              return (
+                hostname === 'cloudfront.net' ||
+                hostname.endsWith('.cloudfront.net')
+              );
+            } catch {
+              return false;
+            }
+          })()
+        : false;
       assert.ok(
-        cdn.distributionUrl.includes('.cloudfront.net') ||
-          cdn.distributionUrl.includes('${Token'),
+        isCloudFrontHost || isTokenizedUrl,
         'URL should use CloudFront domain or token',
       );
     });

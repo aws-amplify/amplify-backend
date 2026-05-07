@@ -15,10 +15,7 @@ import {
   ListStackResourcesCommand,
 } from '@aws-sdk/client-cloudformation';
 import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import {
-  S3Client,
-  ListObjectsV2Command,
-} from '@aws-sdk/client-s3';
+import { ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import fsp from 'fs/promises';
@@ -380,9 +377,7 @@ void describe(
         void it('stage 5: image optimization — /_next/image returns WebP', async () => {
           // Request image optimization endpoint with standard Next.js params
           const imageUrl = `${distributionUrl}/_next/image?url=%2Frobots.txt&w=640&q=75`;
-          process.stderr.write(
-            `Requesting image optimization: ${imageUrl}\n`,
-          );
+          process.stderr.write(`Requesting image optimization: ${imageUrl}\n`);
 
           const imageResponse = await fetchWithRetry(imageUrl, {
             expectedStatus: 200,
@@ -397,8 +392,7 @@ void describe(
           );
 
           // Verify Content-Type is image/webp
-          const contentType =
-            imageResponse.headers.get('content-type') ?? '';
+          const contentType = imageResponse.headers.get('content-type') ?? '';
           assert.ok(
             contentType.includes('image/webp'),
             `Image optimization response should be image/webp, got: ${contentType}`,
@@ -412,8 +406,7 @@ void describe(
           );
 
           // Verify cache headers (optimized images should be aggressively cached)
-          const cacheControl =
-            imageResponse.headers.get('cache-control') ?? '';
+          const cacheControl = imageResponse.headers.get('cache-control') ?? '';
           assert.ok(
             cacheControl.includes('max-age'),
             `Image response should have cache-control with max-age, got: ${cacheControl}`,
@@ -437,9 +430,10 @@ void describe(
           );
 
           // Should have at least 2: server function + image optimization
+          const functionNames = lambdaFunctions.map(String).join(', ');
           assert.ok(
             lambdaFunctions.length >= 2,
-            `Should have at least 2 Lambda functions (server + image-optimization), found ${lambdaFunctions.length}: ${JSON.stringify(lambdaFunctions)}`,
+            `Should have at least 2 Lambda functions (server + image-optimization), found ${lambdaFunctions.length}: [${functionNames}]`,
           );
         });
 
