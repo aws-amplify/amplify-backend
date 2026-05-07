@@ -61,9 +61,9 @@ export type CdnConstructProps = {
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
   securityHeadersPolicy: ResponseHeadersPolicy;
-  /** Lambda Function URL for primary SSR origin (SSR only). @deprecated Use computeFunctionUrls */
+  /** Lambda Function URL for primary SSR origin (SSR only). @deprecated Use computeFunctionUrls — will be removed in next major. */
   ssrFunctionUrl?: IFunctionUrl;
-  /** Lambda function reference for OAC permission patching (SSR only). @deprecated Use computeFunctions */
+  /** Lambda function reference for OAC permission patching (SSR only). @deprecated Use computeFunctions — will be removed in next major. */
   ssrFunction?: IFunction;
   /** Map of compute name → Function URL for per-origin routing. */
   computeFunctionUrls?: Map<string, IFunctionUrl>;
@@ -169,6 +169,14 @@ export class CdnConstruct extends Construct {
         computeOrigins.get('server') ??
         computeOrigins.values().next().value;
 
+    if (hasCompute && !primaryOrigin) {
+      throw new HostingError('NoComputeOriginsError', {
+        message: 'No compute origins configured',
+        resolution:
+          'Ensure at least one compute resource is defined in the deploy manifest',
+      });
+    }
+
     // ---- Middleware (Lambda@Edge viewer-request) ----
     const edgeLambdas = props.middlewareEdgeFunction
       ? [
@@ -194,7 +202,6 @@ export class CdnConstruct extends Construct {
           eventType: FunctionEventType.VIEWER_REQUEST,
         },
       ],
-      ...(edgeLambdas ? { edgeLambdas } : {}),
     });
 
     const makeComputeBehavior = (
@@ -361,15 +368,33 @@ export class CdnConstruct extends Construct {
         allComputeFunctions.push({ name: 'ssr', fn: props.ssrFunction });
       }
 
-      // Patch any auto-generated permissions
+      // Patch auto-generated permissions to match their correct function.
+      // CDK may generate CfnPermission resources for each origin — match by logical ID.
+      const fnByLogicalSuffix = new Map<string, IFunction>();
+      for (const { name, fn } of allComputeFunctions) {
+        fnByLogicalSuffix.set(name.toLowerCase(), fn);
+      }
       for (const child of this.distribution.node.findAll()) {
         if (
           child instanceof CfnPermission &&
           child.action === 'lambda:InvokeFunctionUrl'
         ) {
-          const firstFn = allComputeFunctions[0];
-          if (firstFn) {
-            child.addPropertyOverride('FunctionName', firstFn.fn.functionArn);
+          // Try to match this permission to a specific function by checking
+          // if the node path contains a compute name. If not, default to first.
+          const nodePath = child.node.path.toLowerCase();
+          let matched = false;
+          for (const { name, fn } of allComputeFunctions) {
+            if (nodePath.includes(name.toLowerCase())) {
+              child.addPropertyOverride('FunctionName', fn.functionArn);
+              matched = true;
+              break;
+            }
+          }
+          if (!matched && allComputeFunctions.length > 0) {
+            child.addPropertyOverride(
+              'FunctionName',
+              allComputeFunctions[0].fn.functionArn,
+            );
           }
         }
       }

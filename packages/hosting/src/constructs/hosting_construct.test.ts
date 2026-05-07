@@ -378,3 +378,103 @@ void describe('AmplifyHostingConstruct — getResources', () => {
     assert.ok(resources.distributionUrl);
   });
 });
+
+// ================================================================
+// Multi-compute
+// ================================================================
+
+void describe('AmplifyHostingConstruct — Multi-compute', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates separate Lambda and Function URL for each compute target', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const apiBundleDir = path.join(tmpDir, 'api-bundle');
+    fs.mkdirSync(apiBundleDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(apiBundleDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: true,
+          runtime: 'nodejs20.x',
+        },
+        api: {
+          type: 'handler',
+          bundle: apiBundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: false,
+          runtime: 'nodejs20.x',
+        },
+      },
+      staticAssets: { directory: staticDir },
+      routes: [
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/api/*', target: 'api' },
+        { pattern: '/*', target: 'default' },
+      ],
+      buildId: 'multi-compute-1',
+    };
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    // Each compute target gets its own Lambda
+    assert.ok(
+      construct.computeFunctions.has('default'),
+      'Should have default compute function',
+    );
+    assert.ok(
+      construct.computeFunctions.has('api'),
+      'Should have api compute function',
+    );
+    assert.strictEqual(
+      construct.computeFunctions.size,
+      2,
+      'Should have exactly 2 compute functions',
+    );
+
+    // Each compute target gets its own Function URL
+    assert.ok(
+      construct.computeFunctionUrls.has('default'),
+      'Should have default Function URL',
+    );
+    assert.ok(
+      construct.computeFunctionUrls.has('api'),
+      'Should have api Function URL',
+    );
+    assert.strictEqual(
+      construct.computeFunctionUrls.size,
+      2,
+      'Should have exactly 2 Function URLs',
+    );
+
+    // OAC permissions: should have Lambda permissions for each function
+    const template = Template.fromStack(stack);
+    const permissions = template.findResources('AWS::Lambda::Permission');
+    const invokeUrlPermissions = Object.values(permissions).filter(
+      (p: Record<string, unknown>) =>
+        (p as { Properties?: { Action?: string } }).Properties?.Action ===
+        'lambda:InvokeFunctionUrl',
+    );
+    assert.ok(
+      invokeUrlPermissions.length >= 2,
+      `Expected at least 2 InvokeFunctionUrl permissions, got ${invokeUrlPermissions.length}`,
+    );
+  });
+});

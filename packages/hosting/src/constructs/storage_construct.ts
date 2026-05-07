@@ -88,6 +88,12 @@ export class StorageConstruct extends Construct {
           noncurrentVersionExpiration: Duration.days(30),
           enabled: true,
         },
+        {
+          id: 'ExpireOrphanedIsrData',
+          prefix: '_next/data/',
+          expiration: Duration.days(30),
+          enabled: true,
+        },
       ],
     });
 

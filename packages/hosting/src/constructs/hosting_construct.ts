@@ -212,6 +212,7 @@ export class AmplifyHostingConstruct extends Construct {
           sortKey: { name: 'path', type: AttributeType.STRING },
           billingMode: BillingMode.PAY_PER_REQUEST,
           removalPolicy: RemovalPolicy.DESTROY,
+          timeToLiveAttribute: 'ttl',
         });
       }
 
@@ -276,6 +277,7 @@ export class AmplifyHostingConstruct extends Construct {
           memorySize: 1024,
           timeout: 25,
         },
+        reservedConcurrency: 10,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);
@@ -285,6 +287,8 @@ export class AmplifyHostingConstruct extends Construct {
           imageConstruct.functionUrl,
         );
       }
+      // Image optimization needs to read original images from the assets bucket
+      this.bucket.grantRead(imageConstruct.function);
     }
 
     // ---- 5. Middleware (Lambda@Edge) ----

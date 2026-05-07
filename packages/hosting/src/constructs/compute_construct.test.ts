@@ -105,7 +105,7 @@ void describe('ComputeConstruct', () => {
       assert.strictEqual(env['AWS_LAMBDA_EXEC_WRAPPER'], undefined);
     });
 
-    void it('sets default memorySize to 512 MB', () => {
+    void it('sets default memorySize to 1024 MB', () => {
       const bundle = createBundleDir();
       const stack = createStack();
 
@@ -116,7 +116,7 @@ void describe('ComputeConstruct', () => {
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        MemorySize: 512,
+        MemorySize: 1024,
       });
     });
 

@@ -36,7 +36,7 @@ const LAMBDA_WEB_ADAPTER_LAYER_NAME = 'LambdaAdapterLayerX86';
 const DEFAULT_WEB_ADAPTER_VERSION = 22;
 
 /** Default Lambda memory in MB */
-const DEFAULT_LAMBDA_MEMORY_MB = 512;
+const DEFAULT_LAMBDA_MEMORY_MB = 1024;
 
 /** Default Lambda timeout in seconds */
 const DEFAULT_LAMBDA_TIMEOUT_SECONDS = 30;
