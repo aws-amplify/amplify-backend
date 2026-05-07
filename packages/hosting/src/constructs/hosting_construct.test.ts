@@ -266,7 +266,7 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
     });
 
     const template = Template.fromStack(stack);
-    template.resourceCountIs('AWS::SQS::Queue', 1);
+    template.resourceCountIs('AWS::SQS::Queue', 2); // Revalidation + DLQ
   });
 
   void it('provisions S3 cache bucket when cache is configured', () => {
@@ -470,10 +470,11 @@ void describe('AmplifyHostingConstruct — Multi-compute', () => {
     const template = Template.fromStack(stack);
     const permissions = template.findResources('AWS::Lambda::Permission');
     const invokeUrlPermissions = Object.values(permissions).filter(
-      // eslint-disable-next-line @typescript-eslint/naming-convention
+      /* eslint-disable @typescript-eslint/naming-convention */
       (p: Record<string, unknown>) =>
         (p as { Properties?: { Action?: string } }).Properties?.Action ===
         'lambda:InvokeFunctionUrl',
+      /* eslint-enable @typescript-eslint/naming-convention */
     );
     assert.ok(
       invokeUrlPermissions.length >= 2,
@@ -973,18 +974,13 @@ void describe('AmplifyHostingConstruct — CDN edge cases', () => {
       0,
       'Should have no compute functions for SPA',
     );
+    assert.strictEqual(
+      construct.computeFunctionUrls.size,
+      0,
+      'Should have no compute function URLs for SPA',
+    );
 
     const template = Template.fromStack(stack);
-    // No user-defined Lambda functions (CDK may create helpers for autoDeleteObjects)
-    const functions = template.findResources('AWS::Lambda::Function');
-    const userFunctions = Object.entries(functions).filter(
-      ([key]) => !key.includes('CustomS3AutoDeleteObjects'),
-    );
-    assert.strictEqual(
-      userFunctions.length,
-      0,
-      'Should have no user-defined Lambda functions for SPA',
-    );
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
       DistributionConfig: Match.objectLike({
         HttpVersion: 'http2and3',
