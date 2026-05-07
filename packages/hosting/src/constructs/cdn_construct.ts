@@ -361,47 +361,34 @@ export class CdnConstruct extends Construct {
       }),
     );
 
-    // ---- OAC: Lambda Function URL permission patch ----
+    // ---- OAC: Lambda Function URL permissions ----
     if (hasCompute) {
-      // Collect all functions that need OAC permissions
-      const allComputeFunctions: Array<{ name: string; fn: IFunction }> = [];
-      if (props.computeFunctions) {
-        for (const [name, fn] of props.computeFunctions) {
-          allComputeFunctions.push({ name, fn });
-        }
-      } else if (props.ssrFunction) {
-        allComputeFunctions.push({ name: 'ssr', fn: props.ssrFunction });
-      }
-
-      // Patch auto-generated permissions to match their correct function.
-      // CDK may generate CfnPermission resources for each origin — match by logical ID.
+      // Remove CDK auto-generated CfnPermission resources for Function URL origins.
+      // We create our own explicit permissions below with correct function ARNs.
       for (const child of this.distribution.node.findAll()) {
         if (
           child instanceof CfnPermission &&
           child.action === 'lambda:InvokeFunctionUrl'
         ) {
-          // Try to match this permission to a specific function by checking
-          // if the node path contains a compute name. If not, default to first.
-          const nodePath = child.node.path.toLowerCase();
-          let matched = false;
-          for (const { name, fn } of allComputeFunctions) {
-            if (nodePath.includes(name.toLowerCase())) {
-              child.addPropertyOverride('FunctionName', fn.functionArn);
-              matched = true;
-              break;
-            }
-          }
-          if (!matched && allComputeFunctions.length > 0) {
-            child.addPropertyOverride(
-              'FunctionName',
-              allComputeFunctions[0].fn.functionArn,
-            );
-          }
+          child.node.scope?.node.tryRemoveChild(child.node.id);
         }
       }
 
-      // Grant invoke permissions for each compute function
-      for (const { name, fn } of allComputeFunctions) {
+      // Only grant InvokeFunctionUrl to functions that actually have Function URLs
+      // (edge functions do NOT have Function URLs and must be excluded).
+      const computeFnsWithUrls: Array<{ name: string; fn: IFunction }> = [];
+      if (props.computeFunctionUrls && props.computeFunctions) {
+        for (const [name] of props.computeFunctionUrls) {
+          const fn = props.computeFunctions.get(name);
+          if (fn) {
+            computeFnsWithUrls.push({ name, fn });
+          }
+        }
+      } else if (props.ssrFunction) {
+        computeFnsWithUrls.push({ name: 'ssr', fn: props.ssrFunction });
+      }
+
+      for (const { name, fn } of computeFnsWithUrls) {
         new CfnPermission(this, `LambdaUrlPermission-${name}`, {
           action: 'lambda:InvokeFunctionUrl',
           principal: 'cloudfront.amazonaws.com',
