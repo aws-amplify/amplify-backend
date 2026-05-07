@@ -7,15 +7,14 @@ void describe('Deploy Manifest Schema', () => {
   void it('validates a valid SPA manifest', () => {
     const manifest: DeployManifest = {
       version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
       routes: [
         {
-          path: '/*',
-          target: {
-            kind: 'Static',
-          },
+          pattern: '/*',
+          target: 'static',
         },
       ],
-      framework: { name: 'spa', version: '1.0.0' },
     };
 
     const result = deployManifestSchema.safeParse(manifest);
@@ -26,22 +25,21 @@ void describe('Deploy Manifest Schema', () => {
   void it('validates a valid SSR manifest with compute resources', () => {
     const manifest: DeployManifest = {
       version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: true,
+          runtime: 'nodejs20.x',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
       routes: [
-        {
-          path: '/_next/static/*',
-          target: {
-            kind: 'Static',
-          },
-        },
-        {
-          path: '/*',
-          target: { kind: 'Compute', src: 'default' },
-        },
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/*', target: 'default' },
       ],
-      computeResources: [
-        { name: 'default', runtime: 'nodejs20.x', entrypoint: 'server.js' },
-      ],
-      framework: { name: 'nextjs', version: '15.1.0' },
       buildId: 'abc123',
     };
 
@@ -49,11 +47,71 @@ void describe('Deploy Manifest Schema', () => {
     assert.ok(result.success, 'Valid SSR manifest should parse');
   });
 
+  void it('validates manifest with cache config', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+    };
+
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'Manifest with cache config should parse');
+  });
+
+  void it('validates manifest with image optimization', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      imageOptimization: {
+        bundle: '/tmp/image-fn',
+        handler: 'index.handler',
+        formats: ['webp', 'avif'],
+        sizes: [640, 1080, 1920],
+      },
+    };
+
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'Manifest with image optimization should parse');
+  });
+
+  void it('validates manifest with middleware', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      middleware: {
+        bundle: '/tmp/middleware',
+        handler: 'handler.handler',
+        matchers: ['/*'],
+      },
+    };
+
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'Manifest with middleware should parse');
+  });
+
   void it('rejects manifest with wrong version', () => {
     const result = deployManifestSchema.safeParse({
       version: 2,
-      routes: [{ path: '/*', target: { kind: 'Static' } }],
-      framework: { name: 'spa' },
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
     });
     assert.ok(!result.success, 'Should reject version != 1');
   });
@@ -61,62 +119,150 @@ void describe('Deploy Manifest Schema', () => {
   void it('rejects manifest with no routes', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
       routes: [],
-      framework: { name: 'spa' },
     });
     assert.ok(!result.success, 'Should reject empty routes');
-    const routeIssue = result.error?.issues.find((i) =>
-      i.path.includes('routes'),
-    );
-    assert.ok(routeIssue, 'Error should reference routes field');
   });
 
-  void it('rejects route with path not starting with /', () => {
+  void it('rejects route with empty pattern', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
-      routes: [{ path: 'invalid', target: { kind: 'Static' } }],
-      framework: { name: 'spa' },
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '', target: 'static' }],
     });
-    assert.ok(!result.success, 'Should reject path not starting with /');
+    assert.ok(!result.success, 'Should reject empty pattern');
   });
 
-  void it('rejects route with invalid target kind', () => {
+  void it('rejects route with empty target', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
-      routes: [{ path: '/*', target: { kind: 'Unknown' } }],
-      framework: { name: 'spa' },
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: '' }],
     });
-    assert.ok(!result.success, 'Should reject unknown target kind');
+    assert.ok(!result.success, 'Should reject empty target');
   });
 
-  void it('rejects manifest with missing framework', () => {
+  void it('rejects compute resource with invalid type', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
-      routes: [{ path: '/*', target: { kind: 'Static' } }],
+      compute: {
+        default: {
+          type: 'invalid',
+          bundle: '/tmp/bundle',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
     });
-    assert.ok(!result.success, 'Should reject missing framework');
+    assert.ok(!result.success, 'Should reject invalid compute type');
   });
 
-  void it('rejects manifest with empty framework name', () => {
+  void it('rejects compute resource with invalid placement', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
-      routes: [{ path: '/*', target: { kind: 'Static' } }],
-      framework: { name: '' },
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          placement: 'somewhere',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
     });
-    assert.ok(!result.success, 'Should reject empty framework name');
+    assert.ok(!result.success, 'Should reject invalid placement');
   });
 
-  void it('accepts manifest with optional fields omitted', () => {
+  void it('accepts manifest with all optional fields omitted', () => {
     const result = deployManifestSchema.safeParse({
       version: 1,
-      routes: [{ path: '/*', target: { kind: 'Static' } }],
-      framework: { name: 'static' },
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
     });
     assert.ok(
       result.success,
       'Should accept manifest with only required fields',
     );
-    assert.strictEqual(result.data?.computeResources, undefined);
+    assert.strictEqual(result.data?.cache, undefined);
+    assert.strictEqual(result.data?.imageOptimization, undefined);
+    assert.strictEqual(result.data?.middleware, undefined);
     assert.strictEqual(result.data?.buildId, undefined);
+  });
+
+  void it('validates http-server compute type', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'http-server',
+          bundle: '/tmp/bundle',
+          entrypoint: 'server.js',
+          port: 3000,
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(result.success, 'Should accept http-server compute type');
+  });
+
+  void it('validates edge compute type', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'edge',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'global',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(result.success, 'Should accept edge compute type');
+  });
+
+  void it('validates redirects', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      redirects: [
+        { source: '/old', destination: '/new', statusCode: 301 },
+        { source: '/temp', destination: '/other', statusCode: 302 },
+      ],
+    });
+    assert.ok(result.success, 'Should accept valid redirects');
+  });
+
+  void it('validates rewrites', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      rewrites: [{ source: '/api/*', destination: '/api/handler' }],
+    });
+    assert.ok(result.success, 'Should accept valid rewrites');
+  });
+
+  void it('validates custom headers', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      headers: [{ source: '/*', headers: { 'X-Custom': 'value' } }],
+    });
+    assert.ok(result.success, 'Should accept valid custom headers');
   });
 });

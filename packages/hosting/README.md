@@ -31,13 +31,6 @@ defineHosting({
 
 ### Next.js (SSR)
 
-> **⚠️ Prerequisite:** Your `next.config.js` must have `output: 'standalone'` set before building.
->
-> ```js
-> // next.config.js
-> module.exports = { output: 'standalone' };
-> ```
-
 ```typescript
 // amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
@@ -47,6 +40,8 @@ defineHosting({
   buildCommand: 'npm run build',
 });
 ```
+
+> **Note:** You do **not** need to configure `output: 'standalone'` in `next.config.js`. The adapter uses [@opennextjs/aws](https://opennext.js.org/) internally, which handles the build transformation automatically.
 
 ### Deploy
 
@@ -87,11 +82,80 @@ defineHosting({
 
 Hosting is a standalone CDK entry point. The CLI discovers `amplify/hosting.ts` automatically and deploys it as a separate CloudFormation stack.
 
+## Architecture
+
+The hosting package uses a two-layer architecture:
+
+1. **Framework adapters** — transform framework-specific build output into a generic `DeployManifest`
+2. **L3 CDK construct** — reads the manifest and provisions AWS resources (S3, CloudFront, Lambda, etc.)
+
+The construct is completely framework-agnostic. It never knows whether the manifest came from Next.js, Astro, or a custom adapter.
+
+### Adapter Pipeline
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│  Framework      │     │  Deploy Manifest  │     │  AWS Resources      │
+│  Build Output   │ ──► │  (generic JSON)   │ ──► │  (CDK L3 Construct) │
+└─────────────────┘     └──────────────────┘     └─────────────────────┘
+     adapter()                                      AmplifyHostingConstruct
+```
+
+### Built-in Adapters
+
+| Adapter     | Description                                                                                                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Next.js** | Uses [@opennextjs/aws](https://opennext.js.org/) to process Next.js build output. Supports App Router, Pages Router, ISR, middleware, image optimization, and response streaming. |
+| **SPA**     | Static single-page apps (React, Vue, Angular, etc.). All routes serve `index.html` with client-side routing.                                                                      |
+
+### Infrastructure
+
+- **S3**: Private bucket with OAC (Origin Access Control). All public access blocked.
+- **CloudFront**: HTTP/2 + HTTP/3, TLS 1.2+, gzip/brotli compression, security headers (HSTS, CSP, X-Frame-Options).
+- **Lambda** (SSR): Native Lambda handlers with response streaming, IAM-authenticated Function URL, least-privilege IAM role.
+- **Lambda@Edge** (Middleware): Edge functions for request/response transformation.
+- **Image Optimization**: Separate Lambda with sharp for on-demand image resizing and format conversion.
+- **ISR Cache**: S3 cache bucket + DynamoDB (tag-based revalidation) + SQS (async revalidation queue). Auto-provisioned when the adapter declares cache config.
+- **Atomic deployments**: Each deploy creates a new build ID prefix in S3. CloudFront Function rewrites URLs. Zero-downtime cutover.
+
+## Features
+
+### ISR (Incremental Static Regeneration)
+
+Next.js ISR with `revalidateTag()` and `revalidatePath()` is fully supported. The adapter automatically provisions:
+
+- **S3 cache bucket** — stores pre-rendered pages
+- **DynamoDB table** — maps cache tags to paths for `revalidateTag()`
+- **SQS queue** — handles async revalidation requests
+
+No configuration required — if your Next.js app uses ISR, the infrastructure is provisioned automatically.
+
+### Image Optimization
+
+Next.js `<Image>` component and `next/image` optimization work out of the box. A dedicated Lambda function handles:
+
+- On-demand resizing to configured sizes
+- Format conversion (WebP, AVIF)
+- Caching optimized images in S3
+
+### Middleware
+
+Next.js middleware runs as a Lambda@Edge function, supporting:
+
+- Request/response header manipulation
+- Redirects and rewrites
+- Authentication checks at the edge
+- Geolocation-based routing
+
+### Response Streaming
+
+SSR responses are streamed using Lambda response streaming (via Function URLs), reducing Time to First Byte (TTFB) for server-rendered pages.
+
 ## What Happens During Deploy?
 
 1. **Build** — your build command runs (e.g., `npm run build`)
-2. **Adapter** — the framework adapter transforms build output into the canonical `.amplify-hosting/` structure
-3. **CDK Synth** — CDK synthesizes a CloudFormation template with S3, CloudFront, Lambda (for SSR), etc.
+2. **Adapter** — the framework adapter transforms build output into a `DeployManifest` (Next.js uses OpenNext internally)
+3. **CDK Synth** — CDK synthesizes a CloudFormation template based on the manifest
 4. **CloudFormation Deploy** — AWS provisions/updates all resources
 
 **Timelines:**
@@ -118,13 +182,6 @@ Hosting is a standalone CDK entry point. The CLI discovers `amplify/hosting.ts` 
 > | `accessLogging` | `boolean` | `false` | Enable CloudFront access logs to S3. |
 > | `priceClass` | `PriceClass` | `PRICE_CLASS_100` | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
 > | `name` | `string` | - | Optional resource name. |
-
-## Architecture
-
-- **S3**: Private bucket with OAC (Origin Access Control). All public access blocked.
-- **CloudFront**: HTTP/2 + HTTP/3, TLS 1.2+, gzip/brotli compression, security headers (HSTS, CSP, X-Frame-Options).
-- **Lambda** (SSR only): Node.js 20, Lambda Web Adapter for streaming, IAM-authenticated Function URL, least-privilege IAM role.
-- **Atomic deployments**: Each deploy creates a new build ID prefix in S3. CloudFront Function rewrites URLs. Zero-downtime cutover.
 
 ## Custom Domains
 
@@ -207,17 +264,22 @@ Running `ampx deploy` without flags deploys both phases sequentially.
 
 ## Custom Framework Adapters
 
-For frameworks not built in (Astro, Remix, etc.), provide a custom adapter:
+For frameworks not built in (Astro, Remix, SvelteKit, etc.), provide a custom adapter that returns a `DeployManifest`:
 
 ```typescript
 // amplify/hosting.ts
 import { defineHosting } from '@aws-amplify/hosting';
 import type { FrameworkAdapterFn } from '@aws-amplify/hosting/adapters';
+import type { DeployManifest } from '@aws-amplify/hosting';
 
-const myAdapter: FrameworkAdapterFn = (buildOutputDir, projectDir) => ({
+const myAdapter: FrameworkAdapterFn = (
+  buildOutputDir,
+  projectDir,
+): DeployManifest => ({
   version: 1,
-  routes: [{ path: '/*', target: { kind: 'Static' } }],
-  framework: { name: 'my-framework' },
+  compute: {},
+  staticAssets: { directory: buildOutputDir },
+  routes: [{ pattern: '/*', target: 'static' }],
 });
 
 defineHosting({
@@ -225,6 +287,126 @@ defineHosting({
   buildCommand: 'npm run build',
 });
 ```
+
+### SSR Custom Adapter Example
+
+```typescript
+import type { DeployManifest } from '@aws-amplify/hosting';
+
+const astroSSRAdapter: FrameworkAdapterFn = (
+  buildOutputDir,
+  projectDir,
+): DeployManifest => ({
+  version: 1,
+  compute: {
+    server: {
+      type: 'handler',
+      bundle: `${buildOutputDir}/server`,
+      handler: 'entry.handler',
+      placement: 'regional',
+      streaming: true,
+      runtime: 'nodejs20.x',
+      memorySize: 512,
+      timeout: 30,
+    },
+  },
+  staticAssets: {
+    directory: `${buildOutputDir}/client`,
+    cacheControl: 'public, max-age=31536000, immutable',
+  },
+  routes: [
+    { pattern: '/_astro/*', target: 'static' },
+    { pattern: '/favicon.ico', target: 'static' },
+    { pattern: '/*', target: 'server' },
+  ],
+});
+```
+
+## Deploy Manifest Schema
+
+The `DeployManifest` is the contract between framework adapters and the L3 construct. Custom adapters must return this shape:
+
+```typescript
+type DeployManifest = {
+  version: 1;
+
+  /** Named compute resources */
+  compute: Record<string, ComputeResource>;
+
+  /** Static asset configuration */
+  staticAssets: {
+    directory: string;
+    cacheControl?: string;
+  };
+
+  /** Route behaviors — maps URL patterns to compute or static */
+  routes: RouteBehavior[];
+
+  /** Cache infrastructure (auto-provisions S3 + DynamoDB + SQS) */
+  cache?: CacheConfig;
+
+  /** Image optimization (auto-provisions a separate Lambda) */
+  imageOptimization?: ImageConfig;
+
+  /** Middleware (deploys to Lambda@Edge) */
+  middleware?: MiddlewareConfig;
+
+  /** Redirects, rewrites, custom headers */
+  redirects?: Redirect[];
+  rewrites?: Rewrite[];
+  headers?: CustomHeader[];
+
+  /** Build ID for atomic deployments (auto-generated if omitted) */
+  buildId?: string;
+};
+
+type ComputeResource = {
+  type: 'handler' | 'http-server' | 'edge';
+  bundle: string;
+  handler?: string; // for type: 'handler'
+  entrypoint?: string; // for type: 'http-server'
+  port?: number; // for type: 'http-server'
+  placement: 'regional' | 'global';
+  streaming?: boolean;
+  runtime?: string;
+  memorySize?: number;
+  timeout?: number;
+  environment?: Record<string, string>;
+};
+
+type RouteBehavior = {
+  pattern: string; // URL pattern (glob or regex)
+  target: string; // compute resource name, or 'static'
+  fallback?: string; // fallback target on error
+};
+
+type CacheConfig = {
+  computeResource: string;
+  tagRevalidation: boolean; // provisions DynamoDB
+  revalidationQueue: boolean; // provisions SQS
+};
+
+type ImageConfig = {
+  bundle: string;
+  handler: string;
+  formats: string[];
+  sizes: number[];
+};
+
+type MiddlewareConfig = {
+  bundle: string;
+  handler: string;
+  matchers: string[];
+};
+```
+
+### Compute Types
+
+| Type          | Description                                    | AWS Resource               |
+| ------------- | ---------------------------------------------- | -------------------------- |
+| `handler`     | Native Lambda handler (fastest cold start)     | Lambda with Function URL   |
+| `http-server` | HTTP server wrapped with Lambda Web Adapter    | Lambda + Web Adapter layer |
+| `edge`        | Edge function for low-latency global execution | Lambda@Edge                |
 
 ## Lambda Configuration
 
@@ -292,7 +474,7 @@ import { HostingError } from '@aws-amplify/hosting/error';
 // Manifest types for custom adapters
 import type {
   DeployManifest,
-  ManifestRoute,
+  RouteBehavior,
   ComputeResource,
 } from '@aws-amplify/hosting';
 ```
@@ -313,14 +495,14 @@ const stack = new Stack(app, 'MySpaStack', {
 
 const manifest: DeployManifest = {
   version: 1,
-  routes: [{ path: '/*', target: { kind: 'Static' } }],
-  framework: { name: 'spa' },
-  buildId: 'my-build-001',
+  compute: {},
+  staticAssets: { directory: './dist' },
+  routes: [{ pattern: '/*', target: 'static' }],
 };
 
 const hosting = new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
-  staticAssetPath: './dist', // your build output directory
+  staticAssetPath: './dist',
 });
 
 // Access created resources for composition with other constructs
@@ -333,43 +515,31 @@ console.log(hosting.bucket.bucketName); // auto-generated bucket name
 ```typescript
 import { App, Stack } from 'aws-cdk-lib';
 import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs';
-import type { DeployManifest } from '@aws-amplify/hosting';
+import { nextjsAdapter } from '@aws-amplify/hosting/adapters';
 
 const app = new App();
 const stack = new Stack(app, 'MyNextjsStack', {
   env: { account: '123456789012', region: 'us-east-1' },
 });
 
-const manifest: DeployManifest = {
-  version: 1,
-  routes: [
-    {
-      path: '/_next/static/*',
-      target: {
-        kind: 'Static',
-        cacheControl: 'public, max-age=31536000, immutable',
-      },
-    },
-    { path: '/favicon.ico', target: { kind: 'Static' } },
-    { path: '/*', target: { kind: 'Compute', src: 'default' } },
-  ],
-  computeResources: [
-    { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-  ],
-  framework: { name: 'nextjs', version: '15.0.0' },
-  buildId: 'nextjs-build-001',
-};
+// Run the OpenNext adapter to produce a DeployManifest
+const manifest = nextjsAdapter({ projectDir: process.cwd() });
 
 new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
-  staticAssetPath: './.next/static', // Static assets directory
-  computeBasePath: './.next/standalone', // Directory containing compute resources
   compute: {
-    memorySize: 1024, // MB
-    timeout: 60, // seconds
+    memorySize: 1024,
+    timeout: 60,
   },
 });
 ```
+
+The Next.js adapter uses `@opennextjs/aws` internally to process the build output and produces a manifest with:
+
+- Native Lambda handlers (no Web Adapter wrapper needed)
+- ISR cache configuration (S3 + DynamoDB + SQS)
+- Image optimization Lambda
+- Middleware edge function (if applicable)
 
 ### Custom Domain with BYO Certificate
 
@@ -399,41 +569,14 @@ new AmplifyHostingConstruct(stack, 'Hosting', {
 
 ### Writing a Custom Adapter
 
-The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`) scan framework build output and produce this manifest. You can write your own adapter for any framework (Astro, Remix, SvelteKit, etc.).
-
-**The `DeployManifest` interface:**
-
-```typescript
-type DeployManifest = {
-  version: 1;
-  routes: ManifestRoute[]; // URL patterns → Static or Compute targets
-  computeResources?: ComputeResource[]; // Lambda functions (for SSR)
-  framework: { name: string; version?: string };
-  buildId?: string; // For atomic deployments (auto-generated if omitted)
-};
-
-type ManifestRoute = {
-  path: string; // e.g., '/*', '/_next/static/*', '/favicon.ico'
-  target: {
-    kind: 'Static' | 'Compute';
-    src?: string; // Compute resource name (for kind: 'Compute')
-    cacheControl?: string; // Cache-Control header for static assets
-  };
-};
-
-type ComputeResource = {
-  name: string; // Subdirectory name in computeBasePath
-  runtime: string; // e.g., 'nodejs20.x'
-  entrypoint: string; // e.g., 'run.sh'
-};
-```
+The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`) process framework build output and produce this manifest. You can write your own adapter for any framework (Astro, Remix, SvelteKit, etc.).
 
 **Skeleton adapter for a custom framework:**
 
 ```typescript
 import * as fs from 'fs';
 import * as path from 'path';
-import type { DeployManifest, ManifestRoute } from '@aws-amplify/hosting';
+import type { DeployManifest, RouteBehavior } from '@aws-amplify/hosting';
 
 /**
  * Custom adapter for Astro (example).
@@ -443,49 +586,51 @@ export const astroAdapter = (
   buildOutputDir: string,
   _projectDir: string,
 ): DeployManifest => {
-  // 1. Validate build output exists
   if (!fs.existsSync(buildOutputDir)) {
     throw new Error(`Build output not found at ${buildOutputDir}`);
   }
 
-  // 2. Scan for static vs. server-rendered content
   const hasServerDir = fs.existsSync(path.join(buildOutputDir, 'server'));
-  const routes: ManifestRoute[] = [];
+  const routes: RouteBehavior[] = [];
 
-  // 3. Add static asset routes
+  // Static assets with aggressive caching
   routes.push({
-    path: '/_astro/*',
-    target: {
-      kind: 'Static',
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
+    pattern: '/_astro/*',
+    target: 'static',
   });
 
-  // 4. Add compute route if SSR is detected
   if (hasServerDir) {
-    routes.push({
-      path: '/*',
-      target: { kind: 'Compute', src: 'default' },
-    });
-  } else {
-    routes.push({
-      path: '/*',
-      target: { kind: 'Static' },
-    });
+    // SSR: catch-all goes to compute
+    routes.push({ pattern: '/*', target: 'server' });
+
+    return {
+      version: 1,
+      compute: {
+        server: {
+          type: 'handler',
+          bundle: path.join(buildOutputDir, 'server'),
+          handler: 'entry.handler',
+          placement: 'regional',
+          streaming: true,
+          runtime: 'nodejs20.x',
+        },
+      },
+      staticAssets: {
+        directory: path.join(buildOutputDir, 'client'),
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+      routes,
+    };
   }
 
-  // 5. Return the manifest
+  // Static-only: all routes from S3
+  routes.push({ pattern: '/*', target: 'static' });
+
   return {
     version: 1,
+    compute: {},
+    staticAssets: { directory: path.join(buildOutputDir, 'client') },
     routes,
-    ...(hasServerDir
-      ? {
-          computeResources: [
-            { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-          ],
-        }
-      : {}),
-    framework: { name: 'astro' },
   };
 };
 ```
@@ -501,17 +646,12 @@ const manifest = astroAdapter('./dist', process.cwd());
 new AmplifyHostingConstruct(stack, 'Hosting', {
   manifest,
   staticAssetPath: './dist/client',
-  computeBasePath: './dist/server', // only if SSR
 });
 ```
 
-The key insight is that **any framework can be supported** by writing an adapter that scans the build output and returns a `DeployManifest`. The construct handles all AWS resource creation (S3, CloudFront, Lambda, OAC, etc.) based on the manifest.
+The key insight is that **any framework can be supported** by writing an adapter that returns a `DeployManifest`. The construct handles all AWS resource creation (S3, CloudFront, Lambda, OAC, etc.) based on the manifest.
 
 ## Troubleshooting
-
-### "Next.js standalone output not found"
-
-Add `output: 'standalone'` to your `next.config.js` and rebuild.
 
 ### Build fails but error message is unclear
 
@@ -524,3 +664,11 @@ This should not happen with the OAC bucket policy. If it does, check that the S3
 ### Deploy takes very long
 
 First deploy creates a CloudFront distribution (~15-20 min). Subsequent deploys are faster (~5 min).
+
+### ISR pages are not revalidating
+
+Ensure your Next.js app uses the App Router with `revalidateTag()` or `revalidatePath()`. Pages Router ISR (`revalidate: N` in `getStaticProps`) is also supported via time-based revalidation.
+
+### Image optimization returns 500
+
+Check that the image optimization Lambda has sufficient memory (default: 512MB). Large images may require 1024MB+. Increase via the `compute` configuration.

@@ -2,39 +2,87 @@ import { z } from 'zod';
 import { BUILD_ID_PATTERN } from '../defaults.js';
 
 /**
- * Zod schema for the RouteTarget.
- */
-export const routeTargetSchema = z.object({
-  kind: z.enum(['Static', 'Compute']),
-  src: z.string().optional(),
-});
-
-/**
- * Zod schema for a ManifestRoute.
- */
-export const manifestRouteSchema = z.object({
-  path: z
-    .string()
-    .min(1, 'Route path must not be empty')
-    .startsWith('/', 'Route path must start with /'),
-  target: routeTargetSchema,
-});
-
-/**
  * Zod schema for a ComputeResource.
  */
 export const computeResourceSchema = z.object({
-  name: z.string().min(1, 'Compute resource name must not be empty'),
-  runtime: z.string().min(1, 'Runtime must not be empty'),
-  entrypoint: z.string().min(1, 'Entrypoint must not be empty'),
+  type: z.enum(['handler', 'http-server', 'edge']),
+  bundle: z.string().min(1, 'Bundle path must not be empty'),
+  handler: z.string().optional(),
+  entrypoint: z.string().optional(),
+  port: z.number().positive().optional(),
+  placement: z.enum(['regional', 'global']),
+  streaming: z.boolean().optional(),
+  runtime: z.string().optional(),
+  memorySize: z.number().positive().optional(),
+  timeout: z.number().positive().optional(),
+  environment: z.record(z.string()).optional(),
 });
 
 /**
- * Zod schema for FrameworkMetadata.
+ * Zod schema for a RouteBehavior.
  */
-export const frameworkMetadataSchema = z.object({
-  name: z.string().min(1, 'Framework name must not be empty'),
-  version: z.string().optional(),
+export const routeBehaviorSchema = z.object({
+  pattern: z.string().min(1, 'Route pattern must not be empty'),
+  target: z.string().min(1, 'Route target must not be empty'),
+  fallback: z.string().optional(),
+});
+
+/**
+ * Zod schema for CacheConfig.
+ */
+export const cacheConfigSchema = z.object({
+  computeResource: z.string().min(1),
+  tagRevalidation: z.boolean(),
+  revalidationQueue: z.boolean(),
+});
+
+/**
+ * Zod schema for ImageConfig.
+ */
+export const imageConfigSchema = z.object({
+  bundle: z.string().min(1),
+  handler: z.string().min(1),
+  formats: z.array(z.string()),
+  sizes: z.array(z.number().positive()),
+});
+
+/**
+ * Zod schema for MiddlewareConfig.
+ */
+export const middlewareConfigSchema = z.object({
+  bundle: z.string().min(1),
+  handler: z.string().min(1),
+  matchers: z.array(z.string()),
+});
+
+/**
+ * Zod schema for Redirect.
+ */
+export const redirectSchema = z.object({
+  source: z.string().min(1),
+  destination: z.string().min(1),
+  statusCode: z.union([
+    z.literal(301),
+    z.literal(302),
+    z.literal(307),
+    z.literal(308),
+  ]),
+});
+
+/**
+ * Zod schema for Rewrite.
+ */
+export const rewriteSchema = z.object({
+  source: z.string().min(1),
+  destination: z.string().min(1),
+});
+
+/**
+ * Zod schema for CustomHeader.
+ */
+export const customHeaderSchema = z.object({
+  source: z.string().min(1),
+  headers: z.record(z.string()),
 });
 
 /**
@@ -42,11 +90,18 @@ export const frameworkMetadataSchema = z.object({
  */
 export const deployManifestSchema = z.object({
   version: z.literal(1),
-  routes: z
-    .array(manifestRouteSchema)
-    .min(1, 'At least one route is required in the manifest'),
-  computeResources: z.array(computeResourceSchema).optional(),
-  framework: frameworkMetadataSchema,
+  compute: z.record(computeResourceSchema),
+  staticAssets: z.object({
+    directory: z.string().min(1, 'Static assets directory must not be empty'),
+    cacheControl: z.string().optional(),
+  }),
+  routes: z.array(routeBehaviorSchema).min(1, 'At least one route is required'),
+  cache: cacheConfigSchema.optional(),
+  imageOptimization: imageConfigSchema.optional(),
+  middleware: middlewareConfigSchema.optional(),
+  redirects: z.array(redirectSchema).optional(),
+  rewrites: z.array(rewriteSchema).optional(),
+  headers: z.array(customHeaderSchema).optional(),
   buildId: z
     .string()
     .regex(

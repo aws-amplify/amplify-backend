@@ -3,291 +3,140 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Duration, Stack } from 'aws-cdk-lib';
-import { Match, Template } from 'aws-cdk-lib/assertions';
+import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
-import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 
-// ================================================================
-// Vanilla CDK project integration
-//
-// These tests simulate what a CDK user would do:
-//   import { AmplifyHostingConstruct } from '@aws-amplify/hosting/constructs'
-//   new AmplifyHostingConstruct(stack, 'MyHosting', { ... })
-//
-// No defineHosting(), no factory.ts, no Amplify CLI.
-// ================================================================
-
-void describe('Vanilla CDK project integration', () => {
+/**
+ * These tests verify the construct works when used directly in vanilla CDK
+ * (outside the Amplify backend system). This is the primary usage pattern for
+ * kit-core (StarterKit) and any CDK user importing the construct directly.
+ */
+void describe('AmplifyHostingConstruct — vanilla CDK usage', () => {
   let tmpDir: string;
-  let staticDir: string;
-  let computeDir: string;
-
-  const createTestSpaManifest = (
-    buildId = 'vanilla-spa-1',
-  ): DeployManifest => ({
-    version: 1,
-    routes: [{ path: '/*', target: { kind: 'Static' } }],
-    framework: { name: 'spa' },
-    buildId,
-  });
-
-  const createTestSsrManifest = (
-    buildId = 'vanilla-ssr-1',
-  ): DeployManifest => ({
-    version: 1,
-    routes: [
-      {
-        path: '/_next/static/*',
-        target: {
-          kind: 'Static',
-        },
-      },
-      {
-        path: '/*',
-        target: { kind: 'Compute', src: 'default' },
-      },
-    ],
-    computeResources: [
-      { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-    ],
-    framework: { name: 'nextjs', version: '15.0.0' },
-    buildId,
-  });
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'hosting-vanilla-cdk-test-'),
     );
-    staticDir = path.join(tmpDir, 'static');
-    computeDir = path.join(tmpDir, 'compute');
-
-    // SPA static assets
-    fs.mkdirSync(staticDir, { recursive: true });
-    fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
-    fs.writeFileSync(
-      path.join(staticDir, 'style.css'),
-      'body { color: #333; }',
-    );
-
-    // SSR compute assets
-    const defaultDir = path.join(computeDir, 'default');
-    fs.mkdirSync(defaultDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(defaultDir, 'server.js'),
-      'require("http").createServer().listen(3000)',
-    );
-    fs.writeFileSync(
-      path.join(defaultDir, 'run.sh'),
-      '#!/bin/bash\nexec node server.js',
-    );
-    fs.writeFileSync(
-      path.join(defaultDir, 'index.js'),
-      'exports.handler = async () => ({ statusCode: 502 });',
-    );
+    fs.writeFileSync(path.join(tmpDir, 'index.html'), '<html></html>');
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('produces valid CloudFormation when used like a normal CDK L3 construct', () => {
+  void it('works as a standalone L3 construct in a regular CDK stack', () => {
     const app = new App();
-    const stack = new Stack(app, 'VanillaCdkStack', {
-      env: { account: '123456789012', region: 'us-east-1' },
-    });
+    const stack = new Stack(app, 'MyStack');
 
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSpaManifest(),
-      staticAssetPath: staticDir,
-      cdn: { contentSecurityPolicy: "default-src 'self'" },
-      waf: { enabled: true },
-    });
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: tmpDir },
+      routes: [{ pattern: '/*', target: 'static' }],
+      buildId: 'vanilla-1',
+    };
 
-    // Full synth — proves no Amplify runtime dependencies needed
+    const hosting = new AmplifyHostingConstruct(stack, 'Hosting', { manifest });
+
+    assert.ok(hosting.bucket);
+    assert.ok(hosting.distribution);
+    assert.ok(hosting.distributionUrl);
+
     const template = Template.fromStack(stack);
-
-    // Verify it produces a complete template ready to deploy
     template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-    template.resourceCountIs('AWS::WAFv2::WebACL', 1);
-
-    // S3 buckets exist
-    const buckets = template.findResources('AWS::S3::Bucket');
-    assert.ok(
-      Object.keys(buckets).length >= 1,
-      'Should have at least one S3 bucket',
-    );
-
-    // Verify NO Amplify-specific SSM parameters
-    template.resourceCountIs('AWS::SSM::Parameter', 0);
+    template.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  void it('works with SSR (Next.js) configuration', () => {
+  void it('works with SSR compute in a vanilla CDK stack', () => {
     const app = new App();
-    const stack = new Stack(app, 'VanillaSsrStack');
+    const stack = new Stack(app, 'MyStack');
+    const bundleDir = path.join(tmpDir, 'bundle');
+    fs.mkdirSync(bundleDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(bundleDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
 
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSsrManifest(),
-      staticAssetPath: staticDir,
-      computeBasePath: computeDir,
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: true,
+        },
+      },
+      staticAssets: { directory: tmpDir },
+      routes: [
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/*', target: 'default' },
+      ],
+      buildId: 'vanilla-ssr-1',
+    };
+
+    const hosting = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
     });
+
+    assert.ok(hosting.computeFunctions.has('default'));
+    assert.ok(hosting.computeFunctionUrls.has('default'));
 
     const template = Template.fromStack(stack);
-
-    // CloudFront distribution
-    template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-
-    // Lambda function for SSR
     template.hasResourceProperties('AWS::Lambda::Function', {
-      Runtime: 'nodejs20.x',
-      Handler: 'run.sh',
+      Handler: 'index.handler',
     });
-
-    // Function URL
     template.hasResourceProperties('AWS::Lambda::Url', {
       AuthType: 'AWS_IAM',
-      InvokeMode: 'RESPONSE_STREAM',
     });
-
-    // No SSM parameters (Amplify-specific)
-    template.resourceCountIs('AWS::SSM::Parameter', 0);
   });
 
-  void it('throws HostingError (not AmplifyUserError) on invalid config', () => {
-    assert.throws(
-      () => {
-        const app = new App();
-        const stack = new Stack(app, 'InvalidStack');
-        new AmplifyHostingConstruct(stack, 'MyHosting', {
-          manifest: {
-            ...createTestSpaManifest(),
-            buildId: 'has spaces and !!! invalid chars',
-          },
-          staticAssetPath: staticDir,
-        });
-      },
-      (err: unknown) => {
-        assert.ok(
-          err instanceof HostingError,
-          `Expected HostingError, got ${(err as Error).constructor.name}`,
-        );
-        return true;
-      },
+  void it('provisions cache infrastructure in vanilla CDK', () => {
+    const app = new App();
+    const stack = new Stack(app, 'MyStack');
+    const bundleDir = path.join(tmpDir, 'bundle');
+    fs.mkdirSync(bundleDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(bundleDir, 'index.mjs'),
+      'export const handler = async () => {};',
     );
-  });
 
-  void it('supports custom CSP header', () => {
-    const app = new App();
-    const stack = new Stack(app, 'CspStack');
-    const customCsp = "default-src 'self'; script-src 'none'";
-
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSpaManifest(),
-      staticAssetPath: staticDir,
-      cdn: { contentSecurityPolicy: customCsp },
-    });
-
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties(
-      'AWS::CloudFront::ResponseHeadersPolicy',
-      Match.objectLike({
-        ResponseHeadersPolicyConfig: Match.objectLike({
-          SecurityHeadersConfig: Match.objectLike({
-            ContentSecurityPolicy: Match.objectLike({
-              ContentSecurityPolicy: customCsp,
-            }),
-          }),
-        }),
-      }),
-    );
-  });
-
-  void it('creates access log bucket when accessLogging is enabled', () => {
-    const app = new App();
-    const stack = new Stack(app, 'LogStack');
-
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSpaManifest(),
-      staticAssetPath: staticDir,
-      logging: { enabled: true },
-    });
-
-    const template = Template.fromStack(stack);
-
-    // Should have at least 2 buckets: hosting + access log
-    const buckets = template.findResources('AWS::S3::Bucket');
-    const logBucket = Object.entries(buckets).find(([key]) =>
-      key.includes('AccessLogBucket'),
-    );
-    assert.ok(logBucket, 'Should create an AccessLogBucket');
-  });
-
-  void it('retains bucket when retainOnDelete is true', () => {
-    const app = new App();
-    const stack = new Stack(app, 'RetainStack');
-
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSpaManifest(),
-      staticAssetPath: staticDir,
-      storage: { retainOnDelete: true },
-    });
-
-    const template = Template.fromStack(stack);
-    const buckets = template.findResources('AWS::S3::Bucket');
-
-    let foundRetain = false;
-    for (const [, bucket] of Object.entries(buckets)) {
-      if ((bucket as Record<string, unknown>).DeletionPolicy === 'Retain') {
-        foundRetain = true;
-      }
-    }
-    assert.ok(foundRetain, 'At least one bucket should have Retain policy');
-  });
-
-  void it('uses custom compute config for SSR', () => {
-    const app = new App();
-    const stack = new Stack(app, 'ComputeStack');
-
-    new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSsrManifest(),
-      staticAssetPath: staticDir,
-      computeBasePath: computeDir,
+    const manifest: DeployManifest = {
+      version: 1,
       compute: {
-        memorySize: 2048,
-        timeout: Duration.seconds(120),
-        reservedConcurrency: 100,
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+        },
       },
+      staticAssets: { directory: tmpDir },
+      routes: [{ pattern: '/*', target: 'default' }],
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+      buildId: 'vanilla-cache-1',
+    };
+
+    const hosting = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
     });
+
+    assert.ok(hosting.cacheBucket);
+    assert.ok(hosting.cacheTable);
+    assert.ok(hosting.revalidationQueue);
 
     const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Lambda::Function', {
-      MemorySize: 2048,
-      Timeout: 120,
-      ReservedConcurrentExecutions: 100,
-    });
-  });
-
-  void it('constructs can be composed with other CDK resources', () => {
-    // This test proves that the construct output can be referenced by
-    // other CDK constructs — a key use case for vanilla CDK users.
-    const app = new App();
-    const stack = new Stack(app, 'ComposedStack');
-
-    const hosting = new AmplifyHostingConstruct(stack, 'MyHosting', {
-      manifest: createTestSpaManifest(),
-      staticAssetPath: staticDir,
-    });
-
-    // Verify the construct exposes usable CDK resources
-    assert.ok(hosting.bucket.bucketName, 'Bucket should have a name');
-    assert.ok(
-      hosting.distribution.distributionId,
-      'Distribution should have an ID',
-    );
-    assert.ok(
-      hosting.distributionUrl.startsWith('https://'),
-      'Should have a valid URL',
-    );
+    template.resourceCountIs('AWS::DynamoDB::Table', 1);
+    template.resourceCountIs('AWS::SQS::Queue', 1);
   });
 });

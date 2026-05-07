@@ -7,21 +7,22 @@ import { DeployManifest } from '../manifest/types.js';
 
 export { spaAdapter } from './spa.js';
 export { nextjsAdapter } from './nextjs.js';
+export type { NextjsAdapterOptions } from './nextjs.js';
 
 /**
- * An adapter function that transforms a build output directory into the
- * canonical .amplify-hosting/ directory structure.
+ * A framework adapter function that produces a DeployManifest from a project.
+ *
+ * For the new manifest format, adapters receive the project directory
+ * and return a DeployManifest directly (no intermediate .amplify-hosting/ step).
  */
-export type FrameworkAdapterFn = (
-  buildOutputDir: string,
-  projectDir: string,
-) => DeployManifest;
+export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
 
 /**
  * Built-in adapter registry.
+ * Each adapter takes a projectDir and returns a DeployManifest.
  */
 const adapterRegistry = new Map<string, FrameworkAdapterFn>([
-  ['nextjs', nextjsAdapter],
+  ['nextjs', (projectDir: string) => nextjsAdapter({ projectDir })],
   ['spa', spaAdapter],
   ['static', spaAdapter],
 ]);
@@ -35,7 +36,6 @@ export const detectFramework = (projectDir: string): string => {
   const packageJsonPath = path.join(projectDir, 'package.json');
 
   if (!fs.existsSync(packageJsonPath)) {
-    // No package.json — treat as static site
     return 'static';
   }
 
@@ -63,13 +63,11 @@ export const detectFramework = (projectDir: string): string => {
     return 'nextjs';
   }
 
-  // Default to SPA for projects with a package.json
   return 'spa';
 };
 
 /**
  * Get the adapter function for the given framework type.
- * Looks up the adapter registry.
  * @param framework - the framework type
  * @returns the adapter function
  */

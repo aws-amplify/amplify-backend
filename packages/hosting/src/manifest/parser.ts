@@ -6,19 +6,17 @@ import { DeployManifest } from './types.js';
 import { HOSTING_DIR, MANIFEST_FILENAME } from '../constants.js';
 
 /**
- * Parse and validate the deploy manifest from the hosting output directory.
- * @param hostingOutputDir - absolute path to the .amplify-hosting directory
+ * Parse and validate a DeployManifest from a JSON file.
+ * @param manifestPath - absolute path to the manifest JSON file
  * @returns validated DeployManifest
  */
-export const parseManifest = (hostingOutputDir: string): DeployManifest => {
-  const manifestPath = path.join(hostingOutputDir, MANIFEST_FILENAME);
-
+export const parseManifestFile = (manifestPath: string): DeployManifest => {
   if (!fs.existsSync(manifestPath)) {
     throw new HostingError('ManifestNotFoundError', {
       message: `Deploy manifest not found at ${manifestPath}`,
       resolution:
-        `Ensure your framework adapter produces a ${MANIFEST_FILENAME} in the ${HOSTING_DIR}/ directory. ` +
-        `If using a custom build, create ${HOSTING_DIR}/${MANIFEST_FILENAME} manually.`,
+        `Ensure your framework adapter produces a manifest file. ` +
+        `If using a custom build, create the manifest manually.`,
     });
   }
 
@@ -36,14 +34,27 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
     );
   }
 
+  return parseManifestJson(rawContent, manifestPath);
+};
+
+/**
+ * Parse and validate a DeployManifest from a JSON string.
+ * @param json - raw JSON string
+ * @param source - source identifier for error messages
+ * @returns validated DeployManifest
+ */
+export const parseManifestJson = (
+  json: string,
+  source: string = '<inline>',
+): DeployManifest => {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(rawContent);
+    parsed = JSON.parse(json);
   } catch (error) {
     throw new HostingError(
       'ManifestParseError',
       {
-        message: `Deploy manifest at ${manifestPath} contains invalid JSON`,
+        message: `Deploy manifest at ${source} contains invalid JSON`,
         resolution:
           'Ensure the manifest file contains valid JSON. Check for trailing commas or syntax errors.',
       },
@@ -51,7 +62,20 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
     );
   }
 
-  const result = deployManifestSchema.safeParse(parsed);
+  return validateManifest(parsed, source);
+};
+
+/**
+ * Validate a parsed object against the DeployManifest schema.
+ * @param data - parsed JSON object to validate
+ * @param source - source identifier for error messages
+ * @returns validated DeployManifest
+ */
+export const validateManifest = (
+  data: unknown,
+  source: string = '<inline>',
+): DeployManifest => {
+  const result = deployManifestSchema.safeParse(data);
 
   if (!result.success) {
     const issues = result.error.issues
@@ -59,13 +83,24 @@ export const parseManifest = (hostingOutputDir: string): DeployManifest => {
       .join('\n');
 
     throw new HostingError('ManifestValidationError', {
-      message: `Deploy manifest validation failed:\n${issues}`,
+      message: `Deploy manifest validation failed (source: ${source}):\n${issues}`,
       resolution:
-        'Fix the manifest to match the expected schema. See https://docs.amplify.aws/hosting/manifest for details.',
+        'Fix the manifest to match the expected schema. ' +
+        'Ensure all compute resources have a valid type (handler/http-server/edge) and placement.',
     });
   }
 
   return result.data as DeployManifest;
+};
+
+/**
+ * Parse manifest from the hosting output directory.
+ * @param hostingOutputDir - absolute path to the .amplify-hosting directory
+ * @returns validated DeployManifest
+ */
+export const parseManifest = (hostingOutputDir: string): DeployManifest => {
+  const manifestPath = path.join(hostingOutputDir, MANIFEST_FILENAME);
+  return parseManifestFile(manifestPath);
 };
 
 /**

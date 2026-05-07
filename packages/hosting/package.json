@@ -50,6 +50,12 @@
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "@opennextjs/aws": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@opennextjs/aws": {
+      "optional": true
+    }
   }
 }

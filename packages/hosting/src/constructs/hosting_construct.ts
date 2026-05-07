@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
@@ -13,8 +13,9 @@ import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
-import { HostingError } from '../hosting_error.js';
-import { ComputeResource, DeployManifest } from '../manifest/types.js';
+import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { DeployManifest } from '../manifest/types.js';
 import { HostingResources } from '../types.js';
 import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
@@ -24,7 +25,7 @@ import { DnsConstruct } from './dns_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
 import { CdnConstruct } from './cdn_construct.js';
 
-// Re-export build ID helpers for backward compatibility (public API + tests)
+// Re-export build ID helpers for public API + tests
 export { generateBuildIdFunctionCode, generateBuildId } from '../defaults.js';
 
 // ---- Public types ----
@@ -50,14 +51,13 @@ export type HostingWafConfig = {
 
 /**
  * Props for the AmplifyHostingConstruct.
+ *
+ * This construct is FRAMEWORK-AGNOSTIC. It reads a DeployManifest and
+ * provisions infrastructure accordingly. It never imports Next.js or OpenNext.
  */
 export type AmplifyHostingConstructProps = {
   /** Deploy manifest produced by the framework adapter. */
   manifest: DeployManifest;
-  /** Filesystem path to the static assets directory. */
-  staticAssetPath: string;
-  /** Filesystem path to the compute resource directory (SSR only). */
-  computeBasePath?: string;
   /**
    * Skips region validation for WAF WebACL (must be us-east-1 for CloudFront),
    * ACM certificates (must be us-east-1 for CloudFront), and Lambda Web Adapter
@@ -69,7 +69,7 @@ export type AmplifyHostingConstructProps = {
   domain?: HostingDomainConfig;
   /** WAF configuration. */
   waf?: HostingWafConfig;
-  /** Compute (Lambda) configuration for SSR frameworks. */
+  /** Compute (Lambda) overrides for all compute resources. */
   compute?: {
     memorySize?: number;
     timeout?: Duration;
@@ -107,23 +107,29 @@ export type AmplifyHostingConstructProps = {
  * Always creates: S3 bucket (private, BLOCK_ALL), CloudFront distribution,
  * OAC, atomic deployment with Build ID.
  *
- * Conditional features based on props:
- * - Compute routes in manifest → Lambda + Function URL + split CloudFront behaviors
- * - domain config → ACM certificate (us-east-1) + Route 53 A record + CF aliases
- * - waf.enabled → WAFv2 WebACL with managed rule groups + rate limiting
+ * Provisions based on manifest content:
+ * - compute entries → Lambda functions (handler/http-server/edge types)
+ * - cache config → S3 cache bucket + DynamoDB tags table + SQS revalidation queue
+ * - imageOptimization → separate image Lambda
+ * - middleware → Lambda@Edge or CloudFront Function
+ * - domain config → ACM certificate + Route 53 + CF aliases
+ * - waf.enabled → WAFv2 WebACL
  */
 export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
   readonly distribution: Distribution;
   readonly distributionUrl: string;
-  readonly ssrFunction?: LambdaFunction;
-  readonly functionUrl?: FunctionUrl;
+  readonly computeFunctions: Map<string, LambdaFunction> = new Map();
+  readonly computeFunctionUrls: Map<string, FunctionUrl> = new Map();
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
+  readonly cacheTable?: Table;
+  readonly revalidationQueue?: Queue;
+  readonly cacheBucket?: Bucket;
 
   /**
-   * Create a new manifest-driven hosting construct with the given props.
+   * Creates the hosting infrastructure from a framework-agnostic deploy manifest.
    */
   constructor(
     scope: Construct,
@@ -146,50 +152,120 @@ export class AmplifyHostingConstruct extends Construct {
     });
     this.bucket = storage.bucket;
 
-    // ---- 2. Compute resources (conditional) ----
-    const computeRoutes = manifest.routes.filter(
-      (r) => r.target.kind === 'Compute',
-    );
-    const hasCompute =
-      computeRoutes.length > 0 && (manifest.computeResources?.length ?? 0) > 0;
+    // ---- 2. Compute resources ----
+    const computeEntries = Object.entries(manifest.compute);
+    const hasCompute = computeEntries.length > 0;
 
-    if (hasCompute) {
-      // hasCompute guarantees computeResources is non-empty, but TypeScript
-      // can't narrow through the boolean variable — assert for the compiler.
-      const computeResources = manifest.computeResources!;
+    // Primary compute (first handler or http-server type)
+    let primaryFunction: LambdaFunction | undefined;
+    let primaryFunctionUrl: FunctionUrl | undefined;
 
-      if (computeResources.length > 1) {
-        throw new HostingError('UnsupportedMultiComputeError', {
-          message: `The manifest declares ${computeResources.length} compute resources, but only single-compute manifests are supported.`,
-          resolution:
-            'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
+    for (const [name, resource] of computeEntries) {
+      if (resource.type === 'edge') {
+        // Edge functions are handled differently (via CloudFront)
+        // For now, create as regular Lambda — CloudFront association is in CDN construct
+        const edgeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
+          name,
+          computeResource: resource,
+          memorySize: props.compute?.memorySize,
+          timeout: props.compute?.timeout,
+          reservedConcurrency: props.compute?.reservedConcurrency,
+          logRetention: props.compute?.logRetention,
+          skipRegionValidation: props.skipRegionValidation,
         });
-      }
-      if (!props.computeBasePath) {
-        throw new HostingError('MissingComputeBasePathError', {
-          message: 'computeBasePath is required for SSR deployments.',
-          resolution: 'This is an internal error. Please report it.',
-        });
+        this.computeFunctions.set(name, edgeConstruct.function);
+        this.computeFunctionUrls.set(name, edgeConstruct.functionUrl);
+        continue;
       }
 
-      const computeResource = computeResources[0] as ComputeResource;
-      const compute = props.compute ?? {};
-
-      const computeConstruct = new ComputeConstruct(this, 'Compute', {
-        computeResource,
-        computeBasePath: props.computeBasePath,
-        memorySize: compute.memorySize,
-        timeout: compute.timeout,
-        reservedConcurrency: compute.reservedConcurrency,
-        logRetention: compute.logRetention,
+      const computeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
+        name,
+        computeResource: resource,
+        memorySize: props.compute?.memorySize,
+        timeout: props.compute?.timeout,
+        reservedConcurrency: props.compute?.reservedConcurrency,
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
 
-      this.ssrFunction = computeConstruct.function;
-      this.functionUrl = computeConstruct.functionUrl;
+      this.computeFunctions.set(name, computeConstruct.function);
+      this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
+
+      if (!primaryFunction) {
+        primaryFunction = computeConstruct.function;
+        primaryFunctionUrl = computeConstruct.functionUrl;
+      }
     }
 
-    // ---- 3. WAF (conditional) ----
+    // ---- 3. Cache infrastructure (ISR) ----
+    if (manifest.cache) {
+      // S3 bucket for ISR cache
+      this.cacheBucket = new Bucket(this, 'CacheBucket', {
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+      });
+
+      // DynamoDB table for tag-based revalidation
+      if (manifest.cache.tagRevalidation) {
+        this.cacheTable = new Table(this, 'CacheTagTable', {
+          partitionKey: { name: 'tag', type: AttributeType.STRING },
+          sortKey: { name: 'path', type: AttributeType.STRING },
+          billingMode: BillingMode.PAY_PER_REQUEST,
+          removalPolicy: RemovalPolicy.DESTROY,
+        });
+      }
+
+      // SQS queue for async revalidation
+      if (manifest.cache.revalidationQueue) {
+        this.revalidationQueue = new Queue(this, 'RevalidationQueue', {
+          visibilityTimeout: Duration.seconds(30),
+          retentionPeriod: Duration.days(1),
+        });
+      }
+
+      // Grant cache access to the target compute resource
+      const cacheComputeName = manifest.cache.computeResource;
+      const cacheFunction = this.computeFunctions.get(cacheComputeName);
+      if (cacheFunction) {
+        this.cacheBucket.grantReadWrite(cacheFunction);
+        if (this.cacheTable) {
+          this.cacheTable.grantReadWriteData(cacheFunction);
+        }
+        if (this.revalidationQueue) {
+          this.revalidationQueue.grantSendMessages(cacheFunction);
+          this.revalidationQueue.grantConsumeMessages(cacheFunction);
+        }
+      }
+    }
+
+    // ---- 4. Image optimization Lambda ----
+    if (manifest.imageOptimization) {
+      const imageConstruct = new ComputeConstruct(this, 'ImageOptimization', {
+        name: 'image-optimization',
+        computeResource: {
+          type: 'handler',
+          bundle: manifest.imageOptimization.bundle,
+          handler: manifest.imageOptimization.handler,
+          placement: 'regional',
+          streaming: false,
+          memorySize: 1024,
+          timeout: 25,
+        },
+        skipRegionValidation: props.skipRegionValidation,
+      });
+      this.computeFunctions.set('image-optimization', imageConstruct.function);
+      this.computeFunctionUrls.set(
+        'image-optimization',
+        imageConstruct.functionUrl,
+      );
+
+      if (!primaryFunction) {
+        primaryFunction = imageConstruct.function;
+        primaryFunctionUrl = imageConstruct.functionUrl;
+      }
+    }
+
+    // ---- 5. WAF (conditional) ----
     const wafConstruct = new WafConstruct(this, 'Waf', {
       enabled: props.waf?.enabled ?? false,
       rateLimit: props.waf?.rateLimit,
@@ -197,7 +273,7 @@ export class AmplifyHostingConstruct extends Construct {
     });
     this.webAcl = wafConstruct.webAcl;
 
-    // ---- 4. Custom domain resources (conditional) ----
+    // ---- 6. Custom domain resources (conditional) ----
     let dnsConstruct: DnsConstruct | undefined;
     if (props.domain) {
       dnsConstruct = new DnsConstruct(this, 'Dns', {
@@ -210,23 +286,22 @@ export class AmplifyHostingConstruct extends Construct {
       this.hostedZone = dnsConstruct.hostedZone;
     }
 
-    // ---- 5. Security headers ----
+    // ---- 7. Security headers ----
     const securityHeadersPolicy = createSecurityHeadersPolicy(
       this,
       'SecurityHeaders',
       { contentSecurityPolicy: props.cdn?.contentSecurityPolicy },
     );
 
-    // ---- 6. CloudFront distribution (CDN + OAC patches) ----
-    // Stamp the buildId into the manifest so CdnConstruct can read it
+    // ---- 8. CloudFront distribution ----
     const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
 
     const cdn = new CdnConstruct(this, 'Cdn', {
       bucket: this.bucket,
       manifest: manifestWithBuildId,
       securityHeadersPolicy,
-      ssrFunctionUrl: this.functionUrl,
-      ssrFunction: this.ssrFunction,
+      ssrFunctionUrl: primaryFunctionUrl,
+      ssrFunction: primaryFunction,
       webAcl: this.webAcl,
       certificate: this.certificate,
       domainName: props.domain?.domainName,
@@ -238,13 +313,7 @@ export class AmplifyHostingConstruct extends Construct {
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
 
-    // ---- 6a. KMS decrypt grant for CloudFront OAC ----
-    // When the hosting bucket uses KMS encryption, CloudFront OAC needs
-    // kms:Decrypt to read objects via SigV4. Grant on BYO key or CDK auto-key.
-    // NOTE: We scope the grant to the CloudFront service principal but omit a
-    // SourceArn condition referencing the distribution. Adding a Ref to the
-    // distribution here would create a Key→Distribution→Bucket→Key circular
-    // dependency in CloudFormation.
+    // ---- 8a. KMS decrypt grant for CloudFront OAC ----
     const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
     if (props.storage?.encryption === 'KMS' && kmsKey) {
       kmsKey.addToResourcePolicy(
@@ -256,12 +325,12 @@ export class AmplifyHostingConstruct extends Construct {
       );
     }
 
-    // ---- 7. DNS records (only when custom domain configured) ----
+    // ---- 9. DNS records ----
     if (props.domain && dnsConstruct) {
       dnsConstruct.createDnsRecords(this.distribution);
     }
 
-    // ---- 8. Upload SSR error page for 5xx responses ----
+    // ---- 10. Error page deployment (SSR only) ----
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
@@ -271,9 +340,9 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // ---- 9. Atomic Deployment (uploads static assets + invalidates CloudFront) ----
+    // ---- 11. Atomic Deployment (static assets) ----
     new BucketDeployment(this, 'AssetDeployment', {
-      sources: [Source.asset(props.staticAssetPath)],
+      sources: [Source.asset(manifest.staticAssets.directory)],
       destinationBucket: this.bucket,
       destinationKeyPrefix: `builds/${buildId}/`,
       prune: false,

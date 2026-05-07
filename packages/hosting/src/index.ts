@@ -2,12 +2,16 @@ export { BackendHosting, defineHosting, HostingResult } from './factory.js';
 export { FrameworkType, HostingProps, HostingResources } from './types.js';
 export {
   DeployManifest,
-  ManifestRoute,
-  RouteTarget,
+  RouteBehavior,
   ComputeResource,
-  FrameworkMetadata,
+  CacheConfig,
+  ImageConfig,
+  MiddlewareConfig,
+  Redirect,
+  Rewrite,
+  CustomHeader,
 } from './manifest/types.js';
-export { FrameworkAdapterFn } from './adapters/index.js';
+export { FrameworkAdapterFn, NextjsAdapterOptions } from './adapters/index.js';
 export { HostingError } from './hosting_error.js';
 export {
   AmplifyHostingConstruct,

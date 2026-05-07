@@ -42,8 +42,6 @@ const DEFAULT_LAMBDA_TIMEOUT_SECONDS = 30;
 
 /**
  * Regions known to host the Lambda Web Adapter public layer.
- * Source: https://github.com/awslabs/aws-lambda-web-adapter
- * This list may need updating as new regions are added.
  */
 const LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS = new Set([
   'us-east-1',
@@ -74,13 +72,13 @@ const LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS = new Set([
  * Props for the ComputeConstruct.
  */
 export type ComputeConstructProps = {
+  /** Logical name of this compute resource. */
+  name: string;
   /** The compute resource definition from the deploy manifest. */
   computeResource: ComputeResource;
-  /** Filesystem path to the directory containing compute resource subdirectories. */
-  computeBasePath: string;
-  /** Lambda memory size in MB. Default: 512. */
+  /** Lambda memory size override (MB). Default: from manifest or 512. */
   memorySize?: number;
-  /** Lambda timeout. Default: 30 seconds. */
+  /** Lambda timeout override. Default: from manifest or 30 seconds. */
   timeout?: Duration;
   /** Reserved concurrent executions. Default: undefined (no reservation). */
   reservedConcurrency?: number;
@@ -88,40 +86,158 @@ export type ComputeConstructProps = {
   webAdapterVersion?: number;
   /** CloudWatch log retention. Default: TWO_WEEKS. */
   logRetention?: RetentionDays;
-  /**
-   * Skip the Lambda Web Adapter region validation check.
-   * Use when deploying to a newly-launched region that supports the
-   * adapter but is not yet in the built-in allowlist.
-   */
+  /** Skip the Lambda Web Adapter region validation check. */
   skipRegionValidation?: boolean;
 };
 
 // ---- Construct ----
 
 /**
- * Lambda compute for SSR: creates a Lambda function with the AWS Lambda
- * Web Adapter layer, a Function URL with IAM auth + RESPONSE_STREAM,
- * and a least-privilege IAM role.
+ * Lambda compute construct — creates Lambda functions from manifest compute resources.
+ *
+ * Supports three compute types:
+ * - **handler**: Direct Lambda invocation (native Node.js handler, no Web Adapter).
+ *   Used by OpenNext server functions.
+ * - **http-server**: Lambda + Web Adapter layer. Runs an HTTP server process inside Lambda.
+ *   Used for frameworks that produce HTTP servers (SvelteKit, Astro, custom servers).
+ * - **edge**: Lambda@Edge (placeholder — deployed via CloudFront).
  */
 export class ComputeConstruct extends Construct {
   readonly function: LambdaFunction;
   readonly functionUrl: FunctionUrl;
 
   /**
-   * Create an SSR compute function with the given props.
+   * Creates a compute resource (Lambda function) based on the compute type.
    */
   constructor(scope: Construct, id: string, props: ComputeConstructProps) {
     super(scope, id);
 
+    const { computeResource } = props;
     const region = Stack.of(this).region;
-    const computeDir = `${props.computeBasePath}/${props.computeResource.name}`;
-    const webAdapterVersion =
-      props.webAdapterVersion ?? DEFAULT_WEB_ADAPTER_VERSION;
 
-    // Validate region supports Lambda Web Adapter (skip if region is an
-    // unresolved token or if the caller opted out via skipRegionValidation)
+    const memorySize =
+      props.memorySize ??
+      computeResource.memorySize ??
+      DEFAULT_LAMBDA_MEMORY_MB;
+    const timeout =
+      props.timeout ??
+      Duration.seconds(
+        computeResource.timeout ?? DEFAULT_LAMBDA_TIMEOUT_SECONDS,
+      );
+
+    // Explicit least-privilege role — only CloudWatch Logs
+    const ssrRole = new Role(this, 'FunctionRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSLambdaBasicExecutionRole',
+        ),
+      ],
+    });
+
+    if (computeResource.type === 'handler') {
+      // Native Lambda handler — no Web Adapter needed
+      this.function = new LambdaFunction(this, 'Function', {
+        runtime: this.resolveRuntime(computeResource.runtime),
+        handler: computeResource.handler ?? 'index.handler',
+        code: Code.fromAsset(computeResource.bundle),
+        architecture: Architecture.X86_64,
+        memorySize,
+        timeout,
+        reservedConcurrentExecutions: props.reservedConcurrency,
+        role: ssrRole,
+        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        environment: {
+          ...computeResource.environment,
+        },
+      });
+    } else if (computeResource.type === 'http-server') {
+      // HTTP server mode — Lambda Web Adapter proxies HTTP traffic
+      this.validateWebAdapterRegion(region, props.skipRegionValidation);
+
+      const webAdapterVersion =
+        props.webAdapterVersion ?? DEFAULT_WEB_ADAPTER_VERSION;
+      const webAdapterLayerArn = `arn:aws:lambda:${region}:${LAMBDA_WEB_ADAPTER_ACCOUNT}:layer:${LAMBDA_WEB_ADAPTER_LAYER_NAME}:${webAdapterVersion}`;
+      const port = computeResource.port ?? SSR_DEFAULT_PORT;
+
+      this.function = new LambdaFunction(this, 'Function', {
+        runtime: this.resolveRuntime(computeResource.runtime),
+        handler: computeResource.entrypoint ?? 'run.sh',
+        code: Code.fromAsset(computeResource.bundle),
+        architecture: Architecture.X86_64,
+        memorySize,
+        timeout,
+        reservedConcurrentExecutions: props.reservedConcurrency,
+        role: ssrRole,
+        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        layers: [
+          LayerVersion.fromLayerVersionArn(
+            this,
+            'WebAdapterLayer',
+            webAdapterLayerArn,
+          ),
+        ],
+        environment: {
+          AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
+          AWS_LWA_INVOKE_MODE: 'response_stream',
+          PORT: String(port),
+          ...computeResource.environment,
+        },
+      });
+    } else if (computeResource.type === 'edge') {
+      // Edge function — still Lambda, placed globally via Lambda@Edge
+      this.function = new LambdaFunction(this, 'Function', {
+        runtime: this.resolveRuntime(computeResource.runtime),
+        handler: computeResource.handler ?? 'index.handler',
+        code: Code.fromAsset(computeResource.bundle),
+        architecture: Architecture.X86_64,
+        memorySize,
+        timeout: Duration.seconds(Math.min(computeResource.timeout ?? 5, 30)),
+        role: ssrRole,
+        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        environment: {
+          ...computeResource.environment,
+        },
+      });
+    } else {
+      throw new HostingError('UnsupportedComputeTypeError', {
+        message: `Unsupported compute type: "${String(computeResource.type)}"`,
+        resolution:
+          'Use a supported compute type: handler, http-server, or edge.',
+      });
+    }
+
+    // Response streaming for handler and http-server types
+    const invokeMode =
+      computeResource.streaming !== false
+        ? InvokeMode.RESPONSE_STREAM
+        : InvokeMode.BUFFERED;
+
+    this.functionUrl = this.function.addFunctionUrl({
+      authType: FunctionUrlAuthType.AWS_IAM,
+      invokeMode,
+    });
+  }
+
+  private resolveRuntime(runtime?: string): Runtime {
+    if (!runtime || runtime === 'nodejs20.x') {
+      return Runtime.NODEJS_20_X;
+    }
+    if (runtime === 'nodejs22.x') {
+      return Runtime.NODEJS_22_X;
+    }
+    if (runtime === 'nodejs18.x') {
+      return Runtime.NODEJS_18_X;
+    }
+    return Runtime.NODEJS_20_X;
+  }
+
+  private validateWebAdapterRegion(
+    region: string,
+    skipValidation?: boolean,
+  ): void {
     if (
-      !props.skipRegionValidation &&
+      !skipValidation &&
       !Token.isUnresolved(region) &&
       !LAMBDA_WEB_ADAPTER_SUPPORTED_REGIONS.has(region)
     ) {
@@ -132,47 +248,5 @@ export class ComputeConstruct extends Construct {
           'See https://github.com/awslabs/aws-lambda-web-adapter for supported regions.',
       });
     }
-
-    const webAdapterLayerArn = `arn:aws:lambda:${region}:${LAMBDA_WEB_ADAPTER_ACCOUNT}:layer:${LAMBDA_WEB_ADAPTER_LAYER_NAME}:${webAdapterVersion}`;
-
-    // Explicit least-privilege role — only CloudWatch Logs
-    const ssrRole = new Role(this, 'SsrFunctionRole', {
-      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-      managedPolicies: [
-        ManagedPolicy.fromAwsManagedPolicyName(
-          'service-role/AWSLambdaBasicExecutionRole',
-        ),
-      ],
-    });
-
-    this.function = new LambdaFunction(this, 'SsrFunction', {
-      runtime: Runtime.NODEJS_20_X,
-      handler: 'run.sh', // Lambda Web Adapter's /opt/bootstrap executes this as the server entrypoint
-      code: Code.fromAsset(computeDir),
-      architecture: Architecture.X86_64,
-      memorySize: props.memorySize ?? DEFAULT_LAMBDA_MEMORY_MB,
-      timeout:
-        props.timeout ?? Duration.seconds(DEFAULT_LAMBDA_TIMEOUT_SECONDS),
-      reservedConcurrentExecutions: props.reservedConcurrency,
-      role: ssrRole,
-      logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
-      layers: [
-        LayerVersion.fromLayerVersionArn(
-          this,
-          'WebAdapterLayer',
-          webAdapterLayerArn,
-        ),
-      ],
-      environment: {
-        AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
-        AWS_LWA_INVOKE_MODE: 'response_stream',
-        PORT: String(SSR_DEFAULT_PORT),
-      },
-    });
-
-    this.functionUrl = this.function.addFunctionUrl({
-      authType: FunctionUrlAuthType.AWS_IAM,
-      invokeMode: InvokeMode.RESPONSE_STREAM,
-    });
   }
 }

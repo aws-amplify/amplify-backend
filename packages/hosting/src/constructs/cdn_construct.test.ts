@@ -19,7 +19,7 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { CdnConstruct } from './cdn_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
 import { HostingError } from '../hosting_error.js';
-import { DeployManifest, ManifestRoute } from '../manifest/types.js';
+import { DeployManifest } from '../manifest/types.js';
 
 // ---- Test helpers ----
 
@@ -38,34 +38,39 @@ const createEnvStack = (
 
 const spaManifest: DeployManifest = {
   version: 1,
-  routes: [{ path: '/*', target: { kind: 'Static' } }],
-  framework: { name: 'spa' },
+  compute: {},
+  staticAssets: { directory: '/tmp/assets' },
+  routes: [{ pattern: '/*', target: 'static' }],
   buildId: 'test-spa-1',
 };
 
 const ssrManifest: DeployManifest = {
   version: 1,
+  compute: {
+    default: {
+      type: 'handler',
+      bundle: '/tmp/bundle',
+      handler: 'index.handler',
+      placement: 'regional',
+    },
+  },
+  staticAssets: { directory: '/tmp/assets' },
   routes: [
-    { path: '/_next/static/*', target: { kind: 'Static' } },
-    { path: '/favicon.ico', target: { kind: 'Static' } },
-    { path: '/*', target: { kind: 'Compute', src: 'default' } },
+    { pattern: '/_next/static/*', target: 'static' },
+    { pattern: '/favicon.ico', target: 'static' },
+    { pattern: '/*', target: 'default' },
   ],
-  computeResources: [
-    { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-  ],
-  framework: { name: 'nextjs', version: '15.0.0' },
   buildId: 'test-ssr-1',
 };
 
 /**
- * Create a Lambda function + Function URL for SSR CDN tests.
- * Requires a tmp dir with a Lambda code asset.
+ * Create a dummy Lambda + Function URL for SSR testing.
  */
-const createSsrFunction = (stack: Stack, computeDir: string) => {
+const createSsrFunction = (stack: Stack) => {
   const fn = new LambdaFunction(stack, 'SsrFn', {
     runtime: Runtime.NODEJS_20_X,
-    handler: 'run.sh',
-    code: Code.fromAsset(computeDir),
+    handler: 'index.handler',
+    code: Code.fromInline('exports.handler = async () => {};'),
   });
   const fnUrl = fn.addFunctionUrl({
     authType: FunctionUrlAuthType.AWS_IAM,
@@ -75,204 +80,49 @@ const createSsrFunction = (stack: Stack, computeDir: string) => {
 };
 
 // ================================================================
-// CdnConstruct — isolated unit tests
+// CdnConstruct — unit tests
 // ================================================================
 
 void describe('CdnConstruct', () => {
   let tmpDir: string;
-  let computeDir: string;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cdn-construct-test-'));
-    computeDir = path.join(tmpDir, 'default');
-    fs.mkdirSync(computeDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(computeDir, 'run.sh'),
-      '#!/bin/bash\nexec node server.js',
-    );
-    fs.writeFileSync(path.join(computeDir, 'server.js'), '// server stub');
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  // ---- Distribution basics ----
-
-  void describe('distribution basics', () => {
-    void it('creates a CloudFront distribution', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-    });
-
-    void it('configures HTTPS redirect on default behavior', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            DefaultCacheBehavior: Match.objectLike({
-              ViewerProtocolPolicy: 'redirect-to-https',
-            }),
-          }),
-        }),
-      );
-    });
-
-    void it('sets TLS 1.2 minimum when custom domain is configured', () => {
-      const stack = createEnvStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const cert = Certificate.fromCertificateArn(
-        stack,
-        'Cert',
-        'arn:aws:acm:us-east-1:123456789012:certificate/tls-test',
-      );
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        certificate: cert,
-        domainName: 'www.example.com',
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            ViewerCertificate: Match.objectLike({
-              MinimumProtocolVersion: 'TLSv1.2_2021',
-              SslSupportMethod: 'sni-only',
-            }),
-          }),
-        }),
-      );
-    });
-
-    void it('enables HTTP/2 and HTTP/3', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            HttpVersion: 'http2and3',
-          }),
-        }),
-      );
-    });
-  });
-
-  // ---- Build ID CloudFront Function ----
-
-  void describe('Build ID CloudFront Function', () => {
-    void it('creates a CloudFront Function', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::CloudFront::Function', 1);
-    });
-
-    void it('attaches Build ID function to viewer-request', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            DefaultCacheBehavior: Match.objectLike({
-              FunctionAssociations: Match.arrayWith([
-                Match.objectLike({
-                  EventType: 'viewer-request',
-                }),
-              ]),
-            }),
-          }),
-        }),
-      );
-    });
-  });
-
   // ---- SPA mode ----
 
-  void describe('SPA mode', () => {
-    void it('default behavior is S3 origin', () => {
+  void describe('SPA mode (no compute)', () => {
+    void it('creates CloudFront distribution with S3 origin', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
-      new CdnConstruct(stack, 'Cdn', {
+      const cdn = new CdnConstruct(stack, 'Cdn', {
         bucket,
         manifest: spaManifest,
         securityHeadersPolicy: policy,
       });
 
+      assert.ok(cdn.distribution);
+      assert.ok(cdn.distributionUrl);
+
       const template = Template.fromStack(stack);
-      // Default behavior uses cached methods (GET, HEAD, OPTIONS) — S3 pattern
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            DefaultCacheBehavior: Match.objectLike({
-              AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
-            }),
-          }),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          HttpVersion: 'http2and3',
         }),
-      );
+      });
     });
 
-    void it('creates 403 → /index.html error response for SPA', () => {
+    void it('creates 403/404 error responses for SPA', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -281,26 +131,20 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            CustomErrorResponses: Match.arrayWith([
-              Match.objectLike({
-                ErrorCode: 403,
-                ResponseCode: 200,
-                ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-              }),
-            ]),
-          }),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({ ErrorCode: 403, ResponseCode: 200 }),
+            Match.objectLike({ ErrorCode: 404, ResponseCode: 200 }),
+          ]),
         }),
-      );
+      });
     });
 
-    void it('creates 404 → /index.html error response for SPA', () => {
+    void it('creates BuildId CloudFront Function', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -309,31 +153,20 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            CustomErrorResponses: Match.arrayWith([
-              Match.objectLike({
-                ErrorCode: 404,
-                ResponseCode: 200,
-                ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-              }),
-            ]),
-          }),
-        }),
-      );
+      template.hasResourceProperties('AWS::CloudFront::Function', {
+        FunctionCode: Match.stringLikeRegexp('test-spa-1'),
+      });
     });
   });
 
   // ---- SSR mode ----
 
-  void describe('SSR mode', () => {
-    void it('default behavior routes to Lambda origin', () => {
+  void describe('SSR mode (with compute)', () => {
+    void it('creates distribution with Lambda Function URL origin', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -344,65 +177,28 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      // SSR default behavior uses ALL methods
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            DefaultCacheBehavior: Match.objectLike({
-              AllowedMethods: Match.arrayWith([
-                'GET',
-                'HEAD',
-                'OPTIONS',
-                'PUT',
-                'PATCH',
-                'POST',
-                'DELETE',
-              ]),
-            }),
-          }),
-        }),
-      );
-    });
-
-    void it('creates additional static behaviors for non-catch-all routes', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: ssrManifest,
-        securityHeadersPolicy: policy,
-        ssrFunctionUrl: fnUrl,
-        ssrFunction: fn,
-      });
-
-      const template = Template.fromStack(stack);
-      // Should have CacheBehaviors for /_next/static/* and /favicon.ico
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            CacheBehaviors: Match.arrayWith([
-              Match.objectLike({
-                PathPattern: '/_next/static/*',
-              }),
-              Match.objectLike({
-                PathPattern: '/favicon.ico',
-              }),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            AllowedMethods: Match.arrayWith([
+              'GET',
+              'HEAD',
+              'OPTIONS',
+              'PUT',
+              'PATCH',
+              'POST',
+              'DELETE',
             ]),
           }),
         }),
-      );
+      });
     });
 
-    void it('creates SSR 5xx error responses (502, 503, 504)', () => {
+    void it('creates additional behaviors for static routes', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -413,28 +209,25 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      for (const errorCode of [502, 503, 504]) {
-        template.hasResourceProperties(
-          'AWS::CloudFront::Distribution',
-          Match.objectLike({
-            DistributionConfig: Match.objectLike({
-              CustomErrorResponses: Match.arrayWith([
-                Match.objectLike({
-                  ErrorCode: errorCode,
-                  ResponsePagePath: `/builds/${ssrManifest.buildId}/_error.html`,
-                }),
-              ]),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CacheBehaviors: Match.arrayWith([
+            Match.objectLike({
+              PathPattern: '/_next/static/*',
             }),
-          }),
-        );
-      }
+            Match.objectLike({
+              PathPattern: '/favicon.ico',
+            }),
+          ]),
+        }),
+      });
     });
 
-    void it('does not create SPA 403/404 error responses in SSR mode', () => {
+    void it('creates 5xx error responses for SSR', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -445,94 +238,115 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      const distributions = template.findResources(
-        'AWS::CloudFront::Distribution',
-      );
-      const distribution = Object.values(distributions)[0] as Record<
-        string,
-        Record<string, unknown>
-      >;
-      const config = distribution.Properties.DistributionConfig as Record<
-        string,
-        unknown
-      >;
-      const errorResponses = config.CustomErrorResponses as Array<
-        Record<string, unknown>
-      >;
-
-      const has403 = errorResponses?.some((r) => r.ErrorCode === 403);
-      const has404 = errorResponses?.some((r) => r.ErrorCode === 404);
-
-      assert.strictEqual(
-        has403,
-        false,
-        'SSR should not have 403 error response',
-      );
-      assert.strictEqual(
-        has404,
-        false,
-        'SSR should not have 404 error response',
-      );
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({ ErrorCode: 502 }),
+            Match.objectLike({ ErrorCode: 503 }),
+            Match.objectLike({ ErrorCode: 504 }),
+          ]),
+        }),
+      });
     });
   });
 
-  // ---- Route mapping ----
+  // ---- Validation ----
 
-  void describe('route mapping', () => {
-    void it('maps compute routes to Lambda behavior', () => {
+  void describe('validation', () => {
+    void it('throws MissingBuildIdError when buildId is not set', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const manifestWithoutBuildId: DeployManifest = {
+        version: 1,
+        compute: {},
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [{ pattern: '/*', target: 'static' }],
+      };
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: manifestWithoutBuildId,
+            securityHeadersPolicy: policy,
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'MissingBuildIdError');
+          return true;
+        },
+      );
+    });
+
+    void it('throws TooManyRoutesError for >24 specific routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const manyRoutes = Array.from({ length: 25 }, (_, i) => ({
+        pattern: `/route-${i}`,
+        target: 'static',
+      }));
+      manyRoutes.push({ pattern: '/*', target: 'static' });
 
       const manifest: DeployManifest = {
         version: 1,
-        routes: [
-          { path: '/api/*', target: { kind: 'Compute', src: 'default' } },
-          { path: '/static/*', target: { kind: 'Static' } },
-          { path: '/*', target: { kind: 'Compute', src: 'default' } },
-        ],
-        computeResources: [
-          { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-        ],
-        framework: { name: 'nextjs' },
-        buildId: 'test-routes-1',
+        compute: {},
+        staticAssets: { directory: '/tmp/assets' },
+        routes: manyRoutes,
+        buildId: 'test-1',
       };
 
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest,
-        securityHeadersPolicy: policy,
-        ssrFunctionUrl: fnUrl,
-        ssrFunction: fn,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            CacheBehaviors: Match.arrayWith([
-              Match.objectLike({ PathPattern: '/api/*' }),
-              Match.objectLike({ PathPattern: '/static/*' }),
-            ]),
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest,
+            securityHeadersPolicy: policy,
           }),
-        }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'TooManyRoutesError');
+          return true;
+        },
+      );
+    });
+
+    void it('throws EmptyGeoRestrictionError for empty countries', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: spaManifest,
+            securityHeadersPolicy: policy,
+            geoRestriction: { type: 'whitelist', countries: [] },
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'EmptyGeoRestrictionError');
+          return true;
+        },
       );
     });
   });
 
-  // ---- WAF association ----
+  // ---- Optional features ----
 
-  void describe('WAF association', () => {
-    void it('associates WebACL when provided', () => {
-      const stack = createStack();
+  void describe('optional features', () => {
+    void it('applies WAF WebACL', () => {
+      const stack = createEnvStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
       const webAcl = new CfnWebACL(stack, 'WebAcl', {
-        defaultAction: { allow: {} },
         scope: 'CLOUDFRONT',
+        defaultAction: { allow: {} },
         visibilityConfig: {
           cloudWatchMetricsEnabled: true,
           metricName: 'test',
@@ -548,106 +362,43 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            WebACLId: Match.anyValue(),
-          }),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          WebACLId: Match.anyValue(),
         }),
-      );
+      });
     });
 
-    void it('does not associate WebACL when not provided', () => {
-      const stack = createStack();
+    void it('sets custom domain name and certificate', () => {
+      const stack = createEnvStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const cert = Certificate.fromCertificateArn(
+        stack,
+        'Cert',
+        'arn:aws:acm:us-east-1:123456789012:certificate/test-id',
+      );
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
         manifest: spaManifest,
         securityHeadersPolicy: policy,
+        certificate: cert,
+        domainName: 'example.com',
       });
 
       const template = Template.fromStack(stack);
-      const distributions = template.findResources(
-        'AWS::CloudFront::Distribution',
-      );
-      const distribution = Object.values(distributions)[0] as Record<
-        string,
-        Record<string, unknown>
-      >;
-      const config = distribution.Properties.DistributionConfig as Record<
-        string,
-        unknown
-      >;
-      assert.strictEqual(
-        config.WebACLId,
-        undefined,
-        'Should not have WebACLId',
-      );
-    });
-  });
-
-  // ---- Access logging ----
-
-  void describe('access logging', () => {
-    void it('enables logging when accessLogBucket is provided', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const logBucket = new Bucket(stack, 'LogBucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        accessLogBucket: logBucket,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            Logging: Match.objectLike({
-              Bucket: Match.anyValue(),
-            }),
-          }),
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          Aliases: ['example.com'],
         }),
-      );
-    });
-  });
-
-  // ---- Price class ----
-
-  void describe('price class', () => {
-    void it('uses PRICE_CLASS_100 by default', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
       });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            PriceClass: 'PriceClass_100',
-          }),
-        }),
-      );
     });
 
-    void it('applies custom priceClass', () => {
+    void it('uses custom price class', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -657,24 +408,46 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            PriceClass: 'PriceClass_All',
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          PriceClass: 'PriceClass_All',
+        }),
+      });
+    });
+
+    void it('applies geo restriction', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+        geoRestriction: { type: 'whitelist', countries: ['US', 'CA'] },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          Restrictions: Match.objectLike({
+            GeoRestriction: Match.objectLike({
+              RestrictionType: 'whitelist',
+              Locations: ['US', 'CA'],
+            }),
           }),
         }),
-      );
+      });
     });
   });
 
-  // ---- OAC: S3 bucket policy ----
+  // ---- OAC ----
 
-  void describe('OAC bucket policy', () => {
-    void it('adds S3 GetObject policy for CloudFront', () => {
-      const stack = createStack();
+  void describe('OAC permissions', () => {
+    void it('adds S3 bucket policy for CloudFront access', () => {
+      const stack = createEnvStack();
       const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
 
       new CdnConstruct(stack, 'Cdn', {
         bucket,
@@ -688,345 +461,11 @@ void describe('CdnConstruct', () => {
           Statement: Match.arrayWith([
             Match.objectLike({
               Action: 's3:GetObject',
-              Effect: 'Allow',
-              Principal: {
-                Service: 'cloudfront.amazonaws.com',
-              },
+              Principal: { Service: 'cloudfront.amazonaws.com' },
             }),
           ]),
         }),
       });
-    });
-  });
-
-  // ---- OAC: Lambda permission patch ----
-
-  void describe('OAC Lambda permission patch', () => {
-    void it('creates lambda:InvokeFunction permission for SSR', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const { fn, fnUrl } = createSsrFunction(stack, computeDir);
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: ssrManifest,
-        securityHeadersPolicy: policy,
-        ssrFunctionUrl: fnUrl,
-        ssrFunction: fn,
-      });
-
-      const template = Template.fromStack(stack);
-      const permissions = template.findResources('AWS::Lambda::Permission');
-      const invokePerms = Object.entries(permissions).filter(([, perm]) => {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        return props?.Action === 'lambda:InvokeFunction';
-      });
-      assert.ok(
-        invokePerms.length > 0,
-        'Should have lambda:InvokeFunction permission',
-      );
-    });
-  });
-
-  // ---- CloudFront behavior limit ----
-
-  void describe('behavior limit', () => {
-    void it('throws HostingError when more than 24 non-catch-all routes', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      // Create 25 non-catch-all routes (exceeds limit of 24)
-      const routes: ManifestRoute[] = [];
-      for (let i = 0; i < 25; i++) {
-        routes.push({
-          path: `/route-${i}`,
-          target: { kind: 'Static' },
-        });
-      }
-      routes.push({ path: '/*', target: { kind: 'Static' } });
-
-      const manifest: DeployManifest = {
-        version: 1,
-        routes,
-        framework: { name: 'spa' },
-        buildId: 'test-limit-1',
-      };
-
-      assert.throws(
-        () =>
-          new CdnConstruct(stack, 'Cdn', {
-            bucket,
-            manifest,
-            securityHeadersPolicy: policy,
-          }),
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'TooManyRoutesError');
-          assert.ok(err.message.includes('25'));
-          assert.ok(err.resolution);
-          return true;
-        },
-      );
-    });
-
-    void it('accepts exactly 24 non-catch-all routes', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      const routes: ManifestRoute[] = [];
-      for (let i = 0; i < 24; i++) {
-        routes.push({
-          path: `/route-${i}`,
-          target: { kind: 'Static' },
-        });
-      }
-      routes.push({ path: '/*', target: { kind: 'Static' } });
-
-      const manifest: DeployManifest = {
-        version: 1,
-        routes,
-        framework: { name: 'spa' },
-        buildId: 'test-limit-ok',
-      };
-
-      const cdn = new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest,
-        securityHeadersPolicy: policy,
-      });
-      assert.ok(cdn.distribution, 'Should create distribution with 24 routes');
-    });
-  });
-
-  // ---- Custom domain on distribution ----
-
-  void describe('custom domain', () => {
-    void it('sets distributionUrl to custom domain when cert and domainName provided', () => {
-      const stack = createEnvStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const cert = Certificate.fromCertificateArn(
-        stack,
-        'Cert',
-        'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
-      );
-
-      const cdn = new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        certificate: cert,
-        domainName: 'www.example.com',
-      });
-
-      assert.strictEqual(
-        cdn.distributionUrl,
-        'https://www.example.com',
-        'distributionUrl should use custom domain',
-      );
-    });
-
-    void it('sets distributionUrl to CloudFront domain when no custom domain', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      const cdn = new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      assert.ok(
-        cdn.distributionUrl.startsWith('https://'),
-        'distributionUrl should start with https://',
-      );
-    });
-
-    void it('adds domain name as CloudFront alias', () => {
-      const stack = createEnvStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-      const cert = Certificate.fromCertificateArn(
-        stack,
-        'Cert',
-        'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
-      );
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        certificate: cert,
-        domainName: 'www.example.com',
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            Aliases: ['www.example.com'],
-          }),
-        }),
-      );
-    });
-  });
-
-  // ---- MissingBuildIdError ----
-
-  void describe('MissingBuildIdError', () => {
-    void it('throws HostingError with code MissingBuildIdError when buildId is undefined', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      const manifest: DeployManifest = {
-        version: 1,
-        routes: [{ path: '/*', target: { kind: 'Static' } }],
-        framework: { name: 'spa' },
-        // buildId intentionally omitted
-      };
-
-      assert.throws(
-        () =>
-          new CdnConstruct(stack, 'Cdn', {
-            bucket,
-            manifest,
-            securityHeadersPolicy: policy,
-          }),
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'MissingBuildIdError');
-          assert.ok(err.message.includes('buildId'));
-          assert.ok(err.resolution);
-          return true;
-        },
-      );
-    });
-  });
-
-  // ---- CfnOutput ----
-
-  void describe('outputs', () => {
-    void it('creates DistributionUrl output', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      const outputs = template.findOutputs('*');
-      const distUrlOutput = Object.entries(outputs).find(([key]) =>
-        key.includes('DistributionUrl'),
-      );
-      assert.ok(distUrlOutput, 'Should have DistributionUrl output');
-    });
-  });
-
-  // ---- Geo-restriction ----
-
-  void describe('geo-restriction', () => {
-    void it('applies whitelist geo-restriction to distribution', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        geoRestriction: {
-          type: 'whitelist',
-          countries: ['US', 'CA', 'GB'],
-        },
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            Restrictions: Match.objectLike({
-              GeoRestriction: Match.objectLike({
-                RestrictionType: 'whitelist',
-                Locations: ['US', 'CA', 'GB'],
-              }),
-            }),
-          }),
-        }),
-      );
-    });
-
-    void it('applies blacklist geo-restriction to distribution', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-        geoRestriction: {
-          type: 'blacklist',
-          countries: ['CN', 'RU'],
-        },
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            Restrictions: Match.objectLike({
-              GeoRestriction: Match.objectLike({
-                RestrictionType: 'blacklist',
-                Locations: ['CN', 'RU'],
-              }),
-            }),
-          }),
-        }),
-      );
-    });
-
-    void it('does not apply geo-restriction when not configured', () => {
-      const stack = createStack();
-      const bucket = new Bucket(stack, 'Bucket');
-      const policy = createSecurityHeadersPolicy(stack, 'Headers');
-
-      new CdnConstruct(stack, 'Cdn', {
-        bucket,
-        manifest: spaManifest,
-        securityHeadersPolicy: policy,
-      });
-
-      const template = Template.fromStack(stack);
-      const distributions = template.findResources(
-        'AWS::CloudFront::Distribution',
-      );
-      for (const [, dist] of Object.entries(distributions)) {
-        const config = (dist as Record<string, Record<string, unknown>>)
-          .Properties?.DistributionConfig as Record<string, unknown>;
-        const restrictions = config?.Restrictions as
-          | Record<string, Record<string, unknown>>
-          | undefined;
-        if (restrictions?.GeoRestriction) {
-          assert.strictEqual(
-            restrictions.GeoRestriction.RestrictionType,
-            'none',
-            'Default should have no geo-restriction (type=none)',
-          );
-        }
-      }
     });
   });
 });

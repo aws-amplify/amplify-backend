@@ -23,12 +23,6 @@ export type HostingProps = {
   buildCommand?: string;
 
   /**
-   * Directory containing built output (e.g., 'dist', 'build').
-   * Auto-detected from framework if not specified.
-   */
-  buildOutputDir?: string;
-
-  /**
    * Framework type — auto-detected from package.json or set explicitly.
    * Accepts built-in values ('nextjs', 'spa', 'static') or any custom string.
    */
@@ -37,6 +31,7 @@ export type HostingProps = {
   /**
    * Custom framework adapter for unsupported frameworks.
    * When provided, this adapter is used instead of the built-in registry lookup.
+   * Receives the project directory and returns a DeployManifest.
    */
   customAdapter?: FrameworkAdapterFn;
 
