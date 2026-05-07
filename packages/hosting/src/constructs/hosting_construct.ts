@@ -6,6 +6,7 @@ import {
   experimental,
 } from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import {
@@ -19,7 +20,7 @@ import { IKey } from 'aws-cdk-lib/aws-kms';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
 import { DeployManifest } from '../manifest/types.js';
 import { HostingError } from '../hosting_error.js';
 import { HostingResources } from '../types.js';
@@ -202,6 +203,7 @@ export class AmplifyHostingConstruct extends Construct {
       this.cacheBucket = new Bucket(this, 'CacheBucket', {
         removalPolicy: RemovalPolicy.DESTROY,
         autoDeleteObjects: true,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         lifecycleRules: [{ expiration: Duration.days(30) }],
       });
 
@@ -218,9 +220,19 @@ export class AmplifyHostingConstruct extends Construct {
 
       // SQS queue for async revalidation
       if (manifest.cache.revalidationQueue) {
+        const revalidationDlq = new Queue(this, 'RevalidationDLQ', {
+          retentionPeriod: Duration.days(14),
+          encryption: QueueEncryption.SQS_MANAGED,
+        });
+
         this.revalidationQueue = new Queue(this, 'RevalidationQueue', {
           visibilityTimeout: Duration.seconds(30),
           retentionPeriod: Duration.days(1),
+          encryption: QueueEncryption.SQS_MANAGED,
+          deadLetterQueue: {
+            queue: revalidationDlq,
+            maxReceiveCount: 3,
+          },
         });
       }
 
