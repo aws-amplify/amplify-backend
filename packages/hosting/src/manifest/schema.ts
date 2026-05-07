@@ -4,20 +4,30 @@ import { BUILD_ID_PATTERN } from '../defaults.js';
 /**
  * Zod schema for a ComputeResource.
  */
-export const computeResourceSchema = z.object({
-  type: z.enum(['handler', 'http-server', 'edge']),
-  bundle: z.string().min(1, 'Bundle path must not be empty'),
-  handler: z.string().optional(),
-  entrypoint: z.string().optional(),
-  port: z.number().positive().optional(),
-  placement: z.enum(['regional', 'global']),
-  streaming: z.boolean().optional(),
-  runtime: z.string().optional(),
-  memorySize: z.number().positive().optional(),
-  timeout: z.number().positive().optional(),
-  environment: z.record(z.string()).optional(),
-  provisionedConcurrency: z.number().min(1).optional(),
-});
+export const computeResourceSchema = z
+  .object({
+    type: z.enum(['handler', 'http-server', 'edge']),
+    bundle: z.string().min(1, 'Bundle path must not be empty'),
+    handler: z.string().optional(),
+    entrypoint: z.string().optional(),
+    port: z.number().positive().optional(),
+    placement: z.enum(['regional', 'global']),
+    streaming: z.boolean().optional(),
+    runtime: z.string().optional(),
+    memorySize: z.number().positive().optional(),
+    timeout: z.number().positive().optional(),
+    environment: z.record(z.string()).optional(),
+    provisionedConcurrency: z.number().min(1).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'handler' && !data.handler) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'handler field is required when type is "handler"',
+        path: ['handler'],
+      });
+    }
+  });
 
 /**
  * Zod schema for a RouteBehavior.

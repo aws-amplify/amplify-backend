@@ -195,13 +195,20 @@ export class ComputeConstruct extends Construct {
           `⚠️  Edge compute '${props.name}' has environment variables which Lambda@Edge does not support. They will be stripped.\n`,
         );
       }
+      const edgeMaxTimeout = 5; // viewer-request limit
+      const requestedTimeout = computeResource.timeout ?? 5;
+      if (requestedTimeout > edgeMaxTimeout) {
+        process.stderr.write(
+          `Warning: Lambda@Edge viewer-request timeout capped at ${edgeMaxTimeout}s (requested ${requestedTimeout}s)\n`,
+        );
+      }
       this.function = new experimental.EdgeFunction(this, 'EdgeFunction', {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.handler ?? 'index.handler',
         code: Code.fromAsset(computeResource.bundle),
         architecture: Architecture.X86_64,
         memorySize,
-        timeout: Duration.seconds(Math.min(computeResource.timeout ?? 5, 30)),
+        timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
         logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
       });
       // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region

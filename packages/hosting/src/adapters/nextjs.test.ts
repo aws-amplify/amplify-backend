@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { nextjsAdapter } from './nextjs.js';
+import { deployManifestSchema } from '../manifest/schema.js';
 
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
@@ -360,5 +361,46 @@ void describe('nextjsAdapter', () => {
     const catchAll = manifest.routes.find((r) => r.pattern === '/*');
     assert.ok(catchAll, 'Should add catch-all route');
     assert.strictEqual(catchAll!.target, 'default');
+  });
+
+  void it('adapter output passes schema validation', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'assets', 'index.html'),
+      '<html></html>',
+    );
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: {
+            type: 'function',
+            handler: 'index.handler',
+            streaming: true,
+          },
+        },
+        behaviors: [
+          { pattern: '/_next/static/*', origin: 's3' },
+          { pattern: '/*', origin: 'default' },
+        ],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(
+      result.success,
+      `Schema validation failed: ${JSON.stringify(result.error?.issues)}`,
+    );
   });
 });

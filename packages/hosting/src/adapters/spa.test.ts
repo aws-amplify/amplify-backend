@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { spaAdapter } from './spa.js';
+import { deployManifestSchema } from '../manifest/schema.js';
 
 void describe('spaAdapter', () => {
   let tmpDir: string;
@@ -158,6 +159,15 @@ void describe('spaAdapter', () => {
         assert.strictEqual(error.name, 'MissingIndexHtmlError');
         return true;
       },
+    );
+  });
+
+  void it('adapter output passes schema validation', () => {
+    const manifest = spaAdapter(tmpDir);
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(
+      result.success,
+      `Schema validation failed: ${JSON.stringify(result.error?.issues)}`,
     );
   });
 });

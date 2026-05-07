@@ -505,7 +505,9 @@ void describe('AmplifyHostingConstruct — WAF integration', () => {
     template.resourceCountIs('AWS::WAFv2::WebACL', 1);
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
       DistributionConfig: Match.objectLike({
-        WebACLId: Match.anyValue(),
+        WebACLId: {
+          'Fn::GetAtt': Match.arrayWith([Match.stringLikeRegexp('.*WebAcl.*')]),
+        },
       }),
     });
   });

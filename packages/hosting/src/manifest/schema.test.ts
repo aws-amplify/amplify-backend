@@ -320,4 +320,69 @@ void describe('Deploy Manifest Schema', () => {
       'Should accept routes with valid compute keys and reserved targets',
     );
   });
+
+  // ---- Handler field validation (superRefine) ----
+
+  void it('rejects compute resource with type "handler" but no handler field', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(
+      !result.success,
+      'Should reject handler type without handler field',
+    );
+    const handlerIssue = result.error?.issues.find(
+      (i) => i.message === 'handler field is required when type is "handler"',
+    );
+    assert.ok(
+      handlerIssue,
+      `Expected handler validation issue, got: ${JSON.stringify(result.error?.issues)}`,
+    );
+  });
+
+  void it('accepts compute resource with type "edge" without handler field', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'edge',
+          bundle: '/tmp/bundle',
+          placement: 'global',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(result.success, 'Edge type should not require handler field');
+  });
+
+  void it('accepts compute resource with type "http-server" without handler field', () => {
+    const result = deployManifestSchema.safeParse({
+      version: 1,
+      compute: {
+        default: {
+          type: 'http-server',
+          bundle: '/tmp/bundle',
+          entrypoint: 'server.js',
+          port: 3000,
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+    });
+    assert.ok(
+      result.success,
+      'http-server type should not require handler field',
+    );
+  });
 });

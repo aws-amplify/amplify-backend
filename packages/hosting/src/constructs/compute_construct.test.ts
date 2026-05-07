@@ -255,7 +255,7 @@ void describe('ComputeConstruct', () => {
       });
     });
 
-    void it('caps timeout at 30 seconds for edge', () => {
+    void it('caps timeout at 5 seconds for edge (viewer-request limit)', () => {
       const bundle = createBundleDir();
       const stack = createEnvStack();
 
@@ -266,7 +266,7 @@ void describe('ComputeConstruct', () => {
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Timeout: 30,
+        Timeout: 5,
       });
     });
   });
