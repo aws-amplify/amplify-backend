@@ -534,7 +534,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // tests and clutter sandbox output).
       if (
         message.includes('Bundling asset') ||
-        message.includes('NodeDeprecationWarning')
+        message.includes('DeprecationWarning')
       ) {
         return true;
       }
