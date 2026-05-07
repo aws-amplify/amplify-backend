@@ -59,7 +59,7 @@ export type HostingProps = {
    * Ignored for SPA and static site deployments.
    */
   compute?: {
-    /** Lambda memory size in MB. Default: 512 */
+    /** Lambda memory size in MB. Default: 1024 */
     memorySize?: number;
     /** Lambda timeout. Default: 30 seconds. */
     timeout?: Duration;

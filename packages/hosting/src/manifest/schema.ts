@@ -86,7 +86,7 @@ export const customHeaderSchema = z.object({
 });
 
 /** Reserved route targets that don't need a corresponding compute entry. */
-const RESERVED_TARGETS = new Set(['static', 's3', 'default', 'image-optimization']);
+const RESERVED_TARGETS = new Set(['static', 's3', 'image-optimization']);
 
 /**
  * Zod schema for the complete DeployManifest.

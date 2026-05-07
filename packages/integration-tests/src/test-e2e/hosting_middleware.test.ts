@@ -21,7 +21,7 @@
  *   HOSTING_MIDDLEWARE_E2E_DISTRIBUTION_URL=https://dxxx.cloudfront.net \
  *     node --test packages/integration-tests/lib/test-e2e/hosting_middleware.test.js
  */
-import { after, before, describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
@@ -42,10 +42,7 @@ void describe('Hosting middleware e2e — Lambda@Edge redirect', () => {
         process.env.HOSTING_MIDDLEWARE_E2E_STACK_NAME ??
         'HostingMiddlewareE2eStack';
       const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-      distributionUrl = await getDistributionUrlFromStack(
-        cfnClient,
-        stackName,
-      );
+      distributionUrl = await getDistributionUrlFromStack(cfnClient, stackName);
     }
 
     assert.ok(

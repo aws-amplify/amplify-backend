@@ -77,7 +77,7 @@ export type ComputeConstructProps = {
   name: string;
   /** The compute resource definition from the deploy manifest. */
   computeResource: ComputeResource;
-  /** Lambda memory size override (MB). Default: from manifest or 512. */
+  /** Lambda memory size override (MB). Default: from manifest or 1024. */
   memorySize?: number;
   /** Lambda timeout override. Default: from manifest or 30 seconds. */
   timeout?: Duration;

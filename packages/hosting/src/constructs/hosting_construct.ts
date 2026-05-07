@@ -331,7 +331,7 @@ export class AmplifyHostingConstruct extends Construct {
     });
     this.webAcl = wafConstruct.webAcl;
 
-    // ---- 6. Custom domain resources (conditional) ----
+    // ---- 7. Custom domain resources (conditional) ----
     let dnsConstruct: DnsConstruct | undefined;
     if (props.domain) {
       dnsConstruct = new DnsConstruct(this, 'Dns', {
@@ -344,14 +344,14 @@ export class AmplifyHostingConstruct extends Construct {
       this.hostedZone = dnsConstruct.hostedZone;
     }
 
-    // ---- 7. Security headers ----
+    // ---- 8. Security headers ----
     const securityHeadersPolicy = createSecurityHeadersPolicy(
       this,
       'SecurityHeaders',
       { contentSecurityPolicy: props.cdn?.contentSecurityPolicy },
     );
 
-    // ---- 8. CloudFront distribution ----
+    // ---- 9. CloudFront distribution ----
     const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
 
     const cdn = new CdnConstruct(this, 'Cdn', {
@@ -372,7 +372,7 @@ export class AmplifyHostingConstruct extends Construct {
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
 
-    // ---- 8a. KMS decrypt grant for CloudFront OAC ----
+    // ---- 9a. KMS decrypt grant for CloudFront OAC ----
     const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
     if (props.storage?.encryption === 'KMS' && kmsKey) {
       kmsKey.addToResourcePolicy(
@@ -384,12 +384,12 @@ export class AmplifyHostingConstruct extends Construct {
       );
     }
 
-    // ---- 9. DNS records ----
+    // ---- 10. DNS records ----
     if (props.domain && dnsConstruct) {
       dnsConstruct.createDnsRecords(this.distribution);
     }
 
-    // ---- 10. Error page deployment (SSR only) ----
+    // ---- 11. Error page deployment (SSR only) ----
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
@@ -399,7 +399,7 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // ---- 11. Atomic Deployment (static assets) ----
+    // ---- 12. Atomic Deployment (static assets) ----
     new BucketDeployment(this, 'AssetDeployment', {
       sources: [Source.asset(manifest.staticAssets.directory)],
       destinationBucket: this.bucket,

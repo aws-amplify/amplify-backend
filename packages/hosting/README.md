@@ -173,7 +173,7 @@ SSR responses are streamed using Lambda response streaming (via Function URLs), 
 | `domain`                    | `{ domainName, hostedZone }`                                     | -                   | Custom domain with SSL. Requires Route53 hosted zone.                  |
 | `waf`                       | `{ enabled, rateLimit? }`                                        | -                   | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.     |
 | `customAdapter`             | `FrameworkAdapterFn`                                             | -                   | Custom framework adapter for unsupported frameworks.                   |
-| `compute`                   | `{ memorySize?, timeout?, logRetention?, reservedConcurrency? }` | `512MB, 30s`        | Lambda configuration for SSR.                                          |
+| `compute`                   | `{ memorySize?, timeout?, logRetention?, reservedConcurrency? }` | `1024MB, 30s`       | Lambda configuration for SSR.                                          |
 | `cdn.priceClass`            | `PriceClass`                                                     | `PRICE_CLASS_100`   | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
 | `cdn.contentSecurityPolicy` | `string`                                                         | restrictive default | Custom CSP header value.                                               |
 | `cdn.geoRestriction`        | `{ type, countries }`                                            | -                   | Geo-restriction for CloudFront distribution.                           |
@@ -304,7 +304,7 @@ const astroSSRAdapter: FrameworkAdapterFn = (projectDir): DeployManifest => ({
       placement: 'regional',
       streaming: true,
       runtime: 'nodejs20.x',
-      memorySize: 512,
+      memorySize: 1024,
       timeout: 30,
     },
   },
@@ -373,7 +373,7 @@ type ComputeResource = {
 };
 
 type RouteBehavior = {
-  pattern: string; // URL pattern (glob or regex)
+  pattern: string; // URL pattern (glob only — CloudFront wildcards * and ?)
   target: string; // compute resource name, or 'static'
   fallback?: string; // fallback target on error
 };
@@ -417,7 +417,7 @@ import { defineHosting } from '@aws-amplify/hosting';
 defineHosting({
   framework: 'nextjs',
   compute: {
-    memorySize: 1024, // MB (default: 512)
+    memorySize: 1024, // MB (default: 1024)
     timeout: 60, // seconds (default: 30)
     reservedConcurrency: 50, // concurrent executions (default: none)
   },
@@ -667,4 +667,4 @@ Ensure your Next.js app uses the App Router with `revalidateTag()` or `revalidat
 
 ### Image optimization returns 500
 
-Check that the image optimization Lambda has sufficient memory (default: 512MB). Large images may require 1024MB+. Increase via the `compute` configuration.
+Check that the image optimization Lambda has sufficient memory (default: 1024MB). Large images may require 1024MB+. Increase via the `compute` configuration.

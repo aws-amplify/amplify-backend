@@ -26,7 +26,12 @@ import {
   S3BucketOrigin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { CfnPermission, IFunction, IFunctionUrl, IVersion } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnPermission,
+  IFunction,
+  IFunctionUrl,
+  IVersion,
+} from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
@@ -165,9 +170,9 @@ export class CdnConstruct extends Construct {
     // Primary origin: prefer 'default' > 'server' > first available, or legacy ssrFunctionUrl
     const primaryOrigin = props.ssrFunctionUrl
       ? FunctionUrlOrigin.withOriginAccessControl(props.ssrFunctionUrl)
-      : computeOrigins.get('default') ??
+      : (computeOrigins.get('default') ??
         computeOrigins.get('server') ??
-        computeOrigins.values().next().value;
+        computeOrigins.values().next().value);
 
     if (hasCompute && !primaryOrigin) {
       throw new HostingError('NoComputeOriginsError', {
@@ -370,10 +375,6 @@ export class CdnConstruct extends Construct {
 
       // Patch auto-generated permissions to match their correct function.
       // CDK may generate CfnPermission resources for each origin — match by logical ID.
-      const fnByLogicalSuffix = new Map<string, IFunction>();
-      for (const { name, fn } of allComputeFunctions) {
-        fnByLogicalSuffix.set(name.toLowerCase(), fn);
-      }
       for (const child of this.distribution.node.findAll()) {
         if (
           child instanceof CfnPermission &&
