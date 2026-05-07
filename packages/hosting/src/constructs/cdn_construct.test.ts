@@ -971,4 +971,562 @@ void describe('CdnConstruct', () => {
       });
     });
   });
+
+  // ---- CSP ResponseHeadersPolicy on behaviors ----
+
+  void describe('CSP applied on all behaviors via ResponseHeadersPolicy', () => {
+    void it('default behavior references a ResponseHeadersPolicyId', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: spaManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            ResponseHeadersPolicyId: Match.anyValue(),
+          }),
+        }),
+      });
+    });
+
+    void it('all additional behaviors reference a ResponseHeadersPolicyId', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      const distributions = template.findResources(
+        'AWS::CloudFront::Distribution',
+      );
+      const distConfig = (
+        Object.values(distributions)[0] as Record<
+          string,
+          Record<string, unknown>
+        >
+      ).Properties.DistributionConfig as Record<string, unknown>;
+      const cacheBehaviors = distConfig.CacheBehaviors as Array<
+        Record<string, unknown>
+      >;
+
+      assert.ok(
+        cacheBehaviors && cacheBehaviors.length > 0,
+        'Should have additional cache behaviors',
+      );
+      for (const behavior of cacheBehaviors) {
+        assert.ok(
+          behavior.ResponseHeadersPolicyId !== undefined,
+          `Behavior for ${String(behavior.PathPattern)} should have ResponseHeadersPolicyId`,
+        );
+      }
+    });
+  });
+
+  // ---- Multi-compute TargetOriginId binding ----
+
+  void describe('multi-compute TargetOriginId binding', () => {
+    void it('api behavior TargetOriginId differs from default behavior TargetOriginId', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const defaultFn = new LambdaFunction(stack, 'DefaultFn2', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultFnUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const apiFn = new LambdaFunction(stack, 'ApiFn2', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const apiFnUrl = apiFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const multiOriginManifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/bundle-default',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+          api: {
+            type: 'handler',
+            bundle: '/tmp/bundle-api',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/*', target: 'api' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-origin-binding-1',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: multiOriginManifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([
+          ['default', defaultFnUrl],
+          ['api', apiFnUrl],
+        ]),
+        computeFunctions: new Map([
+          ['default', defaultFn],
+          ['api', apiFn],
+        ]),
+      });
+
+      const template = Template.fromStack(stack);
+      const distributions = template.findResources(
+        'AWS::CloudFront::Distribution',
+      );
+      const distConfig = (
+        Object.values(distributions)[0] as Record<
+          string,
+          Record<string, unknown>
+        >
+      ).Properties.DistributionConfig as Record<string, unknown>;
+
+      const defaultBehavior = distConfig.DefaultCacheBehavior as Record<
+        string,
+        unknown
+      >;
+      const cacheBehaviors = distConfig.CacheBehaviors as Array<
+        Record<string, unknown>
+      >;
+
+      // Find the /api/* behavior
+      const apiBehavior = cacheBehaviors.find(
+        (b) => b.PathPattern === '/api/*',
+      );
+      assert.ok(apiBehavior, 'Should have a /api/* cache behavior');
+
+      const defaultOriginId = defaultBehavior.TargetOriginId;
+      const apiOriginId = apiBehavior.TargetOriginId;
+
+      assert.ok(defaultOriginId, 'Default behavior should have TargetOriginId');
+      assert.ok(apiOriginId, '/api/* behavior should have TargetOriginId');
+      assert.notStrictEqual(
+        defaultOriginId,
+        apiOriginId,
+        'Default and API behaviors must route to DIFFERENT origins',
+      );
+    });
+
+    void it('each behavior TargetOriginId matches an origin in the Origins array', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const defaultFn = new LambdaFunction(stack, 'DefFn3', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultFnUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const apiFn = new LambdaFunction(stack, 'ApiFn3', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const apiFnUrl = apiFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+          api: {
+            type: 'handler',
+            bundle: '/tmp/b2',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/*', target: 'api' },
+          { pattern: '/_next/static/*', target: 'static' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-origin-binding-2',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([
+          ['default', defaultFnUrl],
+          ['api', apiFnUrl],
+        ]),
+        computeFunctions: new Map([
+          ['default', defaultFn],
+          ['api', apiFn],
+        ]),
+      });
+
+      const template = Template.fromStack(stack);
+      const distributions = template.findResources(
+        'AWS::CloudFront::Distribution',
+      );
+      const distConfig = (
+        Object.values(distributions)[0] as Record<
+          string,
+          Record<string, unknown>
+        >
+      ).Properties.DistributionConfig as Record<string, unknown>;
+
+      const origins = distConfig.Origins as Array<Record<string, unknown>>;
+      const originIds = new Set(origins.map((o) => o.Id));
+
+      const defaultBehavior = distConfig.DefaultCacheBehavior as Record<
+        string,
+        unknown
+      >;
+      const cacheBehaviors = distConfig.CacheBehaviors as Array<
+        Record<string, unknown>
+      >;
+
+      // Default behavior TargetOriginId must exist in origins
+      assert.ok(
+        originIds.has(defaultBehavior.TargetOriginId as string),
+        `Default behavior TargetOriginId '${String(defaultBehavior.TargetOriginId)}' must match an origin`,
+      );
+
+      // All additional behaviors must reference valid origins
+      for (const behavior of cacheBehaviors) {
+        assert.ok(
+          originIds.has(behavior.TargetOriginId as string),
+          `Behavior ${String(behavior.PathPattern)} TargetOriginId '${String(behavior.TargetOriginId)}' must match an origin`,
+        );
+      }
+    });
+  });
+
+  // ---- OAC Lambda Permission specifics ----
+
+  void describe('OAC Lambda permissions per-function', () => {
+    void it('each compute function gets a Permission with lambda:InvokeFunctionUrl', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const defaultFn = new LambdaFunction(stack, 'OacDefaultFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultFnUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const apiFn = new LambdaFunction(stack, 'OacApiFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const apiFnUrl = apiFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+          api: {
+            type: 'handler',
+            bundle: '/tmp/b2',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/*', target: 'api' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-oac-perms-1',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([
+          ['default', defaultFnUrl],
+          ['api', apiFnUrl],
+        ]),
+        computeFunctions: new Map([
+          ['default', defaultFn],
+          ['api', apiFn],
+        ]),
+      });
+
+      const template = Template.fromStack(stack);
+      const permissions = template.findResources('AWS::Lambda::Permission');
+
+      // Find all InvokeFunctionUrl permissions from CDN construct
+      const invokeUrlPerms = Object.entries(permissions).filter(
+        ([, resource]) => {
+          const props = (resource as Record<string, Record<string, unknown>>)
+            .Properties;
+          return (
+            props.Action === 'lambda:InvokeFunctionUrl' &&
+            props.Principal === 'cloudfront.amazonaws.com'
+          );
+        },
+      );
+
+      // Each compute function that has a URL should get exactly 1 InvokeFunctionUrl permission
+      assert.strictEqual(
+        invokeUrlPerms.length,
+        2,
+        'Should have exactly 2 InvokeFunctionUrl permissions (one per compute function)',
+      );
+    });
+
+    void it('each InvokeFunctionUrl permission has correct FunctionName', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const defaultFn = new LambdaFunction(stack, 'PermDefaultFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultFnUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const apiFn = new LambdaFunction(stack, 'PermApiFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const apiFnUrl = apiFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+          api: {
+            type: 'handler',
+            bundle: '/tmp/b2',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/*', target: 'api' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-oac-perms-2',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([
+          ['default', defaultFnUrl],
+          ['api', apiFnUrl],
+        ]),
+        computeFunctions: new Map([
+          ['default', defaultFn],
+          ['api', apiFn],
+        ]),
+      });
+
+      const template = Template.fromStack(stack);
+      const permissions = template.findResources('AWS::Lambda::Permission');
+      const lambdas = template.findResources('AWS::Lambda::Function');
+
+      // Collect Lambda function ARN refs
+      const lambdaLogicalIds = Object.keys(lambdas);
+
+      const invokeUrlPerms = Object.entries(permissions).filter(
+        ([, resource]) => {
+          const props = (resource as Record<string, Record<string, unknown>>)
+            .Properties;
+          return (
+            props.Action === 'lambda:InvokeFunctionUrl' &&
+            props.Principal === 'cloudfront.amazonaws.com'
+          );
+        },
+      );
+
+      // Each permission's FunctionName must reference a Lambda function (via GetAtt or Ref)
+      for (const [permId, resource] of invokeUrlPerms) {
+        const props = (resource as Record<string, Record<string, unknown>>)
+          .Properties;
+        const fnName = props.FunctionName as Record<string, unknown>;
+
+        // CDK uses { 'Fn::GetAtt': [logicalId, 'Arn'] } or { Ref: logicalId }
+        const refId = fnName['Fn::GetAtt']
+          ? (fnName['Fn::GetAtt'] as string[])[0]
+          : (fnName['Ref'] as string | undefined);
+
+        assert.ok(
+          refId && lambdaLogicalIds.includes(refId),
+          `Permission ${permId} FunctionName must reference a Lambda function`,
+        );
+      }
+    });
+
+    void it('edge functions do NOT get InvokeFunctionUrl permissions', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      // Only one compute function with a URL
+      const defaultFn = new LambdaFunction(stack, 'EdgeTestFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultFnUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+
+      // Simulate edge function: it has no function URL (not in computeFunctionUrls)
+      const edgeFn = new LambdaFunction(stack, 'EdgeFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+          middleware: {
+            type: 'edge',
+            bundle: '/tmp/b-edge',
+            handler: 'index.handler',
+            placement: 'global',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [{ pattern: '/*', target: 'default' }],
+        buildId: 'test-edge-no-perm',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        // Only the regional function has a URL; edge does not
+        computeFunctionUrls: new Map([['default', defaultFnUrl]]),
+        computeFunctions: new Map([
+          ['default', defaultFn],
+          ['middleware', edgeFn],
+        ]),
+      });
+
+      const template = Template.fromStack(stack);
+      const permissions = template.findResources('AWS::Lambda::Permission');
+
+      const invokeUrlPerms = Object.entries(permissions).filter(
+        ([, resource]) => {
+          const props = (resource as Record<string, Record<string, unknown>>)
+            .Properties;
+          return (
+            props.Action === 'lambda:InvokeFunctionUrl' &&
+            props.Principal === 'cloudfront.amazonaws.com'
+          );
+        },
+      );
+
+      // Only 1 permission for the 'default' function — edge function must NOT get one
+      assert.strictEqual(
+        invokeUrlPerms.length,
+        1,
+        'Edge functions should NOT get InvokeFunctionUrl permissions',
+      );
+
+      // Verify the single permission references the correct function (defaultFn, not edgeFn)
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      const edgeFnLogicalId = Object.keys(lambdas).find((key) =>
+        key.includes('EdgeFn'),
+      );
+
+      for (const [, resource] of invokeUrlPerms) {
+        const props = (resource as Record<string, Record<string, unknown>>)
+          .Properties;
+        const fnName = props.FunctionName as Record<string, unknown>;
+        const refId = fnName['Fn::GetAtt']
+          ? (fnName['Fn::GetAtt'] as string[])[0]
+          : (fnName['Ref'] as string | undefined);
+
+        assert.notStrictEqual(
+          refId,
+          edgeFnLogicalId,
+          'InvokeFunctionUrl permission must NOT reference the edge function',
+        );
+      }
+    });
+  });
 });

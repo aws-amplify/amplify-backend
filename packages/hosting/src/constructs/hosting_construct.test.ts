@@ -896,7 +896,8 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
         ResponseHeadersPolicyConfig: Match.objectLike({
           SecurityHeadersConfig: Match.objectLike({
             ContentSecurityPolicy: Match.objectLike({
-              ContentSecurityPolicy: Match.stringLikeRegexp("default-src 'self'"),
+              ContentSecurityPolicy:
+                Match.stringLikeRegexp("default-src 'self'"),
             }),
           }),
         }),
@@ -1228,5 +1229,103 @@ void describe('AmplifyHostingConstruct — Storage', () => {
         Logging: Match.anyValue(),
       }),
     });
+  });
+});
+
+// ================================================================
+// KMS Key Policy Grants
+// ================================================================
+
+void describe('AmplifyHostingConstruct — KMS Key Policy', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates KMS key when storage.encryption is KMS', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      storage: { encryption: 'KMS' },
+    });
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::KMS::Key', 1);
+  });
+
+  void it('KMS key policy grants kms:Decrypt to cloudfront.amazonaws.com', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      storage: { encryption: 'KMS' },
+    });
+
+    const template = Template.fromStack(stack);
+    const keys = template.findResources('AWS::KMS::Key');
+    assert.ok(Object.keys(keys).length > 0, 'Should have at least one KMS key');
+
+    const keyResource = Object.values(keys)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const keyPolicy = keyResource.Properties.KeyPolicy as Record<
+      string,
+      unknown
+    >;
+    const statements = keyPolicy['Statement'] as Array<Record<string, unknown>>;
+
+    // Find the CloudFront decrypt statement
+    const cfDecryptStatement = statements.find((stmt) => {
+      const actions = stmt.Action;
+      const principal = stmt.Principal as Record<string, unknown> | undefined;
+      const service = principal?.Service;
+      const hasDecrypt = Array.isArray(actions)
+        ? actions.includes('kms:Decrypt')
+        : actions === 'kms:Decrypt';
+      const isCfPrincipal =
+        service === 'cloudfront.amazonaws.com' ||
+        (Array.isArray(service) &&
+          service.includes('cloudfront.amazonaws.com'));
+      return hasDecrypt && isCfPrincipal;
+    });
+
+    assert.ok(
+      cfDecryptStatement,
+      'KMS key policy must grant kms:Decrypt to cloudfront.amazonaws.com',
+    );
+  });
+
+  void it('does NOT create KMS key when encryption is S3_MANAGED (default)', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+    });
+
+    const template = Template.fromStack(stack);
+    const keys = template.findResources('AWS::KMS::Key');
+    assert.strictEqual(
+      Object.keys(keys).length,
+      0,
+      'Should NOT create a KMS key with default S3_MANAGED encryption',
+    );
+  });
+
+  void it('does NOT create KMS key when storage.encryption is explicitly S3_MANAGED', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      storage: { encryption: 'S3_MANAGED' },
+    });
+
+    const template = Template.fromStack(stack);
+    const keys = template.findResources('AWS::KMS::Key');
+    assert.strictEqual(
+      Object.keys(keys).length,
+      0,
+      'Should NOT create a KMS key with explicit S3_MANAGED encryption',
+    );
   });
 });
