@@ -139,6 +139,20 @@ exports.handler = async (event) => {
     };
   }
 
+  // ISR route: returns current timestamp with short s-maxage for stale-while-revalidate testing
+  if (requestPath === '/isr') {
+    return {
+      statusCode: 200,
+      headers: {
+        'content-type': 'text/html',
+        'cache-control': 's-maxage=1, stale-while-revalidate=59',
+        ...SECURITY_HEADERS,
+      },
+      body: `<html><body><h1>ISR Page</h1><p>ISR page generated at: ${Date.now()}</p></body></html>`,
+      isBase64Encoded: false,
+    };
+  }
+
   // 404 for all other routes
   return {
     statusCode: 404,
