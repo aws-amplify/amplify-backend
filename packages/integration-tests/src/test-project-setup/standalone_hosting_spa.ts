@@ -106,6 +106,18 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
             source: pathToFileURL(
               path.join(
                 fileURLToPath(this.sourceProjectUpdateV2DirURL),
+                'dist',
+                'index.html',
+              ),
+            ),
+            destination: pathToFileURL(
+              path.join(this.projectDirPath, 'dist', 'index.html'),
+            ),
+          },
+          {
+            source: pathToFileURL(
+              path.join(
+                fileURLToPath(this.sourceProjectUpdateV2DirURL),
                 'amplify',
                 'hosting.ts',
               ),
