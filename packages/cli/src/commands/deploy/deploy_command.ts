@@ -21,6 +21,8 @@ import {
   SSMClient,
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
+import { BackendLocator } from '@aws-amplify/platform-core';
+import path from 'path';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
@@ -111,17 +113,31 @@ export class DeployCommand
       return;
     }
 
+    // Check if deploying hosting (via environment variable set by test)
+    const entryPointName = process.env.AMPLIFY_HOSTING_ENTRY_POINT || 'backend';
+    const isHosting = entryPointName === 'hosting';
+
     // Standalone deployments use a single stack per identifier.
     // The 'stack' name is a convention: standalone does not have
     // branch-based naming, so a fixed name is used.
     const backendId: BackendIdentifier = {
       namespace: args.identifier,
-      name: 'stack',
+      name: isHosting ? 'hosting' : 'stack',
       type: 'standalone',
     };
 
+    // Create a custom BackendLocator if deploying hosting
+    let backendLocator: BackendLocator | undefined;
+    if (isHosting) {
+      backendLocator = new BackendLocator(
+        process.cwd(),
+        path.join('amplify', 'hosting'),
+      );
+    }
+
     await this.backendDeployer.deploy(backendId, {
       validateAppSources: true,
+      backendLocator,
     });
 
     // Client config for standalone uses { stackName } instead of

@@ -1,6 +1,7 @@
 import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { execSync } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -9,17 +10,17 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
- * Creates a hosting SSR (Next.js via OpenNext) project with auth, data, and storage
+ * Creates a real Next.js SSR hosting project with auth, data, and storage
  * for standalone deployment E2E testing.
+ *
+ * Unlike mock-based fixtures, this copies real Next.js source code and runs
+ * `npm install` so that `npx @opennextjs/aws build` can execute during deployment.
  */
 export class StandaloneHostingSsrTestProjectCreator
   implements TestProjectCreator
 {
   readonly name = 'standalone-hosting-ssr';
 
-  /**
-   * Create test project creator with optional AWS client overrides.
-   */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
       e2eToolingClientConfig,
@@ -41,35 +42,64 @@ export class StandaloneHostingSsrTestProjectCreator
       this.amplifyClient,
     );
 
-    // Copy the amplify/ directory (backend.ts + hosting.ts + auth/ + data/ + storage/)
+    const sourceDir = fileURLToPath(
+      new URL(project.sourceProjectDirPath, import.meta.url),
+    );
+
+    // Copy amplify/ directory (backend.ts + hosting.ts + auth/ + data/ + storage/)
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       { recursive: true },
     );
 
-    // Copy the .open-next/ build output directory (OpenNext adapter output)
-    const sourceOpenNextDir = new URL(
-      `${project.sourceProjectDirPath}/.open-next`,
-      import.meta.url,
+    // Copy Next.js source files
+    await fs.cp(
+      path.join(sourceDir, 'app'),
+      path.join(projectRoot, 'app'),
+      { recursive: true },
     );
-    const destOpenNextDir = path.join(projectRoot, '.open-next');
-    await fs.cp(sourceOpenNextDir, destOpenNextDir, { recursive: true });
+    await fs.cp(
+      path.join(sourceDir, 'lib'),
+      path.join(projectRoot, 'lib'),
+      { recursive: true },
+    );
+    await fs.cp(
+      path.join(sourceDir, 'public'),
+      path.join(projectRoot, 'public'),
+      { recursive: true },
+    );
+    await fs.cp(
+      path.join(sourceDir, 'next.config.js'),
+      path.join(projectRoot, 'next.config.js'),
+    );
+    await fs.cp(
+      path.join(sourceDir, 'tsconfig.json'),
+      path.join(projectRoot, 'tsconfig.json'),
+    );
+    await fs.cp(
+      path.join(sourceDir, 'middleware.ts'),
+      path.join(projectRoot, 'middleware.ts'),
+    );
 
-    // Copy the public/ directory alongside the amplify/ directory
-    const sourcePublicDir = new URL(
-      `${project.sourceProjectDirPath}/public`,
-      import.meta.url,
+    // Write the project package.json with Next.js dependencies
+    // (overwrite the one created by createEmptyAmplifyProject)
+    await fs.cp(
+      path.join(sourceDir, 'package.json'),
+      path.join(projectRoot, 'package.json'),
     );
-    const destPublicDir = path.join(projectRoot, 'public');
-    await fs.cp(sourcePublicDir, destPublicDir, { recursive: true });
 
-    // Copy next.config.js
-    const sourceNextConfig = new URL(
-      `${project.sourceProjectDirPath}/next.config.js`,
-      import.meta.url,
+    // Install dependencies — required for OpenNext build during deployment
+    process.stderr.write(
+      `Installing Next.js dependencies in ${projectRoot}...\n`,
     );
-    await fs.cp(sourceNextConfig, path.join(projectRoot, 'next.config.js'));
+    execSync('npm install --prefer-offline', {
+      cwd: projectRoot,
+      stdio: 'pipe',
+      env: { ...process.env, NODE_OPTIONS: '' },
+      timeout: 120000,
+    });
+    process.stderr.write(`Dependencies installed successfully.\n`);
 
     return project;
   };
@@ -90,8 +120,9 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
   );
 
   /**
-   * Returns a single update that applies both v2 server content and infra changes
-   * (memorySize: 512) in one step for the full deploy test.
+   * Returns an update that replaces the home page with v2 content and changes
+   * Lambda memory to 512 MB. After applying this update, redeploying the hosting
+   * stack triggers a fresh OpenNext build with the new source.
    */
   override async getUpdates(): Promise<TestProjectUpdate[]> {
     return [
@@ -101,18 +132,12 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
             source: pathToFileURL(
               path.join(
                 fileURLToPath(this.sourceProjectUpdateV2DirURL),
-                '.open-next',
-                'server-function',
-                'index.js',
+                'app',
+                'page.tsx',
               ),
             ),
             destination: pathToFileURL(
-              path.join(
-                this.projectDirPath,
-                '.open-next',
-                'server-function',
-                'index.js',
-              ),
+              path.join(this.projectDirPath, 'app', 'page.tsx'),
             ),
           },
           {

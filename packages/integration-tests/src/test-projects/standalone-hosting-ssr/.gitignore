@@ -1,2 +1,6 @@
-# Override root .gitignore — JS fixture files in this test project must be committed
-!*.js
+node_modules/
+.next/
+.open-next/
+
+# Override root .gitignore — source JS files in this test project must be committed
+!next.config.js
