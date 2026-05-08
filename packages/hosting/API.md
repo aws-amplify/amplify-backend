@@ -9,15 +9,18 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { Construct } from 'constructs';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { Duration } from 'aws-cdk-lib';
+import { experimental } from 'aws-cdk-lib/aws-cloudfront';
 import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
 import { FunctionUrl } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Stack } from 'aws-cdk-lib';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
 
 // @public
 export class AmplifyHostingConstruct extends Construct {
@@ -25,18 +28,24 @@ export class AmplifyHostingConstruct extends Construct {
     // (undocumented)
     readonly bucket: Bucket;
     // (undocumented)
+    readonly cacheBucket?: Bucket;
+    // (undocumented)
+    readonly cacheTable?: Table;
+    // (undocumented)
     readonly certificate?: ICertificate;
+    // (undocumented)
+    readonly computeFunctions: Map<string, Function_2 | experimental.EdgeFunction>;
+    // (undocumented)
+    readonly computeFunctionUrls: Map<string, FunctionUrl>;
     // (undocumented)
     readonly distribution: Distribution;
     // (undocumented)
     readonly distributionUrl: string;
-    // (undocumented)
-    readonly functionUrl?: FunctionUrl;
     getResources(): HostingResources;
     // (undocumented)
     readonly hostedZone?: IHostedZone;
     // (undocumented)
-    readonly ssrFunction?: Function_2;
+    readonly revalidationQueue?: Queue;
     // (undocumented)
     readonly webAcl?: CfnWebACL;
 }
@@ -44,8 +53,6 @@ export class AmplifyHostingConstruct extends Construct {
 // @public
 export type AmplifyHostingConstructProps = {
     manifest: DeployManifest;
-    staticAssetPath: string;
-    computeBasePath?: string;
     skipRegionValidation?: boolean;
     domain?: HostingDomainConfig;
     waf?: HostingWafConfig;
@@ -78,11 +85,33 @@ export type AmplifyHostingConstructProps = {
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
 
-// @public
+// @public (undocumented)
+export type CacheConfig = {
+    computeResource: string;
+    tagRevalidation: boolean;
+    revalidationQueue: boolean;
+};
+
+// @public (undocumented)
 export type ComputeResource = {
-    name: string;
-    runtime: string;
-    entrypoint: string;
+    type: 'handler' | 'http-server' | 'edge';
+    bundle: string;
+    handler?: string;
+    entrypoint?: string;
+    port?: number;
+    placement: 'regional' | 'global';
+    streaming?: boolean;
+    runtime?: string;
+    memorySize?: number;
+    timeout?: number;
+    environment?: Record<string, string>;
+    provisionedConcurrency?: number;
+};
+
+// @public (undocumented)
+export type CustomHeader = {
+    source: string;
+    headers: Record<string, string>;
 };
 
 // @public
@@ -91,20 +120,23 @@ export const defineHosting: (props?: HostingProps) => HostingResult;
 // @public
 export type DeployManifest = {
     version: 1;
-    routes: ManifestRoute[];
-    computeResources?: ComputeResource[];
-    framework: FrameworkMetadata;
+    compute: Record<string, ComputeResource>;
+    staticAssets: {
+        directory: string;
+        cacheControl?: string;
+    };
+    routes: RouteBehavior[];
+    cache?: CacheConfig;
+    imageOptimization?: ImageConfig;
+    middleware?: MiddlewareConfig;
+    redirects?: Redirect[];
+    rewrites?: Rewrite[];
+    headers?: CustomHeader[];
     buildId?: string;
 };
 
 // @public
-export type FrameworkAdapterFn = (buildOutputDir: string, projectDir: string) => DeployManifest;
-
-// @public
-export type FrameworkMetadata = {
-    name: string;
-    version?: string;
-};
+export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
 
 // @public
 export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
@@ -137,7 +169,6 @@ export class HostingError extends Error {
 // @public
 export type HostingProps = {
     buildCommand?: string;
-    buildOutputDir?: string;
     framework?: FrameworkType;
     customAdapter?: FrameworkAdapterFn;
     domain?: {
@@ -153,6 +184,7 @@ export type HostingProps = {
         memorySize?: number;
         timeout?: Duration;
         reservedConcurrency?: number;
+        provisionedConcurrency?: number;
         logRetention?: RetentionDays;
     };
     cdn?: {
@@ -195,16 +227,46 @@ export type HostingWafConfig = {
     rateLimit?: number;
 };
 
-// @public
-export type ManifestRoute = {
-    path: string;
-    target: RouteTarget;
+// @public (undocumented)
+export type ImageConfig = {
+    bundle: string;
+    handler: string;
+    formats: string[];
+    sizes: number[];
 };
 
-// @public
-export type RouteTarget = {
-    kind: 'Static' | 'Compute';
-    src?: string;
+// @public (undocumented)
+export type MiddlewareConfig = {
+    bundle: string;
+    handler: string;
+    matchers: string[];
+};
+
+// @public (undocumented)
+export type NextjsAdapterOptions = {
+    projectDir: string;
+    skipBuild?: boolean;
+    configPath?: string;
+};
+
+// @public (undocumented)
+export type Redirect = {
+    source: string;
+    destination: string;
+    statusCode: 301 | 302 | 307 | 308;
+};
+
+// @public (undocumented)
+export type Rewrite = {
+    source: string;
+    destination: string;
+};
+
+// @public (undocumented)
+export type RouteBehavior = {
+    pattern: string;
+    target: string;
+    fallback?: string;
 };
 
 // (No @packageDocumentation comment for this package)
