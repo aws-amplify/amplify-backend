@@ -83,10 +83,10 @@ export abstract class TestProjectBase {
         .run();
     } else if (backendIdentifier.type === 'standalone') {
       await ampxCli(
-        ['deploy', '--identifier', backendIdentifier.namespace],
+        ['deploy', '--identifier', backendIdentifier.namespace, '--yes'],
         this.projectDirPath,
         {
-          env: environment,
+          env: { CI: 'true', ...environment },
         },
       ).run();
     } else {

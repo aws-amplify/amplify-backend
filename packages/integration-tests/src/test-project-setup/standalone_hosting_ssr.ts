@@ -141,7 +141,9 @@ class StandaloneHostingSsrTestProject extends TestProjectBase {
       args.push('--frontend');
     }
     // No flag = deploy both (for 'full' identifier)
-    await ampxCli(args, this.projectDirPath, { env: environment }).run();
+    await ampxCli(args, this.projectDirPath, {
+      env: { CI: 'true', ...environment },
+    }).run();
   }
 
   /**

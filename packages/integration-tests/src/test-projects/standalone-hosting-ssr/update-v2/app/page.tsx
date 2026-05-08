@@ -34,7 +34,7 @@ export default async function Home() {
     <main>
       <h1>Hello SSR v2</h1>
       <p>Server-rendered by Lambda via OpenNext (v2 deploy).</p>
-      <p data-testid="backend-status">backend-{backendStatus}</p>
+      <p data-testid="backend-status">{`backend-${backendStatus}`}</p>
       <p data-testid="graphql-result">{graphqlResult}</p>
       <p data-testid="user-pool-id">{userPoolId}</p>
       <nav>

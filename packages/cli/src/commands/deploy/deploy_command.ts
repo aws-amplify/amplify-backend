@@ -289,6 +289,7 @@ export class DeployCommand
         type: 'boolean',
         array: false,
         alias: 'y',
+        default: false,
       })
       .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion]);
   };
