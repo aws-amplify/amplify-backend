@@ -1,0 +1,8 @@
+{
+  "name": "standalone-hosting-ssr",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "next build"
+  }
+}
