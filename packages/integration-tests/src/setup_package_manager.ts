@@ -27,13 +27,15 @@ const initializePnpm = async () => {
   await execa(packageManager, ['config', 'set', 'registry', customRegistry]);
   await execa(packageManager, ['config', 'get', 'registry']);
   // pnpm v11+ blocks build scripts by default. Allow required packages.
-  await execa(packageManager, ['config', 'set', 'allowBuilds.esbuild', 'true']);
-  await execa(packageManager, [
-    'config',
-    'set',
-    'allowBuilds.@parcel/watcher',
-    'true',
-  ]);
+  // pnpm config set does not support deep property paths, so write directly to .npmrc.
+  const globalNpmrcPath = path.join(os.homedir(), '.npmrc');
+  const allowBuildsConfig =
+    'allowBuilds[esbuild]=true\nallowBuilds[@parcel/watcher]=true\n';
+  if (existsSync(globalNpmrcPath)) {
+    await fsp.appendFile(globalNpmrcPath, '\n' + allowBuildsConfig);
+  } else {
+    await fsp.writeFile(globalNpmrcPath, allowBuildsConfig);
+  }
 };
 
 const initializeYarnClassic = async (execaOptions: {
