@@ -1,0 +1,16 @@
+{
+  "name": "vanilla-cdk-ssr",
+  "private": true,
+  "scripts": {
+    "build": "next build"
+  },
+  "dependencies": {
+    "next": "^15.5.15",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@opennextjs/aws": "^3.10.0",
+    "typescript": "^5.0.0"
+  }
+}
