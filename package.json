@@ -77,6 +77,8 @@
     "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.15.11",
     "@types/prettier": "^3.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.23.0",
     "@typescript-eslint/parser": "^8.23.0",
     "c8": "^10.1.3",

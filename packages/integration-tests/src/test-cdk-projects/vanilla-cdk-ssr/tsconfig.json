@@ -13,6 +13,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts"],
   "exclude": ["node_modules", ".next", ".open-next", "test"]
 }
