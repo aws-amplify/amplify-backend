@@ -29,6 +29,12 @@ export type HostingProps = {
   framework?: FrameworkType;
 
   /**
+   * Skip running the framework build (if already built).
+   * For Next.js, this skips the OpenNext build if .open-next/ already exists.
+   */
+  skipBuild?: boolean;
+
+  /**
    * Custom framework adapter for unsupported frameworks.
    * When provided, this adapter is used instead of the built-in registry lookup.
    * Receives the project directory and returns a DeployManifest.

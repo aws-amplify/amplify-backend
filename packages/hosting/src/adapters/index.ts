@@ -18,13 +18,24 @@ export type { NextjsAdapterOptions } from './nextjs.js';
 export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
 
 /**
+ * Adapter registry entry with optional options.
+ */
+type AdapterRegistryEntry = {
+  adapter: FrameworkAdapterFn;
+  skipBuild?: boolean;
+};
+
+/**
  * Built-in adapter registry.
  * Each adapter takes a projectDir and returns a DeployManifest.
  */
-const adapterRegistry = new Map<string, FrameworkAdapterFn>([
-  ['nextjs', (projectDir: string) => nextjsAdapter({ projectDir })],
-  ['spa', spaAdapter],
-  ['static', spaAdapter],
+const adapterRegistry = new Map<string, AdapterRegistryEntry>([
+  [
+    'nextjs',
+    { adapter: (projectDir: string) => nextjsAdapter({ projectDir }) },
+  ],
+  ['spa', { adapter: spaAdapter }],
+  ['static', { adapter: spaAdapter }],
 ]);
 
 /**
@@ -69,16 +80,26 @@ export const detectFramework = (projectDir: string): string => {
 /**
  * Get the adapter function for the given framework type.
  * @param framework - the framework type
+ * @param skipBuild - whether to skip the build step
  * @returns the adapter function
  */
-export const getAdapter = (framework: string): FrameworkAdapterFn => {
-  const adapter = adapterRegistry.get(framework);
-  if (!adapter) {
+export const getAdapter = (
+  framework: string,
+  skipBuild?: boolean,
+): FrameworkAdapterFn => {
+  const entry = adapterRegistry.get(framework);
+  if (!entry) {
     throw new HostingError('UnsupportedFrameworkError', {
       message: `Framework "${framework}" is not supported.`,
       resolution:
         'Use a built-in framework (nextjs, spa, static) or provide a customAdapter in your defineHosting configuration.',
     });
   }
-  return adapter;
+
+  // For nextjs, wrap the adapter to pass skipBuild
+  if (framework === 'nextjs' && skipBuild) {
+    return (projectDir: string) => nextjsAdapter({ projectDir, skipBuild });
+  }
+
+  return entry.adapter;
 };

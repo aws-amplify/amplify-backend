@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/hosting': major
+'@aws-amplify/hosting': minor
 ---
 
 Rewrite Next.js adapter with OpenNext + new framework-agnostic manifest schema
