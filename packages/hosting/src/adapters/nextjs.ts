@@ -101,18 +101,94 @@ export const nextjsAdapter = (
 };
 
 /**
+ * Resolve the path to the OpenNext CLI binary from the hosting package's dependencies.
+ * @internal
+ */
+const resolveOpenNextBinary = (): string => {
+  try {
+    // Try to resolve from node_modules using the package.json main field
+    // For ESM modules, we need to handle the path resolution carefully
+    const packageJsonPath = require.resolve('@opennextjs/aws/package.json');
+    const packageDir = path.dirname(packageJsonPath);
+    return path.join(packageDir, 'dist', 'index.js');
+  } catch {
+    // Fallback: try to find it in common locations
+    // This handles cases where require.resolve fails with ESM modules
+    const possiblePaths = [
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        'node_modules',
+        '@opennextjs',
+        'aws',
+        'dist',
+        'index.js',
+      ),
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'node_modules',
+        '@opennextjs',
+        'aws',
+        'dist',
+        'index.js',
+      ),
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        'node_modules',
+        '@opennextjs',
+        'aws',
+        'dist',
+        'index.js',
+      ),
+    ];
+
+    for (const possiblePath of possiblePaths) {
+      if (fs.existsSync(possiblePath)) {
+        return possiblePath;
+      }
+    }
+
+    throw new HostingError(
+      'OpenNextNotFoundError',
+      {
+        message:
+          '@opennextjs/aws is not installed in the hosting package dependencies.',
+        resolution:
+          'This is a bug in the hosting package setup. ' +
+          'Ensure @opennextjs/aws is listed in packages/hosting/package.json dependencies.',
+      },
+      new Error('Could not resolve @opennextjs/aws'),
+    );
+  }
+};
+
+/**
  * Execute the OpenNext build command.
+ *
+ * Resolves @opennextjs/aws from the hosting package's own node_modules
+ * (pinned to 3.10.x) rather than using npx which would download the latest.
+ * This ensures consistent behavior regardless of the consumer project's dependencies.
  */
 const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
-  const execArgs = ['@opennextjs/aws', 'build'];
+  const opennextBin = resolveOpenNextBinary();
+
+  const execArgs = [opennextBin, 'build'];
   if (configPath) execArgs.push('--config-path', configPath);
 
   process.stderr.write(
-    `\u{1F528} Running OpenNext build: npx ${execArgs.join(' ')}\n`,
+    `\u{1F528} Running OpenNext build: node ${execArgs.join(' ')}\n`,
   );
 
   try {
-    execFileSync('npx', execArgs, {
+    execFileSync('node', execArgs, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
@@ -124,9 +200,10 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
         message: 'OpenNext build failed.',
         resolution:
           'Check the build output above for errors. Common issues:\n' +
-          '  - Missing @opennextjs/aws dependency (run: npm install @opennextjs/aws)\n' +
+          '  - Missing Next.js dependencies (run: npm install)\n' +
           '  - Invalid next.config.js\n' +
-          '  - TypeScript compilation errors in your app',
+          '  - TypeScript compilation errors in your app\n' +
+          '  - Missing .next/ directory (run: next build)',
       },
       error as Error,
     );
