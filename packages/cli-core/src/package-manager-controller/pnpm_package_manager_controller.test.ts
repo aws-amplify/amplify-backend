@@ -1,5 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
+import { EOL } from 'os';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
@@ -15,7 +16,7 @@ void describe('PnpmPackageManagerController', () => {
     writeFile: mock.fn(() => Promise.resolve()),
   };
   const pathMock = {
-    resolve: mock.fn(),
+    resolve: mock.fn((...args: string[]) => args.join('/')),
   };
   const execaMock = mock.fn(() => Promise.resolve());
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
@@ -68,31 +69,13 @@ void describe('PnpmPackageManagerController', () => {
   });
 
   void describe('initializeProject', () => {
-    void it('does nothing if package.json already exists', async () => {
-      let existsSyncMockValue = false;
+    void it('skips init if package.json already exists and creates .npmrc', async () => {
+      let callCount = 0;
       const existsSyncMock = mock.fn(() => {
-        existsSyncMockValue = !existsSyncMockValue;
-        return existsSyncMockValue;
-      });
-      const pnpmPackageManagerController = new PnpmPackageManagerController(
-        '/testProjectRoot',
-        fspMock as unknown as typeof fsp,
-        pathMock as unknown as typeof path,
-        execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock,
-      );
-
-      await pnpmPackageManagerController.initializeProject();
-      assert.equal(existsSyncMock.mock.callCount(), 1);
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
-    });
-
-    void it('runs npm init if package.json does not exist', async () => {
-      let existsSyncMockValue = true;
-      const existsSyncMock = mock.fn(() => {
-        existsSyncMockValue = !existsSyncMockValue;
-        return existsSyncMockValue;
+        callCount++;
+        // Call 1: package.json check → exists
+        // Call 2: .npmrc check → does not exist
+        return callCount === 1;
       });
       const pnpmPackageManagerController = new PnpmPackageManagerController(
         '/testProjectRoot',
@@ -105,7 +88,89 @@ void describe('PnpmPackageManagerController', () => {
 
       await pnpmPackageManagerController.initializeProject();
       assert.equal(existsSyncMock.mock.callCount(), 2);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
+      assert.equal(fspMock.writeFile.mock.callCount(), 1);
+      const writeArgs = fspMock.writeFile.mock.calls[0]
+        .arguments as unknown as string[];
+      assert.ok(writeArgs[1].includes('allowBuilds[esbuild]=true'));
+      assert.ok(writeArgs[1].includes('allowBuilds[@parcel/watcher]=true'));
+    });
+
+    void it('runs pnpm init if package.json does not exist and creates .npmrc', async () => {
+      let callCount = 0;
+      const existsSyncMock = mock.fn(() => {
+        callCount++;
+        // Call 1: package.json check before init → does not exist
+        // Call 2: package.json check after init → exists
+        // Call 3: .npmrc check → does not exist
+        return callCount === 2;
+      });
+      const pnpmPackageManagerController = new PnpmPackageManagerController(
+        '/testProjectRoot',
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
+        existsSyncMock,
+      );
+
+      await pnpmPackageManagerController.initializeProject();
+      assert.equal(existsSyncMock.mock.callCount(), 3);
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+      assert.equal(fspMock.writeFile.mock.callCount(), 1);
+    });
+
+    void it('appends to existing .npmrc without allowBuilds', async () => {
+      const existsSyncMock = mock.fn(() => {
+        // Call 1: package.json check → exists
+        // Call 2: .npmrc check → exists
+        return true;
+      });
+      const fspMockWithExistingNpmrc = {
+        readFile: mock.fn(() => Promise.resolve('store-dir=~/.pnpm-store')),
+        writeFile: mock.fn(() => Promise.resolve()),
+      };
+      const pnpmPackageManagerController = new PnpmPackageManagerController(
+        '/testProjectRoot',
+        fspMockWithExistingNpmrc as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
+        existsSyncMock,
+      );
+
+      await pnpmPackageManagerController.initializeProject();
+      assert.equal(fspMockWithExistingNpmrc.writeFile.mock.callCount(), 1);
+      const writtenContent = (
+        fspMockWithExistingNpmrc.writeFile.mock.calls[0]
+          .arguments as unknown as string[]
+      )[1];
+      assert.ok(writtenContent.startsWith('store-dir=~/.pnpm-store'));
+      assert.ok(writtenContent.includes('allowBuilds[esbuild]=true'));
+      assert.ok(writtenContent.includes('allowBuilds[@parcel/watcher]=true'));
+    });
+
+    void it('does not modify .npmrc if allowBuilds already configured', async () => {
+      const existsSyncMock = mock.fn(() => true);
+      const fspMockWithConfig = {
+        readFile: mock.fn(() =>
+          Promise.resolve(
+            `allowBuilds[esbuild]=true${EOL}allowBuilds[@parcel/watcher]=true`,
+          ),
+        ),
+        writeFile: mock.fn(() => Promise.resolve()),
+      };
+      const pnpmPackageManagerController = new PnpmPackageManagerController(
+        '/testProjectRoot',
+        fspMockWithConfig as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
+        existsSyncMock,
+      );
+
+      await pnpmPackageManagerController.initializeProject();
+      assert.equal(fspMockWithConfig.writeFile.mock.callCount(), 0);
     });
   });
 

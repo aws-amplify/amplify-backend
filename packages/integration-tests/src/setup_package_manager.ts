@@ -26,6 +26,14 @@ const initializePnpm = async () => {
   await execa(packageManager, ['--version']);
   await execa(packageManager, ['config', 'set', 'registry', customRegistry]);
   await execa(packageManager, ['config', 'get', 'registry']);
+  // pnpm v11+ blocks build scripts by default. Allow required packages.
+  await execa(packageManager, ['config', 'set', 'allowBuilds.esbuild', 'true']);
+  await execa(packageManager, [
+    'config',
+    'set',
+    'allowBuilds.@parcel/watcher',
+    'true',
+  ]);
 };
 
 const initializeYarnClassic = async (execaOptions: {
