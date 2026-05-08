@@ -209,6 +209,18 @@ void describe('Backend', () => {
         message: 'Custom stack named testStack has already been created',
       });
     });
+
+    void it('creates a stack with suppressTemplateIndentation when set to true', () => {
+      const backend = new BackendFactory({}, rootStack);
+      const testStack = backend.createStack('testStack', true);
+
+      assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
+      assert.equal(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (testStack as any)['_suppressTemplateIndentation'],
+        true,
+      );
+    });
   });
 
   void it('can add custom output', () => {

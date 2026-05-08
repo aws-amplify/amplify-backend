@@ -53,6 +53,7 @@ export type DataProps = {
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
     logging?: DataLoggingOptions;
     migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+    suppressTemplateIndentation?: boolean;
 };
 
 // @public

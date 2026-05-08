@@ -15,6 +15,11 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
   resourceGroupName: string;
 
   /**
+   * Suppress indentation in generated CloudFormation templates.
+   */
+  suppressTemplateIndentation?: boolean;
+
+  /**
    * Create a new instance of a CDK construct in the provided scope.
    */
   generateContainerEntry: (

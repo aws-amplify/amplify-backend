@@ -6,8 +6,14 @@ import { fileURLToPath } from 'node:url';
  * Vends stacks for a resource grouping
  */
 export type StackResolver = {
-  getStackFor: (resourceGroupName: string) => Stack;
-  createCustomStack: (name: string) => Stack;
+  getStackFor: (
+    resourceGroupName: string,
+    suppressTemplateIndentation?: boolean,
+  ) => Stack;
+  createCustomStack: (
+    name: string,
+    suppressTemplateIndentation?: boolean,
+  ) => Stack;
 };
 
 /**
@@ -27,11 +33,14 @@ export class NestedStackResolver implements StackResolver {
   /**
    * Proxy to getStackFor that appends attribution metadata for custom stacks
    */
-  createCustomStack = (name: string): Stack => {
+  createCustomStack = (
+    name: string,
+    suppressTemplateIndentation?: boolean,
+  ): Stack => {
     if (this.stacks[name]) {
       throw new Error(`Custom stack named ${name} has already been created`);
     }
-    const stack = this.getStackFor(name);
+    const stack = this.getStackFor(name, suppressTemplateIndentation);
     // this is safe even if stack is cached from an earlier invocation because storeAttributionMetadata is a noop if the stack description already exists
     this.attributionMetadataStorage.storeAttributionMetadata(
       stack,
@@ -45,11 +54,15 @@ export class NestedStackResolver implements StackResolver {
    * Returns a cached NestedStack if resourceGroupName has been seen before
    * Otherwise, creates a new NestedStack, caches it and returns it
    */
-  getStackFor = (resourceGroupName: string): Stack => {
+  getStackFor = (
+    resourceGroupName: string,
+    suppressTemplateIndentation?: boolean,
+  ): Stack => {
     if (!this.stacks[resourceGroupName]) {
       this.stacks[resourceGroupName] = new NestedStack(
         this.rootStack,
         resourceGroupName,
+        { suppressTemplateIndentation },
       );
     }
     return this.stacks[resourceGroupName];

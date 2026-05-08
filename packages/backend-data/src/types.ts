@@ -155,6 +155,11 @@ export type DataProps = {
    * Each element in the array represents a mapping for a specific branch.
    */
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+
+  /**
+   * Suppress indentation in generated CloudFormation templates.
+   */
+  suppressTemplateIndentation?: boolean;
 };
 
 export type AmplifyDataError =
