@@ -72,6 +72,11 @@ export const nextjsAdapter = (
     runOpenNextBuild(projectDir, configPath);
   }
 
+  // Ensure amplify_outputs.json is in every server function bundle.
+  // Next.js outputFileTracingIncludes is unreliable across rebuild scenarios,
+  // so we explicitly copy the file into the OpenNext output.
+  copyAmplifyOutputsToServerBundles(projectDir, openNextDir);
+
   if (!fs.existsSync(outputPath)) {
     throw new HostingError('OpenNextOutputNotFoundError', {
       message: `OpenNext output not found at ${outputPath}. Did the build succeed?`,
@@ -129,6 +134,50 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
       },
       error as Error,
     );
+  }
+};
+
+/**
+ * Copy amplify_outputs.json from the project root into all server function
+ * bundle directories under .open-next/. This ensures the Lambda can read
+ * backend configuration (auth, data, storage endpoints) at runtime regardless
+ * of whether Next.js file tracing included the file.
+ */
+const copyAmplifyOutputsToServerBundles = (
+  projectDir: string,
+  openNextDir: string,
+): void => {
+  const outputsFile = path.join(projectDir, 'amplify_outputs.json');
+  if (!fs.existsSync(outputsFile)) {
+    return;
+  }
+
+  const targets: string[] = [];
+
+  // Single server function directory
+  const singleFn = path.join(openNextDir, 'server-function');
+  if (fs.existsSync(singleFn)) {
+    targets.push(singleFn);
+  }
+
+  // Multi-function directory (server-functions/<name>/)
+  const multiFnDir = path.join(openNextDir, 'server-functions');
+  if (fs.existsSync(multiFnDir)) {
+    for (const entry of fs.readdirSync(multiFnDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        targets.push(path.join(multiFnDir, entry.name));
+      }
+    }
+  }
+
+  for (const target of targets) {
+    const dest = path.join(target, 'amplify_outputs.json');
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(outputsFile, dest);
+      process.stderr.write(
+        `\u{1F4E6} Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
+      );
+    }
   }
 };
 

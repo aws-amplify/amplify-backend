@@ -403,4 +403,132 @@ void describe('nextjsAdapter', () => {
       `Schema validation failed: ${JSON.stringify(result.error?.issues)}`,
     );
   });
+
+  void it('copies amplify_outputs.json into server function bundles', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    const serverFnDir = path.join(openNextDir, 'server-function');
+    fs.mkdirSync(serverFnDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(serverFnDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    // Create amplify_outputs.json at project root
+    const amplifyOutputs = {
+      auth: { user_pool_id: 'us-east-1_TEST' },
+      data: {
+        url: 'https://test.appsync.amazonaws.com/graphql',
+        api_key: 'da2-test',
+      },
+    };
+    fs.writeFileSync(
+      path.join(tmpDir, 'amplify_outputs.json'),
+      JSON.stringify(amplifyOutputs),
+    );
+
+    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+
+    // Verify amplify_outputs.json was copied into server-function/
+    const copiedPath = path.join(serverFnDir, 'amplify_outputs.json');
+    assert.ok(
+      fs.existsSync(copiedPath),
+      'amplify_outputs.json should be copied into server-function bundle',
+    );
+    const copiedContent = JSON.parse(fs.readFileSync(copiedPath, 'utf-8'));
+    assert.strictEqual(copiedContent.auth.user_pool_id, 'us-east-1_TEST');
+  });
+
+  void it('copies amplify_outputs.json into multi-function server bundles', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    const defaultFnDir = path.join(openNextDir, 'server-functions', 'default');
+    const apiFnDir = path.join(openNextDir, 'server-functions', 'api');
+    fs.mkdirSync(defaultFnDir, { recursive: true });
+    fs.mkdirSync(apiFnDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(defaultFnDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(apiFnDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+          api: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [
+          { pattern: '/api/*', origin: 'api' },
+          { pattern: '/*', origin: 'default' },
+        ],
+        additionalProps: {},
+      }),
+    );
+
+    fs.writeFileSync(
+      path.join(tmpDir, 'amplify_outputs.json'),
+      JSON.stringify({ data: { url: 'https://example.com' } }),
+    );
+
+    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+
+    // Both server function dirs should have the file
+    assert.ok(
+      fs.existsSync(path.join(defaultFnDir, 'amplify_outputs.json')),
+      'amplify_outputs.json should be in default server function bundle',
+    );
+    assert.ok(
+      fs.existsSync(path.join(apiFnDir, 'amplify_outputs.json')),
+      'amplify_outputs.json should be in api server function bundle',
+    );
+  });
+
+  void it('does not fail if amplify_outputs.json is absent', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    const serverFnDir = path.join(openNextDir, 'server-function');
+    fs.mkdirSync(serverFnDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(serverFnDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    // No amplify_outputs.json — should not throw
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.ok(
+      manifest,
+      'Should produce a manifest even without amplify_outputs.json',
+    );
+    assert.ok(
+      !fs.existsSync(path.join(serverFnDir, 'amplify_outputs.json')),
+      'Should not create amplify_outputs.json if source does not exist',
+    );
+  });
 });
