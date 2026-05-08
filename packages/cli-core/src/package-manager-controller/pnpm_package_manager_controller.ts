@@ -7,9 +7,13 @@ import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_wit
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 import { PnpmLockFileReader } from './lock-file-reader/pnpm_lock_file_reader.js';
 
-const PNPM_ALLOW_BUILDS_CONFIG = [
-  'allowBuilds[esbuild]=true',
-  'allowBuilds[@parcel/watcher]=true',
+const PNPM_ALLOW_BUILDS_PACKAGES = ['esbuild', '@parcel/watcher', 'core-js'];
+
+const PNPM_WORKSPACE_ALLOW_BUILDS_YAML = [
+  'allowBuilds:',
+  ...PNPM_ALLOW_BUILDS_PACKAGES.map((pkg) =>
+    pkg.includes('@') ? `  '${pkg}': true` : `  ${pkg}: true`,
+  ),
 ].join(EOL);
 
 /**
@@ -43,8 +47,8 @@ export class PnpmPackageManagerController extends PackageManagerControllerBase {
   }
 
   /**
-   * Initializes the project and ensures .npmrc is configured with allowBuilds
-   * for pnpm v11+ which blocks build scripts by default.
+   * Initializes the project and ensures pnpm-workspace.yaml is configured with
+   * allowBuilds for pnpm v11+ which blocks build scripts by default.
    */
   override async initializeProject() {
     await super.initializeProject();
@@ -52,20 +56,20 @@ export class PnpmPackageManagerController extends PackageManagerControllerBase {
   }
 
   private async ensureAllowBuildsConfig(): Promise<void> {
-    const npmrcPath = this.path.resolve(this.cwd, '.npmrc');
+    const workspacePath = this.path.resolve(this.cwd, 'pnpm-workspace.yaml');
     let existingContent = '';
 
-    if (this.existsSync(npmrcPath)) {
-      existingContent = await this.fsp.readFile(npmrcPath, 'utf-8');
-      if (existingContent.includes('allowBuilds[esbuild]')) {
+    if (this.existsSync(workspacePath)) {
+      existingContent = await this.fsp.readFile(workspacePath, 'utf-8');
+      if (existingContent.includes('allowBuilds:')) {
         return;
       }
     }
 
     const newContent = existingContent
-      ? `${existingContent.trimEnd()}${EOL}${EOL}${PNPM_ALLOW_BUILDS_CONFIG}${EOL}`
-      : `${PNPM_ALLOW_BUILDS_CONFIG}${EOL}`;
+      ? `${existingContent.trimEnd()}${EOL}${EOL}${PNPM_WORKSPACE_ALLOW_BUILDS_YAML}${EOL}`
+      : `${PNPM_WORKSPACE_ALLOW_BUILDS_YAML}${EOL}`;
 
-    await this.fsp.writeFile(npmrcPath, newContent, 'utf-8');
+    await this.fsp.writeFile(workspacePath, newContent, 'utf-8');
   }
 }

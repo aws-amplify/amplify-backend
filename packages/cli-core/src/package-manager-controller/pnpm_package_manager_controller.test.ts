@@ -69,12 +69,12 @@ void describe('PnpmPackageManagerController', () => {
   });
 
   void describe('initializeProject', () => {
-    void it('skips init if package.json already exists and creates .npmrc', async () => {
+    void it('skips init if package.json already exists and creates pnpm-workspace.yaml', async () => {
       let callCount = 0;
       const existsSyncMock = mock.fn(() => {
         callCount++;
         // Call 1: package.json check → exists
-        // Call 2: .npmrc check → does not exist
+        // Call 2: pnpm-workspace.yaml check → does not exist
         return callCount === 1;
       });
       const pnpmPackageManagerController = new PnpmPackageManagerController(
@@ -92,17 +92,20 @@ void describe('PnpmPackageManagerController', () => {
       assert.equal(fspMock.writeFile.mock.callCount(), 1);
       const writeArgs = fspMock.writeFile.mock.calls[0]
         .arguments as unknown as string[];
-      assert.ok(writeArgs[1].includes('allowBuilds[esbuild]=true'));
-      assert.ok(writeArgs[1].includes('allowBuilds[@parcel/watcher]=true'));
+      assert.ok(writeArgs[0].includes('pnpm-workspace.yaml'));
+      assert.ok(writeArgs[1].includes('allowBuilds:'));
+      assert.ok(writeArgs[1].includes('esbuild: true'));
+      assert.ok(writeArgs[1].includes("'@parcel/watcher': true"));
+      assert.ok(writeArgs[1].includes('core-js: true'));
     });
 
-    void it('runs pnpm init if package.json does not exist and creates .npmrc', async () => {
+    void it('runs pnpm init if package.json does not exist and creates pnpm-workspace.yaml', async () => {
       let callCount = 0;
       const existsSyncMock = mock.fn(() => {
         callCount++;
         // Call 1: package.json check before init → does not exist
         // Call 2: package.json check after init → exists
-        // Call 3: .npmrc check → does not exist
+        // Call 3: pnpm-workspace.yaml check → does not exist
         return callCount === 2;
       });
       const pnpmPackageManagerController = new PnpmPackageManagerController(
@@ -120,19 +123,19 @@ void describe('PnpmPackageManagerController', () => {
       assert.equal(fspMock.writeFile.mock.callCount(), 1);
     });
 
-    void it('appends to existing .npmrc without allowBuilds', async () => {
+    void it('appends to existing pnpm-workspace.yaml without allowBuilds', async () => {
       const existsSyncMock = mock.fn(() => {
         // Call 1: package.json check → exists
-        // Call 2: .npmrc check → exists
+        // Call 2: pnpm-workspace.yaml check → exists
         return true;
       });
-      const fspMockWithExistingNpmrc = {
-        readFile: mock.fn(() => Promise.resolve('store-dir=~/.pnpm-store')),
+      const fspMockWithExistingWorkspace = {
+        readFile: mock.fn(() => Promise.resolve('packages:\n  - "packages/*"')),
         writeFile: mock.fn(() => Promise.resolve()),
       };
       const pnpmPackageManagerController = new PnpmPackageManagerController(
         '/testProjectRoot',
-        fspMockWithExistingNpmrc as unknown as typeof fsp,
+        fspMockWithExistingWorkspace as unknown as typeof fsp,
         pathMock as unknown as typeof path,
         execaMock as unknown as typeof execa,
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
@@ -140,22 +143,24 @@ void describe('PnpmPackageManagerController', () => {
       );
 
       await pnpmPackageManagerController.initializeProject();
-      assert.equal(fspMockWithExistingNpmrc.writeFile.mock.callCount(), 1);
+      assert.equal(fspMockWithExistingWorkspace.writeFile.mock.callCount(), 1);
       const writtenContent = (
-        fspMockWithExistingNpmrc.writeFile.mock.calls[0]
+        fspMockWithExistingWorkspace.writeFile.mock.calls[0]
           .arguments as unknown as string[]
       )[1];
-      assert.ok(writtenContent.startsWith('store-dir=~/.pnpm-store'));
-      assert.ok(writtenContent.includes('allowBuilds[esbuild]=true'));
-      assert.ok(writtenContent.includes('allowBuilds[@parcel/watcher]=true'));
+      assert.ok(writtenContent.startsWith('packages:'));
+      assert.ok(writtenContent.includes('allowBuilds:'));
+      assert.ok(writtenContent.includes('esbuild: true'));
+      assert.ok(writtenContent.includes("'@parcel/watcher': true"));
+      assert.ok(writtenContent.includes('core-js: true'));
     });
 
-    void it('does not modify .npmrc if allowBuilds already configured', async () => {
+    void it('does not modify pnpm-workspace.yaml if allowBuilds already configured', async () => {
       const existsSyncMock = mock.fn(() => true);
       const fspMockWithConfig = {
         readFile: mock.fn(() =>
           Promise.resolve(
-            `allowBuilds[esbuild]=true${EOL}allowBuilds[@parcel/watcher]=true`,
+            `allowBuilds:${EOL}  esbuild: true${EOL}  '@parcel/watcher': true${EOL}  core-js: true`,
           ),
         ),
         writeFile: mock.fn(() => Promise.resolve()),
