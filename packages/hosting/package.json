@@ -42,21 +42,15 @@
     "@aws-amplify/backend-output-schemas": "^1.5.0",
     "@aws-amplify/backend-output-storage": "^1.3.4",
     "@aws-amplify/platform-core": "^1.11.0",
-    "@aws-amplify/plugin-types": "^1.12.0"
+    "@aws-amplify/plugin-types": "^1.12.0",
+    "@opennextjs/aws": "~3.10.0"
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
-    "@opennextjs/aws": "~3.10.0",
     "zod": "3.25.17"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.234.1",
-    "constructs": "^10.0.0",
-    "@opennextjs/aws": "~3.10.0"
-  },
-  "peerDependenciesMeta": {
-    "@opennextjs/aws": {
-      "optional": true
-    }
+    "constructs": "^10.0.0"
   }
 }

@@ -103,18 +103,6 @@ export const nextjsAdapter = (
  * Execute the OpenNext build command.
  */
 const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
-  // Pre-flight: verify @opennextjs/aws is available
-  // require.resolve works here because this package compiles to CJS (see tsconfig.json module: "commonjs")
-  try {
-    require.resolve('@opennextjs/aws');
-  } catch {
-    throw new HostingError('MissingDependencyError', {
-      message:
-        '@opennextjs/aws is not installed. It is required for Next.js builds.',
-      resolution: 'Run: npm install --save-dev @opennextjs/aws',
-    });
-  }
-
   const execArgs = ['@opennextjs/aws', 'build'];
   if (configPath) execArgs.push('--config-path', configPath);
 
