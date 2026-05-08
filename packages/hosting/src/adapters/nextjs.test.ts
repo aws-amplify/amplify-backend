@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -6,15 +6,23 @@ import * as os from 'os';
 import { nextjsAdapter } from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
+// Direct require to get the real module (not __importStar wrapper)
+// so mock.method can replace the property on the shared module singleton.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const childProcessModule = require('child_process') as typeof import('child_process');
+
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-test-'));
+    // Mock execFileSync so OpenNext build doesn't actually run
+    mock.method(childProcessModule, 'execFileSync', () => undefined);
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
   });
 
   void it('translates OpenNext output to DeployManifest', () => {
@@ -55,7 +63,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify(outputManifest),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.strictEqual(manifest.version, 1);
 
@@ -108,7 +116,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.ok(manifest.cache);
     assert.strictEqual(manifest.cache!.tagRevalidation, true);
@@ -138,7 +146,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
     assert.strictEqual(manifest.cache, undefined);
   });
 
@@ -172,7 +180,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.ok(manifest.imageOptimization);
     assert.strictEqual(manifest.imageOptimization!.bundle, imgDir);
@@ -213,7 +221,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.ok(manifest.middleware);
     assert.strictEqual(manifest.middleware!.bundle, mwDir);
@@ -222,7 +230,7 @@ void describe('nextjsAdapter', () => {
 
   void it('throws when open-next output is missing', () => {
     assert.throws(
-      () => nextjsAdapter({ projectDir: tmpDir, skipBuild: true }),
+      () => nextjsAdapter({ projectDir: tmpDir }),
       (error: Error) => {
         assert.strictEqual(error.name, 'OpenNextOutputNotFoundError');
         return true;
@@ -257,7 +265,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.ok(manifest.compute['default']);
     assert.strictEqual(manifest.compute['default'].type, 'http-server');
@@ -291,7 +299,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     assert.ok(manifest.compute['default']);
     assert.strictEqual(manifest.compute['default'].type, 'edge');
@@ -324,7 +332,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     // s3 should not be in compute
     assert.strictEqual(manifest.compute['s3'], undefined);
@@ -356,7 +364,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
 
     const catchAll = manifest.routes.find((r) => r.pattern === '/*');
     assert.ok(catchAll, 'Should add catch-all route');
@@ -396,7 +404,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
     const result = deployManifestSchema.safeParse(manifest);
     assert.ok(
       result.success,
@@ -438,7 +446,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify(amplifyOutputs),
     );
 
-    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    nextjsAdapter({ projectDir: tmpDir });
 
     // Verify amplify_outputs.json was copied into server-function/
     const copiedPath = path.join(serverFnDir, 'amplify_outputs.json');
@@ -486,7 +494,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify({ data: { url: 'https://example.com' } }),
     );
 
-    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    nextjsAdapter({ projectDir: tmpDir });
 
     // Both server function dirs should have the file
     assert.ok(
@@ -521,7 +529,7 @@ void describe('nextjsAdapter', () => {
     );
 
     // No amplify_outputs.json — should not throw
-    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
     assert.ok(
       manifest,
       'Should produce a manifest even without amplify_outputs.json',

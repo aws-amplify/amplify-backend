@@ -6,6 +6,7 @@ import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
 
 export { spaAdapter } from './spa.js';
+export type { SpaAdapterOptions } from './spa.js';
 export { nextjsAdapter } from './nextjs.js';
 export type { NextjsAdapterOptions } from './nextjs.js';
 
@@ -18,11 +19,10 @@ export type { NextjsAdapterOptions } from './nextjs.js';
 export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
 
 /**
- * Adapter registry entry with optional options.
+ * Adapter registry entry.
  */
 type AdapterRegistryEntry = {
   adapter: FrameworkAdapterFn;
-  skipBuild?: boolean;
 };
 
 /**
@@ -80,12 +80,12 @@ export const detectFramework = (projectDir: string): string => {
 /**
  * Get the adapter function for the given framework type.
  * @param framework - the framework type
- * @param skipBuild - whether to skip the build step
+ * @param buildOutputDir - explicit build output directory (for SPA/static)
  * @returns the adapter function
  */
 export const getAdapter = (
   framework: string,
-  skipBuild?: boolean,
+  buildOutputDir?: string,
 ): FrameworkAdapterFn => {
   const entry = adapterRegistry.get(framework);
   if (!entry) {
@@ -96,9 +96,10 @@ export const getAdapter = (
     });
   }
 
-  // For nextjs, wrap the adapter to pass skipBuild
-  if (framework === 'nextjs' && skipBuild) {
-    return (projectDir: string) => nextjsAdapter({ projectDir, skipBuild });
+  // For SPA/static with explicit buildOutputDir, wrap the adapter
+  if (buildOutputDir && (framework === 'spa' || framework === 'static')) {
+    return (projectDir: string) =>
+      spaAdapter(projectDir, { buildOutputDir });
   }
 
   return entry.adapter;

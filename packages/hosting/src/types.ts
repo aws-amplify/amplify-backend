@@ -29,10 +29,12 @@ export type HostingProps = {
   framework?: FrameworkType;
 
   /**
-   * Skip running the framework build (if already built).
-   * For Next.js, this skips the OpenNext build if .open-next/ already exists.
+   * Explicit path (relative to project root) where pre-built output lives.
+   * When set, the SPA/static adapter uses this directory directly instead of
+   * auto-detecting (dist/, build/, out/).
+   * For Next.js, this is not used — OpenNext always runs its own build.
    */
-  skipBuild?: boolean;
+  buildOutputDir?: string;
 
   /**
    * Custom framework adapter for unsupported frameworks.

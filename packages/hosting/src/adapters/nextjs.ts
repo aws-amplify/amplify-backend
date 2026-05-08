@@ -18,8 +18,6 @@ import type {
 export type NextjsAdapterOptions = {
   /** Project root directory */
   projectDir: string;
-  /** Skip running the OpenNext build (if already built) */
-  skipBuild?: boolean;
   /** Custom open-next.config.ts path (relative to projectDir) */
   configPath?: string;
 };
@@ -62,15 +60,13 @@ type OpenNextBehavior = {
 export const nextjsAdapter = (
   options: NextjsAdapterOptions,
 ): DeployManifest => {
-  const { projectDir, skipBuild, configPath } = options;
+  const { projectDir, configPath } = options;
 
   const openNextDir = path.join(projectDir, '.open-next');
   const outputPath = path.join(openNextDir, 'open-next.output.json');
 
-  // Run the OpenNext build unless explicitly skipped
-  if (!skipBuild) {
-    runOpenNextBuild(projectDir, configPath);
-  }
+  // Always run the OpenNext build — it handles caching/rebuilding internally
+  runOpenNextBuild(projectDir, configPath);
 
   // Ensure amplify_outputs.json is in every server function bundle.
   // Next.js outputFileTracingIncludes is unreliable across rebuild scenarios,

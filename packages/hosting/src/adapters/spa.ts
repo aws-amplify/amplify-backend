@@ -6,15 +6,30 @@ import { copyDirRecursive } from './copy.js';
 import { HOSTING_DIR, STATIC_DIR } from '../constants.js';
 
 /**
+ * Options for the SPA adapter.
+ */
+export type SpaAdapterOptions = {
+  /** Explicit build output directory relative to project root. Overrides auto-detection. */
+  buildOutputDir?: string;
+};
+
+/**
  * SPA adapter — transforms a built SPA output directory into the canonical
  * .amplify-hosting/ directory structure with a deploy manifest.
  *
- * Detects the build output directory automatically (dist/, build/, out/).
+ * Detects the build output directory automatically (dist/, build/, out/)
+ * unless an explicit `buildOutputDir` is provided via options.
  * @param projectDir - absolute path to the project root
+ * @param options - optional adapter configuration
  * @returns the generated DeployManifest
  */
-export const spaAdapter = (projectDir: string): DeployManifest => {
-  const buildOutputDir = detectBuildOutputDir(projectDir);
+export const spaAdapter = (
+  projectDir: string,
+  options?: SpaAdapterOptions,
+): DeployManifest => {
+  const buildOutputDir = options?.buildOutputDir
+    ? path.join(projectDir, options.buildOutputDir)
+    : detectBuildOutputDir(projectDir);
 
   if (!fs.existsSync(buildOutputDir)) {
     throw new HostingError('BuildOutputNotFoundError', {
