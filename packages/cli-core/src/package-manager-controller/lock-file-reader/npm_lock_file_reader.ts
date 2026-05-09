@@ -1,7 +1,7 @@
 import { Dependency } from '@aws-amplify/plugin-types';
 import fsp from 'fs/promises';
 import path from 'path';
-import z from 'zod';
+import { z } from 'zod';
 import { LockFileContents, LockFileReader } from './types.js';
 import { printer } from '../../printer.js';
 import { LogLevel } from '../../printer/printer.js';

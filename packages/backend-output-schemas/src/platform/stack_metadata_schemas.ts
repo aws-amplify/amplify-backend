@@ -26,6 +26,7 @@ export type BackendOutputEntryStackMetadata = z.infer<
  * Data schema for storing backend output using stack metadata
  */
 export const backendOutputStackMetadataSchema = z.record(
+  z.string(),
   backendOutputEntryStackMetadataSchema,
 );
 
