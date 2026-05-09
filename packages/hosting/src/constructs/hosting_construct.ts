@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
   PriceClass,
@@ -222,6 +222,13 @@ export class AmplifyHostingConstruct extends Construct {
           removalPolicy: RemovalPolicy.DESTROY,
           timeToLiveAttribute: 'ttl',
         });
+
+        // GSI required by OpenNext's tag cache handler for path-based lookups
+        this.cacheTable.addGlobalSecondaryIndex({
+          indexName: 'revalidate',
+          partitionKey: { name: 'path', type: AttributeType.STRING },
+          sortKey: { name: 'revalidatedAt', type: AttributeType.NUMBER },
+        });
       }
 
       // SQS queue for async revalidation
@@ -329,7 +336,14 @@ export class AmplifyHostingConstruct extends Construct {
           'BUCKET_NAME',
           this.bucket.bucketName,
         );
-        imageConstruct.function.addEnvironment('BUCKET_KEY_PREFIX', '');
+        imageConstruct.function.addEnvironment(
+          'BUCKET_KEY_PREFIX',
+          `builds/${buildId}`,
+        );
+        imageConstruct.function.addEnvironment(
+          'BUCKET_REGION',
+          Stack.of(this).region,
+        );
       }
     }
 
@@ -402,7 +416,56 @@ export class AmplifyHostingConstruct extends Construct {
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
 
-    // ---- 9a. KMS decrypt grant for CloudFront OAC ----
+    // ---- 9a. OPEN_NEXT_ORIGIN env var for URL construction ----
+    // OpenNext's origin resolver (pattern-env) reads OPEN_NEXT_ORIGIN as a JSON
+    // map of origin names → {host, protocol, port}. Only the primary server
+    // function needs this — it enables internal routing to resolve origins for
+    // URL construction (avoiding "TypeError: Invalid URL" on path-only rewrites).
+    // Image optimization and other secondary compute functions don't need it.
+    if (hasCompute) {
+      // Identify the primary server function (the one handling SSR routing)
+      const primaryComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : [...this.computeFunctions.keys()].find(
+              (k) => k !== 'image-optimization' && k !== 'middleware',
+            );
+
+      if (primaryComputeName) {
+        const primaryFn = this.computeFunctions.get(primaryComputeName);
+        if (primaryFn && primaryFn instanceof LambdaFunction) {
+          // Build origin map with OTHER functions' URLs (not self → avoids cycle)
+          const originEntries: string[] = [];
+          for (const [urlName, fnUrl] of this.computeFunctionUrls.entries()) {
+            if (urlName === primaryComputeName) continue;
+            const originKey =
+              urlName === 'image-optimization' ? 'imageOptimizer' : urlName;
+            const host = Fn.select(2, Fn.split('/', fnUrl.url));
+            originEntries.push(
+              Fn.join('', [
+                `"${originKey}":{"host":"`,
+                host,
+                `","protocol":"https","port":443}`,
+              ]),
+            );
+          }
+
+          if (originEntries.length > 0) {
+            const openNextOriginJson = Fn.join('', [
+              '{',
+              Fn.join(',', originEntries),
+              '}',
+            ]);
+            primaryFn.addEnvironment('OPEN_NEXT_ORIGIN', openNextOriginJson);
+          } else {
+            primaryFn.addEnvironment('OPEN_NEXT_ORIGIN', '{}');
+          }
+        }
+      }
+    }
+
+    // ---- 9b. KMS decrypt grant for CloudFront OAC ----
     const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
     if (props.storage?.encryption === 'KMS' && kmsKey) {
       kmsKey.addToResourcePolicy(

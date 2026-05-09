@@ -42,6 +42,7 @@ export class VanillaCdkSsrTestCdkProjectCreator
     // the hosting adapter calls `npm run build` expecting `next build`.
     const pkgJsonPath = path.join(projectRoot, 'package.json');
     const pkgJson = JSON.parse(await fs.readFile(pkgJsonPath, 'utf-8'));
+    pkgJson.type = 'module';
     pkgJson.scripts = { ...pkgJson.scripts, build: 'next build' };
     pkgJson.dependencies = {
       ...pkgJson.dependencies,
