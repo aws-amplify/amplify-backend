@@ -285,7 +285,8 @@ const doBuildHostingConstruct = (
   }
 
   // Get the adapter (custom or registry) and run it to produce a manifest
-  const adapter = props.customAdapter ?? getAdapter(framework, props.buildOutputDir);
+  const adapter =
+    props.customAdapter ?? getAdapter(framework, props.buildOutputDir);
   const manifest = adapter(projectDir);
 
   const constructProps: AmplifyHostingConstructProps = {

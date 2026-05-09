@@ -98,8 +98,7 @@ export const getAdapter = (
 
   // For SPA/static with explicit buildOutputDir, wrap the adapter
   if (buildOutputDir && (framework === 'spa' || framework === 'static')) {
-    return (projectDir: string) =>
-      spaAdapter(projectDir, { buildOutputDir });
+    return (projectDir: string) => spaAdapter(projectDir, { buildOutputDir });
   }
 
   return entry.adapter;

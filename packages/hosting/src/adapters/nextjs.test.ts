@@ -8,8 +8,10 @@ import { deployManifestSchema } from '../manifest/schema.js';
 
 // Direct require to get the real module (not __importStar wrapper)
 // so mock.method can replace the property on the shared module singleton.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const childProcessModule = require('child_process') as typeof import('child_process');
+/* eslint-disable @typescript-eslint/no-require-imports */
+const childProcessModule =
+  require('child_process') as typeof import('child_process');
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 void describe('nextjsAdapter', () => {
   let tmpDir: string;

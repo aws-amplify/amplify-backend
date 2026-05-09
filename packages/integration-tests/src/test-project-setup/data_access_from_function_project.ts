@@ -21,7 +21,9 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 /**
  * Creates the data and function test project.
  */
-export class DataAccessFromFunctionTestProjectCreator implements TestProjectCreator {
+export class DataAccessFromFunctionTestProjectCreator
+  implements TestProjectCreator
+{
   readonly name = 'data-access-from-function';
 
   /**

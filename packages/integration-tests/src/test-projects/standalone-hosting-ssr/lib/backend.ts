@@ -42,8 +42,27 @@ export function getAmplifyConfig(): AmplifyConfig {
 }
 
 /**
+ * Validate that a URL is a trusted AWS AppSync endpoint.
+ * Ensures file-sourced config values are safe before use in network requests.
+ */
+function validateAppSyncUrl(url: string): URL {
+  const parsed = new URL(url);
+  if (
+    parsed.protocol !== 'https:' ||
+    !parsed.hostname.endsWith('.appsync-api.amazonaws.com')
+  ) {
+    throw new Error(
+      `Untrusted AppSync URL: ${url}. Expected https://*.appsync-api.amazonaws.com`,
+    );
+  }
+  return parsed;
+}
+
+/**
  * Query the AppSync GraphQL API directly using fetch.
  * This is the pattern for server-side GraphQL calls without the full Amplify SDK.
+ *
+ * The url and apiKey originate from amplify_outputs.json (trusted CDK deployment output).
  */
 export async function queryGraphQL(
   url: string,
@@ -51,7 +70,11 @@ export async function queryGraphQL(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<{ data?: Record<string, unknown>; errors?: unknown[] }> {
-  const response = await fetch(url, {
+  // Validate that the URL is a trusted AWS AppSync endpoint before making the request.
+  // The URL and API key are read from amplify_outputs.json (CDK deployment output).
+  const validatedUrl = validateAppSyncUrl(url);
+
+  const response = await fetch(validatedUrl.href, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

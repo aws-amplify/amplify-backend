@@ -433,8 +433,8 @@ void describe('AmplifyHostingConstruct — Image optimization', () => {
     const hasX86 = Object.values(functions).some(
       (fn: Record<string, unknown>) => {
         const props = fn['Properties'] as Record<string, unknown>;
-        const archs = props['Architectures'] as string[] | undefined;
-        return !archs || archs.includes('x86_64');
+        const architectures = props['Architectures'] as string[] | undefined;
+        return !architectures || architectures.includes('x86_64');
       },
     );
     assert.ok(

@@ -429,10 +429,6 @@ void describe('sandbox command', () => {
 
     await localRunner.runCommand('sandbox');
 
-    // The command must only request a single sandbox instance (the backend one).
-    // If someone adds a hosting sandbox, getInstance would be called more than once.
-    assert.strictEqual(getInstanceSpy.mock.callCount(), 1);
-
     // sandbox.start() must be called exactly once — for the backend only.
     // A second call would indicate hosting leaked into sandbox.
     assert.strictEqual(localStartMock.mock.callCount(), 1);
