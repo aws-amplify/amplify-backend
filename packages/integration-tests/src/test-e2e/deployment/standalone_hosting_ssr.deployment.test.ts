@@ -621,6 +621,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 8,
             intervalMs: 15000,
+            fetchInit: { headers: { Accept: 'image/webp,*/*' } },
           });
 
           assert.strictEqual(
@@ -664,6 +665,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 10000,
+            fetchInit: { headers: { Accept: 'image/webp,*/*' } },
           });
           assert.ok(
             imgRes2.status < 500,
@@ -684,6 +686,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 10000,
+            fetchInit: { headers: { Accept: 'image/webp,*/*' } },
           });
           assert.ok(
             imgRes3.status < 500,

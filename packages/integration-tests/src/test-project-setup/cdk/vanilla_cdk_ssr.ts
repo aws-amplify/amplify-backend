@@ -45,7 +45,7 @@ export class VanillaCdkSsrTestCdkProjectCreator
     pkgJson.scripts = { ...pkgJson.scripts, build: 'next build' };
     pkgJson.dependencies = {
       ...pkgJson.dependencies,
-      next: '^15.5.15',
+      next: '15.5.15',
       react: '^19.0.0',
       'react-dom': '^19.0.0',
     };
