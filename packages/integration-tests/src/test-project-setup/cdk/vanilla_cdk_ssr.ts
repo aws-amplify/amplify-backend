@@ -64,6 +64,35 @@ export class VanillaCdkSsrTestCdkProjectCreator
       recursive: true,
     });
 
+    // Move app/ directory from lib/ to project root so Next.js can find it.
+    // The source dir contains both CDK stack files (belong in lib/) and Next.js
+    // app directory (must be at the project root for `next build` to work).
+    const libAppDir = path.join(projectRoot, 'lib', 'app');
+    const rootAppDir = path.join(projectRoot, 'app');
+    await fs.cp(libAppDir, rootAppDir, { recursive: true });
+    await fs.rm(libAppDir, { recursive: true });
+
+    // Update tsconfig.json to support JSX (needed for app/*.tsx files).
+    // CDK init creates a tsconfig without JSX support.
+    const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
+    const tsconfig = JSON.parse(await fs.readFile(tsconfigPath, 'utf-8'));
+    tsconfig.compilerOptions = {
+      ...tsconfig.compilerOptions,
+      jsx: 'preserve',
+      lib: ['dom', 'dom.iterable', 'esnext'],
+      allowJs: true,
+      skipLibCheck: true,
+      noEmit: true,
+      incremental: true,
+      module: 'esnext',
+      moduleResolution: 'bundler',
+      resolveJsonModule: true,
+      isolatedModules: true,
+    };
+    tsconfig.include = ['**/*.ts', '**/*.tsx', 'next-env.d.ts'];
+    tsconfig.exclude = ['node_modules', '.next', '.open-next'];
+    await fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+
     // Create .open-next/ build output fixture (simulates OpenNext build output)
     const openNextDir = path.join(projectRoot, '.open-next');
     const serverFnDir = path.join(openNextDir, 'server-function');

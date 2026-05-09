@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
   PriceClass,
@@ -239,6 +239,11 @@ export class AmplifyHostingConstruct extends Construct {
             queue: revalidationDlq,
             maxReceiveCount: 3,
           },
+        });
+
+        new CfnOutput(this, 'RevalidationQueueUrl', {
+          value: this.revalidationQueue.queueUrl,
+          description: 'URL of the ISR revalidation SQS queue',
         });
       }
 
