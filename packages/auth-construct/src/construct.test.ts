@@ -1389,6 +1389,30 @@ void describe('Auth construct', () => {
         ],
       });
     });
+
+    void it('configures managed login version when managedLogin is true', () => {
+      new AmplifyAuth(stack, 'test', {
+        name: 'test_name',
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            domainPrefix: 'test-prefix',
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+            managedLogin: true,
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
+        Domain: 'test-prefix',
+        ManagedLoginVersion: 2,
+      });
+    });
   });
 
   void describe('storeOutput strategy', () => {
