@@ -273,7 +273,8 @@ const translateOpenNextOutput = (
   // Map server functions (origins) to compute resources
   if (output.origins) {
     for (const [name, origin] of Object.entries(output.origins)) {
-      if (name === 's3') continue;
+      // Skip S3 origin and imageOptimizer (handled separately via manifest.imageOptimization)
+      if (name === 's3' || name === 'imageOptimizer') continue;
 
       const computeResource = mapOriginToCompute(name, origin, openNextDir);
       if (computeResource) {

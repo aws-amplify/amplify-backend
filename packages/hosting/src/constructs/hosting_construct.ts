@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
   PriceClass,
@@ -14,6 +14,7 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import {
+  Architecture,
   FunctionUrl,
   IVersion,
   Function as LambdaFunction,
@@ -266,6 +267,11 @@ export class AmplifyHostingConstruct extends Construct {
           'CACHE_BUCKET_NAME',
           this.cacheBucket.bucketName,
         );
+        cacheFunction.addEnvironment(
+          'CACHE_BUCKET_REGION',
+          Stack.of(this).region,
+        );
+        cacheFunction.addEnvironment('OPEN_NEXT_BUILD_ID', buildId);
         if (this.cacheTable) {
           cacheFunction.addEnvironment(
             'CACHE_DYNAMO_TABLE',
@@ -276,6 +282,10 @@ export class AmplifyHostingConstruct extends Construct {
           cacheFunction.addEnvironment(
             'REVALIDATION_QUEUE_URL',
             this.revalidationQueue.queueUrl,
+          );
+          cacheFunction.addEnvironment(
+            'REVALIDATION_QUEUE_REGION',
+            Stack.of(this).region,
           );
         }
       }
@@ -295,6 +305,7 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 25,
         },
         reservedConcurrency: 10,
+        architecture: Architecture.ARM_64,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);
@@ -306,6 +317,15 @@ export class AmplifyHostingConstruct extends Construct {
       }
       // Image optimization needs to read original images from the assets bucket
       this.bucket.grantRead(imageConstruct.function);
+
+      // Environment variables required by OpenNext image optimization
+      if (imageConstruct.function instanceof LambdaFunction) {
+        imageConstruct.function.addEnvironment(
+          'BUCKET_NAME',
+          this.bucket.bucketName,
+        );
+        imageConstruct.function.addEnvironment('BUCKET_KEY_PREFIX', '');
+      }
     }
 
     // ---- 5. Middleware (Lambda@Edge) ----

@@ -89,6 +89,8 @@ export type ComputeConstructProps = {
   logRetention?: RetentionDays;
   /** Skip the Lambda Web Adapter region validation check. */
   skipRegionValidation?: boolean;
+  /** Lambda architecture override. Default: X86_64. */
+  architecture?: Architecture;
 };
 
 // ---- Construct ----
@@ -136,13 +138,15 @@ export class ComputeConstruct extends Construct {
       ],
     });
 
+    const architecture = props.architecture ?? Architecture.X86_64;
+
     if (computeResource.type === 'handler') {
       // Native Lambda handler — no Web Adapter needed
       this.function = new LambdaFunction(this, 'Function', {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.handler ?? 'index.handler',
         code: Code.fromAsset(computeResource.bundle),
-        architecture: Architecture.X86_64,
+        architecture,
         memorySize,
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
@@ -165,7 +169,7 @@ export class ComputeConstruct extends Construct {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.entrypoint ?? 'run.sh',
         code: Code.fromAsset(computeResource.bundle),
-        architecture: Architecture.X86_64,
+        architecture,
         memorySize,
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
@@ -206,7 +210,7 @@ export class ComputeConstruct extends Construct {
         runtime: this.resolveRuntime(computeResource.runtime),
         handler: computeResource.handler ?? 'index.handler',
         code: Code.fromAsset(computeResource.bundle),
-        architecture: Architecture.X86_64,
+        architecture,
         memorySize,
         timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
         logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,

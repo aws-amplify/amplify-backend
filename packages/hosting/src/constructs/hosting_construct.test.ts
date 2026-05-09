@@ -310,6 +310,49 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
     assert.strictEqual(construct.cacheTable, undefined);
     assert.strictEqual(construct.revalidationQueue, undefined);
   });
+
+  void it('sets CACHE_BUCKET_REGION, REVALIDATION_QUEUE_REGION, and OPEN_NEXT_BUILD_ID env vars', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const functions = template.findResources('AWS::Lambda::Function');
+    const hasIsrEnvVars = Object.values(functions).some(
+      (fn: Record<string, unknown>) => {
+        const props = fn['Properties'] as Record<string, unknown>;
+        const env = props['Environment'] as Record<string, unknown> | undefined;
+        const vars = env?.['Variables'] as Record<string, unknown> | undefined;
+        return (
+          vars &&
+          'CACHE_BUCKET_NAME' in vars &&
+          'CACHE_BUCKET_REGION' in vars &&
+          'CACHE_DYNAMO_TABLE' in vars &&
+          'REVALIDATION_QUEUE_URL' in vars &&
+          'REVALIDATION_QUEUE_REGION' in vars &&
+          'OPEN_NEXT_BUILD_ID' in vars
+        );
+      },
+    );
+    assert.ok(
+      hasIsrEnvVars,
+      'Cache compute Lambda should have all ISR env vars including CACHE_BUCKET_REGION, REVALIDATION_QUEUE_REGION, and OPEN_NEXT_BUILD_ID',
+    );
+  });
 });
 
 // ================================================================
@@ -354,6 +397,93 @@ void describe('AmplifyHostingConstruct — Image optimization', () => {
     assert.ok(
       Object.keys(functions).length >= 2,
       `Expected at least 2 Lambda functions, got ${Object.keys(functions).length}`,
+    );
+  });
+
+  void it('uses ARM_64 architecture for image optimization Lambda', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const imgDir = path.join(tmpDir, 'image-fn');
+    fs.mkdirSync(imgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(imgDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      imageOptimization: {
+        bundle: imgDir,
+        handler: 'index.handler',
+        formats: ['webp', 'avif'],
+        sizes: [640, 1080],
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // Find all Lambda functions and check one has arm64 architecture
+    const functions = template.findResources('AWS::Lambda::Function');
+    const hasArm64 = Object.values(functions).some(
+      (fn: Record<string, unknown>) => {
+        const props = fn['Properties'] as Record<string, unknown>;
+        const archs = props['Architectures'] as string[] | undefined;
+        return archs && archs.includes('arm64');
+      },
+    );
+    assert.ok(
+      hasArm64,
+      'Image optimization Lambda should use arm64 architecture',
+    );
+  });
+
+  void it('sets BUCKET_NAME and BUCKET_KEY_PREFIX env vars on image optimization Lambda', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const imgDir = path.join(tmpDir, 'image-fn');
+    fs.mkdirSync(imgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(imgDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      imageOptimization: {
+        bundle: imgDir,
+        handler: 'index.handler',
+        formats: ['webp', 'avif'],
+        sizes: [640, 1080],
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // At least one Lambda should have BUCKET_NAME env var
+    const functions = template.findResources('AWS::Lambda::Function');
+    const hasBucketEnv = Object.values(functions).some(
+      (fn: Record<string, unknown>) => {
+        const props = fn['Properties'] as Record<string, unknown>;
+        const env = props['Environment'] as Record<string, unknown> | undefined;
+        const vars = env?.['Variables'] as Record<string, unknown> | undefined;
+        return vars && 'BUCKET_NAME' in vars && 'BUCKET_KEY_PREFIX' in vars;
+      },
+    );
+    assert.ok(
+      hasBucketEnv,
+      'Image optimization Lambda should have BUCKET_NAME and BUCKET_KEY_PREFIX env vars',
     );
   });
 });
