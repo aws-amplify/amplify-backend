@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax, @typescript-eslint/naming-convention */
+
 export default function Home() {
   return (
     <div>

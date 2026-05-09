@@ -8,7 +8,9 @@ import {
 /**
  * Generates GraphQL types for a given AppSync API
  */
-export class StackMetadataGraphqlModelsGenerator implements GraphqlModelsGenerator {
+export class StackMetadataGraphqlModelsGenerator
+  implements GraphqlModelsGenerator
+{
   /**
    * Configures the AppSyncGraphqlTypesGenerator
    */

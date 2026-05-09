@@ -9,10 +9,9 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Command to remove sandbox secret.
  */
-export class SandboxSecretRemoveCommand implements CommandModule<
-  object,
-  SecretRemoveCommandOptionsKebabCase
-> {
+export class SandboxSecretRemoveCommand
+  implements CommandModule<object, SecretRemoveCommandOptionsKebabCase>
+{
   /**
    * @inheritDoc
    */

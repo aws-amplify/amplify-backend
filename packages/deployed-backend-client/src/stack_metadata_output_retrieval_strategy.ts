@@ -21,7 +21,9 @@ import {
 /**
  * Gets Amplify backend outputs from stack metadata and outputs
  */
-export class StackMetadataBackendOutputRetrievalStrategy implements BackendOutputRetrievalStrategy {
+export class StackMetadataBackendOutputRetrievalStrategy
+  implements BackendOutputRetrievalStrategy
+{
   /**
    * Instantiate with a CloudFormationClient and a StackNameResolver
    */

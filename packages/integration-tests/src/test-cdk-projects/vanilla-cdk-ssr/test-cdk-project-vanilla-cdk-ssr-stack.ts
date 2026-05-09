@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-restricted-syntax, import/no-extraneous-dependencies */
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {

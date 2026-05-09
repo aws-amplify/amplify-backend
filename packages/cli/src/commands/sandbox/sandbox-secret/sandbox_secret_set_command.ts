@@ -11,10 +11,9 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Command to set sandbox secret.
  */
-export class SandboxSecretSetCommand implements CommandModule<
-  object,
-  SecretSetCommandOptionsKebabCase
-> {
+export class SandboxSecretSetCommand
+  implements CommandModule<object, SecretSetCommandOptionsKebabCase>
+{
   /**
    * @inheritDoc
    */

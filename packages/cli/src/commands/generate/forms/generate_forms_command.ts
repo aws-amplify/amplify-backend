@@ -26,10 +26,9 @@ type GenerateFormsCommandOptionsCamelCase = {
 /**
  * Command that generates UI forms.
  */
-export class GenerateFormsCommand implements CommandModule<
-  object,
-  GenerateFormsCommandOptions
-> {
+export class GenerateFormsCommand
+  implements CommandModule<object, GenerateFormsCommandOptions>
+{
   /**
    * @inheritDoc
    */

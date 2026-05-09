@@ -13,7 +13,9 @@ export type AppNameAndBranchBackendIdentifier = {
 /**
  * Resolves stack names given an Amplify app name and branch
  */
-export class AppNameAndBranchMainStackNameResolver implements MainStackNameResolver {
+export class AppNameAndBranchMainStackNameResolver
+  implements MainStackNameResolver
+{
   /**
    * Initialize with an Amplify client and app info
    */

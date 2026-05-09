@@ -413,9 +413,6 @@ void describe('sandbox command', () => {
     const localStartMock = mock.method(factorySandbox, 'start', () =>
       Promise.resolve(),
     );
-    const getInstanceSpy = mock.method(sandboxFactory, 'getInstance', () =>
-      Promise.resolve(factorySandbox),
-    );
 
     const sandboxCommand = new SandboxCommand(
       sandboxFactory,

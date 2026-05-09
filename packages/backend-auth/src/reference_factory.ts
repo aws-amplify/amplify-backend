@@ -80,7 +80,9 @@ export type AmplifyReferenceAuthProps = Expand<
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
-export class AmplifyReferenceAuthFactory implements ConstructFactory<BackendReferenceAuth> {
+export class AmplifyReferenceAuthFactory
+  implements ConstructFactory<BackendReferenceAuth>
+{
   readonly provides = 'AuthResources';
 
   private generator: ConstructContainerEntryGenerator;
@@ -125,7 +127,9 @@ export class AmplifyReferenceAuthFactory implements ConstructFactory<BackendRefe
     ) as BackendReferenceAuth;
   };
 }
-class AmplifyReferenceAuthGenerator implements ConstructContainerEntryGenerator {
+class AmplifyReferenceAuthGenerator
+  implements ConstructContainerEntryGenerator
+{
   readonly resourceGroupName: AmplifyResourceGroupName = 'auth';
   private readonly name: string;
 

@@ -14,7 +14,9 @@ import { EOL } from 'os';
  * Example:
  * type TemporaryType<here goes output from this generator> = {}
  */
-export class GenericTypeParameterDeclarationUsageStatementsGenerator implements UsageStatementsGenerator {
+export class GenericTypeParameterDeclarationUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * Constructor
    */
@@ -52,7 +54,9 @@ export class GenericTypeParameterDeclarationUsageStatementsGenerator implements 
  *
  * Note: this generator generates minimal required usage at this time.
  */
-export class GenericTypeParameterUsageStatementsGenerator implements UsageStatementsGenerator {
+export class GenericTypeParameterUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * Constructor
    */
@@ -83,7 +87,9 @@ export class GenericTypeParameterUsageStatementsGenerator implements UsageStatem
  * This is a pass through process. Imports present in API.md report are
  * required for types defined in that report.
  */
-export class ImportUsageStatementsGenerator implements UsageStatementsGenerator {
+export class ImportUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * @inheritDoc
    */
@@ -264,7 +270,9 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
  *    - attempt to read property and assign its value to local const.
  *    - attempt to call method, which is wrapped in inner function that provides parameters for the method call.
  */
-class ClassPropertyUsageStatementsGenerator implements UsageStatementsGenerator {
+class ClassPropertyUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly propertyDeclaration: ts.PropertyDeclaration,
@@ -322,7 +330,9 @@ class ClassPropertyUsageStatementsGenerator implements UsageStatementsGenerator 
 /**
  * Generates usage snippets for class constructor.
  */
-class ClassConstructorUsageStatementsGenerator implements UsageStatementsGenerator {
+class ClassConstructorUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly constructorDeclaration: ts.ConstructorDeclaration,
@@ -431,7 +441,9 @@ class ClassConstructorUsageStatementsGenerator implements UsageStatementsGenerat
  * Generated snippets attempt to use a reference typed with class (provided via usage function parameter)
  * and assign it to local constant that is typed with super type from extend or implement clauses.
  */
-class ClassInheritanceUsageStatementsGenerator implements UsageStatementsGenerator {
+class ClassInheritanceUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly heritageClauses: ts.NodeArray<ts.HeritageClause>,
@@ -477,7 +489,9 @@ class ClassInheritanceUsageStatementsGenerator implements UsageStatementsGenerat
  *
  * TODO this handles functions for now, add variable/const.
  */
-export class VariableUsageStatementsGenerator implements UsageStatementsGenerator {
+export class VariableUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * @inheritDoc
    */
@@ -530,7 +544,9 @@ export class VariableUsageStatementsGenerator implements UsageStatementsGenerato
  *     someFunction(param1, param2);
  * }
  */
-export class CallableUsageStatementsGenerator implements UsageStatementsGenerator {
+export class CallableUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * @inheritDoc
    */
@@ -589,7 +605,9 @@ export class CallableUsageStatementsGenerator implements UsageStatementsGenerato
  * const someFunctionUsageFunction = (<code from this generator goes here>) => {
  * }
  */
-export class CallableParameterDeclarationUsageStatementsGenerator implements UsageStatementsGenerator {
+export class CallableParameterDeclarationUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * @inheritDoc
    */
@@ -615,7 +633,9 @@ export class CallableParameterDeclarationUsageStatementsGenerator implements Usa
  *     someFunction(<code from this generator goes here>);
  * }
  */
-export class CallableParameterUsageStatementsGenerator implements UsageStatementsGenerator {
+export class CallableParameterUsageStatementsGenerator
+  implements UsageStatementsGenerator
+{
   /**
    * @inheritDoc
    */

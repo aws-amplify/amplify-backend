@@ -35,7 +35,9 @@ export type ProvidedFunctionProps = {
 /**
  * Adapts provided CDK function as Amplify function.
  */
-export class ProvidedFunctionFactory implements ConstructFactory<AmplifyFunction> {
+export class ProvidedFunctionFactory
+  implements ConstructFactory<AmplifyFunction>
+{
   private generator: ConstructContainerEntryGenerator;
 
   /**

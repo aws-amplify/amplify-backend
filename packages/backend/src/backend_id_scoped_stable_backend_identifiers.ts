@@ -9,7 +9,9 @@ const HASH_LENGTH = 20;
 /**
  * Gets a stable hash value derived from BackendIdentifier
  */
-export class BackendIdScopedStableBackendIdentifiers implements StableBackendIdentifiers {
+export class BackendIdScopedStableBackendIdentifiers
+  implements StableBackendIdentifiers
+{
   private hash: string;
 
   /**

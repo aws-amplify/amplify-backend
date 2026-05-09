@@ -27,10 +27,9 @@ type PipelineDeployCommandOptionsCamelCase = {
 /**
  * An entry point for deploy command.
  */
-export class PipelineDeployCommand implements CommandModule<
-  object,
-  PipelineDeployCommandOptions
-> {
+export class PipelineDeployCommand
+  implements CommandModule<object, PipelineDeployCommandOptions>
+{
   /**
    * @inheritDoc
    */
