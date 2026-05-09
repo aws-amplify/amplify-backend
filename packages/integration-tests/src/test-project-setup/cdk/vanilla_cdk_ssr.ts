@@ -52,8 +52,20 @@ export class VanillaCdkSsrTestCdkProjectCreator
     pkgJson.devDependencies = {
       ...pkgJson.devDependencies,
       '@opennextjs/aws': '^3.10.0',
+      tsx: '^4.0.0',
     };
     await fs.writeFile(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
+
+    // Patch cdk.json to use `tsx` instead of `ts-node`.
+    // CDK init generates: "app": "npx ts-node --prefer-ts-exts bin/xxx.ts"
+    // ts-node in CJS mode cannot handle ESM imports used by our stack.
+    const cdkJsonPath = path.join(projectRoot, 'cdk.json');
+    const cdkJson = JSON.parse(await fs.readFile(cdkJsonPath, 'utf-8'));
+    cdkJson.app = cdkJson.app.replace(
+      /npx ts-node --prefer-ts-exts/,
+      'npx tsx',
+    );
+    await fs.writeFile(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
 
     // Copy CDK stack source to lib/
     const sourceProjectDirPath = path.resolve(

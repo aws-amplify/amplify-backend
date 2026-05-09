@@ -9,7 +9,12 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     const response = NextResponse.rewrite(url);
-    response.headers.set('x-middleware-rewrite', '/rewritten-from-old-path');
+    // Use a custom header for test assertions; do NOT override `x-middleware-rewrite`
+    // because OpenNext reads that header internally and requires a full URL.
+    response.headers.set(
+      'x-custom-middleware-rewrite',
+      '/rewritten-from-old-path',
+    );
     return response;
   }
 

@@ -393,10 +393,10 @@ void describe(
             `Rewrite response should serve home page content (rewritten from /old-path to /), got: ${rewriteBody.substring(0, 200)}`,
           );
           const rewriteHeader =
-            rewriteRes.headers.get('x-middleware-rewrite') ?? '';
+            rewriteRes.headers.get('x-custom-middleware-rewrite') ?? '';
           if (rewriteHeader) {
             process.stderr.write(
-              `Middleware rewrite verified: x-middleware-rewrite=${rewriteHeader}\n`,
+              `Middleware rewrite verified: x-custom-middleware-rewrite=${rewriteHeader}\n`,
             );
           } else {
             process.stderr.write(
@@ -872,8 +872,9 @@ const findIsrResources = async (
 
       if (
         r.ResourceType === 'AWS::SQS::Queue' &&
-        (r.LogicalResourceId?.toLowerCase().includes('revalidate') ||
-          r.LogicalResourceId?.toLowerCase().includes('isr'))
+        (r.LogicalResourceId?.toLowerCase().includes('revalidat') ||
+          r.LogicalResourceId?.toLowerCase().includes('isr')) &&
+        !r.LogicalResourceId?.toLowerCase().includes('dlq')
       ) {
         result.sqsQueue = r.PhysicalResourceId!;
       }
