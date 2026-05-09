@@ -353,6 +353,101 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
       'Cache compute Lambda should have all ISR env vars including CACHE_BUCKET_REGION, REVALIDATION_QUEUE_REGION, and OPEN_NEXT_BUILD_ID',
     );
   });
+
+  void it('deploys revalidation worker Lambda with SQS event source when revalidationFunction is configured', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const revalDir = path.join(tmpDir, 'revalidation-fn');
+    fs.mkdirSync(revalDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(revalDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        revalidationFunction: {
+          bundle: revalDir,
+          handler: 'index.handler',
+        },
+      },
+    };
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    assert.ok(
+      construct.computeFunctions.has('revalidation'),
+      'Should register revalidation function in computeFunctions map',
+    );
+
+    const template = Template.fromStack(stack);
+
+    // Should have an SQS event source mapping for the revalidation Lambda
+    template.hasResourceProperties(
+      'AWS::Lambda::EventSourceMapping',
+      Match.objectLike({
+        BatchSize: 5,
+      }),
+    );
+
+    // Revalidation Lambda should have ISR env vars
+    const functions = template.findResources('AWS::Lambda::Function');
+    const hasRevalEnvVars = Object.values(functions).some(
+      (fn: Record<string, unknown>) => {
+        const props = fn['Properties'] as Record<string, unknown>;
+        const env = props['Environment'] as Record<string, unknown> | undefined;
+        const vars = env?.['Variables'] as Record<string, unknown> | undefined;
+        return (
+          vars &&
+          'CACHE_BUCKET_NAME' in vars &&
+          'CACHE_BUCKET_REGION' in vars &&
+          'CACHE_DYNAMO_TABLE' in vars &&
+          'OPEN_NEXT_BUILD_ID' in vars &&
+          (props['MemorySize'] as number) === 256
+        );
+      },
+    );
+    assert.ok(
+      hasRevalEnvVars,
+      'Revalidation Lambda should have cache env vars and 256MB memory',
+    );
+  });
+
+  void it('does not deploy revalidation worker when revalidationFunction is not configured', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+    };
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    assert.ok(
+      !construct.computeFunctions.has('revalidation'),
+      'Should not register revalidation function when not configured',
+    );
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Lambda::EventSourceMapping', 0);
+  });
 });
 
 // ================================================================

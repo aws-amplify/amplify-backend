@@ -71,6 +71,37 @@ void describe('Deploy Manifest Schema', () => {
     assert.ok(result.success, 'Manifest with cache config should parse');
   });
 
+  void it('validates manifest with cache config including revalidationFunction', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: '/tmp/bundle',
+          handler: 'index.handler',
+          placement: 'regional',
+        },
+      },
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'default' }],
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        revalidationFunction: {
+          bundle: '/tmp/revalidation-fn',
+          handler: 'index.handler',
+        },
+      },
+    };
+
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(
+      result.success,
+      'Manifest with cache config including revalidationFunction should parse',
+    );
+  });
+
   void it('validates manifest with image optimization', () => {
     const manifest: DeployManifest = {
       version: 1,

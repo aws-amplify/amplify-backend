@@ -272,6 +272,65 @@ void describe('Cache (ISR) provisioning', () => {
     template.resourceCountIs('AWS::DynamoDB::Table', 0);
     template.resourceCountIs('AWS::SQS::Queue', 0);
   });
+
+  void it('deploys revalidation worker Lambda wired to SQS queue', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir('server');
+    const revalDir = createBundleDir('revalidation');
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: true,
+        },
+      },
+      staticAssets: { directory: staticDir },
+      routes: [{ pattern: '/*', target: 'default' }],
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        revalidationFunction: {
+          bundle: revalDir,
+          handler: 'index.handler',
+        },
+      },
+      buildId: 'reval-worker-test-1',
+    };
+
+    const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    assert.ok(
+      construct.computeFunctions.has('revalidation'),
+      'Should register revalidation function',
+    );
+
+    const template = Template.fromStack(stack);
+
+    // SQS event source mapping should be present
+    template.hasResourceProperties(
+      'AWS::Lambda::EventSourceMapping',
+      Match.objectLike({
+        BatchSize: 5,
+      }),
+    );
+
+    // Revalidation Lambda should have 256MB memory and 30s timeout
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      MemorySize: 256,
+      Timeout: 30,
+      Runtime: 'nodejs20.x',
+    });
+  });
 });
 
 // ================================================================

@@ -294,9 +294,10 @@ const translateOpenNextOutput = (
   // ISR/Cache detection — only provision cache infra if ISR is actually used.
   // Evidence: revalidation-function exists OR cache handler dir exists in output.
   if (output.additionalProps?.disableIncrementalCache !== true) {
+    const revalidationFnDir = path.join(openNextDir, 'revalidation-function');
+    const hasRevalidationFn = fs.existsSync(revalidationFnDir);
     const hasIsrEvidence =
-      fs.existsSync(path.join(openNextDir, 'revalidation-function')) ||
-      fs.existsSync(path.join(openNextDir, 'cache'));
+      hasRevalidationFn || fs.existsSync(path.join(openNextDir, 'cache'));
 
     if (hasIsrEvidence) {
       const computeNames = Object.keys(manifest.compute);
@@ -308,6 +309,9 @@ const translateOpenNextOutput = (
           computeResource: primaryComputeName,
           tagRevalidation: true,
           revalidationQueue: true,
+          revalidationFunction: hasRevalidationFn
+            ? { bundle: revalidationFnDir, handler: 'index.handler' }
+            : undefined,
         };
       }
     }

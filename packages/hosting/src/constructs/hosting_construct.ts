@@ -14,10 +14,13 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import {
+  Code,
   FunctionUrl,
   IVersion,
   Function as LambdaFunction,
+  Runtime,
 } from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
@@ -255,6 +258,40 @@ export class AmplifyHostingConstruct extends Construct {
           value: this.revalidationQueue.queueUrl,
           description: 'URL of the ISR revalidation SQS queue',
         });
+      }
+
+      // Revalidation worker Lambda — processes SQS messages to refresh stale pages
+      if (manifest.cache.revalidationFunction && this.revalidationQueue) {
+        const revalidationFn = new LambdaFunction(
+          this,
+          'RevalidationFunction',
+          {
+            runtime: Runtime.NODEJS_20_X,
+            handler: manifest.cache.revalidationFunction.handler,
+            code: Code.fromAsset(manifest.cache.revalidationFunction.bundle),
+            timeout: Duration.seconds(30),
+            memorySize: 256,
+            environment: {
+              CACHE_BUCKET_NAME: this.cacheBucket.bucketName,
+              CACHE_BUCKET_REGION: Stack.of(this).region,
+              OPEN_NEXT_BUILD_ID: buildId,
+              ...(this.cacheTable
+                ? { CACHE_DYNAMO_TABLE: this.cacheTable.tableName }
+                : {}),
+            },
+          },
+        );
+
+        this.cacheBucket.grantReadWrite(revalidationFn);
+        if (this.cacheTable) {
+          this.cacheTable.grantReadWriteData(revalidationFn);
+        }
+
+        revalidationFn.addEventSource(
+          new SqsEventSource(this.revalidationQueue, { batchSize: 5 }),
+        );
+
+        this.computeFunctions.set('revalidation', revalidationFn);
       }
 
       // Grant cache access to the target compute resource

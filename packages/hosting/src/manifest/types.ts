@@ -104,6 +104,20 @@ export type CacheConfig = {
 
   /** Whether async revalidation queue is needed (provisions SQS) */
   revalidationQueue: boolean;
+
+  /**
+   * Background revalidation worker function.
+   *
+   * When present, a Lambda is deployed with the SQS revalidation queue as its
+   * event source. This worker processes ISR revalidation messages and refreshes
+   * stale pages in the background.
+   */
+  revalidationFunction?: {
+    /** Path to the revalidation function bundle directory */
+    bundle: string;
+    /** Handler entry point (e.g. 'index.handler') */
+    handler: string;
+  };
 };
 
 export type ImageConfig = {

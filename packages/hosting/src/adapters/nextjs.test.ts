@@ -124,6 +124,19 @@ void describe('nextjsAdapter', () => {
     assert.strictEqual(manifest.cache!.tagRevalidation, true);
     assert.strictEqual(manifest.cache!.revalidationQueue, true);
     assert.strictEqual(manifest.cache!.computeResource, 'default');
+    assert.ok(
+      manifest.cache!.revalidationFunction,
+      'Should include revalidation function when revalidation-function dir exists',
+    );
+    assert.strictEqual(
+      manifest.cache!.revalidationFunction!.handler,
+      'index.handler',
+    );
+    assert.ok(
+      manifest.cache!.revalidationFunction!.bundle.includes(
+        'revalidation-function',
+      ),
+    );
   });
 
   void it('does not add cache when ISR is disabled', () => {

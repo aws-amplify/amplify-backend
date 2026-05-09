@@ -59,6 +59,12 @@ export const cacheConfigSchema = z.object({
   computeResource: z.string().min(1),
   tagRevalidation: z.boolean(),
   revalidationQueue: z.boolean(),
+  revalidationFunction: z
+    .object({
+      bundle: z.string().min(1),
+      handler: z.string().min(1),
+    })
+    .optional(),
 });
 
 /**
