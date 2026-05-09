@@ -37,6 +37,24 @@ export class VanillaCdkSsrTestCdkProjectCreator
       e2eProjectDir,
     );
 
+    // Override the CDK-generated package.json build script.
+    // `cdk init` sets "build": "tsc" which is wrong for a Next.js project —
+    // the hosting adapter calls `npm run build` expecting `next build`.
+    const pkgJsonPath = path.join(projectRoot, 'package.json');
+    const pkgJson = JSON.parse(await fs.readFile(pkgJsonPath, 'utf-8'));
+    pkgJson.scripts = { ...pkgJson.scripts, build: 'next build' };
+    pkgJson.dependencies = {
+      ...pkgJson.dependencies,
+      next: '^15.5.15',
+      react: '^19.0.0',
+      'react-dom': '^19.0.0',
+    };
+    pkgJson.devDependencies = {
+      ...pkgJson.devDependencies,
+      '@opennextjs/aws': '^3.10.0',
+    };
+    await fs.writeFile(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
+
     // Copy CDK stack source to lib/
     const sourceProjectDirPath = path.resolve(
       testCdkProjectsSourceRoot,
