@@ -14,7 +14,6 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import {
-  Architecture,
   FunctionUrl,
   IVersion,
   Function as LambdaFunction,
@@ -321,7 +320,6 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 25,
         },
         reservedConcurrency: 10,
-        architecture: Architecture.ARM_64,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);

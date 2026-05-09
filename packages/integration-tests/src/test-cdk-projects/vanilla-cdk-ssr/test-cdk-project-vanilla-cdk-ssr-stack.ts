@@ -5,7 +5,7 @@ import {
   AmplifyHostingConstruct,
   AmplifyHostingConstructProps,
 } from '@aws-amplify/hosting';
-import { getAdapter } from '@aws-amplify/hosting/adapters';
+import { nextjsAdapter } from '@aws-amplify/hosting/adapters';
 
 /**
  * Vanilla CDK stack that uses AmplifyHostingConstruct directly for SSR hosting.
@@ -17,9 +17,8 @@ export class TestCdkProjectVanillaCdkSsrStack extends cdk.Stack {
 
     const projectDir = process.cwd();
 
-    // Use the Next.js adapter to generate the deploy manifest from .open-next/ output
-    const adapter = getAdapter('nextjs');
-    const manifest = adapter(projectDir);
+    // Use the Next.js adapter with skipBuild since .open-next/ is pre-built
+    const manifest = nextjsAdapter({ projectDir, skipBuild: true });
 
     const constructProps: AmplifyHostingConstructProps = {
       manifest,

@@ -400,7 +400,7 @@ void describe('AmplifyHostingConstruct — Image optimization', () => {
     );
   });
 
-  void it('uses ARM_64 architecture for image optimization Lambda', () => {
+  void it('uses default x86_64 architecture for image optimization Lambda', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir();
     const imgDir = path.join(tmpDir, 'image-fn');
@@ -428,18 +428,18 @@ void describe('AmplifyHostingConstruct — Image optimization', () => {
     });
 
     const template = Template.fromStack(stack);
-    // Find all Lambda functions and check one has arm64 architecture
     const functions = template.findResources('AWS::Lambda::Function');
-    const hasArm64 = Object.values(functions).some(
+    // Image optimization Lambda should use x86_64 (default) to match sharp binaries
+    const hasX86 = Object.values(functions).some(
       (fn: Record<string, unknown>) => {
         const props = fn['Properties'] as Record<string, unknown>;
         const archs = props['Architectures'] as string[] | undefined;
-        return archs && archs.includes('arm64');
+        return !archs || archs.includes('x86_64');
       },
     );
     assert.ok(
-      hasArm64,
-      'Image optimization Lambda should use arm64 architecture',
+      hasX86,
+      'Image optimization Lambda should use x86_64 architecture',
     );
   });
 

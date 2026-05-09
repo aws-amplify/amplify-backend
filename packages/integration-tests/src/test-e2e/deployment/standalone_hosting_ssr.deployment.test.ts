@@ -521,6 +521,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 8,
             intervalMs: 15000,
+            expectedBodyContains: 'ISR page generated at:',
           });
           assert.strictEqual(
             isrFetch1.status,
@@ -556,6 +557,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 5000,
+            expectedBodyContains: 'ISR page generated at:',
           });
           assert.strictEqual(
             isrFetch2.status,
@@ -579,6 +581,7 @@ void describe(
             expectedStatus: 200,
             maxRetries: 3,
             intervalMs: 5000,
+            expectedBodyContains: 'ISR page generated at:',
           });
           assert.strictEqual(
             isrFetch3.status,
