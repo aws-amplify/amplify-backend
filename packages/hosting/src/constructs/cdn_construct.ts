@@ -190,6 +190,30 @@ export class CdnConstruct extends Construct {
         ]
       : undefined;
 
+    // ---- x-forwarded-host propagation function ----
+    // CloudFront strips the viewer's Host header when forwarding to Lambda Function
+    // URL origins (ALL_VIEWER_EXCEPT_HOST_HEADER policy). OpenNext's converters use
+    // x-forwarded-host to construct the public-facing URL for middleware rewrites and
+    // image optimization fetches. Without it, URL construction uses the Function URL
+    // domain which breaks path-only rewrites ("TypeError: Invalid URL").
+    const forwardedHostFunction = hasCompute
+      ? new CloudFrontFunction(this, 'ForwardedHostFunction', {
+          code: FunctionCode.fromInline(
+            [
+              'function handler(event) {',
+              '  var req = event.request;',
+              '  var host = req.headers.host ? req.headers.host.value : undefined;',
+              '  if (host) { req.headers["x-forwarded-host"] = { value: host }; }',
+              '  return req;',
+              '}',
+            ].join('\n'),
+          ),
+          runtime: FunctionRuntime.JS_2_0,
+          comment:
+            'Copies Host header to x-forwarded-host for origin URL construction',
+        })
+      : undefined;
+
     // ---- Behavior helpers ----
     const makeStaticBehavior = (): BehaviorOptions => ({
       origin: s3Origin,
@@ -218,6 +242,16 @@ export class CdnConstruct extends Construct {
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
       ...(edgeLambdas ? { edgeLambdas } : {}),
+      ...(forwardedHostFunction
+        ? {
+            functionAssociations: [
+              {
+                function: forwardedHostFunction,
+                eventType: FunctionEventType.VIEWER_REQUEST,
+              },
+            ],
+          }
+        : {}),
     });
 
     // ---- Route → behavior mapping ----

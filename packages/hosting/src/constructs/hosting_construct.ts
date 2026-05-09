@@ -231,14 +231,18 @@ export class AmplifyHostingConstruct extends Construct {
         });
       }
 
-      // SQS queue for async revalidation
+      // SQS queue for async revalidation (FIFO required — OpenNext sends
+      // MessageDeduplicationId and MessageGroupId with revalidation messages)
       if (manifest.cache.revalidationQueue) {
         const revalidationDlq = new Queue(this, 'RevalidationDLQ', {
+          fifo: true,
           retentionPeriod: Duration.days(14),
           encryption: QueueEncryption.SQS_MANAGED,
         });
 
         this.revalidationQueue = new Queue(this, 'RevalidationQueue', {
+          fifo: true,
+          contentBasedDeduplication: true,
           visibilityTimeout: Duration.seconds(30),
           retentionPeriod: Duration.days(1),
           encryption: QueueEncryption.SQS_MANAGED,

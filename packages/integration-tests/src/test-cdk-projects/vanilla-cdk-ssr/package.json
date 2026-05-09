@@ -1,7 +1,6 @@
 {
   "name": "vanilla-cdk-ssr",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "next build"
   },
