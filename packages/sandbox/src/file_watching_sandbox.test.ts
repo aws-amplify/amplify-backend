@@ -613,12 +613,15 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      ssmClient: ssmClientMock,
-      functionsLogStreamer:
-        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      { debounceMs: 0 },
+    ));
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -678,12 +681,15 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('handles error thrown by BackendDeployer and does not crash while deploying', async (contextual) => {
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      ssmClient: ssmClientMock,
-      functionsLogStreamer:
-        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      { debounceMs: 0 },
+    ));
     const mockEmit = mock.fn();
     contextual.mock.method(sandboxInstance, 'emit', mockEmit);
     const contextualBackendDeployerMock = contextual.mock.method(
