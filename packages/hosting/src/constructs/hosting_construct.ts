@@ -8,7 +8,11 @@ import {
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import {
+  BucketDeployment,
+  CacheControl,
+  Source,
+} from 'aws-cdk-lib/aws-s3-deployment';
 import {
   FunctionUrl,
   IVersion,
@@ -264,7 +268,7 @@ export class AmplifyHostingConstruct extends Construct {
         );
         if (this.cacheTable) {
           cacheFunction.addEnvironment(
-            'CACHE_TAG_TABLE_NAME',
+            'CACHE_DYNAMO_TABLE',
             this.cacheTable.tableName,
           );
         }
@@ -405,6 +409,9 @@ export class AmplifyHostingConstruct extends Construct {
       sources: [Source.asset(manifest.staticAssets.directory)],
       destinationBucket: this.bucket,
       destinationKeyPrefix: `builds/${buildId}/`,
+      cacheControl: [
+        CacheControl.fromString('public, max-age=31536000, immutable'),
+      ],
       prune: false,
       distribution: this.distribution,
       distributionPaths: ['/*'],

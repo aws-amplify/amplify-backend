@@ -232,7 +232,7 @@ void describe('Cache (ISR) provisioning', () => {
       Environment: Match.objectLike({
         Variables: Match.objectLike({
           CACHE_BUCKET_NAME: Match.anyValue(),
-          CACHE_TAG_TABLE_NAME: Match.anyValue(),
+          CACHE_DYNAMO_TABLE: Match.anyValue(),
           REVALIDATION_QUEUE_URL: Match.anyValue(),
         }),
       }),

@@ -436,8 +436,8 @@ void describe(
             `ISR infrastructure: bucket=${isrResources.cacheBucket}, dynamodb=${isrResources.dynamoTable}, sqs=${isrResources.sqsQueue}\n`,
           );
 
-          // Hit the page to trigger cache population
-          await fetchWithRetry(distributionUrl, {
+          // Hit the ISR page to trigger cache population
+          await fetchWithRetry(`${distributionUrl}/isr`, {
             expectedBodyContains: 'Hello SSR v1',
             maxRetries: 3,
             intervalMs: 5000,
@@ -464,11 +464,14 @@ void describe(
           }
 
           // Second request — should serve from cache (same content)
-          const cachedResponse = await fetchWithRetry(distributionUrl, {
-            expectedBodyContains: 'Hello SSR v1',
-            maxRetries: 3,
-            intervalMs: 5000,
-          });
+          const cachedResponse = await fetchWithRetry(
+            `${distributionUrl}/isr`,
+            {
+              expectedBodyContains: 'Hello SSR v1',
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
           assert.strictEqual(
             cachedResponse.status,
             200,

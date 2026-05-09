@@ -415,6 +415,16 @@ const mapOriginToCompute = (
 };
 
 /**
+ * Normalize OpenNext origin names to match the construct's compute resource keys.
+ */
+const normalizeOriginName = (name: string): string => {
+  const originNameMap: Record<string, string> = {
+    imageOptimizer: 'image-optimization',
+  };
+  return originNameMap[name] ?? name;
+};
+
+/**
  * Map OpenNext behaviors to RouteBehavior array.
  */
 const mapBehaviorsToRoutes = (
@@ -425,7 +435,7 @@ const mapBehaviorsToRoutes = (
   for (const behavior of behaviors) {
     routes.push({
       pattern: behavior.pattern,
-      target: behavior.origin ?? 'default',
+      target: normalizeOriginName(behavior.origin ?? 'default'),
       fallback: behavior.fallback,
     });
   }
