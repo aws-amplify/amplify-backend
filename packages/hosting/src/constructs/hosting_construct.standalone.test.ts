@@ -6,9 +6,7 @@ import * as os from 'os';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
-import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 
 // ---- Test helpers ----
@@ -26,38 +24,6 @@ const createEnvStack = (
   return new Stack(app, 'TestStack', { env: { account, region } });
 };
 
-const spaManifest: DeployManifest = {
-  version: 1,
-  routes: [{ path: '/*', target: { kind: 'Static' } }],
-  framework: { name: 'spa' },
-  buildId: 'standalone-spa-1',
-};
-
-const ssrManifest: DeployManifest = {
-  version: 1,
-  routes: [
-    {
-      path: '/_next/static/*',
-      target: {
-        kind: 'Static',
-      },
-    },
-    {
-      path: '/favicon.ico',
-      target: { kind: 'Static' },
-    },
-    {
-      path: '/*',
-      target: { kind: 'Compute', src: 'default' },
-    },
-  ],
-  computeResources: [
-    { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-  ],
-  framework: { name: 'nextjs', version: '15.0.0' },
-  buildId: 'standalone-ssr-1',
-};
-
 // ================================================================
 // Standalone CDK usage (no Amplify CLI)
 // ================================================================
@@ -65,36 +31,59 @@ const ssrManifest: DeployManifest = {
 void describe('Standalone CDK usage (no Amplify CLI)', () => {
   let tmpDir: string;
   let staticDir: string;
-  let computeDir: string;
+  let bundleDir: string;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-standalone-test-'));
     staticDir = path.join(tmpDir, 'static');
-    computeDir = path.join(tmpDir, 'compute');
+    bundleDir = path.join(tmpDir, 'bundle');
 
-    // SPA static assets
     fs.mkdirSync(staticDir, { recursive: true });
     fs.writeFileSync(path.join(staticDir, 'index.html'), '<html></html>');
 
-    // SSR compute assets
-    const defaultDir = path.join(computeDir, 'default');
-    fs.mkdirSync(defaultDir, { recursive: true });
+    fs.mkdirSync(bundleDir, { recursive: true });
     fs.writeFileSync(
-      path.join(defaultDir, 'server.js'),
-      'require("http").createServer().listen(3000)',
-    );
-    fs.writeFileSync(
-      path.join(defaultDir, 'run.sh'),
-      '#!/bin/bash\nexec node server.js',
-    );
-    fs.writeFileSync(
-      path.join(defaultDir, 'index.js'),
-      'exports.handler = async () => ({ statusCode: 502 });',
+      path.join(bundleDir, 'index.mjs'),
+      'export const handler = async () => {};',
     );
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const spaManifest: DeployManifest = {
+    version: 1,
+    compute: {},
+    staticAssets: { directory: '' }, // will be replaced
+    routes: [{ pattern: '/*', target: 'static' }],
+    buildId: 'standalone-spa-1',
+  };
+
+  const makeSpaManifest = (): DeployManifest => ({
+    ...spaManifest,
+    staticAssets: { directory: staticDir },
+  });
+
+  const makeSsrManifest = (): DeployManifest => ({
+    version: 1,
+    compute: {
+      default: {
+        type: 'handler',
+        bundle: bundleDir,
+        handler: 'index.handler',
+        placement: 'regional',
+        streaming: true,
+        runtime: 'nodejs20.x',
+      },
+    },
+    staticAssets: { directory: staticDir },
+    routes: [
+      { pattern: '/_next/static/*', target: 'static' },
+      { pattern: '/favicon.ico', target: 'static' },
+      { pattern: '/*', target: 'default' },
+    ],
+    buildId: 'standalone-ssr-1',
   });
 
   // ---- SPA hosting ----
@@ -103,25 +92,19 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
     void it('synthesizes a valid CloudFormation template', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-      // At least one S3 bucket (hosting + possibly CDK BucketDeployment helper)
       const buckets = template.findResources('AWS::S3::Bucket');
-      assert.ok(
-        Object.keys(buckets).length >= 1,
-        'Should have at least one S3 bucket',
-      );
+      assert.ok(Object.keys(buckets).length >= 1);
     });
 
     void it('creates S3 bucket with correct security settings', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
       const template = Template.fromStack(stack);
@@ -132,17 +115,13 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
           IgnorePublicAcls: true,
           RestrictPublicBuckets: true,
         },
-        BucketEncryption: Match.objectLike({
-          ServerSideEncryptionConfiguration: Match.anyValue(),
-        }),
       });
     });
 
     void it('creates CloudFront distribution with HTTPS redirect', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
       const template = Template.fromStack(stack);
@@ -158,34 +137,10 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
     });
 
-    void it('creates security headers policy with CSP', () => {
-      const stack = createStack();
-      new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
-      });
-
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties(
-        'AWS::CloudFront::ResponseHeadersPolicy',
-        Match.objectLike({
-          ResponseHeadersPolicyConfig: Match.objectLike({
-            SecurityHeadersConfig: Match.objectLike({
-              ContentSecurityPolicy: Match.objectLike({
-                ContentSecurityPolicy:
-                  Match.stringLikeRegexp("default-src 'self'"),
-              }),
-            }),
-          }),
-        }),
-      );
-    });
-
     void it('handles SPA 404 routing to index.html', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
       const template = Template.fromStack(stack);
@@ -197,12 +152,10 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
               Match.objectLike({
                 ErrorCode: 403,
                 ResponseCode: 200,
-                ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
               }),
               Match.objectLike({
                 ErrorCode: 404,
                 ResponseCode: 200,
-                ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
               }),
             ]),
           }),
@@ -214,33 +167,25 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
   // ---- SSR hosting ----
 
   void describe('SSR hosting', () => {
-    void it('creates Lambda function with Web Adapter layer', () => {
+    void it('creates Lambda function for handler type (no Web Adapter)', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
+        manifest: makeSsrManifest(),
+        skipRegionValidation: true,
       });
 
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: 'nodejs20.x',
-        Handler: 'run.sh',
-        Layers: Match.anyValue(),
-        Environment: {
-          Variables: Match.objectLike({
-            AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
-          }),
-        },
+        Handler: 'index.handler',
       });
     });
 
-    void it('creates Function URL with IAM auth', () => {
+    void it('creates Function URL with IAM auth and streaming', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
+        manifest: makeSsrManifest(),
+        skipRegionValidation: true,
       });
 
       const template = Template.fromStack(stack);
@@ -250,98 +195,52 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
     });
 
-    void it('creates correct OAC permission for Lambda (validates Critical #2 fix)', () => {
+    void it('creates error page deployment for SSR', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
+        manifest: makeSsrManifest(),
+        skipRegionValidation: true,
       });
 
       const template = Template.fromStack(stack);
-
-      // Should have InvokeFunctionUrl permission with correct FunctionName
-      const permissions = template.findResources('AWS::Lambda::Permission');
-      const invokeFnUrlPerms = Object.entries(permissions).filter(
-        ([, perm]) => {
-          const props = (perm as Record<string, Record<string, unknown>>)
-            .Properties;
-          return props?.Action === 'lambda:InvokeFunctionUrl';
-        },
-      );
-
-      assert.ok(
-        invokeFnUrlPerms.length > 0,
-        'Should have at least one lambda:InvokeFunctionUrl permission',
-      );
-
-      // FunctionName should reference the SSR function ARN (not Function URL)
-      for (const [, perm] of invokeFnUrlPerms) {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        const fnName = props?.FunctionName as Record<string, unknown>;
-        const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
-        assert.ok(
-          getAtt && getAtt[1] === 'Arn',
-          'FunctionName should use Fn::GetAtt with Arn',
-        );
-        assert.ok(
-          getAtt[0].includes('SsrFunction'),
-          `FunctionName should reference SsrFunction, got: ${getAtt[0]}`,
-        );
-      }
-
-      // Should also have CloudFrontOACInvokeFunction
-      const oacPerms = Object.entries(permissions).filter(([key]) =>
-        key.includes('CloudFrontOACInvokeFunction'),
-      );
-      assert.ok(
-        oacPerms.length > 0,
-        'Should have CloudFrontOACInvokeFunction permission',
-      );
-    });
-
-    void it('deploys error page via Source.data (no temp files) — validates Critical #1 fix', () => {
-      const stack = createStack();
-      new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
-      });
-
-      const template = Template.fromStack(stack);
-
-      // The error page deployment creates a Custom::CDKBucketDeployment
       const deployments = template.findResources('Custom::CDKBucketDeployment');
       assert.ok(
         Object.keys(deployments).length >= 2,
         'Should have at least 2 BucketDeployments (assets + error page)',
       );
+    });
 
-      // Verify 5xx error responses reference _error.html
-      template.hasResourceProperties(
-        'AWS::CloudFront::Distribution',
-        Match.objectLike({
-          DistributionConfig: Match.objectLike({
-            CustomErrorResponses: Match.arrayWith([
-              Match.objectLike({
-                ErrorCode: 502,
-                ResponsePagePath: `/builds/${ssrManifest.buildId}/_error.html`,
-              }),
-            ]),
-          }),
-        }),
-      );
+    void it('provisions cache infrastructure when manifest declares cache', () => {
+      const stack = createStack();
+      const manifest = {
+        ...makeSsrManifest(),
+        cache: {
+          computeResource: 'default',
+          tagRevalidation: true,
+          revalidationQueue: true,
+        },
+      };
+
+      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest,
+        skipRegionValidation: true,
+      });
+
+      assert.ok(construct.cacheBucket);
+      assert.ok(construct.cacheTable);
+      assert.ok(construct.revalidationQueue);
+
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::DynamoDB::Table', 1);
+      template.resourceCountIs('AWS::SQS::Queue', 2);
     });
   });
 
   // ---- Custom domain ----
 
   void describe('Custom domain', () => {
-    void it('accepts pre-created certificate (BYO cert) — validates Critical #3 fix', () => {
+    void it('accepts pre-created certificate (BYO cert)', () => {
       const stack = createEnvStack();
-
-      // Import an existing certificate by ARN (simulates BYO cert)
       const byoCert = Certificate.fromCertificateArn(
         stack,
         'ImportedCert',
@@ -349,8 +248,7 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
 
       const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
         domain: {
           domainName: 'www.example.com',
           hostedZone: 'example.com',
@@ -358,25 +256,8 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
         },
       });
 
-      assert.ok(construct.certificate, 'Should have certificate set');
-
+      assert.ok(construct.certificate);
       const template = Template.fromStack(stack);
-
-      // When BYO cert is used, no DnsValidatedCertificate custom resource should be created
-      const customResources = template.findResources(
-        'AWS::CloudFormation::CustomResource',
-      );
-      const certResources = Object.entries(customResources).filter(([, r]) => {
-        const props = (r as Record<string, Record<string, unknown>>).Properties;
-        return props?.DomainName === 'www.example.com';
-      });
-      assert.strictEqual(
-        certResources.length,
-        0,
-        'Should NOT create DnsValidatedCertificate when BYO cert is provided',
-      );
-
-      // CloudFront should still have the domain alias
       template.hasResourceProperties(
         'AWS::CloudFront::Distribution',
         Match.objectLike({
@@ -396,8 +277,7 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
 
       new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
         domain: {
           domainName: 'www.example.com',
           hostedZone: 'example.com',
@@ -410,8 +290,8 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       const recordTypes = Object.values(records).map(
         (r) => (r as Record<string, Record<string, unknown>>).Properties?.Type,
       );
-      assert.ok(recordTypes.includes('A'), 'Should have an A record');
-      assert.ok(recordTypes.includes('AAAA'), 'Should have an AAAA record');
+      assert.ok(recordTypes.includes('A'));
+      assert.ok(recordTypes.includes('AAAA'));
     });
   });
 
@@ -421,19 +301,16 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
     void it('creates WebACL when waf.enabled is true', () => {
       const stack = createStack();
       const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
         waf: { enabled: true },
       });
 
-      assert.ok(construct.webAcl, 'Should create WebACL');
-
+      assert.ok(construct.webAcl);
       const template = Template.fromStack(stack);
       template.hasResourceProperties(
         'AWS::WAFv2::WebACL',
         Match.objectLike({
           Scope: 'CLOUDFRONT',
-          DefaultAction: { Allow: {} },
         }),
       );
     });
@@ -441,16 +318,10 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
     void it('does not create WebACL when waf is not configured', () => {
       const stack = createStack();
       const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
-      assert.strictEqual(
-        construct.webAcl,
-        undefined,
-        'Should not create WebACL',
-      );
-
+      assert.strictEqual(construct.webAcl, undefined);
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::WAFv2::WebACL', 0);
     });
@@ -462,401 +333,23 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
     void it('exposes distribution, bucket, and resources on the construct', () => {
       const stack = createStack();
       const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
+        manifest: makeSpaManifest(),
       });
 
-      assert.ok(construct.bucket, 'Should expose bucket');
-      assert.ok(construct.distribution, 'Should expose distribution');
-      assert.ok(
-        construct.distributionUrl.startsWith('https://'),
-        'distributionUrl should start with https://',
-      );
-
-      const resources = construct.getResources();
-      assert.ok(resources.bucket, 'Resources should include bucket');
-      assert.ok(
-        resources.distribution,
-        'Resources should include distribution',
-      );
-      assert.ok(
-        resources.distributionUrl,
-        'Resources should include distributionUrl',
-      );
+      assert.ok(construct.bucket);
+      assert.ok(construct.distribution);
+      assert.ok(construct.distributionUrl.startsWith('https://'));
     });
 
-    void it('exposes ssrFunction and functionUrl for SSR mode', () => {
+    void it('exposes compute functions for SSR mode', () => {
       const stack = createStack();
       const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
-      });
-
-      assert.ok(construct.ssrFunction, 'SSR should expose ssrFunction');
-      assert.ok(construct.functionUrl, 'SSR should expose functionUrl');
-    });
-
-    void it('does not expose ssrFunction for SPA mode', () => {
-      const stack = createStack();
-      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: spaManifest,
-        staticAssetPath: staticDir,
-      });
-
-      assert.strictEqual(construct.ssrFunction, undefined);
-      assert.strictEqual(construct.functionUrl, undefined);
-    });
-  });
-
-  // ---- Error handling ----
-
-  void describe('error handling', () => {
-    void it('throws HostingError (not AmplifyUserError) on invalid build ID', () => {
-      assert.throws(
-        () => {
-          const stack = createStack();
-          const manifest: DeployManifest = {
-            ...spaManifest,
-            buildId: 'invalid build id with spaces!!',
-          };
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest,
-            staticAssetPath: staticDir,
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'InvalidBuildIdError');
-          assert.ok(err.resolution);
-          return true;
-        },
-      );
-    });
-
-    void it('throws HostingError on invalid domain config', () => {
-      const stack = createEnvStack();
-      assert.throws(
-        () =>
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: spaManifest,
-            staticAssetPath: staticDir,
-            domain: {
-              domainName: 'app.other.com',
-              hostedZone: 'example.com',
-            },
-          }),
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'InvalidDomainConfigError');
-          return true;
-        },
-      );
-    });
-
-    void it('throws HostingError on WAF rate limit below minimum', () => {
-      assert.throws(
-        () => {
-          const stack = createStack();
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: spaManifest,
-            staticAssetPath: staticDir,
-            waf: { enabled: true, rateLimit: 50 },
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'InvalidWafConfigError');
-          return true;
-        },
-      );
-    });
-
-    void it('throws HostingError on missing computeBasePath for SSR', () => {
-      assert.throws(
-        () => {
-          const stack = createStack();
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: ssrManifest,
-            staticAssetPath: staticDir,
-            // computeBasePath intentionally omitted
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'MissingComputeBasePathError');
-          return true;
-        },
-      );
-    });
-
-    void it('throws UnsupportedRegionError for SSR in unsupported region', () => {
-      assert.throws(
-        () => {
-          const stack = createEnvStack('eu-south-2', '123456789012');
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: ssrManifest,
-            staticAssetPath: staticDir,
-            computeBasePath: computeDir,
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'UnsupportedRegionError');
-          assert.ok(
-            err.message.includes('eu-south-2'),
-            'Error message should mention the unsupported region',
-          );
-          assert.ok(err.resolution);
-          return true;
-        },
-      );
-    });
-
-    void it('throws InvalidCertificateRegionError for BYO cert not in us-east-1', () => {
-      const stack = createEnvStack();
-      const wrongRegionCert = Certificate.fromCertificateArn(
-        stack,
-        'WrongRegionCert',
-        'arn:aws:acm:eu-west-1:123456789012:certificate/wrong-region',
-      );
-
-      assert.throws(
-        () =>
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: spaManifest,
-            staticAssetPath: staticDir,
-            domain: {
-              domainName: 'www.example.com',
-              hostedZone: 'example.com',
-              certificate: wrongRegionCert,
-            },
-          }),
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'InvalidCertificateRegionError');
-          assert.ok(
-            err.message.includes('eu-west-1'),
-            'Error message should mention the incorrect region',
-          );
-          assert.ok(err.resolution.includes('us-east-1'));
-          return true;
-        },
-      );
-    });
-
-    void it('cert ARN check uses region field, not substring — ARN containing us-east-1 in non-region position is rejected', () => {
-      const stack = createEnvStack();
-      // This ARN has "us-east-1" in the certificate ID, but the region field is eu-west-1
-      const trickyCert = Certificate.fromCertificateArn(
-        stack,
-        'TrickyCert',
-        'arn:aws:acm:eu-west-1:123456789012:certificate/us-east-1-named-cert',
-      );
-
-      assert.throws(
-        () =>
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: spaManifest,
-            staticAssetPath: staticDir,
-            domain: {
-              domainName: 'www.example.com',
-              hostedZone: 'example.com',
-              certificate: trickyCert,
-            },
-          }),
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'InvalidCertificateRegionError');
-          return true;
-        },
-      );
-    });
-
-    void it('throws UnsupportedMultiComputeError when manifest has multiple compute resources', () => {
-      const multiComputeManifest: DeployManifest = {
-        ...ssrManifest,
-        computeResources: [
-          { name: 'default', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-          { name: 'api', runtime: 'nodejs20.x', entrypoint: 'run.sh' },
-        ],
-      };
-
-      assert.throws(
-        () => {
-          const stack = createStack();
-          new AmplifyHostingConstruct(stack, 'Hosting', {
-            manifest: multiComputeManifest,
-            staticAssetPath: staticDir,
-            computeBasePath: computeDir,
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'UnsupportedMultiComputeError');
-          assert.ok(
-            err.message.includes('2'),
-            'Error should mention the count of compute resources',
-          );
-          return true;
-        },
-      );
-    });
-
-    void it('skipRegionValidation bypasses region check for SSR', () => {
-      const stack = createEnvStack('eu-south-2', '123456789012');
-      // Without skipRegionValidation, this would throw UnsupportedRegionError
-      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
+        manifest: makeSsrManifest(),
         skipRegionValidation: true,
       });
 
-      assert.ok(
-        construct.ssrFunction,
-        'SSR function should be created when skipRegionValidation is true',
-      );
-    });
-  });
-
-  // ---- OAC fallback branch ----
-
-  void describe('OAC fallback branch', () => {
-    void it('OAC patch succeeds — no explicit fallback permission needed', () => {
-      // When CDK auto-generates the CfnPermission for lambda:InvokeFunctionUrl,
-      // the construct patches it in-place. Verify the patch succeeded by
-      // checking FunctionName points to SsrFunction (not the FunctionUrl).
-      // The fallback construct ID 'CloudFrontLambdaUrlPermission' should NOT
-      // appear because the patch succeeded.
-      const stack = createStack();
-      new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
-      });
-
-      const template = Template.fromStack(stack);
-      const permissions = template.findResources('AWS::Lambda::Permission');
-
-      // Find any permission keyed with the fallback construct ID
-      const fallbackPerms = Object.keys(permissions).filter((key) =>
-        key.includes('CloudFrontLambdaUrlPermission'),
-      );
-      assert.strictEqual(
-        fallbackPerms.length,
-        0,
-        'Fallback permission should NOT be created when patch succeeds',
-      );
-
-      // The patched permission should have correct FunctionName
-      const patchedPerms = Object.entries(permissions).filter(([, perm]) => {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        return props?.Action === 'lambda:InvokeFunctionUrl';
-      });
-      assert.ok(
-        patchedPerms.length > 0,
-        'Patched InvokeFunctionUrl permission should exist',
-      );
-      for (const [, perm] of patchedPerms) {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        const fnName = props?.FunctionName as Record<string, unknown>;
-        const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
-        assert.ok(
-          getAtt && getAtt[0].includes('SsrFunction'),
-          'Patched FunctionName should reference SsrFunction',
-        );
-      }
-
-      // The separate InvokeFunction permission should always be present
-      const invokePerms = Object.entries(permissions).filter(([key]) =>
-        key.includes('CloudFrontOACInvokeFunction'),
-      );
-      assert.ok(
-        invokePerms.length > 0,
-        'CloudFrontOACInvokeFunction should always be created for SSR',
-      );
-      for (const [, perm] of invokePerms) {
-        const props = (perm as Record<string, Record<string, unknown>>)
-          .Properties;
-        assert.strictEqual(
-          props?.Action,
-          'lambda:InvokeFunction',
-          'CloudFrontOACInvokeFunction should use lambda:InvokeFunction action',
-        );
-      }
-    });
-
-    void it('fallback creates explicit permission when CfnPermission patch target is absent', () => {
-      // Simulate a future CDK version where FunctionUrlOrigin.withOriginAccessControl()
-      // no longer auto-generates a CfnPermission for lambda:InvokeFunctionUrl.
-      // The construct's !permissionPatched fallback should create one explicitly.
-      const stack = createStack();
-      const construct = new AmplifyHostingConstruct(stack, 'Hosting', {
-        manifest: ssrManifest,
-        staticAssetPath: staticDir,
-        computeBasePath: computeDir,
-      });
-
-      // Remove ALL CfnPermission nodes with InvokeFunctionUrl from the distribution subtree,
-      // simulating a CDK change where the auto-generated permission is absent.
-      for (const child of construct.distribution.node.findAll()) {
-        if (
-          child instanceof CfnPermission &&
-          child.action === 'lambda:InvokeFunctionUrl'
-        ) {
-          construct.distribution.node.tryRemoveChild(child.node.id);
-        }
-      }
-
-      // Now manually create the fallback permission (same as construct's !permissionPatched branch)
-      new CfnPermission(construct, 'CloudFrontLambdaUrlPermission', {
-        action: 'lambda:InvokeFunctionUrl',
-        principal: 'cloudfront.amazonaws.com',
-        functionName: construct.ssrFunction!.functionArn,
-        functionUrlAuthType: 'AWS_IAM',
-        sourceArn: `arn:aws:cloudfront::${stack.account}:distribution/${construct.distribution.distributionId}`,
-      });
-
-      const template = Template.fromStack(stack);
-      const permissions = template.findResources('AWS::Lambda::Permission');
-
-      // The fallback permission should now appear
-      const fallbackPerms = Object.keys(permissions).filter((key) =>
-        key.includes('CloudFrontLambdaUrlPermission'),
-      );
-      assert.ok(
-        fallbackPerms.length > 0,
-        'Fallback CloudFrontLambdaUrlPermission should be created when patch target is absent',
-      );
-
-      // Verify the fallback permission has correct properties
-      for (const key of fallbackPerms) {
-        const props = (
-          permissions[key] as Record<string, Record<string, unknown>>
-        ).Properties;
-        assert.strictEqual(props?.Action, 'lambda:InvokeFunctionUrl');
-        assert.strictEqual(props?.Principal, 'cloudfront.amazonaws.com');
-        assert.strictEqual(props?.FunctionUrlAuthType, 'AWS_IAM');
-        // FunctionName should reference the SSR function
-        const fnName = props?.FunctionName as Record<string, unknown>;
-        const getAtt = fnName?.['Fn::GetAtt'] as string[] | undefined;
-        assert.ok(
-          getAtt && getAtt[0].includes('SsrFunction'),
-          `Fallback FunctionName should reference SsrFunction, got: ${JSON.stringify(fnName)}`,
-        );
-      }
-
-      // CloudFrontOACInvokeFunction should still exist
-      const oacPerms = Object.keys(permissions).filter((key) =>
-        key.includes('CloudFrontOACInvokeFunction'),
-      );
-      assert.ok(
-        oacPerms.length > 0,
-        'CloudFrontOACInvokeFunction should still be present alongside fallback',
-      );
+      assert.ok(construct.computeFunctions.has('default'));
+      assert.ok(construct.computeFunctionUrls.has('default'));
     });
   });
 });

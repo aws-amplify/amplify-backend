@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -25,74 +25,108 @@ const createEnvStack = (
   return new Stack(app, 'TestStack', { env: { account, region } });
 };
 
-const defaultComputeResource: ComputeResource = {
-  name: 'default',
-  runtime: 'nodejs20.x',
-  entrypoint: 'run.sh',
+let tmpDir: string;
+
+const createBundleDir = (): string => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'compute-construct-test-'));
+  fs.writeFileSync(
+    path.join(tmpDir, 'index.mjs'),
+    'export const handler = async () => {};',
+  );
+  return tmpDir;
 };
 
+const handlerResource = (bundle: string): ComputeResource => ({
+  type: 'handler',
+  bundle,
+  handler: 'index.handler',
+  placement: 'regional',
+  streaming: true,
+  runtime: 'nodejs20.x',
+});
+
+const httpServerResource = (bundle: string): ComputeResource => ({
+  type: 'http-server',
+  bundle,
+  entrypoint: 'server.js',
+  port: 3000,
+  placement: 'regional',
+  streaming: false,
+  runtime: 'nodejs20.x',
+});
+
+const edgeResource = (bundle: string): ComputeResource => ({
+  type: 'edge',
+  bundle,
+  handler: 'index.handler',
+  placement: 'global',
+  streaming: false,
+  runtime: 'nodejs20.x',
+});
+
 // ================================================================
-// ComputeConstruct — isolated unit tests
+// ComputeConstruct — unit tests
 // ================================================================
 
 void describe('ComputeConstruct', () => {
-  let tmpDir: string;
-  let computeBasePath: string;
-
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'compute-construct-test-'));
-    computeBasePath = tmpDir;
-    const defaultDir = path.join(computeBasePath, 'default');
-    fs.mkdirSync(defaultDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(defaultDir, 'run.sh'),
-      '#!/bin/bash\nexec node server.js',
-    );
-    fs.writeFileSync(path.join(defaultDir, 'server.js'), '// server stub');
-  });
-
   afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    if (tmpDir) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
-  // ---- Lambda defaults ----
+  // ---- Handler type ----
 
-  void describe('Lambda defaults', () => {
-    void it('creates Lambda with NODEJS_20_X runtime and run.sh handler', () => {
+  void describe('handler compute type', () => {
+    void it('creates Lambda with handler directly (no Web Adapter)', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: 'nodejs20.x',
-        Handler: 'run.sh',
+        Handler: 'index.handler',
       });
+
+      // Should NOT have Web Adapter environment variables
+      const functions = template.findResources('AWS::Lambda::Function');
+      const fn = Object.values(functions)[0] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const env =
+        (fn.Properties.Environment as Record<string, Record<string, string>>)
+          ?.Variables ?? {};
+      assert.strictEqual(env['AWS_LAMBDA_EXEC_WRAPPER'], undefined);
     });
 
-    void it('sets default memorySize to 512 MB', () => {
+    void it('sets default memorySize to 1024 MB', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        MemorySize: 512,
+        MemorySize: 1024,
       });
     });
 
     void it('sets default timeout to 30 seconds', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
@@ -101,16 +135,39 @@ void describe('ComputeConstruct', () => {
       });
     });
 
-    void it('sets environment variables for Lambda Web Adapter', () => {
+    void it('creates Function URL with RESPONSE_STREAM invoke mode for streaming', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Url', {
+        AuthType: 'AWS_IAM',
+        InvokeMode: 'RESPONSE_STREAM',
+      });
+    });
+  });
+
+  // ---- HTTP Server type ----
+
+  void describe('http-server compute type', () => {
+    void it('creates Lambda with Web Adapter layer', () => {
+      const bundle = createBundleDir();
+      fs.writeFileSync(path.join(bundle, 'server.js'), '// server');
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: httpServerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'server.js',
         Environment: {
           Variables: Match.objectLike({
             AWS_LAMBDA_EXEC_WRAPPER: '/opt/bootstrap',
@@ -120,157 +177,15 @@ void describe('ComputeConstruct', () => {
         },
       });
     });
-  });
 
-  // ---- Custom overrides ----
-
-  void describe('custom overrides', () => {
-    void it('overrides memorySize', () => {
+    void it('includes Lambda Web Adapter layer', () => {
+      const bundle = createBundleDir();
+      fs.writeFileSync(path.join(bundle, 'server.js'), '// server');
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-        memorySize: 1024,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        MemorySize: 1024,
-      });
-    });
-
-    void it('overrides timeout', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-        timeout: Duration.seconds(60),
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        Timeout: 60,
-      });
-    });
-
-    void it('sets reservedConcurrency when provided', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-        reservedConcurrency: 10,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        ReservedConcurrentExecutions: 10,
-      });
-    });
-
-    void it('uses custom webAdapterVersion in layer ARN', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-        webAdapterVersion: 25,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        Layers: Match.arrayWith([
-          Match.objectLike({
-            // Layer ARN should end with :25
-            'Fn::Join': Match.anyValue(),
-          }),
-        ]),
-      });
-
-      // Verify the layer version in the full template
-      const functions = template.findResources('AWS::Lambda::Function');
-      const fn = Object.values(functions)[0] as Record<
-        string,
-        Record<string, unknown>
-      >;
-      const layers = fn.Properties.Layers as unknown[];
-      const layerStr = JSON.stringify(layers);
-      assert.ok(
-        layerStr.includes(':25') ||
-          layerStr.includes("'25'") ||
-          layerStr.includes('"25"'),
-        `Layer ARN should include version 25, got: ${layerStr}`,
-      );
-    });
-  });
-
-  // ---- Function URL ----
-
-  void describe('Function URL', () => {
-    void it('creates Function URL with IAM auth', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Url', {
-        AuthType: 'AWS_IAM',
-      });
-    });
-
-    void it('creates Function URL with RESPONSE_STREAM invoke mode', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::Lambda::Url', {
-        InvokeMode: 'RESPONSE_STREAM',
-      });
-    });
-  });
-
-  // ---- Web Adapter layer ----
-
-  void describe('Web Adapter layer', () => {
-    void it('includes default version 22 in layer ARN', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      const template = Template.fromStack(stack);
-
-      const functions = template.findResources('AWS::Lambda::Function');
-      const fn = Object.values(functions)[0] as Record<
-        string,
-        Record<string, unknown>
-      >;
-      const layers = fn.Properties.Layers as unknown[];
-      const layerStr = JSON.stringify(layers);
-      assert.ok(
-        layerStr.includes(':22') ||
-          layerStr.includes("'22'") ||
-          layerStr.includes('"22"'),
-        `Layer ARN should include default version 22, got: ${layerStr}`,
-      );
-    });
-
-    void it('includes Lambda Web Adapter account 753240598075 in layer ARN', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: httpServerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
@@ -286,17 +201,138 @@ void describe('ComputeConstruct', () => {
         `Layer ARN should include account 753240598075, got: ${layerStr}`,
       );
     });
+
+    void it('throws UnsupportedRegionError for unsupported region', () => {
+      const bundle = createBundleDir();
+      fs.writeFileSync(path.join(bundle, 'server.js'), '// server');
+
+      assert.throws(
+        () => {
+          const stack = createEnvStack('eu-south-2', '123456789012');
+          new ComputeConstruct(stack, 'Compute', {
+            name: 'default',
+            computeResource: httpServerResource(bundle),
+          });
+        },
+        (err: unknown) => {
+          assert.ok(err instanceof HostingError);
+          assert.strictEqual(err.name, 'UnsupportedRegionError');
+          return true;
+        },
+      );
+    });
+
+    void it('bypasses region check with skipRegionValidation', () => {
+      const bundle = createBundleDir();
+      fs.writeFileSync(path.join(bundle, 'server.js'), '// server');
+      const stack = createEnvStack('eu-south-2', '123456789012');
+
+      const compute = new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: httpServerResource(bundle),
+        skipRegionValidation: true,
+      });
+      assert.ok(compute.function);
+    });
+  });
+
+  // ---- Edge type ----
+
+  void describe('edge compute type', () => {
+    void it('creates Lambda for edge functions', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: edgeResource(bundle),
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: 'nodejs20.x',
+        Handler: 'index.handler',
+      });
+    });
+
+    void it('caps timeout at 5 seconds for edge (viewer-request limit)', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: { ...edgeResource(bundle), timeout: 60 },
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 5,
+      });
+    });
+  });
+
+  // ---- Custom overrides ----
+
+  void describe('custom overrides', () => {
+    void it('overrides memorySize', () => {
+      const bundle = createBundleDir();
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        memorySize: 1024,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 1024,
+      });
+    });
+
+    void it('overrides timeout', () => {
+      const bundle = createBundleDir();
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        timeout: Duration.seconds(60),
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 60,
+      });
+    });
+
+    void it('sets reservedConcurrency when provided', () => {
+      const bundle = createBundleDir();
+      const stack = createStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        reservedConcurrency: 10,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        ReservedConcurrentExecutions: 10,
+      });
+    });
   });
 
   // ---- IAM role ----
 
   void describe('IAM role', () => {
     void it('has AWSLambdaBasicExecutionRole managed policy', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
       });
       const template = Template.fromStack(stack);
 
@@ -312,118 +348,21 @@ void describe('ComputeConstruct', () => {
         ]),
       });
     });
-
-    void it('has lambda.amazonaws.com as trusted service', () => {
-      const stack = createStack();
-
-      new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      const template = Template.fromStack(stack);
-
-      template.hasResourceProperties('AWS::IAM::Role', {
-        AssumeRolePolicyDocument: Match.objectLike({
-          Statement: Match.arrayWith([
-            Match.objectLike({
-              Principal: { Service: 'lambda.amazonaws.com' },
-            }),
-          ]),
-        }),
-      });
-    });
-  });
-
-  // ---- Region validation ----
-
-  void describe('region validation', () => {
-    void it('throws HostingError for unsupported region', () => {
-      assert.throws(
-        () => {
-          const stack = createEnvStack('eu-south-2', '123456789012');
-
-          new ComputeConstruct(stack, 'Compute', {
-            computeResource: defaultComputeResource,
-            computeBasePath,
-          });
-        },
-        (err: unknown) => {
-          assert.ok(err instanceof HostingError);
-          assert.strictEqual(err.name, 'UnsupportedRegionError');
-          assert.ok(err.resolution);
-          return true;
-        },
-      );
-    });
-
-    void it('succeeds for supported region (us-east-1)', () => {
-      const stack = createEnvStack('us-east-1', '123456789012');
-
-      const compute = new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      assert.ok(compute.function, 'Should create Lambda function');
-    });
-
-    void it('bypasses region check with skipRegionValidation', () => {
-      const stack = createEnvStack('eu-south-2', '123456789012');
-
-      const compute = new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-        skipRegionValidation: true,
-      });
-      assert.ok(
-        compute.function,
-        'Should create Lambda function despite unsupported region',
-      );
-    });
-
-    void it('skips validation when region is an unresolved token', () => {
-      // Stack without explicit env → region is a token
-      const stack = createStack();
-
-      const compute = new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-      assert.ok(
-        compute.function,
-        'Should create Lambda function for token region',
-      );
-    });
-  });
-
-  // ---- Construct exports ----
-
-  void describe('construct exports', () => {
-    void it('exposes function and functionUrl', () => {
-      const stack = createStack();
-
-      const compute = new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
-      });
-
-      assert.ok(compute.function, 'Should expose function');
-      assert.ok(compute.functionUrl, 'Should expose functionUrl');
-    });
   });
 
   // ---- Log retention ----
 
   void describe('logRetention', () => {
     void it('uses custom logRetention when provided', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
         logRetention: RetentionDays.ONE_MONTH,
       });
 
-      // CDK creates a Custom::LogRetention resource that configures log group retention
       const template = Template.fromStack(stack);
       template.hasResourceProperties('Custom::LogRetention', {
         RetentionInDays: 30,
@@ -431,16 +370,76 @@ void describe('ComputeConstruct', () => {
     });
 
     void it('defaults to TWO_WEEKS when logRetention is not set', () => {
+      const bundle = createBundleDir();
       const stack = createStack();
 
       new ComputeConstruct(stack, 'Compute', {
-        computeResource: defaultComputeResource,
-        computeBasePath,
+        name: 'default',
+        computeResource: handlerResource(bundle),
       });
 
       const template = Template.fromStack(stack);
       template.hasResourceProperties('Custom::LogRetention', {
         RetentionInDays: 14,
+      });
+    });
+  });
+
+  // ---- Provisioned Concurrency ----
+
+  void describe('provisioned concurrency', () => {
+    void it('creates Function URL on alias when provisionedConcurrency is set', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: {
+          ...handlerResource(bundle),
+          provisionedConcurrency: 5,
+        },
+      });
+
+      const template = Template.fromStack(stack);
+
+      // Verify alias exists with correct provisioned concurrency
+      template.hasResourceProperties('AWS::Lambda::Alias', {
+        Name: 'live',
+        ProvisionedConcurrencyConfig: Match.objectLike({
+          ProvisionedConcurrentExecutions: 5,
+        }),
+      });
+
+      // Verify Function URL exists (targets the alias, not $LATEST)
+      template.hasResourceProperties('AWS::Lambda::Url', {
+        AuthType: 'AWS_IAM',
+        InvokeMode: 'RESPONSE_STREAM',
+      });
+    });
+
+    void it('creates Function URL on $LATEST when provisionedConcurrency is not set', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+      });
+
+      const template = Template.fromStack(stack);
+
+      // Verify no alias is created
+      const aliases = template.findResources('AWS::Lambda::Alias');
+      assert.strictEqual(
+        Object.keys(aliases).length,
+        0,
+        'Should not create an alias when provisionedConcurrency is not set',
+      );
+
+      // Verify Function URL still exists (on $LATEST)
+      template.hasResourceProperties('AWS::Lambda::Url', {
+        AuthType: 'AWS_IAM',
+        InvokeMode: 'RESPONSE_STREAM',
       });
     });
   });

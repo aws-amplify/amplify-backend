@@ -140,15 +140,16 @@ void describe(
             `Backend deployed. user_pool_id=${outputsContent.auth.user_pool_id}, graphql_url=${outputsContent.data.url}, bucket=${buckets[0].bucket_name}\n`,
           );
 
-          // Copy amplify_outputs.json into static-site/ so it is deployed as a static asset
-          const staticSiteOutputsPath = path.join(
+          // Copy amplify_outputs.json into dist/ so it is deployed as a static asset
+          // (the hosting construct deploys from buildOutputDir which resolves to dist/)
+          const distOutputsPath = path.join(
             testProject.projectDirPath,
-            'static-site',
+            'dist',
             'amplify_outputs.json',
           );
-          await fsp.cp(outputsPath, staticSiteOutputsPath);
+          await fsp.cp(outputsPath, distOutputsPath);
           process.stderr.write(
-            `Copied amplify_outputs.json into static-site/ for frontend deployment\n`,
+            `Copied amplify_outputs.json into dist/ for frontend deployment\n`,
           );
         });
 
@@ -292,17 +293,17 @@ void describe(
             });
           }
 
-          // Copy amplify_outputs.json into static-site/ again for the v2 deploy
+          // Copy amplify_outputs.json into dist/ again for the v2 deploy
           const outputsPath = path.join(
             testProject.projectDirPath,
             'amplify_outputs.json',
           );
-          const staticSiteOutputsPath = path.join(
+          const distOutputsPath = path.join(
             testProject.projectDirPath,
-            'static-site',
+            'dist',
             'amplify_outputs.json',
           );
-          await fsp.cp(outputsPath, staticSiteOutputsPath);
+          await fsp.cp(outputsPath, distOutputsPath);
 
           // Full deploy (no --backend / --frontend flag) to update everything
           await testProject.deploy(fullIdentifier);

@@ -387,4 +387,135 @@ void describe('StorageConstruct', () => {
       });
     });
   });
+
+  // ---- SSL enforcement ----
+
+  void describe('SSL enforcement', () => {
+    void it('creates bucket with enforceSSL (bucket policy with SecureTransport)', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::BucketPolicy', {
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Effect: 'Deny',
+              Condition: {
+                // eslint-disable-next-line spellcheck/spell-checker
+                Bool: { 'aws:SecureTransport': 'false' },
+              },
+            }),
+          ]),
+        }),
+      });
+    });
+  });
+
+  // ---- Versioning ----
+
+  void describe('versioning', () => {
+    void it('enables versioning on the hosting bucket', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        VersioningConfiguration: {
+          Status: 'Enabled',
+        },
+      });
+    });
+  });
+
+  // ---- ISR lifecycle rule ----
+
+  void describe('orphaned ISR data lifecycle', () => {
+    void it('has lifecycle rule for _next/data/ prefix', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        LifecycleConfiguration: Match.objectLike({
+          Rules: Match.arrayWith([
+            Match.objectLike({
+              Id: 'ExpireOrphanedIsrData',
+              Prefix: '_next/data/',
+              ExpirationInDays: 30,
+              Status: 'Enabled',
+            }),
+          ]),
+        }),
+      });
+    });
+  });
+
+  // ---- Access log bucket security ----
+
+  void describe('access log bucket security', () => {
+    void it('access log bucket has BlockPublicAccess.BLOCK_ALL', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { accessLogging: true });
+      const template = Template.fromStack(stack);
+
+      // Both hosting and access log bucket should have BLOCK_ALL
+      const buckets = template.findResources('AWS::S3::Bucket');
+      const accessLogBucket = Object.entries(buckets).find(([key]) =>
+        key.includes('AccessLogBucket'),
+      );
+      assert.ok(accessLogBucket, 'Should find AccessLogBucket');
+      const props = (
+        accessLogBucket[1] as Record<string, Record<string, unknown>>
+      ).Properties;
+      const pab = props?.PublicAccessBlockConfiguration as
+        | Record<string, boolean>
+        | undefined;
+      assert.strictEqual(pab?.BlockPublicAcls, true);
+      assert.strictEqual(pab?.BlockPublicPolicy, true);
+      assert.strictEqual(pab?.IgnorePublicAcls, true);
+      assert.strictEqual(pab?.RestrictPublicBuckets, true);
+    });
+
+    void it('access log bucket uses S3_MANAGED encryption', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { accessLogging: true });
+      const template = Template.fromStack(stack);
+
+      const buckets = template.findResources('AWS::S3::Bucket');
+      const accessLogBucket = Object.entries(buckets).find(([key]) =>
+        key.includes('AccessLogBucket'),
+      );
+      assert.ok(accessLogBucket, 'Should find AccessLogBucket');
+      const props = (
+        accessLogBucket[1] as Record<string, Record<string, unknown>>
+      ).Properties;
+      const encryption = props?.BucketEncryption as Record<string, unknown[]>;
+      const config = encryption?.ServerSideEncryptionConfiguration as Array<
+        Record<string, Record<string, string>>
+      >;
+      assert.strictEqual(
+        config?.[0]?.ServerSideEncryptionByDefault?.SSEAlgorithm,
+        'AES256',
+      );
+    });
+
+    void it('access log bucket uses BUCKET_OWNER_PREFERRED for CloudFront log delivery', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage', { accessLogging: true });
+      const template = Template.fromStack(stack);
+
+      const buckets = template.findResources('AWS::S3::Bucket');
+      const accessLogBucket = Object.entries(buckets).find(([key]) =>
+        key.includes('AccessLogBucket'),
+      );
+      assert.ok(accessLogBucket, 'Should find AccessLogBucket');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const props = (accessLogBucket[1] as any).Properties;
+      assert.strictEqual(
+        props?.OwnershipControls?.Rules?.[0]?.ObjectOwnership,
+        'BucketOwnerPreferred',
+      );
+    });
+  });
 });
