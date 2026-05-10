@@ -878,7 +878,6 @@ const findIsrResources = async (
 
       if (
         r.ResourceType === 'AWS::SQS::Queue' &&
-        // eslint-disable-next-line spellcheck/spell-checker
         (r.LogicalResourceId?.toLowerCase().includes('revalidat') ||
           r.LogicalResourceId?.toLowerCase().includes('isr')) &&
         !r.LogicalResourceId?.toLowerCase().includes('dlq')
