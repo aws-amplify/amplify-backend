@@ -25,9 +25,10 @@ type GenerateOutputsCommandOptionsCamelCase = {
 /**
  * Command that generates client config aka amplify_outputs.
  */
-export class GenerateOutputsCommand
-  implements CommandModule<object, GenerateOutputsCommandOptions>
-{
+export class GenerateOutputsCommand implements CommandModule<
+  object,
+  GenerateOutputsCommandOptions
+> {
   /**
    * @inheritDoc
    */

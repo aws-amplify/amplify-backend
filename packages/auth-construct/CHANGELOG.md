@@ -1,5 +1,40 @@
 # @aws-amplify/auth-construct
 
+## 1.11.2
+
+### Patch Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+  - @aws-amplify/backend-output-storage@1.3.4
+
+## 1.11.1
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.11.0
+
+### Minor Changes
+
+- 299c804: Add passwordless authentication options to client config
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/backend-output-storage@1.3.3
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
 ## 1.10.0
 
 ### Minor Changes

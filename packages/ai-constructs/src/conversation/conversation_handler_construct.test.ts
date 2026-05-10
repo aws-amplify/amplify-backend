@@ -414,4 +414,230 @@ void describe('Conversation Handler Function construct', () => {
       });
     });
   });
+
+  void describe('global inference profiles', () => {
+    void it('creates three-part IAM policy for global inference profile', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      // Should create three separate policy statements for global inference profiles
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            // Part 1: Inference profile access in requesting region
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1:123456789012:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            // Part 2: Foundation model access in requesting region
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            // Part 3: Global foundation model access (triple colon)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('handles multiple global inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-west-2', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+          {
+            modelId: 'global.anthropic.claude-haiku-4-5-20251001-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:us-west-2:123456789012:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                'arn:aws:bedrock:us-west-2:123456789012:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0',
+              ],
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+                'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+              ],
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0',
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    void it('handles mix of regular models and global inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
+            region: 'us-east-1',
+          },
+          {
+            modelId: 'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            // Regular model
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',
+            },
+            // Global inference profile (3 parts)
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1:123456789012:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0',
+            },
+          ],
+        },
+      });
+    });
+
+    void it('uses stack region for global inference profile when region not specified', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'eu-west-1', account: '123456789012' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'global.anthropic.claude-opus-4-5-20251101-v1:0',
+          },
+        ],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:eu-west-1:123456789012:inference-profile/global.anthropic.claude-opus-4-5-20251101-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-opus-4-5-20251101-v1:0',
+            },
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource:
+                'arn:aws:bedrock:::foundation-model/anthropic.claude-opus-4-5-20251101-v1:0',
+            },
+          ],
+        },
+      });
+    });
+  });
 });

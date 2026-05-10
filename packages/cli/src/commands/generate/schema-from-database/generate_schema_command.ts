@@ -22,9 +22,10 @@ type GenerateSchemaCommandOptionsCamelCase = {
 /**
  * Command that generates typescript data schema from sql schema.
  */
-export class GenerateSchemaCommand
-  implements CommandModule<object, GenerateSchemaCommandOptions>
-{
+export class GenerateSchemaCommand implements CommandModule<
+  object,
+  GenerateSchemaCommandOptions
+> {
   /**
    * @inheritDoc
    */

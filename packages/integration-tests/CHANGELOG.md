@@ -1,5 +1,22 @@
 # @aws-amplify/integration-tests
 
+## 0.10.0
+
+### Minor Changes
+
+- ae6a497: bump glob version
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 0.9.3
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+
 ## 0.9.2
 
 ### Patch Changes

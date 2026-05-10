@@ -1,7 +1,8 @@
 // Versions of config schemas supported by this package version
 import {
   AuthClientConfigContributorV1_1 as Auth1_1,
-  AuthClientConfigContributor as Auth1_3,
+  AuthClientConfigContributorV1_3 as Auth1_3,
+  AuthClientConfigContributor as Auth1_4,
   CustomClientConfigContributor as Custom1_1,
   DataClientConfigContributor as Data1_1,
   StorageClientConfigContributorV1 as Storage1,
@@ -37,7 +38,7 @@ export class ClientConfigContributorFactory {
   ) {
     this.versionedClientConfigContributors = {
       [ClientConfigVersionOption.V1_4]: [
-        new Auth1_3(),
+        new Auth1_4(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_2(),
         new VersionContributor1_4(),

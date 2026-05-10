@@ -4,6 +4,9 @@ inputs:
   run:
     description: Script to run
     required: true
+  on_retry_command:
+    description: Script to run before a retry (e.g. a cleanup script).
+    required: false
   shell:
     description: Shell
     required: false
@@ -177,6 +180,13 @@ runs:
           if [ $ATTEMPT -lt $RETRY_ATTEMPTS ]; then
             echo "Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
+            # Run on retry command if provided
+            if [ -n "${{ inputs.on_retry_command }}" ]; then
+              echo "Running on retry command..."
+              if ! run_with_timeout '${{ inputs.on_retry_command }}' "$SHELL_CMD"; then
+                echo "On retry command failed, but continuing with retry attempt"
+              fi
+            fi
           else
             echo "Script failed after $RETRY_ATTEMPTS attempts"
             exit 1

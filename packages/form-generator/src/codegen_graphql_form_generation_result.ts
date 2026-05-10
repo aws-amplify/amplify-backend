@@ -5,9 +5,7 @@ import { GraphqlGenerationResult } from './graphql_form_generator.js';
 /**
  * Encapsulates a result from a call to the codegen form generation service
  */
-export class CodegenGraphqlFormGeneratorResult
-  implements GraphqlGenerationResult
-{
+export class CodegenGraphqlFormGeneratorResult implements GraphqlGenerationResult {
   /**
    * Creates a CodegenGraphqlFormGeneratorResponse
    */

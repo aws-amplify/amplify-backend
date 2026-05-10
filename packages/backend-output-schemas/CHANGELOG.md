@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.8.0
+
+### Minor Changes
+
+- 299c804: Add passwordless authentication options to client config
+
 ## 1.7.1
 
 ### Patch Changes

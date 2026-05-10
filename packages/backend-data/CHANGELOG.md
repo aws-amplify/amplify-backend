@@ -1,5 +1,24 @@
 # @aws-amplify/backend-data
 
+## 1.6.4
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.6.3
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/backend-output-storage@1.3.3
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
 ## 1.6.2
 
 ### Patch Changes

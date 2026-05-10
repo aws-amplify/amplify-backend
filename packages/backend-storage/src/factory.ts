@@ -15,9 +15,9 @@ import { StorageOutputsAspect } from './storage_outputs_aspect.js';
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-export class AmplifyStorageFactory
-  implements ConstructFactory<ResourceProvider<StorageResources>>
-{
+export class AmplifyStorageFactory implements ConstructFactory<
+  ResourceProvider<StorageResources>
+> {
   private generator: ConstructContainerEntryGenerator;
 
   /**

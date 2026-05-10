@@ -1,5 +1,30 @@
 # @aws-amplify/client-config
 
+## 1.10.1
+
+### Patch Changes
+
+- 3c46984: Add `amplifyconfig` alias in gen1 Dart output for backwards compatibility
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+
+## 1.10.0
+
+### Minor Changes
+
+- 299c804: Add passwordless authentication options to client config
+
+### Patch Changes
+
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
 ## 1.9.1
 
 ### Patch Changes

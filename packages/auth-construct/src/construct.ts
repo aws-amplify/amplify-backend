@@ -143,6 +143,11 @@ export class AmplifyAuth
   private customSenderKMSkey: IKey | undefined;
 
   /**
+   * The preferred authentication challenge
+   */
+  private readonly preferredChallenge: string | undefined;
+
+  /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
@@ -154,6 +159,11 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
+    // Validate preferredChallenge against enabled authentication methods before setting
+    this.validatePreferredChallenge(props);
+
+    this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
@@ -1221,6 +1231,16 @@ export class AmplifyAuth
       }
     }
 
+    // Standalone deployments have no Amplify Hosting domain.
+    if (deploymentType === 'standalone') {
+      throw new Error(
+        'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +
+          'Set an explicit relyingPartyId matching your hosting domain. ' +
+          'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
+      );
+    }
+
+    // For sandbox or undefined (pure CDK usage), default to localhost
     return 'localhost';
   };
 
@@ -1255,6 +1275,49 @@ export class AmplifyAuth
 
     const existingFlows = cfnUserPoolClient.explicitAuthFlows || [];
     cfnUserPoolClient.explicitAuthFlows = [...existingFlows, 'ALLOW_USER_AUTH'];
+  };
+
+  /**
+   * Validates that the preferredChallenge matches enabled authentication methods
+   */
+  private validatePreferredChallenge = (props: AuthProps): void => {
+    const preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+    if (!preferredChallenge) {
+      return; // No validation needed if preferredChallenge is not set
+    }
+
+    const enabledChallenges: string[] = ['PASSWORD']; // PASSWORD is always available
+
+    // Check for EMAIL_OTP
+    if (
+      props.loginWith.email &&
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin
+    ) {
+      enabledChallenges.push('EMAIL_OTP');
+    }
+
+    // Check for SMS_OTP
+    if (
+      props.loginWith.phone &&
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin
+    ) {
+      enabledChallenges.push('SMS_OTP');
+    }
+
+    // Check for WEB_AUTHN
+    if (props.loginWith.webAuthn) {
+      enabledChallenges.push('WEB_AUTHN');
+    }
+
+    if (!enabledChallenges.includes(preferredChallenge)) {
+      throw new Error(
+        `Preferred challenge "${preferredChallenge}" is not enabled in your authentication configuration. ` +
+          `Enabled challenges: ${enabledChallenges.join(', ')}. ` +
+          `This will result in a broken authentication flow in the frontend.`,
+      );
+    }
   };
 
   /**
@@ -1366,6 +1429,51 @@ export class AmplifyAuth
           }
         });
         return JSON.stringify(mfaTypes);
+      },
+    });
+
+    // extract passwordless configuration
+    output.passwordlessOptions = Lazy.string({
+      produce: () => {
+        const passwordlessConfig: {
+          emailOtpEnabled?: boolean;
+          smsOtpEnabled?: boolean;
+          webAuthn?: {
+            relyingPartyId: string;
+            userVerification: 'required' | 'preferred';
+          };
+          preferredChallenge?: string;
+        } = {};
+
+        const signInPolicy = (
+          cfnUserPool.policies as CfnUserPool.PoliciesProperty
+        )?.signInPolicy;
+        if (signInPolicy) {
+          const allowedFactors =
+            (signInPolicy as CfnUserPool.SignInPolicyProperty)
+              .allowedFirstAuthFactors || [];
+          passwordlessConfig.emailOtpEnabled =
+            allowedFactors.includes('EMAIL_OTP');
+          passwordlessConfig.smsOtpEnabled = allowedFactors.includes('SMS_OTP');
+
+          if (allowedFactors.includes('WEB_AUTHN')) {
+            passwordlessConfig.webAuthn = {
+              relyingPartyId: cfnUserPool.webAuthnRelyingPartyId || '',
+              userVerification:
+                (cfnUserPool.webAuthnUserVerification as
+                  | 'required'
+                  | 'preferred') || 'preferred',
+            };
+          }
+        }
+
+        if (this.preferredChallenge) {
+          passwordlessConfig.preferredChallenge = this.preferredChallenge;
+        }
+
+        return Object.keys(passwordlessConfig).length > 0
+          ? JSON.stringify(passwordlessConfig)
+          : '';
       },
     });
 

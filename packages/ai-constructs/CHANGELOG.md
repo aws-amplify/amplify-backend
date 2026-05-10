@@ -1,5 +1,29 @@
 # @aws-amplify/ai-constructs
 
+## 1.6.1
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.6.0
+
+### Minor Changes
+
+- b3f0e35: feat: add support for the global Bedrock inference profiles
+
+## 1.5.6
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
 ## 1.5.5
 
 ### Patch Changes

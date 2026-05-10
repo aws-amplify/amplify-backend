@@ -25,7 +25,7 @@ void describe('convertFunctionNameMapToCDK', () => {
   void it('can be invoked with input entries, and invokes factoryInstanceProvider', () => {
     const stack = new Stack();
     const echoFn = new Function(stack, 'EchoFn', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),
@@ -42,7 +42,7 @@ void describe('convertFunctionNameMapToCDK', () => {
       }),
     };
     const updateFn = new Function(stack, 'UpdateFn', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       code: Code.fromInline(
         'module.handler = async () => console.log("Hello");',
       ),

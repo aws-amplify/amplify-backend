@@ -30,6 +30,7 @@ import {
   CfnFunction,
   IFunction,
   ILayerVersion,
+  IVersion,
   LayerVersion,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
@@ -46,8 +47,11 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
-import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
-import { convertFunctionSchedulesToScheduleExpressions } from './schedule_parser.js';
+import {
+  convertLoggingOptionsToCDK,
+  createLogGroup,
+} from './logging_options_parser.js';
+import { convertFunctionSchedulesToScheduleProps } from './schedule_parser.js';
 import {
   ProvidedFunctionFactory,
   ProvidedFunctionProps,
@@ -66,6 +70,7 @@ export type CronScheduleExpression =
 export type ZonedCronSchedule = {
   cron: CronScheduleExpression;
   timezone: string;
+  description?: string;
 };
 
 export type CronSchedule = CronScheduleExpression | ZonedCronSchedule;
@@ -81,6 +86,7 @@ export type TimeIntervalExpression =
 export type ZonedTimeInterval = {
   rate: TimeIntervalExpression;
   timezone: string;
+  description?: string;
 };
 
 export type TimeInterval = ZonedTimeInterval | TimeIntervalExpression;
@@ -230,6 +236,13 @@ export type FunctionProps = {
   resourceGroupName?: AmplifyResourceGroupName;
 
   logging?: FunctionLoggingOptions;
+
+  /**
+   * Configuration for durable functions.
+   *
+   * Lambda durable functions allow for long-running executions with persistent state.
+   */
+  durableConfig?: FunctionDurableConfigOptions;
 };
 
 export type FunctionBundlingOptions = {
@@ -251,6 +264,22 @@ export type FunctionLoggingOptions = (
     }
 ) & {
   retention?: FunctionLogRetention;
+};
+
+export type FunctionDurableConfigOptions = {
+  /**
+   * The amount of time in seconds that Lambda allows a durable function to run before stopping it.
+   *
+   * Must be between 1 and 31,622,400 seconds (366 days).
+   */
+  executionTimeoutSeconds: number;
+  /**
+   * The number of days after a durable execution is closed that Lambda retains its history.
+   *
+   * Must be between 1 and 90 days.
+   * @default 14
+   */
+  retentionPeriodDays?: number;
 };
 
 /**
@@ -303,6 +332,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       layers: this.props.layers ?? {},
       resourceGroupName: this.props.resourceGroupName ?? 'function',
       logging: this.props.logging ?? {},
+      durableConfig: this.resolveDurableConfig(),
     };
   };
 
@@ -434,7 +464,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveRuntime = () => {
-    const runtimeDefault = 20;
+    const runtimeDefault = 22;
 
     // if runtime is not set, default to the oldest LTS
     if (!this.props.runtime) {
@@ -500,9 +530,68 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveMinify = (bundling?: FunctionBundlingOptions) => {
     return bundling?.minify === undefined ? true : bundling.minify;
   };
+
+  private resolveDurableConfig = () => {
+    if (!this.props.durableConfig) {
+      return undefined;
+    }
+    const { executionTimeoutSeconds, retentionPeriodDays } =
+      this.props.durableConfig;
+    const executionTimeoutMin = 1;
+    const executionTimeoutMax = 31_622_400; // 366 days in seconds
+    if (
+      !isWholeNumberBetweenInclusive(
+        executionTimeoutSeconds,
+        executionTimeoutMin,
+        executionTimeoutMax,
+      )
+    ) {
+      throw new AmplifyUserError(
+        'InvalidDurableFunctionExecutionTimeoutError',
+        {
+          message: `Invalid durable function execution timeout of ${this.props.durableConfig.executionTimeoutSeconds}`,
+          resolution: `durableConfig.executionTimeoutSeconds must be a whole number between ${executionTimeoutMin} and ${executionTimeoutMax} inclusive`,
+        },
+      );
+    }
+    if (retentionPeriodDays !== undefined) {
+      const retentionPeriodMin = 1;
+      const retentionPeriodMax = 90;
+      if (
+        !isWholeNumberBetweenInclusive(
+          retentionPeriodDays,
+          retentionPeriodMin,
+          retentionPeriodMax,
+        )
+      ) {
+        throw new AmplifyUserError(
+          'InvalidDurableFunctionRetentionPeriodError',
+          {
+            message: `Invalid durable function retention period of ${this.props.durableConfig.retentionPeriodDays}`,
+            resolution: `durableConfig.retentionPeriodDays must be a whole number between ${retentionPeriodMin} and ${retentionPeriodMax} inclusive`,
+          },
+        );
+      }
+    }
+
+    const runtime = this.resolveRuntime();
+    if (runtime < 22) {
+      throw new AmplifyUserError('UnsupportedDurableFunctionRuntimeError', {
+        message: `Durable functions require runtime 22 or higher. Current runtime is ${runtime}.`,
+        resolution: `Set the function runtime to 22 or higher to use durable functions.`,
+      });
+    }
+
+    return {
+      executionTimeoutSeconds: this.props.durableConfig.executionTimeoutSeconds,
+      retentionPeriodDays: this.props.durableConfig.retentionPeriodDays ?? 14,
+    };
+  };
 }
 
-type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionProps = {
+  durableConfig?: Required<FunctionProps['durableConfig']>;
+} & Required<Omit<FunctionProps, 'durableConfig'>>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: AmplifyResourceGroupName;
@@ -562,23 +651,15 @@ class AmplifyFunction
   ) {
     super(scope, id, outputStorageStrategy);
 
-    const runtime = nodeVersionMap[props.runtime];
-
     const require = createRequire(import.meta.url);
 
-    const shims =
-      runtime === Runtime.NODEJS_16_X
-        ? []
-        : [require.resolve('./lambda-shims/cjs_shim')];
+    const shims = [require.resolve('./lambda-shims/cjs_shim')];
 
     const ssmResolverFile =
-      runtime === Runtime.NODEJS_16_X
-        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2') // use aws cdk v2 in node 16
-        : require.resolve('./lambda-shims/resolve_ssm_params');
+      require.resolve('./lambda-shims/resolve_ssm_params');
 
-    const invokeSsmResolverFile = require.resolve(
-      './lambda-shims/invoke_ssm_shim',
-    );
+    const invokeSsmResolverFile =
+      require.resolve('./lambda-shims/invoke_ssm_shim');
 
     /**
      * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content
@@ -599,6 +680,13 @@ class AmplifyFunction
 
     let functionLambda: NodejsFunction;
     const cdkLoggingOptions = convertLoggingOptionsToCDK(props.logging);
+
+    // Create a log group if retention is specified (replacing deprecated logRetention property)
+    let logGroup = cdkLoggingOptions.logGroup;
+    if (props.logging.retention !== undefined && !logGroup) {
+      logGroup = createLogGroup(scope, id, props.logging);
+    }
+
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -615,9 +703,19 @@ class AmplifyFunction
           externalModules: Object.keys(props.layers),
           logLevel: EsBuildLogLevel.ERROR,
         },
-        logRetention: cdkLoggingOptions.retention,
+        logGroup: logGroup,
         applicationLogLevelV2: cdkLoggingOptions.level,
         loggingFormat: cdkLoggingOptions.format,
+        durableConfig: props.durableConfig
+          ? {
+              executionTimeout: Duration.seconds(
+                props.durableConfig.executionTimeoutSeconds,
+              ),
+              retentionPeriod: Duration.days(
+                props.durableConfig.retentionPeriodDays,
+              ),
+            }
+          : undefined,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,
@@ -641,18 +739,36 @@ class AmplifyFunction
       );
     }
 
+    let version: IVersion | undefined;
+    if (props.durableConfig) {
+      try {
+        version = functionLambda.currentVersion;
+      } catch (error) {
+        throw new AmplifyUserError(
+          'DurableFunctionVersionInitializationError',
+          {
+            message:
+              'Failed to create version for durable function. Durable functions require a versioned Lambda function.',
+            resolution: 'See the underlying error message for more details.',
+          },
+          error as Error,
+        );
+      }
+    }
+
     try {
-      const expressions = convertFunctionSchedulesToScheduleExpressions(
+      const scheduleProps = convertFunctionSchedulesToScheduleProps(
         functionLambda,
         props.schedule,
       );
 
-      const lambdaTarget = new targets.LambdaInvoke(functionLambda);
+      const lambdaTarget = new targets.LambdaInvoke(version ?? functionLambda);
 
-      expressions.forEach((expression, index) => {
+      scheduleProps.forEach(({ schedule, description }, index) => {
         // Lambda name will be prepended to schedule id, so only using index here for uniqueness
         new scheduler.Schedule(functionLambda, `schedule-${index}`, {
-          schedule: expression,
+          schedule,
+          description,
           target: lambdaTarget,
         });
       });
@@ -703,13 +819,13 @@ const isWholeNumberBetweenInclusive = (
   max: number,
 ) => min <= test && test <= max && test % 1 === 0;
 
-export type NodeVersion = 16 | 18 | 20 | 22;
+export type NodeVersion = 18 | 20 | 22 | 24;
 
 const nodeVersionMap: Record<NodeVersion, Runtime> = {
-  16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
   22: Runtime.NODEJS_22_X,
+  24: Runtime.NODEJS_24_X,
 };
 
 export type FunctionArchitecture = 'x86_64' | 'arm64';

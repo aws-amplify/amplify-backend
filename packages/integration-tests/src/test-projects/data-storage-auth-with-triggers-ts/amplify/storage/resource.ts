@@ -1,10 +1,5 @@
 import { defineStorage } from '@aws-amplify/backend';
-import {
-  defaultNodeFunc,
-  node16Func,
-  onDelete,
-  onUpload,
-} from '../function.js';
+import { defaultNodeFunc, onDelete, onUpload } from '../function.js';
 
 export const storage = defineStorage({
   name: 'testName',
@@ -15,7 +10,6 @@ export const storage = defineStorage({
   access: (allow) => ({
     'public/*': [
       allow.resource(defaultNodeFunc).to(['read', 'write']),
-      allow.resource(node16Func).to(['read', 'write']),
       allow.guest.to(['read']),
       allow.authenticated.to(['read', 'write']),
       allow.groups(['Admins']).to(['read', 'write', 'delete']),

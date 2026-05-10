@@ -1,5 +1,15 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.10
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/plugin-types@1.11.2
+
 ## 0.3.9
 
 ### Patch Changes

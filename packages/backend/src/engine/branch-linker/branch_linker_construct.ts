@@ -40,7 +40,7 @@ export class AmplifyBranchLinkerConstruct extends Construct {
         process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
     }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
-      runtime: LambdaRuntime.NODEJS_20_X,
+      runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
       handler: 'handler',

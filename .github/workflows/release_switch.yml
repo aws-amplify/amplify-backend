@@ -1,0 +1,27 @@
+name: Conditional Release
+
+on:
+  push:
+    branches:
+      - main
+      - hotfix
+  workflow_dispatch:
+
+jobs:
+  # regular releases are handled by the publish_package_versions job in health_checks
+  run_health_checks:
+    if: ${{ github.ref_name == 'main' || github.ref_name == 'hotfix' }}
+    uses: ./.github/workflows/health_checks.yml
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+      actions: read
+      security-events: write
+
+  run_snapshot_release:
+    if: ${{ startsWith(github.ref_name, 'snapshot/') }}
+    uses: ./.github/workflows/snapshot_release.yml
+    permissions:
+      id-token: write
+      contents: read

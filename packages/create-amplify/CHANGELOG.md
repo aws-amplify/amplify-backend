@@ -1,5 +1,20 @@
 # create-amplify
 
+## 1.3.0
+
+### Minor Changes
+
+- 4603f7a: bump aws-cdk-lib to 2.234.1
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+
 ## 1.2.2
 
 ### Patch Changes

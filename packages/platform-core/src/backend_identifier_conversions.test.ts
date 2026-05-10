@@ -65,6 +65,17 @@ void describe('toStackName', () => {
     });
     assert.equal(actual, 'amplify-reasonableName-userName-sandbox-testHash');
   });
+
+  void it('generates standalone stack name within 128 char limit', () => {
+    const actual = BackendIdentifierConversions.toStackName({
+      namespace: 'myCustomStack',
+      name: 'main',
+      type: 'standalone',
+      hash: 'testHash',
+    });
+    assert.equal(actual, 'amplify-myCustomStack-main-standalone-testHash');
+    assert.ok(actual.length <= 128);
+  });
 });
 
 void describe('fromStackName', () => {
@@ -102,6 +113,18 @@ void describe('fromStackName', () => {
       namespace: 'reasonableName',
       name: 'userName',
       type: 'sandbox',
+      hash: 'testHash',
+    });
+  });
+
+  void it('parses standalone stack name into parts', () => {
+    const actual = BackendIdentifierConversions.fromStackName(
+      'amplify-myCustomStack-main-standalone-testHash',
+    );
+    assert.deepStrictEqual(actual, {
+      namespace: 'myCustomStack',
+      name: 'main',
+      type: 'standalone',
       hash: 'testHash',
     });
   });

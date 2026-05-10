@@ -56,6 +56,20 @@ void describe('storeAttributionMetadata', () => {
     assert.equal(metadata.createdBy, 'AmplifyPipelineDeploy');
   });
 
+  void it('sets standalone deploy type when DeploymentType is standalone', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    stack.node.setContext('amplify-backend-type', 'standalone');
+    new AttributionMetadataStorage(
+      os,
+      packageJsonReader,
+    ).storeAttributionMetadata(stack, 'test', 'some/path');
+    const metadata: AttributionMetadata = JSON.parse(
+      stack.templateOptions.description || '',
+    );
+    assert.equal(metadata.createdBy, 'AmplifyStandalone');
+  });
+
   void it('sets sandbox deploy type when DeploymentType is sandbox', () => {
     const app = new App();
     const stack = new Stack(app);

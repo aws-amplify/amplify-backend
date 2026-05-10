@@ -354,6 +354,121 @@ void describe('auth client config contributor v1', () => {
     );
   });
 
+  void it('returns translated config with passwordless options without preferred challenge', () => {
+    const contribution = {
+      version: '1' as const,
+      payload: {
+        identityPoolId: 'testIdentityPoolId',
+        userPoolId: 'testUserPoolId',
+        webClientId: 'testWebClientId',
+        authRegion: 'testRegion',
+        passwordlessOptions: JSON.stringify({
+          emailOtpEnabled: true,
+          smsOtpEnabled: false,
+        }),
+      },
+    };
+
+    const expected = {
+      auth: {
+        user_pool_id: 'testUserPoolId',
+        user_pool_client_id: 'testWebClientId',
+        aws_region: 'testRegion',
+        identity_pool_id: 'testIdentityPoolId',
+        passwordless: {
+          email_otp_enabled: true,
+          sms_otp_enabled: false,
+          web_authn: undefined,
+        },
+      },
+    } as Pick<clientConfigTypesV1_4.AWSAmplifyBackendOutputs, 'auth'>;
+
+    const contributor = new AuthClientConfigContributor();
+
+    assert.deepStrictEqual(
+      contributor.contribute({ [authOutputKey]: contribution }),
+      expected,
+    );
+  });
+
+  void it('returns translated config with passwordless options', () => {
+    const contribution = {
+      version: '1' as const,
+      payload: {
+        identityPoolId: 'testIdentityPoolId',
+        userPoolId: 'testUserPoolId',
+        webClientId: 'testWebClientId',
+        authRegion: 'testRegion',
+        passwordPolicyMinLength: '15',
+        passwordPolicyRequirements:
+          '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+        verificationMechanisms: '["email","phone_number"]',
+        usernameAttributes: '["email"]',
+        signupAttributes: '["email"]',
+        allowUnauthenticatedIdentities: 'true',
+        oauthClientId: 'testWebClientId', // same as webClientId
+        oauthCognitoDomain: 'testDomain',
+        oauthScope: '["email","profile"]',
+        oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
+        oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
+        oauthResponseType: 'code',
+        passwordlessOptions: JSON.stringify({
+          emailOtpEnabled: true,
+          smsOtpEnabled: false,
+          webAuthn: {
+            relyingPartyId: 'example.com',
+            userVerification: 'preferred',
+          },
+          preferredChallenge: 'SMS_OTP',
+        }),
+      },
+    };
+
+    const expected = {
+      auth: {
+        user_pool_id: 'testUserPoolId',
+        user_pool_client_id: 'testWebClientId',
+        aws_region: 'testRegion',
+        identity_pool_id: 'testIdentityPoolId',
+        unauthenticated_identities_enabled: true,
+        password_policy: {
+          require_lowercase: true,
+          require_numbers: true,
+          require_symbols: false,
+          require_uppercase: true,
+          min_length: 15,
+        },
+        standard_required_attributes: ['email'],
+        username_attributes: ['email'],
+        user_verification_types: ['email', 'phone_number'],
+        oauth: {
+          identity_providers: [],
+          domain: 'testDomain',
+          scopes: ['email', 'profile'],
+          redirect_sign_in_uri: ['http://callback.com', 'http://callback2.com'],
+          redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
+          response_type: 'code',
+        },
+        passwordless: {
+          email_otp_enabled: true,
+          sms_otp_enabled: false,
+          web_authn: {
+            relying_party_id: 'example.com',
+            user_verification: 'preferred',
+          },
+          preferred_challenge: 'SMS_OTP',
+        },
+      },
+    } as Pick<clientConfigTypesV1_4.AWSAmplifyBackendOutputs, 'auth'>;
+
+    const contributor = new AuthClientConfigContributor();
+
+    assert.deepStrictEqual(
+      contributor.contribute({ [authOutputKey]: contribution }),
+      expected,
+    );
+  });
+
   void describe('auth outputs with mfa', () => {
     const groups = [
       {
