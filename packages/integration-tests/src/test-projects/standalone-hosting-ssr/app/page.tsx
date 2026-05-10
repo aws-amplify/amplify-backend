@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const config = getAmplifyConfig();
   const userPoolId = config.auth?.user_pool_id || 'none';
+  const configSource = config._loadedFrom || 'unknown';
 
   let backendStatus = 'disconnected';
   let graphqlResult = 'no-query';
@@ -37,6 +38,7 @@ export default async function Home() {
       <p data-testid="backend-status">{`backend-${backendStatus}`}</p>
       <p data-testid="graphql-result">{graphqlResult}</p>
       <p data-testid="user-pool-id">{userPoolId}</p>
+      <p data-testid="config-source">{configSource}</p>
       <nav>
         <a href="/about">About</a>
         <a href="/dashboard">Dashboard</a>

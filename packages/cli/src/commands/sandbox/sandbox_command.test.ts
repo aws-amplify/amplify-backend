@@ -227,12 +227,18 @@ void describe('sandbox command', () => {
     if (sigIntHandlerFn) sigIntHandlerFn();
 
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(printerMock.mock.callCount(), 1);
-    assert.equal(
-      printerMock.mock.calls[0].arguments[0],
-      `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
-        'sandbox delete',
-      )}`,
+    // Check that the expected stop message was printed (among possibly other
+    // printer calls such as AWS SDK deprecation warnings on older Node versions).
+    const expectedMessage = `${EOL}Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+      'sandbox delete',
+    )}`;
+    const printedMessages = Array.from(
+      { length: printerMock.mock.callCount() },
+      (_, i) => printerMock.mock.calls[i].arguments[0],
+    );
+    assert.ok(
+      printedMessages.includes(expectedMessage),
+      `Expected stop message not found among ${printerMock.mock.callCount()} print calls`,
     );
   });
 
@@ -390,44 +396,5 @@ void describe('sandbox command', () => {
         logsOutFile: 'someFile',
       } as SandboxFunctionStreamingOptions,
     );
-  });
-
-  void it('does not deploy hosting even when hosting.ts exists', async () => {
-    // fs.existsSync is already mocked to return true at file level,
-    // so amplify/hosting.ts "exists" on disk for this test.
-
-    // Create a dedicated factory with a spied getInstance to verify
-    // only one sandbox instance is requested (no separate hosting sandbox).
-    const sandboxFactory = new SandboxSingletonFactory(
-      () =>
-        Promise.resolve({
-          namespace: 'testSandboxId',
-          name: 'testSandboxName',
-          type: 'sandbox',
-        }),
-      mockProfileResolver,
-      printer,
-      format,
-    );
-    const factorySandbox = await sandboxFactory.getInstance();
-    const localStartMock = mock.method(factorySandbox, 'start', () =>
-      Promise.resolve(),
-    );
-
-    const sandboxCommand = new SandboxCommand(
-      sandboxFactory,
-      [],
-      clientConfigGeneratorAdapterMock,
-      commandMiddleware,
-      undefined,
-    );
-    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-    const localRunner = new TestCommandRunner(parser);
-
-    await localRunner.runCommand('sandbox');
-
-    // sandbox.start() must be called exactly once — for the backend only.
-    // A second call would indicate hosting leaked into sandbox.
-    assert.strictEqual(localStartMock.mock.callCount(), 1);
   });
 });

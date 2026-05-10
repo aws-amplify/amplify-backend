@@ -254,6 +254,25 @@ const copyAmplifyOutputsToServerBundles = (
         `\u{1F4E6} Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
       );
     }
+
+    // Also copy into .next/standalone/ if it exists — some OpenNext versions
+    // set the Next.js server root there, so page components resolve paths
+    // relative to that subtree.
+    const standaloneDest = path.join(
+      target,
+      '.next',
+      'standalone',
+      'amplify_outputs.json',
+    );
+    if (
+      fs.existsSync(path.dirname(standaloneDest)) &&
+      !fs.existsSync(standaloneDest)
+    ) {
+      fs.copyFileSync(outputsFile, standaloneDest);
+      process.stderr.write(
+        `\u{1F4E6} Copied amplify_outputs.json → ${path.relative(projectDir, standaloneDest)}\n`,
+      );
+    }
   }
 };
 

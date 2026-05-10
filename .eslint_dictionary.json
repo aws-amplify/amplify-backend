@@ -201,6 +201,7 @@
   "repos",
   "resolvers",
   "retryable",
+  "reval",
   "revalidate",
   "revalidated",
   "revalidation",

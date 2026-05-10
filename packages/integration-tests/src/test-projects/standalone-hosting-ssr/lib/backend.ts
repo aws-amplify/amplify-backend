@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, existsSync, readdirSync } from 'fs';
+import { join, resolve } from 'path';
 
 export interface AmplifyConfig {
   auth?: {
@@ -15,30 +15,73 @@ export interface AmplifyConfig {
   storage?: {
     buckets?: Array<{ bucket_name?: string; name?: string }>;
   };
+  /** Diagnostic: which file path was loaded. */
+  _loadedFrom?: string;
 }
 
 /**
  * Load amplify_outputs.json at runtime from known paths.
+ * Walks up from __dirname and also checks /var/task (Lambda working dir).
  * Returns empty config if the file is not found (pre-deployment state).
  */
 export function getAmplifyConfig(): AmplifyConfig {
-  const candidates = [
-    join(process.cwd(), 'amplify_outputs.json'),
-    join(__dirname, '..', 'amplify_outputs.json'),
-    '/var/task/amplify_outputs.json',
+  const fileName = 'amplify_outputs.json';
+
+  // Build candidate paths — order from most specific to broadest
+  const candidates: string[] = [
+    // Lambda standard working directory
+    join('/var/task', fileName),
+    // CWD (same as /var/task in Lambda, but works locally too)
+    join(process.cwd(), fileName),
   ];
 
-  for (const configPath of candidates) {
+  // Walk up from __dirname to find the file (handles nested .next/server/app/ paths)
+  let dir = __dirname;
+  for (let i = 0; i < 8; i++) {
+    candidates.push(join(dir, fileName));
+    const parent = resolve(dir, '..');
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  // Deduplicate
+  const seen = new Set<string>();
+  const uniqueCandidates = candidates.filter((p) => {
+    const resolved = resolve(p);
+    if (seen.has(resolved)) return false;
+    seen.add(resolved);
+    return true;
+  });
+
+  for (const configPath of uniqueCandidates) {
     if (existsSync(configPath)) {
       try {
-        return JSON.parse(readFileSync(configPath, 'utf-8'));
+        const config = JSON.parse(readFileSync(configPath, 'utf-8'));
+        config._loadedFrom = configPath;
+        return config;
       } catch {
         continue;
       }
     }
   }
 
-  return {};
+  // Last resort: scan /var/task directory for the file
+  try {
+    const taskDir = '/var/task';
+    if (existsSync(taskDir)) {
+      const files = readdirSync(taskDir);
+      if (files.includes(fileName)) {
+        const fullPath = join(taskDir, fileName);
+        const config = JSON.parse(readFileSync(fullPath, 'utf-8'));
+        config._loadedFrom = fullPath;
+        return config;
+      }
+    }
+  } catch {
+    // ignore scan errors
+  }
+
+  return { _loadedFrom: `NOT_FOUND (cwd=${process.cwd()}, __dirname=${__dirname})` };
 }
 
 /**
@@ -74,20 +117,28 @@ export async function queryGraphQL(
   // The URL and API key are read from amplify_outputs.json (CDK deployment output).
   const validatedUrl = validateAppSyncUrl(url);
 
-  // codeql[js/file-data-in-network-request]: URL and apiKey are validated and sourced from amplify_outputs.json (trusted CDK deployment output)
-  const response = await fetch(validatedUrl.href, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-    },
-    body: JSON.stringify({ query, variables }),
-    cache: 'no-store',
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+  try {
+    // codeql[js/file-data-in-network-request]: URL and apiKey are validated and sourced from amplify_outputs.json (trusted CDK deployment output)
+    const response = await fetch(validatedUrl.href, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({ query, variables }),
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return response.json();
 }
