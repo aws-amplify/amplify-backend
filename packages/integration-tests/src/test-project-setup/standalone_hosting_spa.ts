@@ -56,6 +56,14 @@ export class StandaloneHostingSpaTestProjectCreator
     const destStaticSiteDir = path.join(projectRoot, 'static-site');
     await fs.cp(sourceStaticSiteDir, destStaticSiteDir, { recursive: true });
 
+    // Copy the dist/ directory (pre-built output referenced by buildOutputDir)
+    const sourceDistDir = new URL(
+      `${project.sourceProjectDirPath}/dist`,
+      import.meta.url,
+    );
+    const destDistDir = path.join(projectRoot, 'dist');
+    await fs.cp(sourceDistDir, destDistDir, { recursive: true });
+
     return project;
   };
 }
@@ -92,6 +100,18 @@ class StandaloneHostingSpaTestProject extends TestProjectBase {
             ),
             destination: pathToFileURL(
               path.join(this.projectDirPath, 'static-site', 'index.html'),
+            ),
+          },
+          {
+            source: pathToFileURL(
+              path.join(
+                fileURLToPath(this.sourceProjectUpdateV2DirURL),
+                'dist',
+                'index.html',
+              ),
+            ),
+            destination: pathToFileURL(
+              path.join(this.projectDirPath, 'dist', 'index.html'),
             ),
           },
           {

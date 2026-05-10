@@ -1,20 +1,35 @@
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
-import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
+  Distribution,
+  PriceClass,
+  experimental,
+} from 'aws-cdk-lib/aws-cloudfront';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import {
+  BucketDeployment,
+  CacheControl,
+  Source,
+} from 'aws-cdk-lib/aws-s3-deployment';
+import {
+  Code,
   FunctionUrl,
+  IVersion,
   Function as LambdaFunction,
+  Runtime,
 } from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
+import { DeployManifest } from '../manifest/types.js';
 import { HostingError } from '../hosting_error.js';
-import { ComputeResource, DeployManifest } from '../manifest/types.js';
 import { HostingResources } from '../types.js';
 import { ERROR_PAGE_KEY, generateBuildId } from '../defaults.js';
 import { StorageConstruct } from './storage_construct.js';
@@ -24,7 +39,7 @@ import { DnsConstruct } from './dns_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
 import { CdnConstruct } from './cdn_construct.js';
 
-// Re-export build ID helpers for backward compatibility (public API + tests)
+// Re-export build ID helpers for public API + tests
 export { generateBuildIdFunctionCode, generateBuildId } from '../defaults.js';
 
 // ---- Public types ----
@@ -50,14 +65,13 @@ export type HostingWafConfig = {
 
 /**
  * Props for the AmplifyHostingConstruct.
+ *
+ * This construct is FRAMEWORK-AGNOSTIC. It reads a DeployManifest and
+ * provisions infrastructure accordingly. It never imports Next.js or OpenNext.
  */
 export type AmplifyHostingConstructProps = {
   /** Deploy manifest produced by the framework adapter. */
   manifest: DeployManifest;
-  /** Filesystem path to the static assets directory. */
-  staticAssetPath: string;
-  /** Filesystem path to the compute resource directory (SSR only). */
-  computeBasePath?: string;
   /**
    * Skips region validation for WAF WebACL (must be us-east-1 for CloudFront),
    * ACM certificates (must be us-east-1 for CloudFront), and Lambda Web Adapter
@@ -69,7 +83,7 @@ export type AmplifyHostingConstructProps = {
   domain?: HostingDomainConfig;
   /** WAF configuration. */
   waf?: HostingWafConfig;
-  /** Compute (Lambda) configuration for SSR frameworks. */
+  /** Compute (Lambda) overrides for all compute resources. */
   compute?: {
     memorySize?: number;
     timeout?: Duration;
@@ -107,23 +121,32 @@ export type AmplifyHostingConstructProps = {
  * Always creates: S3 bucket (private, BLOCK_ALL), CloudFront distribution,
  * OAC, atomic deployment with Build ID.
  *
- * Conditional features based on props:
- * - Compute routes in manifest → Lambda + Function URL + split CloudFront behaviors
- * - domain config → ACM certificate (us-east-1) + Route 53 A record + CF aliases
- * - waf.enabled → WAFv2 WebACL with managed rule groups + rate limiting
+ * Provisions based on manifest content:
+ * - compute entries → Lambda functions (handler/http-server/edge types)
+ * - cache config → S3 cache bucket + DynamoDB tags table + SQS revalidation queue
+ * - imageOptimization → separate image Lambda
+ * - middleware → Lambda\@Edge or CloudFront Function
+ * - domain config → ACM certificate + Route 53 + CF aliases
+ * - waf.enabled → WAFv2 WebACL
  */
 export class AmplifyHostingConstruct extends Construct {
   readonly bucket: Bucket;
   readonly distribution: Distribution;
   readonly distributionUrl: string;
-  readonly ssrFunction?: LambdaFunction;
-  readonly functionUrl?: FunctionUrl;
+  readonly computeFunctions: Map<
+    string,
+    LambdaFunction | experimental.EdgeFunction
+  > = new Map();
+  readonly computeFunctionUrls: Map<string, FunctionUrl> = new Map();
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
+  readonly cacheTable?: Table;
+  readonly revalidationQueue?: Queue;
+  readonly cacheBucket?: Bucket;
 
   /**
-   * Create a new manifest-driven hosting construct with the given props.
+   * Creates the hosting infrastructure from a framework-agnostic deploy manifest.
    */
   constructor(
     scope: Construct,
@@ -146,50 +169,244 @@ export class AmplifyHostingConstruct extends Construct {
     });
     this.bucket = storage.bucket;
 
-    // ---- 2. Compute resources (conditional) ----
-    const computeRoutes = manifest.routes.filter(
-      (r) => r.target.kind === 'Compute',
-    );
-    const hasCompute =
-      computeRoutes.length > 0 && (manifest.computeResources?.length ?? 0) > 0;
+    // ---- 2. Compute resources ----
+    const computeEntries = Object.entries(manifest.compute);
+    const hasCompute = computeEntries.length > 0;
 
-    if (hasCompute) {
-      // hasCompute guarantees computeResources is non-empty, but TypeScript
-      // can't narrow through the boolean variable — assert for the compiler.
-      const computeResources = manifest.computeResources!;
-
-      if (computeResources.length > 1) {
-        throw new HostingError('UnsupportedMultiComputeError', {
-          message: `The manifest declares ${computeResources.length} compute resources, but only single-compute manifests are supported.`,
-          resolution:
-            'Consolidate your server-side logic into a single compute resource. Multi-compute support is not yet available.',
+    for (const [name, resource] of computeEntries) {
+      if (resource.type === 'edge') {
+        const edgeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
+          name,
+          computeResource: resource,
+          memorySize: props.compute?.memorySize,
+          timeout: props.compute?.timeout,
+          reservedConcurrency: props.compute?.reservedConcurrency,
+          logRetention: props.compute?.logRetention,
+          skipRegionValidation: props.skipRegionValidation,
         });
-      }
-      if (!props.computeBasePath) {
-        throw new HostingError('MissingComputeBasePathError', {
-          message: 'computeBasePath is required for SSR deployments.',
-          resolution: 'This is an internal error. Please report it.',
-        });
+        this.computeFunctions.set(name, edgeConstruct.function);
+        continue;
       }
 
-      const computeResource = computeResources[0] as ComputeResource;
-      const compute = props.compute ?? {};
-
-      const computeConstruct = new ComputeConstruct(this, 'Compute', {
-        computeResource,
-        computeBasePath: props.computeBasePath,
-        memorySize: compute.memorySize,
-        timeout: compute.timeout,
-        reservedConcurrency: compute.reservedConcurrency,
-        logRetention: compute.logRetention,
+      const computeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
+        name,
+        computeResource: resource,
+        memorySize: props.compute?.memorySize,
+        timeout: props.compute?.timeout,
+        reservedConcurrency: props.compute?.reservedConcurrency,
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
 
-      this.ssrFunction = computeConstruct.function;
-      this.functionUrl = computeConstruct.functionUrl;
+      this.computeFunctions.set(name, computeConstruct.function);
+      if (computeConstruct.functionUrl) {
+        this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
+      }
     }
 
-    // ---- 3. WAF (conditional) ----
+    // ---- 3. Cache infrastructure (ISR) ----
+    if (manifest.cache) {
+      // S3 bucket for ISR cache
+      this.cacheBucket = new Bucket(this, 'CacheBucket', {
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        enforceSSL: true,
+        lifecycleRules: [{ expiration: Duration.days(30) }],
+      });
+
+      // DynamoDB table for tag-based revalidation
+      if (manifest.cache.tagRevalidation) {
+        this.cacheTable = new Table(this, 'CacheTagTable', {
+          partitionKey: { name: 'tag', type: AttributeType.STRING },
+          sortKey: { name: 'path', type: AttributeType.STRING },
+          billingMode: BillingMode.PAY_PER_REQUEST,
+          removalPolicy: RemovalPolicy.DESTROY,
+          timeToLiveAttribute: 'ttl',
+        });
+
+        // GSI required by OpenNext's tag cache handler for path-based lookups
+        this.cacheTable.addGlobalSecondaryIndex({
+          indexName: 'revalidate',
+          partitionKey: { name: 'path', type: AttributeType.STRING },
+          sortKey: { name: 'revalidatedAt', type: AttributeType.NUMBER },
+        });
+      }
+
+      // SQS queue for async revalidation (FIFO required — OpenNext sends
+      // MessageDeduplicationId and MessageGroupId with revalidation messages)
+      if (manifest.cache.revalidationQueue) {
+        const revalidationDlq = new Queue(this, 'RevalidationDLQ', {
+          fifo: true,
+          retentionPeriod: Duration.days(14),
+          encryption: QueueEncryption.SQS_MANAGED,
+        });
+
+        this.revalidationQueue = new Queue(this, 'RevalidationQueue', {
+          fifo: true,
+          contentBasedDeduplication: true,
+          visibilityTimeout: Duration.seconds(30),
+          retentionPeriod: Duration.days(1),
+          encryption: QueueEncryption.SQS_MANAGED,
+          deadLetterQueue: {
+            queue: revalidationDlq,
+            maxReceiveCount: 3,
+          },
+        });
+
+        new CfnOutput(this, 'RevalidationQueueUrl', {
+          value: this.revalidationQueue.queueUrl,
+          description: 'URL of the ISR revalidation SQS queue',
+        });
+      }
+
+      // Revalidation worker Lambda — processes SQS messages to refresh stale pages
+      if (manifest.cache.revalidationFunction && this.revalidationQueue) {
+        const revalidationFn = new LambdaFunction(
+          this,
+          'RevalidationFunction',
+          {
+            runtime: Runtime.NODEJS_20_X,
+            handler: manifest.cache.revalidationFunction.handler,
+            code: Code.fromAsset(manifest.cache.revalidationFunction.bundle),
+            timeout: Duration.seconds(30),
+            memorySize: 256,
+            environment: {
+              CACHE_BUCKET_NAME: this.cacheBucket.bucketName,
+              CACHE_BUCKET_REGION: Stack.of(this).region,
+              OPEN_NEXT_BUILD_ID: buildId,
+              ...(this.cacheTable
+                ? { CACHE_DYNAMO_TABLE: this.cacheTable.tableName }
+                : {}),
+            },
+          },
+        );
+
+        this.cacheBucket.grantReadWrite(revalidationFn);
+        if (this.cacheTable) {
+          this.cacheTable.grantReadWriteData(revalidationFn);
+        }
+
+        revalidationFn.addEventSource(
+          new SqsEventSource(this.revalidationQueue, { batchSize: 5 }),
+        );
+
+        this.computeFunctions.set('revalidation', revalidationFn);
+      }
+
+      // Grant cache access to the target compute resource
+      const cacheComputeName = manifest.cache.computeResource;
+      const cacheFunction = this.computeFunctions.get(cacheComputeName);
+      if (!cacheFunction) {
+        throw new HostingError('CacheComputeResourceNotFoundError', {
+          message: `Cache config references compute resource '${cacheComputeName}' but it was not found in manifest.compute`,
+          resolution:
+            'Ensure cache.computeResource matches a key in the compute map.',
+        });
+      }
+      this.cacheBucket.grantReadWrite(cacheFunction);
+      if (this.cacheTable) {
+        this.cacheTable.grantReadWriteData(cacheFunction);
+      }
+      if (this.revalidationQueue) {
+        this.revalidationQueue.grantSendMessages(cacheFunction);
+        this.revalidationQueue.grantConsumeMessages(cacheFunction);
+      }
+
+      // ISR environment variables
+      if (cacheFunction instanceof LambdaFunction) {
+        cacheFunction.addEnvironment(
+          'CACHE_BUCKET_NAME',
+          this.cacheBucket.bucketName,
+        );
+        cacheFunction.addEnvironment(
+          'CACHE_BUCKET_REGION',
+          Stack.of(this).region,
+        );
+        cacheFunction.addEnvironment('OPEN_NEXT_BUILD_ID', buildId);
+        if (this.cacheTable) {
+          cacheFunction.addEnvironment(
+            'CACHE_DYNAMO_TABLE',
+            this.cacheTable.tableName,
+          );
+        }
+        if (this.revalidationQueue) {
+          cacheFunction.addEnvironment(
+            'REVALIDATION_QUEUE_URL',
+            this.revalidationQueue.queueUrl,
+          );
+          cacheFunction.addEnvironment(
+            'REVALIDATION_QUEUE_REGION',
+            Stack.of(this).region,
+          );
+        }
+      }
+    }
+
+    // ---- 4. Image optimization Lambda ----
+    if (manifest.imageOptimization) {
+      const imageConstruct = new ComputeConstruct(this, 'ImageOptimization', {
+        name: 'image-optimization',
+        computeResource: {
+          type: 'handler',
+          bundle: manifest.imageOptimization.bundle,
+          handler: manifest.imageOptimization.handler,
+          placement: 'regional',
+          streaming: false,
+          memorySize: 1024,
+          timeout: 25,
+        },
+        reservedConcurrency: 10,
+        skipRegionValidation: props.skipRegionValidation,
+      });
+      this.computeFunctions.set('image-optimization', imageConstruct.function);
+      if (imageConstruct.functionUrl) {
+        this.computeFunctionUrls.set(
+          'image-optimization',
+          imageConstruct.functionUrl,
+        );
+      }
+      // Image optimization needs to read original images from the assets bucket
+      this.bucket.grantRead(imageConstruct.function);
+
+      // Environment variables required by OpenNext image optimization
+      if (imageConstruct.function instanceof LambdaFunction) {
+        imageConstruct.function.addEnvironment(
+          'BUCKET_NAME',
+          this.bucket.bucketName,
+        );
+        imageConstruct.function.addEnvironment(
+          'BUCKET_KEY_PREFIX',
+          `builds/${buildId}`,
+        );
+        imageConstruct.function.addEnvironment(
+          'BUCKET_REGION',
+          Stack.of(this).region,
+        );
+      }
+    }
+
+    // ---- 5. Middleware (Lambda@Edge) ----
+    let middlewareEdgeVersion: IVersion | undefined;
+    if (manifest.middleware) {
+      const middlewareConstruct = new ComputeConstruct(this, 'Middleware', {
+        name: 'middleware',
+        computeResource: {
+          type: 'edge',
+          bundle: manifest.middleware.bundle,
+          handler: manifest.middleware.handler,
+          placement: 'global',
+          streaming: false,
+          timeout: 5,
+          memorySize: 128,
+        },
+        skipRegionValidation: props.skipRegionValidation,
+      });
+      this.computeFunctions.set('middleware', middlewareConstruct.function);
+      middlewareEdgeVersion = middlewareConstruct.function.currentVersion;
+    }
+
+    // ---- 6. WAF (conditional) ----
     const wafConstruct = new WafConstruct(this, 'Waf', {
       enabled: props.waf?.enabled ?? false,
       rateLimit: props.waf?.rateLimit,
@@ -197,7 +414,7 @@ export class AmplifyHostingConstruct extends Construct {
     });
     this.webAcl = wafConstruct.webAcl;
 
-    // ---- 4. Custom domain resources (conditional) ----
+    // ---- 7. Custom domain resources (conditional) ----
     let dnsConstruct: DnsConstruct | undefined;
     if (props.domain) {
       dnsConstruct = new DnsConstruct(this, 'Dns', {
@@ -210,23 +427,23 @@ export class AmplifyHostingConstruct extends Construct {
       this.hostedZone = dnsConstruct.hostedZone;
     }
 
-    // ---- 5. Security headers ----
+    // ---- 8. Security headers ----
     const securityHeadersPolicy = createSecurityHeadersPolicy(
       this,
       'SecurityHeaders',
       { contentSecurityPolicy: props.cdn?.contentSecurityPolicy },
     );
 
-    // ---- 6. CloudFront distribution (CDN + OAC patches) ----
-    // Stamp the buildId into the manifest so CdnConstruct can read it
+    // ---- 9. CloudFront distribution ----
     const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
 
     const cdn = new CdnConstruct(this, 'Cdn', {
       bucket: this.bucket,
       manifest: manifestWithBuildId,
       securityHeadersPolicy,
-      ssrFunctionUrl: this.functionUrl,
-      ssrFunction: this.ssrFunction,
+      computeFunctionUrls: this.computeFunctionUrls,
+      computeFunctions: this.computeFunctions,
+      middlewareEdgeFunction: middlewareEdgeVersion,
       webAcl: this.webAcl,
       certificate: this.certificate,
       domainName: props.domain?.domainName,
@@ -238,13 +455,56 @@ export class AmplifyHostingConstruct extends Construct {
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
 
-    // ---- 6a. KMS decrypt grant for CloudFront OAC ----
-    // When the hosting bucket uses KMS encryption, CloudFront OAC needs
-    // kms:Decrypt to read objects via SigV4. Grant on BYO key or CDK auto-key.
-    // NOTE: We scope the grant to the CloudFront service principal but omit a
-    // SourceArn condition referencing the distribution. Adding a Ref to the
-    // distribution here would create a Key→Distribution→Bucket→Key circular
-    // dependency in CloudFormation.
+    // ---- 9a. OPEN_NEXT_ORIGIN env var for URL construction ----
+    // OpenNext's origin resolver (pattern-env) reads OPEN_NEXT_ORIGIN as a JSON
+    // map of origin names → {host, protocol, port}. Only the primary server
+    // function needs this — it enables internal routing to resolve origins for
+    // URL construction (avoiding "TypeError: Invalid URL" on path-only rewrites).
+    // Image optimization and other secondary compute functions don't need it.
+    if (hasCompute) {
+      // Identify the primary server function (the one handling SSR routing)
+      const primaryComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : [...this.computeFunctions.keys()].find(
+              (k) => k !== 'image-optimization' && k !== 'middleware',
+            );
+
+      if (primaryComputeName) {
+        const primaryFn = this.computeFunctions.get(primaryComputeName);
+        if (primaryFn && primaryFn instanceof LambdaFunction) {
+          // Build origin map with OTHER functions' URLs (not self → avoids cycle)
+          const originEntries: string[] = [];
+          for (const [urlName, fnUrl] of this.computeFunctionUrls.entries()) {
+            if (urlName === primaryComputeName) continue;
+            const originKey =
+              urlName === 'image-optimization' ? 'imageOptimizer' : urlName;
+            const host = Fn.select(2, Fn.split('/', fnUrl.url));
+            originEntries.push(
+              Fn.join('', [
+                `"${originKey}":{"host":"`,
+                host,
+                `","protocol":"https","port":443}`,
+              ]),
+            );
+          }
+
+          if (originEntries.length > 0) {
+            const openNextOriginJson = Fn.join('', [
+              '{',
+              Fn.join(',', originEntries),
+              '}',
+            ]);
+            primaryFn.addEnvironment('OPEN_NEXT_ORIGIN', openNextOriginJson);
+          } else {
+            primaryFn.addEnvironment('OPEN_NEXT_ORIGIN', '{}');
+          }
+        }
+      }
+    }
+
+    // ---- 9b. KMS decrypt grant for CloudFront OAC ----
     const kmsKey = props.storage?.encryptionKey ?? storage.bucket.encryptionKey;
     if (props.storage?.encryption === 'KMS' && kmsKey) {
       kmsKey.addToResourcePolicy(
@@ -256,12 +516,12 @@ export class AmplifyHostingConstruct extends Construct {
       );
     }
 
-    // ---- 7. DNS records (only when custom domain configured) ----
+    // ---- 10. DNS records ----
     if (props.domain && dnsConstruct) {
       dnsConstruct.createDnsRecords(this.distribution);
     }
 
-    // ---- 8. Upload SSR error page for 5xx responses ----
+    // ---- 11. Error page deployment (SSR only) ----
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
@@ -271,11 +531,14 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // ---- 9. Atomic Deployment (uploads static assets + invalidates CloudFront) ----
+    // ---- 12. Atomic Deployment (static assets) ----
     new BucketDeployment(this, 'AssetDeployment', {
-      sources: [Source.asset(props.staticAssetPath)],
+      sources: [Source.asset(manifest.staticAssets.directory)],
       destinationBucket: this.bucket,
       destinationKeyPrefix: `builds/${buildId}/`,
+      cacheControl: [
+        CacheControl.fromString('public, max-age=31536000, immutable'),
+      ],
       prune: false,
       distribution: this.distribution,
       distributionPaths: ['/*'],

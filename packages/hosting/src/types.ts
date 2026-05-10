@@ -23,20 +23,23 @@ export type HostingProps = {
   buildCommand?: string;
 
   /**
-   * Directory containing built output (e.g., 'dist', 'build').
-   * Auto-detected from framework if not specified.
-   */
-  buildOutputDir?: string;
-
-  /**
    * Framework type — auto-detected from package.json or set explicitly.
    * Accepts built-in values ('nextjs', 'spa', 'static') or any custom string.
    */
   framework?: FrameworkType;
 
   /**
+   * Explicit path (relative to project root) where pre-built output lives.
+   * When set, the SPA/static adapter uses this directory directly instead of
+   * auto-detecting (dist/, build/, out/).
+   * For Next.js, this is not used — OpenNext always runs its own build.
+   */
+  buildOutputDir?: string;
+
+  /**
    * Custom framework adapter for unsupported frameworks.
    * When provided, this adapter is used instead of the built-in registry lookup.
+   * Receives the project directory and returns a DeployManifest.
    */
   customAdapter?: FrameworkAdapterFn;
 
@@ -64,12 +67,14 @@ export type HostingProps = {
    * Ignored for SPA and static site deployments.
    */
   compute?: {
-    /** Lambda memory size in MB. Default: 512 */
+    /** Lambda memory size in MB. Default: 1024 */
     memorySize?: number;
     /** Lambda timeout. Default: 30 seconds. */
     timeout?: Duration;
     /** Reserved concurrent executions. Default: undefined (no reservation). */
     reservedConcurrency?: number;
+    /** Provisioned concurrency for cold-start elimination. Default: undefined (no provisioning). */
+    provisionedConcurrency?: number;
     /** CloudWatch log retention for the SSR Lambda. Default: TWO_WEEKS. */
     logRetention?: RetentionDays;
   };

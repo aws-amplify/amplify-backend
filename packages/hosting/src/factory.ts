@@ -20,10 +20,7 @@ import {
   AmplifyHostingConstructProps,
 } from './constructs/hosting_construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
-import { checkNextConfig } from './adapters/nextjs.js';
-import { getHostingOutputDir } from './manifest/parser.js';
 import { runBuild } from './build/runner.js';
-import { getDefaultBuildOutputDir } from './defaults.js';
 import * as path from 'path';
 import * as fs from 'fs';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -61,7 +58,6 @@ const acquireLock = (projectDir: string): void => {
         }
       } catch (e) {
         if ((e as Error).name === 'DeploymentInProgressError') throw e;
-        // Corrupted lock file — fall through to replace it
       }
       // Stale or corrupted lock — take over atomically via rename
       const tempLockFile = `${lockFile}.${process.pid}.tmp`;
@@ -71,9 +67,8 @@ const acquireLock = (projectDir: string): void => {
         { mode: 0o600 },
       );
       try {
-        fs.renameSync(tempLockFile, lockFile); // Atomic on POSIX
+        fs.renameSync(tempLockFile, lockFile);
       } catch (renameErr) {
-        // Another process won the race — clean up our temp file
         try {
           fs.unlinkSync(tempLockFile);
           // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
@@ -167,42 +162,14 @@ export type HostingResult = {
  *
  * **⚠️ Important:** This must be called in a SEPARATE file (`amplify/hosting.ts`),
  * NOT inside `amplify/backend.ts`. Hosting deploys as an independent CloudFormation
- * stack so it can be deployed separately from the backend (e.g., frontend-only deploys).
- *
- * The CLI calls this file as a separate CDK app via `ampx deploy`.
- * @example SPA (React, Vue, etc.)
- * ```ts
- * // amplify/hosting.ts
- * import { defineHosting } from '@aws-amplify/hosting';
- *
- * defineHosting({
- *   framework: 'spa',
- *   buildCommand: 'npm run build',
- * });
- * ```
- * @example Next.js SSR
- * ```ts
- * // amplify/hosting.ts
- * import { defineHosting } from '@aws-amplify/hosting';
- *
- * const hosting = defineHosting({
- *   framework: 'nextjs',
- *   buildCommand: 'npm run build',
- * });
- *
- * // Optional: add custom resources
- * const monitoring = hosting.createStack('monitoring');
- * ```
+ * stack so it can be deployed separately from the backend.
  * @param props - Hosting configuration (framework, build command, domain, etc.). All optional.
  * @returns Hosting result containing CDK resources, root stack, and a `createStack` helper.
- * @see https://docs.amplify.aws/hosting/
  */
 export const defineHosting = (props: HostingProps = {}): HostingResult => {
   const app = new App();
   const backendId = getBackendIdentifier(app);
 
-  // HostedZone.fromLookup() (used for custom domains) requires the stack to
-  // have an explicit env so CDK can make Route 53 API calls at synth time.
   const stackEnv = props.domain
     ? {
         account:
@@ -281,8 +248,6 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
 
 /**
  * Build the hosting construct from props.
- * Handles framework detection, build execution, adapter invocation,
- * and CDK construct creation.
  */
 const buildHostingConstruct = (
   props: HostingProps,
@@ -311,11 +276,6 @@ const doBuildHostingConstruct = (
     );
   }
 
-  // Next.js pre-flight validation
-  if (framework === 'nextjs') {
-    checkNextConfig(projectDir);
-  }
-
   // Run the build command if provided
   if (props.buildCommand) {
     runBuild({
@@ -324,27 +284,13 @@ const doBuildHostingConstruct = (
     });
   }
 
-  // Default build output dirs per framework
-  const buildOutputDir =
-    props.buildOutputDir ?? getDefaultBuildOutputDir(framework);
-
-  const absoluteBuildOutputDir = path.isAbsolute(buildOutputDir)
-    ? buildOutputDir
-    : path.join(projectDir, buildOutputDir);
-
-  // Get the adapter (custom or registry) and run it to produce .amplify-hosting/
-  const adapter = props.customAdapter ?? getAdapter(framework);
-  const manifest = adapter(absoluteBuildOutputDir, projectDir);
-
-  // Resolve paths
-  const hostingOutputDir = getHostingOutputDir(projectDir);
-  const staticAssetPath = path.join(hostingOutputDir, 'static');
-  const computeBasePath = path.join(hostingOutputDir, 'compute');
+  // Get the adapter (custom or registry) and run it to produce a manifest
+  const adapter =
+    props.customAdapter ?? getAdapter(framework, props.buildOutputDir);
+  const manifest = adapter(projectDir);
 
   const constructProps: AmplifyHostingConstructProps = {
     manifest,
-    staticAssetPath,
-    computeBasePath,
     domain: props.domain,
     waf: props.waf,
     compute: props.compute,

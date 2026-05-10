@@ -15,19 +15,21 @@ export const fetchWithRetry = async (
     intervalMs?: number;
     expectedStatus?: number;
     expectedBodyContains?: string;
+    fetchInit?: RequestInit;
   },
 ): Promise<Response> => {
   const maxRetries = options?.maxRetries ?? 10;
   const intervalMs = options?.intervalMs ?? 30000;
   const expectedStatus = options?.expectedStatus ?? 200;
   const expectedBodyContains = options?.expectedBodyContains;
+  const fetchInit = options?.fetchInit;
 
   let lastError: Error | undefined;
   let lastResponse: Response | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, fetchInit);
 
       // If we only need status check and it matches, return immediately
       if (!expectedBodyContains && response.status === expectedStatus) {

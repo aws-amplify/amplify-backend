@@ -1,12 +1,11 @@
-/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-restricted-syntax, import/no-extraneous-dependencies */
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   AmplifyHostingConstruct,
   AmplifyHostingConstructProps,
 } from '@aws-amplify/hosting';
-import { getAdapter } from '@aws-amplify/hosting/adapters';
-import path from 'path';
+import { nextjsAdapter } from '@aws-amplify/hosting/adapters';
 
 /**
  * Vanilla CDK stack that uses AmplifyHostingConstruct directly for SSR hosting.
@@ -17,21 +16,12 @@ export class TestCdkProjectVanillaCdkSsrStack extends cdk.Stack {
     super(scope, scope.node.getContext('test-stack-name'), props);
 
     const projectDir = process.cwd();
-    const buildOutputDir = path.join(projectDir, '.next');
 
-    // Use the Next.js adapter directly to generate the deploy manifest
-    const adapter = getAdapter('nextjs');
-    const manifest = adapter(buildOutputDir, projectDir);
-
-    // The adapter writes assets to .amplify-hosting/
-    const hostingDir = path.join(projectDir, '.amplify-hosting');
-    const staticAssetPath = path.join(hostingDir, 'static');
-    const computeBasePath = path.join(hostingDir, 'compute');
+    // Use the Next.js adapter with skipBuild since .open-next/ is pre-built
+    const manifest = nextjsAdapter({ projectDir, skipBuild: true });
 
     const constructProps: AmplifyHostingConstructProps = {
       manifest,
-      staticAssetPath,
-      computeBasePath,
     };
 
     const hosting = new AmplifyHostingConstruct(

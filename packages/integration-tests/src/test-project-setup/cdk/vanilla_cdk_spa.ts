@@ -45,11 +45,11 @@ export class VanillaCdkSpaTestCdkProjectCreator
       recursive: true,
     });
 
-    // Create static-site/ with test content
-    const staticSiteDir = path.join(projectRoot, 'static-site');
-    await fs.mkdir(staticSiteDir, { recursive: true });
+    // Create dist/ with test content (SPA adapter auto-detects dist/)
+    const distDir = path.join(projectRoot, 'dist');
+    await fs.mkdir(distDir, { recursive: true });
     await fs.writeFile(
-      path.join(staticSiteDir, 'index.html'),
+      path.join(distDir, 'index.html'),
       `<!doctype html>
 <html lang="en">
   <head>
