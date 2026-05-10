@@ -74,6 +74,7 @@ export async function queryGraphQL(
   // The URL and API key are read from amplify_outputs.json (CDK deployment output).
   const validatedUrl = validateAppSyncUrl(url);
 
+  // codeql[js/file-data-in-network-request]: URL and apiKey are validated and sourced from amplify_outputs.json (trusted CDK deployment output)
   const response = await fetch(validatedUrl.href, {
     method: 'POST',
     headers: {
