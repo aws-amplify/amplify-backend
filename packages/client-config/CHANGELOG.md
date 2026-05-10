@@ -1,5 +1,15 @@
 # @aws-amplify/client-config
 
+## 1.10.1
+
+### Patch Changes
+
+- 3c46984: Add `amplifyconfig` alias in gen1 Dart output for backwards compatibility
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+
 ## 1.10.0
 
 ### Minor Changes

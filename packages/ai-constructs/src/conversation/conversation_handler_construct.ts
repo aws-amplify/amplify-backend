@@ -106,7 +106,7 @@ export class ConversationHandlerFunction
     Tags.of(this).add('amplify:friendly-name', id);
 
     const commonHandlerProperties = {
-      runtime: LambdaRuntime.NODEJS_20_X,
+      runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(this.resolveTimeout()),
       memorySize: this.resolveMemory(),
       loggingFormat: LoggingFormat.JSON,

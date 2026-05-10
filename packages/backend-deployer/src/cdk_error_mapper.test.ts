@@ -515,3 +515,33 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
     },
   );
 });
+
+void describe('Node version error per deployment type', () => {
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
+  const nodeVersionError = new Error('does not support module.register()');
+
+  void it('returns standalone-specific message without Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(
+      nodeVersionError,
+      'standalone',
+    );
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.ok(
+      !error.resolution?.includes('Amplify Hosting'),
+      'standalone resolution must not mention Amplify Hosting',
+    );
+    assert.ok(
+      !error.resolution?.includes('amplify.yml'),
+      'standalone resolution must not mention amplify.yml',
+    );
+  });
+
+  void it('returns branch-specific message with Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(nodeVersionError, 'branch');
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.ok(
+      error.resolution?.includes('Amplify Hosting'),
+      'branch resolution must mention Amplify Hosting',
+    );
+  });
+});

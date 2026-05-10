@@ -9,9 +9,7 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 /**
  * Creates test projects with circular dependency between auth, data, and functions
  */
-export class CircularDepAuthDataFuncTestProjectCreator
-  implements TestProjectCreator
-{
+export class CircularDepAuthDataFuncTestProjectCreator implements TestProjectCreator {
   readonly name = 'circular-dep-auth-data-func';
 
   /**

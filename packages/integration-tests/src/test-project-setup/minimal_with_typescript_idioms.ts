@@ -9,9 +9,7 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 /**
  * Creates minimal test projects with typescript idioms.
  */
-export class MinimalWithTypescriptIdiomTestProjectCreator
-  implements TestProjectCreator
-{
+export class MinimalWithTypescriptIdiomTestProjectCreator implements TestProjectCreator {
   readonly name = 'typescript-idiom';
 
   /**

@@ -12,9 +12,7 @@ type OutputKey = string;
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
  */
-export class StackMetadataBackendOutputStorageStrategy
-  implements BackendOutputStorageStrategy<BackendOutputEntry>
-{
+export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
   private lazyListValueMap: Map<MetadataKey, Map<OutputKey, string[]>> =
     new Map();
 

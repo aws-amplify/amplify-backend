@@ -27,9 +27,7 @@ import {
   LogRetentionConverter,
 } from '@aws-amplify/platform-core/cdk';
 
-class ConversationHandlerFunctionGenerator
-  implements ConstructContainerEntryGenerator
-{
+class ConversationHandlerFunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: AmplifyResourceGroupName =
     'conversationHandlerFunction';
 
@@ -106,9 +104,7 @@ export type ConversationHandlerFunctionFactory = ConstructFactory<
   readonly eventVersion: ConversationTurnEventVersion;
 };
 
-class DefaultConversationHandlerFunctionFactory
-  implements ConversationHandlerFunctionFactory
-{
+class DefaultConversationHandlerFunctionFactory implements ConversationHandlerFunctionFactory {
   readonly eventVersion: ConversationTurnEventVersion =
     ConversationHandlerFunction.eventVersion;
   private generator: ConstructContainerEntryGenerator;

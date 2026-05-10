@@ -8,10 +8,10 @@ import { SandboxCommandGlobalOptions } from '../option_types.js';
 /**
  * Command to list sandbox secrets.
  */
-export class SandboxSecretListCommand
-  implements
-    CommandModule<object, ArgumentsKebabCase<SandboxCommandGlobalOptions>>
-{
+export class SandboxSecretListCommand implements CommandModule<
+  object,
+  ArgumentsKebabCase<SandboxCommandGlobalOptions>
+> {
   /**
    * @inheritDoc
    */

@@ -688,7 +688,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
       },
     );
     new AmplifyAuth(stack, 'test', {
@@ -725,7 +725,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
       },
     );
     new AmplifyAuth(stack, 'test', {
@@ -763,7 +763,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
       },
     );
     assert.throws(
@@ -798,7 +798,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
       },
     );
 
@@ -853,7 +853,7 @@ void describe('Auth construct', () => {
       {
         entry: `${__dirname}/test-assets/lambda/handler.js`,
         handler: 'handler',
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
       },
     );
     new AmplifyAuth(stack, 'test', {
@@ -1888,8 +1888,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.cfnIdentityPool.allowUnauthenticatedIdentities =
-        false;
+      auth.resources.cfnResources.cfnIdentityPool.allowUnauthenticatedIdentities = false;
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         AllowUnauthenticatedIdentities: false,
@@ -3401,6 +3400,49 @@ void describe('Auth construct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         WebAuthnRelyingPartyID: 'main.testProjectName.amplifyapp.com',
+      });
+    });
+
+    void it('throws when AUTO relyingPartyId is used in standalone mode', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'standalone');
+      stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      stack.node.setContext('amplify-backend-name', 'main');
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              webAuthn: true,
+            },
+          }),
+        {
+          message:
+            /WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments/,
+        },
+      );
+    });
+
+    void it('does not throw for standalone with explicit relyingPartyId', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      stack.node.setContext('amplify-backend-type', 'standalone');
+      stack.node.setContext('amplify-backend-namespace', 'myCustomStack');
+      stack.node.setContext('amplify-backend-name', 'main');
+      assert.doesNotThrow(() => {
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+            webAuthn: {
+              relyingPartyId: 'app.example.com',
+            },
+          },
+        });
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        WebAuthnRelyingPartyID: 'app.example.com',
       });
     });
 

@@ -1,5 +1,22 @@
 # @aws-amplify/auth-construct
 
+## 1.11.2
+
+### Patch Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+  - @aws-amplify/backend-output-storage@1.3.4
+
+## 1.11.1
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
 ## 1.11.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @aws-amplify/cli-core
 
+## 2.2.4
+
+### Patch Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [67e8773]
+  - @aws-amplify/platform-core@1.11.0
+
 ## 2.2.3
 
 ### Patch Changes
