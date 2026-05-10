@@ -3,24 +3,39 @@ import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { copyDirRecursive } from './copy.js';
-import { HOSTING_DIR, MANIFEST_FILENAME, STATIC_DIR } from '../constants.js';
+import { HOSTING_DIR, STATIC_DIR } from '../constants.js';
+
+/**
+ * Options for the SPA adapter.
+ */
+export type SpaAdapterOptions = {
+  /** Explicit build output directory relative to project root. Overrides auto-detection. */
+  buildOutputDir?: string;
+};
 
 /**
  * SPA adapter — transforms a built SPA output directory into the canonical
  * .amplify-hosting/ directory structure with a deploy manifest.
- * @param buildOutputDir - absolute path to the build output (e.g., dist/)
+ *
+ * Detects the build output directory automatically (dist/, build/, out/)
+ * unless an explicit `buildOutputDir` is provided via options.
  * @param projectDir - absolute path to the project root
+ * @param options - optional adapter configuration
  * @returns the generated DeployManifest
  */
 export const spaAdapter = (
-  buildOutputDir: string,
   projectDir: string,
+  options?: SpaAdapterOptions,
 ): DeployManifest => {
+  const buildOutputDir = options?.buildOutputDir
+    ? path.join(projectDir, options.buildOutputDir)
+    : detectBuildOutputDir(projectDir);
+
   if (!fs.existsSync(buildOutputDir)) {
     throw new HostingError('BuildOutputNotFoundError', {
       message: `Build output directory not found at ${buildOutputDir}`,
       resolution:
-        'Run your build command first, or configure buildOutputDir in defineHosting to point to your build output.',
+        'Run your build command first. Expected output in dist/, build/, or out/ directory.',
     });
   }
 
@@ -49,31 +64,41 @@ export const spaAdapter = (
   }
 
   // Copy all build output to .amplify-hosting/static/
-  // Default exclude patterns skip source maps, OS metadata, and build artifacts
   copyDirRecursive(buildOutputDir, staticDir);
 
   // Generate deploy manifest
   const manifest: DeployManifest = {
     version: 1,
+    compute: {},
+    staticAssets: {
+      directory: staticDir,
+    },
     routes: [
       {
-        path: '/*',
-        target: {
-          kind: 'Static',
-        },
+        pattern: '/*',
+        target: 'static',
       },
     ],
-    framework: {
-      name: 'spa',
-    },
   };
 
-  // Write manifest to .amplify-hosting/deploy-manifest.json
-  fs.writeFileSync(
-    path.join(hostingDir, MANIFEST_FILENAME),
-    JSON.stringify(manifest, null, 2),
-    'utf-8',
-  );
-
   return manifest;
+};
+
+/**
+ * Detect the SPA build output directory.
+ * Checks common build output directories in order.
+ */
+const detectBuildOutputDir = (projectDir: string): string => {
+  const candidates = ['dist', 'build', 'out', 'public'];
+  for (const candidate of candidates) {
+    const dir = path.join(projectDir, candidate);
+    if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+      const files = fs.readdirSync(dir);
+      if (files.includes('index.html')) {
+        return dir;
+      }
+    }
+  }
+  // Default to dist/
+  return path.join(projectDir, 'dist');
 };

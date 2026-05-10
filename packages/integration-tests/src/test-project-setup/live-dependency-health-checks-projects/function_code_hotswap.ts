@@ -12,7 +12,9 @@ import { execa } from 'execa';
 /**
  * Creates test projects with function hotswap.
  */
-export class FunctionCodeHotswapTestProjectCreator implements TestProjectCreator {
+export class FunctionCodeHotswapTestProjectCreator
+  implements TestProjectCreator
+{
   readonly name = 'function-code-hotswap';
 
   /**

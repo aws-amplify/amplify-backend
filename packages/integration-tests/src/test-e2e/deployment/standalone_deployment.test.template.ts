@@ -55,7 +55,7 @@ export const defineStandaloneDeploymentTest = (
         });
 
         void it(`[${testProjectCreator.name}] deploys via standalone`, async () => {
-          await testProject.deploy(standaloneBackendIdentifier, undefined);
+          await testProject.deploy(standaloneBackendIdentifier);
 
           const stackName = BackendIdentifierConversions.toStackName(
             standaloneBackendIdentifier,

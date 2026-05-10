@@ -6,24 +6,36 @@ import { nextjsAdapter } from './nextjs.js';
 import { DeployManifest } from '../manifest/types.js';
 
 export { spaAdapter } from './spa.js';
+export type { SpaAdapterOptions } from './spa.js';
 export { nextjsAdapter } from './nextjs.js';
+export type { NextjsAdapterOptions } from './nextjs.js';
 
 /**
- * An adapter function that transforms a build output directory into the
- * canonical .amplify-hosting/ directory structure.
+ * A framework adapter function that produces a DeployManifest from a project.
+ *
+ * For the new manifest format, adapters receive the project directory
+ * and return a DeployManifest directly (no intermediate .amplify-hosting/ step).
  */
-export type FrameworkAdapterFn = (
-  buildOutputDir: string,
-  projectDir: string,
-) => DeployManifest;
+export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
+
+/**
+ * Adapter registry entry.
+ */
+type AdapterRegistryEntry = {
+  adapter: FrameworkAdapterFn;
+};
 
 /**
  * Built-in adapter registry.
+ * Each adapter takes a projectDir and returns a DeployManifest.
  */
-const adapterRegistry = new Map<string, FrameworkAdapterFn>([
-  ['nextjs', nextjsAdapter],
-  ['spa', spaAdapter],
-  ['static', spaAdapter],
+const adapterRegistry = new Map<string, AdapterRegistryEntry>([
+  [
+    'nextjs',
+    { adapter: (projectDir: string) => nextjsAdapter({ projectDir }) },
+  ],
+  ['spa', { adapter: spaAdapter }],
+  ['static', { adapter: spaAdapter }],
 ]);
 
 /**
@@ -35,7 +47,6 @@ export const detectFramework = (projectDir: string): string => {
   const packageJsonPath = path.join(projectDir, 'package.json');
 
   if (!fs.existsSync(packageJsonPath)) {
-    // No package.json — treat as static site
     return 'static';
   }
 
@@ -63,24 +74,32 @@ export const detectFramework = (projectDir: string): string => {
     return 'nextjs';
   }
 
-  // Default to SPA for projects with a package.json
   return 'spa';
 };
 
 /**
  * Get the adapter function for the given framework type.
- * Looks up the adapter registry.
  * @param framework - the framework type
+ * @param buildOutputDir - explicit build output directory (for SPA/static)
  * @returns the adapter function
  */
-export const getAdapter = (framework: string): FrameworkAdapterFn => {
-  const adapter = adapterRegistry.get(framework);
-  if (!adapter) {
+export const getAdapter = (
+  framework: string,
+  buildOutputDir?: string,
+): FrameworkAdapterFn => {
+  const entry = adapterRegistry.get(framework);
+  if (!entry) {
     throw new HostingError('UnsupportedFrameworkError', {
       message: `Framework "${framework}" is not supported.`,
       resolution:
         'Use a built-in framework (nextjs, spa, static) or provide a customAdapter in your defineHosting configuration.',
     });
   }
-  return adapter;
+
+  // For SPA/static with explicit buildOutputDir, wrap the adapter
+  if (buildOutputDir && (framework === 'spa' || framework === 'static')) {
+    return (projectDir: string) => spaAdapter(projectDir, { buildOutputDir });
+  }
+
+  return entry.adapter;
 };

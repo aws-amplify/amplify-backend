@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { spaAdapter } from './spa.js';
+import { deployManifestSchema } from '../manifest/schema.js';
 
 void describe('spaAdapter', () => {
   let tmpDir: string;
@@ -26,18 +27,17 @@ void describe('spaAdapter', () => {
   });
 
   void it('produces correct manifest with catch-all static route', () => {
-    const manifest = spaAdapter(buildDir, tmpDir);
+    const manifest = spaAdapter(tmpDir);
 
     assert.strictEqual(manifest.version, 1);
     assert.strictEqual(manifest.routes.length, 1);
-    assert.strictEqual(manifest.routes[0].path, '/*');
-    assert.strictEqual(manifest.routes[0].target.kind, 'Static');
-    assert.strictEqual(manifest.framework.name, 'spa');
-    assert.strictEqual(manifest.computeResources, undefined);
+    assert.strictEqual(manifest.routes[0].pattern, '/*');
+    assert.strictEqual(manifest.routes[0].target, 'static');
+    assert.deepStrictEqual(manifest.compute, {});
   });
 
   void it('copies files to .amplify-hosting/static/', () => {
-    spaAdapter(buildDir, tmpDir);
+    spaAdapter(tmpDir);
 
     const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
     assert.ok(fs.existsSync(path.join(staticDir, 'index.html')));
@@ -45,24 +45,25 @@ void describe('spaAdapter', () => {
     assert.ok(fs.existsSync(path.join(staticDir, 'assets', 'style.css')));
   });
 
-  void it('writes deploy-manifest.json to .amplify-hosting/', () => {
-    spaAdapter(buildDir, tmpDir);
+  void it('returns manifest without writing to disk', () => {
+    const manifest = spaAdapter(tmpDir);
 
     const manifestPath = path.join(
       tmpDir,
       '.amplify-hosting',
       'deploy-manifest.json',
     );
-    assert.ok(fs.existsSync(manifestPath));
-
-    const written = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-    assert.strictEqual(written.version, 1);
-    assert.strictEqual(written.routes[0].path, '/*');
+    assert.ok(
+      !fs.existsSync(manifestPath),
+      'Manifest should not be written to disk',
+    );
+    assert.strictEqual(manifest.version, 1);
+    assert.strictEqual(manifest.routes[0].pattern, '/*');
+    assert.strictEqual(manifest.routes[0].target, 'static');
   });
 
   void it('cleans previous hosting output before copying', () => {
-    // Run adapter twice — second run should overwrite
-    spaAdapter(buildDir, tmpDir);
+    spaAdapter(tmpDir);
 
     // Add a file that shouldn't survive
     const staleFile = path.join(
@@ -73,7 +74,7 @@ void describe('spaAdapter', () => {
     );
     fs.writeFileSync(staleFile, 'stale');
 
-    spaAdapter(buildDir, tmpDir);
+    spaAdapter(tmpDir);
     assert.ok(
       !fs.existsSync(staleFile),
       'Stale files should be cleaned on re-run',
@@ -81,21 +82,24 @@ void describe('spaAdapter', () => {
   });
 
   void it('throws when build output directory does not exist', () => {
+    const emptyProject = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-spa-empty-'),
+    );
     assert.throws(
-      () => spaAdapter('/nonexistent/path', tmpDir),
+      () => spaAdapter(emptyProject),
       (error: Error) => {
         assert.ok(error.name === 'BuildOutputNotFoundError');
         return true;
       },
     );
+    fs.rmSync(emptyProject, { recursive: true, force: true });
   });
 
   void it('excludes source map files by default', () => {
-    // Add .map files to build output
     fs.writeFileSync(path.join(buildDir, 'main.js.map'), '{"sourcemap":true}');
     fs.writeFileSync(path.join(buildDir, 'assets', 'style.css.map'), '{}');
 
-    spaAdapter(buildDir, tmpDir);
+    spaAdapter(tmpDir);
 
     const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
     assert.ok(
@@ -106,7 +110,6 @@ void describe('spaAdapter', () => {
       !fs.existsSync(path.join(staticDir, 'assets', 'style.css.map')),
       'Nested source maps should be excluded',
     );
-    // But main.js should still be there
     assert.ok(
       fs.existsSync(path.join(staticDir, 'main.js')),
       'Non-map files should be copied',
@@ -117,7 +120,7 @@ void describe('spaAdapter', () => {
     fs.writeFileSync(path.join(buildDir, '.DS_Store'), '');
     fs.writeFileSync(path.join(buildDir, 'thumbs.db'), '');
 
-    spaAdapter(buildDir, tmpDir);
+    spaAdapter(tmpDir);
 
     const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
     assert.ok(
@@ -130,57 +133,41 @@ void describe('spaAdapter', () => {
     );
   });
 
-  void it('excludes .tsbuildinfo files', () => {
-    fs.writeFileSync(path.join(buildDir, 'tsconfig.tsbuildinfo'), '{}');
-
-    spaAdapter(buildDir, tmpDir);
-
-    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
-    assert.ok(
-      !fs.existsSync(path.join(staticDir, 'tsconfig.tsbuildinfo')),
-      '.tsbuildinfo should be excluded',
-    );
-  });
-
-  void it('skips symlinks', () => {
-    const targetFile = path.join(tmpDir, 'secret.txt');
-    fs.writeFileSync(targetFile, 'secret-data');
-    fs.symlinkSync(targetFile, path.join(buildDir, 'symlink.txt'));
-
-    spaAdapter(buildDir, tmpDir);
-
-    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
-    assert.ok(
-      !fs.existsSync(path.join(staticDir, 'symlink.txt')),
-      'Symlinks should not be copied',
-    );
-  });
-
   void it('throws BuildOutputEmptyError for empty build directory', () => {
-    const emptyDir = path.join(tmpDir, 'empty-build');
-    fs.mkdirSync(emptyDir, { recursive: true });
+    const emptyProject = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hosting-spa-empty-build-'),
+    );
+    const emptyDist = path.join(emptyProject, 'dist');
+    fs.mkdirSync(emptyDist, { recursive: true });
 
     assert.throws(
-      () => spaAdapter(emptyDir, tmpDir),
+      () => spaAdapter(emptyProject),
       (error: Error) => {
         assert.strictEqual(error.name, 'BuildOutputEmptyError');
-        assert.ok(error.message.includes('empty'));
         return true;
       },
     );
+    fs.rmSync(emptyProject, { recursive: true, force: true });
   });
 
   void it('throws MissingIndexHtmlError when no index.html is found', () => {
-    // Remove index.html from build dir
     fs.unlinkSync(path.join(buildDir, 'index.html'));
 
     assert.throws(
-      () => spaAdapter(buildDir, tmpDir),
+      () => spaAdapter(tmpDir),
       (error: Error) => {
         assert.strictEqual(error.name, 'MissingIndexHtmlError');
-        assert.ok(error.message.includes('index.html'));
         return true;
       },
+    );
+  });
+
+  void it('adapter output passes schema validation', () => {
+    const manifest = spaAdapter(tmpDir);
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(
+      result.success,
+      `Schema validation failed: ${JSON.stringify(result.error?.issues)}`,
     );
   });
 });

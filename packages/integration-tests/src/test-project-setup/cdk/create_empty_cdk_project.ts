@@ -34,6 +34,13 @@ export const createEmptyCdkProject = async (
     force: true,
   });
 
+  // Remove the generated test/ directory — it contains test files using
+  // Jest's `test()` without @types/jest, causing tsc to fail during synth.
+  await fsp.rm(path.join(projectRoot, 'test'), {
+    recursive: true,
+    force: true,
+  });
+
   // The generated tsconfig.json sets typeRoots to ["./node_modules/@types"],
   // which prevents TypeScript from finding @types/node in the monorepo root
   // after we removed the local node_modules above. Remove the typeRoots

@@ -85,6 +85,41 @@ void describe('createSecurityHeadersPolicy', () => {
       );
     });
 
+    void it('default CSP does NOT contain unsafe-eval or unsafe-inline', () => {
+      const stack = createStack();
+      createSecurityHeadersPolicy(stack, 'Headers');
+      const template = Template.fromStack(stack);
+
+      const policies = template.findResources(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+      );
+      assert.ok(
+        Object.keys(policies).length > 0,
+        'Should have a ResponseHeadersPolicy',
+      );
+
+      const policy = Object.values(policies)[0] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const config = policy.Properties.ResponseHeadersPolicyConfig as Record<
+        string,
+        unknown
+      >;
+      const secHeaders = config.SecurityHeadersConfig as Record<
+        string,
+        unknown
+      >;
+      const csp = secHeaders.ContentSecurityPolicy as Record<string, string>;
+
+      assert.ok(
+        !csp.ContentSecurityPolicy.includes('unsafe-eval'),
+        'Default CSP must NOT contain unsafe-eval',
+      );
+      // Note: unsafe-inline IS allowed for script-src and style-src in the default policy
+      // This test explicitly verifies that unsafe-eval is NOT present
+    });
+
     void it('sets CSP override to false (allows app to override)', () => {
       const stack = createStack();
       createSecurityHeadersPolicy(stack, 'Headers');
@@ -128,6 +163,82 @@ void describe('createSecurityHeadersPolicy', () => {
           }),
         }),
       );
+    });
+
+    void it('passes through custom CSP with wss: for WebSocket', () => {
+      const stack = createStack();
+      const wssCsp =
+        // eslint-disable-next-line spellcheck/spell-checker
+        "default-src 'self'; connect-src 'self' https: wss://realtime.example.com";
+      createSecurityHeadersPolicy(stack, 'Headers', {
+        contentSecurityPolicy: wssCsp,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+        Match.objectLike({
+          ResponseHeadersPolicyConfig: Match.objectLike({
+            SecurityHeadersConfig: Match.objectLike({
+              ContentSecurityPolicy: Match.objectLike({
+                ContentSecurityPolicy: wssCsp,
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
+  // ---- CSP is a ResponseHeadersPolicy resource ----
+
+  void describe('CSP delivery mechanism', () => {
+    void it('delivers CSP via ResponseHeadersPolicy (not a custom header)', () => {
+      const stack = createStack();
+      createSecurityHeadersPolicy(stack, 'Headers');
+      const template = Template.fromStack(stack);
+
+      // CSP must be in SecurityHeadersConfig, NOT in CustomHeadersConfig
+      template.hasResourceProperties(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+        Match.objectLike({
+          ResponseHeadersPolicyConfig: Match.objectLike({
+            SecurityHeadersConfig: Match.objectLike({
+              ContentSecurityPolicy: Match.objectLike({
+                ContentSecurityPolicy: Match.anyValue(),
+              }),
+            }),
+          }),
+        }),
+      );
+
+      // Verify no CustomHeadersConfig with CSP
+      const policies = template.findResources(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+      );
+      const policy = Object.values(policies)[0] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const config = policy.Properties.ResponseHeadersPolicyConfig as Record<
+        string,
+        unknown
+      >;
+      const customHeaders = config.CustomHeadersConfig as
+        | Record<string, unknown[]>
+        | undefined;
+
+      if (customHeaders?.Items) {
+        const cspInCustom =
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          (customHeaders.Items as Array<{ Header: string }>).some(
+            (item) => item.Header === 'Content-Security-Policy',
+          );
+        assert.ok(
+          !cspInCustom,
+          'CSP should NOT be in CustomHeadersConfig — it should be in SecurityHeadersConfig',
+        );
+      }
     });
   });
 

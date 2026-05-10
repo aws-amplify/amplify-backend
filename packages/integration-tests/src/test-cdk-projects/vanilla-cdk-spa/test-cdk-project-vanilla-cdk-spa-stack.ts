@@ -6,7 +6,6 @@ import {
   AmplifyHostingConstructProps,
 } from '@aws-amplify/hosting';
 import { getAdapter } from '@aws-amplify/hosting/adapters';
-import path from 'path';
 
 /**
  * Vanilla CDK stack that uses AmplifyHostingConstruct directly for SPA hosting.
@@ -17,19 +16,15 @@ export class TestCdkProjectVanillaCdkSpaStack extends cdk.Stack {
     super(scope, scope.node.getContext('test-stack-name'), props);
 
     const projectDir = process.cwd();
-    const buildOutputDir = path.join(projectDir, 'static-site');
 
     // Use the SPA adapter directly to generate the deploy manifest
+    // The adapter auto-detects the build output directory (dist/, build/, out/, public/)
     const adapter = getAdapter('spa');
-    const manifest = adapter(buildOutputDir, projectDir);
+    const manifest = adapter(projectDir);
 
-    // The adapter writes to .amplify-hosting/static/ — point the construct there
-    const hostingDir = path.join(projectDir, '.amplify-hosting');
-    const staticAssetPath = path.join(hostingDir, 'static');
-
+    // The manifest now includes staticAssets with the directory path
     const constructProps: AmplifyHostingConstructProps = {
       manifest,
-      staticAssetPath,
     };
 
     const hosting = new AmplifyHostingConstruct(

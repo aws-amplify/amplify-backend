@@ -1,50 +1,162 @@
 /**
- * Target type for a route in the deploy manifest.
+ * Framework-agnostic deployment manifest.
+ *
+ * Produced by framework adapters (Next.js/OpenNext, SvelteKit, Astro).
+ * Consumed by the L3 AmplifyHostingConstruct.
+ *
+ * The L3 NEVER knows which framework produced this manifest.
  */
-export type RouteTarget = {
-  kind: 'Static' | 'Compute';
-  /** For Compute routes, the name of the compute resource. */
-  src?: string;
-};
 
-/**
- * A single route in the deploy manifest.
- */
-export type ManifestRoute = {
-  /** URL pattern (e.g., '/*', '/_next/static/*'). Must start with '/'. */
-  path: string;
-  /** Target configuration for the route. */
-  target: RouteTarget;
-};
-
-/**
- * A compute resource (Lambda function) in the deploy manifest.
- */
-export type ComputeResource = {
-  /** Unique name matching a subdirectory in .amplify-hosting/compute/. */
-  name: string;
-  /** Lambda runtime (e.g., 'nodejs20.x'). */
-  runtime: string;
-  /** Entry point file (e.g., 'server.js', 'index.mjs'). */
-  entrypoint: string;
-};
-
-/**
- * Framework metadata in the deploy manifest.
- */
-export type FrameworkMetadata = {
-  name: string;
-  version?: string;
-};
-
-/**
- * The canonical deploy manifest format for .amplify-hosting/deploy-manifest.json.
- */
 export type DeployManifest = {
   version: 1;
-  routes: ManifestRoute[];
-  computeResources?: ComputeResource[];
-  framework: FrameworkMetadata;
+
+  /** Named compute resources */
+  compute: Record<string, ComputeResource>;
+
+  /** Static asset configuration */
+  staticAssets: {
+    /** Path to static files directory */
+    directory: string;
+    /** Cache-Control header for assets */
+    cacheControl?: string;
+  };
+
+  /** Route behaviors (maps URL patterns to compute/static) */
+  routes: RouteBehavior[];
+
+  /** Cache infrastructure (provisioned if present) */
+  cache?: CacheConfig;
+
+  /** Image optimization (separate Lambda if present) */
+  imageOptimization?: ImageConfig;
+
+  /** Middleware (edge function if present) */
+  middleware?: MiddlewareConfig;
+
+  /** Redirects */
+  redirects?: Redirect[];
+
+  /** Rewrites */
+  rewrites?: Rewrite[];
+
+  /** Custom response headers */
+  headers?: CustomHeader[];
+
   /** Build ID for atomic deployments. */
   buildId?: string;
+};
+
+export type ComputeResource = {
+  /** How this compute runs */
+  type: 'handler' | 'http-server' | 'edge';
+
+  /** Path to the bundled code */
+  bundle: string;
+
+  /** Handler entry point (for type: 'handler') */
+  handler?: string;
+
+  /** Server entry point (for type: 'http-server') */
+  entrypoint?: string;
+
+  /** Port for http-server type */
+  port?: number;
+
+  /** Where to deploy */
+  placement: 'regional' | 'global';
+
+  /** Whether to enable response streaming */
+  streaming?: boolean;
+
+  /** Runtime */
+  runtime?: string;
+
+  /** Memory (MB) */
+  memorySize?: number;
+
+  /** Timeout (seconds) */
+  timeout?: number;
+
+  /** Environment variables */
+  environment?: Record<string, string>;
+
+  /** Optional provisioned concurrency for cold-start elimination */
+  provisionedConcurrency?: number;
+};
+
+export type RouteBehavior = {
+  /** URL pattern (regex or glob) */
+  pattern: string;
+
+  /** Target compute resource name, or 'static' */
+  target: string;
+
+  /** Fallback if target fails */
+  fallback?: string;
+};
+
+export type CacheConfig = {
+  /** Which compute resource handles cached content */
+  computeResource: string;
+
+  /** Whether tag-based revalidation is needed (provisions DynamoDB) */
+  tagRevalidation: boolean;
+
+  /** Whether async revalidation queue is needed (provisions SQS) */
+  revalidationQueue: boolean;
+
+  /**
+   * Background revalidation worker function.
+   *
+   * When present, a Lambda is deployed with the SQS revalidation queue as its
+   * event source. This worker processes ISR revalidation messages and refreshes
+   * stale pages in the background.
+   */
+  revalidationFunction?: {
+    /** Path to the revalidation function bundle directory */
+    bundle: string;
+    /** Handler entry point (e.g. 'index.handler') */
+    handler: string;
+  };
+};
+
+export type ImageConfig = {
+  /** Path to image optimization bundle */
+  bundle: string;
+
+  /** Handler entry point */
+  handler: string;
+
+  /** Supported formats */
+  formats: string[];
+
+  /** Max image sizes */
+  sizes: number[];
+};
+
+export type MiddlewareConfig = {
+  /** Path to middleware bundle */
+  bundle: string;
+
+  /** Handler entry point */
+  handler: string;
+
+  /** URL patterns this middleware matches */
+  matchers: string[];
+};
+
+export type Redirect = {
+  source: string;
+  destination: string;
+  statusCode: 301 | 302 | 307 | 308;
+};
+
+export type Rewrite = {
+  source: string;
+  destination: string;
+};
+
+export type CustomHeader = {
+  source: string;
+  headers: Record<string, string>;
 };
