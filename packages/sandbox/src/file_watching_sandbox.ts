@@ -547,7 +547,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       message.includes('Bundling asset') ||
       message.includes('DeprecationWarning') ||
       message.includes('ExperimentalWarning') ||
-      /\(node:\d+\).*Warning/.test(message)
+      (message.includes('(node:') && message.includes('Warning'))
     );
   };
 }
