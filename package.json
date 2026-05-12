@@ -107,9 +107,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "overrides": {
-    "aws-cdk-lib": "2.244.0"
-  },
   "lint-staged": {
     "*.ts": [
       "prettier --write",
