@@ -108,7 +108,7 @@
     "packages/*"
   ],
   "overrides": {
-    "@aws-cdk/cdk-assets-lib": "1.4.1"
+    "aws-cdk-lib": "2.244.0"
   },
   "lint-staged": {
     "*.ts": [
