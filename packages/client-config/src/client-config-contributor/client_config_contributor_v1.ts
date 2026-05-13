@@ -1,5 +1,6 @@
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
 import {
+  type BucketOutput,
   UnifiedBackendOutput,
   authOutputKey,
   customOutputKey,
@@ -17,7 +18,6 @@ import {
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
-import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_v1.2.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -673,32 +673,18 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
       return {};
     }
     const config: Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs> = {};
-    const bucketsStringArray = JSON.parse(
+    const buckets: BucketOutput[] = JSON.parse(
       storageOutput.payload.buckets ?? '[]',
-    );
+    ).map((b: string) => JSON.parse(b));
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
       bucket_name: storageOutput.payload.bucketName,
-      buckets: bucketsStringArray
-        .map((b: string) => JSON.parse(b))
-        .map(
-          ({
-            name,
-            bucketName,
-            storageRegion,
-            paths,
-          }: {
-            name: string;
-            bucketName: string;
-            storageRegion: string;
-            paths: Record<string, AmplifyStorageAccessRule>;
-          }) => ({
-            name,
-            bucket_name: bucketName,
-            aws_region: storageRegion,
-            paths,
-          }),
-        ),
+      buckets: buckets.map(({ name, bucketName, storageRegion, paths }) => ({
+        name,
+        bucket_name: bucketName,
+        aws_region: storageRegion,
+        paths,
+      })),
     };
 
     return config;
@@ -720,29 +706,17 @@ export class StorageClientConfigContributorV1_1 implements ClientConfigContribut
       return {};
     }
     const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
-    const bucketsStringArray = JSON.parse(
+    const buckets: BucketOutput[] = JSON.parse(
       storageOutput.payload.buckets ?? '[]',
-    );
+    ).map((b: string) => JSON.parse(b));
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
       bucket_name: storageOutput.payload.bucketName,
-      buckets: bucketsStringArray
-        .map((b: string) => JSON.parse(b))
-        .map(
-          ({
-            name,
-            bucketName,
-            storageRegion,
-          }: {
-            name: string;
-            bucketName: string;
-            storageRegion: string;
-          }) => ({
-            name,
-            bucket_name: bucketName,
-            aws_region: storageRegion,
-          }),
-        ),
+      buckets: buckets.map(({ name, bucketName, storageRegion }) => ({
+        name,
+        bucket_name: bucketName,
+        aws_region: storageRegion,
+      })),
     };
 
     return config;
