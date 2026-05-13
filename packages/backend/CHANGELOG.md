@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 1.23.0
+
+### Minor Changes
+
+- 757e2ce: Add optional keepOnDelete prop to defineStorage() to support production bucket retention. Defaults to false (destroy) for backward compatibility. Sandbox deployments always delete the bucket regardless of this setting.
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+- Updated dependencies [757e2ce]
+  - @aws-amplify/backend-auth@1.9.4
+  - @aws-amplify/backend-function@1.18.1
+  - @aws-amplify/backend-output-storage@1.3.5
+  - @aws-amplify/backend-storage@1.5.0
+  - @aws-amplify/client-config@1.10.2
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
 ## 1.22.0
 
 ### Minor Changes
