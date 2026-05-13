@@ -122,6 +122,16 @@ export type DataSchemaInput =
 export type DataSchema = string | DerivedModelSchema;
 
 /**
+ * A map of resolver names to stack names.
+ * Keys must be in the format `TypeName.FieldName` (e.g., `Mutation.createUser`).
+ * Values are the names of the nested stacks where the resolvers should be placed.
+ */
+export type CustomResolverStackMap = Record<
+  `${'Mutation' | 'Query' | 'Subscription'}.${string}`,
+  string
+>;
+
+/**
  * Exposed props for Data which are configurable by the end user.
  */
 export type DataProps = {
@@ -155,6 +165,24 @@ export type DataProps = {
    * Each element in the array represents a mapping for a specific branch.
    */
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
+
+  /**
+   * Optional mapping of custom resolver names to nested stack names.
+   * This allows you to split JS resolvers into multiple CloudFormation stacks to avoid template size limits.
+   * Resolvers not specified in this map will be placed in the main Data stack by default.
+   * @example
+   * ```typescript
+   * customResolverStackMap: {
+   *   'Mutation.createUser': 'auth',
+   *   'Mutation.deleteCompany': 'core',
+   *   'Mutation.updateCompany': 'core',
+   *   'Query.getCompany': 'core',
+   * }
+   * ```
+   * Each nested stack will be named by appending 'Custom' and the capitalized stack name to the Data construct ID
+   * (e.g., `amplifyDataCustomAuth`, `amplifyDataCustomCore`).
+   */
+  customResolverStackMap?: CustomResolverStackMap;
 };
 
 export type AmplifyDataError =
