@@ -80,7 +80,9 @@ export { ConstructFactoryGetInstanceProps }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends DefineBackendProps>(constructFactories: T, props?: {
+    stack?: Stack;
+}) => Backend<T>;
 
 // @public (undocumented)
 export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
