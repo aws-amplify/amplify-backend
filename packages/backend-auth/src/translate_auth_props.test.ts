@@ -3,6 +3,7 @@ import {
   BackendSecret,
   BackendSecretResolver,
   ResolvePathResult,
+  StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import { describe, it } from 'node:test';
 import { AuthLoginWithFactoryProps } from './types.js';
@@ -31,6 +32,8 @@ const appleKeyId = 'appleKeyId';
 const applePrivateKey = 'applePrivateKey';
 const callbackUrls = ['a', 'b'];
 const logoutUrls = ['a', 'b'];
+const stableBackendHash = 'testStableBackendHash';
+const domainPrefix = 'testDomainPrefix';
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
@@ -68,8 +71,15 @@ class TestBackendSecretResolver implements BackendSecretResolver {
   };
 }
 
+class TestStableBackendIdentifiers implements StableBackendIdentifiers {
+  getStableBackendHash = (): string => {
+    return stableBackendHash;
+  };
+}
+
 void describe('translateToAuthConstructLoginWith', () => {
   const backendResolver = new TestBackendSecretResolver();
+  const stableBackendIdentifiers = new TestStableBackendIdentifiers();
 
   void it('translates with external providers', () => {
     const loginWith: AuthLoginWithFactoryProps = {
@@ -108,6 +118,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     const translated = translateToAuthConstructLoginWith(
       loginWith,
       backendResolver,
+      stableBackendIdentifiers,
     );
 
     const expected: AuthProps['loginWith'] = {
@@ -140,6 +151,7 @@ void describe('translateToAuthConstructLoginWith', () => {
         },
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
+        domainPrefix: stableBackendHash,
       },
     };
     assert.deepStrictEqual(translated, expected);
@@ -157,6 +169,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     const translated = translateToAuthConstructLoginWith(
       loginWith,
       backendResolver,
+      stableBackendIdentifiers,
     );
 
     const expected: AuthProps['loginWith'] = {
@@ -164,8 +177,60 @@ void describe('translateToAuthConstructLoginWith', () => {
       externalProviders: {
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
+        domainPrefix: stableBackendHash,
       },
     };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates without custom domain prefix', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      externalProviders: {
+        callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+      stableBackendIdentifiers,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      externalProviders: {
+        callbackUrls,
+        logoutUrls,
+        domainPrefix: stableBackendHash,
+      },
+    };
+
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates with custom domain prefix', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      externalProviders: {
+        callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
+        domainPrefix: domainPrefix,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+      stableBackendIdentifiers,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      externalProviders: {
+        callbackUrls,
+        logoutUrls,
+        domainPrefix: domainPrefix,
+      },
+    };
+
     assert.deepStrictEqual(translated, expected);
   });
 
@@ -177,6 +242,7 @@ void describe('translateToAuthConstructLoginWith', () => {
     const translated = translateToAuthConstructLoginWith(
       loginWith,
       backendResolver,
+      stableBackendIdentifiers,
     );
 
     const expected: AuthProps['loginWith'] = {
