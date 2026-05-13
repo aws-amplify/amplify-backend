@@ -60,6 +60,8 @@ export class BackendDeployerFactory {
    */
   getInstance(): BackendDeployer {
     if (!BackendDeployerFactory.instance) {
+      const profile = this.sdkProfileResolver();
+
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
@@ -68,11 +70,11 @@ export class BackendDeployerFactory {
           ioHost: this.backendDeployerIOHost,
           emojis: false,
           color: false,
-          sdkConfig: {
-            baseCredentials: BaseCredentials.awsCliCompatible({
-              profile: this.sdkProfileResolver(),
-            }),
-          },
+          sdkConfig: profile
+            ? {
+                baseCredentials: BaseCredentials.awsCliCompatible({ profile }),
+              }
+            : {},
         }),
         this.backendDeployerIOHost,
       );
