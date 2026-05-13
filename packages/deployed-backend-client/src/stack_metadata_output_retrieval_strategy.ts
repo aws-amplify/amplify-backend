@@ -134,27 +134,29 @@ export class StackMetadataBackendOutputRetrievalStrategy implements BackendOutpu
 
     // now we iterate over the metadata entries and reconstruct the data object based on the stackOutputs that each construct package set
     const result: BackendOutput = {};
-    Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
-      const outputData = entry.stackOutputs.reduce(
-        (accumulator, outputName) => {
-          if (
-            stackOutputRecord[outputName] === undefined ||
-            stackOutputRecord[outputName] === ''
-          ) {
-            return accumulator;
-          }
-          return {
-            ...accumulator,
-            [outputName]: stackOutputRecord[outputName],
-          };
-        },
-        {} as Record<string, string>,
-      );
-      result[outputKeyName] = {
-        version: entry.version,
-        payload: outputData,
-      };
-    });
+    Object.entries(backendOutputMetadata).forEach(
+      ([outputKeyName, entry]: [string, BackendOutputEntryStackMetadata]) => {
+        const outputData = entry.stackOutputs.reduce(
+          (accumulator, outputName) => {
+            if (
+              stackOutputRecord[outputName] === undefined ||
+              stackOutputRecord[outputName] === ''
+            ) {
+              return accumulator;
+            }
+            return {
+              ...accumulator,
+              [outputName]: stackOutputRecord[outputName],
+            };
+          },
+          {} as Record<string, string>,
+        );
+        result[outputKeyName] = {
+          version: entry.version,
+          payload: outputData,
+        };
+      },
+    );
     return result;
   };
 

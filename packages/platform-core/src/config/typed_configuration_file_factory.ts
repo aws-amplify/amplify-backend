@@ -15,7 +15,8 @@ export type TypedConfigurationFileName =
  * Instantiates TypedConfigurationFile
  */
 export class TypedConfigurationFileFactory {
-  private readonly files: Record<string, TypedConfigurationFile<unknown>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly files: Record<string, TypedConfigurationFile<any>>;
 
   /**
    * initialized empty map of TypedConfigurationFile;

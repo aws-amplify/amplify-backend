@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 
 const noticePredicateSchema = z.discriminatedUnion('type', [
   z.object({
