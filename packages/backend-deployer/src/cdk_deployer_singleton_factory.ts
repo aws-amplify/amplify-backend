@@ -23,6 +23,11 @@ export type DestroyResult = {
   deploymentTimes: DeploymentTimes;
 };
 
+export type SynthResult = {
+  deploymentTimes: DeploymentTimes;
+  cloudAssemblyPath: string;
+};
+
 export type DeploymentTimes = {
   synthesisTime?: number;
   totalTime?: number;
@@ -37,6 +42,10 @@ export type BackendDeployer = {
     deployProps?: DeployProps,
   ) => Promise<DeployResult>;
   destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
+  synth: (
+    backendId: BackendIdentifier,
+    synthProps?: DeployProps,
+  ) => Promise<SynthResult>;
 };
 
 /**
