@@ -18,6 +18,7 @@ import {
   CfnUserPoolIdentityProvider,
   CustomAttributeConfig,
   ICustomAttribute,
+  ManagedLoginVersion,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
@@ -1077,6 +1078,9 @@ export class AmplifyAuth
     if (this.domainPrefix) {
       this.userPool.addDomain(`${this.name}UserPoolDomain`, {
         cognitoDomain: { domainPrefix: this.domainPrefix },
+        managedLoginVersion: external.managedLogin
+          ? ManagedLoginVersion.NEWER_MANAGED_LOGIN
+          : undefined,
       });
     } else {
       throw new Error(
