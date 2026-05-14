@@ -1,0 +1,443 @@
+/**
+ * Nitro adapter — works for any framework that builds with Nitro.
+ *
+ * Nitro is a framework-agnostic server engine (https://nitro.unjs.io)
+ * used by Nuxt, SolidStart, Analog, TanStack Start, and standalone Nitro
+ * apps. They all emit the same `.output/` directory shape, so a single
+ * adapter can translate any of them into a DeployManifest.
+ *
+ * Inputs read from `.output/`:
+ *   - `nitro.json`  — preset, framework metadata, routeRules
+ *   - `server/`     — the Lambda bundle
+ *   - `public/`     — static assets + prerendered HTML
+ *
+ * The L3 construct never knows which UI framework produced this — it
+ * only sees compute resources, route patterns, and a static-assets dir.
+ */
+import { execFileSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import { HostingError } from '../hosting_error.js';
+import type {
+  ComputeResource,
+  DeployManifest,
+  RouteBehavior,
+} from '../manifest/types.js';
+
+export type NitroAdapterOptions = {
+  /** Project root directory (the directory containing the framework config) */
+  projectDir: string;
+  /** Skip the build step (use a pre-existing .output/) */
+  skipBuild?: boolean;
+  /**
+   * Override the Nitro preset to build with.
+   *
+   * Defaults to `'aws-lambda'` which produces an AWS Lambda handler.
+   * `'aws-lambda-streaming'` enables response streaming. `'node-server'`
+   * produces a plain Node HTTP server (run via the Lambda Web Adapter).
+   */
+  preset?: string;
+  /**
+   * Build command override. Defaults to `npm run build`, which works for
+   * Nuxt, SolidStart, Analog, TanStack Start, and any Nitro-based project
+   * that wires `build` to its framework's CLI in package.json.
+   *
+   * Pass an explicit array (e.g. `['nuxt', 'build']`) to bypass npm and
+   * call the framework CLI directly.
+   */
+  buildCommand?: string[];
+};
+
+/** Subset of `.output/nitro.json` we rely on. */
+type NitroBuildInfo = {
+  preset?: string;
+  framework?: { name?: string; version?: string };
+  serverEntry?: string;
+  publicDir?: string;
+  routeRules?: Record<string, NitroRouteRule>;
+};
+
+type NitroRouteRule = {
+  prerender?: boolean;
+  redirect?: string | { to: string; statusCode?: 301 | 302 | 307 | 308 };
+  headers?: Record<string, string>;
+  cors?: boolean;
+  cache?: { swr?: boolean; maxAge?: number };
+};
+
+/**
+ * Run the framework's build (unless skipped) and translate `.output/`
+ * into a DeployManifest.
+ * @param options - adapter options
+ * @returns framework-agnostic DeployManifest ready for the L3 construct
+ */
+export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
+  const { projectDir, skipBuild, preset, buildCommand } = options;
+  const effectivePreset = preset ?? 'aws-lambda';
+
+  const outputDir = path.join(projectDir, '.output');
+  const serverDir = path.join(outputDir, 'server');
+  const publicDir = path.join(outputDir, 'public');
+  const nitroJsonPath = path.join(outputDir, 'nitro.json');
+
+  if (!skipBuild) {
+    runNitroBuild(projectDir, effectivePreset, buildCommand);
+  }
+
+  if (!fs.existsSync(outputDir)) {
+    throw new HostingError('NitroOutputNotFoundError', {
+      message: `Nitro .output/ not found at ${outputDir}.`,
+      resolution:
+        'Ensure the framework build succeeded. Re-run it manually with NITRO_PRESET=aws-lambda to diagnose.',
+    });
+  }
+
+  if (!fs.existsSync(serverDir)) {
+    throw new HostingError('NitroOutputNotFoundError', {
+      message: `Nitro server bundle not found at ${serverDir}.`,
+      resolution:
+        'The build did not produce a server output. Check your framework config and the Nitro preset.',
+    });
+  }
+
+  // Best-effort copy of amplify_outputs.json into the server bundle so the
+  // SSR Lambda can talk to the Amplify backend at runtime. No-op if absent.
+  copyAmplifyOutputsToServerBundle(projectDir, serverDir);
+
+  let nitroInfo: NitroBuildInfo = {};
+  if (fs.existsSync(nitroJsonPath)) {
+    try {
+      nitroInfo = JSON.parse(fs.readFileSync(nitroJsonPath, 'utf-8'));
+    } catch (error) {
+      throw new HostingError(
+        'NitroOutputParseError',
+        {
+          message: `Failed to parse Nitro build info at ${nitroJsonPath}.`,
+          resolution:
+            'The .output/nitro.json file contains invalid JSON. Try running the build again.',
+        },
+        error as Error,
+      );
+    }
+  }
+
+  const resolvedPreset = nitroInfo.preset ?? effectivePreset;
+
+  return buildManifest({
+    preset: resolvedPreset,
+    serverDir,
+    publicDir,
+    routeRules: nitroInfo.routeRules ?? {},
+  });
+};
+
+/**
+ * Execute the framework's build via the user's package.json scripts.
+ *
+ * Default `npm run build` works across Nuxt, SolidStart, Analog,
+ * TanStack Start, and standalone Nitro apps because each one wires its
+ * own `build` script. We pass NITRO_PRESET via env so any Nitro-backed
+ * framework targets the right runtime without per-framework branching.
+ */
+const runNitroBuild = (
+  projectDir: string,
+  preset: string,
+  buildCommand?: string[],
+): void => {
+  const cmd =
+    buildCommand && buildCommand.length > 0
+      ? buildCommand
+      : ['npm', 'run', 'build'];
+  process.stderr.write(
+    `\u{1F528} Running build (NITRO_PRESET=${preset}): ${cmd.join(' ')}\n`,
+  );
+  try {
+    const [bin, ...args] = cmd;
+    execFileSync(bin!, args, {
+      cwd: projectDir,
+      stdio: 'inherit',
+      env: { ...process.env, NITRO_PRESET: preset },
+    });
+  } catch (error) {
+    throw new HostingError(
+      'NitroBuildError',
+      {
+        message: 'Framework build failed.',
+        resolution:
+          'Check the build output above for errors. Common causes:\n' +
+          '  - Missing dependencies (run: npm install)\n' +
+          '  - Invalid framework config\n' +
+          '  - TypeScript errors in your app\n' +
+          '  - Unsupported NITRO_PRESET for the installed framework version',
+      },
+      error as Error,
+    );
+  }
+};
+
+/**
+ * Copy amplify_outputs.json from project root into .output/server/ so SSR
+ * code can read backend configuration at runtime.
+ */
+const copyAmplifyOutputsToServerBundle = (
+  projectDir: string,
+  serverDir: string,
+): void => {
+  const src = path.join(projectDir, 'amplify_outputs.json');
+  if (!fs.existsSync(src)) return;
+
+  const dest = path.join(serverDir, 'amplify_outputs.json');
+  if (!fs.existsSync(dest)) {
+    fs.copyFileSync(src, dest);
+    process.stderr.write(
+      `\u{1F4E6} Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
+    );
+  }
+};
+
+/**
+ * Build the DeployManifest from a known-good `.output/` layout.
+ */
+const buildManifest = (input: {
+  preset: string;
+  serverDir: string;
+  publicDir: string;
+  routeRules: Record<string, NitroRouteRule>;
+}): DeployManifest => {
+  const { preset, serverDir, publicDir, routeRules } = input;
+
+  const compute: Record<string, ComputeResource> = {
+    default: presetToCompute(preset, serverDir),
+  };
+
+  const manifest: DeployManifest = {
+    version: 1,
+    compute,
+    staticAssets: {
+      directory: publicDir,
+    },
+    routes: buildRoutes(publicDir, routeRules),
+  };
+
+  const redirects = buildRedirects(routeRules);
+  if (redirects.length > 0) {
+    manifest.redirects = redirects;
+  }
+
+  const headers = buildHeaders(routeRules);
+  if (headers.length > 0) {
+    manifest.headers = headers;
+  }
+
+  return manifest;
+};
+
+/**
+ * Map a Nitro preset to the right ComputeResource shape.
+ */
+const presetToCompute = (
+  preset: string,
+  serverDir: string,
+): ComputeResource => {
+  // Streaming AWS Lambda preset — handler that streams chunks back.
+  if (preset === 'aws-lambda-streaming') {
+    return {
+      type: 'handler',
+      bundle: serverDir,
+      handler: 'index.handler',
+      placement: 'regional',
+      streaming: true,
+      runtime: 'nodejs20.x',
+    };
+  }
+
+  // Plain Node HTTP server presets — front via the Lambda Web Adapter.
+  if (preset === 'node-server' || preset === 'node') {
+    return {
+      type: 'http-server',
+      bundle: serverDir,
+      entrypoint: 'index.mjs',
+      port: 3000,
+      placement: 'regional',
+      runtime: 'nodejs20.x',
+    };
+  }
+
+  // Default: aws-lambda preset (and unknown presets fall through here as a
+  // sensible default — the Nitro aws-lambda preset always exposes a handler).
+  return {
+    type: 'handler',
+    bundle: serverDir,
+    handler: 'index.handler',
+    placement: 'regional',
+    streaming: false,
+    runtime: 'nodejs20.x',
+  };
+};
+
+/**
+ * Walk `.output/public/` and emit static routes for prerendered output,
+ * then append a catch-all `/* → default` for SSR.
+ */
+const buildRoutes = (
+  publicDir: string,
+  routeRules: Record<string, NitroRouteRule>,
+): RouteBehavior[] => {
+  const routes: RouteBehavior[] = [];
+  const seenPatterns = new Set<string>();
+
+  const addRoute = (route: RouteBehavior): void => {
+    if (seenPatterns.has(route.pattern)) return;
+    routes.push(route);
+    seenPatterns.add(route.pattern);
+  };
+
+  if (fs.existsSync(publicDir)) {
+    // Everything in `.output/public/` is, by definition, a static
+    // asset. Walk the top level and route each entry to S3:
+    //   - directory  → `/<name>/*`
+    //   - file       → `/<name>`
+    // This catches both framework-emitted dirs (`_nuxt/`, `_build/`,
+    // `assets/`) and user-supplied ones (anything dropped into
+    // `public/`, e.g. `public/img/`, `public/fonts/`).
+    for (const entry of fs.readdirSync(publicDir, { withFileTypes: true })) {
+      // Skip prerendered HTML routes — handled below as `<route>/*`.
+      if (entry.isFile() && entry.name.endsWith('.html')) continue;
+      const pattern = entry.isDirectory()
+        ? `/${entry.name}/*`
+        : `/${entry.name}`;
+      addRoute({ pattern, target: 'static' });
+    }
+
+    // Walk for prerendered HTML pages and emit a *subtree* route for each.
+    //
+    // We deliberately do NOT emit a bare `/<route>` static route — the
+    // CloudFront build-ID rewrite Function only appends `index.html` when
+    // the URI ends with `/`, so `/about` would resolve to the S3 key
+    // `builds/{id}/about` (no such object → 403). Instead we route
+    // `/<route>/*` to S3 (so `_payload.json` and other sibling assets the
+    // framework prefetches resolve), and let the bare `/<route>` flow
+    // through the catch-all to the SSR Lambda, which re-renders the page
+    // from the bundled component on demand.
+    for (const htmlFile of walkHtmlFiles(publicDir)) {
+      const rel = path.relative(publicDir, htmlFile).replace(/\\/g, '/');
+      const urlPath = htmlFileToUrlPath(rel);
+      if (urlPath === '/') continue;
+      addRoute({ pattern: `${urlPath}/*`, target: 'static' });
+    }
+  }
+
+  // Honour route rules with `prerender: true` even if the build hasn't
+  // emitted a file at that path yet.
+  for (const [routePattern, rule] of Object.entries(routeRules)) {
+    if (rule.prerender) {
+      addRoute({
+        pattern: normalizeRulePattern(routePattern),
+        target: 'static',
+      });
+    }
+  }
+
+  // Catch-all SSR route always last.
+  addRoute({ pattern: '/*', target: 'default' });
+
+  return routes;
+};
+
+/**
+ * Recursively collect every `.html` file under `dir`.
+ */
+const walkHtmlFiles = (dir: string): string[] => {
+  if (!fs.existsSync(dir)) return [];
+  const out: string[] = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkHtmlFiles(full));
+    } else if (entry.isFile() && entry.name.endsWith('.html')) {
+      out.push(full);
+    }
+  }
+  return out;
+};
+
+/**
+ * Convert a relative `.html` path into a CloudFront route pattern.
+ * `about/index.html` → `/about`
+ * `index.html` → `/`
+ * `blog/post.html` → `/blog/post`
+ */
+const htmlFileToUrlPath = (relPath: string): string => {
+  let urlPath = '/' + relPath.replace(/\\/g, '/').replace(/\.html$/, '');
+  urlPath = urlPath.replace(/\/index$/, '');
+  return urlPath === '' ? '/' : urlPath;
+};
+
+/**
+ * Normalize a route-rule pattern (e.g. `/blog/**`) to a CloudFront cache
+ * behavior pattern (e.g. `/blog/*`).
+ */
+const normalizeRulePattern = (pattern: string): string => {
+  return pattern.replace(/\*\*/g, '*');
+};
+
+/**
+ * Translate `redirect` route rules into manifest Redirects.
+ */
+const buildRedirects = (
+  routeRules: Record<string, NitroRouteRule>,
+): NonNullable<DeployManifest['redirects']> => {
+  const out: NonNullable<DeployManifest['redirects']> = [];
+  for (const [source, rule] of Object.entries(routeRules)) {
+    if (!rule.redirect) continue;
+    const dest =
+      typeof rule.redirect === 'string' ? rule.redirect : rule.redirect.to;
+    const statusCode =
+      typeof rule.redirect === 'object' && rule.redirect.statusCode
+        ? rule.redirect.statusCode
+        : 302;
+    out.push({
+      source: normalizeRulePattern(source),
+      destination: dest,
+      statusCode,
+    });
+  }
+  return out;
+};
+
+/**
+ * Translate `headers` route rules into manifest CustomHeaders.
+ */
+const buildHeaders = (
+  routeRules: Record<string, NitroRouteRule>,
+): NonNullable<DeployManifest['headers']> => {
+  const out: NonNullable<DeployManifest['headers']> = [];
+  for (const [source, rule] of Object.entries(routeRules)) {
+    if (!rule.headers || Object.keys(rule.headers).length === 0) continue;
+    out.push({
+      source: normalizeRulePattern(source),
+      headers: rule.headers,
+    });
+  }
+  return out;
+};
+
+/**
+ * Detect whether a project uses Nitro by inspecting its package.json deps.
+ *
+ * Frameworks built on Nitro:
+ *   - Nuxt 3+ (`nuxt`)
+ *   - SolidStart v1+ (`@solidjs/start`)
+ *   - Analog (`@analogjs/platform-server`)
+ *   - TanStack Start (`@tanstack/start`)
+ *   - Standalone Nitro (`nitropack`)
+ */
+export const isNitroProject = (deps: Record<string, string>): boolean => {
+  return (
+    'nuxt' in deps ||
+    'nitropack' in deps ||
+    '@solidjs/start' in deps ||
+    '@analogjs/platform-server' in deps ||
+    '@tanstack/start' in deps
+  );
+};
