@@ -33,8 +33,10 @@ export type NitroAdapterOptions = {
    * Override the Nitro preset to build with.
    *
    * Defaults to `'aws-lambda'` which produces an AWS Lambda handler.
-   * `'aws-lambda-streaming'` enables response streaming. `'node-server'`
-   * produces a plain Node HTTP server (run via the Lambda Web Adapter).
+   * To enable response streaming, set `nitro.awsLambda.streaming: true`
+   * in the user's `nuxt.config.ts` (the adapter reads this from
+   * `.output/nitro.json`). `'node-server'` produces a plain Node HTTP
+   * server (run via the Lambda Web Adapter).
    */
   preset?: string;
   /**
@@ -55,6 +57,9 @@ type NitroBuildInfo = {
   serverEntry?: string;
   publicDir?: string;
   routeRules?: Record<string, NitroRouteRule>;
+  config?: {
+    awsLambda?: { streaming?: boolean };
+  };
 };
 
 type NitroRouteRule = {
@@ -104,6 +109,12 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   // SSR Lambda can talk to the Amplify backend at runtime. No-op if absent.
   copyAmplifyOutputsToServerBundle(projectDir, serverDir);
 
+  // Strip pre-compressed sibling files (.gz / .br / .zst). We let
+  // CloudFront re-compress on the edge instead — the per-edge cache
+  // would otherwise hold N variants per object without negotiating
+  // them, and the storage savings are eaten by upload time.
+  prunePreCompressedAssets(publicDir);
+
   let nitroInfo: NitroBuildInfo = {};
   if (fs.existsSync(nitroJsonPath)) {
     try {
@@ -121,13 +132,27 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     }
   }
 
+  // Merge route rules from the user's nuxt.config.ts (visible in
+  // nitro.json on some Nitro versions) with the rules Nitro itself
+  // bakes into the server bundle (Cache-Control for /_nuxt/**,
+  // /_nuxt/builds/**, custom publicAssets entries, etc.). The bundled
+  // ones include framework-default Cache-Control headers we want to
+  // preserve.
+  const bundledRouteRules = readBundledRouteRules(serverDir);
+  const mergedRouteRules: Record<string, NitroRouteRule> = {
+    ...bundledRouteRules,
+    ...(nitroInfo.routeRules ?? {}),
+  };
+
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
+  const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
 
   return buildManifest({
     preset: resolvedPreset,
     serverDir,
     publicDir,
-    routeRules: nitroInfo.routeRules ?? {},
+    routeRules: mergedRouteRules,
+    awsLambdaStreaming,
   });
 };
 
@@ -176,6 +201,101 @@ const runNitroBuild = (
 };
 
 /**
+ * Read the routeRules object Nitro embedded in the server bundle.
+ *
+ * The compiled `chunks/nitro/nitro.mjs` file contains a JSON-shaped
+ * `_inlineRuntimeConfig` literal whose `nitro.routeRules` field holds
+ * every per-pattern rule Nitro produced — both the user's `routeRules`
+ * from `nuxt.config.ts` and the framework defaults (e.g. immutable
+ * Cache-Control on `/_nuxt/**`, custom `publicAssets` entries with
+ * their `maxAge`).
+ *
+ * `nitro.json` doesn't expose this, so we extract it via regex from
+ * the bundle. Returns {} if the file is missing or the regex doesn't
+ * match — this is best-effort, never blocking.
+ */
+const readBundledRouteRules = (
+  serverDir: string,
+): Record<string, NitroRouteRule> => {
+  const bundlePath = path.join(serverDir, 'chunks', 'nitro', 'nitro.mjs');
+  if (!fs.existsSync(bundlePath)) return {};
+
+  const source = fs.readFileSync(bundlePath, 'utf-8');
+  const blob = extractJsonObjectAfter(source, '"routeRules":');
+  if (!blob) return {};
+
+  try {
+    return JSON.parse(blob) as Record<string, NitroRouteRule>;
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    // Malformed extraction — degrade gracefully.
+    return {};
+  }
+};
+
+/**
+ * Find the first `{...}` JSON object that follows `marker` in `source`,
+ * tracking brace depth so nested objects don't terminate early.
+ */
+const extractJsonObjectAfter = (
+  source: string,
+  marker: string,
+): string | undefined => {
+  const start = source.indexOf(marker);
+  if (start === -1) return undefined;
+  const open = source.indexOf('{', start + marker.length);
+  if (open === -1) return undefined;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = open; i < source.length; i++) {
+    const ch = source[i];
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === '\\') {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) return source.slice(open, i + 1);
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Remove pre-compressed sibling files (`*.gz`, `*.br`, `*.zst`) from
+ * the public directory so they aren't uploaded to S3. CloudFront's
+ * `compress: true` re-compresses on the edge based on `Accept-Encoding`,
+ * which works correctly without these variants and avoids the cache-key
+ * complexity needed to negotiate them.
+ */
+const prunePreCompressedAssets = (publicDir: string): void => {
+  if (!fs.existsSync(publicDir)) return;
+  const compressedExt = /\.(gz|br|zst)$/i;
+  const visit = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(full);
+      } else if (entry.isFile() && compressedExt.test(entry.name)) {
+        fs.rmSync(full);
+      }
+    }
+  };
+  visit(publicDir);
+};
+
+/**
  * Copy amplify_outputs.json from project root into .output/server/ so SSR
  * code can read backend configuration at runtime.
  */
@@ -203,11 +323,13 @@ const buildManifest = (input: {
   serverDir: string;
   publicDir: string;
   routeRules: Record<string, NitroRouteRule>;
+  awsLambdaStreaming: boolean;
 }): DeployManifest => {
-  const { preset, serverDir, publicDir, routeRules } = input;
+  const { preset, serverDir, publicDir, routeRules, awsLambdaStreaming } =
+    input;
 
   const compute: Record<string, ComputeResource> = {
-    default: presetToCompute(preset, serverDir),
+    default: presetToCompute(preset, serverDir, awsLambdaStreaming),
   };
 
   const manifest: DeployManifest = {
@@ -233,24 +355,14 @@ const buildManifest = (input: {
 };
 
 /**
- * Map a Nitro preset to the right ComputeResource shape.
+ * Map a Nitro preset (+ relevant config flags) to the right
+ * ComputeResource shape.
  */
 const presetToCompute = (
   preset: string,
   serverDir: string,
+  awsLambdaStreaming: boolean,
 ): ComputeResource => {
-  // Streaming AWS Lambda preset — handler that streams chunks back.
-  if (preset === 'aws-lambda-streaming') {
-    return {
-      type: 'handler',
-      bundle: serverDir,
-      handler: 'index.handler',
-      placement: 'regional',
-      streaming: true,
-      runtime: 'nodejs20.x',
-    };
-  }
-
   // Plain Node HTTP server presets — front via the Lambda Web Adapter.
   if (preset === 'node-server' || preset === 'node') {
     return {
@@ -263,14 +375,16 @@ const presetToCompute = (
     };
   }
 
-  // Default: aws-lambda preset (and unknown presets fall through here as a
-  // sensible default — the Nitro aws-lambda preset always exposes a handler).
+  // Default: aws-lambda preset. Streaming is opt-in via
+  // `nitro.awsLambda.streaming: true` in the user's config; Nitro
+  // emits a different runtime entry that wraps the handler with
+  // `awslambda.streamifyResponse`.
   return {
     type: 'handler',
     bundle: serverDir,
     handler: 'index.handler',
     placement: 'regional',
-    streaming: false,
+    streaming: awsLambdaStreaming,
     runtime: 'nodejs20.x',
   };
 };
@@ -328,13 +442,17 @@ const buildRoutes = (
   }
 
   // Honour route rules with `prerender: true` even if the build hasn't
-  // emitted a file at that path yet.
+  // emitted a file at that path yet. We emit the subtree pattern only
+  // (e.g. `/about/*` not bare `/about`) for the same reason the
+  // filesystem walk above does — the build-ID rewriter can't resolve a
+  // bare prerendered path to its index.html.
   for (const [routePattern, rule] of Object.entries(routeRules)) {
     if (rule.prerender) {
-      addRoute({
-        pattern: normalizeRulePattern(routePattern),
-        target: 'static',
-      });
+      const normalized = normalizeRulePattern(routePattern);
+      const subtree = normalized.endsWith('/*')
+        ? normalized
+        : `${normalized}/*`;
+      addRoute({ pattern: subtree, target: 'static' });
     }
   }
 
