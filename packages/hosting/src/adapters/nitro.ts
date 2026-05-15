@@ -24,6 +24,10 @@ import type {
   RouteBehavior,
 } from '../manifest/types.js';
 import { NITRO_CACHE_PLUGIN_SOURCE } from './nitro_cache_plugin_template.js';
+import {
+  IPX_LAMBDA_HANDLER_SOURCE,
+  IPX_LAMBDA_PACKAGE_JSON,
+} from './ipx_lambda_template.js';
 
 export type NitroAdapterOptions = {
   /** Project root directory (the directory containing the framework config) */
@@ -125,6 +129,11 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   // them, and the storage savings are eaten by upload time.
   prunePreCompressedAssets(publicDir);
 
+  // If the user has @nuxt/image installed, build a standalone IPX
+  // Lambda bundle so sharp doesn't bloat the SSR Lambda. The bundle
+  // is referenced via `manifest.imageOptimization` later on.
+  const imageOptBundle = buildImageOptBundleIfNeeded(projectDir);
+
   let nitroInfo: NitroBuildInfo = {};
   if (fs.existsSync(nitroJsonPath)) {
     try {
@@ -163,6 +172,7 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     publicDir,
     routeRules: mergedRouteRules,
     awsLambdaStreaming,
+    imageOptBundle,
   });
 };
 
@@ -351,6 +361,99 @@ const prunePreCompressedAssets = (publicDir: string): void => {
 };
 
 /**
+ * If the user's project depends on `@nuxt/image`, materialise a
+ * standalone IPX Lambda bundle at `<projectDir>/.amplify-hosting/image-optimization/`
+ * so sharp doesn't bloat the SSR Lambda. Returns the absolute path to
+ * the bundle directory, or undefined if no image-opt is needed.
+ *
+ * The bundle is reproducible: a fixed handler script (inlined in
+ * ipx_lambda_template) plus an `npm install` targeting linux-x64 so
+ * sharp's native binary matches the Lambda runtime.
+ */
+const buildImageOptBundleIfNeeded = (
+  projectDir: string,
+): string | undefined => {
+  if (!projectUsesNuxtImage(projectDir)) return undefined;
+
+  const bundleDir = path.join(
+    projectDir,
+    '.amplify-hosting',
+    'image-optimization',
+  );
+  fs.mkdirSync(bundleDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(bundleDir, 'index.mjs'),
+    IPX_LAMBDA_HANDLER_SOURCE,
+    'utf-8',
+  );
+  fs.writeFileSync(
+    path.join(bundleDir, 'package.json'),
+    IPX_LAMBDA_PACKAGE_JSON,
+    'utf-8',
+  );
+
+  process.stderr.write(
+    '\u{1F4F8} Building image-optimization Lambda bundle (sharp linux-x64)\n',
+  );
+
+  // Force npm to install Linux x64 binaries so sharp's native module
+  // matches the Lambda runtime — Lambda is linux-x64.
+  try {
+    execFileSync(
+      'npm',
+      [
+        'install',
+        '--no-audit',
+        '--no-fund',
+        '--silent',
+        '--include=optional',
+        '--os=linux',
+        '--cpu=x64',
+        '--libc=glibc',
+      ],
+      {
+        cwd: bundleDir,
+        stdio: 'inherit',
+      },
+    );
+  } catch (error) {
+    throw new HostingError(
+      'ImageOptimizationBundleError',
+      {
+        message:
+          'Failed to install image-optimization dependencies (ipx + sharp).',
+        resolution:
+          'Run `npm install` inside .amplify-hosting/image-optimization/ to diagnose.',
+      },
+      error as Error,
+    );
+  }
+
+  return bundleDir;
+};
+
+/**
+ * True if the user has `@nuxt/image` in their direct dependencies.
+ * The image-opt Lambda is only useful when the runtime ships
+ * `<NuxtImg>` and uses the IPX provider.
+ */
+const projectUsesNuxtImage = (projectDir: string): boolean => {
+  const pkgPath = path.join(projectDir, 'package.json');
+  if (!fs.existsSync(pkgPath)) return false;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    return '@nuxt/image' in deps;
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Copy amplify_outputs.json from project root into .output/server/ so SSR
  * code can read backend configuration at runtime.
  */
@@ -379,9 +482,16 @@ const buildManifest = (input: {
   publicDir: string;
   routeRules: Record<string, NitroRouteRule>;
   awsLambdaStreaming: boolean;
+  imageOptBundle?: string;
 }): DeployManifest => {
-  const { preset, serverDir, publicDir, routeRules, awsLambdaStreaming } =
-    input;
+  const {
+    preset,
+    serverDir,
+    publicDir,
+    routeRules,
+    awsLambdaStreaming,
+    imageOptBundle,
+  } = input;
 
   const compute: Record<string, ComputeResource> = {
     default: presetToCompute(preset, serverDir, awsLambdaStreaming),
@@ -393,7 +503,7 @@ const buildManifest = (input: {
     staticAssets: {
       directory: publicDir,
     },
-    routes: buildRoutes(publicDir, routeRules),
+    routes: buildRoutes(publicDir, routeRules, !!imageOptBundle),
   };
 
   const redirects = buildRedirects(routeRules);
@@ -413,6 +523,19 @@ const buildManifest = (input: {
     manifest.cache = {
       computeResource: 'default',
       driver: 'nitro-s3',
+    };
+  }
+
+  // Image optimization Lambda — separate compute so sharp's native
+  // binary doesn't bloat the SSR Lambda zip.
+  if (imageOptBundle) {
+    manifest.imageOptimization = {
+      bundle: imageOptBundle,
+      handler: 'index.handler',
+      // @nuxt/image's defaults; user can override via nuxt.config but
+      // the IPX runtime accepts any size requested in the URL anyway.
+      formats: ['webp', 'avif'],
+      sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     };
   }
 
@@ -480,6 +603,7 @@ const presetToCompute = (
 const buildRoutes = (
   publicDir: string,
   routeRules: Record<string, NitroRouteRule>,
+  hasImageOptimization: boolean,
 ): RouteBehavior[] => {
   const routes: RouteBehavior[] = [];
   const seenPatterns = new Set<string>();
@@ -489,6 +613,14 @@ const buildRoutes = (
     routes.push(route);
     seenPatterns.add(route.pattern);
   };
+
+  // Image optimization route must come BEFORE the catch-all and
+  // before any /<dir>/* match so /_ipx/* lands on the dedicated
+  // Lambda. The L3 routes target='image-optimization' to a separate
+  // compute resource (it's a reserved target).
+  if (hasImageOptimization) {
+    addRoute({ pattern: '/_ipx/*', target: 'image-optimization' });
+  }
 
   if (fs.existsSync(publicDir)) {
     // Everything in `.output/public/` is, by definition, a static
