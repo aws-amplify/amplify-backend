@@ -23,6 +23,7 @@ import type {
   DeployManifest,
   RouteBehavior,
 } from '../manifest/types.js';
+import { NITRO_CACHE_PLUGIN_SOURCE } from './nitro_cache_plugin_template.js';
 
 export type NitroAdapterOptions = {
   /** Project root directory (the directory containing the framework config) */
@@ -86,7 +87,16 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   const nitroJsonPath = path.join(outputDir, 'nitro.json');
 
   if (!skipBuild) {
-    runNitroBuild(projectDir, effectivePreset, buildCommand);
+    // Inject the Amplify cache plugin into the user's source tree so
+    // Nitro picks it up at build time. Always remove it after the
+    // build completes (even on failure) so we never leave artefacts
+    // in the user's repo.
+    const cachePluginCleanup = installNitroCachePlugin(projectDir);
+    try {
+      runNitroBuild(projectDir, effectivePreset, buildCommand);
+    } finally {
+      cachePluginCleanup();
+    }
   }
 
   if (!fs.existsSync(outputDir)) {
@@ -198,6 +208,51 @@ const runNitroBuild = (
       error as Error,
     );
   }
+};
+
+/**
+ * Filename injected into the user's `server/plugins/`. The leading
+ * underscore avoids ordering collisions with user-named plugins.
+ */
+const CACHE_PLUGIN_FILENAME = '_amplify-cache.mjs';
+
+/**
+ * Copy the Amplify cache plugin into the user's `server/plugins/`
+ * before Nitro builds. Returns a cleanup function that removes the
+ * file (and the `server/plugins/` directory if we created it).
+ */
+const installNitroCachePlugin = (projectDir: string): (() => void) => {
+  const pluginsDir = path.join(projectDir, 'server', 'plugins');
+  const pluginPath = path.join(pluginsDir, CACHE_PLUGIN_FILENAME);
+
+  // Track what we created so cleanup is exact.
+  const createdPluginsDir = !fs.existsSync(pluginsDir);
+  const createdServerDir = !fs.existsSync(path.join(projectDir, 'server'));
+
+  fs.mkdirSync(pluginsDir, { recursive: true });
+  fs.writeFileSync(pluginPath, NITRO_CACHE_PLUGIN_SOURCE, 'utf-8');
+
+  return (): void => {
+    try {
+      if (fs.existsSync(pluginPath)) fs.rmSync(pluginPath);
+      // Remove the directories ONLY if we created them — never touch
+      // user-owned dirs.
+      if (createdPluginsDir && fs.existsSync(pluginsDir)) {
+        const entries = fs.readdirSync(pluginsDir);
+        if (entries.length === 0) fs.rmdirSync(pluginsDir);
+      }
+      if (createdServerDir) {
+        const serverDir = path.join(projectDir, 'server');
+        if (fs.existsSync(serverDir)) {
+          const entries = fs.readdirSync(serverDir);
+          if (entries.length === 0) fs.rmdirSync(serverDir);
+        }
+      }
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best-effort cleanup. Failure to delete shouldn't fail the deploy.
+    }
+  };
 };
 
 /**
@@ -351,7 +406,36 @@ const buildManifest = (input: {
     manifest.headers = headers;
   }
 
+  // If any route rule uses SWR / ISR / cache, ask the L3 to provision
+  // a shared S3-backed cache. Nitro's `useStorage('cache')` reads/writes
+  // through the Amplify cache plugin we injected into the build.
+  if (usesIsrFeatures(routeRules)) {
+    manifest.cache = {
+      computeResource: 'default',
+      driver: 'nitro-s3',
+    };
+  }
+
   return manifest;
+};
+
+/**
+ * Returns true if any route rule uses an ISR / SWR / cache feature
+ * that needs a shared cache backend to actually work across Lambda
+ * containers.
+ */
+const usesIsrFeatures = (
+  routeRules: Record<string, NitroRouteRule>,
+): boolean => {
+  return Object.values(routeRules).some(
+    (rule) =>
+      rule.cache !== undefined ||
+      // `swr` and `isr` aren't typed on our local NitroRouteRule yet
+      // because we only consumed `cache` previously. Read them from the
+      // raw object — Nitro emits any of these three for ISR semantics.
+      (rule as Record<string, unknown>).swr !== undefined ||
+      (rule as Record<string, unknown>).isr !== undefined,
+  );
 };
 
 /**

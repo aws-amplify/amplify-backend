@@ -99,18 +99,36 @@ export type CacheConfig = {
   /** Which compute resource handles cached content */
   computeResource: string;
 
-  /** Whether tag-based revalidation is needed (provisions DynamoDB) */
-  tagRevalidation: boolean;
+  /**
+   * Cache backend the adapter wants the L3 to provision.
+   *
+   * - `'opennext'` (default for backwards compatibility) — DynamoDB tag
+   *   table + SQS revalidation queue + worker Lambda + S3 cache bucket.
+   *   Used by the Next.js / OpenNext adapter.
+   * - `'nitro-s3'` — single S3 bucket, no SQS, no worker. Used by the
+   *   Nitro adapter; works with Nitro's `useStorage('cache')` model
+   *   where refresh happens inline in the SSR Lambda.
+   */
+  driver?: 'opennext' | 'nitro-s3';
 
-  /** Whether async revalidation queue is needed (provisions SQS) */
-  revalidationQueue: boolean;
+  /**
+   * Whether tag-based revalidation is needed (provisions DynamoDB).
+   * Only honoured when `driver === 'opennext'`.
+   */
+  tagRevalidation?: boolean;
+
+  /**
+   * Whether async revalidation queue is needed (provisions SQS).
+   * Only honoured when `driver === 'opennext'`.
+   */
+  revalidationQueue?: boolean;
 
   /**
    * Background revalidation worker function.
    *
    * When present, a Lambda is deployed with the SQS revalidation queue as its
    * event source. This worker processes ISR revalidation messages and refreshes
-   * stale pages in the background.
+   * stale pages in the background. Only honoured when `driver === 'opennext'`.
    */
   revalidationFunction?: {
     /** Path to the revalidation function bundle directory */
