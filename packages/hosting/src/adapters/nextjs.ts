@@ -104,99 +104,51 @@ export const nextjsAdapter = (
 };
 
 /**
- * Resolve the path to the OpenNext CLI binary from the hosting package's dependencies.
- * @internal
- */
-const resolveOpenNextBinary = (): string => {
-  try {
-    // Try to resolve from node_modules using the package.json main field
-    // For ESM modules, we need to handle the path resolution carefully
-    const packageJsonPath = require.resolve('@opennextjs/aws/package.json');
-    const packageDir = path.dirname(packageJsonPath);
-    return path.join(packageDir, 'dist', 'index.js');
-  } catch {
-    // Fallback: try to find it in common locations
-    // This handles cases where require.resolve fails with ESM modules
-    const possiblePaths = [
-      path.join(
-        __dirname,
-        '..',
-        '..',
-        'node_modules',
-        '@opennextjs',
-        'aws',
-        'dist',
-        'index.js',
-      ),
-      path.join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'node_modules',
-        '@opennextjs',
-        'aws',
-        'dist',
-        'index.js',
-      ),
-      path.join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        '..',
-        'node_modules',
-        '@opennextjs',
-        'aws',
-        'dist',
-        'index.js',
-      ),
-    ];
-
-    for (const possiblePath of possiblePaths) {
-      if (fs.existsSync(possiblePath)) {
-        return possiblePath;
-      }
-    }
-
-    throw new HostingError(
-      'OpenNextNotFoundError',
-      {
-        message:
-          '@opennextjs/aws is not installed in the hosting package dependencies.',
-        resolution:
-          'This is a bug in the hosting package setup. ' +
-          'Ensure @opennextjs/aws is listed in packages/hosting/package.json dependencies.',
-      },
-      new Error('Could not resolve @opennextjs/aws'),
-    );
-  }
-};
-
-/**
  * Execute the OpenNext build command.
  *
- * Resolves @opennextjs/aws from the hosting package's own node_modules
- * (pinned to 3.10.x) rather than using npx which would download the latest.
- * This ensures consistent behavior regardless of the consumer project's dependencies.
+ * Runs `npx @opennextjs/aws build` from the project directory. The consumer
+ * project must have @opennextjs/aws installed as a devDependency — this avoids
+ * bloating the hosting package for SPA/static users who don't need OpenNext.
+ *
+ * If @opennextjs/aws is not installed, npx will fail with a clear error.
+ * We catch it and provide an actionable resolution message.
  */
 const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
-  const opennextBin = resolveOpenNextBinary();
-
-  const execArgs = [opennextBin, 'build'];
-  if (configPath) execArgs.push('--config-path', configPath);
+  const args = ['@opennextjs/aws', 'build'];
+  if (configPath) args.push('--config-path', configPath);
 
   process.stderr.write(
-    `\u{1F528} Running OpenNext build: node ${execArgs.join(' ')}\n`,
+    `\u{1F528} Running OpenNext build: npx ${args.join(' ')}\n`,
   );
 
   try {
-    execFileSync('node', execArgs, {
+    execFileSync('npx', args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
     });
   } catch (error) {
+    // Check if the error is because @opennextjs/aws is not installed
+    const errMsg = (error as Error).message || '';
+    if (
+      errMsg.includes('not found') ||
+      errMsg.includes('ERR_MODULE_NOT_FOUND') ||
+      errMsg.includes('Cannot find package')
+    ) {
+      throw new HostingError(
+        'OpenNextNotFoundError',
+        {
+          message:
+            '@opennextjs/aws is not installed. Next.js hosting requires OpenNext to build and deploy your app.',
+          resolution:
+            'Add @opennextjs/aws to your project\'s devDependencies:\n\n' +
+            '  npm install --save-dev @opennextjs/aws\n\n' +
+            'Then re-run your deployment.',
+        },
+        error as Error,
+      );
+    }
+
     throw new HostingError(
       'OpenNextBuildError',
       {
