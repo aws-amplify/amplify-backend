@@ -28,6 +28,11 @@ import {
   IPX_LAMBDA_HANDLER_SOURCE,
   IPX_LAMBDA_PACKAGE_JSON,
 } from './ipx_lambda_template.js';
+import {
+  copyAmplifyOutputsToServerBundle,
+  htmlFileToUrlPath,
+  walkHtmlFiles,
+} from './shared.js';
 
 export type NitroAdapterOptions = {
   /** Project root directory (the directory containing the framework config) */
@@ -454,26 +459,6 @@ const projectUsesNuxtImage = (projectDir: string): boolean => {
 };
 
 /**
- * Copy amplify_outputs.json from project root into .output/server/ so SSR
- * code can read backend configuration at runtime.
- */
-const copyAmplifyOutputsToServerBundle = (
-  projectDir: string,
-  serverDir: string,
-): void => {
-  const src = path.join(projectDir, 'amplify_outputs.json');
-  if (!fs.existsSync(src)) return;
-
-  const dest = path.join(serverDir, 'amplify_outputs.json');
-  if (!fs.existsSync(dest)) {
-    fs.copyFileSync(src, dest);
-    process.stderr.write(
-      `\u{1F4E6} Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
-    );
-  }
-};
-
-/**
  * Build the DeployManifest from a known-good `.output/` layout.
  */
 const buildManifest = (input: {
@@ -676,35 +661,6 @@ const buildRoutes = (
   addRoute({ pattern: '/*', target: 'default' });
 
   return routes;
-};
-
-/**
- * Recursively collect every `.html` file under `dir`.
- */
-const walkHtmlFiles = (dir: string): string[] => {
-  if (!fs.existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walkHtmlFiles(full));
-    } else if (entry.isFile() && entry.name.endsWith('.html')) {
-      out.push(full);
-    }
-  }
-  return out;
-};
-
-/**
- * Convert a relative `.html` path into a CloudFront route pattern.
- * `about/index.html` → `/about`
- * `index.html` → `/`
- * `blog/post.html` → `/blog/post`
- */
-const htmlFileToUrlPath = (relPath: string): string => {
-  let urlPath = '/' + relPath.replace(/\\/g, '/').replace(/\.html$/, '');
-  urlPath = urlPath.replace(/\/index$/, '');
-  return urlPath === '' ? '/' : urlPath;
 };
 
 /**
