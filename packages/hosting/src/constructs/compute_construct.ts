@@ -241,12 +241,12 @@ export class ComputeConstruct extends Construct {
             computeResource.provisionedConcurrency,
         });
         this.functionUrl = alias.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
+          authType: FunctionUrlAuthType.NONE,
           invokeMode,
         });
       } else {
         this.functionUrl = this.function.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
+          authType: FunctionUrlAuthType.NONE,
           invokeMode,
         });
       }

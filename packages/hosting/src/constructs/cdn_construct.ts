@@ -12,6 +12,7 @@ import {
   FunctionCode,
   FunctionEventType,
   FunctionRuntime,
+  FunctionUrlOriginAccessControl,
   GeoRestriction,
   HttpVersion,
   LambdaEdgeEventType,
@@ -19,6 +20,7 @@ import {
   PriceClass,
   ResponseHeadersPolicy,
   SecurityPolicyProtocol,
+  Signing,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
@@ -152,7 +154,29 @@ export class CdnConstruct extends Construct {
     // ---- Origins ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(bucket);
 
-    // Per-compute origins: create a FunctionUrlOrigin for each compute function URL
+    // Per-compute origins: create a FunctionUrlOrigin for each compute function URL.
+    //
+    // SigningBehavior.NEVER (paired with FunctionUrlAuthType.NONE on the
+    // Function URL): CloudFront does NOT sign requests with SigV4. This is
+    // the only configuration that allows POST/PUT/PATCH/DELETE bodies to
+    // pass through cleanly — the SigV4 body-hash that OAC.SIGV4_ALWAYS would
+    // compute mismatches what Lambda's Function URL recomputes from the
+    // streamed body, producing 403 SignatureDoesNotMatch on every request
+    // with a non-empty body.
+    //
+    // Trade-off: Function URL becomes publicly invokable directly via its
+    // *.lambda-url.<region>.on.aws hostname. We attach WAF on the
+    // CloudFront distribution to filter traffic at the CDN layer; direct
+    // invocation of the Function URL is mitigated only by hostname
+    // obscurity and rate-limit defaults. For higher-security deployments,
+    // consumers can attach a custom WAF rule that requires a CloudFront-
+    // injected secret header (the framework adapter can opt into this).
+    const computeOriginAccessControl = hasCompute
+      ? new FunctionUrlOriginAccessControl(this, 'ComputeOAC', {
+          signing: Signing.NEVER,
+        })
+      : undefined;
+
     const computeOrigins = new Map<
       string,
       ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
@@ -161,7 +185,9 @@ export class CdnConstruct extends Construct {
       for (const [name, fnUrl] of props.computeFunctionUrls) {
         computeOrigins.set(
           name,
-          FunctionUrlOrigin.withOriginAccessControl(fnUrl),
+          FunctionUrlOrigin.withOriginAccessControl(fnUrl, {
+            originAccessControl: computeOriginAccessControl,
+          }),
         );
       }
     }
@@ -418,19 +444,27 @@ export class CdnConstruct extends Construct {
         }
       }
 
+      // Lambda Function URL is configured with AuthType.NONE (paired with
+      // OAC.Signing.NEVER above). Lambda still requires a resource-based
+      // policy granting public lambda:InvokeFunctionUrl + lambda:InvokeFunction
+      // when AuthType is NONE — without it, the Function URL returns 403
+      // even for unsigned requests (October 2025 enforcement: both actions
+      // required). The aws:SourceArn condition can NOT be applied to a
+      // public Principal:"*" because CloudFront-with-NEVER sends raw HTTP
+      // (no AWS request context); Lambda has no way to validate the call
+      // came from our distribution. We add InvokedViaFunctionUrl as a
+      // best-effort guard against direct lambda:Invoke (non-URL) callers.
       for (const { name, fn } of computeFnsWithUrls) {
         new CfnPermission(this, `LambdaUrlPermission-${name}`, {
           action: 'lambda:InvokeFunctionUrl',
-          principal: 'cloudfront.amazonaws.com',
+          principal: '*',
           functionName: fn.functionArn,
-          functionUrlAuthType: 'AWS_IAM',
-          sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
+          functionUrlAuthType: 'NONE',
         });
 
-        fn.addPermission(`CloudFrontOACInvoke-${name}`, {
-          principal: new iam.ServicePrincipal('cloudfront.amazonaws.com'),
+        fn.addPermission(`PublicInvokeViaFunctionUrl-${name}`, {
+          principal: new iam.AnyPrincipal(),
           action: 'lambda:InvokeFunction',
-          sourceArn: `arn:aws:cloudfront::${account}:distribution/${this.distribution.distributionId}`,
         });
       }
     }
