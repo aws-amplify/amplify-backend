@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   AllowedMethods,
@@ -14,6 +14,7 @@ import {
   FunctionRuntime,
   GeoRestriction,
   HttpVersion,
+  IOrigin,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   PriceClass,
@@ -23,6 +24,7 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
   FunctionUrlOrigin,
+  HttpOrigin,
   S3BucketOrigin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
@@ -34,6 +36,12 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import {
+  HttpApi,
+  HttpMethod,
+  PayloadFormatVersion,
+} from 'aws-cdk-lib/aws-apigatewayv2';
+import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
@@ -152,13 +160,63 @@ export class CdnConstruct extends Construct {
     // ---- Origins ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(bucket);
 
-    // Per-compute origins: create a FunctionUrlOrigin for each compute function URL
-    const computeOrigins = new Map<
-      string,
-      ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
-    >();
+    // Per-compute origins.
+    //
+    // The SSR Lambda (named 'default' or 'server') goes through API Gateway
+    // HTTP API instead of OAC + Function URL. Reason: OAC's SigV4 body-hash
+    // mismatches what Lambda Function URL recomputes from received bytes,
+    // producing 403 SignatureDoesNotMatch on every POST/PUT/PATCH with a
+    // non-empty body. AWS docs document this as "Lambda doesn't support
+    // unsigned payloads" and recommend client-side x-amz-content-sha256 —
+    // not viable for browsers hitting an SSR API. API Gateway HTTP API
+    // integrates directly into Lambda (no Function URL, no SigV4 body
+    // hashing), and emits payload format v2 events which match what
+    // OpenNext/Astro/Nuxt adapters already expect from Function URL.
+    //
+    // Other compute (image-optimization / IPX) is GET-only and unaffected
+    // by the body-hash bug, so it stays on the existing OAC + Function URL
+    // path to avoid the per-request API Gateway charge.
+    //
+    // Trade-offs of using HTTP API for the SSR Lambda:
+    //   - Response streaming is NOT supported on HTTP API. Server Components
+    //     streaming, SSE, AI streaming all become buffered. Customers who
+    //     need streaming should consider opting into Function URL via
+    //     a future `defineHosting({ ssr: { origin: 'function-url' } })`
+    //     escape hatch (accepting the POST 403 trade-off).
+    //   - +$1.00/M requests on the SSR path.
+    //   - Request/response body capped at 10 MB (vs 6 MB sync / 20 MB
+    //     streaming on Function URL).
+    //   - 30 s integration timeout (vs Lambda's 15-min max on Function URL).
+    const computeOrigins = new Map<string, IOrigin>();
+    const ssrComputeName: 'default' | 'server' | undefined =
+      props.computeFunctions?.has('default')
+        ? 'default'
+        : props.computeFunctions?.has('server')
+          ? 'server'
+          : undefined;
+
+    // Build HTTP API origin for the SSR Lambda.
+    if (ssrComputeName && props.computeFunctions) {
+      const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+      const httpApi = new HttpApi(this, 'SsrHttpApi', {
+        description: `HTTP API origin for the SSR Lambda (POST/PUT body workaround for OAC body-hash mismatch).`,
+      });
+      httpApi.addRoutes({
+        path: '/{proxy+}',
+        methods: [HttpMethod.ANY],
+        integration: new HttpLambdaIntegration('SsrApiIntegration', ssrFn, {
+          payloadFormatVersion: PayloadFormatVersion.VERSION_2_0,
+        }),
+      });
+      const apiHostname = Fn.select(2, Fn.split('/', httpApi.apiEndpoint));
+      computeOrigins.set(ssrComputeName, new HttpOrigin(apiHostname));
+    }
+
+    // All other compute (image-optimization etc.) keeps the OAC + Function
+    // URL path. They are GET-only and unaffected by the SigV4 body bug.
     if (props.computeFunctionUrls) {
       for (const [name, fnUrl] of props.computeFunctionUrls) {
+        if (computeOrigins.has(name)) continue; // already wired via HTTP API
         computeOrigins.set(
           name,
           FunctionUrlOrigin.withOriginAccessControl(fnUrl),
@@ -231,9 +289,7 @@ export class CdnConstruct extends Construct {
       ],
     });
 
-    const makeComputeBehavior = (
-      origin?: ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>,
-    ): BehaviorOptions => ({
+    const makeComputeBehavior = (origin?: IOrigin): BehaviorOptions => ({
       origin: origin ?? primaryOrigin!,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
@@ -407,10 +463,13 @@ export class CdnConstruct extends Construct {
       }
 
       // Only grant InvokeFunctionUrl to functions that actually have Function URLs
-      // (edge functions do NOT have Function URLs and must be excluded).
+      // AND go through the OAC origin path. The SSR Lambda's Function URL (if
+      // any) is NOT in that set — it goes through API Gateway HTTP API instead
+      // (HttpLambdaIntegration grants its own InvokeFunction permission).
       const computeFnsWithUrls: Array<{ name: string; fn: IFunction }> = [];
       if (props.computeFunctionUrls && props.computeFunctions) {
         for (const [name] of props.computeFunctionUrls) {
+          if (name === ssrComputeName) continue; // SSR uses HTTP API, not OAC
           const fn = props.computeFunctions.get(name);
           if (fn) {
             computeFnsWithUrls.push({ name, fn });
