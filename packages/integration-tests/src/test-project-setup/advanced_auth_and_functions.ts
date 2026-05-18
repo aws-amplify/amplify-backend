@@ -27,9 +27,7 @@ import {
 /**
  * Creates test projects with advanced use cases of auth and functions categories.
  */
-export class AdvancedAuthAndFunctionsTestProjectCreator
-  implements TestProjectCreator
-{
+export class AdvancedAuthAndFunctionsTestProjectCreator implements TestProjectCreator {
   readonly name = 'advanced-auth-and-functions';
 
   /**

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const { data } = await useFetch('/api/backend-status');
 const userPoolId = computed(() => data.value?.userPoolId ?? 'none');
-const backendStatus = computed(() => data.value?.backendStatus ?? 'disconnected');
+const backendStatus = computed(
+  () => data.value?.backendStatus ?? 'disconnected',
+);
 const graphqlResult = computed(() => data.value?.graphqlResult ?? 'no-query');
 </script>
 
