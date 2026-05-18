@@ -20,6 +20,15 @@
  *   - `BUCKET_REGION` — bucket region.
  *   - `BUCKET_KEY_PREFIX` — `builds/<buildId>` prefix that namespaces
  *     this deploy's assets.
+ *
+ * SVG handling:
+ *   IPX runs SVG inputs through SVGO (the upstream default; we don't
+ *   override `svgo: false`). The output is a minified SVG, not a
+ *   raster — sharp can't write SVG, so `?f=webp` etc. on an SVG
+ *   source isn't meaningful. Users sometimes mistake "same visual,
+ *   different bytes" for "no optimization" — it isn't, SVGO did its
+ *   work. Upstream tracks broader format support in
+ *   https://github.com/unjs/ipx/issues/261.
  */
 export const IPX_LAMBDA_HANDLER_SOURCE = `import { createIPX, createIPXWebServer } from 'ipx';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -88,14 +97,26 @@ const log = (msg) =>
   process.stderr.write(\`[amplify-hosting:image] \${msg}\\n\`);
 
 /**
+ * Configurable base URL prefix the user wired into @nuxt/image. Defaults
+ * to /_ipx, the @nuxt/image default. Users override via
+ * \`runtimeConfig.ipx.baseURL\` in nuxt.config; the adapter forwards
+ * that value into IPX_BASE_URL on this Lambda.
+ */
+const ipxBaseURL = (process.env.IPX_BASE_URL || '/_ipx').replace(/\\/+$/, '');
+const ipxStripPattern = new RegExp(
+  '^' + ipxBaseURL.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&'),
+);
+
+/**
  * Convert a Lambda Function URL event into a standard fetch Request.
  *
- * Strips the leading /_ipx/ prefix because IPX's web server expects
- * paths in the shape /<modifiers>/<sourcePath> (without the prefix).
+ * Strips the configured base URL prefix because IPX's web server
+ * expects paths in the shape /<modifiers>/<sourcePath> (without the
+ * prefix).
  */
 const eventToRequest = (event) => {
   const rawPath = event.rawPath || '/';
-  const stripped = rawPath.replace(/^\\/_ipx/, '') || '/';
+  const stripped = rawPath.replace(ipxStripPattern, '') || '/';
   const query = event.rawQueryString ? \`?\${event.rawQueryString}\` : '';
   // The IPX server doesn't actually use the host part — it pulls path
   // and query from the URL. Use a placeholder.

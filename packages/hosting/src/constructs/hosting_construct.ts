@@ -419,6 +419,15 @@ export class AmplifyHostingConstruct extends Construct {
           'BUCKET_REGION',
           Stack.of(this).region,
         );
+        // Adapter-supplied env (e.g. IPX_BASE_URL for @nuxt/image
+        // when the user customizes `runtimeConfig.ipx.baseURL`).
+        if (manifest.imageOptimization.environment) {
+          for (const [key, value] of Object.entries(
+            manifest.imageOptimization.environment,
+          )) {
+            imageConstruct.function.addEnvironment(key, value);
+          }
+        }
       }
     }
 

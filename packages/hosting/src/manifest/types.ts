@@ -150,6 +150,23 @@ export type ImageConfig = {
 
   /** Max image sizes */
   sizes: number[];
+
+  /**
+   * Path prefix the image-opt Lambda serves. Defaults to `/_ipx` for
+   * Nitro/@nuxt/image projects; users can override via
+   * `runtimeConfig.ipx.baseURL` in nuxt.config. The CloudFront cache
+   * behavior is wired at this path, and the Lambda's request handler
+   * uses it to strip the prefix before passing the URL to IPX.
+   */
+  baseURL?: string;
+
+  /**
+   * Extra environment variables forwarded to the image-opt Lambda.
+   * The L3 always sets BUCKET_NAME / BUCKET_REGION / BUCKET_KEY_PREFIX
+   * for storage access; this is for framework-specific config (e.g.
+   * IPX_BASE_URL when the user customizes the `/_ipx` prefix).
+   */
+  environment?: Record<string, string>;
 };
 
 export type MiddlewareConfig = {

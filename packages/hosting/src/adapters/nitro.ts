@@ -133,6 +133,10 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   // Lambda bundle so sharp doesn't bloat the SSR Lambda. The bundle
   // is referenced via `manifest.imageOptimization` later on.
   const imageOptBundle = buildImageOptBundleIfNeeded(projectDir);
+  // @nuxt/image's `runtimeConfig.ipx.baseURL` lets users serve IPX
+  // from a path other than the default `/_ipx`. We need the same
+  // value so the CloudFront cache behavior + Lambda strip match.
+  const ipxBaseURL = imageOptBundle ? findIpxBaseURL(projectDir) : undefined;
 
   let nitroInfo: NitroBuildInfo = {};
   if (fs.existsSync(nitroJsonPath)) {
@@ -173,6 +177,7 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     routeRules: mergedRouteRules,
     awsLambdaStreaming,
     imageOptBundle,
+    ipxBaseURL,
   });
 };
 
@@ -433,9 +438,10 @@ const buildImageOptBundleIfNeeded = (
 };
 
 /**
- * True if the user has `@nuxt/image` in their direct dependencies.
- * The image-opt Lambda is only useful when the runtime ships
- * `<NuxtImg>` and uses the IPX provider.
+ * True if the user has `@nuxt/image` in their direct dependencies AND
+ * hasn't explicitly disabled the image module in `nuxt.config`. The
+ * image-opt Lambda is only useful when the runtime ships `<NuxtImg>`
+ * and uses the IPX provider.
  */
 const projectUsesNuxtImage = (projectDir: string): boolean => {
   const pkgPath = path.join(projectDir, 'package.json');
@@ -446,11 +452,74 @@ const projectUsesNuxtImage = (projectDir: string): boolean => {
       devDependencies?: Record<string, string>;
     };
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-    return '@nuxt/image' in deps;
+    if (!('@nuxt/image' in deps)) return false;
+    // The dep is present, but the user may have disabled the module
+    // via nuxt.config — in that case <NuxtImg> isn't wired up and our
+    // ~50 MB IPX Lambda would just sit unused.
+    return !nuxtConfigBypassesIpx(projectDir);
     // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
   } catch {
     return false;
   }
+};
+
+/**
+ * Static text scan of `nuxt.config.{ts,mjs,js,cjs}` for a signal that
+ * `@nuxt/image` is configured in a way that bypasses our IPX Lambda:
+ *   - `image: false`                                  → module disabled
+ *   - `image: { provider: 'none' }`                   → explicit no-op
+ *   - `image: { provider: 'cloudinary' | 'imgix' | … }` → third-party CDN
+ *
+ * `@nuxt/image` only routes through our `/_ipx/*` Lambda when the
+ * provider is `'ipx'` or `'ipxStatic'`. For any other provider
+ * (Cloudinary, Imgix, Cloudflare, Vercel, AWS Amplify, etc.), the
+ * `<NuxtImg>` URLs go directly to that CDN and our ~50 MB IPX Lambda
+ * is dead code.
+ *
+ * Conservative — if the user computes the provider dynamically, we
+ * default to "IPX is in use" (status quo: provision the Lambda).
+ */
+const nuxtConfigBypassesIpx = (projectDir: string): boolean => {
+  for (const ext of ['ts', 'mjs', 'js', 'cjs']) {
+    const candidate = path.join(projectDir, `nuxt.config.${ext}`);
+    if (!fs.existsSync(candidate)) continue;
+    const source = fs.readFileSync(candidate, 'utf-8');
+    if (/\bimage\s*:\s*false\b/.test(source)) return true;
+    const match = source.match(
+      /\bimage\s*:\s*\{[\s\S]*?\bprovider\s*:\s*['"`]([^'"`]+)['"`][\s\S]*?\}/,
+    );
+    if (match && !['ipx', 'ipxStatic'].includes(match[1]!)) return true;
+    return false;
+  }
+  return false;
+};
+
+/**
+ * Static text scan of `nuxt.config.{ts,mjs,js,cjs}` for the user's
+ * configured IPX base URL:
+ *
+ *   runtimeConfig: { ipx: { baseURL: '/img-cdn' } }
+ *
+ * `@nuxt/image`'s IPX provider serves at `/_ipx` by default. Users can
+ * override via `runtimeConfig.ipx.baseURL`. We need that value so the
+ * CloudFront cache behavior + Lambda strip-prefix match what
+ * `<NuxtImg>` actually generates.
+ *
+ * Conservative — anything dynamic (computed config, env var lookup
+ * without the literal default) defaults to undefined here, and the
+ * caller falls back to `/_ipx`.
+ */
+const findIpxBaseURL = (projectDir: string): string | undefined => {
+  for (const ext of ['ts', 'mjs', 'js', 'cjs']) {
+    const candidate = path.join(projectDir, `nuxt.config.${ext}`);
+    if (!fs.existsSync(candidate)) continue;
+    const source = fs.readFileSync(candidate, 'utf-8');
+    const match = source.match(
+      /\bruntimeConfig\s*:\s*\{[\s\S]*?\bipx\s*:\s*\{[\s\S]*?\bbaseURL\s*:\s*['"`]([^'"`]+)['"`]/,
+    );
+    return match ? match[1] : undefined;
+  }
+  return undefined;
 };
 
 /**
@@ -483,6 +552,12 @@ const buildManifest = (input: {
   routeRules: Record<string, NitroRouteRule>;
   awsLambdaStreaming: boolean;
   imageOptBundle?: string;
+  /**
+   * Path the IPX Lambda is mounted at. Defaults to `/_ipx` when
+   * `imageOptBundle` is set; user override comes from
+   * `runtimeConfig.ipx.baseURL` in nuxt.config.
+   */
+  ipxBaseURL?: string;
 }): DeployManifest => {
   const {
     preset,
@@ -491,7 +566,13 @@ const buildManifest = (input: {
     routeRules,
     awsLambdaStreaming,
     imageOptBundle,
+    ipxBaseURL,
   } = input;
+
+  // Default the IPX base URL to @nuxt/image's `/_ipx` convention.
+  // `findIpxBaseURL` already returns undefined when the user didn't
+  // override.
+  const effectiveIpxBaseURL = ipxBaseURL ?? '/_ipx';
 
   const compute: Record<string, ComputeResource> = {
     default: presetToCompute(preset, serverDir, awsLambdaStreaming),
@@ -503,7 +584,12 @@ const buildManifest = (input: {
     staticAssets: {
       directory: publicDir,
     },
-    routes: buildRoutes(publicDir, routeRules, !!imageOptBundle),
+    routes: buildRoutes(
+      publicDir,
+      routeRules,
+      !!imageOptBundle,
+      effectiveIpxBaseURL,
+    ),
   };
 
   const redirects = buildRedirects(routeRules);
@@ -536,6 +622,13 @@ const buildManifest = (input: {
       // the IPX runtime accepts any size requested in the URL anyway.
       formats: ['webp', 'avif'],
       sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+      baseURL: effectiveIpxBaseURL,
+      // Forward the user-configured base URL into the Lambda so its
+      // prefix-stripping regex matches whatever path CloudFront
+      // routes here. Default `/_ipx` works without an explicit env.
+      ...(effectiveIpxBaseURL !== '/_ipx'
+        ? { environment: { IPX_BASE_URL: effectiveIpxBaseURL } }
+        : {}),
     };
   }
 
@@ -546,19 +639,24 @@ const buildManifest = (input: {
  * Returns true if any route rule uses an ISR / SWR / cache feature
  * that needs a shared cache backend to actually work across Lambda
  * containers.
+ *
+ * Treat falsy values as "not requesting caching". Nuxt's framework
+ * defaults emit `'/__nuxt_error': { cache: false }` on every project,
+ * so a presence-only check tripped on every vanilla Nuxt deploy and
+ * provisioned an unused S3 cache bucket.
  */
 const usesIsrFeatures = (
   routeRules: Record<string, NitroRouteRule>,
 ): boolean => {
-  return Object.values(routeRules).some(
-    (rule) =>
-      rule.cache !== undefined ||
-      // `swr` and `isr` aren't typed on our local NitroRouteRule yet
-      // because we only consumed `cache` previously. Read them from the
-      // raw object — Nitro emits any of these three for ISR semantics.
-      (rule as Record<string, unknown>).swr !== undefined ||
-      (rule as Record<string, unknown>).isr !== undefined,
-  );
+  return Object.values(routeRules).some((rule) => {
+    const raw = rule as Record<string, unknown>;
+    // `swr` and `isr` aren't typed on our local NitroRouteRule yet —
+    // Nitro emits any of these three for ISR semantics. Truthy values
+    // mean "use cache" (e.g. `swr: 60`, `cache: { swr: true }`); falsy
+    // values (`cache: false`, `swr: 0`) mean the rule explicitly opts
+    // out and shouldn't trigger cache provisioning.
+    return Boolean(rule.cache) || Boolean(raw.swr) || Boolean(raw.isr);
+  });
 };
 
 /**
@@ -599,11 +697,19 @@ const presetToCompute = (
 /**
  * Walk `.output/public/` and emit static routes for prerendered output,
  * then append a catch-all `/* → default` for SSR.
+ * @param publicDir Absolute path to `.output/public/` for the build.
+ * @param routeRules Merged Nitro route rules (user + framework defaults).
+ * @param hasImageOptimization Whether an image-opt Lambda is being
+ *   provisioned. Controls emission of the IPX cache behavior.
+ * @param ipxBaseURL Path the image-opt Lambda is mounted at when
+ *   `hasImageOptimization` is true. Defaults to `/_ipx`; users override
+ *   via `runtimeConfig.ipx.baseURL` in nuxt.config.
  */
 const buildRoutes = (
   publicDir: string,
   routeRules: Record<string, NitroRouteRule>,
   hasImageOptimization: boolean,
+  ipxBaseURL: string,
 ): RouteBehavior[] => {
   const routes: RouteBehavior[] = [];
   const seenPatterns = new Set<string>();
@@ -615,11 +721,14 @@ const buildRoutes = (
   };
 
   // Image optimization route must come BEFORE the catch-all and
-  // before any /<dir>/* match so /_ipx/* lands on the dedicated
+  // before any /<dir>/* match so the IPX path lands on the dedicated
   // Lambda. The L3 routes target='image-optimization' to a separate
   // compute resource (it's a reserved target).
   if (hasImageOptimization) {
-    addRoute({ pattern: '/_ipx/*', target: 'image-optimization' });
+    addRoute({
+      pattern: `${ipxBaseURL.replace(/\/+$/, '')}/*`,
+      target: 'image-optimization',
+    });
   }
 
   if (fs.existsSync(publicDir)) {

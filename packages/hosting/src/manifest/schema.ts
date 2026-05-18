@@ -76,6 +76,11 @@ export const imageConfigSchema = z.object({
   handler: z.string().min(1),
   formats: z.array(z.string()),
   sizes: z.array(z.number().positive()),
+  baseURL: z
+    .string()
+    .regex(/^\/[^?#\s]*$/, 'baseURL must be an absolute path starting with /')
+    .optional(),
+  environment: z.record(z.string(), z.string()).optional(),
 });
 
 /**
