@@ -884,14 +884,21 @@ const buildHeaders = (
  */
 const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   const bundle = path.join(serverDir, 'chunks', 'nitro', 'nitro.mjs');
-  if (!fs.existsSync(bundle)) {
-    process.stderr.write(
-      `⚠️  Skipping Nitro handler patch: ${bundle} not found.\n`,
-    );
-    return;
-  }
 
-  let src = fs.readFileSync(bundle, 'utf-8');
+  // Read directly; let the missing-file case fall out as ENOENT instead of
+  // checking existence separately (avoids a TOCTOU race).
+  let src: string;
+  try {
+    src = fs.readFileSync(bundle, 'utf-8');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      process.stderr.write(
+        `⚠️  Skipping Nitro handler patch: ${bundle} not found.\n`,
+      );
+      return;
+    }
+    throw err;
+  }
   let patches = 0;
 
   const rawPathRe = /withQuery\(\s*event\.rawPath\s*,\s*query\s*\)/g;
