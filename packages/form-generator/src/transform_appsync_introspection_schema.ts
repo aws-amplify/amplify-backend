@@ -56,7 +56,12 @@ export const transformIntrospectionSchema = async (
         },
       ],
       pluginMap: {
-        appSyncLocalCodeGen: appsync,
+        // Type assertion needed: appsync-modelgen-plugin uses plugin-helpers@5.x
+        // (DocumentFile.hash: string | null | undefined) while
+        // @graphql-codegen/core@6 uses plugin-helpers@7.x (string | undefined)
+        appSyncLocalCodeGen:
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          appsync as any,
       },
     });
   });
