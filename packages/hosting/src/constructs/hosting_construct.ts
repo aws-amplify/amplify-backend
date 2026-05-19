@@ -41,6 +41,7 @@ import { CdnConstruct } from './cdn_construct.js';
 
 // Re-export build ID helpers for public API + tests
 export { generateBuildIdFunctionCode, generateBuildId } from '../defaults.js';
+export type { SkewProtectionConfig } from './skew_protection.js';
 
 // ---- Public types ----
 
@@ -110,6 +111,19 @@ export type AmplifyHostingConstructProps = {
   logging?: {
     enabled: boolean;
     retentionDays?: number;
+  };
+  /**
+   * Cookie-based skew protection.
+   * When enabled, users mid-session keep receiving assets from their original
+   * build, preventing asset mismatches during rolling deployments.
+   *
+   * @default \{ enabled: true \} — skew protection is enabled by default.
+   * Set `\{ enabled: false \}` to disable.
+   */
+  skewProtection?: {
+    enabled: boolean;
+    /** How long to honor old build cookies (seconds). Default: 86400 (24h) */
+    maxAge?: number;
   };
 };
 
@@ -495,6 +509,7 @@ export class AmplifyHostingConstruct extends Construct {
       accessLogBucket: storage.accessLogBucket,
       priceClass: props.cdn?.priceClass,
       geoRestriction: props.cdn?.geoRestriction,
+      skewProtection: props.skewProtection ?? { enabled: true },
     });
 
     this.distribution = cdn.distribution;

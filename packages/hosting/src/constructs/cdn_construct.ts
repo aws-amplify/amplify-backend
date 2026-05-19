@@ -37,6 +37,11 @@ import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
+import {
+  SkewProtectionConfig,
+  generateSkewProtectionViewerRequestCode,
+  generateSkewProtectionViewerResponseCode,
+} from './skew_protection.js';
 
 // ---- Constants ----
 
@@ -89,6 +94,8 @@ export type CdnConstructProps = {
   errorPageHtml?: string;
   /** Lambda@Edge function version for middleware (viewer-request). */
   middlewareEdgeFunction?: IVersion;
+  /** Cookie-based skew protection configuration. */
+  skewProtection?: SkewProtectionConfig;
 };
 
 // ---- Construct ----
@@ -138,16 +145,38 @@ export class CdnConstruct extends Construct {
       hasComputeRoutes;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
+    const skewEnabled = props.skewProtection?.enabled === true;
+    const skewMaxAge = props.skewProtection?.maxAge ?? 86400;
+
     // ---- Build ID rewrite function ----
-    const buildIdFunction = new CloudFrontFunction(
-      this,
-      'BuildIdRewriteFunction',
-      {
-        code: FunctionCode.fromInline(generateBuildIdFunctionCode(buildId)),
-        runtime: FunctionRuntime.JS_2_0,
-        comment: `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
-      },
-    );
+    // When skew protection is enabled, the viewer-request function reads the
+    // __dpl cookie to route users to their pinned build. Otherwise,
+    // a simple static rewrite is used.
+    const viewerRequestFunction = skewEnabled
+      ? new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
+          code: FunctionCode.fromInline(
+            generateSkewProtectionViewerRequestCode(buildId),
+          ),
+          runtime: FunctionRuntime.JS_2_0,
+          comment: `Skew protection: routes requests to build from cookie or current build ${buildId}`,
+        })
+      : new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
+          code: FunctionCode.fromInline(generateBuildIdFunctionCode(buildId)),
+          runtime: FunctionRuntime.JS_2_0,
+          comment: `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
+        });
+
+    // ---- Skew protection viewer-response function ----
+    // Sets the __dpl cookie on HTML responses to pin the user's session.
+    const viewerResponseFunction = skewEnabled
+      ? new CloudFrontFunction(this, 'SkewProtectionResponseFunction', {
+          code: FunctionCode.fromInline(
+            generateSkewProtectionViewerResponseCode(buildId, skewMaxAge),
+          ),
+          runtime: FunctionRuntime.JS_2_0,
+          comment: `Skew protection: sets __dpl cookie to ${buildId} on HTML responses`,
+        })
+      : undefined;
 
     // ---- Origins ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(bucket);
@@ -225,9 +254,17 @@ export class CdnConstruct extends Construct {
       responseHeadersPolicy: props.securityHeadersPolicy,
       functionAssociations: [
         {
-          function: buildIdFunction,
+          function: viewerRequestFunction,
           eventType: FunctionEventType.VIEWER_REQUEST,
         },
+        ...(viewerResponseFunction
+          ? [
+              {
+                function: viewerResponseFunction,
+                eventType: FunctionEventType.VIEWER_RESPONSE,
+              },
+            ]
+          : []),
       ],
     });
 
@@ -242,16 +279,24 @@ export class CdnConstruct extends Construct {
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
       ...(edgeLambdas ? { edgeLambdas } : {}),
-      ...(forwardedHostFunction
-        ? {
-            functionAssociations: [
+      functionAssociations: [
+        ...(forwardedHostFunction
+          ? [
               {
                 function: forwardedHostFunction,
                 eventType: FunctionEventType.VIEWER_REQUEST,
               },
-            ],
-          }
-        : {}),
+            ]
+          : []),
+        ...(viewerResponseFunction
+          ? [
+              {
+                function: viewerResponseFunction,
+                eventType: FunctionEventType.VIEWER_RESPONSE,
+              },
+            ]
+          : []),
+      ],
     });
 
     // ---- Route → behavior mapping ----
