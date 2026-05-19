@@ -21,3 +21,4 @@ export {
   generateBuildId,
   generateBuildIdFunctionCode,
 } from './constructs/hosting_construct.js';
+export type { SkewProtectionConfig } from './constructs/skew_protection.js';
