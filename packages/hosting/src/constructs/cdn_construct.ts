@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   AllowedMethods,
@@ -14,6 +14,7 @@ import {
   FunctionRuntime,
   GeoRestriction,
   HttpVersion,
+  IOrigin,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   PriceClass,
@@ -23,6 +24,7 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
   FunctionUrlOrigin,
+  HttpOrigin,
   S3BucketOrigin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
@@ -34,6 +36,12 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import {
+  EndpointType,
+  LambdaIntegration,
+  ResponseTransferMode,
+  RestApi,
+} from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
@@ -152,11 +160,56 @@ export class CdnConstruct extends Construct {
     // ---- Origins ----
     const s3Origin = S3BucketOrigin.withOriginAccessControl(bucket);
 
-    // Per-compute origins: create a FunctionUrlOrigin for each compute function URL
-    const computeOrigins = new Map<
-      string,
-      ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>
-    >();
+    // SSR Lambda goes through API Gateway REST API + STREAM mode instead of
+    // OAC + Function URL. OAC SigV4 includes the body hash; Function URL
+    // recomputes it from received bytes and the two diverge, returning 403
+    // on every non-empty POST/PUT/PATCH. REST API uses lambda:InvokeFunction
+    // (no body re-hash) and is currently the only API GW flavor that
+    // supports ResponseTransferMode.STREAM for Lambda proxy integrations.
+    //
+    // The Lambda must be built with a payload-v1 converter + streaming
+    // wrapper (REST API sends v1; most adapters default to v2). Image-opt
+    // and other GET-only compute stay on OAC + FURL.
+    const computeOrigins = new Map<string, IOrigin>();
+    const ssrComputeName: 'default' | 'server' | undefined =
+      props.computeFunctions?.has('default')
+        ? 'default'
+        : props.computeFunctions?.has('server')
+          ? 'server'
+          : undefined;
+
+    if (ssrComputeName && props.computeFunctions) {
+      const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+      // REGIONAL: CloudFront is already in front; edge-optimized would
+      // double-proxy and cap streaming idle timeout at 30s.
+      const restApi = new RestApi(this, 'SsrRestApi', {
+        endpointTypes: [EndpointType.REGIONAL],
+        deployOptions: { stageName: 'prod' },
+      });
+      const integration = new LambdaIntegration(ssrFn, {
+        proxy: true,
+        responseTransferMode: ResponseTransferMode.STREAM,
+      });
+      // Wire root + {proxy+} manually. CDK's addProxy({ anyMethod: true })
+      // attaches a MOCK integration to the root (not our LambdaIntegration),
+      // which breaks `/` with "Unable to parse statusCode".
+      restApi.root.addMethod('ANY', integration);
+      restApi.root.addResource('{proxy+}').addMethod('ANY', integration);
+
+      // restApi.url is "https://{id}.execute-api.{region}.amazonaws.com/{stage}/";
+      // HttpOrigin needs the bare host.
+      const apiHostname = Fn.select(2, Fn.split('/', restApi.url));
+      computeOrigins.set(
+        ssrComputeName,
+        new HttpOrigin(apiHostname, {
+          originPath: `/${restApi.deploymentStage.stageName}`,
+        }),
+      );
+    }
+
+    // Other compute (image-opt etc.) stays on OAC + Function URL — GET-only,
+    // not exposed to the body-hash bug. The SSR compute isn't in this map
+    // (L3 skips its Function URL).
     if (props.computeFunctionUrls) {
       for (const [name, fnUrl] of props.computeFunctionUrls) {
         computeOrigins.set(
@@ -231,9 +284,7 @@ export class CdnConstruct extends Construct {
       ],
     });
 
-    const makeComputeBehavior = (
-      origin?: ReturnType<typeof FunctionUrlOrigin.withOriginAccessControl>,
-    ): BehaviorOptions => ({
+    const makeComputeBehavior = (origin?: IOrigin): BehaviorOptions => ({
       origin: origin ?? primaryOrigin!,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
@@ -406,8 +457,8 @@ export class CdnConstruct extends Construct {
         }
       }
 
-      // Only grant InvokeFunctionUrl to functions that actually have Function URLs
-      // (edge functions do NOT have Function URLs and must be excluded).
+      // Grant InvokeFunctionUrl only to OAC-fronted compute. The SSR Lambda
+      // gets its grant from LambdaIntegration's auto-attached resource policy.
       const computeFnsWithUrls: Array<{ name: string; fn: IFunction }> = [];
       if (props.computeFunctionUrls && props.computeFunctions) {
         for (const [name] of props.computeFunctionUrls) {

@@ -188,6 +188,10 @@ export class AmplifyHostingConstruct extends Construct {
         continue;
       }
 
+      // SSR compute is fronted by REST API (cdn_construct.ts), not by a
+      // Function URL. Image-opt etc. keep OAC + Function URL.
+      const isSsrCompute = name === 'default' || name === 'server';
+
       const computeConstruct = new ComputeConstruct(this, `Compute-${name}`, {
         name,
         computeResource: resource,
@@ -196,6 +200,7 @@ export class AmplifyHostingConstruct extends Construct {
         reservedConcurrency: props.compute?.reservedConcurrency,
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
+        skipFunctionUrl: isSsrCompute,
       });
 
       this.computeFunctions.set(name, computeConstruct.function);
