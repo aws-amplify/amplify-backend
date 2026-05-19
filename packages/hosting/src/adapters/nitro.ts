@@ -101,6 +101,14 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     } finally {
       cachePluginCleanup();
     }
+
+    // Nitro's aws-lambda preset reads event.rawPath / requestContext.http
+    // (HTTP API v2 / Function URL shape). The L3 fronts SSR with REST API
+    // (payload v1: event.path / requestContext.httpMethod). Without the
+    // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
+    if (effectivePreset === 'aws-lambda') {
+      patchNitroHandlerForApiGateway(serverDir);
+    }
   }
 
   if (!fs.existsSync(outputDir)) {
@@ -863,6 +871,59 @@ const buildHeaders = (
     });
   }
   return out;
+};
+
+/**
+ * Patch Nitro's bundled aws-lambda streaming handler at
+ * <serverDir>/chunks/nitro/nitro.mjs to fall through to REST API (v1)
+ * fields when the v2 fields are undefined:
+ *   - withQuery(event.rawPath, …) → event.rawPath || event.path
+ *   - event.requestContext?.http?.method → || event.requestContext?.httpMethod
+ * Idempotent.
+ * @internal
+ */
+const patchNitroHandlerForApiGateway = (serverDir: string): void => {
+  const bundle = path.join(serverDir, 'chunks', 'nitro', 'nitro.mjs');
+  if (!fs.existsSync(bundle)) {
+    process.stderr.write(
+      `⚠️  Skipping Nitro handler patch: ${bundle} not found.\n`,
+    );
+    return;
+  }
+
+  let src = fs.readFileSync(bundle, 'utf-8');
+  let patches = 0;
+
+  const rawPathRe = /withQuery\(\s*event\.rawPath\s*,\s*query\s*\)/g;
+  if (rawPathRe.test(src)) {
+    src = src.replace(
+      rawPathRe,
+      'withQuery(event.rawPath || event.path, query)',
+    );
+    patches++;
+  }
+
+  const methodRe = /event\.requestContext\?\.http\?\.method/g;
+  if (methodRe.test(src)) {
+    src = src.replace(
+      methodRe,
+      '(event.requestContext?.http?.method || event.requestContext?.httpMethod)',
+    );
+    patches++;
+  }
+
+  if (patches === 0) {
+    process.stderr.write(
+      `⚠️  Nitro handler patch found nothing to change in ${bundle}. ` +
+        `Nitro may have updated its bundled aws-lambda preset; verify the request-shape.\n`,
+    );
+    return;
+  }
+
+  fs.writeFileSync(bundle, src, 'utf-8');
+  process.stderr.write(
+    `\u{1F527} Patched bundled Nitro aws-lambda handler for API Gateway REST API (${patches} edits).\n`,
+  );
 };
 
 /**
