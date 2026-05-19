@@ -1,0 +1,62 @@
+{
+  "name": "@aws-amplify/hosting",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./constructs": {
+      "types": "./lib/constructs/hosting_construct.d.ts",
+      "import": "./lib/constructs/hosting_construct.js",
+      "require": "./lib/constructs/hosting_construct.js"
+    },
+    "./adapters": {
+      "types": "./lib/adapters/index.d.ts",
+      "import": "./lib/adapters/index.js",
+      "require": "./lib/adapters/index.js"
+    },
+    "./error": {
+      "types": "./lib/hosting_error.d.ts",
+      "import": "./lib/hosting_error.js",
+      "require": "./lib/hosting_error.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local",
+    "postinstall": "node -e \"console.log('\\n⚠️  @aws-amplify/hosting is a PREVIEW release — not for production use\\n')\""
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^1.5.0",
+    "@aws-amplify/backend-output-storage": "^1.3.4",
+    "@aws-amplify/platform-core": "^1.11.0",
+    "@aws-amplify/plugin-types": "^1.12.0"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
+    "@opennextjs/aws": "~3.10.0",
+    "zod": "3.25.17"
+  },
+  "peerDependencies": {
+    "@opennextjs/aws": ">=3.10.0",
+    "aws-cdk-lib": "^2.234.1",
+    "constructs": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@opennextjs/aws": {
+      "optional": true
+    }
+  }
+}

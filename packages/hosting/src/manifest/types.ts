@@ -1,0 +1,197 @@
+/**
+ * Framework-agnostic deployment manifest.
+ *
+ * Produced by framework adapters (Next.js/OpenNext, SvelteKit, Astro).
+ * Consumed by the L3 AmplifyHostingConstruct.
+ *
+ * The L3 NEVER knows which framework produced this manifest.
+ */
+
+export type DeployManifest = {
+  version: 1;
+
+  /** Named compute resources */
+  compute: Record<string, ComputeResource>;
+
+  /** Static asset configuration */
+  staticAssets: {
+    /** Path to static files directory */
+    directory: string;
+    /** Cache-Control header for assets */
+    cacheControl?: string;
+  };
+
+  /** Route behaviors (maps URL patterns to compute/static) */
+  routes: RouteBehavior[];
+
+  /** Cache infrastructure (provisioned if present) */
+  cache?: CacheConfig;
+
+  /** Image optimization (separate Lambda if present) */
+  imageOptimization?: ImageConfig;
+
+  /** Middleware (edge function if present) */
+  middleware?: MiddlewareConfig;
+
+  /** Redirects */
+  redirects?: Redirect[];
+
+  /** Rewrites */
+  rewrites?: Rewrite[];
+
+  /** Custom response headers */
+  headers?: CustomHeader[];
+
+  /** Build ID for atomic deployments. */
+  buildId?: string;
+};
+
+export type ComputeResource = {
+  /** How this compute runs */
+  type: 'handler' | 'http-server' | 'edge';
+
+  /** Path to the bundled code */
+  bundle: string;
+
+  /** Handler entry point (for type: 'handler') */
+  handler?: string;
+
+  /** Server entry point (for type: 'http-server') */
+  entrypoint?: string;
+
+  /** Port for http-server type */
+  port?: number;
+
+  /** Where to deploy */
+  placement: 'regional' | 'global';
+
+  /** Whether to enable response streaming */
+  streaming?: boolean;
+
+  /** Runtime */
+  runtime?: string;
+
+  /** Memory (MB) */
+  memorySize?: number;
+
+  /** Timeout (seconds) */
+  timeout?: number;
+
+  /** Environment variables */
+  environment?: Record<string, string>;
+
+  /** Optional provisioned concurrency for cold-start elimination */
+  provisionedConcurrency?: number;
+};
+
+export type RouteBehavior = {
+  /** URL pattern (regex or glob) */
+  pattern: string;
+
+  /** Target compute resource name, or 'static' */
+  target: string;
+
+  /** Fallback if target fails */
+  fallback?: string;
+};
+
+export type CacheConfig = {
+  /** Which compute resource handles cached content */
+  computeResource: string;
+
+  /**
+   * Cache backend the adapter wants the L3 to provision.
+   *
+   * - `'opennext'` (default for backwards compatibility) — DynamoDB tag
+   *   table + SQS revalidation queue + worker Lambda + S3 cache bucket.
+   *   Used by the Next.js / OpenNext adapter.
+   * - `'nitro-s3'` — single S3 bucket, no SQS, no worker. Used by the
+   *   Nitro adapter; works with Nitro's `useStorage('cache')` model
+   *   where refresh happens inline in the SSR Lambda.
+   */
+  driver?: 'opennext' | 'nitro-s3';
+
+  /**
+   * Whether tag-based revalidation is needed (provisions DynamoDB).
+   * Only honoured when `driver === 'opennext'`.
+   */
+  tagRevalidation?: boolean;
+
+  /**
+   * Whether async revalidation queue is needed (provisions SQS).
+   * Only honoured when `driver === 'opennext'`.
+   */
+  revalidationQueue?: boolean;
+
+  /**
+   * Background revalidation worker function.
+   *
+   * When present, a Lambda is deployed with the SQS revalidation queue as its
+   * event source. This worker processes ISR revalidation messages and refreshes
+   * stale pages in the background. Only honoured when `driver === 'opennext'`.
+   */
+  revalidationFunction?: {
+    /** Path to the revalidation function bundle directory */
+    bundle: string;
+    /** Handler entry point (e.g. 'index.handler') */
+    handler: string;
+  };
+};
+
+export type ImageConfig = {
+  /** Path to image optimization bundle */
+  bundle: string;
+
+  /** Handler entry point */
+  handler: string;
+
+  /** Supported formats */
+  formats: string[];
+
+  /** Max image sizes */
+  sizes: number[];
+
+  /**
+   * Path prefix the image-opt Lambda serves. Defaults to `/_ipx` for
+   * Nitro/@nuxt/image projects; users can override via
+   * `runtimeConfig.ipx.baseURL` in nuxt.config. The CloudFront cache
+   * behavior is wired at this path, and the Lambda's request handler
+   * uses it to strip the prefix before passing the URL to IPX.
+   */
+  baseURL?: string;
+
+  /**
+   * Extra environment variables forwarded to the image-opt Lambda.
+   * The L3 always sets BUCKET_NAME / BUCKET_REGION / BUCKET_KEY_PREFIX
+   * for storage access; this is for framework-specific config (e.g.
+   * IPX_BASE_URL when the user customizes the `/_ipx` prefix).
+   */
+  environment?: Record<string, string>;
+};
+
+export type MiddlewareConfig = {
+  /** Path to middleware bundle */
+  bundle: string;
+
+  /** Handler entry point */
+  handler: string;
+
+  /** URL patterns this middleware matches */
+  matchers: string[];
+};
+
+export type Redirect = {
+  source: string;
+  destination: string;
+  statusCode: 301 | 302 | 307 | 308;
+};
+
+export type Rewrite = {
+  source: string;
+  destination: string;
+};
+
+export type CustomHeader = {
+  source: string;
+  headers: Record<string, string>;
+};
