@@ -48,7 +48,7 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { prependBasePath } from '../adapters/shared/basepath.js';
-import { DeployManifest } from '../manifest/types.js';
+import { DeployManifest, Redirect } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
   generateAssetPrefixStripFunctionCode,
@@ -56,8 +56,16 @@ import {
   generateForwardedHostAndRedirectFunctionCode,
 } from '../defaults.js';
 import { createCustomHeadersPolicy } from './security_headers.js';
+import {
+  SkewProtectionConfig,
+  generateSkewProtectionViewerRequestCode,
+  generateSkewProtectionViewerResponseCode,
+} from './skew_protection.js';
 
 // ---- Constants ----
+
+/** Runtime version used for all CloudFront Functions in this construct. */
+const CLOUDFRONT_FUNCTION_RUNTIME = FunctionRuntime.JS_2_0;
 
 /**
  * CloudFront allows a maximum of 25 cache behaviors per distribution
@@ -136,6 +144,8 @@ export type CdnConstructProps = {
    * (`runtime = 'edge'`), one entry per route.
    */
   routeEdgeFunctions?: Map<string, IVersion>;
+  /** Cookie-based skew protection configuration. */
+  skewProtection?: SkewProtectionConfig;
 };
 
 // ---- Construct ----
@@ -186,9 +196,6 @@ export class CdnConstruct extends Construct {
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
     // ---- Lambda@Edge function-count validation ----
-    // The account-level cap is 25 replicated functions. Catch the
-    // unwinnable case at synth so users get a useful error with a
-    // resolution path, not a CloudFormation rollback.
     const edgeRouteCount = props.routeEdgeFunctions?.size ?? 0;
     if (edgeRouteCount > MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION) {
       throw new HostingError('TooManyEdgeRoutesError', {
@@ -208,12 +215,9 @@ export class CdnConstruct extends Construct {
       );
     }
 
-    // ---- Build ID rewrite + redirect function ----
-    // Single CloudFront viewer-request function that handles both
-    // static-asset URI rewriting (build-id prefix, directory index) AND
-    // manifest redirects. Redirects short-circuit before the rewrite.
-    // CloudFront caps one function per behavior per event type, so we
-    // combine them here.
+    const skewEnabled = props.skewProtection?.enabled === true;
+    const skewMaxAge = props.skewProtection?.maxAge ?? 86400;
+
     // basePath (if set) prefixes every routable URL on the deployed site.
     // Redirect sources/destinations declared by the framework are
     // basePath-relative; prefix them here so the CF Function matches the
@@ -226,23 +230,20 @@ export class CdnConstruct extends Construct {
           destination: prependBasePath(manifest.basePath, r.destination),
         }))
       : rawRedirects;
-    const buildIdFunction = new CloudFrontFunction(
-      this,
-      'BuildIdRewriteFunction',
-      {
-        code: FunctionCode.fromInline(
-          generateBuildIdAndRedirectFunctionCode(
-            buildId,
-            manifestRedirects,
-            manifest.basePath,
-          ),
-        ),
-        runtime: FunctionRuntime.JS_2_0,
-        comment:
-          manifestRedirects.length > 0
-            ? `Build-id rewrite + ${manifestRedirects.length} redirect rule(s)`
-            : `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
-      },
+
+    // ---- Build ID rewrite function ----
+    const viewerRequestFunction = this.createViewerRequestFunction(
+      buildId,
+      skewEnabled,
+      manifestRedirects,
+      manifest.basePath,
+    );
+
+    // ---- Skew protection viewer-response function ----
+    const viewerResponseFunction = this.createViewerResponseFunction(
+      buildId,
+      skewMaxAge,
+      skewEnabled,
     );
 
     // ---- Origins ----
@@ -352,7 +353,7 @@ export class CdnConstruct extends Construct {
               manifest.basePath,
             ),
           ),
-          runtime: FunctionRuntime.JS_2_0,
+          runtime: CLOUDFRONT_FUNCTION_RUNTIME,
           comment:
             manifestRedirects.length > 0
               ? `Forwarded-host + ${manifestRedirects.length} redirect rule(s)`
@@ -451,9 +452,17 @@ export class CdnConstruct extends Construct {
       responseHeadersPolicy: props.securityHeadersPolicy,
       functionAssociations: [
         {
-          function: buildIdFunction,
+          function: viewerRequestFunction,
           eventType: FunctionEventType.VIEWER_REQUEST,
         },
+        ...(viewerResponseFunction
+          ? [
+              {
+                function: viewerResponseFunction,
+                eventType: FunctionEventType.VIEWER_RESPONSE,
+              },
+            ]
+          : []),
       ],
     });
 
@@ -468,16 +477,24 @@ export class CdnConstruct extends Construct {
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
       ...(edgeLambdas ? { edgeLambdas } : {}),
-      ...(forwardedHostFunction
-        ? {
-            functionAssociations: [
+      functionAssociations: [
+        ...(forwardedHostFunction
+          ? [
               {
                 function: forwardedHostFunction,
                 eventType: FunctionEventType.VIEWER_REQUEST,
               },
-            ],
-          }
-        : {}),
+            ]
+          : []),
+        ...(viewerResponseFunction
+          ? [
+              {
+                function: viewerResponseFunction,
+                eventType: FunctionEventType.VIEWER_RESPONSE,
+              },
+            ]
+          : []),
+      ],
     });
 
     /**
@@ -611,7 +628,7 @@ export class CdnConstruct extends Construct {
           code: FunctionCode.fromInline(
             generateAssetPrefixStripFunctionCode(buildId, assetPrefix),
           ),
-          runtime: FunctionRuntime.JS_2_0,
+          runtime: CLOUDFRONT_FUNCTION_RUNTIME,
           comment: `Strip Next.js assetPrefix=${assetPrefix} before S3 lookup`,
         },
       );
@@ -957,6 +974,60 @@ export class CdnConstruct extends Construct {
         description: 'Custom domain name for the hosted site',
       });
     }
+  }
+
+  /**
+   * Creates the viewer-request CloudFront Function.
+   * When skew protection is enabled, reads the `__dpl` cookie to route users
+   * to their pinned build. Otherwise uses a combined build-id rewrite + redirect function.
+   */
+  private createViewerRequestFunction(
+    buildId: string,
+    skewEnabled: boolean,
+    redirects: Redirect[],
+    basePath?: string,
+  ): CloudFrontFunction {
+    if (skewEnabled) {
+      return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
+        code: FunctionCode.fromInline(
+          generateSkewProtectionViewerRequestCode(buildId),
+        ),
+        runtime: CLOUDFRONT_FUNCTION_RUNTIME,
+        comment: `Skew protection: routes requests to build from cookie or current build ${buildId}`,
+      });
+    }
+    return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
+      code: FunctionCode.fromInline(
+        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath),
+      ),
+      runtime: CLOUDFRONT_FUNCTION_RUNTIME,
+      comment:
+        redirects.length > 0
+          ? `Build-id rewrite + ${redirects.length} redirect rule(s)`
+          : `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
+    });
+  }
+
+  /**
+   * Creates the viewer-response CloudFront Function for skew protection.
+   * Sets the `__dpl` cookie on HTML responses to pin the user's session.
+   * Returns `undefined` when skew protection is disabled.
+   */
+  private createViewerResponseFunction(
+    buildId: string,
+    maxAge: number,
+    skewEnabled: boolean,
+  ): CloudFrontFunction | undefined {
+    if (!skewEnabled) {
+      return undefined;
+    }
+    return new CloudFrontFunction(this, 'SkewProtectionResponseFunction', {
+      code: FunctionCode.fromInline(
+        generateSkewProtectionViewerResponseCode(buildId, maxAge),
+      ),
+      runtime: CLOUDFRONT_FUNCTION_RUNTIME,
+      comment: `Skew protection: sets __dpl cookie to ${buildId} on HTML responses`,
+    });
   }
 }
 
