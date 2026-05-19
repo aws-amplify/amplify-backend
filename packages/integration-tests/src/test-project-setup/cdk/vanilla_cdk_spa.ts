@@ -23,9 +23,7 @@ const SPA_CONTENT_MARKER = 'Hello Vanilla CDK SPA';
  * Creates a vanilla CDK project that uses AmplifyHostingConstruct for SPA hosting.
  * Validates the construct works in a pure CDK app — no Amplify CLI, no defineHosting().
  */
-export class VanillaCdkSpaTestCdkProjectCreator
-  implements TestCdkProjectCreator
-{
+export class VanillaCdkSpaTestCdkProjectCreator implements TestCdkProjectCreator {
   readonly name = 'vanilla-cdk-spa';
 
   createProject = async (

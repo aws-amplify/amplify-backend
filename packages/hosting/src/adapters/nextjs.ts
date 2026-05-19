@@ -141,7 +141,7 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
           message:
             '@opennextjs/aws is not installed. Next.js hosting requires OpenNext to build and deploy your app.',
           resolution:
-            'Add @opennextjs/aws to your project\'s devDependencies:\n\n' +
+            "Add @opennextjs/aws to your project's devDependencies:\n\n" +
             '  npm install --save-dev @opennextjs/aws\n\n' +
             'Then re-run your deployment.',
         },

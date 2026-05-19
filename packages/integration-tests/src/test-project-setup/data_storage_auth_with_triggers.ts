@@ -52,9 +52,7 @@ if (process.versions.node) {
 /**
  * Creates test projects with data, storage, and auth categories.
  */
-export class DataStorageAuthWithTriggerTestProjectCreator
-  implements TestProjectCreator
-{
+export class DataStorageAuthWithTriggerTestProjectCreator implements TestProjectCreator {
   readonly name = 'data-storage-auth';
 
   /**

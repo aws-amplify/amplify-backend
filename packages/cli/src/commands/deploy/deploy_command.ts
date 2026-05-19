@@ -54,9 +54,10 @@ const getBootstrapUrl = (region: string) =>
 /**
  * Deploys Amplify backend resources without Amplify Hosting.
  */
-export class DeployCommand
-  implements CommandModule<object, DeployCommandOptions>
-{
+export class DeployCommand implements CommandModule<
+  object,
+  DeployCommandOptions
+> {
   /**
    * @inheritDoc
    */
