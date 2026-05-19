@@ -24,9 +24,7 @@ const SSR_CONTENT_MARKER = 'Hello Vanilla CDK SSR';
  * Creates a vanilla CDK project that uses AmplifyHostingConstruct for SSR hosting.
  * Validates the construct works in a pure CDK app — no Amplify CLI, no defineHosting().
  */
-export class VanillaCdkSsrTestCdkProjectCreator
-  implements TestCdkProjectCreator
-{
+export class VanillaCdkSsrTestCdkProjectCreator implements TestCdkProjectCreator {
   readonly name = 'vanilla-cdk-ssr';
 
   createProject = async (

@@ -10,7 +10,13 @@ import { FrameworkAdapterFn } from './adapters/index.js';
  * Open union type for framework names.
  * Provides autocomplete for built-in frameworks while accepting any string.
  */
-export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
+export type FrameworkType =
+  | 'nextjs'
+  | 'nitro'
+  | 'nuxt'
+  | 'spa'
+  | 'static'
+  | (string & {});
 
 /**
  * Configuration for defineHosting.

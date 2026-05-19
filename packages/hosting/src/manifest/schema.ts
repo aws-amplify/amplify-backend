@@ -57,8 +57,9 @@ export const routeBehaviorSchema = z.object({
  */
 export const cacheConfigSchema = z.object({
   computeResource: z.string().min(1),
-  tagRevalidation: z.boolean(),
-  revalidationQueue: z.boolean(),
+  driver: z.enum(['opennext', 'nitro-s3']).optional(),
+  tagRevalidation: z.boolean().optional(),
+  revalidationQueue: z.boolean().optional(),
   revalidationFunction: z
     .object({
       bundle: z.string().min(1),
@@ -75,6 +76,11 @@ export const imageConfigSchema = z.object({
   handler: z.string().min(1),
   formats: z.array(z.string()),
   sizes: z.array(z.number().positive()),
+  baseURL: z
+    .string()
+    .regex(/^\/[^?#\s]*$/, 'baseURL must be an absolute path starting with /')
+    .optional(),
+  environment: z.record(z.string(), z.string()).optional(),
 });
 
 /**

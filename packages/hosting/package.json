@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/hosting",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"

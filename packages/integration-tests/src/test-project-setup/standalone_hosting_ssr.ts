@@ -18,9 +18,7 @@ import { ampxCli } from '../process-controller/process_controller.js';
  * Unlike mock-based fixtures, this copies real Next.js source code and runs
  * `npm install` so that `npx @opennextjs/aws build` can execute during deployment.
  */
-export class StandaloneHostingSsrTestProjectCreator
-  implements TestProjectCreator
-{
+export class StandaloneHostingSsrTestProjectCreator implements TestProjectCreator {
   readonly name = 'standalone-hosting-ssr';
 
   /**

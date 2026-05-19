@@ -3,12 +3,18 @@ import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import { spaAdapter } from './spa.js';
 import { nextjsAdapter } from './nextjs.js';
+import { isNitroProject, nitroAdapter } from './nitro.js';
+import { nuxtAdapter } from './nuxt.js';
 import { DeployManifest } from '../manifest/types.js';
 
 export { spaAdapter } from './spa.js';
 export type { SpaAdapterOptions } from './spa.js';
 export { nextjsAdapter } from './nextjs.js';
 export type { NextjsAdapterOptions } from './nextjs.js';
+export { nitroAdapter } from './nitro.js';
+export type { NitroAdapterOptions } from './nitro.js';
+export { nuxtAdapter } from './nuxt.js';
+export type { NuxtAdapterOptions } from './nuxt.js';
 
 /**
  * A framework adapter function that produces a DeployManifest from a project.
@@ -34,6 +40,10 @@ const adapterRegistry = new Map<string, AdapterRegistryEntry>([
     'nextjs',
     { adapter: (projectDir: string) => nextjsAdapter({ projectDir }) },
   ],
+  ['nitro', { adapter: (projectDir: string) => nitroAdapter({ projectDir }) }],
+  // Nuxt is the most common Nitro consumer; keep the alias so existing
+  // configs that pin `framework: 'nuxt'` keep working.
+  ['nuxt', { adapter: (projectDir: string) => nuxtAdapter({ projectDir }) }],
   ['spa', { adapter: spaAdapter }],
   ['static', { adapter: spaAdapter }],
 ]);
@@ -72,6 +82,12 @@ export const detectFramework = (projectDir: string): string => {
 
   if ('next' in deps) {
     return 'nextjs';
+  }
+
+  // Detect Nitro by build system, not framework — covers Nuxt, SolidStart,
+  // Analog, TanStack Start, and standalone Nitro projects with one adapter.
+  if (isNitroProject(deps)) {
+    return 'nitro';
   }
 
   return 'spa';

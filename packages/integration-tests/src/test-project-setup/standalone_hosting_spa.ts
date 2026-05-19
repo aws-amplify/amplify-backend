@@ -12,9 +12,7 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
  * Creates a hosting SPA project with auth, data, and storage
  * for standalone deployment E2E testing.
  */
-export class StandaloneHostingSpaTestProjectCreator
-  implements TestProjectCreator
-{
+export class StandaloneHostingSpaTestProjectCreator implements TestProjectCreator {
   readonly name = 'standalone-hosting-spa';
 
   /**

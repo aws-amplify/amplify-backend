@@ -205,7 +205,43 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 3. Cache infrastructure (ISR) ----
-    if (manifest.cache) {
+    if (manifest.cache && manifest.cache.driver === 'nitro-s3') {
+      // Nitro path: a single S3 bucket fronts Nitro's `useStorage('cache')`
+      // mount via the plugin the adapter injected at build time. No DDB,
+      // no SQS, no separate worker — Nitro handles refresh inline.
+      this.cacheBucket = new Bucket(this, 'NitroCacheBucket', {
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        enforceSSL: true,
+        // Nitro stores its own per-key expiry inside each value;
+        // this lifecycle rule is a safety net for orphaned objects.
+        lifecycleRules: [{ expiration: Duration.days(7) }],
+      });
+
+      const cacheComputeName = manifest.cache.computeResource;
+      const cacheFunction = this.computeFunctions.get(cacheComputeName);
+      if (!cacheFunction) {
+        throw new HostingError('CacheComputeResourceNotFoundError', {
+          message: `Cache config references compute resource '${cacheComputeName}' but it was not found in manifest.compute`,
+          resolution:
+            'Ensure cache.computeResource matches a key in the compute map.',
+        });
+      }
+      this.cacheBucket.grantReadWrite(cacheFunction);
+
+      if (cacheFunction instanceof LambdaFunction) {
+        cacheFunction.addEnvironment(
+          'AMPLIFY_NITRO_CACHE_BUCKET',
+          this.cacheBucket.bucketName,
+        );
+        cacheFunction.addEnvironment(
+          'AMPLIFY_NITRO_CACHE_REGION',
+          Stack.of(this).region,
+        );
+      }
+    } else if (manifest.cache) {
+      // OpenNext path (default when `driver` is absent or 'opennext').
       // S3 bucket for ISR cache
       this.cacheBucket = new Bucket(this, 'CacheBucket', {
         removalPolicy: RemovalPolicy.DESTROY,
@@ -383,6 +419,15 @@ export class AmplifyHostingConstruct extends Construct {
           'BUCKET_REGION',
           Stack.of(this).region,
         );
+        // Adapter-supplied env (e.g. IPX_BASE_URL for @nuxt/image
+        // when the user customizes `runtimeConfig.ipx.baseURL`).
+        if (manifest.imageOptimization.environment) {
+          for (const [key, value] of Object.entries(
+            manifest.imageOptimization.environment,
+          )) {
+            imageConstruct.function.addEnvironment(key, value);
+          }
+        }
       }
     }
 
