@@ -22,13 +22,13 @@ export type SkewProtectionConfig = {
 const DEFAULT_MAX_AGE = 86400;
 
 /** Cookie name used to pin a user session to a specific build. */
-const COOKIE_NAME = '__amplify_bid';
+const COOKIE_NAME = '__dpl';
 
 /**
  * Generates CloudFront Function code for the viewer-request event.
  *
  * This function:
- * 1. Reads the `__amplify_bid` cookie from the incoming request
+ * 1. Reads the `__dpl` cookie from the incoming request
  * 2. If present and valid, rewrites the URI to that build's prefix
  * 3. If absent, uses the current (deploy-time) build ID
  * 4. Appends `index.html` for directory-style paths
@@ -62,7 +62,7 @@ export const generateSkewProtectionViewerRequestCode = (
  *
  * This function:
  * 1. Inspects the Content-Type response header
- * 2. Only for HTML responses (text/html), sets the `__amplify_bid` cookie
+ * 2. Only for HTML responses (text/html), sets the `__dpl` cookie
  *    to the current build ID — pinning the user's session to this build
  * 3. Non-HTML responses (JS, CSS, images) are passed through unchanged
  *
