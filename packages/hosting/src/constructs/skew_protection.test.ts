@@ -76,7 +76,7 @@ void describe('Skew Protection — Code Generation', () => {
       const code = generateSkewProtectionViewerRequestCode('abc-123');
       assert.ok(code.includes("var buildId = 'abc-123'"));
       assert.ok(code.includes('function handler(event)'));
-      assert.ok(code.includes('__amplify_bid'));
+      assert.ok(code.includes('__dpl'));
       assert.ok(code.includes('/builds/'));
     });
 
@@ -121,7 +121,7 @@ void describe('Skew Protection — Code Generation', () => {
       const code = generateSkewProtectionViewerResponseCode('abc-123');
       assert.ok(code.includes('function handler(event)'));
       assert.ok(code.includes('text/html'));
-      assert.ok(code.includes('__amplify_bid=abc-123'));
+      assert.ok(code.includes('__dpl=abc-123'));
       assert.ok(code.includes('Path=/'));
       assert.ok(code.includes('SameSite=Lax'));
       assert.ok(code.includes('Max-Age=86400'));
@@ -197,7 +197,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       const template = Template.fromStack(stack);
       // Should have skew protection function with cookie logic
       template.hasResourceProperties('AWS::CloudFront::Function', {
-        FunctionCode: Match.stringLikeRegexp('__amplify_bid'),
+        FunctionCode: Match.stringLikeRegexp('__dpl'),
       });
     });
 
@@ -290,7 +290,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
             .FunctionCode,
       );
       const hasCookieLogic = functionCodes.some((code) =>
-        code.includes('__amplify_bid'),
+        code.includes('__dpl'),
       );
       assert.strictEqual(hasCookieLogic, false);
     });
@@ -385,7 +385,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       const template = Template.fromStack(stack);
       // Static behavior should have the skew protection function
       template.hasResourceProperties('AWS::CloudFront::Function', {
-        FunctionCode: Match.stringLikeRegexp('__amplify_bid'),
+        FunctionCode: Match.stringLikeRegexp('__dpl'),
       });
     });
 
@@ -431,7 +431,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
             .FunctionCode,
       );
       const hasCookieLogic = functionCodes.some((code) =>
-        code.includes('__amplify_bid'),
+        code.includes('__dpl'),
       );
       assert.strictEqual(hasCookieLogic, false);
     });

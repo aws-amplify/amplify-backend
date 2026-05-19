@@ -150,7 +150,7 @@ export class CdnConstruct extends Construct {
 
     // ---- Build ID rewrite function ----
     // When skew protection is enabled, the viewer-request function reads the
-    // __amplify_bid cookie to route users to their pinned build. Otherwise,
+    // __dpl cookie to route users to their pinned build. Otherwise,
     // a simple static rewrite is used.
     const viewerRequestFunction = skewEnabled
       ? new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
@@ -167,14 +167,14 @@ export class CdnConstruct extends Construct {
         });
 
     // ---- Skew protection viewer-response function ----
-    // Sets the __amplify_bid cookie on HTML responses to pin the user's session.
+    // Sets the __dpl cookie on HTML responses to pin the user's session.
     const viewerResponseFunction = skewEnabled
       ? new CloudFrontFunction(this, 'SkewProtectionResponseFunction', {
           code: FunctionCode.fromInline(
             generateSkewProtectionViewerResponseCode(buildId, skewMaxAge),
           ),
           runtime: FunctionRuntime.JS_2_0,
-          comment: `Skew protection: sets __amplify_bid cookie to ${buildId} on HTML responses`,
+          comment: `Skew protection: sets __dpl cookie to ${buildId} on HTML responses`,
         })
       : undefined;
 

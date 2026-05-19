@@ -116,6 +116,9 @@ export type AmplifyHostingConstructProps = {
    * Cookie-based skew protection.
    * When enabled, users mid-session keep receiving assets from their original
    * build, preventing asset mismatches during rolling deployments.
+   *
+   * @default \{ enabled: true \} — skew protection is enabled by default.
+   * Set `\{ enabled: false \}` to disable.
    */
   skewProtection?: {
     enabled: boolean;
@@ -506,7 +509,7 @@ export class AmplifyHostingConstruct extends Construct {
       accessLogBucket: storage.accessLogBucket,
       priceClass: props.cdn?.priceClass,
       geoRestriction: props.cdn?.geoRestriction,
-      skewProtection: props.skewProtection,
+      skewProtection: props.skewProtection ?? { enabled: true },
     });
 
     this.distribution = cdn.distribution;
