@@ -335,6 +335,22 @@ export class CdnConstruct extends Construct {
 
       if (isStatic) {
         additionalBehaviors[cfPattern] = makeStaticBehavior();
+
+        // CloudFront path patterns are not "match either trailing-slash or
+        // bare" — `/about/*` matches `/about/x` but NOT bare `/about`.
+        // For prerendered routes that emit `<name>/index.html` the bare
+        // path falls through to the SSR Lambda, which silently re-renders
+        // every request and ruins the SSG semantics (also costing Lambda
+        // invocations the user didn't sign up for).
+        //
+        // When we see a static `<name>/*` pattern, also emit a behavior
+        // for the bare `<name>` path so both forms hit S3. The S3 origin
+        // (with index document set on the bucket) resolves the bare path
+        // to `<name>/index.html` automatically.
+        const barePattern = deriveBareStaticPattern(cfPattern);
+        if (barePattern && !(barePattern in additionalBehaviors)) {
+          additionalBehaviors[barePattern] = makeStaticBehavior();
+        }
       } else {
         // Look up per-compute origin, fall back to primary
         const targetOrigin = computeOrigins.get(route.target) ?? primaryOrigin;
@@ -534,4 +550,31 @@ const normalizePatternForCloudFront = (pattern: string): string => {
     return `/${pattern}`;
   }
   return pattern;
+};
+
+/**
+ * For a static-route pattern that ends with `/*`, return the bare-path
+ * variant so the route can be reached without a trailing slash.
+ *
+ * `/about/*` → `/about`
+ * `/posts/2024/*` → `/posts/2024`
+ *
+ * Returns `null` for patterns that are not a simple `<name>/*` shape
+ * (catch-alls, root patterns, multi-wildcard, etc.) — those don't have
+ * a meaningful bare form, or the parent pattern is already covered by
+ * other behaviors.
+ *
+ * Why this is needed: CloudFront path patterns don't have a "match
+ * either bare or with-slash" wildcard. `/about/*` matches `/about/foo`
+ * but NOT bare `/about`. Without an explicit bare-path behavior, the
+ * bare form falls through to the SSR Lambda — breaking SSG semantics
+ * (timestamp drift, every request is a Lambda invocation).
+ */
+const deriveBareStaticPattern = (pattern: string): string | null => {
+  if (!pattern.endsWith('/*')) return null;
+  const bare = pattern.slice(0, -2);
+  // Don't emit `/` (would be the default behavior, not an additional one)
+  // or anything containing additional wildcards (no useful bare form).
+  if (bare === '' || bare === '/' || bare.includes('*')) return null;
+  return bare;
 };
