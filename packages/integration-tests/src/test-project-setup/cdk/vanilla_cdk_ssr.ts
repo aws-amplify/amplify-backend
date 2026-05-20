@@ -136,17 +136,28 @@ export class VanillaCdkSsrTestCdkProjectCreator implements TestCdkProjectCreator
       ),
     );
 
-    // Lambda handler that serves SSR content
+    // Lambda handler that serves SSR content. The fixture's
+    // open-next.output.json declares streaming: true, which the construct
+    // honors by wiring API Gateway's REST integration with
+    // ResponseTransferMode.STREAM. STREAM mode requires the Lambda to be
+    // invoked as a streaming function (awslambda.streamifyResponse) — a
+    // buffered handler returns a JSON envelope that API Gateway cannot
+    // interpret as a stream, surfacing as 502.
     await fs.writeFile(
       path.join(serverFnDir, 'index.js'),
-      `exports.handler = async (event) => {
-  return {
-    statusCode: 200,
-    headers: { 'content-type': 'text/html' },
-    body: '<html><body><h1>${SSR_CONTENT_MARKER}</h1><p>Server-rendered by Lambda via AmplifyHostingConstruct in a vanilla CDK app.</p></body></html>',
-    isBase64Encoded: false,
-  };
-};
+      `exports.handler = awslambda.streamifyResponse(
+  async (event, responseStream) => {
+    const metadata = {
+      statusCode: 200,
+      headers: { 'content-type': 'text/html' },
+    };
+    responseStream = awslambda.HttpResponseStream.from(responseStream, metadata);
+    responseStream.write(
+      '<html><body><h1>${SSR_CONTENT_MARKER}</h1><p>Server-rendered by Lambda via AmplifyHostingConstruct in a vanilla CDK app.</p></body></html>',
+    );
+    responseStream.end();
+  },
+);
 `,
     );
 
