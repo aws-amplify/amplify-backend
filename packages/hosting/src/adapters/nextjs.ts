@@ -157,7 +157,7 @@ export default config;
     throw err;
   }
   return () => {
-    // best-effort cleanup; ignore if the file is gone or unlinkable.
+    // best-effort cleanup; ignore if the file is gone or cannot be removed.
     try {
       fs.rmSync(configFile, { force: true });
       // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
