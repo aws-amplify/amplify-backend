@@ -211,10 +211,12 @@ const runNitroBuild = (
   );
   try {
     const [bin, ...args] = cmd;
+    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
     execFileSync(bin!, args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NITRO_PRESET: preset },
+      shell: true,
     });
   } catch (error) {
     throw new HostingError(

@@ -256,10 +256,12 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
   );
 
   try {
+    // shell: true lets Windows resolve `npx` -> `npx.cmd` via PATHEXT.
     execFileSync('npx', args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
+      shell: true,
     });
   } catch (error) {
     // Check if the error is because @opennextjs/aws is not installed
