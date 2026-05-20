@@ -152,7 +152,7 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     });
   });
 
-  void it('creates Lambda Function URL with IAM auth', () => {
+  void it('fronts SSR Lambda with API Gateway REST API (no Function URL)', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir();
     const stack = createStack();
@@ -163,8 +163,14 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     });
 
     const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::Lambda::Url', {
-      AuthType: 'AWS_IAM',
+    // SSR compute is fronted by REGIONAL REST API (cdn_construct), not OAC + Function URL.
+    template.resourceCountIs('AWS::Lambda::Url', 0);
+    template.hasResourceProperties('AWS::ApiGateway::RestApi', {
+      EndpointConfiguration: Match.objectLike({ Types: ['REGIONAL'] }),
+    });
+    template.hasResourceProperties('AWS::ApiGateway::Method', {
+      HttpMethod: 'ANY',
+      Integration: Match.objectLike({ Type: 'AWS_PROXY' }),
     });
   });
 
@@ -676,10 +682,11 @@ void describe('AmplifyHostingConstruct — Multi-compute', () => {
       'Should have exactly 2 compute functions',
     );
 
-    // Each compute target gets its own Function URL
+    // 'default' is SSR — fronted by REST API, no Function URL. 'api' is
+    // non-SSR, keeps OAC + Function URL.
     assert.ok(
-      construct.computeFunctionUrls.has('default'),
-      'Should have default Function URL',
+      !construct.computeFunctionUrls.has('default'),
+      'SSR default uses API Gateway, not Function URL',
     );
     assert.ok(
       construct.computeFunctionUrls.has('api'),
@@ -687,12 +694,15 @@ void describe('AmplifyHostingConstruct — Multi-compute', () => {
     );
     assert.strictEqual(
       construct.computeFunctionUrls.size,
-      2,
-      'Should have exactly 2 Function URLs',
+      1,
+      'Only the non-SSR compute target gets a Function URL',
     );
 
-    // OAC permissions: should have Lambda permissions for each function
     const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Lambda::Url', 1);
+    template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
+
+    // OAC still grants InvokeFunctionUrl for the non-SSR compute.
     const permissions = template.findResources('AWS::Lambda::Permission');
     const invokeUrlPermissions = Object.values(permissions).filter(
       /* eslint-disable @typescript-eslint/naming-convention */
@@ -702,8 +712,8 @@ void describe('AmplifyHostingConstruct — Multi-compute', () => {
       /* eslint-enable @typescript-eslint/naming-convention */
     );
     assert.ok(
-      invokeUrlPermissions.length >= 2,
-      `Expected at least 2 InvokeFunctionUrl permissions, got ${invokeUrlPermissions.length}`,
+      invokeUrlPermissions.length >= 1,
+      `Expected at least 1 InvokeFunctionUrl permission, got ${invokeUrlPermissions.length}`,
     );
   });
 });

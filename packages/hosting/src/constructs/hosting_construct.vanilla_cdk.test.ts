@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
 import { DeployManifest } from '../manifest/types.js';
 
@@ -85,14 +85,16 @@ void describe('AmplifyHostingConstruct — vanilla CDK usage', () => {
     });
 
     assert.ok(hosting.computeFunctions.has('default'));
-    assert.ok(hosting.computeFunctionUrls.has('default'));
+    // SSR uses API Gateway REST API, not a Function URL.
+    assert.ok(!hosting.computeFunctionUrls.has('default'));
 
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
     });
-    template.hasResourceProperties('AWS::Lambda::Url', {
-      AuthType: 'AWS_IAM',
+    template.resourceCountIs('AWS::Lambda::Url', 0);
+    template.hasResourceProperties('AWS::ApiGateway::RestApi', {
+      EndpointConfiguration: Match.objectLike({ Types: ['REGIONAL'] }),
     });
   });
 
