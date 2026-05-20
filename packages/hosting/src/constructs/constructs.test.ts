@@ -342,7 +342,7 @@ void describe('Image Optimization provisioning', () => {
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('creates separate image optimization Lambda with own Function URL', () => {
+  void it('creates separate image optimization Lambda with its own Function URL (SSR uses API Gateway)', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir('server');
     const imgDir = createBundleDir('image-opt');
@@ -382,11 +382,16 @@ void describe('Image Optimization provisioning', () => {
     // Should have the image-optimization function registered
     assert.ok(construct.computeFunctions.has('image-optimization'));
     assert.ok(construct.computeFunctionUrls.has('image-optimization'));
+    // SSR 'default' is fronted by REST API, not by a Function URL.
+    assert.ok(!construct.computeFunctionUrls.has('default'));
 
     const template = Template.fromStack(stack);
 
-    // Should have 2 Lambda Function URLs (one for default, one for image-opt)
-    template.resourceCountIs('AWS::Lambda::Url', 2);
+    // Only image-opt has a Function URL (image opt is GET-only — body-hash
+    // bug doesn't apply, so OAC + FURL is fine).
+    template.resourceCountIs('AWS::Lambda::Url', 1);
+    // SSR 'default' is fronted by exactly one REGIONAL REST API.
+    template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
 
     // CloudFront should have a behavior for /_next/image/*
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
@@ -448,16 +453,19 @@ void describe('Multi-compute provisioning', () => {
       skipRegionValidation: true,
     });
 
-    // Both compute functions should be registered
+    // Both compute functions should be registered.
     assert.ok(construct.computeFunctions.has('server'));
     assert.ok(construct.computeFunctions.has('api'));
-    assert.ok(construct.computeFunctionUrls.has('server'));
+    // 'server' is SSR — REST API origin, no Function URL.
+    assert.ok(!construct.computeFunctionUrls.has('server'));
     assert.ok(construct.computeFunctionUrls.has('api'));
 
     const template = Template.fromStack(stack);
 
-    // Should have 2 Lambda Function URLs
-    template.resourceCountIs('AWS::Lambda::Url', 2);
+    // Only the non-SSR compute keeps a Function URL; SSR 'server' goes
+    // through one REGIONAL REST API instead.
+    template.resourceCountIs('AWS::Lambda::Url', 1);
+    template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
 
     // CloudFront behaviors: one for /api/*, one for /_next/static/*, default for /*
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
@@ -517,8 +525,13 @@ void describe('Multi-compute provisioning', () => {
       skipRegionValidation: true,
     });
 
-    assert.ok(construct.computeFunctionUrls.has('default'));
+    // 'default' is SSR — fronted by REST API, not a Function URL.
+    assert.ok(construct.computeFunctions.has('default'));
+    assert.ok(!construct.computeFunctionUrls.has('default'));
     assert.ok(construct.computeFunctionUrls.has('api'));
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
   });
 });
 
@@ -563,12 +576,15 @@ void describe('Edge compute type safety', () => {
       skipRegionValidation: true,
     });
 
-    // Edge function should be in computeFunctions but NOT in computeFunctionUrls
+    // Edge function should be in computeFunctions but NOT in computeFunctionUrls.
     assert.ok(construct.computeFunctions.has('edgeFn'));
     assert.ok(!construct.computeFunctionUrls.has('edgeFn'));
+    // SSR 'default' is fronted by REST API, not a Function URL.
+    assert.ok(!construct.computeFunctionUrls.has('default'));
 
     const template = Template.fromStack(stack);
-    // Only 1 Function URL (for the 'default' handler)
-    template.resourceCountIs('AWS::Lambda::Url', 1);
+    // No Function URLs at all: edge can't have one, SSR uses REST API instead.
+    template.resourceCountIs('AWS::Lambda::Url', 0);
+    template.resourceCountIs('AWS::ApiGateway::RestApi', 1);
   });
 });
