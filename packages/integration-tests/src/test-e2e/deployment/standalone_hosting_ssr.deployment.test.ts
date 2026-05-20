@@ -418,6 +418,190 @@ void describe(
           process.stderr.write(`Security headers on API route verified\n`);
         });
 
+        void it('stage 2c: SSR origin accepts every HTTP verb with body and preserves multi-Set-Cookie + streaming', async () => {
+          // Regression coverage for the OAC + Function URL body-hash bug:
+          // pre-fix, any non-empty POST/PUT/PATCH returned 403 SignatureDoesNotMatch.
+
+          // GET /api/echo — sanity
+          const getRes = await fetchWithRetry(
+            `${distributionUrl}/api/echo?q=1`,
+            {
+              expectedStatus: 200,
+              maxRetries: 5,
+              intervalMs: 10000,
+            },
+          );
+          const getBody = (await getRes.json()) as {
+            method: string;
+            query?: Record<string, string>;
+          };
+          assert.strictEqual(getBody.method, 'GET');
+          assert.strictEqual(getBody.query?.q, '1');
+
+          // POST with JSON body
+          const postRes = await fetch(`${distributionUrl}/api/echo`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ hi: 'post' }),
+          });
+          assert.strictEqual(
+            postRes.status,
+            200,
+            `POST /api/echo must return 200 (was 403 with body-hash bug), got ${postRes.status}`,
+          );
+          const postBody = (await postRes.json()) as {
+            method: string;
+            body?: { hi?: string };
+          };
+          assert.strictEqual(postBody.method, 'POST');
+          assert.strictEqual(
+            postBody.body?.hi,
+            'post',
+            `POST body must round-trip; got: ${JSON.stringify(postBody.body)}`,
+          );
+
+          // PUT with JSON body
+          const putRes = await fetch(`${distributionUrl}/api/echo`, {
+            method: 'PUT',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ hi: 'put' }),
+          });
+          assert.strictEqual(
+            putRes.status,
+            200,
+            `PUT /api/echo must return 200, got ${putRes.status}`,
+          );
+
+          // PATCH with JSON body
+          const patchRes = await fetch(`${distributionUrl}/api/echo`, {
+            method: 'PATCH',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ hi: 'patch' }),
+          });
+          assert.strictEqual(
+            patchRes.status,
+            200,
+            `PATCH /api/echo must return 200, got ${patchRes.status}`,
+          );
+
+          // DELETE with query string
+          const delRes = await fetch(
+            `${distributionUrl}/api/echo?id=42&type=widget`,
+            { method: 'DELETE' },
+          );
+          assert.strictEqual(
+            delRes.status,
+            200,
+            `DELETE /api/echo must return 200, got ${delRes.status}`,
+          );
+          const delBody = (await delRes.json()) as {
+            method: string;
+            query?: Record<string, string>;
+          };
+          assert.strictEqual(delBody.method, 'DELETE');
+          assert.strictEqual(
+            delBody.query?.id,
+            '42',
+            `DELETE query must round-trip; got: ${JSON.stringify(delBody.query)}`,
+          );
+
+          // 1 MB binary upload — exercises the larger-body path
+          const binary = new Uint8Array(1024 * 1024);
+          for (let i = 0; i < binary.length; i++) binary[i] = i & 0xff;
+          const uploadRes = await fetch(`${distributionUrl}/api/echo`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/octet-stream' },
+            body: binary,
+          });
+          assert.strictEqual(
+            uploadRes.status,
+            200,
+            `1 MB binary POST must return 200, got ${uploadRes.status}`,
+          );
+          const uploadBody = (await uploadRes.json()) as {
+            bodyBytes?: number;
+            sha256?: string;
+          };
+          assert.strictEqual(
+            uploadBody.bodyBytes,
+            1024 * 1024,
+            `Server must report 1 MB received, got ${uploadBody.bodyBytes}`,
+          );
+          assert.ok(
+            uploadBody.sha256 && uploadBody.sha256.length === 64,
+            `Server must report a sha256 digest`,
+          );
+          process.stderr.write(
+            `HTTP-verb regression suite green: GET/POST/PUT/PATCH/DELETE + 1 MB upload\n`,
+          );
+
+          // Multi-Set-Cookie — must not be collapsed into a single header
+          const cookieRes = await fetchWithRetry(
+            `${distributionUrl}/api/cookies`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
+          // Modern fetch's getSetCookie() returns the array of distinct values
+          const setCookieHeaders =
+            (
+              cookieRes.headers as unknown as { getSetCookie?: () => string[] }
+            ).getSetCookie?.() ?? [];
+          assert.ok(
+            setCookieHeaders.length >= 3,
+            `Three distinct Set-Cookie headers must reach the client (CloudFront → APIGW → Lambda must not collapse them); got ${setCookieHeaders.length}: ${JSON.stringify(setCookieHeaders)}`,
+          );
+          process.stderr.write(
+            `Multi-Set-Cookie not collapsed: ${setCookieHeaders.length} headers\n`,
+          );
+
+          // Streaming endpoint — TTFB should be much smaller than total time
+          // (10 chunks × 100 ms server-side delays = ~1 s total; TTFB should
+          // be sub-300 ms once the first chunk leaves the Lambda).
+          const streamStart = Date.now();
+          const streamRes = await fetch(`${distributionUrl}/api/stream`);
+          assert.strictEqual(
+            streamRes.status,
+            200,
+            `Streaming endpoint must return 200, got ${streamRes.status}`,
+          );
+          assert.ok(streamRes.body, 'Streaming response must have a body');
+          const reader = streamRes.body!.getReader();
+          let firstByteAt: number | null = null;
+          let chunkCount = 0;
+          let acc = '';
+          const dec = new TextDecoder();
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (firstByteAt == null && value && value.length > 0) {
+              firstByteAt = Date.now() - streamStart;
+            }
+            if (done) break;
+            chunkCount++;
+            acc += dec.decode(value, { stream: true });
+          }
+          const totalMs = Date.now() - streamStart;
+          assert.ok(
+            chunkCount > 0,
+            `Streaming response must yield at least one chunk`,
+          );
+          assert.ok(
+            acc.includes('chunk-1') && acc.includes('chunk-10'),
+            `Streaming response must contain chunk-1 through chunk-10; got: ${acc.slice(0, 200)}`,
+          );
+          // True streaming requires TTFB < total. If they match within ~50 ms,
+          // the response was buffered (regression).
+          assert.ok(
+            firstByteAt !== null && totalMs - firstByteAt > 200,
+            `Streaming must keep TTFB strictly < total: TTFB=${firstByteAt}ms total=${totalMs}ms (delta must exceed 200ms)`,
+          );
+          process.stderr.write(
+            `Streaming verified: TTFB=${firstByteAt}ms total=${totalMs}ms chunks=${chunkCount}\n`,
+          );
+        });
+
         void it('stage 3: ISR — verifies cache infrastructure provisioned and S3 cache populated', async () => {
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);

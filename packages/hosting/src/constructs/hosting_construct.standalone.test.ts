@@ -181,7 +181,7 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
     });
 
-    void it('creates Function URL with IAM auth and streaming', () => {
+    void it('fronts SSR Lambda with REGIONAL API Gateway REST API + STREAM mode', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
         manifest: makeSsrManifest(),
@@ -189,9 +189,15 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Lambda::Url', {
-        AuthType: 'AWS_IAM',
-        InvokeMode: 'RESPONSE_STREAM',
+      // SSR uses API Gateway REST + lambda:InvokeFunction (no body re-hash),
+      // not a Function URL — see PR for SigV4 + body-hash background.
+      template.resourceCountIs('AWS::Lambda::Url', 0);
+      template.hasResourceProperties('AWS::ApiGateway::RestApi', {
+        EndpointConfiguration: Match.objectLike({ Types: ['REGIONAL'] }),
+      });
+      template.hasResourceProperties('AWS::ApiGateway::Method', {
+        HttpMethod: 'ANY',
+        Integration: Match.objectLike({ Type: 'AWS_PROXY' }),
       });
     });
 
@@ -349,7 +355,9 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
 
       assert.ok(construct.computeFunctions.has('default'));
-      assert.ok(construct.computeFunctionUrls.has('default'));
+      // SSR is fronted by API Gateway REST API, not by a Function URL,
+      // so 'default' is intentionally absent from computeFunctionUrls.
+      assert.ok(!construct.computeFunctionUrls.has('default'));
     });
   });
 });

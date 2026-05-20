@@ -91,6 +91,11 @@ export type ComputeConstructProps = {
   skipRegionValidation?: boolean;
   /** Lambda architecture override. Default: X86_64. */
   architecture?: Architecture;
+  /**
+   * Skip creating a Function URL. Set by the L3 for SSR compute, which is
+   * fronted by API Gateway REST API instead (no orphaned Function URL).
+   */
+  skipFunctionUrl?: boolean;
 };
 
 // ---- Construct ----
@@ -224,8 +229,8 @@ export class ComputeConstruct extends Construct {
       });
     }
 
-    // Function URL for handler and http-server types (edge functions don't support this)
-    if (computeResource.type !== 'edge') {
+    // Function URL — skipped for edge (unsupported) or SSR (REST API instead).
+    if (computeResource.type !== 'edge' && !props.skipFunctionUrl) {
       const invokeMode =
         computeResource.streaming !== false
           ? InvokeMode.RESPONSE_STREAM
