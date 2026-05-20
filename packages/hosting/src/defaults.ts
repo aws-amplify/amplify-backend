@@ -35,9 +35,16 @@ export const generateBuildIdFunctionCode = (buildId: string): string => {
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
-  // Append index.html for directory-style paths (e.g. "/" or "/about/")
+  // Resolve directory-style and bare paths to <name>/index.html so the
+  // S3 origin (REST API, no website-mode auto-resolution) can find them.
+  // Triggers when the path ends with "/" or has no file extension.
   if (uri.endsWith('/')) {
     uri = uri + 'index.html';
+  } else {
+    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('.') === -1) {
+      uri = uri + '/index.html';
+    }
   }
   // Prepend build ID prefix for atomic deployment
   request.uri = '/builds/${buildId}' + uri;
