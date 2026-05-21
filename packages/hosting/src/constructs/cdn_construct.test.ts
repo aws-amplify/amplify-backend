@@ -208,16 +208,23 @@ void describe('CdnConstruct', () => {
         computeFunctions: new Map([['default', fn]]),
       });
 
+      // CdnConstruct sorts cache behaviors by descending specificity so
+      // that literal paths win over wildcards (CloudFront evaluates first-
+      // match-wins). `/favicon.ico` (literal, 0 wildcards) ends up before
+      // `/_next/static/*` (1 wildcard), so we assert each separately
+      // rather than rely on a relative-order arrayWith.
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: Match.objectLike({
           CacheBehaviors: Match.arrayWith([
-            Match.objectLike({
-              PathPattern: '/_next/static/*',
-            }),
-            Match.objectLike({
-              PathPattern: '/favicon.ico',
-            }),
+            Match.objectLike({ PathPattern: '/_next/static/*' }),
+          ]),
+        }),
+      });
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CacheBehaviors: Match.arrayWith([
+            Match.objectLike({ PathPattern: '/favicon.ico' }),
           ]),
         }),
       });
