@@ -311,7 +311,12 @@ export default config;
  */
 const renderEdgeFunctionsBlock = (edgeRoutes: EdgeRoute[]): string => {
   if (edgeRoutes.length === 0) return '';
-  const quote = (s: string) => `'${s.replace(/'/g, "\\'")}'`;
+  // Escape backslashes first (so the slash inserted by quote-escape isn't
+  // itself doubled), then escape single quotes. Without this CodeQL flags
+  // the encoder as incomplete — a route module path containing `\` would
+  // emit invalid JS into the generated open-next.config.ts.
+  const quote = (s: string) =>
+    `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
   const entries = edgeRoutes
     .map(
       (route, i) => `    edge${i + 1}: {
