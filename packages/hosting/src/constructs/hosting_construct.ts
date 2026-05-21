@@ -487,6 +487,20 @@ export class AmplifyHostingConstruct extends Construct {
     // ---- 9. CloudFront distribution ----
     const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
 
+    // Per-route Lambda@Edge function versions (OpenNext edge routes). Only
+    // computes with type === 'edge' get a `currentVersion` from the
+    // EdgeFunction CDK construct — middleware is excluded because it has
+    // its own dedicated wiring on the default behavior.
+    const routeEdgeFunctions = new Map<string, IVersion>();
+    for (const [name, resource] of Object.entries(manifest.compute)) {
+      if (resource.type !== 'edge') continue;
+      if (name === 'middleware') continue;
+      const fn = this.computeFunctions.get(name);
+      if (fn instanceof experimental.EdgeFunction) {
+        routeEdgeFunctions.set(name, fn.currentVersion);
+      }
+    }
+
     const cdn = new CdnConstruct(this, 'Cdn', {
       bucket: this.bucket,
       manifest: manifestWithBuildId,
@@ -494,6 +508,7 @@ export class AmplifyHostingConstruct extends Construct {
       computeFunctionUrls: this.computeFunctionUrls,
       computeFunctions: this.computeFunctions,
       middlewareEdgeFunction: middlewareEdgeVersion,
+      routeEdgeFunctions,
       webAcl: this.webAcl,
       certificate: this.certificate,
       domainName: props.domain?.domainName,

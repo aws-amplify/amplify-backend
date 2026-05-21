@@ -170,16 +170,21 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
   const app = new App();
   const backendId = getBackendIdentifier(app);
 
-  const stackEnv = props.domain
-    ? {
-        account:
-          process.env.CDK_DEFAULT_ACCOUNT ??
-          process.env.AWS_ACCOUNT_ID ??
-          undefined,
-        region:
-          process.env.CDK_DEFAULT_REGION ?? process.env.AWS_REGION ?? undefined,
-      }
-    : undefined;
+  // Resolve a concrete env from the process. Necessary even without a
+  // custom domain because:
+  //   - WAFv2 + ACM cert lookups need a known region.
+  //   - `experimental.EdgeFunction` (used for OpenNext edge routes and
+  //     middleware) requires the parent stack to have an explicitly-set
+  //     region; agnostic stacks fail synth with
+  //     "StacksWithEdgeFunctionsMustHaveExplicitRegion".
+  const stackEnv = {
+    account:
+      process.env.CDK_DEFAULT_ACCOUNT ??
+      process.env.AWS_ACCOUNT_ID ??
+      undefined,
+    region:
+      process.env.CDK_DEFAULT_REGION ?? process.env.AWS_REGION ?? undefined,
+  };
 
   const rootStack = new Stack(
     app,

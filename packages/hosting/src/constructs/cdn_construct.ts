@@ -97,6 +97,13 @@ export type CdnConstructProps = {
   errorPageHtml?: string;
   /** Lambda@Edge function version for middleware (viewer-request). */
   middlewareEdgeFunction?: IVersion;
+  /**
+   * Per-route Lambda@Edge function versions. Keyed by compute name; the
+   * matching cache behavior gets `edgeLambdas` set with this function as
+   * an origin-request association. Used for OpenNext edge routes
+   * (`runtime = 'edge'`), one entry per route.
+   */
+  routeEdgeFunctions?: Map<string, IVersion>;
 };
 
 // ---- Construct ----
@@ -309,6 +316,30 @@ export class CdnConstruct extends Construct {
         : {}),
     });
 
+    /**
+     * Cache behavior for an OpenNext edge route (Lambda@Edge owns the
+     * response). The S3 origin is just a placeholder — CloudFront
+     * associates the function on origin-request and the function returns
+     * the response itself, so origin storage is never read. Caching is
+     * disabled because the edge function is dynamic.
+     */
+    const makeEdgeRouteBehavior = (edgeVersion: IVersion): BehaviorOptions => ({
+      origin: s3Origin,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: AllowedMethods.ALLOW_ALL,
+      cachePolicy: CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      responseHeadersPolicy: props.securityHeadersPolicy,
+      edgeLambdas: [
+        {
+          functionVersion: edgeVersion,
+          eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+          includeBody: true,
+        },
+      ],
+    });
+
     // ---- Route → behavior mapping ----
     const additionalBehaviors: Record<string, BehaviorOptions> = {};
 
@@ -316,9 +347,19 @@ export class CdnConstruct extends Construct {
     const catchAllRoute = manifest.routes.find(
       (r) => r.pattern === '/*' || r.pattern === '*',
     );
-    const specificRoutes = manifest.routes.filter(
-      (r) => r.pattern !== '/*' && r.pattern !== '*',
-    );
+    const specificRoutes = manifest.routes
+      .filter((r) => r.pattern !== '/*' && r.pattern !== '*')
+      // CloudFront evaluates cache behaviors top-to-bottom, first-match-wins
+      // (no longest-prefix preference). When the manifest mixes a literal
+      // pattern (`/api/edge/b`) with a wildcard from a sibling dynamic route
+      // (`/api/edge/*`, expanded from Next's `[slug]`), the wildcard
+      // shadows the literal if it's emitted first. Sort by descending
+      // specificity so literals always come before wildcards. Same key as
+      // CDK's own behavior ordering: count wildcards, then prefer longer
+      // patterns within the same wildcard count.
+      .sort(
+        (a, b) => routeSpecificity(b.pattern) - routeSpecificity(a.pattern),
+      );
 
     // Validate CloudFront behavior limit
     if (specificRoutes.length > MAX_ADDITIONAL_BEHAVIORS) {
@@ -352,12 +393,24 @@ export class CdnConstruct extends Construct {
           additionalBehaviors[barePattern] = makeStaticBehavior();
         }
       } else {
-        // Look up per-compute origin, fall back to primary
-        const targetOrigin = computeOrigins.get(route.target) ?? primaryOrigin;
-        if (targetOrigin) {
-          additionalBehaviors[cfPattern] = makeComputeBehavior(targetOrigin);
+        // OpenNext edge routes (`runtime = 'edge'`) come through as compute
+        // names in `routeEdgeFunctions`. The Lambda@Edge function generates
+        // the response itself — we still need a CloudFront origin (S3 here)
+        // so the behavior is well-formed; CloudFront associates the edge
+        // function on origin-request and never reaches origin storage when
+        // the function returns a response.
+        const edgeVersion = props.routeEdgeFunctions?.get(route.target);
+        if (edgeVersion) {
+          additionalBehaviors[cfPattern] = makeEdgeRouteBehavior(edgeVersion);
         } else {
-          additionalBehaviors[cfPattern] = makeStaticBehavior();
+          // Look up per-compute origin, fall back to primary
+          const targetOrigin =
+            computeOrigins.get(route.target) ?? primaryOrigin;
+          if (targetOrigin) {
+            additionalBehaviors[cfPattern] = makeComputeBehavior(targetOrigin);
+          } else {
+            additionalBehaviors[cfPattern] = makeStaticBehavior();
+          }
         }
       }
     }
@@ -550,6 +603,29 @@ const normalizePatternForCloudFront = (pattern: string): string => {
     return `/${pattern}`;
   }
   return pattern;
+};
+
+/**
+ * Score a route pattern's specificity. Higher score = more specific = should
+ * be evaluated first by CloudFront.
+ *
+ * Approach:
+ *   - Each `*` reduces specificity (wildcards match anything).
+ *   - Within the same wildcard count, longer patterns are more specific
+ *     (they constrain more bytes of the path).
+ * The combined score is `length × 1000 - wildcardCount × 1_000_000`, which
+ * keeps wildcards as the dominant axis but uses length as a tiebreaker.
+ *
+ * Examples (highest to lowest):
+ *   `/api/edge/json`        → length 14,  0 wildcards →    14_000
+ *   `/api/edge/b`           → length 11,  0 wildcards →    11_000
+ *   `/api/edge/catch/*`     → length 17,  1 wildcard  →   -983_000
+ *   `/api/edge/*`           → length 11,  1 wildcard  →   -989_000
+ *   `/_next/*`              → length  8,  1 wildcard  →   -992_000
+ */
+const routeSpecificity = (pattern: string): number => {
+  const wildcards = (pattern.match(/\*/g) ?? []).length;
+  return pattern.length * 1000 - wildcards * 1_000_000;
 };
 
 /**
