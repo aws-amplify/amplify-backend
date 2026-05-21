@@ -309,34 +309,41 @@ const resolveNitroBundlePath = (serverDir: string): string | undefined => {
 /**
  * Read the routeRules object Nitro embedded in the server bundle.
  *
- * The compiled `chunks/<name>/nitro.mjs` file contains a JSON-shaped
- * `_inlineRuntimeConfig` literal whose `nitro.routeRules` field holds
- * every per-pattern rule Nitro produced — both the user's `routeRules`
- * from `nuxt.config.ts` and the framework defaults (e.g. immutable
- * Cache-Control on `/_nuxt/**`, custom `publicAssets` entries with
- * their `maxAge`).
+ * The bundle contains a JSON-shaped `_inlineRuntimeConfig` literal whose
+ * `nitro.routeRules` field holds every per-pattern rule Nitro produced —
+ * both the user's `routeRules` from `nuxt.config.ts` and the framework
+ * defaults (e.g. immutable Cache-Control on `/_nuxt/**`, custom
+ * `publicAssets` entries with their `maxAge`).
  *
- * `nitro.json` doesn't expose this, so we extract it via regex from
- * the bundle. Returns {} if the file is missing or the regex doesn't
- * match — this is best-effort, never blocking.
+ * The literal usually lives in `chunks/nitro/nitro.mjs`, but Nitro's
+ * chunking sometimes puts it elsewhere (e.g. `chunks/_/nitro.mjs` or
+ * `index.mjs` on Windows due to a v2 prefix-match bug). Probe the most
+ * likely candidates; returns {} if no file contains the marker.
+ *
+ * `nitro.json` doesn't expose this in current versions, so we extract
+ * it via regex from the bundle — best-effort, never blocking.
  */
 const readBundledRouteRules = (
   serverDir: string,
 ): Record<string, NitroRouteRule> => {
+  const candidates: string[] = [];
   const bundlePath = resolveNitroBundlePath(serverDir);
-  if (!bundlePath) return {};
+  if (bundlePath) candidates.push(bundlePath);
+  const indexPath = path.join(serverDir, 'index.mjs');
+  if (fs.existsSync(indexPath)) candidates.push(indexPath);
 
-  const source = fs.readFileSync(bundlePath, 'utf-8');
-  const blob = extractJsonObjectAfter(source, '"routeRules":');
-  if (!blob) return {};
-
-  try {
-    return JSON.parse(blob) as Record<string, NitroRouteRule>;
-    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-  } catch {
-    // Malformed extraction — degrade gracefully.
-    return {};
+  for (const candidate of candidates) {
+    const source = fs.readFileSync(candidate, 'utf-8');
+    const blob = extractJsonObjectAfter(source, '"routeRules":');
+    if (!blob) continue;
+    try {
+      return JSON.parse(blob) as Record<string, NitroRouteRule>;
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Malformed extraction — try next candidate.
+    }
   }
+  return {};
 };
 
 /**
@@ -904,57 +911,81 @@ const buildHeaders = (
 };
 
 /**
- * Patch Nitro's bundled aws-lambda streaming handler at
- * <serverDir>/chunks/nitro/nitro.mjs to fall through to REST API (v1)
- * fields when the v2 fields are undefined:
+ * Patch Nitro's bundled aws-lambda handler so it falls through to REST API
+ * (payload v1) fields when the v2 fields are undefined:
  *   - withQuery(event.rawPath, …) → event.rawPath || event.path
  *   - event.requestContext?.http?.method → || event.requestContext?.httpMethod
- * Idempotent.
+ *
+ * The handler can land in different chunks depending on Nitro's chunking
+ * (typically `chunks/nitro/nitro.mjs` on POSIX, `chunks/_/nitro.mjs` or
+ * `index.mjs` on Windows due to a Nitro v2 chunk-name prefix-match bug).
+ * Walk every `.mjs` under <serverDir> and patch wherever the patterns
+ * appear. Idempotent — only rewrites files whose contents change.
  * @internal
  */
 const patchNitroHandlerForApiGateway = (serverDir: string): void => {
-  const bundle = resolveNitroBundlePath(serverDir);
-  if (!bundle) {
-    process.stderr.write(
-      `⚠️  Skipping Nitro handler patch: nitro.mjs not found under ${path.join(
-        serverDir,
-        'chunks',
-      )}.\n`,
-    );
-    return;
-  }
-  let src = fs.readFileSync(bundle, 'utf-8');
-  let patches = 0;
+  // The aws-lambda preset's request-shape calls (`event.rawPath`,
+  // `event.requestContext?.http?.method`) live in Nitro's compiled
+  // `nitro.mjs` on Linux/macOS. On Windows, Nitro v2's `getChunkName`
+  // prefix match (`id.startsWith(runtimeDir)`) fails because Rollup
+  // module ids use POSIX separators while `runtimeDir` uses OS separators
+  // — the runtime ends up grouped into `index.mjs` or another chunk.
+  // Walk every `.mjs` under serverDir and patch wherever the patterns
+  // appear; idempotent because we only rewrite when a regex matches.
 
   const rawPathRe = /withQuery\(\s*event\.rawPath\s*,\s*query\s*\)/g;
-  if (rawPathRe.test(src)) {
-    src = src.replace(
-      rawPathRe,
-      'withQuery(event.rawPath || event.path, query)',
-    );
-    patches++;
-  }
-
+  const rawPathReplacement = 'withQuery(event.rawPath || event.path, query)';
   const methodRe = /event\.requestContext\?\.http\?\.method/g;
-  if (methodRe.test(src)) {
-    src = src.replace(
-      methodRe,
-      '(event.requestContext?.http?.method || event.requestContext?.httpMethod)',
-    );
-    patches++;
+  const methodReplacement =
+    '(event.requestContext?.http?.method || event.requestContext?.httpMethod)';
+
+  let totalPatches = 0;
+  const patchedFiles: string[] = [];
+
+  const visit = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(full);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith('.mjs')) continue;
+      const src = fs.readFileSync(full, 'utf-8');
+      let patches = 0;
+      let next = src;
+      if (rawPathRe.test(next)) {
+        next = next.replace(rawPathRe, rawPathReplacement);
+        patches++;
+      }
+      if (methodRe.test(next)) {
+        next = next.replace(methodRe, methodReplacement);
+        patches++;
+      }
+      if (patches > 0) {
+        fs.writeFileSync(full, next, 'utf-8');
+        totalPatches += patches;
+        patchedFiles.push(path.relative(serverDir, full));
+      }
+    }
+  };
+
+  if (fs.existsSync(serverDir)) {
+    visit(serverDir);
   }
 
-  if (patches === 0) {
+  if (totalPatches === 0) {
     process.stderr.write(
-      `⚠️  Nitro handler patch found nothing to change in ${bundle}. ` +
+      `⚠️  Nitro handler patch found nothing to change under ${serverDir}. ` +
         `Nitro may have updated its bundled aws-lambda preset; verify the request-shape.\n`,
     );
     return;
   }
 
-  fs.writeFileSync(bundle, src, 'utf-8');
   process.stderr.write(
-    `\u{1F527} Patched bundled Nitro aws-lambda handler for API Gateway REST API (${patches} edits).\n`,
+    `\u{1F527} Patched bundled Nitro aws-lambda handler for API Gateway REST API ` +
+      `(${totalPatches} edits across ${patchedFiles.length} file(s): ${patchedFiles.join(
+        ', ',
+      )}).\n`,
   );
 };
 
