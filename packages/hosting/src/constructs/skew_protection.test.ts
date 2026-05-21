@@ -95,8 +95,7 @@ void describe('Skew Protection — Code Generation', () => {
       assert.throws(
         () => generateSkewProtectionViewerRequestCode('invalid build!'),
         (err: unknown) =>
-          err instanceof HostingError &&
-          err.name === 'InvalidBuildIdError',
+          err instanceof HostingError && err.name === 'InvalidBuildIdError',
       );
     });
 
@@ -104,8 +103,7 @@ void describe('Skew Protection — Code Generation', () => {
       assert.throws(
         () => generateSkewProtectionViewerRequestCode(''),
         (err: unknown) =>
-          err instanceof HostingError &&
-          err.name === 'InvalidBuildIdError',
+          err instanceof HostingError && err.name === 'InvalidBuildIdError',
       );
     });
 
@@ -146,8 +144,7 @@ void describe('Skew Protection — Code Generation', () => {
       assert.throws(
         () => generateSkewProtectionViewerResponseCode('bad build!!'),
         (err: unknown) =>
-          err instanceof HostingError &&
-          err.name === 'InvalidBuildIdError',
+          err instanceof HostingError && err.name === 'InvalidBuildIdError',
       );
     });
 
@@ -284,11 +281,13 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
 
       // Should NOT have cookie logic
       const functions = template.findResources('AWS::CloudFront::Function');
+      /* eslint-disable @typescript-eslint/naming-convention */
       const functionCodes = Object.values(functions).map(
         (f: Record<string, unknown>) =>
           (f as { Properties: { FunctionCode: string } }).Properties
             .FunctionCode,
       );
+      /* eslint-enable @typescript-eslint/naming-convention */
       const hasCookieLogic = functionCodes.some((code) =>
         code.includes('__dpl'),
       );
@@ -307,6 +306,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       });
 
       const template = Template.fromStack(stack);
+      /* eslint-disable @typescript-eslint/naming-convention */
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: Match.objectLike({
           DefaultCacheBehavior: Match.objectLike({
@@ -318,13 +318,13 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       });
 
       // Verify no viewer-response association
-      const dist = template.findResources(
-        'AWS::CloudFront::Distribution',
-      );
+      const dist = template.findResources('AWS::CloudFront::Distribution');
       const distConfig = Object.values(dist)[0] as {
         Properties: {
           DistributionConfig: {
-            DefaultCacheBehavior: { FunctionAssociations: Array<{ EventType: string }> };
+            DefaultCacheBehavior: {
+              FunctionAssociations: Array<{ EventType: string }>;
+            };
           };
         };
       };
@@ -334,6 +334,7 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       const hasViewerResponse = associations.some(
         (a) => a.EventType === 'viewer-response',
       );
+      /* eslint-enable @typescript-eslint/naming-convention */
       assert.strictEqual(hasViewerResponse, false);
     });
   });
@@ -425,11 +426,13 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
 
       const template = Template.fromStack(stack);
       const functions = template.findResources('AWS::CloudFront::Function');
+      /* eslint-disable @typescript-eslint/naming-convention */
       const functionCodes = Object.values(functions).map(
         (f: Record<string, unknown>) =>
           (f as { Properties: { FunctionCode: string } }).Properties
             .FunctionCode,
       );
+      /* eslint-enable @typescript-eslint/naming-convention */
       const hasCookieLogic = functionCodes.some((code) =>
         code.includes('__dpl'),
       );

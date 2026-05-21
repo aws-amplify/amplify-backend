@@ -116,7 +116,6 @@ export type AmplifyHostingConstructProps = {
    * Cookie-based skew protection.
    * When enabled, users mid-session keep receiving assets from their original
    * build, preventing asset mismatches during rolling deployments.
-   *
    * @default \{ enabled: true \} — skew protection is enabled by default.
    * Set `\{ enabled: false \}` to disable.
    */
