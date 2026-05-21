@@ -6,10 +6,13 @@ const { GITHUB_EVENT_NAME: eventName, GITHUB_REF_NAME: refName } = process.env;
 
 const gitHubClient = new GithubClient();
 
-const prHasRunE2ELabel = async () => {
+// Branches whose PRs always run e2e — long-lived integration branches where
+// e2e regressions must surface before merge, without requiring a label.
+const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['snapshot/iac-hosting']);
+
+const inspectPullRequest = async () => {
   if (!ghContext.payload.pull_request) {
-    // event is not a pull request
-    return false;
+    return { runE2E: false } as const;
   }
   const prInfo = await gitHubClient.fetchPullRequest(
     ghContext.payload.pull_request.number,
@@ -17,9 +20,11 @@ const prHasRunE2ELabel = async () => {
   const hasRunE2ELabel = prInfo.labels.some(
     (label) => label.name === 'run-e2e',
   );
+  const targetsAutoRunBase = E2E_AUTO_RUN_BASE_BRANCHES.has(prInfo.base.ref);
+  const runE2E = hasRunE2ELabel || targetsAutoRunBase;
 
   if (
-    hasRunE2ELabel &&
+    runE2E &&
     prInfo.head?.repo?.full_name !== 'aws-amplify/amplify-backend'
   ) {
     throw new Error(
@@ -27,7 +32,7 @@ const prHasRunE2ELabel = async () => {
     );
   }
 
-  return hasRunE2ELabel;
+  return { runE2E } as const;
 };
 
 const isPushToBranchBesidesHotfix =
@@ -37,14 +42,14 @@ const isVersionPackagesPushToHotfix =
 
 const isWorkflowTriggeredManually = eventName === 'workflow_dispatch';
 const isWorkflowTriggeredBySchedule = eventName == 'schedule';
-const isPullRequestWithRunE2ELabel = await prHasRunE2ELabel();
+const { runE2E: isPullRequestThatShouldRunE2E } = await inspectPullRequest();
 
 const doIncludeE2e =
   isPushToBranchBesidesHotfix ||
   isVersionPackagesPushToHotfix ||
   isWorkflowTriggeredManually ||
   isWorkflowTriggeredBySchedule ||
-  isPullRequestWithRunE2ELabel;
+  isPullRequestThatShouldRunE2E;
 
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);

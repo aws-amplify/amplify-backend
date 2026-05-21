@@ -185,6 +185,10 @@ export class CdnConstruct extends Construct {
       const restApi = new RestApi(this, 'SsrRestApi', {
         endpointTypes: [EndpointType.REGIONAL],
         deployOptions: { stageName: 'prod' },
+        // Treat all bodies as binary. Without this, API Gateway base64-encodes
+        // request bodies (Lambda then sees 2× size) and re-encodes responses,
+        // breaking binary uploads, downloads, and streaming.
+        binaryMediaTypes: ['*/*'],
       });
       const integration = new LambdaIntegration(ssrFn, {
         proxy: true,

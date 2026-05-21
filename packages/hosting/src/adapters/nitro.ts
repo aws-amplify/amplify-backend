@@ -211,10 +211,12 @@ const runNitroBuild = (
   );
   try {
     const [bin, ...args] = cmd;
+    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
     execFileSync(bin!, args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NITRO_PRESET: preset },
+      shell: true,
     });
   } catch (error) {
     throw new HostingError(
@@ -412,6 +414,7 @@ const buildImageOptBundleIfNeeded = (
   // Force npm to install Linux x64 binaries so sharp's native module
   // matches the Lambda runtime — Lambda is linux-x64.
   try {
+    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
     execFileSync(
       'npm',
       [
@@ -427,6 +430,7 @@ const buildImageOptBundleIfNeeded = (
       {
         cwd: bundleDir,
         stdio: 'inherit',
+        shell: true,
       },
     );
   } catch (error) {
