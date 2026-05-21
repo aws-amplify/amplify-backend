@@ -281,9 +281,35 @@ const installNitroCachePlugin = (projectDir: string): (() => void) => {
 };
 
 /**
+ * Resolve the path to Nitro's main server bundle (`nitro.mjs`) inside
+ * `<serverDir>/chunks/`.
+ *
+ * Nitro/Rollup picks the chunk directory name based on the build inputs;
+ * we've observed both `chunks/nitro/nitro.mjs` (Linux/macOS) and
+ * `chunks/_/nitro.mjs` (Windows) for the same Nitro version on the same
+ * fixture. Probe known names first, then fall back to a single-level
+ * scan of `chunks/*` so a future rename doesn't silently disable the
+ * route-rule extraction or aws-lambda handler patch.
+ */
+const resolveNitroBundlePath = (serverDir: string): string | undefined => {
+  const chunksDir = path.join(serverDir, 'chunks');
+  if (!fs.existsSync(chunksDir)) return undefined;
+  for (const candidate of ['nitro', '_']) {
+    const p = path.join(chunksDir, candidate, 'nitro.mjs');
+    if (fs.existsSync(p)) return p;
+  }
+  for (const entry of fs.readdirSync(chunksDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const p = path.join(chunksDir, entry.name, 'nitro.mjs');
+    if (fs.existsSync(p)) return p;
+  }
+  return undefined;
+};
+
+/**
  * Read the routeRules object Nitro embedded in the server bundle.
  *
- * The compiled `chunks/nitro/nitro.mjs` file contains a JSON-shaped
+ * The compiled `chunks/<name>/nitro.mjs` file contains a JSON-shaped
  * `_inlineRuntimeConfig` literal whose `nitro.routeRules` field holds
  * every per-pattern rule Nitro produced — both the user's `routeRules`
  * from `nuxt.config.ts` and the framework defaults (e.g. immutable
@@ -297,8 +323,8 @@ const installNitroCachePlugin = (projectDir: string): (() => void) => {
 const readBundledRouteRules = (
   serverDir: string,
 ): Record<string, NitroRouteRule> => {
-  const bundlePath = path.join(serverDir, 'chunks', 'nitro', 'nitro.mjs');
-  if (!fs.existsSync(bundlePath)) return {};
+  const bundlePath = resolveNitroBundlePath(serverDir);
+  if (!bundlePath) return {};
 
   const source = fs.readFileSync(bundlePath, 'utf-8');
   const blob = extractJsonObjectAfter(source, '"routeRules":');
@@ -887,22 +913,17 @@ const buildHeaders = (
  * @internal
  */
 const patchNitroHandlerForApiGateway = (serverDir: string): void => {
-  const bundle = path.join(serverDir, 'chunks', 'nitro', 'nitro.mjs');
-
-  // Read directly; let the missing-file case fall out as ENOENT instead of
-  // checking existence separately (avoids a TOCTOU race).
-  let src: string;
-  try {
-    src = fs.readFileSync(bundle, 'utf-8');
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      process.stderr.write(
-        `⚠️  Skipping Nitro handler patch: ${bundle} not found.\n`,
-      );
-      return;
-    }
-    throw err;
+  const bundle = resolveNitroBundlePath(serverDir);
+  if (!bundle) {
+    process.stderr.write(
+      `⚠️  Skipping Nitro handler patch: nitro.mjs not found under ${path.join(
+        serverDir,
+        'chunks',
+      )}.\n`,
+    );
+    return;
   }
+  let src = fs.readFileSync(bundle, 'utf-8');
   let patches = 0;
 
   const rawPathRe = /withQuery\(\s*event\.rawPath\s*,\s*query\s*\)/g;
