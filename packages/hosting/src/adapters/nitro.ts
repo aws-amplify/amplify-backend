@@ -290,8 +290,11 @@ const installNitroCachePlugin = (projectDir: string): (() => void) => {
  * fixture. Probe known names first, then fall back to a single-level
  * scan of `chunks/*` so a future rename doesn't silently disable the
  * route-rule extraction or aws-lambda handler patch.
+ * @internal
  */
-const resolveNitroBundlePath = (serverDir: string): string | undefined => {
+export const resolveNitroBundlePath = (
+  serverDir: string,
+): string | undefined => {
   const chunksDir = path.join(serverDir, 'chunks');
   if (!fs.existsSync(chunksDir)) return undefined;
   for (const candidate of ['nitro', '_']) {
@@ -349,8 +352,9 @@ const readBundledRouteRules = (
 /**
  * Find the first `{...}` JSON object that follows `marker` in `source`,
  * tracking brace depth so nested objects don't terminate early.
+ * @internal
  */
-const extractJsonObjectAfter = (
+export const extractJsonObjectAfter = (
   source: string,
   marker: string,
 ): string | undefined => {
@@ -923,7 +927,7 @@ const buildHeaders = (
  * appear. Idempotent — only rewrites files whose contents change.
  * @internal
  */
-const patchNitroHandlerForApiGateway = (serverDir: string): void => {
+export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   // The aws-lambda preset's request-shape calls (`event.rawPath`,
   // `event.requestContext?.http?.method`) live in Nitro's compiled
   // `nitro.mjs` on Linux/macOS. On Windows, Nitro v2's `getChunkName`
@@ -935,7 +939,11 @@ const patchNitroHandlerForApiGateway = (serverDir: string): void => {
 
   const rawPathRe = /withQuery\(\s*event\.rawPath\s*,\s*query\s*\)/g;
   const rawPathReplacement = 'withQuery(event.rawPath || event.path, query)';
-  const methodRe = /event\.requestContext\?\.http\?\.method/g;
+  // Negative lookahead so we don't re-wrap a method ref that already has the
+  // `|| event.requestContext?.httpMethod` fallthrough — keeps the patch
+  // idempotent across repeat invocations.
+  const methodRe =
+    /event\.requestContext\?\.http\?\.method(?!\s*\|\|\s*event\.requestContext\?\.httpMethod)/g;
   const methodReplacement =
     '(event.requestContext?.http?.method || event.requestContext?.httpMethod)';
 
