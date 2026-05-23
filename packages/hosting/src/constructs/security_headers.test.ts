@@ -2,7 +2,10 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { createSecurityHeadersPolicy } from './security_headers.js';
+import {
+  createCustomHeadersPolicy,
+  createSecurityHeadersPolicy,
+} from './security_headers.js';
 
 // ---- Test helpers ----
 
@@ -362,5 +365,107 @@ void describe('createSecurityHeadersPolicy', () => {
         }),
       );
     });
+  });
+});
+
+// ================================================================
+// createCustomHeadersPolicy — user-override of L3 security headers
+// ================================================================
+
+void describe('createCustomHeadersPolicy — user header override', () => {
+  void it('relaxes Override: true → false on x-frame-options when user sets it', () => {
+    const stack = createStack();
+    createCustomHeadersPolicy(stack, 'CustomHeaders', {
+      'x-frame-options': 'DENY',
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            FrameOptions: Match.objectLike({
+              FrameOption: 'SAMEORIGIN',
+              Override: false,
+            }),
+          }),
+          CustomHeadersConfig: Match.objectLike({
+            Items: Match.arrayWith([
+              Match.objectLike({
+                Header: 'x-frame-options',
+                Value: 'DENY',
+                Override: true,
+              }),
+            ]),
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('keeps Override: true on x-frame-options when user does NOT set it', () => {
+    const stack = createStack();
+    createCustomHeadersPolicy(stack, 'CustomHeaders', {
+      'cache-control': 'no-store',
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            FrameOptions: Match.objectLike({
+              FrameOption: 'SAMEORIGIN',
+              Override: true,
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('matches case-insensitively on user header names', () => {
+    const stack = createStack();
+    createCustomHeadersPolicy(stack, 'CustomHeaders', {
+      // Capitalized — common in next.config.js headers().
+      'X-Frame-Options': 'DENY',
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            FrameOptions: Match.objectLike({
+              Override: false,
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
+  void it('relaxes HSTS / x-content-type-options / referrer-policy / xss-protection independently', () => {
+    const stack = createStack();
+    createCustomHeadersPolicy(stack, 'CustomHeaders', {
+      'strict-transport-security': 'max-age=0',
+      'referrer-policy': 'no-referrer',
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+      Match.objectLike({
+        ResponseHeadersPolicyConfig: Match.objectLike({
+          SecurityHeadersConfig: Match.objectLike({
+            StrictTransportSecurity: Match.objectLike({ Override: false }),
+            ReferrerPolicy: Match.objectLike({ Override: false }),
+            // Untouched headers stay at Override: true.
+            FrameOptions: Match.objectLike({ Override: true }),
+            ContentTypeOptions: Match.objectLike({ Override: true }),
+            XSSProtection: Match.objectLike({ Override: true }),
+          }),
+        }),
+      }),
+    );
   });
 });

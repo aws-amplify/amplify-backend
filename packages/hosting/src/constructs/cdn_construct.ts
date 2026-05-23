@@ -1,10 +1,14 @@
+import { createHash } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   AllowedMethods,
   BehaviorOptions,
+  CacheCookieBehavior,
+  CacheHeaderBehavior,
   CachePolicy,
+  CacheQueryStringBehavior,
   CachedMethods,
   Function as CloudFrontFunction,
   Distribution,
@@ -46,6 +50,7 @@ import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
+  generateAssetPrefixStripFunctionCode,
   generateBuildIdAndRedirectFunctionCode,
   generateForwardedHostAndRedirectFunctionCode,
 } from '../defaults.js';
@@ -299,6 +304,50 @@ export class CdnConstruct extends Construct {
         })
       : undefined;
 
+    // ---- SSR cache policy (B21) ----
+    // CACHING_DISABLED used to short-circuit caching on every compute
+    // behavior, which silently broke ISR/SWR: the framework's
+    // `Cache-Control: s-max-age=N` header was emitted by the origin but
+    // CloudFront never honored it. Every request hit Lambda regardless
+    // of origin caching directives. This policy honors origin
+    // Cache-Control while including the headers App Router needs to
+    // separate RSC payloads from HTML responses (otherwise an RSC
+    // prefetch's payload would be served to a full-page request).
+    //
+    // Min/default/max TTL bounds:
+    // - minTtl: 0 — origin can opt out via `Cache-Control: no-store`
+    // - defaultTtl: 0 — when origin sends no Cache-Control, no caching
+    //   (preserves the safe default; SSR routes that forget to set
+    //   Cache-Control still don't accidentally cache personalized
+    //   responses)
+    // - maxTtl: 1 year — clamps any wild origin values (e.g. corrupted
+    //   Cache-Control: s-max-age=999999999)
+    //
+    // The cache key includes only Accept-Encoding (for content
+    // negotiation) plus the Next.js router headers. Cookies are
+    // explicitly excluded — any route that varies on cookies must
+    // emit `Cache-Control: private` to opt out.
+    const ssrCachePolicy = hasCompute
+      ? new CachePolicy(this, 'SsrCachePolicy', {
+          comment:
+            'SSR/ISR/SWR: honor origin Cache-Control; key on Next.js router headers',
+          minTtl: Duration.seconds(0),
+          defaultTtl: Duration.seconds(0),
+          maxTtl: Duration.days(365),
+          headerBehavior: CacheHeaderBehavior.allowList(
+            'Accept-Encoding',
+            'rsc',
+            'next-router-prefetch',
+            'next-router-state-tree',
+            'next-router-segment-prefetch',
+          ),
+          cookieBehavior: CacheCookieBehavior.none(),
+          queryStringBehavior: CacheQueryStringBehavior.all(),
+          enableAcceptEncodingBrotli: true,
+          enableAcceptEncodingGzip: true,
+        })
+      : undefined;
+
     // ---- Behavior helpers ----
     const makeStaticBehavior = (): BehaviorOptions => ({
       origin: s3Origin,
@@ -320,7 +369,9 @@ export class CdnConstruct extends Construct {
       origin: origin ?? primaryOrigin!,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
-      cachePolicy: CachePolicy.CACHING_DISABLED,
+      // B21: honor origin Cache-Control. POST/PUT/DELETE are never
+      // cached by CloudFront regardless of CachePolicy (HTTP spec).
+      cachePolicy: ssrCachePolicy ?? CachePolicy.CACHING_DISABLED,
       compress: true,
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
@@ -436,6 +487,56 @@ export class CdnConstruct extends Construct {
       }
     }
 
+    // ---- assetPrefix behaviors (B17) ----
+    // When the framework's build emits asset URLs under a prefix
+    // (Next.js `assetPrefix: '/shop-static'`), the non-prefixed
+    // `/_next/static/*` behavior won't match. Add prefixed copies that
+    // strip the prefix before falling through to the build-id S3 lookup.
+    const assetPrefix = manifest.assetPrefix;
+    if (assetPrefix) {
+      const stripFunction = new CloudFrontFunction(
+        this,
+        'AssetPrefixStripFunction',
+        {
+          code: FunctionCode.fromInline(
+            generateAssetPrefixStripFunctionCode(buildId, assetPrefix),
+          ),
+          runtime: FunctionRuntime.JS_2_0,
+          comment: `Strip Next.js assetPrefix=${assetPrefix} before S3 lookup`,
+        },
+      );
+      const prefixedStaticBehavior: BehaviorOptions = {
+        origin: s3Origin,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        compress: true,
+        responseHeadersPolicy: props.securityHeadersPolicy,
+        functionAssociations: [
+          {
+            function: stripFunction,
+            eventType: FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
+      };
+      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
+      // Add the most-specific prefixed patterns. Skipped if a user route
+      // already claims them (defensive — should never overlap in
+      // practice).
+      for (const suffix of [
+        '/_next/static/*',
+        '/_next/image*',
+        '/_next/data/*',
+        '/_next/*',
+      ]) {
+        const pat = prefixed(suffix);
+        if (!(pat in additionalBehaviors)) {
+          additionalBehaviors[pat] = prefixedStaticBehavior;
+        }
+      }
+    }
+
     // ---- Default behavior (from catch-all route) ----
     const defaultIsCompute =
       catchAllRoute &&
@@ -465,12 +566,29 @@ export class CdnConstruct extends Construct {
       // account-wide CloudFront ResponseHeadersPolicy quota (default 20
       // per account, max 200) doesn't get burned on duplicates.
       const policyByFingerprint = new Map<string, ResponseHeadersPolicy>();
-      let nextPolicyIdx = 0;
       const fingerprint = (headers: Record<string, string>): string =>
         Object.keys(headers)
           .sort()
           .map((k) => `${k}=${headers[k]}`)
           .join('\n');
+
+      // Construct ID uses the first 8 hex chars of a SHA-256 over the
+      // fingerprint. Why a stable hash instead of a counter (0/1/2/...):
+      // a positional counter changes whenever the iteration order of
+      // `manifest.headers[]` changes (e.g. user reorders publicAssets[]
+      // in nuxt.config.ts). That makes CDK think each redeploy needs to
+      // create new policies + delete the old ones — which churns the
+      // account-wide ResponseHeadersPolicy quota and risks leaking
+      // stale policies under failed rollbacks (B20). A content-derived
+      // ID makes each unique header-set get the same construct ID
+      // forever, so a redeploy with the same content is a no-op.
+      const idForHeaders = (headers: Record<string, string>): string => {
+        const fp = fingerprint(headers);
+        return `CustomHeadersPolicy${createHash('sha256')
+          .update(fp)
+          .digest('hex')
+          .slice(0, 8)}`;
+      };
 
       const getOrCreatePolicy = (
         headers: Record<string, string>,
@@ -480,7 +598,7 @@ export class CdnConstruct extends Construct {
         if (existing) return existing;
         const policy = createCustomHeadersPolicy(
           this,
-          `CustomHeadersPolicy${nextPolicyIdx++}`,
+          idForHeaders(headers),
           headers,
           { contentSecurityPolicy: props.contentSecurityPolicy },
         );
@@ -532,10 +650,46 @@ export class CdnConstruct extends Construct {
     }
 
     // ---- Error responses ----
+    // Three modes:
+    //  1. Compute origin → 502/503/504 → custom error page (preserves status).
+    //  2. Static deploy WITH `manifest.errorPages` (Next.js `output: 'export'`,
+    //     Astro static, etc.) → 404 → /404.html with status 404, no SPA
+    //     fallback. This is the right behavior for any framework that
+    //     emits a real 404 page.
+    //  3. Static deploy WITHOUT `manifest.errorPages` (single-page app
+    //     with client-side routing) → 403/404 → /index.html with status 200
+    //     so the SPA can deep-link any path.
     const isSpaOnly = !hasCompute;
+    const hasErrorPages =
+      manifest.errorPages !== undefined &&
+      Object.keys(manifest.errorPages).length > 0;
 
     const errorResponses: ErrorResponse[] = [
-      ...(isSpaOnly
+      ...(isSpaOnly && hasErrorPages
+        ? [
+            ...(manifest.errorPages?.[404]
+              ? [
+                  {
+                    httpStatus: 404,
+                    responseHttpStatus: 404,
+                    responsePagePath: `/builds/${buildId}${manifest.errorPages[404]}`,
+                    ttl: Duration.seconds(0),
+                  },
+                ]
+              : []),
+            ...(manifest.errorPages?.[500]
+              ? [
+                  {
+                    httpStatus: 500,
+                    responseHttpStatus: 500,
+                    responsePagePath: `/builds/${buildId}${manifest.errorPages[500]}`,
+                    ttl: Duration.seconds(0),
+                  },
+                ]
+              : []),
+          ]
+        : []),
+      ...(isSpaOnly && !hasErrorPages
         ? [
             {
               httpStatus: 403,

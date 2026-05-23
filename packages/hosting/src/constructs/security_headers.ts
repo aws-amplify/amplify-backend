@@ -29,30 +29,80 @@ const DEFAULT_CSP =
   "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; media-src 'self'; object-src 'none'; frame-ancestors 'self'";
 
 /**
+ * Set of header names whose values are baked into the L3's strongly-typed
+ * `securityHeadersBehavior`. If the user sets one of these via `headers()`
+ * we have to either drop the L3 default for that header, or relax it to
+ * non-override so the user's `customHeader` value wins.
+ *
+ * Why both modes: CloudFront's typed `securityHeadersBehavior` slots emit
+ * the well-known header names regardless of `customHeadersBehavior` — if
+ * we leave HSTS at `override: true` AND emit a custom HSTS, the typed
+ * one wins. Setting `override: false` on the typed slot lets the
+ * customHeader pass through.
+ */
+type SecurityHeaderName =
+  | 'strict-transport-security'
+  | 'x-content-type-options'
+  | 'x-frame-options'
+  | 'x-xss-protection'
+  | 'referrer-policy'
+  | 'content-security-policy';
+
+const SECURITY_HEADER_NAMES: SecurityHeaderName[] = [
+  'strict-transport-security',
+  'x-content-type-options',
+  'x-frame-options',
+  'x-xss-protection',
+  'referrer-policy',
+  'content-security-policy',
+];
+
+const isOverridden = (
+  customHeaders: Record<string, string> | undefined,
+  name: SecurityHeaderName,
+): boolean => {
+  if (!customHeaders) return false;
+  // CloudFront customHeader names are case-insensitive but stored as-is.
+  return Object.keys(customHeaders).some((k) => k.toLowerCase() === name);
+};
+
+/**
  * Build the standard security-headers behavior block. Extracted so the
  * per-pattern policies (used by manifest.headers[]) can include the same
  * security headers without duplicating the values.
+ *
+ * When `customHeaders` is provided and overlaps with one of the typed
+ * security-header slots, that slot is set to `override: false` so the
+ * customHeader value wins on the wire. This addresses the case where the
+ * user's `next.config.js headers()` (or Nuxt `routeRules`) sets, say,
+ * `x-frame-options: DENY` — we want their value to ship, not the L3
+ * default of `SAMEORIGIN`.
  */
-const buildSecurityHeadersBehavior = (props?: SecurityHeadersProps) => ({
+const buildSecurityHeadersBehavior = (
+  props?: SecurityHeadersProps,
+  customHeaders?: Record<string, string>,
+) => ({
   strictTransportSecurity: {
     accessControlMaxAge: Duration.days(730),
     includeSubdomains: true,
     preload: true,
-    override: true,
+    override: !isOverridden(customHeaders, 'strict-transport-security'),
   },
-  contentTypeOptions: { override: true },
+  contentTypeOptions: {
+    override: !isOverridden(customHeaders, 'x-content-type-options'),
+  },
   frameOptions: {
     frameOption: HeadersFrameOption.SAMEORIGIN,
-    override: true,
+    override: !isOverridden(customHeaders, 'x-frame-options'),
   },
   xssProtection: {
     protection: true,
     modeBlock: true,
-    override: true,
+    override: !isOverridden(customHeaders, 'x-xss-protection'),
   },
   referrerPolicy: {
     referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-    override: true,
+    override: !isOverridden(customHeaders, 'referrer-policy'),
   },
   contentSecurityPolicy: {
     contentSecurityPolicy: props?.contentSecurityPolicy ?? DEFAULT_CSP,
@@ -102,7 +152,8 @@ export const createCustomHeadersPolicy = (
     }),
   );
   return new ResponseHeadersPolicy(scope, id, {
-    securityHeadersBehavior: buildSecurityHeadersBehavior(props),
+    securityHeadersBehavior: buildSecurityHeadersBehavior(props, customHeaders),
     customHeadersBehavior: { customHeaders: items },
   });
 };
+export { SECURITY_HEADER_NAMES };

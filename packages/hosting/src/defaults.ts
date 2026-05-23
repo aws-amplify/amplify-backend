@@ -191,6 +191,61 @@ ${redirectSnippet}
 };
 
 /**
+ * Generate a CloudFront Function that strips a Next.js `assetPrefix`
+ * from the URI before the build-id rewrite runs. Used on
+ * `/<prefix>/_next/*` cache behaviors so prefixed asset URLs (Next's
+ * default emit when `assetPrefix` is set) resolve to the same S3
+ * objects as unprefixed `/_next/*` paths.
+ *
+ * Why a separate function: combining strip + build-id-rewrite + redirect
+ * check in one inline string blows past CloudFront's 10 KB per-function
+ * cap when redirects[] is large. Keeping them split lets us evolve
+ * each independently and stay within the cap.
+ *
+ * `assetPrefix` must start with `/` and not end with `/`. The function
+ * embeds it as a literal string for cheapest possible runtime behavior
+ * — no regex, no allocation beyond the substring slice.
+ */
+export const generateAssetPrefixStripFunctionCode = (
+  buildId: string,
+  assetPrefix: string,
+): string => {
+  if (!BUILD_ID_PATTERN.test(buildId)) {
+    throw new HostingError('InvalidBuildIdError', {
+      message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
+      resolution:
+        'Ensure build ID contains only letters, numbers, and hyphens.',
+    });
+  }
+  if (!assetPrefix.startsWith('/') || assetPrefix.endsWith('/')) {
+    throw new HostingError('InvalidAssetPrefixError', {
+      message: `assetPrefix must start with / and not end with /. Got: ${assetPrefix}`,
+      resolution:
+        'Normalize the prefix to a leading-slash, no-trailing-slash form before passing it.',
+    });
+  }
+  return `function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+  var prefix = ${JSON.stringify(assetPrefix)};
+  if (uri.indexOf(prefix) === 0) {
+    uri = uri.substring(prefix.length);
+    if (uri.length === 0) { uri = '/'; }
+  }
+  if (uri.endsWith('/')) {
+    uri = uri + 'index.html';
+  } else {
+    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('.') === -1) {
+      uri = uri + '/index.html';
+    }
+  }
+  request.uri = '/builds/${buildId}' + uri;
+  return request;
+}`;
+};
+
+/**
  * Generate CloudFront Function code for compute-origin behaviors:
  * checks redirects first, then propagates the Host header to
  * x-forwarded-host so the SSR handler can construct correct public URLs.

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import * as assert from 'node:assert/strict';
 import {
   MAX_REDIRECTS_IN_FUNCTION,
+  generateAssetPrefixStripFunctionCode,
   generateBuildIdAndRedirectFunctionCode,
   generateForwardedHostAndRedirectFunctionCode,
 } from './defaults.js';
@@ -148,5 +149,63 @@ void describe('redirect runtime semantics (executed against the generated code)'
       headers?: { location: { value: string } };
     };
     assert.equal(result.headers?.location.value, '/about');
+  });
+});
+
+void describe('generateAssetPrefixStripFunctionCode (B17)', () => {
+  // Helper: extract the function body and run it.
+  const evalFn = (
+    code: string,
+  ): ((event: { request: { uri: string } }) => unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    return new Function(`${code}\nreturn handler;`)() as never;
+  };
+
+  void it('strips a leading prefix and prepends build ID', () => {
+    const code = generateAssetPrefixStripFunctionCode('build1', '/shop-static');
+    const handler = evalFn(code);
+    const result = handler({
+      request: { uri: '/shop-static/_next/static/chunks/abc.js' },
+    }) as { uri: string };
+    assert.equal(result.uri, '/builds/build1/_next/static/chunks/abc.js');
+  });
+
+  void it('handles bare prefix → /builds/<id>/index.html', () => {
+    const code = generateAssetPrefixStripFunctionCode('build1', '/shop-static');
+    const handler = evalFn(code);
+    const result = handler({
+      request: { uri: '/shop-static' },
+    }) as { uri: string };
+    assert.equal(result.uri, '/builds/build1/index.html');
+  });
+
+  void it('passes through non-matching URI unchanged (only prepends build ID)', () => {
+    const code = generateAssetPrefixStripFunctionCode('build1', '/shop-static');
+    const handler = evalFn(code);
+    const result = handler({
+      request: { uri: '/_next/static/chunks/abc.js' },
+    }) as { uri: string };
+    assert.equal(result.uri, '/builds/build1/_next/static/chunks/abc.js');
+  });
+
+  void it('throws on invalid build ID', () => {
+    assert.throws(
+      () => generateAssetPrefixStripFunctionCode('bad/id', '/foo'),
+      { message: /Build ID must be alphanumeric/ },
+    );
+  });
+
+  void it('throws on prefix without leading slash', () => {
+    assert.throws(
+      () => generateAssetPrefixStripFunctionCode('build1', 'shop-static'),
+      { message: /assetPrefix must start with/ },
+    );
+  });
+
+  void it('throws on prefix with trailing slash', () => {
+    assert.throws(
+      () => generateAssetPrefixStripFunctionCode('build1', '/shop/'),
+      { message: /not end with/ },
+    );
   });
 });

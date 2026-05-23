@@ -160,8 +160,49 @@ export const nextjsAdapter = (
   // for the classifier. Anything we don't lift remains handled by the
   // OpenNext server bundle, so behavior is preserved.
   applyLiftedRoutesManifest(manifest, projectDir);
+  applyAssetPrefix(manifest, projectDir);
 
   return manifest;
+};
+
+/**
+ * Detect Next.js `assetPrefix` from the build's `required-server-files.json`
+ * and copy it to the manifest. The L3 uses this to add CloudFront cache
+ * behaviors at `/<prefix>/_next/*` so prefixed asset URLs resolve.
+ *
+ * Skips silently if the file is missing or assetPrefix is unset (most
+ * apps).
+ */
+const applyAssetPrefix = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  const requiredServerFilesPath = path.join(
+    projectDir,
+    '.next',
+    'required-server-files.json',
+  );
+  if (!fs.existsSync(requiredServerFilesPath)) return;
+  let parsed: { config?: { assetPrefix?: string } };
+  try {
+    parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const ap = parsed.config?.assetPrefix;
+  if (typeof ap !== 'string' || ap === '') return;
+  // Strip absolute-URL form (`https://cdn.example.com`) — only path-form
+  // assetPrefix can be wired to a CloudFront behavior on the same
+  // distribution. Absolute-URL assetPrefix means the user is fronting
+  // their assets with a separate origin and we shouldn't touch it.
+  if (/^https?:\/\//.test(ap)) return;
+  // Normalize: ensure leading slash, no trailing slash.
+  const normalized = '/' + ap.replace(/^\/+|\/+$/g, '');
+  if (normalized === '/') return;
+  manifest.assetPrefix = normalized;
+  process.stdout.write(
+    `🔗 Detected Next.js assetPrefix=${normalized}; will add CloudFront behaviors for prefixed asset paths.\n`,
+  );
 };
 
 /**

@@ -157,6 +157,101 @@ void describe('CdnConstruct', () => {
         FunctionCode: Match.stringLikeRegexp('test-spa-1'),
       });
     });
+
+    void it('emits prefixed _next/* behaviors when manifest.assetPrefix is set (B17)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const prefixedManifest = {
+        ...spaManifest,
+        assetPrefix: '/shop-static',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: prefixedManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      // Prefixed _next/* behaviors should exist on the distribution.
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CacheBehaviors: Match.arrayWith([
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/static/*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/image*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/data/*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/*',
+            }),
+          ]),
+        }),
+      });
+      // Should have created a strip function.
+      template.hasResourceProperties('AWS::CloudFront::Function', {
+        FunctionCode: Match.stringLikeRegexp('shop-static'),
+      });
+    });
+
+    void it('uses real 404 response when manifest.errorPages declares /404.html (B15)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      // Static deploy with a real 404.html (e.g. Next.js `output: 'export'`).
+      const exportManifest = {
+        ...spaManifest,
+        errorPages: { 404: '/404.html' as const },
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: exportManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      // Real 404 with 404 status, pointing at the build-id-prefixed path.
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 404,
+              ResponseCode: 404,
+              ResponsePagePath: Match.stringLikeRegexp('/404\\.html$'),
+            }),
+          ]),
+        }),
+      });
+      // SPA fallback (403/404 → 200 /index.html) must NOT be present.
+      const config = template.findResources('AWS::CloudFront::Distribution');
+      const distRecord = Object.values(config)[0] as Record<string, unknown>;
+      const distProps = distRecord['Properties'] as Record<string, unknown>;
+      const distCfg = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const responses = distCfg['CustomErrorResponses'] as
+        | Array<Record<string, unknown>>
+        | undefined;
+      const hasSpaFallback = (responses ?? []).some(
+        (r) =>
+          (r['ErrorCode'] as number) === 404 &&
+          (r['ResponseCode'] as number | undefined) === 200,
+      );
+      assert.equal(
+        hasSpaFallback,
+        false,
+        'SPA fallback (404→200 /index.html) must not be present when errorPages set',
+      );
+    });
   });
 
   // ---- SSR mode ----
@@ -192,6 +287,82 @@ void describe('CdnConstruct', () => {
           }),
         }),
       });
+    });
+
+    void it('uses a custom CachePolicy that honors origin Cache-Control on SSR (B21)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      // SSR cache policy is created with a content-derived comment.
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            Comment: Match.stringLikeRegexp('SSR/ISR/SWR'),
+            // Min/default 0 (origin opts out via no-store); max 1 year
+            // (clamps wild origin values).
+            MinTTL: 0,
+            DefaultTTL: 0,
+            MaxTTL: 31536000,
+            ParametersInCacheKeyAndForwardedToOrigin: Match.objectLike({
+              EnableAcceptEncodingBrotli: true,
+              EnableAcceptEncodingGzip: true,
+              HeadersConfig: Match.objectLike({
+                HeaderBehavior: 'whitelist',
+                Headers: Match.arrayWith([
+                  'Accept-Encoding',
+                  'rsc',
+                  'next-router-prefetch',
+                  'next-router-state-tree',
+                  'next-router-segment-prefetch',
+                ]),
+              }),
+              CookiesConfig: Match.objectLike({
+                CookieBehavior: 'none',
+              }),
+            }),
+          }),
+        }),
+      );
+      // SSR default behavior must reference our custom CachePolicy
+      // (synthesized as a Ref), NOT the AWS-managed CACHING_DISABLED
+      // policy (which would be a string ID literal).
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      const props = distResource?.['Properties'] as
+        | Record<string, unknown>
+        | undefined;
+      const distConfig = props?.['DistributionConfig'] as
+        | Record<string, unknown>
+        | undefined;
+      const defaultBehavior = distConfig?.['DefaultCacheBehavior'] as
+        | Record<string, unknown>
+        | undefined;
+      const cachePolicyId = defaultBehavior?.['CachePolicyId'];
+      assert.equal(
+        typeof cachePolicyId === 'object' &&
+          cachePolicyId !== null &&
+          'Ref' in (cachePolicyId as Record<string, unknown>),
+        true,
+        'SSR default behavior must use a synthesized CachePolicy (Ref), not the AWS-managed CACHING_DISABLED string ID (B21)',
+      );
     });
 
     void it('creates additional behaviors for static routes', () => {
