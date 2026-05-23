@@ -305,6 +305,10 @@ void describe('CdnConstruct', () => {
 
       const template = Template.fromStack(stack);
       // SSR cache policy is created with a content-derived comment.
+      // NOTE: CloudFront rejects `Accept-Encoding` from `headerBehavior.allowList`
+      // when `EnableAcceptEncodingGzip:true` is set — gzip handling is implicit
+      // in that flag. So the allowList only contains the Next.js router cache
+      // keys, not Accept-Encoding.
       template.hasResourceProperties(
         'AWS::CloudFront::CachePolicy',
         Match.objectLike({
@@ -321,7 +325,6 @@ void describe('CdnConstruct', () => {
               HeadersConfig: Match.objectLike({
                 HeaderBehavior: 'whitelist',
                 Headers: Match.arrayWith([
-                  'Accept-Encoding',
                   'rsc',
                   'next-router-prefetch',
                   'next-router-state-tree',
@@ -334,6 +337,33 @@ void describe('CdnConstruct', () => {
             }),
           }),
         }),
+      );
+
+      // Assert Accept-Encoding is NOT in the allowList (CloudFront rejects
+      // it alongside EnableAcceptEncodingGzip:true).
+      const cachePolicies = template.findResources(
+        'AWS::CloudFront::CachePolicy',
+      );
+      const ssrPolicy = Object.values(cachePolicies).find((r) => {
+        const props = (r as Record<string, Record<string, unknown>>).Properties;
+        const cfg = props.CachePolicyConfig as Record<string, unknown>;
+        return typeof cfg.Comment === 'string' && cfg.Comment.includes('SSR');
+      }) as Record<string, Record<string, unknown>> | undefined;
+      assert.ok(ssrPolicy, 'Should have an SSR CachePolicy');
+      const cfg = ssrPolicy.Properties.CachePolicyConfig as Record<
+        string,
+        unknown
+      >;
+      const params = cfg.ParametersInCacheKeyAndForwardedToOrigin as Record<
+        string,
+        unknown
+      >;
+      const headersCfg = params.HeadersConfig as Record<string, unknown>;
+      const headers = (headersCfg.Headers ?? []) as string[];
+      const lowerHeaders = headers.map((h) => h.toLowerCase());
+      assert.ok(
+        !lowerHeaders.includes('accept-encoding'),
+        'Accept-Encoding must NOT appear in headerBehavior.allowList when EnableAcceptEncodingGzip:true',
       );
       // SSR default behavior must reference our custom CachePolicy
       // (synthesized as a Ref), NOT the AWS-managed CACHING_DISABLED

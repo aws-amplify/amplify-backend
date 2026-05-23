@@ -5,6 +5,7 @@ import {
   HeadersReferrerPolicy,
   ResponseCustomHeader,
   ResponseHeadersPolicy,
+  ResponseSecurityHeadersBehavior,
 } from 'aws-cdk-lib/aws-cloudfront';
 
 // ---- Public types ----
@@ -66,49 +67,146 @@ const isOverridden = (
   return Object.keys(customHeaders).some((k) => k.toLowerCase() === name);
 };
 
+// CloudFront's security-header slots accept these enumerated values.
+const parseFrameOption = (raw: string): HeadersFrameOption | undefined => {
+  switch (raw.toUpperCase().trim()) {
+    case 'DENY':
+      return HeadersFrameOption.DENY;
+    case 'SAMEORIGIN':
+      return HeadersFrameOption.SAMEORIGIN;
+    default:
+      return undefined;
+  }
+};
+
+const parseReferrerPolicy = (
+  raw: string,
+): HeadersReferrerPolicy | undefined => {
+  switch (raw.toLowerCase().trim()) {
+    case 'no-referrer':
+      return HeadersReferrerPolicy.NO_REFERRER;
+    case 'no-referrer-when-downgrade':
+      return HeadersReferrerPolicy.NO_REFERRER_WHEN_DOWNGRADE;
+    case 'origin':
+      return HeadersReferrerPolicy.ORIGIN;
+    case 'origin-when-cross-origin':
+      return HeadersReferrerPolicy.ORIGIN_WHEN_CROSS_ORIGIN;
+    case 'same-origin':
+      return HeadersReferrerPolicy.SAME_ORIGIN;
+    case 'strict-origin':
+      return HeadersReferrerPolicy.STRICT_ORIGIN;
+    case 'strict-origin-when-cross-origin':
+      return HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN;
+    case 'unsafe-url':
+      return HeadersReferrerPolicy.UNSAFE_URL;
+    default:
+      return undefined;
+  }
+};
+
+// Parse `Strict-Transport-Security: max-age=N; includeSubDomains; preload`
+// into the structured fields CloudFront expects. Returns null if the header
+// is malformed (caller should fall back to defaults).
+const parseHsts = (
+  value: string,
+): {
+  maxAgeSec: number;
+  includeSubdomains: boolean;
+  preload: boolean;
+} | null => {
+  const parts = value.split(';').map((p) => p.trim().toLowerCase());
+  const maxAgeMatch = parts.find((p) => p.startsWith('max-age='));
+  if (!maxAgeMatch) return null;
+  const maxAgeSec = parseInt(maxAgeMatch.slice('max-age='.length), 10);
+  if (!Number.isFinite(maxAgeSec) || maxAgeSec < 0) return null;
+  return {
+    maxAgeSec,
+    includeSubdomains: parts.includes('includesubdomains'),
+    preload: parts.includes('preload'),
+  };
+};
+
+const findCustomHeader = (
+  customHeaders: Record<string, string> | undefined,
+  name: SecurityHeaderName,
+): string | undefined => {
+  if (!customHeaders) return undefined;
+  const key = Object.keys(customHeaders).find((k) => k.toLowerCase() === name);
+  return key ? customHeaders[key] : undefined;
+};
+
 /**
  * Build the standard security-headers behavior block. Extracted so the
  * per-pattern policies (used by manifest.headers[]) can include the same
  * security headers without duplicating the values.
  *
  * When `customHeaders` is provided and overlaps with one of the typed
- * security-header slots, that slot is set to `override: false` so the
- * customHeader value wins on the wire. This addresses the case where the
- * user's `next.config.js headers()` (or Nuxt `routeRules`) sets, say,
- * `x-frame-options: DENY` — we want their value to ship, not the L3
- * default of `SAMEORIGIN`.
+ * security-header slots, the user's value is parsed and injected into the
+ * typed slot directly (override: true). CloudFront rejects security-named
+ * headers from `customHeadersBehavior.customHeaders`, so we cannot pass
+ * them through that path.
  */
 const buildSecurityHeadersBehavior = (
   props?: SecurityHeadersProps,
   customHeaders?: Record<string, string>,
-) => ({
-  strictTransportSecurity: {
-    accessControlMaxAge: Duration.days(730),
-    includeSubdomains: true,
-    preload: true,
-    override: !isOverridden(customHeaders, 'strict-transport-security'),
-  },
-  contentTypeOptions: {
-    override: !isOverridden(customHeaders, 'x-content-type-options'),
-  },
-  frameOptions: {
-    frameOption: HeadersFrameOption.SAMEORIGIN,
-    override: !isOverridden(customHeaders, 'x-frame-options'),
-  },
-  xssProtection: {
-    protection: true,
-    modeBlock: true,
-    override: !isOverridden(customHeaders, 'x-xss-protection'),
-  },
-  referrerPolicy: {
-    referrerPolicy: HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
-    override: !isOverridden(customHeaders, 'referrer-policy'),
-  },
-  contentSecurityPolicy: {
-    contentSecurityPolicy: props?.contentSecurityPolicy ?? DEFAULT_CSP,
-    override: false,
-  },
-});
+): ResponseSecurityHeadersBehavior => {
+  // x-frame-options: parse user value if it's DENY/SAMEORIGIN; else default.
+  const userFrame = findCustomHeader(customHeaders, 'x-frame-options');
+  const frameOption: HeadersFrameOption =
+    (userFrame ? parseFrameOption(userFrame) : undefined) ??
+    HeadersFrameOption.SAMEORIGIN;
+
+  // strict-transport-security: parse user value if well-formed.
+  const userHsts = findCustomHeader(customHeaders, 'strict-transport-security');
+  const parsedHsts = userHsts ? parseHsts(userHsts) : null;
+  const hstsConfig = parsedHsts
+    ? {
+        accessControlMaxAge: Duration.seconds(parsedHsts.maxAgeSec),
+        includeSubdomains: parsedHsts.includeSubdomains,
+        preload: parsedHsts.preload,
+        override: true,
+      }
+    : {
+        accessControlMaxAge: Duration.days(730),
+        includeSubdomains: true,
+        preload: true,
+        override: true,
+      };
+
+  // referrer-policy: parse user value if it matches a known policy.
+  const userReferrer = findCustomHeader(customHeaders, 'referrer-policy');
+  const referrerPolicy: HeadersReferrerPolicy =
+    (userReferrer ? parseReferrerPolicy(userReferrer) : undefined) ??
+    HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN;
+
+  // content-security-policy: user value beats the L3 default if present.
+  const userCsp = findCustomHeader(customHeaders, 'content-security-policy');
+
+  return {
+    strictTransportSecurity: hstsConfig,
+    contentTypeOptions: {
+      override: !isOverridden(customHeaders, 'x-content-type-options'),
+    },
+    frameOptions: {
+      frameOption,
+      override: true,
+    },
+    xssProtection: {
+      protection: true,
+      modeBlock: true,
+      override: !isOverridden(customHeaders, 'x-xss-protection'),
+    },
+    referrerPolicy: {
+      referrerPolicy,
+      override: true,
+    },
+    contentSecurityPolicy: {
+      contentSecurityPolicy:
+        userCsp ?? props?.contentSecurityPolicy ?? DEFAULT_CSP,
+      override: true,
+    },
+  };
+};
 
 /**
  * Create a CloudFront ResponseHeadersPolicy with security headers.
@@ -141,16 +239,25 @@ export const createCustomHeadersPolicy = (
   customHeaders: Record<string, string>,
   props?: SecurityHeadersProps,
 ): ResponseHeadersPolicy => {
-  const items: ResponseCustomHeader[] = Object.entries(customHeaders).map(
-    ([header, value]) => ({
+  // CloudFront rejects security-named headers from the customHeaders
+  // array (Status 400 — must be set via securityHeadersBehavior).
+  // Filter them here; their values are folded into the typed slots
+  // by buildSecurityHeadersBehavior(customHeaders).
+  const items: ResponseCustomHeader[] = Object.entries(customHeaders)
+    .filter(
+      ([header]) =>
+        !SECURITY_HEADER_NAMES.includes(
+          header.toLowerCase() as SecurityHeaderName,
+        ),
+    )
+    .map(([header, value]) => ({
       header,
       value,
       // Override so the manifest's value wins over the origin's. Custom
       // headers are explicit user intent; surprising precedence rules
       // (origin-wins) would be very confusing.
       override: true,
-    }),
-  );
+    }));
   return new ResponseHeadersPolicy(scope, id, {
     securityHeadersBehavior: buildSecurityHeadersBehavior(props, customHeaders),
     customHeadersBehavior: { customHeaders: items },

@@ -123,7 +123,12 @@ void describe('createSecurityHeadersPolicy', () => {
       // This test explicitly verifies that unsafe-eval is NOT present
     });
 
-    void it('sets CSP override to false (allows app to override)', () => {
+    void it('sets CSP override to true (L3-managed default wins over origin)', () => {
+      // After the security_headers refactor, the L3 always emits its CSP
+      // via the typed `securityHeadersBehavior` slot with `Override: true`.
+      // User-supplied CSPs are still honored — they get folded INTO the
+      // typed slot (see "user header override" suite below) — so origin
+      // headers never need to win this slot.
       const stack = createStack();
       createSecurityHeadersPolicy(stack, 'Headers');
       const template = Template.fromStack(stack);
@@ -134,7 +139,7 @@ void describe('createSecurityHeadersPolicy', () => {
           ResponseHeadersPolicyConfig: Match.objectLike({
             SecurityHeadersConfig: Match.objectLike({
               ContentSecurityPolicy: Match.objectLike({
-                Override: false,
+                Override: true,
               }),
             }),
           }),
@@ -373,10 +378,17 @@ void describe('createSecurityHeadersPolicy', () => {
 // ================================================================
 
 void describe('createCustomHeadersPolicy — user header override', () => {
-  void it('relaxes Override: true → false on x-frame-options when user sets it', () => {
+  // CloudFront rejects security-named headers (x-frame-options, HSTS, etc.)
+  // from `customHeadersBehavior.customHeaders[]` with HTTP 400. The L3
+  // therefore PARSES the user's value and folds it into the typed
+  // `securityHeadersBehavior` slot (Override: true), and FILTERS the
+  // header out of the customHeaders array. Non-security custom headers
+  // (e.g. cache-control, x-stress-test) still pass through customHeaders.
+  void it('folds user x-frame-options into typed FrameOptions slot (and filters it from customHeaders)', () => {
     const stack = createStack();
     createCustomHeadersPolicy(stack, 'CustomHeaders', {
       'x-frame-options': 'DENY',
+      'x-stress-test': 'enabled',
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties(
@@ -385,15 +397,17 @@ void describe('createCustomHeadersPolicy — user header override', () => {
         ResponseHeadersPolicyConfig: Match.objectLike({
           SecurityHeadersConfig: Match.objectLike({
             FrameOptions: Match.objectLike({
-              FrameOption: 'SAMEORIGIN',
-              Override: false,
+              // Parsed from the user's value, not the L3 default.
+              FrameOption: 'DENY',
+              Override: true,
             }),
           }),
+          // Non-security header still in CustomHeaders.
           CustomHeadersConfig: Match.objectLike({
             Items: Match.arrayWith([
               Match.objectLike({
-                Header: 'x-frame-options',
-                Value: 'DENY',
+                Header: 'x-stress-test',
+                Value: 'enabled',
                 Override: true,
               }),
             ]),
@@ -401,9 +415,32 @@ void describe('createCustomHeadersPolicy — user header override', () => {
         }),
       }),
     );
+
+    // Verify x-frame-options was filtered OUT of CustomHeaders.
+    const policies = template.findResources(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+    );
+    const policy = Object.values(policies)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const config = policy.Properties.ResponseHeadersPolicyConfig as Record<
+      string,
+      unknown
+    >;
+    const customHeaders = config.CustomHeadersConfig as Record<
+      string,
+      unknown[]
+    >;
+    const items = (customHeaders.Items ?? []) as Array<Record<string, unknown>>;
+    const headerNames = items.map((i) => String(i['Header']).toLowerCase());
+    assert.ok(
+      !headerNames.includes('x-frame-options'),
+      'x-frame-options must be filtered out of CustomHeaders (CloudFront rejects security-named headers there)',
+    );
   });
 
-  void it('keeps Override: true on x-frame-options when user does NOT set it', () => {
+  void it('keeps L3 default SAMEORIGIN on x-frame-options when user does NOT set it', () => {
     const stack = createStack();
     createCustomHeadersPolicy(stack, 'CustomHeaders', {
       'cache-control': 'no-store',
@@ -431,24 +468,50 @@ void describe('createCustomHeadersPolicy — user header override', () => {
       'X-Frame-Options': 'DENY',
     });
     const template = Template.fromStack(stack);
+    // Capitalized name still resolves to the typed slot with the user's value.
     template.hasResourceProperties(
       'AWS::CloudFront::ResponseHeadersPolicy',
       Match.objectLike({
         ResponseHeadersPolicyConfig: Match.objectLike({
           SecurityHeadersConfig: Match.objectLike({
             FrameOptions: Match.objectLike({
-              Override: false,
+              FrameOption: 'DENY',
+              Override: true,
             }),
           }),
         }),
       }),
     );
+
+    // And it's still filtered out of CustomHeaders regardless of case.
+    const policies = template.findResources(
+      'AWS::CloudFront::ResponseHeadersPolicy',
+    );
+    const policy = Object.values(policies)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const config = policy.Properties.ResponseHeadersPolicyConfig as Record<
+      string,
+      unknown
+    >;
+    const customHeaders = config.CustomHeadersConfig as Record<
+      string,
+      unknown[]
+    >;
+    const items = (customHeaders.Items ?? []) as Array<Record<string, unknown>>;
+    const headerNames = items.map((i) => String(i['Header']).toLowerCase());
+    assert.ok(
+      !headerNames.includes('x-frame-options'),
+      'X-Frame-Options must be filtered out of CustomHeaders (case-insensitive match)',
+    );
   });
 
-  void it('relaxes HSTS / x-content-type-options / referrer-policy / xss-protection independently', () => {
+  void it('folds user HSTS and referrer-policy into their typed slots; untouched slots keep L3 defaults', () => {
     const stack = createStack();
     createCustomHeadersPolicy(stack, 'CustomHeaders', {
-      'strict-transport-security': 'max-age=0',
+      'strict-transport-security':
+        'max-age=63072000; includeSubDomains; preload',
       'referrer-policy': 'no-referrer',
     });
     const template = Template.fromStack(stack);
@@ -457,10 +520,21 @@ void describe('createCustomHeadersPolicy — user header override', () => {
       Match.objectLike({
         ResponseHeadersPolicyConfig: Match.objectLike({
           SecurityHeadersConfig: Match.objectLike({
-            StrictTransportSecurity: Match.objectLike({ Override: false }),
-            ReferrerPolicy: Match.objectLike({ Override: false }),
-            // Untouched headers stay at Override: true.
-            FrameOptions: Match.objectLike({ Override: true }),
+            StrictTransportSecurity: Match.objectLike({
+              AccessControlMaxAgeSec: 63072000,
+              IncludeSubdomains: true,
+              Preload: true,
+              Override: true,
+            }),
+            ReferrerPolicy: Match.objectLike({
+              ReferrerPolicy: 'no-referrer',
+              Override: true,
+            }),
+            // Untouched slots stay at the L3 defaults with Override: true.
+            FrameOptions: Match.objectLike({
+              FrameOption: 'SAMEORIGIN',
+              Override: true,
+            }),
             ContentTypeOptions: Match.objectLike({ Override: true }),
             XSSProtection: Match.objectLike({ Override: true }),
           }),

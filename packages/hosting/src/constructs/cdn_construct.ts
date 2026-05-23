@@ -620,6 +620,15 @@ export class CdnConstruct extends Construct {
         responseHeadersPolicy: getOrCreatePolicy(headers),
       });
 
+      // B22: when no behavior exists for a header pattern yet, the synthesized
+      // behavior must match how the catch-all would have served the same
+      // request. If the manifest declares any compute (SSR/ISR/SWR), the
+      // route is dynamic and must point to the compute origin — pointing
+      // at S3 here would shadow the catch-all and 403 every request.
+      // Static-only deploys (no compute) fall back to a static behavior.
+      const synthesizeBehaviorForHeaderPattern = (): BehaviorOptions =>
+        hasCompute ? makeComputeBehavior() : makeStaticBehavior();
+
       for (const entry of manifestHeaders) {
         const cfPattern = normalizePatternForCloudFront(entry.source);
         if (cfPattern === '/*' || cfPattern === '*') {
@@ -635,10 +644,11 @@ export class CdnConstruct extends Construct {
             entry.headers,
           );
         } else {
-          // No behavior for this pattern yet. Create a static one so
-          // the policy can be attached. Skip silently if we'd exceed
-          // the CloudFront behavior cap (better to lose the header than
-          // fail the deploy outright; warn at synth-time).
+          // No behavior for this pattern yet. Create one that matches the
+          // catch-all's origin choice (compute or static) so headers are
+          // additive, not redirecting requests. Skip silently if we'd exceed the
+          // CloudFront behavior cap (better to lose the header than fail
+          // the deploy; warn at synth-time).
           if (
             Object.keys(additionalBehaviors).length >= MAX_ADDITIONAL_BEHAVIORS
           ) {
@@ -648,7 +658,7 @@ export class CdnConstruct extends Construct {
             continue;
           }
           additionalBehaviors[cfPattern] = overrideBehaviorPolicy(
-            makeStaticBehavior(),
+            synthesizeBehaviorForHeaderPattern(),
             entry.headers,
           );
         }
