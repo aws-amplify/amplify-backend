@@ -11,7 +11,9 @@ import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
+  CustomHeader,
   DeployManifest,
+  Redirect,
   RouteBehavior,
 } from '../manifest/types.js';
 
@@ -148,7 +150,18 @@ export const nextjsAdapter = (
     );
   }
 
-  return translateOpenNextOutput(output, openNextDir);
+  const manifest = translateOpenNextOutput(output, openNextDir);
+
+  // Lift simple Next.js redirects() / headers() rules out of the OpenNext
+  // Lambda and into CloudFront. This eliminates a Lambda invocation for
+  // matching paths (~150ms cold-start + ~5ms warm vs. ~5ms at the edge).
+  // Complex rules (with `has`/`missing` conditions, regex captures, or
+  // i18n locale groups) stay in the Lambda — see liftSimpleRoutesManifest
+  // for the classifier. Anything we don't lift remains handled by the
+  // OpenNext server bundle, so behavior is preserved.
+  applyLiftedRoutesManifest(manifest, projectDir);
+
+  return manifest;
 };
 
 /**
@@ -159,6 +172,162 @@ export const nextjsAdapter = (
  * with leading `/` (used as the CloudFront cache-behavior PathPattern).
  */
 type EdgeRoute = { module: string; pattern: string };
+
+// Shape of the entries we care about in `.next/routes-manifest.json`. Both
+// `redirects[]` and `headers[]` carry a `source` (Next route pattern) and
+// a `regex` (compiled JS regex). Redirects also have a destination and
+// statusCode; headers carry a list of {key, value} pairs.
+type NextRoutesManifest = {
+  redirects?: Array<{
+    source: string;
+    destination: string;
+    statusCode: number;
+    locale?: boolean;
+    internal?: boolean;
+    has?: unknown;
+    missing?: unknown;
+  }>;
+  headers?: Array<{
+    source: string;
+    headers: Array<{ key: string; value: string }>;
+    locale?: boolean;
+    has?: unknown;
+    missing?: unknown;
+  }>;
+};
+
+/**
+ * Test whether a Next.js route `source` is simple enough to lift to a
+ * CloudFront Function / per-pattern ResponseHeadersPolicy. A source is
+ * simple if it has no params (`:slug`, `:path+`), no regex groups, and
+ * no character classes. Trailing-`*` is allowed because we map it to a
+ * suffix-wildcard pattern handled by both the redirect snippet and
+ * CloudFront's behavior matcher.
+ *
+ * Why so strict: the CloudFront Function redirect snippet only knows
+ * exact-match and trailing-`*`. Anything else (param interpolation,
+ * regex captures, locale groups) can't be evaluated at the edge — those
+ * rules must stay in the OpenNext Lambda.
+ */
+const isSimpleNextSource = (source: string): boolean => {
+  // Param syntax: ":name", ":name+", ":name*", or "(group)".
+  if (/[:()]/.test(source)) return false;
+  // Brackets, escapes, alternation, character classes.
+  if (/[[\]\\|{}^$+?]/.test(source)) return false;
+  // Only allow ASCII letters, digits, '/', '-', '_', '.', and a trailing '*'.
+  // Strip the trailing '*' first if present.
+  const stripped = source.endsWith('/*') ? source.slice(0, -2) : source;
+  return /^\/[a-zA-Z0-9/_.-]*$/.test(stripped);
+};
+
+/**
+ * Translate a simple Next.js source pattern to the form the L3
+ * accepts (`/path` or `/path/*`). For non-trailing-wildcard sources
+ * we just return as-is.
+ */
+const toManifestSource = (source: string): string => {
+  return source.endsWith('/*') ? source : source;
+};
+
+/**
+ * Read `.next/routes-manifest.json` and lift simple redirects/headers
+ * into the deploy manifest so the L3 wires them as CloudFront Functions
+ * and per-pattern ResponseHeadersPolicies. Anything we don't lift stays
+ * in the OpenNext Lambda; behavior is preserved either way.
+ *
+ * Skips silently when:
+ *  - The manifest doesn't exist (e.g. `next build` hasn't run, or
+ *    OpenNext is being driven from a pre-built `.next/`).
+ *  - The redirect is `internal: true` (e.g. trailing-slash normalization;
+ *    OpenNext handles it natively, and lifting it can flip-flop with
+ *    Next's runtime URL handling).
+ *  - The rule has `has`/`missing` conditions, locale groups, or any
+ *    pattern feature the CloudFront edge can't evaluate.
+ */
+const applyLiftedRoutesManifest = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  const routesManifestPath = path.join(
+    projectDir,
+    '.next',
+    'routes-manifest.json',
+  );
+  if (!fs.existsSync(routesManifestPath)) return;
+
+  let routesManifest: NextRoutesManifest;
+  try {
+    routesManifest = JSON.parse(fs.readFileSync(routesManifestPath, 'utf-8'));
+  } catch {
+    // Invalid JSON — leave everything in Lambda. Don't fail the build.
+    return;
+  }
+
+  const liftedRedirects: Redirect[] = [];
+  const liftedHeaders: CustomHeader[] = [];
+  let skippedRedirects = 0;
+  let skippedHeaders = 0;
+
+  for (const r of routesManifest.redirects ?? []) {
+    if (r.internal) {
+      // Trailing-slash and similar — leave to OpenNext.
+      continue;
+    }
+    if (r.has || r.missing) {
+      skippedRedirects++;
+      continue;
+    }
+    if (![301, 302, 307, 308].includes(r.statusCode)) {
+      skippedRedirects++;
+      continue;
+    }
+    if (!isSimpleNextSource(r.source) || !isSimpleNextSource(r.destination)) {
+      skippedRedirects++;
+      continue;
+    }
+    liftedRedirects.push({
+      source: toManifestSource(r.source),
+      destination: toManifestSource(r.destination),
+      statusCode: r.statusCode as 301 | 302 | 307 | 308,
+    });
+  }
+
+  for (const h of routesManifest.headers ?? []) {
+    if (h.has || h.missing) {
+      skippedHeaders++;
+      continue;
+    }
+    if (!isSimpleNextSource(h.source)) {
+      skippedHeaders++;
+      continue;
+    }
+    const headers: Record<string, string> = {};
+    for (const entry of h.headers) headers[entry.key] = entry.value;
+    liftedHeaders.push({
+      source: toManifestSource(h.source),
+      headers,
+    });
+  }
+
+  if (liftedRedirects.length > 0) {
+    manifest.redirects = [...(manifest.redirects ?? []), ...liftedRedirects];
+  }
+  if (liftedHeaders.length > 0) {
+    manifest.headers = [...(manifest.headers ?? []), ...liftedHeaders];
+  }
+
+  if (
+    liftedRedirects.length > 0 ||
+    liftedHeaders.length > 0 ||
+    skippedRedirects > 0 ||
+    skippedHeaders > 0
+  ) {
+    process.stdout.write(
+      `🚀 Lifted ${liftedRedirects.length} redirect(s) and ${liftedHeaders.length} header rule(s) to CloudFront. ` +
+        `${skippedRedirects + skippedHeaders} kept in Lambda (conditional/regex/locale).\n`,
+    );
+  }
+};
 
 /**
  * Detect edge routes by reading Next.js's compiled middleware-manifest.
