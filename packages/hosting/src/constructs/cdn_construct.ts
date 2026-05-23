@@ -323,10 +323,17 @@ export class CdnConstruct extends Construct {
     // - maxTtl: 1 year — clamps any wild origin values (e.g. corrupted
     //   Cache-Control: s-max-age=999999999)
     //
-    // The cache key includes only Accept-Encoding (for content
-    // negotiation) plus the Next.js router headers. Cookies are
-    // explicitly excluded — any route that varies on cookies must
-    // emit `Cache-Control: private` to opt out.
+    // Content negotiation is handled by enableAcceptEncodingBrotli/Gzip
+    // flags — CloudFront normalizes the Accept-Encoding header into
+    // gzip|br|identity buckets internally, which is more efficient than
+    // caching per literal header value. CloudFront forbids whitelisting
+    // 'accept-encoding' in headerBehavior alongside these flags.
+    //
+    // The cache key includes the Next.js router headers (RSC, prefetch,
+    // state tree, segment prefetch) so prefetch payloads don't bleed
+    // into full-page responses. Cookies are explicitly excluded — any
+    // route that varies on cookies must emit `Cache-Control: private`
+    // to opt out.
     const ssrCachePolicy = hasCompute
       ? new CachePolicy(this, 'SsrCachePolicy', {
           comment:
@@ -335,7 +342,6 @@ export class CdnConstruct extends Construct {
           defaultTtl: Duration.seconds(0),
           maxTtl: Duration.days(365),
           headerBehavior: CacheHeaderBehavior.allowList(
-            'Accept-Encoding',
             'rsc',
             'next-router-prefetch',
             'next-router-state-tree',
