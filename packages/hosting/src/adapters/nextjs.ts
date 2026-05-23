@@ -349,61 +349,86 @@ ${entries}
  * Idempotent.
  */
 const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
-  const bundle = path.join(
-    openNextDir,
-    'server-functions',
-    'default',
-    'index.mjs',
-  );
-
-  // Read directly; let the missing-file case fall out as ENOENT instead of
-  // checking existence separately (avoids a TOCTOU race).
-  let src: string;
-  try {
-    src = fs.readFileSync(bundle, 'utf-8');
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      process.stderr.write(
-        `⚠️  Skipping streaming-wrapper patch: ${bundle} not found.\n`,
-      );
-      return;
+  const root = path.join(openNextDir, 'server-functions', 'default');
+  // OpenNext puts the streaming wrapper in `default/index.mjs` for flat
+  // packages, but in workspace setups it nests the real bundle under
+  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export at
+  // `default/index.mjs`. Walk the tree and patch every index.mjs that
+  // contains the wrapper signature.
+  const stack = [root];
+  const candidates: string[] = [];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw err;
     }
-    throw err;
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Skip node_modules — the bundler inlines OpenNext into index.mjs.
+        if (entry.name === 'node_modules') continue;
+        stack.push(full);
+      } else if (entry.isFile() && entry.name === 'index.mjs') {
+        candidates.push(full);
+      }
+    }
   }
-  let patches = 0;
 
-  const setContentTypeRe =
-    /[A-Za-z_$][\w$]*\.setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/g;
-  if (setContentTypeRe.test(src)) {
-    src = src.replace(setContentTypeRe, 'void 0');
-    patches++;
-  }
+  let totalPatches = 0;
+  let filesPatched = 0;
+  for (const bundle of candidates) {
+    let src: string;
+    try {
+      src = fs.readFileSync(bundle, 'utf-8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw err;
+    }
+    let patches = 0;
 
-  // The wrapper does:
-  //   if (acceptEncoding.includes("br")) { ... brotli ... }
-  //   else if (acceptEncoding.includes("gzip")) { ... gzip ... }
-  //   else if (acceptEncoding.includes("deflate")) { ... deflate ... }
-  //   else { identity }
-  // Force the identity branch by neutering all three checks.
-  for (const algo of ['br', 'gzip', 'deflate']) {
-    const re = new RegExp(`\\.includes\\("${algo}"\\)`, 'g');
-    if (re.test(src)) {
-      src = src.replace(re, `.includes("__amplify_no_${algo}__")`);
+    const setContentTypeRe =
+      /[A-Za-z_$][\w$]*\.setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/g;
+    if (setContentTypeRe.test(src)) {
+      src = src.replace(setContentTypeRe, 'void 0');
       patches++;
     }
+
+    // The wrapper does:
+    //   if (acceptEncoding.includes("br")) { ... brotli ... }
+    //   else if (acceptEncoding.includes("gzip")) { ... gzip ... }
+    //   else if (acceptEncoding.includes("deflate")) { ... deflate ... }
+    //   else { identity }
+    // Force the identity branch by neutering all three checks.
+    for (const algo of ['br', 'gzip', 'deflate']) {
+      const re = new RegExp(`\\.includes\\("${algo}"\\)`, 'g');
+      if (re.test(src)) {
+        src = src.replace(re, `.includes("__amplify_no_${algo}__")`);
+        patches++;
+      }
+    }
+
+    if (patches > 0) {
+      fs.writeFileSync(bundle, src, 'utf-8');
+      totalPatches += patches;
+      filesPatched++;
+    }
   }
 
-  if (patches === 0) {
+  if (filesPatched === 0) {
     process.stderr.write(
-      `⚠️  Streaming-wrapper patch found nothing to change in ${bundle}. ` +
+      `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
         `OpenNext may have updated its bundled wrapper; verify wrapper output.\n`,
     );
     return;
   }
 
-  fs.writeFileSync(bundle, src, 'utf-8');
   process.stderr.write(
-    `\u{1F527} Patched bundled aws-lambda-streaming wrapper for API Gateway STREAM (${patches} edits).\n`,
+    `\u{1F527} Patched bundled aws-lambda-streaming wrapper for API Gateway STREAM ` +
+      `(${totalPatches} edits across ${filesPatched} file${filesPatched > 1 ? 's' : ''}).\n`,
   );
 };
 
