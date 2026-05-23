@@ -60,3 +60,152 @@ export const generateBuildId = (): string => {
   const unique = randomUUID().split('-')[0];
   return `${timestamp}-${unique}`;
 };
+
+/**
+ * Manifest redirect entry. Mirrors `Redirect` in `manifest/types.ts` but
+ * imported by string here to avoid a circular dep.
+ */
+type RedirectEntry = {
+  source: string;
+  destination: string;
+  statusCode: 301 | 302 | 307 | 308;
+};
+
+/**
+ * Generate CloudFront Function code that handles manifest redirects + the
+ * build-id rewrite for static assets.
+ *
+ * Why combined: CloudFront allows exactly one function per behavior per
+ * event type. The default behavior already needs the build-id rewrite for
+ * static assets; we tack the redirect check onto the same function so a
+ * matching redirect short-circuits before the rewrite runs.
+ *
+ * Match semantics:
+ *   - Exact match: `/old-page` matches only `/old-page`.
+ *   - Suffix wildcard: `/old/*` matches `/old/anything/here`.
+ *   - The captured tail is appended to the destination if the destination
+ *     also ends with `*` (e.g. `/old/* -> /new/*` rewrites the tail).
+ *
+ * Limit: CloudFront Functions are capped at 10 KB compiled and 1 ms CPU.
+ * Encoding hundreds of redirects would blow that budget — we cap at 100
+ * entries here and throw at synth time if exceeded. Customers with more
+ * should consolidate or use middleware.
+ */
+export const MAX_REDIRECTS_IN_FUNCTION = 100;
+
+/**
+ * Generate the JS source of a CloudFront viewer-request handler that
+ * checks `event.request.uri` against the manifest's redirect table and
+ * returns a 30x response on match. Returns just the redirect-check
+ * snippet (no `handler` wrapper) so it can be composed with other logic
+ * in callers that already have their own handler.
+ */
+const generateRedirectCheckSnippet = (redirects: RedirectEntry[]): string => {
+  if (redirects.length === 0) return '';
+  const table = JSON.stringify(redirects);
+  return `
+  var __redirects = ${table};
+  for (var __i = 0; __i < __redirects.length; __i++) {
+    var __r = __redirects[__i];
+    var __src = __r.source;
+    var __matched = false;
+    var __tail = '';
+    if (__src.indexOf('*') === -1) {
+      if (uri === __src) { __matched = true; }
+    } else if (__src.charAt(__src.length - 1) === '*') {
+      var __prefix = __src.substring(0, __src.length - 1);
+      if (uri.indexOf(__prefix) === 0) {
+        __matched = true;
+        __tail = uri.substring(__prefix.length);
+      }
+    }
+    if (__matched) {
+      var __dest = __r.destination;
+      if (__tail && __dest.charAt(__dest.length - 1) === '*') {
+        __dest = __dest.substring(0, __dest.length - 1) + __tail;
+      }
+      return {
+        statusCode: __r.statusCode,
+        statusDescription: 'Redirect',
+        headers: { location: { value: __dest } },
+      };
+    }
+  }`;
+};
+
+const validateRedirects = (redirects: RedirectEntry[]): void => {
+  if (redirects.length > MAX_REDIRECTS_IN_FUNCTION) {
+    throw new HostingError('TooManyRedirectsError', {
+      message: `Manifest declares ${redirects.length} redirects, but CloudFront Functions are limited to ~10 KB. Cap is ${MAX_REDIRECTS_IN_FUNCTION}.`,
+      resolution:
+        'Consolidate redirect rules or move them to your SSR handler / middleware.',
+    });
+  }
+  for (const r of redirects) {
+    if (![301, 302, 307, 308].includes(r.statusCode)) {
+      throw new HostingError('InvalidRedirectError', {
+        message: `Redirect status ${r.statusCode} is not a redirect status`,
+        resolution: 'Use 301, 302, 307, or 308.',
+      });
+    }
+  }
+};
+
+/**
+ * Generate CloudFront Function code for the static-asset behavior:
+ * checks redirects first, then prepends the build-id prefix and
+ * resolves directory-index paths.
+ *
+ * Why combined: CloudFront allows exactly one function per behavior per
+ * event type. Static behaviors need both redirect-handling and
+ * build-id-rewrite, so we compose them into one handler.
+ */
+export const generateBuildIdAndRedirectFunctionCode = (
+  buildId: string,
+  redirects: RedirectEntry[] = [],
+): string => {
+  if (!BUILD_ID_PATTERN.test(buildId)) {
+    throw new HostingError('InvalidBuildIdError', {
+      message: `Build ID must be alphanumeric with hyphens, max 64 chars. Got: ${buildId}`,
+      resolution:
+        'Ensure build ID contains only letters, numbers, and hyphens.',
+    });
+  }
+  validateRedirects(redirects);
+  const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  return `function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+${redirectSnippet}
+  if (uri.endsWith('/')) {
+    uri = uri + 'index.html';
+  } else {
+    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('.') === -1) {
+      uri = uri + '/index.html';
+    }
+  }
+  request.uri = '/builds/${buildId}' + uri;
+  return request;
+}`;
+};
+
+/**
+ * Generate CloudFront Function code for compute-origin behaviors:
+ * checks redirects first, then propagates the Host header to
+ * x-forwarded-host so the SSR handler can construct correct public URLs.
+ */
+export const generateForwardedHostAndRedirectFunctionCode = (
+  redirects: RedirectEntry[] = [],
+): string => {
+  validateRedirects(redirects);
+  const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  return `function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+${redirectSnippet}
+  var host = request.headers.host ? request.headers.host.value : undefined;
+  if (host) { request.headers["x-forwarded-host"] = { value: host }; }
+  return request;
+}`;
+};

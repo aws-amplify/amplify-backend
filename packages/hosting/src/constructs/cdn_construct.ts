@@ -44,7 +44,12 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
-import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
+import {
+  ERROR_PAGE_KEY,
+  generateBuildIdAndRedirectFunctionCode,
+  generateForwardedHostAndRedirectFunctionCode,
+} from '../defaults.js';
+import { createCustomHeadersPolicy } from './security_headers.js';
 
 // ---- Constants ----
 
@@ -74,6 +79,13 @@ export type CdnConstructProps = {
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
   securityHeadersPolicy: ResponseHeadersPolicy;
+  /**
+   * Optional Content-Security-Policy value used when building per-pattern
+   * ResponseHeadersPolicies for `manifest.headers[]`. Should match the
+   * value used to build `securityHeadersPolicy`. If omitted, the
+   * built-in default CSP is used.
+   */
+  contentSecurityPolicy?: string;
   /** Map of compute name → Function URL for per-origin routing. */
   computeFunctionUrls?: Map<string, IFunctionUrl>;
   /** Map of compute name → Lambda function for OAC permission patching. */
@@ -153,14 +165,25 @@ export class CdnConstruct extends Construct {
       hasComputeRoutes;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
-    // ---- Build ID rewrite function ----
+    // ---- Build ID rewrite + redirect function ----
+    // Single CloudFront viewer-request function that handles both
+    // static-asset URI rewriting (build-id prefix, directory index) AND
+    // manifest redirects. Redirects short-circuit before the rewrite.
+    // CloudFront caps one function per behavior per event type, so we
+    // combine them here.
+    const manifestRedirects = manifest.redirects ?? [];
     const buildIdFunction = new CloudFrontFunction(
       this,
       'BuildIdRewriteFunction',
       {
-        code: FunctionCode.fromInline(generateBuildIdFunctionCode(buildId)),
+        code: FunctionCode.fromInline(
+          generateBuildIdAndRedirectFunctionCode(buildId, manifestRedirects),
+        ),
         runtime: FunctionRuntime.JS_2_0,
-        comment: `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
+        comment:
+          manifestRedirects.length > 0
+            ? `Build-id rewrite + ${manifestRedirects.length} redirect rule(s)`
+            : `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
       },
     );
 
@@ -254,27 +277,25 @@ export class CdnConstruct extends Construct {
         ]
       : undefined;
 
-    // ---- x-forwarded-host propagation function ----
+    // ---- x-forwarded-host + redirect function (compute behaviors) ----
     // CloudFront strips the viewer's Host header when forwarding to Lambda Function
     // URL origins (ALL_VIEWER_EXCEPT_HOST_HEADER policy). OpenNext's converters use
     // x-forwarded-host to construct the public-facing URL for middleware rewrites and
     // image optimization fetches. Without it, URL construction uses the Function URL
     // domain which breaks path-only rewrites ("TypeError: Invalid URL").
+    //
+    // Same function also runs the manifest redirect table — a matching
+    // redirect short-circuits the request before the Lambda is invoked.
     const forwardedHostFunction = hasCompute
       ? new CloudFrontFunction(this, 'ForwardedHostFunction', {
           code: FunctionCode.fromInline(
-            [
-              'function handler(event) {',
-              '  var req = event.request;',
-              '  var host = req.headers.host ? req.headers.host.value : undefined;',
-              '  if (host) { req.headers["x-forwarded-host"] = { value: host }; }',
-              '  return req;',
-              '}',
-            ].join('\n'),
+            generateForwardedHostAndRedirectFunctionCode(manifestRedirects),
           ),
           runtime: FunctionRuntime.JS_2_0,
           comment:
-            'Copies Host header to x-forwarded-host for origin URL construction',
+            manifestRedirects.length > 0
+              ? `Forwarded-host + ${manifestRedirects.length} redirect rule(s)`
+              : 'Copies Host header to x-forwarded-host for origin URL construction',
         })
       : undefined;
 
@@ -422,11 +443,93 @@ export class CdnConstruct extends Construct {
       catchAllRoute.target !== 's3' &&
       hasCompute;
 
-    const defaultBehavior = defaultIsCompute
+    let defaultBehavior = defaultIsCompute
       ? makeComputeBehavior(
           computeOrigins.get(catchAllRoute!.target) ?? primaryOrigin,
         )
       : makeStaticBehavior();
+
+    // ---- Per-pattern custom response headers (manifest.headers[]) ----
+    // Each entry in manifest.headers[] declares a (source, headers) pair.
+    // For each, we construct a per-pattern ResponseHeadersPolicy that
+    // bundles the security headers + the custom headers, and attach it
+    // to the matching behavior. If the source pattern has no behavior
+    // yet (i.e. it's a static path the user wants to set headers on
+    // without otherwise routing), we synthesize a static behavior so
+    // the policy has something to attach to.
+    const manifestHeaders = manifest.headers ?? [];
+    if (manifestHeaders.length > 0) {
+      // Dedupe by header-content fingerprint. Many `publicAssets[]`
+      // entries from Nuxt produce *identical* Cache-Control rules — we
+      // share one ResponseHeadersPolicy across all of them so the
+      // account-wide CloudFront ResponseHeadersPolicy quota (default 20
+      // per account, max 200) doesn't get burned on duplicates.
+      const policyByFingerprint = new Map<string, ResponseHeadersPolicy>();
+      let nextPolicyIdx = 0;
+      const fingerprint = (headers: Record<string, string>): string =>
+        Object.keys(headers)
+          .sort()
+          .map((k) => `${k}=${headers[k]}`)
+          .join('\n');
+
+      const getOrCreatePolicy = (
+        headers: Record<string, string>,
+      ): ResponseHeadersPolicy => {
+        const fp = fingerprint(headers);
+        const existing = policyByFingerprint.get(fp);
+        if (existing) return existing;
+        const policy = createCustomHeadersPolicy(
+          this,
+          `CustomHeadersPolicy${nextPolicyIdx++}`,
+          headers,
+          { contentSecurityPolicy: props.contentSecurityPolicy },
+        );
+        policyByFingerprint.set(fp, policy);
+        return policy;
+      };
+
+      const overrideBehaviorPolicy = (
+        target: BehaviorOptions,
+        headers: Record<string, string>,
+      ): BehaviorOptions => ({
+        ...target,
+        responseHeadersPolicy: getOrCreatePolicy(headers),
+      });
+
+      for (const entry of manifestHeaders) {
+        const cfPattern = normalizePatternForCloudFront(entry.source);
+        if (cfPattern === '/*' || cfPattern === '*') {
+          // Header rule applies to the catch-all → patch defaultBehavior
+          defaultBehavior = overrideBehaviorPolicy(
+            defaultBehavior,
+            entry.headers,
+          );
+        } else if (additionalBehaviors[cfPattern]) {
+          // Existing behavior — override its policy
+          additionalBehaviors[cfPattern] = overrideBehaviorPolicy(
+            additionalBehaviors[cfPattern],
+            entry.headers,
+          );
+        } else {
+          // No behavior for this pattern yet. Create a static one so
+          // the policy can be attached. Skip silently if we'd exceed
+          // the CloudFront behavior cap (better to lose the header than
+          // fail the deploy outright; warn at synth-time).
+          if (
+            Object.keys(additionalBehaviors).length >= MAX_ADDITIONAL_BEHAVIORS
+          ) {
+            process.stderr.write(
+              `⚠️  Skipping custom headers for "${entry.source}" — would exceed CloudFront behavior cap.\n`,
+            );
+            continue;
+          }
+          additionalBehaviors[cfPattern] = overrideBehaviorPolicy(
+            makeStaticBehavior(),
+            entry.headers,
+          );
+        }
+      }
+    }
 
     // ---- Error responses ----
     const isSpaOnly = !hasCompute;

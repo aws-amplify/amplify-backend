@@ -505,6 +505,7 @@ export class AmplifyHostingConstruct extends Construct {
       bucket: this.bucket,
       manifest: manifestWithBuildId,
       securityHeadersPolicy,
+      contentSecurityPolicy: props.cdn?.contentSecurityPolicy,
       computeFunctionUrls: this.computeFunctionUrls,
       computeFunctions: this.computeFunctions,
       middlewareEdgeFunction: middlewareEdgeVersion,
