@@ -262,15 +262,6 @@ const isSimpleNextSource = (source: string): boolean => {
 };
 
 /**
- * Translate a simple Next.js source pattern to the form the L3
- * accepts (`/path` or `/path/*`). For non-trailing-wildcard sources
- * we just return as-is.
- */
-const toManifestSource = (source: string): string => {
-  return source.endsWith('/*') ? source : source;
-};
-
-/**
  * Read `.next/routes-manifest.json` and lift simple redirects/headers
  * into the deploy manifest so the L3 wires them as CloudFront Functions
  * and per-pattern ResponseHeadersPolicies. Anything we don't lift stays
@@ -327,8 +318,8 @@ const applyLiftedRoutesManifest = (
       continue;
     }
     liftedRedirects.push({
-      source: toManifestSource(r.source),
-      destination: toManifestSource(r.destination),
+      source: r.source,
+      destination: r.destination,
       statusCode: r.statusCode as 301 | 302 | 307 | 308,
     });
   }
@@ -345,7 +336,7 @@ const applyLiftedRoutesManifest = (
     const headers: Record<string, string> = {};
     for (const entry of h.headers) headers[entry.key] = entry.value;
     liftedHeaders.push({
-      source: toManifestSource(h.source),
+      source: h.source,
       headers,
     });
   }
