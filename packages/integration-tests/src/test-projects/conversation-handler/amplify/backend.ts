@@ -8,7 +8,7 @@ import { bedrockModelId } from './constants.js';
 const backend = defineBackend({ auth, data, customConversationHandler });
 backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
   'AdminCreateUserConfig.AllowAdminCreateUserOnly',
-  true
+  true,
 );
 
 const stack = backend.createStack('conversationHandlerStack');

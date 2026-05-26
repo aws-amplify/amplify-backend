@@ -4,7 +4,7 @@ import { dataStorageAuthWithTriggers } from './test_factories.js';
 const backend = defineBackend(dataStorageAuthWithTriggers);
 backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
   'AdminCreateUserConfig.AllowAdminCreateUserOnly',
-  true
+  true,
 );
 backend.defaultNodeFunc.addEnvironment('newKey', 'newValue');
 

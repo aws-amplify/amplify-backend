@@ -16,7 +16,7 @@ const backend = defineBackend({
 });
 backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
   'AdminCreateUserConfig.AllowAdminCreateUserOnly',
-  true
+  true,
 );
 
 const eventSource = new DynamoEventSource(
