@@ -5,6 +5,10 @@ import { Role } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 
 const backend = defineBackend(authAndFunctions);
+backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
+  'AdminCreateUserConfig.AllowAdminCreateUserOnly',
+  true
+);
 
 const scheduleFunctionLambda = backend.funcWithSchedule.resources.lambda;
 const scheduleFunctionLambdaRole = scheduleFunctionLambda.role;

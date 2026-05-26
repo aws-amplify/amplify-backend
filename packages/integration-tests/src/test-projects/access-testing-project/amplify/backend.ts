@@ -15,6 +15,10 @@ const backend = defineBackend({
   auth,
   data,
 });
+backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
+  'AdminCreateUserConfig.AllowAdminCreateUserOnly',
+  true
+);
 
 const simpleAuthStack = backend.createStack('simple-auth');
 

@@ -2,6 +2,10 @@ import { defineBackend } from '@aws-amplify/backend';
 import { dataStorageAuthWithTriggers } from './test_factories.js';
 
 const backend = defineBackend(dataStorageAuthWithTriggers);
+backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
+  'AdminCreateUserConfig.AllowAdminCreateUserOnly',
+  true
+);
 backend.defaultNodeFunc.addEnvironment('newKey', 'newValue');
 
 // Change precedence of Editors group so Admins group has the lowest precedence
