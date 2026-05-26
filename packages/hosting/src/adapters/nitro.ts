@@ -946,6 +946,16 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
     /event\.requestContext\?\.http\?\.method(?!\s*\|\|\s*event\.requestContext\?\.httpMethod)/g;
   const methodReplacement =
     '(event.requestContext?.http?.method || event.requestContext?.httpMethod)';
+  // Nitro's aws-lambda preset decodes the API Gateway base64 wrapper and
+  // immediately re-encodes the bytes as a UTF-8 string before handing them
+  // to h3, mangling any non-text payload (file uploads, binary blobs). A
+  // 1 MB random POST round-trips lossy: server reports ~1.81 MB with a
+  // different sha256. Strip the `.toString("utf8")` so the Buffer is passed
+  // through unchanged. h3's request layer accepts Buffer bodies natively
+  // (`readRawBody` returns the Buffer; `readBody` parses by content-type).
+  const bodyDecodeRe =
+    /Buffer\.from\(event\.body\s*\|\|\s*""\s*,\s*"base64"\)\.toString\("utf8"\)/g;
+  const bodyDecodeReplacement = 'Buffer.from(event.body || "", "base64")';
 
   let totalPatches = 0;
   const patchedFiles: string[] = [];
@@ -967,6 +977,10 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
       }
       if (methodRe.test(next)) {
         next = next.replace(methodRe, methodReplacement);
+        patches++;
+      }
+      if (bodyDecodeRe.test(next)) {
+        next = next.replace(bodyDecodeRe, bodyDecodeReplacement);
         patches++;
       }
       if (patches > 0) {

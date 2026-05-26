@@ -10,6 +10,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import {
   Code,
   FunctionUrlAuthType,
+  IVersion,
   InvokeMode,
   Function as LambdaFunction,
   Runtime,
@@ -157,6 +158,101 @@ void describe('CdnConstruct', () => {
         FunctionCode: Match.stringLikeRegexp('test-spa-1'),
       });
     });
+
+    void it('emits prefixed _next/* behaviors when manifest.assetPrefix is set (B17)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const prefixedManifest = {
+        ...spaManifest,
+        assetPrefix: '/shop-static',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: prefixedManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      // Prefixed _next/* behaviors should exist on the distribution.
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CacheBehaviors: Match.arrayWith([
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/static/*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/image*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/data/*',
+            }),
+            Match.objectLike({
+              PathPattern: '/shop-static/_next/*',
+            }),
+          ]),
+        }),
+      });
+      // Should have created a strip function.
+      template.hasResourceProperties('AWS::CloudFront::Function', {
+        FunctionCode: Match.stringLikeRegexp('shop-static'),
+      });
+    });
+
+    void it('uses real 404 response when manifest.errorPages declares /404.html (B15)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      // Static deploy with a real 404.html (e.g. Next.js `output: 'export'`).
+      const exportManifest = {
+        ...spaManifest,
+        errorPages: { 404: '/404.html' as const },
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: exportManifest,
+        securityHeadersPolicy: policy,
+      });
+
+      const template = Template.fromStack(stack);
+      // Real 404 with 404 status, pointing at the build-id-prefixed path.
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CustomErrorResponses: Match.arrayWith([
+            Match.objectLike({
+              ErrorCode: 404,
+              ResponseCode: 404,
+              ResponsePagePath: Match.stringLikeRegexp('/404\\.html$'),
+            }),
+          ]),
+        }),
+      });
+      // SPA fallback (403/404 → 200 /index.html) must NOT be present.
+      const config = template.findResources('AWS::CloudFront::Distribution');
+      const distRecord = Object.values(config)[0] as Record<string, unknown>;
+      const distProps = distRecord['Properties'] as Record<string, unknown>;
+      const distCfg = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const responses = distCfg['CustomErrorResponses'] as
+        | Array<Record<string, unknown>>
+        | undefined;
+      const hasSpaFallback = (responses ?? []).some(
+        (r) =>
+          (r['ErrorCode'] as number) === 404 &&
+          (r['ResponseCode'] as number | undefined) === 200,
+      );
+      assert.equal(
+        hasSpaFallback,
+        false,
+        'SPA fallback (404→200 /index.html) must not be present when errorPages set',
+      );
+    });
   });
 
   // ---- SSR mode ----
@@ -194,7 +290,7 @@ void describe('CdnConstruct', () => {
       });
     });
 
-    void it('creates additional behaviors for static routes', () => {
+    void it('uses a custom CachePolicy that honors origin Cache-Control on SSR (B21)', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
       const policy = createSecurityHeadersPolicy(stack, 'SH', {});
@@ -209,15 +305,128 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
+      // SSR cache policy is created with a content-derived comment.
+      // NOTE: CloudFront rejects `Accept-Encoding` from `headerBehavior.allowList`
+      // when `EnableAcceptEncodingGzip:true` is set — gzip handling is implicit
+      // in that flag. So the allowList only contains the Next.js router cache
+      // keys, not Accept-Encoding.
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            Comment: Match.stringLikeRegexp('SSR/ISR/SWR'),
+            // Min/default 0 (origin opts out via no-store); max 1 year
+            // (clamps wild origin values).
+            MinTTL: 0,
+            DefaultTTL: 0,
+            MaxTTL: 31536000,
+            ParametersInCacheKeyAndForwardedToOrigin: Match.objectLike({
+              EnableAcceptEncodingBrotli: true,
+              EnableAcceptEncodingGzip: true,
+              HeadersConfig: Match.objectLike({
+                HeaderBehavior: 'whitelist',
+                Headers: Match.arrayWith([
+                  'rsc',
+                  'next-router-prefetch',
+                  'next-router-state-tree',
+                  'next-router-segment-prefetch',
+                ]),
+              }),
+              CookiesConfig: Match.objectLike({
+                CookieBehavior: 'none',
+              }),
+            }),
+          }),
+        }),
+      );
+
+      // Assert Accept-Encoding is NOT in the allowList (CloudFront rejects
+      // it alongside EnableAcceptEncodingGzip:true).
+      const cachePolicies = template.findResources(
+        'AWS::CloudFront::CachePolicy',
+      );
+      const ssrPolicy = Object.values(cachePolicies).find((r) => {
+        const props = (r as Record<string, Record<string, unknown>>).Properties;
+        const cfg = props.CachePolicyConfig as Record<string, unknown>;
+        return typeof cfg.Comment === 'string' && cfg.Comment.includes('SSR');
+      }) as Record<string, Record<string, unknown>> | undefined;
+      assert.ok(ssrPolicy, 'Should have an SSR CachePolicy');
+      const cfg = ssrPolicy.Properties.CachePolicyConfig as Record<
+        string,
+        unknown
+      >;
+      const params = cfg.ParametersInCacheKeyAndForwardedToOrigin as Record<
+        string,
+        unknown
+      >;
+      const headersCfg = params.HeadersConfig as Record<string, unknown>;
+      const headers = (headersCfg.Headers ?? []) as string[];
+      const lowerHeaders = headers.map((h) => h.toLowerCase());
+      assert.ok(
+        !lowerHeaders.includes('accept-encoding'),
+        'Accept-Encoding must NOT appear in headerBehavior.allowList when EnableAcceptEncodingGzip:true',
+      );
+      // SSR default behavior must reference our custom CachePolicy
+      // (synthesized as a Ref), NOT the AWS-managed CACHING_DISABLED
+      // policy (which would be a string ID literal).
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      const props = distResource?.['Properties'] as
+        | Record<string, unknown>
+        | undefined;
+      const distConfig = props?.['DistributionConfig'] as
+        | Record<string, unknown>
+        | undefined;
+      const defaultBehavior = distConfig?.['DefaultCacheBehavior'] as
+        | Record<string, unknown>
+        | undefined;
+      const cachePolicyId = defaultBehavior?.['CachePolicyId'];
+      assert.equal(
+        typeof cachePolicyId === 'object' &&
+          cachePolicyId !== null &&
+          'Ref' in (cachePolicyId as Record<string, unknown>),
+        true,
+        'SSR default behavior must use a synthesized CachePolicy (Ref), not the AWS-managed CACHING_DISABLED string ID (B21)',
+      );
+    });
+
+    void it('creates additional behaviors for static routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      // CdnConstruct sorts cache behaviors by descending specificity so
+      // that literal paths win over wildcards (CloudFront evaluates first-
+      // match-wins). `/favicon.ico` (literal, 0 wildcards) ends up before
+      // `/_next/static/*` (1 wildcard), so we assert each separately
+      // rather than rely on a relative-order arrayWith.
+      const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: Match.objectLike({
           CacheBehaviors: Match.arrayWith([
-            Match.objectLike({
-              PathPattern: '/_next/static/*',
-            }),
-            Match.objectLike({
-              PathPattern: '/favicon.ico',
-            }),
+            Match.objectLike({ PathPattern: '/_next/static/*' }),
+          ]),
+        }),
+      });
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          CacheBehaviors: Match.arrayWith([
+            Match.objectLike({ PathPattern: '/favicon.ico' }),
           ]),
         }),
       });
@@ -332,6 +541,217 @@ void describe('CdnConstruct', () => {
           assert.strictEqual(error.name, 'EmptyGeoRestrictionError');
           return true;
         },
+      );
+    });
+
+    void it('throws TooManyEdgeRoutesError for >25 edge-runtime routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const edgeRoutes: Map<string, IVersion> = new Map();
+      for (let i = 0; i < 26; i++) {
+        const fn = new LambdaFunction(stack, `EdgeFn${i}`, {
+          runtime: Runtime.NODEJS_20_X,
+          handler: 'index.handler',
+          code: Code.fromInline('exports.handler = async () => {};'),
+        });
+        edgeRoutes.set(`edge${i}`, fn.currentVersion);
+      }
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: spaManifest,
+            securityHeadersPolicy: policy,
+            routeEdgeFunctions: edgeRoutes,
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'TooManyEdgeRoutesError');
+          return true;
+        },
+      );
+    });
+
+    void it('does not throw at exactly 25 edge-runtime routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const edgeRoutes: Map<string, IVersion> = new Map();
+      for (let i = 0; i < 25; i++) {
+        const fn = new LambdaFunction(stack, `EdgeFn${i}`, {
+          runtime: Runtime.NODEJS_20_X,
+          handler: 'index.handler',
+          code: Code.fromInline('exports.handler = async () => {};'),
+        });
+        edgeRoutes.set(`edge${i}`, fn.currentVersion);
+      }
+
+      assert.doesNotThrow(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: spaManifest,
+            securityHeadersPolicy: policy,
+            routeEdgeFunctions: edgeRoutes,
+          }),
+      );
+    });
+
+    void it('edge route behaviors use the synthesized SsrCachePolicy (honors origin Cache-Control)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      // Configure a regional default (so hasCompute=true and ssrCachePolicy
+      // is created) plus an edge route handled by Lambda@Edge.
+      const defaultFn = new LambdaFunction(stack, 'DefaultFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+      const edgeFn = new LambdaFunction(stack, 'EdgeRouteFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/default-bundle',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/edge/*', target: 'edge-api' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-edge-cache',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', defaultUrl]]),
+        computeFunctions: new Map([['default', defaultFn]]),
+        routeEdgeFunctions: new Map([['edge-api', edgeFn.currentVersion]]),
+      });
+
+      const template = Template.fromStack(stack);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      assert.ok(distResource, 'distribution resource present');
+      const distProps = distResource['Properties'] as Record<string, unknown>;
+      const distConfig = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const edgeBehavior = (
+        distConfig['CacheBehaviors'] as Array<Record<string, unknown>>
+      ).find((b) => b['PathPattern'] === '/api/edge/*');
+      assert.ok(edgeBehavior, 'edge route cache behavior present');
+      const cachePolicyId = edgeBehavior['CachePolicyId'];
+      assert.equal(
+        typeof cachePolicyId === 'object' &&
+          cachePolicyId !== null &&
+          'Ref' in (cachePolicyId as Record<string, unknown>),
+        true,
+        'edge route must reference the synthesized SsrCachePolicy via Ref, not the AWS-managed CACHING_DISABLED string ID',
+      );
+    });
+
+    void it('orders multi-wildcard patterns above /* by literal-segment count', () => {
+      // Regression for the route-specificity formula: a pattern like
+      // /api/*/data/* (2 literal segments, 2 wildcards) must rank ABOVE
+      // /* (0 literal segments, 1 wildcard). The previous formula
+      // (length × 1000 - wildcards × 1_000_000) inverted this and let
+      // /* shadow more-specific multi-wildcard patterns.
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/*', target: 'default' },
+          { pattern: '/api/*/data/*', target: 'default' },
+          { pattern: '/_next/*', target: 'default' },
+        ],
+        buildId: 'test-specificity',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      assert.ok(distResource);
+      const distProps = distResource['Properties'] as Record<string, unknown>;
+      const distConfig = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const cacheBehaviors = distConfig['CacheBehaviors'] as Array<
+        Record<string, unknown>
+      >;
+      const patternOrder = cacheBehaviors.map(
+        (b) => b['PathPattern'] as string,
+      );
+
+      const idxMultiWildcard = patternOrder.indexOf('/api/*/data/*');
+      const idxSingleWildcard = patternOrder.indexOf('/_next/*');
+      // /* is the catch-all and lives on the default behavior, so it
+      // doesn't appear in CacheBehaviors. The two patterns we declared
+      // as additional behaviors must be ordered by literal segments:
+      // /api/*/data/* (2 literals) before /_next/* (1 literal).
+      assert.ok(idxMultiWildcard >= 0, '/api/*/data/* behavior present');
+      assert.ok(idxSingleWildcard >= 0, '/_next/* behavior present');
+      assert.ok(
+        idxMultiWildcard < idxSingleWildcard,
+        '/api/*/data/* (2 literal segments) must rank above /_next/* (1 literal segment)',
       );
     });
   });

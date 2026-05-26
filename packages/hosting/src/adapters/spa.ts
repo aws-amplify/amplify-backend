@@ -66,7 +66,25 @@ export const spaAdapter = (
   // Copy all build output to .amplify-hosting/static/
   copyDirRecursive(buildOutputDir, staticDir);
 
-  // Generate deploy manifest
+  // Generate deploy manifest. If the build emitted a real 404.html (e.g.
+  // Next.js `output: 'export'`, Astro/Hugo and similar SSGs), wire it as
+  // the CloudFront error page so unknown routes return a real 404 with
+  // the right body. Without this, the L3 falls back to SPA mode (every
+  // error → /index.html with status 200), which is wrong for static-site
+  // generators that emit their own 404.
+  const errorPages: {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    404?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    500?: string;
+  } = {};
+  if (fs.existsSync(path.join(buildOutputDir, '404.html'))) {
+    errorPages[404] = '/404.html';
+  }
+  if (fs.existsSync(path.join(buildOutputDir, '500.html'))) {
+    errorPages[500] = '/500.html';
+  }
+
   const manifest: DeployManifest = {
     version: 1,
     compute: {},
@@ -79,6 +97,7 @@ export const spaAdapter = (
         target: 'static',
       },
     ],
+    ...(Object.keys(errorPages).length > 0 ? { errorPages } : {}),
   };
 
   return manifest;

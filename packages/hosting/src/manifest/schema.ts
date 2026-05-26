@@ -145,6 +145,23 @@ export const deployManifestSchema = z
     redirects: z.array(redirectSchema).optional(),
     rewrites: z.array(rewriteSchema).optional(),
     headers: z.array(customHeaderSchema).optional(),
+    assetPrefix: z
+      .string()
+      .regex(
+        /^\/[a-zA-Z0-9_/-]+$/,
+        'assetPrefix must start with / and contain only letters, digits, dashes, underscores, and slashes',
+      )
+      .optional(),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    errorPages: z
+      .object({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        404: z.string().optional(),
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        500: z.string().optional(),
+      })
+      .partial()
+      .optional(),
     buildId: z
       .string()
       .regex(

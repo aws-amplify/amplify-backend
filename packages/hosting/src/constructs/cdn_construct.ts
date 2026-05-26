@@ -1,10 +1,14 @@
+import { createHash } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   AllowedMethods,
   BehaviorOptions,
+  CacheCookieBehavior,
+  CacheHeaderBehavior,
   CachePolicy,
+  CacheQueryStringBehavior,
   CachedMethods,
   Function as CloudFrontFunction,
   Distribution,
@@ -44,7 +48,13 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
-import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
+import {
+  ERROR_PAGE_KEY,
+  generateAssetPrefixStripFunctionCode,
+  generateBuildIdAndRedirectFunctionCode,
+  generateForwardedHostAndRedirectFunctionCode,
+} from '../defaults.js';
+import { createCustomHeadersPolicy } from './security_headers.js';
 
 // ---- Constants ----
 
@@ -53,6 +63,20 @@ import { ERROR_PAGE_KEY, generateBuildIdFunctionCode } from '../defaults.js';
  * (1 default + 24 additional).
  */
 const MAX_ADDITIONAL_BEHAVIORS = 24;
+
+/**
+ * AWS account-level soft limit on Lambda@Edge replicated function
+ * versions. The hard cap is 25; we hard-fail at synth time when this
+ * distribution alone would exceed it (the deploy would fail anyway with
+ * a CloudFormation error that's harder to debug).
+ */
+const MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION = 25;
+
+/**
+ * Threshold above which we emit a stderr warning. The 5-route gap
+ * leaves headroom for other distributions in the same account.
+ */
+const EDGE_FUNCTIONS_WARNING_THRESHOLD = 20;
 
 const SSR_ERROR_PAGE_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -74,6 +98,13 @@ export type CdnConstructProps = {
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
   securityHeadersPolicy: ResponseHeadersPolicy;
+  /**
+   * Optional Content-Security-Policy value used when building per-pattern
+   * ResponseHeadersPolicies for `manifest.headers[]`. Should match the
+   * value used to build `securityHeadersPolicy`. If omitted, the
+   * built-in default CSP is used.
+   */
+  contentSecurityPolicy?: string;
   /** Map of compute name → Function URL for per-origin routing. */
   computeFunctionUrls?: Map<string, IFunctionUrl>;
   /** Map of compute name → Lambda function for OAC permission patching. */
@@ -97,6 +128,13 @@ export type CdnConstructProps = {
   errorPageHtml?: string;
   /** Lambda@Edge function version for middleware (viewer-request). */
   middlewareEdgeFunction?: IVersion;
+  /**
+   * Per-route Lambda@Edge function versions. Keyed by compute name; the
+   * matching cache behavior gets `edgeLambdas` set with this function as
+   * an origin-request association. Used for OpenNext edge routes
+   * (`runtime = 'edge'`), one entry per route.
+   */
+  routeEdgeFunctions?: Map<string, IVersion>;
 };
 
 // ---- Construct ----
@@ -146,14 +184,48 @@ export class CdnConstruct extends Construct {
       hasComputeRoutes;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
 
-    // ---- Build ID rewrite function ----
+    // ---- Lambda@Edge function-count validation ----
+    // The account-level cap is 25 replicated functions. Catch the
+    // unwinnable case at synth so users get a useful error with a
+    // resolution path, not a CloudFormation rollback.
+    const edgeRouteCount = props.routeEdgeFunctions?.size ?? 0;
+    if (edgeRouteCount > MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION) {
+      throw new HostingError('TooManyEdgeRoutesError', {
+        message: `This distribution declares ${edgeRouteCount} edge-runtime routes, exceeding the AWS Lambda@Edge limit of ${MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION} replicated functions per account.`,
+        resolution:
+          'Reduce the number of routes that export `runtime: "edge"`, ' +
+          'consolidate edge logic into fewer routes (e.g. one router that ' +
+          'switches on path), or request a service-quota increase: ' +
+          'https://docs.aws.amazon.com/lambda/latest/dg/edge-functions-restrictions.html',
+      });
+    }
+    if (edgeRouteCount >= EDGE_FUNCTIONS_WARNING_THRESHOLD) {
+      process.stderr.write(
+        `⚠️  Hosting: this distribution declares ${edgeRouteCount} edge-runtime routes. ` +
+          `The AWS Lambda@Edge limit is ${MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION} per account; ` +
+          `other distributions in the same account count against the same quota.\n`,
+      );
+    }
+
+    // ---- Build ID rewrite + redirect function ----
+    // Single CloudFront viewer-request function that handles both
+    // static-asset URI rewriting (build-id prefix, directory index) AND
+    // manifest redirects. Redirects short-circuit before the rewrite.
+    // CloudFront caps one function per behavior per event type, so we
+    // combine them here.
+    const manifestRedirects = manifest.redirects ?? [];
     const buildIdFunction = new CloudFrontFunction(
       this,
       'BuildIdRewriteFunction',
       {
-        code: FunctionCode.fromInline(generateBuildIdFunctionCode(buildId)),
+        code: FunctionCode.fromInline(
+          generateBuildIdAndRedirectFunctionCode(buildId, manifestRedirects),
+        ),
         runtime: FunctionRuntime.JS_2_0,
-        comment: `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
+        comment:
+          manifestRedirects.length > 0
+            ? `Build-id rewrite + ${manifestRedirects.length} redirect rule(s)`
+            : `Rewrites request URIs to include build ID prefix: builds/${buildId}/`,
       },
     );
 
@@ -247,27 +319,76 @@ export class CdnConstruct extends Construct {
         ]
       : undefined;
 
-    // ---- x-forwarded-host propagation function ----
+    // ---- x-forwarded-host + redirect function (compute behaviors) ----
     // CloudFront strips the viewer's Host header when forwarding to Lambda Function
     // URL origins (ALL_VIEWER_EXCEPT_HOST_HEADER policy). OpenNext's converters use
     // x-forwarded-host to construct the public-facing URL for middleware rewrites and
     // image optimization fetches. Without it, URL construction uses the Function URL
     // domain which breaks path-only rewrites ("TypeError: Invalid URL").
+    //
+    // Same function also runs the manifest redirect table — a matching
+    // redirect short-circuits the request before the Lambda is invoked.
     const forwardedHostFunction = hasCompute
       ? new CloudFrontFunction(this, 'ForwardedHostFunction', {
           code: FunctionCode.fromInline(
-            [
-              'function handler(event) {',
-              '  var req = event.request;',
-              '  var host = req.headers.host ? req.headers.host.value : undefined;',
-              '  if (host) { req.headers["x-forwarded-host"] = { value: host }; }',
-              '  return req;',
-              '}',
-            ].join('\n'),
+            generateForwardedHostAndRedirectFunctionCode(manifestRedirects),
           ),
           runtime: FunctionRuntime.JS_2_0,
           comment:
-            'Copies Host header to x-forwarded-host for origin URL construction',
+            manifestRedirects.length > 0
+              ? `Forwarded-host + ${manifestRedirects.length} redirect rule(s)`
+              : 'Copies Host header to x-forwarded-host for origin URL construction',
+        })
+      : undefined;
+
+    // ---- SSR cache policy (B21) ----
+    // CACHING_DISABLED used to short-circuit caching on every compute
+    // behavior, which silently broke ISR/SWR: the framework's
+    // `Cache-Control: s-max-age=N` header was emitted by the origin but
+    // CloudFront never honored it. Every request hit Lambda regardless
+    // of origin caching directives. This policy honors origin
+    // Cache-Control while including the headers App Router needs to
+    // separate RSC payloads from HTML responses (otherwise an RSC
+    // prefetch's payload would be served to a full-page request).
+    //
+    // Min/default/max TTL bounds:
+    // - minTtl: 0 — origin can opt out via `Cache-Control: no-store`
+    // - defaultTtl: 0 — when origin sends no Cache-Control, no caching
+    //   (preserves the safe default; SSR routes that forget to set
+    //   Cache-Control still don't accidentally cache personalized
+    //   responses)
+    // - maxTtl: 1 year — clamps any wild origin values (e.g. corrupted
+    //   Cache-Control: s-max-age=999999999)
+    //
+    // Content negotiation is handled by enableAcceptEncodingBrotli/Gzip
+    // flags — CloudFront normalizes the Accept-Encoding header into
+    // gzip|br|identity buckets internally, which is more efficient than
+    // caching per literal header value. CloudFront forbids adding
+    // 'accept-encoding' to the headerBehavior allowList alongside these
+    // flags.
+    //
+    // The cache key includes the Next.js router headers (RSC, prefetch,
+    // state tree, segment prefetch) so prefetch payloads don't bleed
+    // into full-page responses. Cookies are explicitly excluded — any
+    // route that varies on cookies must emit `Cache-Control: private`
+    // to opt out.
+    const ssrCachePolicy = hasCompute
+      ? new CachePolicy(this, 'SsrCachePolicy', {
+          comment:
+            'SSR/ISR/SWR: honor origin Cache-Control; key on Next.js router headers',
+          minTtl: Duration.seconds(0),
+          defaultTtl: Duration.seconds(0),
+          maxTtl: Duration.days(365),
+          headerBehavior: CacheHeaderBehavior.allowList(
+            'rsc',
+            'next-router-prefetch',
+            'next-router-state-tree',
+            'next-router-segment-prefetch',
+          ),
+          cookieBehavior: CacheCookieBehavior.none(),
+          queryStringBehavior: CacheQueryStringBehavior.all(),
+          enableAcceptEncodingBrotli: true,
+          enableAcceptEncodingGzip: true,
         })
       : undefined;
 
@@ -292,7 +413,9 @@ export class CdnConstruct extends Construct {
       origin: origin ?? primaryOrigin!,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
-      cachePolicy: CachePolicy.CACHING_DISABLED,
+      // B21: honor origin Cache-Control. POST/PUT/DELETE are never
+      // cached by CloudFront regardless of CachePolicy (HTTP spec).
+      cachePolicy: ssrCachePolicy ?? CachePolicy.CACHING_DISABLED,
       compress: true,
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,
@@ -309,6 +432,43 @@ export class CdnConstruct extends Construct {
         : {}),
     });
 
+    /**
+     * Cache behavior for an OpenNext edge route (Lambda@Edge owns the
+     * response). The S3 origin is just a placeholder — CloudFront
+     * associates the function on origin-request and the function returns
+     * the response itself, so origin storage is never read.
+     *
+     * Uses the same `ssrCachePolicy` as the regional SSR behavior so
+     * edge routes can opt into CloudFront caching by emitting
+     * `Cache-Control: s-maxage=N` from the function response — the same
+     * mechanism Vercel uses for its Edge Functions. The cache policy's
+     * `defaultTtl: 0` means routes that don't set `Cache-Control` (the
+     * default for auth/geo/personalization routes) still skip CloudFront
+     * caching and invoke Lambda@Edge on every request.
+     *
+     * Auth-bearing edge routes MUST emit `Cache-Control: private` (or
+     * `no-store`) to opt out — see `ssrCachePolicy.cookieBehavior:none`.
+     * Cookies are not in the cache key; without an explicit private
+     * directive, an authenticated response could be served to other
+     * users.
+     */
+    const makeEdgeRouteBehavior = (edgeVersion: IVersion): BehaviorOptions => ({
+      origin: s3Origin,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: AllowedMethods.ALLOW_ALL,
+      cachePolicy: ssrCachePolicy ?? CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      responseHeadersPolicy: props.securityHeadersPolicy,
+      edgeLambdas: [
+        {
+          functionVersion: edgeVersion,
+          eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+          includeBody: true,
+        },
+      ],
+    });
+
     // ---- Route → behavior mapping ----
     const additionalBehaviors: Record<string, BehaviorOptions> = {};
 
@@ -316,9 +476,19 @@ export class CdnConstruct extends Construct {
     const catchAllRoute = manifest.routes.find(
       (r) => r.pattern === '/*' || r.pattern === '*',
     );
-    const specificRoutes = manifest.routes.filter(
-      (r) => r.pattern !== '/*' && r.pattern !== '*',
-    );
+    const specificRoutes = manifest.routes
+      .filter((r) => r.pattern !== '/*' && r.pattern !== '*')
+      // CloudFront evaluates cache behaviors top-to-bottom, first-match-wins
+      // (no longest-prefix preference). When the manifest mixes a literal
+      // pattern (`/api/edge/b`) with a wildcard from a sibling dynamic route
+      // (`/api/edge/*`, expanded from Next's `[slug]`), the wildcard
+      // shadows the literal if it's emitted first. Sort by descending
+      // specificity so literals always come before wildcards. Same key as
+      // CDK's own behavior ordering: count wildcards, then prefer longer
+      // patterns within the same wildcard count.
+      .sort(
+        (a, b) => routeSpecificity(b.pattern) - routeSpecificity(a.pattern),
+      );
 
     // Validate CloudFront behavior limit
     if (specificRoutes.length > MAX_ADDITIONAL_BEHAVIORS) {
@@ -335,13 +505,91 @@ export class CdnConstruct extends Construct {
 
       if (isStatic) {
         additionalBehaviors[cfPattern] = makeStaticBehavior();
+
+        // CloudFront path patterns are not "match either trailing-slash or
+        // bare" — `/about/*` matches `/about/x` but NOT bare `/about`.
+        // For prerendered routes that emit `<name>/index.html` the bare
+        // path falls through to the SSR Lambda, which silently re-renders
+        // every request and ruins the SSG semantics (also costing Lambda
+        // invocations the user didn't sign up for).
+        //
+        // When we see a static `<name>/*` pattern, also emit a behavior
+        // for the bare `<name>` path so both forms hit S3. The S3 origin
+        // (with index document set on the bucket) resolves the bare path
+        // to `<name>/index.html` automatically.
+        const barePattern = deriveBareStaticPattern(cfPattern);
+        if (barePattern && !(barePattern in additionalBehaviors)) {
+          additionalBehaviors[barePattern] = makeStaticBehavior();
+        }
       } else {
-        // Look up per-compute origin, fall back to primary
-        const targetOrigin = computeOrigins.get(route.target) ?? primaryOrigin;
-        if (targetOrigin) {
-          additionalBehaviors[cfPattern] = makeComputeBehavior(targetOrigin);
+        // OpenNext edge routes (`runtime = 'edge'`) come through as compute
+        // names in `routeEdgeFunctions`. The Lambda@Edge function generates
+        // the response itself — we still need a CloudFront origin (S3 here)
+        // so the behavior is well-formed; CloudFront associates the edge
+        // function on origin-request and never reaches origin storage when
+        // the function returns a response.
+        const edgeVersion = props.routeEdgeFunctions?.get(route.target);
+        if (edgeVersion) {
+          additionalBehaviors[cfPattern] = makeEdgeRouteBehavior(edgeVersion);
         } else {
-          additionalBehaviors[cfPattern] = makeStaticBehavior();
+          // Look up per-compute origin, fall back to primary
+          const targetOrigin =
+            computeOrigins.get(route.target) ?? primaryOrigin;
+          if (targetOrigin) {
+            additionalBehaviors[cfPattern] = makeComputeBehavior(targetOrigin);
+          } else {
+            additionalBehaviors[cfPattern] = makeStaticBehavior();
+          }
+        }
+      }
+    }
+
+    // ---- assetPrefix behaviors (B17) ----
+    // When the framework's build emits asset URLs under a prefix
+    // (Next.js `assetPrefix: '/shop-static'`), the non-prefixed
+    // `/_next/static/*` behavior won't match. Add prefixed copies that
+    // strip the prefix before falling through to the build-id S3 lookup.
+    const assetPrefix = manifest.assetPrefix;
+    if (assetPrefix) {
+      const stripFunction = new CloudFrontFunction(
+        this,
+        'AssetPrefixStripFunction',
+        {
+          code: FunctionCode.fromInline(
+            generateAssetPrefixStripFunctionCode(buildId, assetPrefix),
+          ),
+          runtime: FunctionRuntime.JS_2_0,
+          comment: `Strip Next.js assetPrefix=${assetPrefix} before S3 lookup`,
+        },
+      );
+      const prefixedStaticBehavior: BehaviorOptions = {
+        origin: s3Origin,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        compress: true,
+        responseHeadersPolicy: props.securityHeadersPolicy,
+        functionAssociations: [
+          {
+            function: stripFunction,
+            eventType: FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
+      };
+      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
+      // Add the most-specific prefixed patterns. Skipped if a user route
+      // already claims them (defensive — should never overlap in
+      // practice).
+      for (const suffix of [
+        '/_next/static/*',
+        '/_next/image*',
+        '/_next/data/*',
+        '/_next/*',
+      ]) {
+        const pat = prefixed(suffix);
+        if (!(pat in additionalBehaviors)) {
+          additionalBehaviors[pat] = prefixedStaticBehavior;
         }
       }
     }
@@ -353,17 +601,162 @@ export class CdnConstruct extends Construct {
       catchAllRoute.target !== 's3' &&
       hasCompute;
 
-    const defaultBehavior = defaultIsCompute
+    let defaultBehavior = defaultIsCompute
       ? makeComputeBehavior(
           computeOrigins.get(catchAllRoute!.target) ?? primaryOrigin,
         )
       : makeStaticBehavior();
 
+    // ---- Per-pattern custom response headers (manifest.headers[]) ----
+    // Each entry in manifest.headers[] declares a (source, headers) pair.
+    // For each, we construct a per-pattern ResponseHeadersPolicy that
+    // bundles the security headers + the custom headers, and attach it
+    // to the matching behavior. If the source pattern has no behavior
+    // yet (i.e. it's a static path the user wants to set headers on
+    // without otherwise routing), we synthesize a static behavior so
+    // the policy has something to attach to.
+    const manifestHeaders = manifest.headers ?? [];
+    if (manifestHeaders.length > 0) {
+      // Dedupe by header-content fingerprint. Many `publicAssets[]`
+      // entries from Nuxt produce *identical* Cache-Control rules — we
+      // share one ResponseHeadersPolicy across all of them so the
+      // account-wide CloudFront ResponseHeadersPolicy quota (default 20
+      // per account, max 200) doesn't get burned on duplicates.
+      const policyByFingerprint = new Map<string, ResponseHeadersPolicy>();
+      const fingerprint = (headers: Record<string, string>): string =>
+        Object.keys(headers)
+          .sort()
+          .map((k) => `${k}=${headers[k]}`)
+          .join('\n');
+
+      // Construct ID uses the first 8 hex chars of a SHA-256 over the
+      // fingerprint. Why a stable hash instead of a counter (0/1/2/...):
+      // a positional counter changes whenever the iteration order of
+      // `manifest.headers[]` changes (e.g. user reorders publicAssets[]
+      // in nuxt.config.ts). That makes CDK think each redeploy needs to
+      // create new policies + delete the old ones — which churns the
+      // account-wide ResponseHeadersPolicy quota and risks leaking
+      // stale policies under failed rollbacks (B20). A content-derived
+      // ID makes each unique header-set get the same construct ID
+      // forever, so a redeploy with the same content is a no-op.
+      const idForHeaders = (headers: Record<string, string>): string => {
+        const fp = fingerprint(headers);
+        return `CustomHeadersPolicy${createHash('sha256')
+          .update(fp)
+          .digest('hex')
+          .slice(0, 8)}`;
+      };
+
+      const getOrCreatePolicy = (
+        headers: Record<string, string>,
+      ): ResponseHeadersPolicy => {
+        const fp = fingerprint(headers);
+        const existing = policyByFingerprint.get(fp);
+        if (existing) return existing;
+        const policy = createCustomHeadersPolicy(
+          this,
+          idForHeaders(headers),
+          headers,
+          { contentSecurityPolicy: props.contentSecurityPolicy },
+        );
+        policyByFingerprint.set(fp, policy);
+        return policy;
+      };
+
+      const overrideBehaviorPolicy = (
+        target: BehaviorOptions,
+        headers: Record<string, string>,
+      ): BehaviorOptions => ({
+        ...target,
+        responseHeadersPolicy: getOrCreatePolicy(headers),
+      });
+
+      // B22: when no behavior exists for a header pattern yet, the synthesized
+      // behavior must match how the catch-all would have served the same
+      // request. If the manifest declares any compute (SSR/ISR/SWR), the
+      // route is dynamic and must point to the compute origin — pointing
+      // at S3 here would shadow the catch-all and 403 every request.
+      // Static-only deploys (no compute) fall back to a static behavior.
+      const synthesizeBehaviorForHeaderPattern = (): BehaviorOptions =>
+        hasCompute ? makeComputeBehavior() : makeStaticBehavior();
+
+      for (const entry of manifestHeaders) {
+        const cfPattern = normalizePatternForCloudFront(entry.source);
+        if (cfPattern === '/*' || cfPattern === '*') {
+          // Header rule applies to the catch-all → patch defaultBehavior
+          defaultBehavior = overrideBehaviorPolicy(
+            defaultBehavior,
+            entry.headers,
+          );
+        } else if (additionalBehaviors[cfPattern]) {
+          // Existing behavior — override its policy
+          additionalBehaviors[cfPattern] = overrideBehaviorPolicy(
+            additionalBehaviors[cfPattern],
+            entry.headers,
+          );
+        } else {
+          // No behavior for this pattern yet. Create one that matches the
+          // catch-all's origin choice (compute or static) so headers are
+          // additive, not redirecting requests. Skip silently if we'd exceed the
+          // CloudFront behavior cap (better to lose the header than fail
+          // the deploy; warn at synth-time).
+          if (
+            Object.keys(additionalBehaviors).length >= MAX_ADDITIONAL_BEHAVIORS
+          ) {
+            process.stderr.write(
+              `⚠️  Skipping custom headers for "${entry.source}" — would exceed CloudFront behavior cap.\n`,
+            );
+            continue;
+          }
+          additionalBehaviors[cfPattern] = overrideBehaviorPolicy(
+            synthesizeBehaviorForHeaderPattern(),
+            entry.headers,
+          );
+        }
+      }
+    }
+
     // ---- Error responses ----
+    // Three modes:
+    //  1. Compute origin → 502/503/504 → custom error page (preserves status).
+    //  2. Static deploy WITH `manifest.errorPages` (Next.js `output: 'export'`,
+    //     Astro static, etc.) → 404 → /404.html with status 404, no SPA
+    //     fallback. This is the right behavior for any framework that
+    //     emits a real 404 page.
+    //  3. Static deploy WITHOUT `manifest.errorPages` (single-page app
+    //     with client-side routing) → 403/404 → /index.html with status 200
+    //     so the SPA can deep-link any path.
     const isSpaOnly = !hasCompute;
+    const hasErrorPages =
+      manifest.errorPages !== undefined &&
+      Object.keys(manifest.errorPages).length > 0;
 
     const errorResponses: ErrorResponse[] = [
-      ...(isSpaOnly
+      ...(isSpaOnly && hasErrorPages
+        ? [
+            ...(manifest.errorPages?.[404]
+              ? [
+                  {
+                    httpStatus: 404,
+                    responseHttpStatus: 404,
+                    responsePagePath: `/builds/${buildId}${manifest.errorPages[404]}`,
+                    ttl: Duration.seconds(0),
+                  },
+                ]
+              : []),
+            ...(manifest.errorPages?.[500]
+              ? [
+                  {
+                    httpStatus: 500,
+                    responseHttpStatus: 500,
+                    responsePagePath: `/builds/${buildId}${manifest.errorPages[500]}`,
+                    ttl: Duration.seconds(0),
+                  },
+                ]
+              : []),
+          ]
+        : []),
+      ...(isSpaOnly && !hasErrorPages
         ? [
             {
               httpStatus: 403,
@@ -534,4 +927,65 @@ const normalizePatternForCloudFront = (pattern: string): string => {
     return `/${pattern}`;
   }
   return pattern;
+};
+
+/**
+ * Score a route pattern's specificity. Higher score = more specific = should
+ * be evaluated first by CloudFront (which is first-match-wins on the order
+ * we emit cache behaviors).
+ *
+ * Approach:
+ *   - Primary axis: count of literal (non-wildcard) path segments. A pattern
+ *     with more literal segments constrains more of the URL path and is
+ *     therefore more specific. `/api/*\/data/*` (2 literal segments)
+ *     constrains more than `/*` (0 literal segments) regardless of wildcard
+ *     count.
+ *   - Tiebreaker: pattern length. Within the same literal-segment count,
+ *     longer patterns generally constrain more bytes.
+ *
+ * Why not "fewer wildcards wins": that ordering ranks `/*` (1 wildcard)
+ * above `/api/*\/data/*` (2 wildcards) even though the latter is strictly
+ * more constraining. Literal segments are the right primary axis.
+ *
+ * Examples (highest to lowest):
+ *   `/api/edge/catch/*`  → 3 literal segments, length 17 → 3_017
+ *   `/api/edge/json`     → 3 literal segments, length 14 → 3_014
+ *   `/api/edge/b`        → 3 literal segments, length 11 → 3_011
+ *   `/api/*\/data/*`     → 2 literal segments, length 13 → 2_013
+ *   `/api/edge/*`        → 2 literal segments, length 11 → 2_011
+ *   `/_next/*`           → 1 literal segment,  length  8 → 1_008
+ *   `/*`                 → 0 literal segments, length  2 →     2
+ */
+const routeSpecificity = (pattern: string): number => {
+  const literalSegments = pattern
+    .split('/')
+    .filter((s) => s !== '' && s !== '*').length;
+  return literalSegments * 1000 + pattern.length;
+};
+
+/**
+ * For a static-route pattern that ends with `/*`, return the bare-path
+ * variant so the route can be reached without a trailing slash.
+ *
+ * `/about/*` → `/about`
+ * `/posts/2024/*` → `/posts/2024`
+ *
+ * Returns `null` for patterns that are not a simple `<name>/*` shape
+ * (catch-alls, root patterns, multi-wildcard, etc.) — those don't have
+ * a meaningful bare form, or the parent pattern is already covered by
+ * other behaviors.
+ *
+ * Why this is needed: CloudFront path patterns don't have a "match
+ * either bare or with-slash" wildcard. `/about/*` matches `/about/foo`
+ * but NOT bare `/about`. Without an explicit bare-path behavior, the
+ * bare form falls through to the SSR Lambda — breaking SSG semantics
+ * (timestamp drift, every request is a Lambda invocation).
+ */
+const deriveBareStaticPattern = (pattern: string): string | null => {
+  if (!pattern.endsWith('/*')) return null;
+  const bare = pattern.slice(0, -2);
+  // Don't emit `/` (would be the default behavior, not an additional one)
+  // or anything containing additional wildcards (no useful bare form).
+  if (bare === '' || bare === '/' || bare.includes('*')) return null;
+  return bare;
 };
