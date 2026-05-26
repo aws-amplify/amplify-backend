@@ -679,6 +679,81 @@ void describe('CdnConstruct', () => {
         'edge route must reference the synthesized SsrCachePolicy via Ref, not the AWS-managed CACHING_DISABLED string ID',
       );
     });
+
+    void it('orders multi-wildcard patterns above /* by literal-segment count', () => {
+      // Regression for the route-specificity formula: a pattern like
+      // /api/*/data/* (2 literal segments, 2 wildcards) must rank ABOVE
+      // /* (0 literal segments, 1 wildcard). The previous formula
+      // (length × 1000 - wildcards × 1_000_000) inverted this and let
+      // /* shadow more-specific multi-wildcard patterns.
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn, fnUrl } = createSsrFunction(stack);
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/b1',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/*', target: 'default' },
+          { pattern: '/api/*/data/*', target: 'default' },
+          { pattern: '/_next/*', target: 'default' },
+        ],
+        buildId: 'test-specificity',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', fnUrl]]),
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      assert.ok(distResource);
+      const distProps = distResource['Properties'] as Record<string, unknown>;
+      const distConfig = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const cacheBehaviors = distConfig['CacheBehaviors'] as Array<
+        Record<string, unknown>
+      >;
+      const patternOrder = cacheBehaviors.map(
+        (b) => b['PathPattern'] as string,
+      );
+
+      const idxMultiWildcard = patternOrder.indexOf('/api/*/data/*');
+      const idxSingleWildcard = patternOrder.indexOf('/_next/*');
+      // /* is the catch-all and lives on the default behavior, so it
+      // doesn't appear in CacheBehaviors. The two patterns we declared
+      // as additional behaviors must be ordered by literal segments:
+      // /api/*/data/* (2 literals) before /_next/* (1 literal).
+      assert.ok(idxMultiWildcard >= 0, '/api/*/data/* behavior present');
+      assert.ok(idxSingleWildcard >= 0, '/_next/* behavior present');
+      assert.ok(
+        idxMultiWildcard < idxSingleWildcard,
+        '/api/*/data/* (2 literal segments) must rank above /_next/* (1 literal segment)',
+      );
+    });
   });
 
   // ---- Optional features ----

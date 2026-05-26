@@ -931,25 +931,36 @@ const normalizePatternForCloudFront = (pattern: string): string => {
 
 /**
  * Score a route pattern's specificity. Higher score = more specific = should
- * be evaluated first by CloudFront.
+ * be evaluated first by CloudFront (which is first-match-wins on the order
+ * we emit cache behaviors).
  *
  * Approach:
- *   - Each `*` reduces specificity (wildcards match anything).
- *   - Within the same wildcard count, longer patterns are more specific
- *     (they constrain more bytes of the path).
- * The combined score is `length × 1000 - wildcardCount × 1_000_000`, which
- * keeps wildcards as the dominant axis but uses length as a tiebreaker.
+ *   - Primary axis: count of literal (non-wildcard) path segments. A pattern
+ *     with more literal segments constrains more of the URL path and is
+ *     therefore more specific. `/api/*\/data/*` (2 literal segments)
+ *     constrains more than `/*` (0 literal segments) regardless of wildcard
+ *     count.
+ *   - Tiebreaker: pattern length. Within the same literal-segment count,
+ *     longer patterns generally constrain more bytes.
+ *
+ * Why not "fewer wildcards wins": that ordering ranks `/*` (1 wildcard)
+ * above `/api/*\/data/*` (2 wildcards) even though the latter is strictly
+ * more constraining. Literal segments are the right primary axis.
  *
  * Examples (highest to lowest):
- *   `/api/edge/json`        → length 14,  0 wildcards →    14_000
- *   `/api/edge/b`           → length 11,  0 wildcards →    11_000
- *   `/api/edge/catch/*`     → length 17,  1 wildcard  →   -983_000
- *   `/api/edge/*`           → length 11,  1 wildcard  →   -989_000
- *   `/_next/*`              → length  8,  1 wildcard  →   -992_000
+ *   `/api/edge/catch/*`  → 3 literal segments, length 17 → 3_017
+ *   `/api/edge/json`     → 3 literal segments, length 14 → 3_014
+ *   `/api/edge/b`        → 3 literal segments, length 11 → 3_011
+ *   `/api/*\/data/*`     → 2 literal segments, length 13 → 2_013
+ *   `/api/edge/*`        → 2 literal segments, length 11 → 2_011
+ *   `/_next/*`           → 1 literal segment,  length  8 → 1_008
+ *   `/*`                 → 0 literal segments, length  2 →     2
  */
 const routeSpecificity = (pattern: string): number => {
-  const wildcards = (pattern.match(/\*/g) ?? []).length;
-  return pattern.length * 1000 - wildcards * 1_000_000;
+  const literalSegments = pattern
+    .split('/')
+    .filter((s) => s !== '' && s !== '*').length;
+  return literalSegments * 1000 + pattern.length;
 };
 
 /**
