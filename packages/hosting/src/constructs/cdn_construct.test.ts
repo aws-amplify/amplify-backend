@@ -10,6 +10,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import {
   Code,
   FunctionUrlAuthType,
+  IVersion,
   InvokeMode,
   Function as LambdaFunction,
   Runtime,
@@ -540,6 +541,63 @@ void describe('CdnConstruct', () => {
           assert.strictEqual(error.name, 'EmptyGeoRestrictionError');
           return true;
         },
+      );
+    });
+
+    void it('throws TooManyEdgeRoutesError for >25 edge-runtime routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const edgeRoutes: Map<string, IVersion> = new Map();
+      for (let i = 0; i < 26; i++) {
+        const fn = new LambdaFunction(stack, `EdgeFn${i}`, {
+          runtime: Runtime.NODEJS_20_X,
+          handler: 'index.handler',
+          code: Code.fromInline('exports.handler = async () => {};'),
+        });
+        edgeRoutes.set(`edge${i}`, fn.currentVersion);
+      }
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: spaManifest,
+            securityHeadersPolicy: policy,
+            routeEdgeFunctions: edgeRoutes,
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'TooManyEdgeRoutesError');
+          return true;
+        },
+      );
+    });
+
+    void it('does not throw at exactly 25 edge-runtime routes', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const edgeRoutes: Map<string, IVersion> = new Map();
+      for (let i = 0; i < 25; i++) {
+        const fn = new LambdaFunction(stack, `EdgeFn${i}`, {
+          runtime: Runtime.NODEJS_20_X,
+          handler: 'index.handler',
+          code: Code.fromInline('exports.handler = async () => {};'),
+        });
+        edgeRoutes.set(`edge${i}`, fn.currentVersion);
+      }
+
+      assert.doesNotThrow(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest: spaManifest,
+            securityHeadersPolicy: policy,
+            routeEdgeFunctions: edgeRoutes,
+          }),
       );
     });
   });

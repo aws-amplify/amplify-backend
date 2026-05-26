@@ -64,6 +64,20 @@ import { createCustomHeadersPolicy } from './security_headers.js';
  */
 const MAX_ADDITIONAL_BEHAVIORS = 24;
 
+/**
+ * AWS account-level soft limit on Lambda@Edge replicated function
+ * versions. The hard cap is 25; we hard-fail at synth time when this
+ * distribution alone would exceed it (the deploy would fail anyway with
+ * a CloudFormation error that's harder to debug).
+ */
+const MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION = 25;
+
+/**
+ * Threshold above which we emit a stderr warning. The 5-route gap
+ * leaves headroom for other distributions in the same account.
+ */
+const EDGE_FUNCTIONS_WARNING_THRESHOLD = 20;
+
 const SSR_ERROR_PAGE_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -169,6 +183,29 @@ export class CdnConstruct extends Construct {
       (props.computeFunctionUrls && props.computeFunctionUrls.size > 0) ||
       hasComputeRoutes;
     this.errorPageHtml = props.errorPageHtml ?? SSR_ERROR_PAGE_HTML;
+
+    // ---- Lambda@Edge function-count validation ----
+    // The account-level cap is 25 replicated functions. Catch the
+    // unwinnable case at synth so users get a useful error with a
+    // resolution path, not a CloudFormation rollback.
+    const edgeRouteCount = props.routeEdgeFunctions?.size ?? 0;
+    if (edgeRouteCount > MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION) {
+      throw new HostingError('TooManyEdgeRoutesError', {
+        message: `This distribution declares ${edgeRouteCount} edge-runtime routes, exceeding the AWS Lambda@Edge limit of ${MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION} replicated functions per account.`,
+        resolution:
+          'Reduce the number of routes that export `runtime: "edge"`, ' +
+          'consolidate edge logic into fewer routes (e.g. one router that ' +
+          'switches on path), or request a service-quota increase: ' +
+          'https://docs.aws.amazon.com/lambda/latest/dg/edge-functions-restrictions.html',
+      });
+    }
+    if (edgeRouteCount >= EDGE_FUNCTIONS_WARNING_THRESHOLD) {
+      process.stderr.write(
+        `⚠️  Hosting: this distribution declares ${edgeRouteCount} edge-runtime routes. ` +
+          `The AWS Lambda@Edge limit is ${MAX_EDGE_FUNCTIONS_PER_DISTRIBUTION} per account; ` +
+          `other distributions in the same account count against the same quota.\n`,
+      );
+    }
 
     // ---- Build ID rewrite + redirect function ----
     // Single CloudFront viewer-request function that handles both
@@ -399,8 +436,32 @@ export class CdnConstruct extends Construct {
      * Cache behavior for an OpenNext edge route (Lambda@Edge owns the
      * response). The S3 origin is just a placeholder — CloudFront
      * associates the function on origin-request and the function returns
-     * the response itself, so origin storage is never read. Caching is
-     * disabled because the edge function is dynamic.
+     * the response itself, so origin storage is never read.
+     *
+     * `CACHING_DISABLED` is intentional and diverges from `ssrCachePolicy`
+     * used on the regional SSR behavior. Three reasons:
+     *
+     *  1. Edge routes are typically dynamic by design — auth checks, geo
+     *     personalization, A/B routing — where caching one request's
+     *     response and serving it to other users is incorrect. Default
+     *     SSR behavior assumes the framework knows when to set
+     *     `Cache-Control: s-maxage`; default edge behavior assumes the
+     *     opposite (per-request work that must reach the function).
+     *  2. `ssrCachePolicy` keys on Next.js App Router headers (rsc,
+     *     next-router-prefetch, next-router-state-tree,
+     *     next-router-segment-prefetch) which are RSC-specific. Edge
+     *     handlers are typically API routes, not RSC payload endpoints,
+     *     so reusing that cache key would fragment unnecessarily.
+     *  3. Lambda@Edge per-invocation cost is higher than regional Lambda,
+     *     but is paid even when CloudFront caches — the function still
+     *     runs at origin-request time before the cache layer sees the
+     *     response. Caching at CloudFront only helps if the response
+     *     can be safely shared, which is the wrong default for the
+     *     dynamic-by-design class of routes.
+     *
+     * Routes that genuinely should cache (e.g. an edge geolocation lookup
+     * with a 10-minute TTL) are an explicit opt-in surface for a future
+     * routeRules API; at that point this behavior would be parameterised.
      */
     const makeEdgeRouteBehavior = (edgeVersion: IVersion): BehaviorOptions => ({
       origin: s3Origin,
