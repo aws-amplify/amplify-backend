@@ -200,10 +200,17 @@ const buildSecurityHeadersBehavior = (
       referrerPolicy,
       override: true,
     },
+    // CSP override is conditional on the user having opted in. Forcing
+    // override:true on the default CSP would silently strip per-request
+    // nonces emitted by SSR frameworks (e.g. Next.js Server Components),
+    // breaking inline scripts. Only override when the user explicitly
+    // supplied a CSP — either via headers() or via the contentSecurityPolicy
+    // prop — and let the origin's CSP win otherwise.
     contentSecurityPolicy: {
       contentSecurityPolicy:
         userCsp ?? props?.contentSecurityPolicy ?? DEFAULT_CSP,
-      override: true,
+      override:
+        userCsp !== undefined || props?.contentSecurityPolicy !== undefined,
     },
   };
 };

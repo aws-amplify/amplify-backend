@@ -123,14 +123,34 @@ void describe('createSecurityHeadersPolicy', () => {
       // This test explicitly verifies that unsafe-eval is NOT present
     });
 
-    void it('sets CSP override to true (L3-managed default wins over origin)', () => {
-      // After the security_headers refactor, the L3 always emits its CSP
-      // via the typed `securityHeadersBehavior` slot with `Override: true`.
-      // User-supplied CSPs are still honored — they get folded INTO the
-      // typed slot (see "user header override" suite below) — so origin
-      // headers never need to win this slot.
+    void it('leaves CSP override:false on the default policy so origin nonces win', () => {
+      // SSR frameworks (Next.js Server Components, Remix) emit per-request
+      // CSP nonces from origin. Forcing the L3 default to override would
+      // strip those nonces and break inline scripts. The default CSP is
+      // emitted with override:false; origin CSP wins when present.
       const stack = createStack();
       createSecurityHeadersPolicy(stack, 'Headers');
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+        Match.objectLike({
+          ResponseHeadersPolicyConfig: Match.objectLike({
+            SecurityHeadersConfig: Match.objectLike({
+              ContentSecurityPolicy: Match.objectLike({
+                Override: false,
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    void it('sets CSP override:true when user supplies contentSecurityPolicy prop', () => {
+      const stack = createStack();
+      createSecurityHeadersPolicy(stack, 'Headers', {
+        contentSecurityPolicy: "default-src 'self'",
+      });
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties(
