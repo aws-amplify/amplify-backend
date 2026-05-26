@@ -97,12 +97,25 @@ export const nextjsAdapter = (
     // to load configs from non-default locations, so the file must live at
     // <projectDir>/open-next.config.ts.
     //
-    // Edge route detection requires Next.js's compiled middleware-manifest,
-    // so run `next build` first. OpenNext re-runs `next build` later — Next's
-    // .next/cache makes the second run cheap.
+    // Edge route detection requires Next.js's compiled middleware-manifest.
+    // Skip the pre-build when:
+    //   (a) the manifest already exists (user/CI ran `next build`, or a
+    //       previous deploy cached it), OR
+    //   (b) the project's source declares no `runtime: 'edge'` routes —
+    //       in that case detectEdgeRoutes returns empty and the generated
+    //       open-next.config.ts has no functions{} block, so OpenNext's
+    //       own build pass produces all the manifests we'd need.
+    // Both branches eliminate one full Next.js build (~10-60s) without
+    // changing correctness: when we DO need edge detection AND the manifest
+    // is missing, runNextBuild fires.
     let cleanupConfig: (() => void) | undefined;
     if (!configPath) {
-      runNextBuild(projectDir);
+      if (
+        !hasExistingMiddlewareManifest(projectDir) &&
+        projectHasEdgeRuntimeRoutes(projectDir)
+      ) {
+        runNextBuild(projectDir);
+      }
       const edgeRoutes = detectEdgeRoutes(projectDir);
       cleanupConfig = installGeneratedOpenNextConfig(projectDir, edgeRoutes);
     }
@@ -687,6 +700,87 @@ const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
       `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
     );
   }
+};
+
+/**
+ * Check whether `.next/server/middleware-manifest.json` already exists.
+ *
+ * The user's CI (or a previous deploy) may have already produced this
+ * manifest. When present, we can read edge routes directly without
+ * spending another `next build` cycle.
+ *
+ * Exported for unit testing.
+ * @internal
+ */
+export const hasExistingMiddlewareManifest = (projectDir: string): boolean => {
+  return fs.existsSync(
+    path.join(projectDir, '.next', 'server', 'middleware-manifest.json'),
+  );
+};
+
+/**
+ * Source-scan the project for files declaring `runtime: 'edge'` (or
+ * `'experimental-edge'`).
+ *
+ * Returns true if any user file looks like an edge-runtime route, false
+ * if none. False-positives are acceptable (we'd just rebuild as before);
+ * false-negatives must be avoided (we'd skip the build but OpenNext
+ * would then refuse to bundle the route).
+ *
+ * The scan is conservative: a single regex match anywhere in any
+ * `.ts/.tsx/.js/.jsx` under `app/`, `src/app/`, `pages/`, or `src/pages/`
+ * triggers a true return. Comments and strings are not excluded — that's
+ * fine since the cost of a false-positive is a rebuild we'd otherwise
+ * have run anyway.
+ *
+ * Exported for unit testing.
+ * @internal
+ */
+export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
+  const candidateRoots = [
+    path.join(projectDir, 'app'),
+    path.join(projectDir, 'src', 'app'),
+    path.join(projectDir, 'pages'),
+    path.join(projectDir, 'src', 'pages'),
+  ];
+  // Match `runtime = 'edge'` or `runtime: 'edge'` (and -experimental-).
+  const pattern = /runtime\s*[:=]\s*['"`](?:edge|experimental-edge)['"`]/;
+  const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']);
+
+  const stack: string[] = candidateRoots.filter((d) => fs.existsSync(d));
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
+          continue;
+        }
+        stack.push(full);
+      } else if (
+        entry.isFile() &&
+        sourceExtensions.has(path.extname(entry.name))
+      ) {
+        try {
+          if (pattern.test(fs.readFileSync(full, 'utf-8'))) {
+            return true;
+          }
+        } catch {
+          // Unreadable file — skip; if a real edge route is hidden behind
+          // an I/O error, the worst case is we don't pre-build and
+          // OpenNext fails with its own clear error.
+          continue;
+        }
+      }
+    }
+  }
+  return false;
 };
 
 /**
