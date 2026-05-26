@@ -11,7 +11,9 @@ import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
+  CustomHeader,
   DeployManifest,
+  Redirect,
   RouteBehavior,
 } from '../manifest/types.js';
 
@@ -28,6 +30,12 @@ export type NextjsAdapterOptions = {
 
 type OpenNextOutput = {
   origins?: Record<string, OpenNextOrigin>;
+  /**
+   * Edge functions (Lambda@Edge bundles). OpenNext writes one entry per
+   * edge function declared in the user's `functions: { ... }` config; each
+   * one corresponds to a separate Lambda@Edge replica.
+   */
+  edgeFunctions?: Record<string, OpenNextEdgeFunction>;
   behaviors?: OpenNextBehavior[];
   additionalProps?: {
     [key: string]: unknown;
@@ -48,9 +56,24 @@ type OpenNextOrigin = {
   environment?: Record<string, string>;
 };
 
+type OpenNextEdgeFunction = {
+  bundle?: string;
+  handler?: string;
+  /** Always 'aws-lambda' for AWS-targeted edge functions in OpenNext. */
+  wrapper?: string;
+  /** 'aws-cloudfront' when placement is global (Lambda@Edge). */
+  converter?: string;
+};
+
 type OpenNextBehavior = {
   pattern: string;
+  /** Set when the route targets a regional origin (S3, regional Lambda). */
   origin?: string;
+  /**
+   * Set when the route targets an edge function — keyed off
+   * `output.edgeFunctions[edgeFunction]`.
+   */
+  edgeFunction?: string;
   fallback?: string;
 };
 
@@ -73,9 +96,28 @@ export const nextjsAdapter = (
     // wrapper for `default`. OpenNext's `--config-path` flag silently fails
     // to load configs from non-default locations, so the file must live at
     // <projectDir>/open-next.config.ts.
+    //
+    // Edge route detection requires Next.js's compiled middleware-manifest.
+    // Skip the pre-build when:
+    //   (a) the manifest already exists (user/CI ran `next build`, or a
+    //       previous deploy cached it), OR
+    //   (b) the project's source declares no `runtime: 'edge'` routes —
+    //       in that case detectEdgeRoutes returns empty and the generated
+    //       open-next.config.ts has no functions{} block, so OpenNext's
+    //       own build pass produces all the manifests we'd need.
+    // Both branches eliminate one full Next.js build (~10-60s) without
+    // changing correctness: when we DO need edge detection AND the manifest
+    // is missing, runNextBuild fires.
     let cleanupConfig: (() => void) | undefined;
     if (!configPath) {
-      cleanupConfig = installGeneratedOpenNextConfig(projectDir);
+      if (
+        !hasExistingMiddlewareManifest(projectDir) &&
+        projectHasEdgeRuntimeRoutes(projectDir)
+      ) {
+        runNextBuild(projectDir);
+      }
+      const edgeRoutes = detectEdgeRoutes(projectDir);
+      cleanupConfig = installGeneratedOpenNextConfig(projectDir, edgeRoutes);
     }
     try {
       runOpenNextBuild(projectDir, configPath);
@@ -86,6 +128,10 @@ export const nextjsAdapter = (
     // Patch OpenNext's bundled aws-lambda-streaming wrapper for API Gateway
     // STREAM framing. See patchStreamingWrapperForApiGateway for what changes.
     patchStreamingWrapperForApiGateway(openNextDir);
+
+    // Patch each edge bundle's process import banner for Lambda@Edge
+    // nodejs20.x compatibility. See patchEdgeBundleForLambdaEdge.
+    patchEdgeBundlesForLambdaEdge(openNextDir);
   }
 
   // Ensure amplify_outputs.json is in every server function bundle.
@@ -117,44 +163,333 @@ export const nextjsAdapter = (
     );
   }
 
-  return translateOpenNextOutput(output, openNextDir);
+  const manifest = translateOpenNextOutput(output, openNextDir);
+
+  // Lift simple Next.js redirects() / headers() rules out of the OpenNext
+  // Lambda and into CloudFront. This eliminates a Lambda invocation for
+  // matching paths (~150ms cold-start + ~5ms warm vs. ~5ms at the edge).
+  // Complex rules (with `has`/`missing` conditions, regex captures, or
+  // i18n locale groups) stay in the Lambda — see liftSimpleRoutesManifest
+  // for the classifier. Anything we don't lift remains handled by the
+  // OpenNext server bundle, so behavior is preserved.
+  applyLiftedRoutesManifest(manifest, projectDir);
+  applyAssetPrefix(manifest, projectDir);
+
+  return manifest;
+};
+
+/**
+ * Detect Next.js `assetPrefix` from the build's `required-server-files.json`
+ * and copy it to the manifest. The L3 uses this to add CloudFront cache
+ * behaviors at `/<prefix>/_next/*` so prefixed asset URLs resolve.
+ *
+ * Skips silently if the file is missing or assetPrefix is unset (most
+ * apps).
+ */
+const applyAssetPrefix = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  const requiredServerFilesPath = path.join(
+    projectDir,
+    '.next',
+    'required-server-files.json',
+  );
+  if (!fs.existsSync(requiredServerFilesPath)) return;
+  let parsed: { config?: { assetPrefix?: string } };
+  try {
+    parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const ap = parsed.config?.assetPrefix;
+  if (typeof ap !== 'string' || ap === '') return;
+  // Strip absolute-URL form (`https://cdn.example.com`) — only path-form
+  // assetPrefix can be wired to a CloudFront behavior on the same
+  // distribution. Absolute-URL assetPrefix means the user is fronting
+  // their assets with a separate origin and we shouldn't touch it.
+  if (/^https?:\/\//.test(ap)) return;
+  // Normalize: ensure leading slash, no trailing slash.
+  const normalized = '/' + ap.replace(/^\/+|\/+$/g, '');
+  if (normalized === '/') return;
+  manifest.assetPrefix = normalized;
+  process.stdout.write(
+    `🔗 Detected Next.js assetPrefix=${normalized}; will add CloudFront behaviors for prefixed asset paths.\n`,
+  );
+};
+
+/**
+ * One detected edge route, in the OpenNext config shape.
+ *
+ * `module` is the OpenNext route id (e.g. `app/api/edge/a/route`) —
+ * leading `app/` or `pages/`, no extension. `pattern` is the URL pattern
+ * with leading `/` (used as the CloudFront cache-behavior PathPattern).
+ */
+type EdgeRoute = { module: string; pattern: string };
+
+// Shape of the entries we care about in `.next/routes-manifest.json`. Both
+// `redirects[]` and `headers[]` carry a `source` (Next route pattern) and
+// a `regex` (compiled JS regex). Redirects also have a destination and
+// statusCode; headers carry a list of {key, value} pairs.
+type NextRoutesManifest = {
+  redirects?: Array<{
+    source: string;
+    destination: string;
+    statusCode: number;
+    locale?: boolean;
+    internal?: boolean;
+    has?: unknown;
+    missing?: unknown;
+  }>;
+  headers?: Array<{
+    source: string;
+    headers: Array<{ key: string; value: string }>;
+    locale?: boolean;
+    has?: unknown;
+    missing?: unknown;
+  }>;
+};
+
+/**
+ * Test whether a Next.js route `source` is simple enough to lift to a
+ * CloudFront Function / per-pattern ResponseHeadersPolicy. A source is
+ * simple if it has no params (`:slug`, `:path+`), no regex groups, and
+ * no character classes. Trailing-`*` is allowed because we map it to a
+ * suffix-wildcard pattern handled by both the redirect snippet and
+ * CloudFront's behavior matcher.
+ *
+ * Why so strict: the CloudFront Function redirect snippet only knows
+ * exact-match and trailing-`*`. Anything else (param interpolation,
+ * regex captures, locale groups) can't be evaluated at the edge — those
+ * rules must stay in the OpenNext Lambda.
+ */
+const isSimpleNextSource = (source: string): boolean => {
+  // Param syntax: ":name", ":name+", ":name*", or "(group)".
+  if (/[:()]/.test(source)) return false;
+  // Brackets, escapes, alternation, character classes.
+  if (/[[\]\\|{}^$+?]/.test(source)) return false;
+  // Only allow ASCII letters, digits, '/', '-', '_', '.', and a trailing '*'.
+  // Strip the trailing '*' first if present.
+  const stripped = source.endsWith('/*') ? source.slice(0, -2) : source;
+  return /^\/[a-zA-Z0-9/_.-]*$/.test(stripped);
+};
+
+/**
+ * Read `.next/routes-manifest.json` and lift simple redirects/headers
+ * into the deploy manifest so the L3 wires them as CloudFront Functions
+ * and per-pattern ResponseHeadersPolicies. Anything we don't lift stays
+ * in the OpenNext Lambda; behavior is preserved either way.
+ *
+ * Skips silently when:
+ *  - The manifest doesn't exist (e.g. `next build` hasn't run, or
+ *    OpenNext is being driven from a pre-built `.next/`).
+ *  - The redirect is `internal: true` (e.g. trailing-slash normalization;
+ *    OpenNext handles it natively, and lifting it can flip-flop with
+ *    Next's runtime URL handling).
+ *  - The rule has `has`/`missing` conditions, locale groups, or any
+ *    pattern feature the CloudFront edge can't evaluate.
+ */
+const applyLiftedRoutesManifest = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  const routesManifestPath = path.join(
+    projectDir,
+    '.next',
+    'routes-manifest.json',
+  );
+  if (!fs.existsSync(routesManifestPath)) return;
+
+  let routesManifest: NextRoutesManifest;
+  try {
+    routesManifest = JSON.parse(fs.readFileSync(routesManifestPath, 'utf-8'));
+  } catch {
+    // Invalid JSON — leave everything in Lambda. Don't fail the build.
+    return;
+  }
+
+  const liftedRedirects: Redirect[] = [];
+  const liftedHeaders: CustomHeader[] = [];
+  let skippedRedirects = 0;
+  let skippedHeaders = 0;
+
+  for (const r of routesManifest.redirects ?? []) {
+    if (r.internal) {
+      // Trailing-slash and similar — leave to OpenNext.
+      continue;
+    }
+    if (r.has || r.missing) {
+      skippedRedirects++;
+      continue;
+    }
+    if (![301, 302, 307, 308].includes(r.statusCode)) {
+      skippedRedirects++;
+      continue;
+    }
+    if (!isSimpleNextSource(r.source) || !isSimpleNextSource(r.destination)) {
+      skippedRedirects++;
+      continue;
+    }
+    liftedRedirects.push({
+      source: r.source,
+      destination: r.destination,
+      statusCode: r.statusCode as 301 | 302 | 307 | 308,
+    });
+  }
+
+  for (const h of routesManifest.headers ?? []) {
+    if (h.has || h.missing) {
+      skippedHeaders++;
+      continue;
+    }
+    if (!isSimpleNextSource(h.source)) {
+      skippedHeaders++;
+      continue;
+    }
+    const headers: Record<string, string> = {};
+    for (const entry of h.headers) headers[entry.key] = entry.value;
+    liftedHeaders.push({
+      source: h.source,
+      headers,
+    });
+  }
+
+  if (liftedRedirects.length > 0) {
+    manifest.redirects = [...(manifest.redirects ?? []), ...liftedRedirects];
+  }
+  if (liftedHeaders.length > 0) {
+    manifest.headers = [...(manifest.headers ?? []), ...liftedHeaders];
+  }
+
+  if (
+    liftedRedirects.length > 0 ||
+    liftedHeaders.length > 0 ||
+    skippedRedirects > 0 ||
+    skippedHeaders > 0
+  ) {
+    process.stdout.write(
+      `🚀 Lifted ${liftedRedirects.length} redirect(s) and ${liftedHeaders.length} header rule(s) to CloudFront. ` +
+        `${skippedRedirects + skippedHeaders} kept in Lambda (conditional/regex/locale).\n`,
+    );
+  }
+};
+
+/**
+ * Detect edge routes by reading Next.js's compiled middleware-manifest.
+ *
+ * `next build` writes `.next/server/middleware-manifest.json` containing
+ * one entry per route compiled with the edge runtime. The `name` field
+ * is exactly the module path OpenNext expects in `functions.<n>.routes`,
+ * and `matchers[0].originalSource` is the URL the route serves.
+ *
+ * Reading the manifest is the only reliable detection: a regex scan
+ * matches false positives in comments and string literals; the user's
+ * code may also re-export edge runtime via barrel files. Next's compiler
+ * is the source of truth.
+ *
+ * Caller must run `next build` (we do, via runNextBuild) before this.
+ * Returns an empty array when the manifest is missing or has no edge
+ * functions — both cases are valid (no edge usage in the project).
+ */
+const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
+  const manifestPath = path.join(
+    projectDir,
+    '.next',
+    'server',
+    'middleware-manifest.json',
+  );
+  let manifest: {
+    functions?: Record<
+      string,
+      {
+        name?: string;
+        matchers?: { originalSource?: string }[];
+      }
+    >;
+  };
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw err;
+  }
+
+  const fns = manifest.functions ?? {};
+  const out: EdgeRoute[] = [];
+  for (const fn of Object.values(fns)) {
+    const moduleName = fn.name;
+    const original = fn.matchers?.[0]?.originalSource;
+    if (!moduleName || !original) continue;
+    const slashed = original.startsWith('/') ? original : `/${original}`;
+    out.push({
+      module: moduleName,
+      // OpenNext docs require CloudFront-compatible patterns in
+      // functions.<n>.patterns; same translation as the route mapper.
+      pattern: nextPatternToCloudFront(slashed),
+    });
+  }
+  return out;
 };
 
 /**
  * Generate <projectDir>/open-next.config.ts with `aws-apigw-v1` + streaming
  * wrapper so OpenNext picks them up on its next build. Returns a cleanup
  * closure. No-ops if the user already has their own open-next.config.ts.
+ *
+ * When `edgeRoutes` is non-empty, also emits a `functions.edge` block that
+ * tells OpenNext to bundle those routes into a separate Lambda@Edge
+ * function. Without that block OpenNext refuses to build any project that
+ * declares `runtime = 'edge'` — it errors with "OpenNext requires edge
+ * runtime function to be defined in a separate function" mid-bundle, so
+ * the auto-config has to declare the split function up front.
  */
-const installGeneratedOpenNextConfig = (projectDir: string): (() => void) => {
+const installGeneratedOpenNextConfig = (
+  projectDir: string,
+  edgeRoutes: EdgeRoute[] = [],
+): (() => void) => {
   const configFile = path.join(projectDir, 'open-next.config.ts');
-  // wx = write exclusively; throws EEXIST atomically if the file is already
-  // there. Avoids a TOCTOU between an existsSync check and the write.
-  try {
-    fs.writeFileSync(
-      configFile,
-      `// AUTO-GENERATED by @aws-amplify/hosting — do not edit.
+  const edgeBlock = renderEdgeFunctionsBlock(edgeRoutes);
+  const configBody = `// AUTO-GENERATED by @aws-amplify/hosting — do not edit.
 const config = {
   default: {
     override: {
       converter: 'aws-apigw-v1',
       wrapper: 'aws-lambda-streaming',
     },
-  },
+  },${edgeBlock}
 };
 export default config;
-`,
-      { encoding: 'utf-8', flag: 'wx' },
-    );
+`;
+  // wx = write exclusively; throws EEXIST atomically if the file is already
+  // there. Avoids a TOCTOU between an existsSync check and the write.
+  try {
+    fs.writeFileSync(configFile, configBody, {
+      encoding: 'utf-8',
+      flag: 'wx',
+    });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+      const edgeNote =
+        edgeRoutes.length > 0
+          ? `\n   Edge routes detected (${edgeRoutes.map((r) => r.pattern).join(', ')}); ` +
+            `your config must also declare:\n` +
+            `     functions: { edge: { runtime: 'edge', placement: 'global', routes: [...], patterns: [...] } }\n`
+          : '';
       process.stderr.write(
         `⚠️  Found existing open-next.config.ts; not generating override.\n` +
           `   Streaming + POST/PUT compatibility through API Gateway requires:\n` +
-          `     default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } }\n`,
+          `     default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } }${edgeNote}`,
       );
       return () => undefined;
     }
     throw err;
+  }
+  if (edgeRoutes.length > 0) {
+    process.stderr.write(
+      `\u{1F4DD} Generated open-next.config.ts with edge function for: ${edgeRoutes
+        .map((r) => r.pattern || '/')
+        .join(', ')}\n`,
+    );
   }
   return () => {
     // best-effort cleanup; ignore if the file is gone or cannot be removed.
@@ -165,6 +500,55 @@ export default config;
       // intentional
     }
   };
+};
+
+/**
+ * Build the `functions: { edge1: {...}, edge2: {...} }` snippet (with a
+ * leading comma) for inclusion in the generated open-next.config.ts.
+ * Empty string when the project has no edge routes.
+ *
+ * OpenNext's `generateEdgeBundle` enforces one route per function entry —
+ * passing two routes throws `"Only one function is supported for now"`.
+ * So we emit one `edgeN` entry per detected route instead of bundling
+ * them all under one `edge` key.
+ *
+ * Patterns are CloudFront cache-behavior patterns and require a leading
+ * slash (per the SplittedFunctionOptions.patterns JSDoc in OpenNext:
+ * "Cloudfront compatible patterns. i.e. /api/*"). The detection code
+ * stores them slash-less for ergonomics, so we prepend here.
+ *
+ * Per OpenNext docs, `placement: 'global'` deploys to Lambda@Edge in
+ * us-east-1 and replicates to CloudFront PoPs. The Lambda@Edge converter
+ * (`aws-cloudfront`) reads CloudFront origin-request events directly —
+ * no API Gateway in front, so the body-hash 403 issue doesn't apply
+ * here (Lambda@Edge invocation isn't OAC-signed by CloudFront).
+ */
+const renderEdgeFunctionsBlock = (edgeRoutes: EdgeRoute[]): string => {
+  if (edgeRoutes.length === 0) return '';
+  // Escape backslashes first (so the slash inserted by quote-escape isn't
+  // itself doubled), then escape single quotes. Without this CodeQL flags
+  // the encoder as incomplete — a route module path containing `\` would
+  // emit invalid JS into the generated open-next.config.ts.
+  const quote = (s: string) =>
+    `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  const entries = edgeRoutes
+    .map(
+      (route, i) => `    edge${i + 1}: {
+      runtime: 'edge',
+      placement: 'global',
+      override: {
+        converter: 'aws-cloudfront',
+        wrapper: 'aws-lambda',
+      },
+      routes: [${quote(route.module)}],
+      patterns: [${quote(route.pattern)}],
+    },`,
+    )
+    .join('\n');
+  return `
+  functions: {
+${entries}
+  },`;
 };
 
 /**
@@ -179,62 +563,259 @@ export default config;
  * Idempotent.
  */
 const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
-  const bundle = path.join(
-    openNextDir,
-    'server-functions',
-    'default',
-    'index.mjs',
-  );
-
-  // Read directly; let the missing-file case fall out as ENOENT instead of
-  // checking existence separately (avoids a TOCTOU race).
-  let src: string;
-  try {
-    src = fs.readFileSync(bundle, 'utf-8');
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      process.stderr.write(
-        `⚠️  Skipping streaming-wrapper patch: ${bundle} not found.\n`,
-      );
-      return;
+  const root = path.join(openNextDir, 'server-functions', 'default');
+  // OpenNext puts the streaming wrapper in `default/index.mjs` for flat
+  // packages, but in workspace setups it nests the real bundle under
+  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export at
+  // `default/index.mjs`. Walk the tree and patch every index.mjs that
+  // contains the wrapper signature.
+  const stack = [root];
+  const candidates: string[] = [];
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw err;
     }
-    throw err;
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Skip node_modules — the bundler embeds OpenNext into index.mjs.
+        if (entry.name === 'node_modules') continue;
+        stack.push(full);
+      } else if (entry.isFile() && entry.name === 'index.mjs') {
+        candidates.push(full);
+      }
+    }
   }
-  let patches = 0;
 
-  const setContentTypeRe =
-    /[A-Za-z_$][\w$]*\.setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/g;
-  if (setContentTypeRe.test(src)) {
-    src = src.replace(setContentTypeRe, 'void 0');
-    patches++;
-  }
+  let totalPatches = 0;
+  let filesPatched = 0;
+  for (const bundle of candidates) {
+    let src: string;
+    try {
+      src = fs.readFileSync(bundle, 'utf-8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw err;
+    }
+    let patches = 0;
 
-  // The wrapper does:
-  //   if (acceptEncoding.includes("br")) { ... brotli ... }
-  //   else if (acceptEncoding.includes("gzip")) { ... gzip ... }
-  //   else if (acceptEncoding.includes("deflate")) { ... deflate ... }
-  //   else { identity }
-  // Force the identity branch by neutering all three checks.
-  for (const algo of ['br', 'gzip', 'deflate']) {
-    const re = new RegExp(`\\.includes\\("${algo}"\\)`, 'g');
-    if (re.test(src)) {
-      src = src.replace(re, `.includes("__amplify_no_${algo}__")`);
+    const setContentTypeRe =
+      /[A-Za-z_$][\w$]*\.setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/g;
+    if (setContentTypeRe.test(src)) {
+      src = src.replace(setContentTypeRe, 'void 0');
       patches++;
     }
+
+    // The wrapper does:
+    //   if (acceptEncoding.includes("br")) { ... brotli ... }
+    //   else if (acceptEncoding.includes("gzip")) { ... gzip ... }
+    //   else if (acceptEncoding.includes("deflate")) { ... deflate ... }
+    //   else { identity }
+    // Force the identity branch by neutering all three checks.
+    for (const algo of ['br', 'gzip', 'deflate']) {
+      const re = new RegExp(`\\.includes\\("${algo}"\\)`, 'g');
+      if (re.test(src)) {
+        src = src.replace(re, `.includes("__amplify_no_${algo}__")`);
+        patches++;
+      }
+    }
+
+    if (patches > 0) {
+      fs.writeFileSync(bundle, src, 'utf-8');
+      totalPatches += patches;
+      filesPatched++;
+    }
   }
 
-  if (patches === 0) {
+  if (filesPatched === 0) {
     process.stderr.write(
-      `⚠️  Streaming-wrapper patch found nothing to change in ${bundle}. ` +
+      `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
         `OpenNext may have updated its bundled wrapper; verify wrapper output.\n`,
     );
     return;
   }
 
-  fs.writeFileSync(bundle, src, 'utf-8');
   process.stderr.write(
-    `\u{1F527} Patched bundled aws-lambda-streaming wrapper for API Gateway STREAM (${patches} edits).\n`,
+    `\u{1F527} Patched bundled aws-lambda-streaming wrapper for API Gateway STREAM ` +
+      `(${totalPatches} edits across ${filesPatched} file${filesPatched > 1 ? 's' : ''}).\n`,
   );
+};
+
+/**
+ * Patch every OpenNext edge bundle so it runs on Lambda@Edge nodejs20.x.
+ *
+ * OpenNext prepends each edge bundle with `import * as process from "node:process";`
+ * (banner injected by createEdgeBundle.ts). Under Node 20 ESM the resulting
+ * Module namespace's `env` binding is non-writable. The next-emitted Next.js
+ * shim then runs `process.env = e.g.process.env` and crashes with:
+ *
+ * TypeError: Cannot assign to read only property 'env' of object '[object Module]'
+ *
+ * Replace the namespace import with a default import so `process` is the
+ * live mutable singleton (default export of `node:process`). Idempotent —
+ * re-running on an already-patched file finds no banner to swap.
+ *
+ * Affects only edge functions (Lambda@Edge); the regional `default` bundle
+ * uses a different banner and is unaffected.
+ * @internal
+ */
+const EDGE_PROCESS_BANNER = /^import \* as process from "node:process";/m;
+const EDGE_PROCESS_BANNER_REPLACEMENT =
+  'const process = (await import("node:process")).default;';
+
+const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
+  const serverFnDir = path.join(openNextDir, 'server-functions');
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(serverFnDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  let total = 0;
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith('edge')) continue;
+    const bundle = path.join(serverFnDir, entry.name, 'index.mjs');
+    let src: string;
+    try {
+      src = fs.readFileSync(bundle, 'utf-8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw err;
+    }
+    if (!EDGE_PROCESS_BANNER.test(src)) continue;
+    const patched = src.replace(
+      EDGE_PROCESS_BANNER,
+      EDGE_PROCESS_BANNER_REPLACEMENT,
+    );
+    fs.writeFileSync(bundle, patched, 'utf-8');
+    total++;
+  }
+  if (total > 0) {
+    process.stderr.write(
+      `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
+    );
+  }
+};
+
+/**
+ * Check whether `.next/server/middleware-manifest.json` already exists.
+ *
+ * The user's CI (or a previous deploy) may have already produced this
+ * manifest. When present, we can read edge routes directly without
+ * spending another `next build` cycle.
+ *
+ * Exported for unit testing.
+ * @internal
+ */
+export const hasExistingMiddlewareManifest = (projectDir: string): boolean => {
+  return fs.existsSync(
+    path.join(projectDir, '.next', 'server', 'middleware-manifest.json'),
+  );
+};
+
+/**
+ * Source-scan the project for files declaring `runtime: 'edge'` (or
+ * `'experimental-edge'`).
+ *
+ * Returns true if any user file looks like an edge-runtime route, false
+ * if none. False-positives are acceptable (we'd just rebuild as before);
+ * false-negatives must be avoided (we'd skip the build but OpenNext
+ * would then refuse to bundle the route).
+ *
+ * The scan is conservative: a single regex match anywhere in any
+ * `.ts/.tsx/.js/.jsx` under `app/`, `src/app/`, `pages/`, or `src/pages/`
+ * triggers a true return. Comments and strings are not excluded — that's
+ * fine since the cost of a false-positive is a rebuild we'd otherwise
+ * have run anyway.
+ *
+ * Exported for unit testing.
+ * @internal
+ */
+export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
+  const candidateRoots = [
+    path.join(projectDir, 'app'),
+    path.join(projectDir, 'src', 'app'),
+    path.join(projectDir, 'pages'),
+    path.join(projectDir, 'src', 'pages'),
+  ];
+  // Match `runtime = 'edge'` or `runtime: 'edge'` (and -experimental-).
+  const pattern = /runtime\s*[:=]\s*['"`](?:edge|experimental-edge)['"`]/;
+  const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']);
+
+  const stack: string[] = candidateRoots.filter((d) => fs.existsSync(d));
+  while (stack.length > 0) {
+    const dir = stack.pop()!;
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
+          continue;
+        }
+        stack.push(full);
+      } else if (
+        entry.isFile() &&
+        sourceExtensions.has(path.extname(entry.name))
+      ) {
+        try {
+          if (pattern.test(fs.readFileSync(full, 'utf-8'))) {
+            return true;
+          }
+        } catch {
+          // Unreadable file — skip; if a real edge route is hidden behind
+          // an I/O error, the worst case is we don't pre-build and
+          // OpenNext fails with its own clear error.
+          continue;
+        }
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * Execute `next build` from the project directory so that the
+ * .next/server/middleware-manifest.json (which lists every edge function
+ * Next compiled) exists before we generate `open-next.config.ts`.
+ *
+ * OpenNext re-runs `next build` later — Next's `.next/cache` makes that
+ * second invocation cheap (typically <10s when nothing changed).
+ *
+ * The build is delegated to the user's `npm run build` script so any
+ * project-specific env / pre-build steps are honored.
+ */
+const runNextBuild = (projectDir: string): void => {
+  process.stderr.write(`\u{1F528} Running next build (for edge detection)\n`);
+  try {
+    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
+    execFileSync('npm', ['run', 'build'], {
+      cwd: projectDir,
+      stdio: 'inherit',
+      env: { ...process.env, NODE_OPTIONS: '' },
+      shell: true,
+    });
+  } catch (error) {
+    throw new HostingError(
+      'NextBuildError',
+      {
+        message: 'next build failed (running from npm run build).',
+        resolution:
+          'Run `npm run build` manually in your project to see the failure. ' +
+          'Once it builds locally, re-run the deploy.',
+      },
+      error as Error,
+    );
+  }
 };
 
 /**
@@ -393,6 +974,39 @@ const translateOpenNextOutput = (
     }
   }
 
+  // Edge functions (Lambda@Edge bundles, one per route) live under
+  // `edgeFunctions` in OpenNext's output, separate from `origins` because
+  // they don't have an HTTP origin endpoint — CloudFront associates them
+  // directly with cache behaviors. Translate each to a compute resource of
+  // `type: 'edge'` so the L3 construct can build them with
+  // `experimental.EdgeFunction` and attach as edgeLambdas on the matching
+  // behavior.
+  if (output.edgeFunctions) {
+    for (const [name, fn] of Object.entries(output.edgeFunctions)) {
+      // OpenNext writes `bundle: ".open-next/functions/<name>"` in the
+      // output manifest but the actual edge bundle is emitted under
+      // `.open-next/server-functions/<name>`. Probe the disk and pick
+      // whichever path actually exists.
+      const candidates = [
+        fn.bundle
+          ? path.resolve(path.dirname(openNextDir), fn.bundle)
+          : path.join(openNextDir, 'functions', name),
+        path.join(openNextDir, 'server-functions', name),
+        path.join(openNextDir, 'functions', name),
+      ];
+      const bundle = candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
+
+      manifest.compute[name] = {
+        type: 'edge',
+        bundle,
+        handler: fn.handler ?? 'index.handler',
+        placement: 'global',
+        streaming: false,
+        runtime: 'nodejs20.x',
+      };
+    }
+  }
+
   // Map behaviors to routes
   if (output.behaviors) {
     manifest.routes = mapBehaviorsToRoutes(output.behaviors);
@@ -548,9 +1162,15 @@ const mapBehaviorsToRoutes = (
   const routes: RouteBehavior[] = [];
 
   for (const behavior of behaviors) {
+    // Edge behaviors carry `edgeFunction` instead of `origin` — point the
+    // route at that compute name so CdnConstruct can attach the Lambda@Edge
+    // function to the matching cache behavior.
+    const target = behavior.edgeFunction
+      ? behavior.edgeFunction
+      : normalizeOriginName(behavior.origin ?? 'default');
     routes.push({
-      pattern: behavior.pattern,
-      target: normalizeOriginName(behavior.origin ?? 'default'),
+      pattern: nextPatternToCloudFront(behavior.pattern),
+      target,
       fallback: behavior.fallback,
     });
   }
@@ -567,6 +1187,30 @@ const mapBehaviorsToRoutes = (
   }
 
   return routes;
+};
+
+/**
+ * Translate Next.js / OpenNext route patterns into CloudFront PathPatterns.
+ *
+ * OpenNext emits behaviors with patterns in Next-style syntax:
+ *   `/api/edge/[slug]`            (dynamic segment)
+ *   `/api/edge/catch/[...path]`   (catch-all)
+ * CloudFront supports only `*` (match any) and `?` (match single char) and
+ * rejects `[]/{}/+/?...` as regex syntax. The translator collapses each
+ * dynamic segment to a single `*` and turns catch-all segments into a
+ * trailing `*`. The result still uniquely identifies the route prefix
+ * because CloudFront path patterns are evaluated longest-match-first.
+ *
+ *   `/api/edge/[slug]`            → `/api/edge/*`
+ *   `/api/edge/catch/[...path]`   → `/api/edge/catch/*`
+ *   `/products/[id]/reviews/[r]`  → `/products/*\/reviews/*`
+ */
+const nextPatternToCloudFront = (pattern: string): string => {
+  // Collapse catch-all `[...name]` (must come first; it's a superset).
+  let out = pattern.replace(/\[\.\.\..+?\]/g, '*');
+  // Collapse single dynamic segments `[name]`.
+  out = out.replace(/\[[^/\]]+?\]/g, '*');
+  return out;
 };
 
 /**

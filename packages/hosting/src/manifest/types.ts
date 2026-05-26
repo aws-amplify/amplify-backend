@@ -42,6 +42,35 @@ export type DeployManifest = {
   /** Custom response headers */
   headers?: CustomHeader[];
 
+  /**
+   * Optional URL prefix that the framework prepends to its built static
+   * asset URLs (Next.js `assetPrefix`, Nuxt's `app.buildAssetsDir`).
+   * When set, the L3 adds CloudFront behaviors at `/<prefix>/_next/*`
+   * (or framework-specific pattern) so chunks/CSS/images load correctly.
+   *
+   * Format: leading slash, no trailing slash. Examples: `/shop-static`,
+   * `/cdn`, `/foo/bar`. Set to `undefined` (or omit) when the framework
+   * uses the default same-origin asset URLs.
+   */
+  assetPrefix?: string;
+
+  /**
+   * Static error pages emitted by the build (e.g. Next.js
+   * `output: 'export'` writes `404.html` from `app/not-found.tsx`).
+   *
+   * When set, the L3 wires CloudFront `CustomErrorResponses` to serve
+   * the named file at the original status code (404 → /404.html with
+   * status 404), instead of the SPA fallback that maps every error to
+   * /index.html with status 200. Typical entries:
+   *
+   *   { 404: '/404.html' }
+   *   { 404: '/404.html', 500: '/500.html' }
+   *
+   * Static-only deploys without this field continue to use the SPA
+   * fallback (suitable for client-routed React apps).
+   */
+  errorPages?: Partial<Record<404 | 500, string>>;
+
   /** Build ID for atomic deployments. */
   buildId?: string;
 };

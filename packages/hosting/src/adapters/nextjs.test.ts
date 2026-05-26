@@ -3,7 +3,11 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { nextjsAdapter } from './nextjs.js';
+import {
+  hasExistingMiddlewareManifest,
+  nextjsAdapter,
+  projectHasEdgeRuntimeRoutes,
+} from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
 // Direct require to get the real module (not __importStar wrapper)
@@ -553,5 +557,104 @@ void describe('nextjsAdapter', () => {
       !fs.existsSync(path.join(serverFnDir, 'amplify_outputs.json')),
       'Should not create amplify_outputs.json if source does not exist',
     );
+  });
+});
+
+void describe('hasExistingMiddlewareManifest', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nextjs-manifest-test-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  void it('returns false when .next/server/middleware-manifest.json is missing', () => {
+    assert.strictEqual(hasExistingMiddlewareManifest(tmp), false);
+  });
+
+  void it('returns true when the manifest exists', () => {
+    const dir = path.join(tmp, '.next', 'server');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'middleware-manifest.json'),
+      JSON.stringify({ functions: {} }),
+    );
+    assert.strictEqual(hasExistingMiddlewareManifest(tmp), true);
+  });
+});
+
+void describe('projectHasEdgeRuntimeRoutes', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nextjs-edge-scan-test-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  const writeFile = (rel: string, contents: string): void => {
+    const full = path.join(tmp, rel);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, contents);
+  };
+
+  void it('returns false for a project with no source files', () => {
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), false);
+  });
+
+  void it('returns false when no file declares runtime: edge', () => {
+    writeFile(
+      'app/page.tsx',
+      'export default function Page() { return null; }',
+    );
+    writeFile(
+      'app/api/users/route.ts',
+      'export async function GET() { return Response.json({}); }',
+    );
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), false);
+  });
+
+  void it("returns true when a route declares runtime = 'edge' (App Router)", () => {
+    writeFile(
+      'app/api/edge/route.ts',
+      "export const runtime = 'edge';\nexport async function GET() { return Response.json({}); }",
+    );
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), true);
+  });
+
+  void it("returns true when a Pages Router api file declares runtime: 'experimental-edge'", () => {
+    writeFile(
+      'pages/api/edge.ts',
+      "export const config = { runtime: 'experimental-edge' };\nexport default function handler() {}",
+    );
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), true);
+  });
+
+  void it('scans src/app/ as well as app/', () => {
+    writeFile(
+      'src/app/api/edge/route.ts',
+      "export const runtime = 'edge';\nexport async function GET() {}",
+    );
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), true);
+  });
+
+  void it('skips node_modules and dot-prefixed directories', () => {
+    // Edge declaration only inside node_modules — must not trigger.
+    writeFile(
+      'node_modules/some-pkg/edge.ts',
+      "export const runtime = 'edge';",
+    );
+    writeFile('.next/cache/edge.ts', "export const runtime = 'edge';");
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), false);
+  });
+
+  void it('returns false if no app/ or pages/ directories exist', () => {
+    writeFile('lib/util.ts', "export const runtime = 'edge';");
+    assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), false);
   });
 });
