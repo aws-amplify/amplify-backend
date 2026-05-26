@@ -438,36 +438,25 @@ export class CdnConstruct extends Construct {
      * associates the function on origin-request and the function returns
      * the response itself, so origin storage is never read.
      *
-     * `CACHING_DISABLED` is intentional and diverges from `ssrCachePolicy`
-     * used on the regional SSR behavior. Three reasons:
+     * Uses the same `ssrCachePolicy` as the regional SSR behavior so
+     * edge routes can opt into CloudFront caching by emitting
+     * `Cache-Control: s-maxage=N` from the function response — the same
+     * mechanism Vercel uses for its Edge Functions. The cache policy's
+     * `defaultTtl: 0` means routes that don't set `Cache-Control` (the
+     * default for auth/geo/personalization routes) still skip CloudFront
+     * caching and invoke Lambda@Edge on every request.
      *
-     *  1. Edge routes are typically dynamic by design — auth checks, geo
-     *     personalization, A/B routing — where caching one request's
-     *     response and serving it to other users is incorrect. Default
-     *     SSR behavior assumes the framework knows when to set
-     *     `Cache-Control: s-maxage`; default edge behavior assumes the
-     *     opposite (per-request work that must reach the function).
-     *  2. `ssrCachePolicy` keys on Next.js App Router headers (rsc,
-     *     next-router-prefetch, next-router-state-tree,
-     *     next-router-segment-prefetch) which are RSC-specific. Edge
-     *     handlers are typically API routes, not RSC payload endpoints,
-     *     so reusing that cache key would fragment unnecessarily.
-     *  3. Lambda@Edge per-invocation cost is higher than regional Lambda,
-     *     but is paid even when CloudFront caches — the function still
-     *     runs at origin-request time before the cache layer sees the
-     *     response. Caching at CloudFront only helps if the response
-     *     can be safely shared, which is the wrong default for the
-     *     dynamic-by-design class of routes.
-     *
-     * Routes that genuinely should cache (e.g. an edge geolocation lookup
-     * with a 10-minute TTL) are an explicit opt-in surface for a future
-     * routeRules API; at that point this behavior would be parameterised.
+     * Auth-bearing edge routes MUST emit `Cache-Control: private` (or
+     * `no-store`) to opt out — see `ssrCachePolicy.cookieBehavior:none`.
+     * Cookies are not in the cache key; without an explicit private
+     * directive, an authenticated response could be served to other
+     * users.
      */
     const makeEdgeRouteBehavior = (edgeVersion: IVersion): BehaviorOptions => ({
       origin: s3Origin,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
-      cachePolicy: CachePolicy.CACHING_DISABLED,
+      cachePolicy: ssrCachePolicy ?? CachePolicy.CACHING_DISABLED,
       compress: true,
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       responseHeadersPolicy: props.securityHeadersPolicy,

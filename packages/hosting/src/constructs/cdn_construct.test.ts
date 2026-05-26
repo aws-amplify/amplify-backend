@@ -600,6 +600,85 @@ void describe('CdnConstruct', () => {
           }),
       );
     });
+
+    void it('edge route behaviors use the synthesized SsrCachePolicy (honors origin Cache-Control)', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      // Configure a regional default (so hasCompute=true and ssrCachePolicy
+      // is created) plus an edge route handled by Lambda@Edge.
+      const defaultFn = new LambdaFunction(stack, 'DefaultFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+      const defaultUrl = defaultFn.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode: InvokeMode.RESPONSE_STREAM,
+      });
+      const edgeFn = new LambdaFunction(stack, 'EdgeRouteFn', {
+        runtime: Runtime.NODEJS_20_X,
+        handler: 'index.handler',
+        code: Code.fromInline('exports.handler = async () => {};'),
+      });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {
+          default: {
+            type: 'handler',
+            bundle: '/tmp/default-bundle',
+            handler: 'index.handler',
+            placement: 'regional',
+          },
+        },
+        staticAssets: { directory: '/tmp/assets' },
+        routes: [
+          { pattern: '/api/edge/*', target: 'edge-api' },
+          { pattern: '/*', target: 'default' },
+        ],
+        buildId: 'test-edge-cache',
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest,
+        securityHeadersPolicy: policy,
+        computeFunctionUrls: new Map([['default', defaultUrl]]),
+        computeFunctions: new Map([['default', defaultFn]]),
+        routeEdgeFunctions: new Map([['edge-api', edgeFn.currentVersion]]),
+      });
+
+      const template = Template.fromStack(stack);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+      const distResource = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      assert.ok(distResource, 'distribution resource present');
+      const distProps = distResource['Properties'] as Record<string, unknown>;
+      const distConfig = distProps['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const edgeBehavior = (
+        distConfig['CacheBehaviors'] as Array<Record<string, unknown>>
+      ).find((b) => b['PathPattern'] === '/api/edge/*');
+      assert.ok(edgeBehavior, 'edge route cache behavior present');
+      const cachePolicyId = edgeBehavior['CachePolicyId'];
+      assert.equal(
+        typeof cachePolicyId === 'object' &&
+          cachePolicyId !== null &&
+          'Ref' in (cachePolicyId as Record<string, unknown>),
+        true,
+        'edge route must reference the synthesized SsrCachePolicy via Ref, not the AWS-managed CACHING_DISABLED string ID',
+      );
+    });
   });
 
   // ---- Optional features ----
