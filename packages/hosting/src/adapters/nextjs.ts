@@ -579,7 +579,7 @@ const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
     for (const entry of entries) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        // Skip node_modules — the bundler inlines OpenNext into index.mjs.
+        // Skip node_modules — the bundler embeds OpenNext into index.mjs.
         if (entry.name === 'node_modules') continue;
         stack.push(full);
       } else if (entry.isFile() && entry.name === 'index.mjs') {
@@ -712,10 +712,12 @@ const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
 const runNextBuild = (projectDir: string): void => {
   process.stderr.write(`\u{1F528} Running next build (for edge detection)\n`);
   try {
+    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
     execFileSync('npm', ['run', 'build'], {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
+      shell: true,
     });
   } catch (error) {
     throw new HostingError(

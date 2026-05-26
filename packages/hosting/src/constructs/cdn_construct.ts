@@ -326,8 +326,9 @@ export class CdnConstruct extends Construct {
     // Content negotiation is handled by enableAcceptEncodingBrotli/Gzip
     // flags — CloudFront normalizes the Accept-Encoding header into
     // gzip|br|identity buckets internally, which is more efficient than
-    // caching per literal header value. CloudFront forbids whitelisting
-    // 'accept-encoding' in headerBehavior alongside these flags.
+    // caching per literal header value. CloudFront forbids adding
+    // 'accept-encoding' to the headerBehavior allowList alongside these
+    // flags.
     //
     // The cache key includes the Next.js router headers (RSC, prefetch,
     // state tree, segment prefetch) so prefetch payloads don't bleed
