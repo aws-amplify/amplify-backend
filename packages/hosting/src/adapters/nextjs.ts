@@ -8,6 +8,7 @@
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import fg from 'fast-glob';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -566,31 +567,16 @@ const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
   const root = path.join(openNextDir, 'server-functions', 'default');
   // OpenNext puts the streaming wrapper in `default/index.mjs` for flat
   // packages, but in workspace setups it nests the real bundle under
-  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export at
-  // `default/index.mjs`. Walk the tree and patch every index.mjs that
-  // contains the wrapper signature.
-  const stack = [root];
-  const candidates: string[] = [];
-  while (stack.length > 0) {
-    const dir = stack.pop()!;
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw err;
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        // Skip node_modules — the bundler embeds OpenNext into index.mjs.
-        if (entry.name === 'node_modules') continue;
-        stack.push(full);
-      } else if (entry.isFile() && entry.name === 'index.mjs') {
-        candidates.push(full);
-      }
-    }
-  }
+  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export
+  // at `default/index.mjs`. Match every index.mjs in the tree (skipping
+  // node_modules — the bundler embeds OpenNext inline) and patch the
+  // ones that contain the wrapper signature.
+  if (!fs.existsSync(root)) return;
+  const candidates = fg.sync('**/index.mjs', {
+    cwd: root,
+    absolute: true,
+    ignore: ['**/node_modules/**'],
+  });
 
   let totalPatches = 0;
   let filesPatched = 0;
@@ -670,29 +656,20 @@ const EDGE_PROCESS_BANNER_REPLACEMENT =
 
 const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
   const serverFnDir = path.join(openNextDir, 'server-functions');
-  let entries: fs.Dirent[];
-  try {
-    entries = fs.readdirSync(serverFnDir, { withFileTypes: true });
-  } catch {
-    return;
-  }
+  if (!fs.existsSync(serverFnDir)) return;
+  const bundles = fg.sync('edge*/index.mjs', {
+    cwd: serverFnDir,
+    absolute: true,
+  });
   let total = 0;
-  for (const entry of entries) {
-    if (!entry.isDirectory() || !entry.name.startsWith('edge')) continue;
-    const bundle = path.join(serverFnDir, entry.name, 'index.mjs');
-    let src: string;
-    try {
-      src = fs.readFileSync(bundle, 'utf-8');
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw err;
-    }
+  for (const bundle of bundles) {
+    const src = fs.readFileSync(bundle, 'utf-8');
     if (!EDGE_PROCESS_BANNER.test(src)) continue;
-    const patched = src.replace(
-      EDGE_PROCESS_BANNER,
-      EDGE_PROCESS_BANNER_REPLACEMENT,
+    fs.writeFileSync(
+      bundle,
+      src.replace(EDGE_PROCESS_BANNER, EDGE_PROCESS_BANNER_REPLACEMENT),
+      'utf-8',
     );
-    fs.writeFileSync(bundle, patched, 'utf-8');
     total++;
   }
   if (total > 0) {
@@ -737,47 +714,20 @@ export const hasExistingMiddlewareManifest = (projectDir: string): boolean => {
  * @internal
  */
 export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
-  const candidateRoots = [
-    path.join(projectDir, 'app'),
-    path.join(projectDir, 'src', 'app'),
-    path.join(projectDir, 'pages'),
-    path.join(projectDir, 'src', 'pages'),
-  ];
-  // Match `runtime = 'edge'` or `runtime: 'edge'` (and -experimental-).
+  const roots = ['app', 'src/app', 'pages', 'src/pages'].filter((d) =>
+    fs.existsSync(path.join(projectDir, d)),
+  );
+  if (roots.length === 0) return false;
   const pattern = /runtime\s*[:=]\s*['"`](?:edge|experimental-edge)['"`]/;
-  const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']);
-
-  const stack: string[] = candidateRoots.filter((d) => fs.existsSync(d));
-  while (stack.length > 0) {
-    const dir = stack.pop()!;
-    let entries: fs.Dirent[];
+  const files = fg.sync(
+    roots.map((r) => `${r}/**/*.{ts,tsx,js,jsx,mjs}`),
+    { cwd: projectDir, absolute: true, ignore: ['**/node_modules/**'] },
+  );
+  for (const file of files) {
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
+      if (pattern.test(fs.readFileSync(file, 'utf-8'))) return true;
     } catch {
       continue;
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
-          continue;
-        }
-        stack.push(full);
-      } else if (
-        entry.isFile() &&
-        sourceExtensions.has(path.extname(entry.name))
-      ) {
-        try {
-          if (pattern.test(fs.readFileSync(full, 'utf-8'))) {
-            return true;
-          }
-        } catch {
-          // Unreadable file — skip; if a real edge route is hidden behind
-          // an I/O error, the worst case is we don't pre-build and
-          // OpenNext fails with its own clear error.
-          continue;
-        }
-      }
     }
   }
   return false;
@@ -893,27 +843,14 @@ const copyAmplifyOutputsToServerBundles = (
   openNextDir: string,
 ): void => {
   const outputsFile = path.join(projectDir, 'amplify_outputs.json');
-  if (!fs.existsSync(outputsFile)) {
-    return;
-  }
+  if (!fs.existsSync(outputsFile)) return;
 
-  const targets: string[] = [];
-
-  // Single server function directory
-  const singleFn = path.join(openNextDir, 'server-function');
-  if (fs.existsSync(singleFn)) {
-    targets.push(singleFn);
-  }
-
-  // Multi-function directory (server-functions/<name>/)
-  const multiFnDir = path.join(openNextDir, 'server-functions');
-  if (fs.existsSync(multiFnDir)) {
-    for (const entry of fs.readdirSync(multiFnDir, { withFileTypes: true })) {
-      if (entry.isDirectory()) {
-        targets.push(path.join(multiFnDir, entry.name));
-      }
-    }
-  }
+  // Single (server-function/) and multi (server-functions/<name>/) layouts.
+  const targets = fg.sync(['server-function', 'server-functions/*'], {
+    cwd: openNextDir,
+    absolute: true,
+    onlyDirectories: true,
+  });
 
   for (const target of targets) {
     const dest = path.join(target, 'amplify_outputs.json');
@@ -924,9 +861,7 @@ const copyAmplifyOutputsToServerBundles = (
       );
     }
 
-    // Also copy into .next/standalone/ if it exists — some OpenNext versions
-    // set the Next.js server root there, so page components resolve paths
-    // relative to that subtree.
+    // Some OpenNext versions root the Next.js server at .next/standalone/.
     const standaloneDest = path.join(
       target,
       '.next',

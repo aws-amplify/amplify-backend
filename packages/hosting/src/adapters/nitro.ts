@@ -17,6 +17,7 @@
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import fg from 'fast-glob';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -398,18 +399,14 @@ export const extractJsonObjectAfter = (
  */
 const prunePreCompressedAssets = (publicDir: string): void => {
   if (!fs.existsSync(publicDir)) return;
-  const compressedExt = /\.(gz|br|zst)$/i;
-  const visit = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        visit(full);
-      } else if (entry.isFile() && compressedExt.test(entry.name)) {
-        fs.rmSync(full);
-      }
-    }
-  };
-  visit(publicDir);
+  const compressed = fg.sync('**/*.{gz,br,zst}', {
+    cwd: publicDir,
+    absolute: true,
+    caseSensitiveMatch: false,
+  });
+  for (const f of compressed) {
+    fs.rmSync(f);
+  }
 };
 
 /**
@@ -836,21 +833,9 @@ const buildRoutes = (
   return routes;
 };
 
-/**
- * Recursively collect every `.html` file under `dir`.
- */
 const walkHtmlFiles = (dir: string): string[] => {
   if (!fs.existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walkHtmlFiles(full));
-    } else if (entry.isFile() && entry.name.endsWith('.html')) {
-      out.push(full);
-    }
-  }
-  return out;
+  return fg.sync('**/*.html', { cwd: dir, absolute: true });
 };
 
 /**
@@ -960,39 +945,29 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   let totalPatches = 0;
   const patchedFiles: string[] = [];
 
-  const visit = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        visit(full);
-        continue;
-      }
-      if (!entry.isFile() || !entry.name.endsWith('.mjs')) continue;
-      const src = fs.readFileSync(full, 'utf-8');
-      let patches = 0;
-      let next = src;
-      if (rawPathRe.test(next)) {
-        next = next.replace(rawPathRe, rawPathReplacement);
-        patches++;
-      }
-      if (methodRe.test(next)) {
-        next = next.replace(methodRe, methodReplacement);
-        patches++;
-      }
-      if (bodyDecodeRe.test(next)) {
-        next = next.replace(bodyDecodeRe, bodyDecodeReplacement);
-        patches++;
-      }
-      if (patches > 0) {
-        fs.writeFileSync(full, next, 'utf-8');
-        totalPatches += patches;
-        patchedFiles.push(path.relative(serverDir, full));
-      }
+  if (!fs.existsSync(serverDir)) return;
+  const mjsFiles = fg.sync('**/*.mjs', { cwd: serverDir, absolute: true });
+  for (const full of mjsFiles) {
+    const src = fs.readFileSync(full, 'utf-8');
+    let patches = 0;
+    let next = src;
+    if (rawPathRe.test(next)) {
+      next = next.replace(rawPathRe, rawPathReplacement);
+      patches++;
     }
-  };
-
-  if (fs.existsSync(serverDir)) {
-    visit(serverDir);
+    if (methodRe.test(next)) {
+      next = next.replace(methodRe, methodReplacement);
+      patches++;
+    }
+    if (bodyDecodeRe.test(next)) {
+      next = next.replace(bodyDecodeRe, bodyDecodeReplacement);
+      patches++;
+    }
+    if (patches > 0) {
+      fs.writeFileSync(full, next, 'utf-8');
+      totalPatches += patches;
+      patchedFiles.push(path.relative(serverDir, full));
+    }
   }
 
   if (totalPatches === 0) {
