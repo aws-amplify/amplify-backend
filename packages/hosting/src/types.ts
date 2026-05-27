@@ -14,6 +14,7 @@ export type FrameworkType =
   | 'nextjs'
   | 'nitro'
   | 'nuxt'
+  | 'astro'
   | 'spa'
   | 'static'
   | (string & {});

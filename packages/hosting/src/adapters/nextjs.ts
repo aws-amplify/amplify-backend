@@ -562,8 +562,11 @@ ${entries}
  *   2. Force the wrapper's identity branch (skip brotli/gzip/deflate);
  *      CloudFront handles compression downstream.
  * Idempotent.
+ * @internal
  */
-const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
+export const patchStreamingWrapperForApiGateway = (
+  openNextDir: string,
+): void => {
   const root = path.join(openNextDir, 'server-functions', 'default');
   // OpenNext puts the streaming wrapper in `default/index.mjs` for flat
   // packages, but in workspace setups it nests the real bundle under
@@ -619,11 +622,21 @@ const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
   }
 
   if (filesPatched === 0) {
-    process.stderr.write(
-      `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
-        `OpenNext may have updated its bundled wrapper; verify wrapper output.\n`,
-    );
-    return;
+    if (process.env.AMPLIFY_HOSTING_LENIENT_PATCHES === '1') {
+      process.stderr.write(
+        `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
+          `Continuing because AMPLIFY_HOSTING_LENIENT_PATCHES=1 is set.\n`,
+      );
+      return;
+    }
+    throw new HostingError('UpstreamPatchPatternChangedError', {
+      message:
+        `Streaming-wrapper patch found nothing to change under ${root}. ` +
+        'OpenNext likely changed its bundled aws-lambda-streaming wrapper.',
+      resolution:
+        'File an issue with the OpenNext version and the regex name (`patchStreamingWrapperForApiGateway`). ' +
+        'To bypass while investigating, set AMPLIFY_HOSTING_LENIENT_PATCHES=1 — note that streaming responses may be malformed without the patch.',
+    });
   }
 
   process.stderr.write(
@@ -654,13 +667,22 @@ const EDGE_PROCESS_BANNER = /^import \* as process from "node:process";/m;
 const EDGE_PROCESS_BANNER_REPLACEMENT =
   'const process = (await import("node:process")).default;';
 
-const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
+/**
+ * Apply the {@link EDGE_PROCESS_BANNER} swap to every edge bundle under
+ * `<openNextDir>/server-functions/edge*\/index.mjs`. Throws
+ * `UpstreamPatchPatternChangedError` when bundles exist but none match the
+ * banner (use `AMPLIFY_HOSTING_LENIENT_PATCHES=1` to revert to a warning).
+ * @internal
+ */
+export const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
   const serverFnDir = path.join(openNextDir, 'server-functions');
   if (!fs.existsSync(serverFnDir)) return;
   const bundles = fg.sync('edge*/index.mjs', {
     cwd: serverFnDir,
     absolute: true,
   });
+  if (bundles.length === 0) return;
+
   let total = 0;
   for (const bundle of bundles) {
     const src = fs.readFileSync(bundle, 'utf-8');
@@ -672,11 +694,26 @@ const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
     );
     total++;
   }
-  if (total > 0) {
-    process.stderr.write(
-      `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
-    );
+  if (total === 0) {
+    if (process.env.AMPLIFY_HOSTING_LENIENT_PATCHES === '1') {
+      process.stderr.write(
+        `⚠️  Edge-bundle banner patch matched none of ${bundles.length} edge bundle(s). ` +
+          `Continuing because AMPLIFY_HOSTING_LENIENT_PATCHES=1 is set.\n`,
+      );
+      return;
+    }
+    throw new HostingError('UpstreamPatchPatternChangedError', {
+      message:
+        `Edge-bundle banner patch matched none of ${bundles.length} edge bundle(s) under ${serverFnDir}. ` +
+        'OpenNext likely changed the process import banner injected into edge bundles.',
+      resolution:
+        'File an issue with the OpenNext version and the regex name (`patchEdgeBundlesForLambdaEdge`). ' +
+        'To bypass while investigating, set AMPLIFY_HOSTING_LENIENT_PATCHES=1 — Lambda@Edge cold starts may crash without the patch.',
+    });
   }
+  process.stderr.write(
+    `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
+  );
 };
 
 /**

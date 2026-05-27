@@ -19,6 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
 import { HostingError } from '../hosting_error.js';
+import { readProjectDeps } from './index.js';
 import type {
   ComputeResource,
   DeployManifest,
@@ -490,23 +491,12 @@ const buildImageOptBundleIfNeeded = (
  * and uses the IPX provider.
  */
 const projectUsesNuxtImage = (projectDir: string): boolean => {
-  const pkgPath = path.join(projectDir, 'package.json');
-  if (!fs.existsSync(pkgPath)) return false;
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-    if (!('@nuxt/image' in deps)) return false;
-    // The dep is present, but the user may have disabled the module
-    // via nuxt.config — in that case <NuxtImg> isn't wired up and our
-    // ~50 MB IPX Lambda would just sit unused.
-    return !nuxtConfigBypassesIpx(projectDir);
-    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-  } catch {
-    return false;
-  }
+  const deps = readProjectDeps(projectDir);
+  if (!('@nuxt/image' in deps)) return false;
+  // The dep is present, but the user may have disabled the module
+  // via nuxt.config — in that case <NuxtImg> isn't wired up and our
+  // ~50 MB IPX Lambda would just sit unused.
+  return !nuxtConfigBypassesIpx(projectDir);
 };
 
 /**
