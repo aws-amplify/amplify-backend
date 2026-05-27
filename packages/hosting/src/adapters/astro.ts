@@ -32,7 +32,7 @@ import semver from 'semver';
 import { createJiti } from 'jiti';
 import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
-import { DeployManifest, RouteBehavior } from '../manifest/types.js';
+import { DeployManifest, Redirect, RouteBehavior } from '../manifest/types.js';
 
 export type AstroAdapterOptions = {
   /** Project root directory (absolute). */
@@ -72,6 +72,14 @@ const BRIDGE_CONFIG_FILE = 'config-bridge.mjs';
 const ASTROJS_NODE_PIN = '@astrojs/node@^9';
 
 /**
+ * Maximum redirects lifted from astro.config to the CloudFront viewer
+ * Function. Matches the cap applied to Next.js's lifted redirects so the
+ * compiled CFF stays under the 10 KB limit; anything past this stays in
+ * the SSR Lambda where Astro evaluates it natively.
+ */
+const REDIRECT_LIFT_CAP = 100;
+
+/**
  * Lambda Web Adapter exec wrapper. The LWA's `/opt/bootstrap` runs
  * `$_HANDLER` as a child process — without a `node` shebang, bash
  * would parse `entry.mjs` as shell, so we wrap in `run.sh`.
@@ -105,6 +113,7 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
   const trailingSlash: AstroTrailingSlash =
     (config.trailingSlash as AstroTrailingSlash | undefined) ?? 'ignore';
   const imageDomains = readArrayOfStrings(config, 'image', 'domains');
+  const liftedRedirects = liftAstroRedirects(config);
 
   if (!skipBuild) {
     const useBridge =
@@ -164,6 +173,20 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
           trailingSlash,
           imageDomains,
         });
+
+  // Lift the user's astro.config `redirects:` table out of the SSR
+  // Lambda and onto the CloudFront viewer-request Function. Capped at
+  // 100 to keep the compiled CFF under the 10 KB limit (matches the
+  // Next.js redirect-lift cap in liftSimpleRoutesManifest).
+  if (liftedRedirects.length > 0) {
+    if (liftedRedirects.length > REDIRECT_LIFT_CAP) {
+      process.stderr.write(
+        `⚠️  Astro config has ${liftedRedirects.length} redirects; lifting only the first ${REDIRECT_LIFT_CAP} ` +
+          `to the CloudFront edge. The rest will be evaluated by Astro at runtime.\n`,
+      );
+    }
+    manifest.redirects = liftedRedirects.slice(0, REDIRECT_LIFT_CAP);
+  }
 
   // Pre-compressed sibling cleanup — CloudFront re-compresses on the
   // edge based on `Accept-Encoding`; serving the build's `.gz`/`.br`
@@ -480,6 +503,45 @@ const readArrayOfStrings = (
   return Array.isArray(cur) && cur.every((v) => typeof v === 'string')
     ? (cur as string[])
     : [];
+};
+
+/**
+ * Translate Astro's `redirects:` config table into the manifest's
+ * `redirects[]` shape. Astro accepts two value forms:
+ *   - string shorthand:    `'/old': '/new'`             → 301
+ *   - object with status:  `'/old': { destination, status }`
+ * `status` defaults to 301 when omitted. Unknown / malformed entries are
+ * skipped silently — Astro treats malformed redirect entries the same way
+ * (they fall through to its router) and we don't want a typo in
+ * `astro.config` to fail the whole build.
+ */
+const liftAstroRedirects = (config: Record<string, unknown>): Redirect[] => {
+  const redirects = config.redirects;
+  if (!redirects || typeof redirects !== 'object') return [];
+  const out: Redirect[] = [];
+  for (const [source, value] of Object.entries(
+    redirects as Record<string, unknown>,
+  )) {
+    if (typeof value === 'string') {
+      out.push({ source, destination: value, statusCode: 301 });
+      continue;
+    }
+    if (
+      value &&
+      typeof value === 'object' &&
+      'destination' in value &&
+      typeof (value as { destination?: unknown }).destination === 'string'
+    ) {
+      const v = value as { destination: string; status?: unknown };
+      const rawStatus = typeof v.status === 'number' ? v.status : 301;
+      const statusCode: 301 | 302 | 307 | 308 =
+        rawStatus === 302 || rawStatus === 307 || rawStatus === 308
+          ? rawStatus
+          : 301;
+      out.push({ source, destination: v.destination, statusCode });
+    }
+  }
+  return out;
 };
 
 const directoryHasFiles = (dir: string): boolean => {

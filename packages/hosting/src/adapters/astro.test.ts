@@ -451,3 +451,129 @@ void describe('astroAdapter — config loading edge cases', () => {
     assert.strictEqual(manifest.routes[0].pattern, '/*');
   });
 });
+
+void describe('astroAdapter — redirects lift', () => {
+  let tmpDir: string;
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-astro-redir-'));
+    writePkg(tmpDir, { dependencies: { astro: '^5.0.0' } });
+  });
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('lifts string-shorthand redirects as 301', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { redirects: { '/old': '/new', '/legacy/page': '/page' } };",
+    );
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.deepStrictEqual(manifest.redirects, [
+      { source: '/old', destination: '/new', statusCode: 301 },
+      { source: '/legacy/page', destination: '/page', statusCode: 301 },
+    ]);
+  });
+
+  void it('lifts object-form redirects with the declared status code', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { redirects: { '/old': { destination: '/new', status: 308 } } };",
+    );
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.deepStrictEqual(manifest.redirects, [
+      { source: '/old', destination: '/new', statusCode: 308 },
+    ]);
+  });
+
+  void it('handles mixed string + object forms in one config', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      'export default { redirects: { ' +
+        "'/a': '/aa', " +
+        "'/b': { destination: '/bb', status: 302 }, " +
+        "'/c': { destination: '/cc' }, " + // status omitted → defaults to 301
+        "'/d': { destination: '/dd', status: 307 } " +
+        '} };',
+    );
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.deepStrictEqual(manifest.redirects, [
+      { source: '/a', destination: '/aa', statusCode: 301 },
+      { source: '/b', destination: '/bb', statusCode: 302 },
+      { source: '/c', destination: '/cc', statusCode: 301 },
+      { source: '/d', destination: '/dd', statusCode: 307 },
+    ]);
+  });
+
+  void it('omits manifest.redirects when astro.config has none', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { output: 'static' };",
+    );
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.redirects, undefined);
+  });
+
+  void it('skips malformed entries silently (typo in destination key)', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      'export default { redirects: { ' +
+        "'/good': '/ok', " +
+        "'/bad': { dest: '/wrong-key' } " + // wrong field name
+        '} };',
+    );
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.deepStrictEqual(manifest.redirects, [
+      { source: '/good', destination: '/ok', statusCode: 301 },
+    ]);
+  });
+
+  void it('caps lifted redirects at 100 and emits a warning for the overflow', () => {
+    const entries: string[] = [];
+    for (let i = 0; i < 150; i++) {
+      entries.push(`'/old-${i}': '/new-${i}'`);
+    }
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      `export default { redirects: { ${entries.join(', ')} } };`,
+    );
+    writeStaticBuild(tmpDir);
+    const errs: string[] = [];
+    const origWrite = process.stderr.write.bind(process.stderr) as (
+      s: string | Uint8Array,
+    ) => boolean;
+    process.stderr.write = ((s: string | Uint8Array) => {
+      errs.push(typeof s === 'string' ? s : Buffer.from(s).toString());
+      return true;
+    }) as typeof process.stderr.write;
+    let manifest;
+    try {
+      manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    } finally {
+      process.stderr.write = origWrite;
+    }
+    assert.strictEqual(manifest.redirects?.length, 100);
+    assert.strictEqual(manifest.redirects?.[0].source, '/old-0');
+    assert.strictEqual(manifest.redirects?.[99].source, '/old-99');
+    assert.ok(
+      errs.some((m) => /150 redirects/.test(m) && /100/.test(m)),
+      `expected an overflow warning; stderr was: ${errs.join('')}`,
+    );
+  });
+
+  void it('SSR build also receives lifted redirects', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { output: 'server', redirects: { '/old': '/new' } };",
+    );
+    writeServerBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.deepStrictEqual(manifest.redirects, [
+      { source: '/old', destination: '/new', statusCode: 301 },
+    ]);
+  });
+});

@@ -789,3 +789,145 @@ void describe('patchEdgeBundlesForLambdaEdge — brittleness gating', () => {
     );
   });
 });
+
+void describe('detectEdgeRoutes — multi-matcher edge functions', () => {
+  let tmp: string;
+  let manifestPath: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-edge-mm-'));
+    fs.mkdirSync(path.join(tmp, '.next', 'server'), { recursive: true });
+    manifestPath = path.join(
+      tmp,
+      '.next',
+      'server',
+      'middleware-manifest.json',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  void it('emits one EdgeRoute per matcher (not just matchers[0])', async () => {
+    // Next's matcher.originalSource carries path-to-regexp tokens
+    // (`:path*`). The existing nextPatternToCloudFront translator
+    // only collapses Next file-system tokens (`[name]`, `[...name]`),
+    // so path-to-regexp passes through unchanged. The fix under test
+    // is that ALL matchers (not just matchers[0]) are emitted.
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/admin/:path*' },
+              { originalSource: '/api/admin/:path*' },
+              { originalSource: '/dashboard' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 3, JSON.stringify(routes));
+    const patterns = routes.map((r) => r.pattern).sort();
+    assert.deepStrictEqual(
+      patterns,
+      ['/admin/:path*', '/api/admin/:path*', '/dashboard'].sort(),
+    );
+    assert.ok(routes.every((r) => r.module === 'src/middleware'));
+  });
+
+  void it('translates Next file-system tokens ([name] / [...name]) per matcher', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/api/[locale]/admin' },
+              { originalSource: '/blog/[...slug]' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.deepStrictEqual(routes.map((r) => r.pattern).sort(), [
+      '/api/*/admin',
+      '/blog/*',
+    ]);
+  });
+
+  void it('skips matcher entries missing originalSource without dropping siblings', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/keep-me' },
+              {
+                /* malformed: no originalSource */
+              },
+              { originalSource: '/also-keep' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 2);
+    assert.deepStrictEqual(routes.map((r) => r.pattern).sort(), [
+      '/also-keep',
+      '/keep-me',
+    ]);
+  });
+
+  void it('skips function entries without a name', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          unnamed: { matchers: [{ originalSource: '/lost' }] },
+          named: { name: 'named', matchers: [{ originalSource: '/found' }] },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 1);
+    assert.strictEqual(routes[0].pattern, '/found');
+  });
+
+  void it('returns [] when manifest is missing (no edge routes in project)', async () => {
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    assert.deepStrictEqual(detectEdgeRoutes(tmp), []);
+  });
+
+  void it('preserves existing single-matcher behavior', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [{ originalSource: '/api/edge/[id]' }],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.deepStrictEqual(routes, [
+      { module: 'src/middleware', pattern: '/api/edge/*' },
+    ]);
+  });
+});

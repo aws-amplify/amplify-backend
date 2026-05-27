@@ -226,7 +226,7 @@ const applyAssetPrefix = (
  * leading `app/` or `pages/`, no extension. `pattern` is the URL pattern
  * with leading `/` (used as the CloudFront cache-behavior PathPattern).
  */
-type EdgeRoute = { module: string; pattern: string };
+export type EdgeRoute = { module: string; pattern: string };
 
 // Shape of the entries we care about in `.next/routes-manifest.json`. Both
 // `redirects[]` and `headers[]` carry a `source` (Next route pattern) and
@@ -391,8 +391,9 @@ const applyLiftedRoutesManifest = (
  * Caller must run `next build` (we do, via runNextBuild) before this.
  * Returns an empty array when the manifest is missing or has no edge
  * functions — both cases are valid (no edge usage in the project).
+ * @internal
  */
-const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
+export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
   const manifestPath = path.join(
     projectDir,
     '.next',
@@ -419,15 +420,21 @@ const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
   const out: EdgeRoute[] = [];
   for (const fn of Object.values(fns)) {
     const moduleName = fn.name;
-    const original = fn.matchers?.[0]?.originalSource;
-    if (!moduleName || !original) continue;
-    const slashed = original.startsWith('/') ? original : `/${original}`;
-    out.push({
-      module: moduleName,
-      // OpenNext docs require CloudFront-compatible patterns in
-      // functions.<n>.patterns; same translation as the route mapper.
-      pattern: nextPatternToCloudFront(slashed),
-    });
+    if (!moduleName) continue;
+    // Iterate every matcher — multi-matcher middleware
+    // (e.g. matcher: ['/admin/:path*', '/api/admin/:path*']) loses every
+    // matcher after the first if we only honor matchers[0].
+    for (const matcher of fn.matchers ?? []) {
+      const original = matcher.originalSource;
+      if (!original) continue;
+      const slashed = original.startsWith('/') ? original : `/${original}`;
+      out.push({
+        module: moduleName,
+        // OpenNext docs require CloudFront-compatible patterns in
+        // functions.<n>.patterns; same translation as the route mapper.
+        pattern: nextPatternToCloudFront(slashed),
+      });
+    }
   }
   return out;
 };
