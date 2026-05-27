@@ -12,6 +12,17 @@
  *   - `astro.config.{ts,mjs,js}` → output mode, trailingSlash, image config
  *   - `dist/`                 → static-only output
  *   - `dist/client/` + `dist/server/entry.mjs` → server / hybrid output
+ *
+ * SSR runtime: server / hybrid builds run via the Lambda Web Adapter
+ * fronting `@astrojs/node`'s standalone HTTP server. The L3 attaches
+ * the LWA layer for `compute.type === 'http-server'` automatically.
+ *
+ * Transparent build: when the user has not wired `@astrojs/node`
+ * themselves, the adapter materialises a hidden config-bridge that
+ * imports the user's config and force-merges `output: 'server'` +
+ * `adapter: node({ mode: 'standalone' })`. The bridge is removed after
+ * build (success or failure). When the user already configured
+ * `@astrojs/node`, the bridge is skipped.
  */
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';
@@ -19,9 +30,9 @@ import * as path from 'path';
 import fg from 'fast-glob';
 import semver from 'semver';
 import { createJiti } from 'jiti';
+import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest, RouteBehavior } from '../manifest/types.js';
-import { readProjectDeps } from './index.js';
 
 export type AstroAdapterOptions = {
   /** Project root directory (absolute). */
@@ -37,7 +48,42 @@ export type AstroAdapterOptions = {
    * `npx astro build`.
    */
   buildCommand?: string[];
+  /**
+   * Maximum request body size (bytes) Astro will accept before throwing.
+   * Default: 20 MB — matches Lambda Function URL's response-stream
+   * payload ceiling. Set to `Infinity` or `0` to opt out (not
+   * recommended; oversized requests then fail mid-stream at the
+   * platform boundary instead of with a clean 413).
+   */
+  bodySizeLimit?: number;
 };
+
+/** 20 MB — Lambda Function URL response-stream payload ceiling. */
+const DEFAULT_BODY_SIZE_LIMIT_BYTES = 20 * 1024 * 1024;
+
+/** SSR Lambda port (the standalone server reads `PORT` env). */
+const ASTRO_SERVER_PORT = 3000;
+
+/** Bridge files live here, hidden from the user. */
+const BRIDGE_DIR_REL = path.posix.join('.amplify', 'astro');
+const BRIDGE_CONFIG_FILE = 'config-bridge.mjs';
+
+/** Pinned to match astro@^5/^6 peer-dep. Bump in lockstep on Astro majors. */
+const ASTROJS_NODE_PIN = '@astrojs/node@^9';
+
+/**
+ * Lambda Web Adapter exec wrapper. The LWA's `/opt/bootstrap` runs
+ * `$_HANDLER` as a child process — without a `node` shebang, bash
+ * would parse `entry.mjs` as shell, so we wrap in `run.sh`.
+ */
+const RUN_SH_FILENAME = 'run.sh';
+const RUN_SH_SOURCE = `#!/bin/sh
+cd "$(dirname "$0")"
+if [ -x /var/lang/bin/node ]; then
+  exec /var/lang/bin/node entry.mjs
+fi
+exec node entry.mjs
+`;
 
 /**
  * Run the Astro adapter pipeline.
@@ -46,24 +92,53 @@ export type AstroAdapterOptions = {
  */
 export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
   const { projectDir, skipBuild, buildCommand } = options;
+  const bodySizeLimit = options.bodySizeLimit ?? DEFAULT_BODY_SIZE_LIMIT_BYTES;
 
   assertAstroVersion(projectDir);
 
-  if (!skipBuild) {
-    runAstroBuild(projectDir, buildCommand);
-  }
-
+  // Load the user's config BEFORE the build — we need the output mode
+  // to decide whether the bridge should run, and so the post-build
+  // probes know which directory shape to expect.
   const config = loadAstroConfig(projectDir);
-  const output: AstroOutput =
+  const userOutput: AstroOutput =
     (config.output as AstroOutput | undefined) ?? 'static';
   const trailingSlash: AstroTrailingSlash =
     (config.trailingSlash as AstroTrailingSlash | undefined) ?? 'ignore';
   const imageDomains = readArrayOfStrings(config, 'image', 'domains');
 
+  if (!skipBuild) {
+    const useBridge =
+      userOutput !== 'static' && !userHasAstroJsNode(projectDir);
+    let cleanupBridge: (() => void) | undefined;
+    if (useBridge) {
+      cleanupBridge = installAstroBridge(projectDir, bodySizeLimit);
+    } else if (userOutput !== 'static') {
+      process.stderr.write(
+        '✨ Detected user-configured @astrojs/node; using user config as-is.\n',
+      );
+    }
+    try {
+      runAstroBuild(projectDir, buildCommand, useBridge);
+    } finally {
+      cleanupBridge?.();
+    }
+  }
+
+  // Final output mode: trust the user's astro.config. If they declared
+  // server/hybrid, the build MUST produce dist/server/entry.mjs — even
+  // if the bridge wasn't used (because they wired @astrojs/node
+  // themselves and broke it, or skipBuild was set incorrectly).
+  // Static-only configs may still get a server bundle if the bridge
+  // ran (skipBuild=false), but downgrading from server→static would
+  // hide configuration mistakes; keep the user's declared mode.
   const distDir = path.join(projectDir, 'dist');
   const clientDir = path.join(distDir, 'client');
   const serverDir = path.join(distDir, 'server');
   const serverEntry = path.join(serverDir, 'entry.mjs');
+  const output: AstroOutput =
+    userOutput === 'static' && fs.existsSync(serverEntry)
+      ? 'server'
+      : userOutput;
 
   if (output === 'static') {
     if (!directoryHasFiles(distDir)) {
@@ -82,7 +157,7 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
     output === 'static'
       ? buildStaticManifest(distDir)
       : buildSsrManifest({
-          projectDir,
+          distDir,
           clientDir,
           serverDir,
           output,
@@ -116,6 +191,15 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
         );
       }
     }
+    writeRunShWrapper(serverDir);
+    // Defensive: a previous tool (or an older adapter version) may have
+    // left `dist/node_modules/` behind. Astro's build does not write
+    // there, so anything present is unbundled and would balloon the
+    // Lambda zip past the 250 MB unzipped limit.
+    const strayNodeModules = path.join(distDir, 'node_modules');
+    if (fs.existsSync(strayNodeModules)) {
+      fs.rmSync(strayNodeModules, { recursive: true, force: true });
+    }
   }
 
   warnIfImageOptUnreachable(manifest, staticDir);
@@ -139,29 +223,178 @@ type AstroConfigShape = {
 // ---- pipeline steps ----
 
 const assertAstroVersion = (projectDir: string): void => {
-  const deps = readProjectDeps(projectDir);
-  const raw = deps['astro'];
-  const version = raw ? semver.coerce(raw)?.version : undefined;
+  // Read the version from `node_modules/astro/package.json` rather than
+  // the project's own `package.json` spec range. This matters when:
+  //   - the user declared `^4.0.0` but never ran `npm install` (no
+  //     astro on disk → fail closed),
+  //   - the spec is a non-semver string like `workspace:*`, `latest`,
+  //     `file:../fork` (semver.coerce returned `null` before, blocking
+  //     legitimate users),
+  //   - the installed version drifted from the spec range and the
+  //     user is on an older Astro than the declaration claims.
+  const info = getPackageInfoSync('astro', { paths: [projectDir] });
+  const version = info?.version;
   if (!version || !semver.gte(version, '4.0.0')) {
     throw new HostingError('UnsupportedAstroVersionError', {
-      message: `Astro 4.0+ is required; found ${raw ?? 'no astro dependency'}.`,
+      message: `Astro 4.0+ is required; ${
+        version ? `installed version is ${version}` : 'astro is not installed'
+      }.`,
       resolution:
-        'Upgrade Astro: npm install astro@latest. ' +
-        'If you are on Astro 3.x, follow the official upgrade guide at https://docs.astro.build/en/upgrade-astro/.',
+        'Run `npm install astro@latest` (or your package manager equivalent). ' +
+        'If you are on Astro 3.x, follow the upgrade guide at https://docs.astro.build/en/upgrade-astro/.',
     });
   }
 };
 
+const userHasAstroJsNode = (projectDir: string): boolean =>
+  isPackageExists('@astrojs/node', { paths: [projectDir] });
+
+const installAstroBridge = (
+  projectDir: string,
+  bodySizeLimit: number,
+): (() => void) => {
+  const userConfigPath = findAstroConfigPath(projectDir);
+  if (!userConfigPath) {
+    throw new HostingError('AstroConfigNotFoundError', {
+      message: `No astro.config.{mjs,ts,mts,cjs,js} found in ${projectDir}.`,
+      resolution:
+        'Add an astro.config.mjs (with at least `output: "server"`) at the project root, ' +
+        'or install @astrojs/node yourself and configure it in your astro.config.',
+    });
+  }
+
+  const bridgeDir = path.join(projectDir, BRIDGE_DIR_REL);
+  const amplifyDir = path.dirname(bridgeDir);
+  const createdAmplifyDir = !fs.existsSync(amplifyDir);
+  const createdBridgeDir = !fs.existsSync(bridgeDir);
+
+  fs.mkdirSync(bridgeDir, { recursive: true });
+
+  // Forward-slash relative path from `<projectDir>/.amplify/astro/`
+  // back to the user's config; works on both POSIX and Windows because
+  // ESM resolves URLs, not native paths.
+  const userConfigRelative = path.posix.join(
+    '..',
+    '..',
+    path.basename(userConfigPath),
+  );
+  fs.writeFileSync(
+    path.join(bridgeDir, BRIDGE_CONFIG_FILE),
+    buildBridgeConfigSource(userConfigRelative, bodySizeLimit),
+    'utf-8',
+  );
+
+  installAstroJsNode(projectDir);
+  process.stderr.write(
+    '✨ Installed Amplify Astro bridge (transparent build)\n',
+  );
+
+  return (): void => {
+    try {
+      const cfg = path.join(bridgeDir, BRIDGE_CONFIG_FILE);
+      if (fs.existsSync(cfg)) fs.rmSync(cfg);
+      if (createdBridgeDir && fs.existsSync(bridgeDir)) {
+        if (fs.readdirSync(bridgeDir).length === 0) fs.rmdirSync(bridgeDir);
+      }
+      if (createdAmplifyDir && fs.existsSync(amplifyDir)) {
+        if (fs.readdirSync(amplifyDir).length === 0) fs.rmdirSync(amplifyDir);
+      }
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best-effort cleanup; a leftover .amplify/astro/ shouldn't fail the deploy.
+    }
+  };
+};
+
+const installAstroJsNode = (projectDir: string): void => {
+  process.stderr.write(
+    `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} (--no-save)\n`,
+  );
+  try {
+    execFileSync(
+      'npm',
+      [
+        'install',
+        '--no-save',
+        '--no-audit',
+        '--no-fund',
+        '--silent',
+        ASTROJS_NODE_PIN,
+      ],
+      {
+        cwd: projectDir,
+        stdio: 'inherit',
+        shell: true,
+      },
+    );
+  } catch (error) {
+    throw new HostingError(
+      'AstroBridgeInstallError',
+      {
+        message:
+          'Failed to install @astrojs/node — required for the Amplify Astro bridge.',
+        resolution:
+          'Try `npm install --no-save @astrojs/node` in your project to diagnose, ' +
+          'or pin @astrojs/node yourself in package.json and re-run.',
+      },
+      error as Error,
+    );
+  }
+};
+
+const buildBridgeConfigSource = (
+  userConfigRelativePath: string,
+  bodySizeLimit: number,
+): string => `import userConfig from '${userConfigRelativePath}';
+import node from '@astrojs/node';
+
+if (userConfig.adapter) {
+  process.stderr.write(
+    \`[amplify-hosting:astro] replacing user adapter "\${userConfig.adapter.name}" with @astrojs/node (standalone).\\n\`,
+  );
+}
+
+export default {
+  ...userConfig,
+  output: 'server',
+  adapter: node({ mode: 'standalone', bodySizeLimit: ${bodySizeLimit} }),
+  vite: {
+    ...(userConfig.vite ?? {}),
+    ssr: {
+      ...((userConfig.vite ?? {}).ssr ?? {}),
+      // Bundle every transitive dep into the server output so the
+      // Lambda zip needs no node_modules at runtime. Known caveat:
+      // some CJS-only packages (e.g. \`cssesc\` reached through
+      // \`astro:content\` build-time sync) fail Vite's SSR module
+      // runner with "module is not defined". Workarounds: avoid
+      // content collections, or pin the affected package via
+      // \`vite.ssr.noExternal: ['my-pkg']\` in your astro.config.
+      noExternal: true,
+    },
+  },
+};
+`;
+
 const runAstroBuild = (
   projectDir: string,
   buildCommand: string[] | undefined,
+  useBridgeConfig: boolean,
 ): void => {
-  const cmd =
+  const baseCmd =
     buildCommand && buildCommand.length > 0
       ? buildCommand
       : projectHasBuildScript(projectDir)
         ? ['npm', 'run', 'build']
         : ['npx', 'astro', 'build'];
+  const cmd = useBridgeConfig
+    ? [
+        ...baseCmd,
+        '--',
+        '--config',
+        path.posix.join(BRIDGE_DIR_REL, BRIDGE_CONFIG_FILE),
+      ]
+    : baseCmd;
+
   process.stderr.write(`\u{1F528} Running Astro build: ${cmd.join(' ')}\n`);
   try {
     const [bin, ...args] = cmd;
@@ -202,15 +435,19 @@ const projectHasBuildScript = (projectDir: string): boolean => {
 
 const ASTRO_CONFIG_FILES = [
   'astro.config.ts',
+  'astro.config.mts',
   'astro.config.mjs',
   'astro.config.js',
   'astro.config.cjs',
 ];
 
+const findAstroConfigPath = (projectDir: string): string | undefined =>
+  ASTRO_CONFIG_FILES.map((f) => path.join(projectDir, f)).find((p) =>
+    fs.existsSync(p),
+  );
+
 const loadAstroConfig = (projectDir: string): AstroConfigShape => {
-  const configPath = ASTRO_CONFIG_FILES.map((f) =>
-    path.join(projectDir, f),
-  ).find((p) => fs.existsSync(p));
+  const configPath = findAstroConfigPath(projectDir);
   if (!configPath) return {};
   try {
     const jiti = createJiti(projectDir, { interopDefault: true });
@@ -277,24 +514,31 @@ const buildStaticManifest = (distDir: string): DeployManifest => {
 };
 
 const buildSsrManifest = (input: {
-  projectDir: string;
+  distDir: string;
   clientDir: string;
   serverDir: string;
   output: AstroOutput;
   trailingSlash: AstroTrailingSlash;
   imageDomains: string[];
 }): DeployManifest => {
-  const { clientDir, serverDir, output, trailingSlash, imageDomains } = input;
+  const { distDir, clientDir, serverDir, output, trailingSlash, imageDomains } =
+    input;
 
+  // bundle: dist/  — so the Lambda zip has `server/` and `client/` as
+  // siblings; @astrojs/node's standalone runtime walks `import.meta.url`
+  // up to find the `server/` segment, then resolves `client/` relative
+  // to it. Pointing bundle at dist/server/ would lose the `client/`
+  // prefix and the static-fallback inside the standalone server would
+  // 404 every prerendered route.
   const manifest: DeployManifest = {
     version: 1,
     compute: {
       default: {
-        type: 'handler',
-        bundle: serverDir,
-        handler: 'entry.handler',
+        type: 'http-server',
+        bundle: distDir,
+        entrypoint: path.posix.join(path.basename(serverDir), RUN_SH_FILENAME),
+        port: ASTRO_SERVER_PORT,
         placement: 'regional',
-        streaming: true,
         runtime: 'nodejs20.x',
       },
     },
@@ -302,26 +546,23 @@ const buildSsrManifest = (input: {
     routes: [],
   };
 
-  // Astro middleware (when src/middleware.ts exists, the build emits
-  // dist/server/_middleware.mjs).
-  const middlewareFile = path.join(serverDir, '_middleware.mjs');
-  if (fs.existsSync(middlewareFile)) {
-    manifest.middleware = {
-      bundle: serverDir,
-      handler: '_middleware.handler',
-      matchers: ['/((?!_astro/).*)'],
-    };
-  }
+  // Astro middleware is bundled into entry.mjs by the standalone
+  // runtime — it runs inside the regional SSR Lambda on every request.
+  // We deliberately do NOT set manifest.middleware: that field tells the
+  // L3 to provision a separate Lambda@Edge viewer-request association,
+  // which would (a) double-invoke (one Lambda@Edge + one regional
+  // Lambda) and (b) collide with the CloudFront Function the L3 already
+  // attaches to viewer-request for asset-prefix / build-id rewrites.
+  // The middleware bundle is still inspected later for diagnostics.
 
   // Astro's built-in image endpoint shows up in the server manifest.
-  const astroManifestPath = findAstroServerManifest(serverDir);
-  if (astroManifestPath && hasImageEndpoint(astroManifestPath)) {
+  if (hasAstroImageEndpoint(serverDir)) {
     manifest.imageOptimization = {
       bundle: serverDir,
       handler: 'entry.handler',
       formats: ['webp', 'avif'],
       sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-      baseURL: '/_astro/_image',
+      baseURL: '/_image',
       ...(imageDomains.length > 0 ? { domains: imageDomains } : {}),
     };
   }
@@ -333,8 +574,8 @@ const buildSsrManifest = (input: {
 
   const routes: RouteBehavior[] = [{ pattern: '/_astro/*', target: 'static' }];
 
-  // Hybrid: each prerendered HTML page in dist/client/ resolves through
-  // the static origin so the SSR Lambda doesn't waste invocations.
+  // Hybrid: route prerendered HTML pages to the static origin so the
+  // SSR Lambda doesn't burn invocations rendering frozen content.
   if (output === 'hybrid') {
     const prerendered = fg.sync('**/*.html', {
       cwd: clientDir,
@@ -368,23 +609,27 @@ const detectErrorPages = (
   return out;
 };
 
-const findAstroServerManifest = (serverDir: string): string | undefined => {
-  if (!fs.existsSync(serverDir)) return undefined;
-  const matches = fg.sync(['manifest_*.json', 'manifest.json'], {
-    cwd: serverDir,
-    absolute: true,
-    onlyFiles: true,
-  });
-  return matches[0];
-};
-
-const hasImageEndpoint = (manifestPath: string): boolean => {
-  try {
-    const raw = fs.readFileSync(manifestPath, 'utf-8');
-    return /_astro\/_image/.test(raw);
-  } catch {
-    return false;
+const hasAstroImageEndpoint = (serverDir: string): boolean => {
+  if (!fs.existsSync(serverDir)) return false;
+  const matches = fg.sync(
+    ['manifest_*.json', 'manifest_*.mjs', 'manifest.json'],
+    {
+      cwd: serverDir,
+      absolute: true,
+      onlyFiles: true,
+    },
+  );
+  for (const file of matches) {
+    try {
+      if (/_image|_astro\/_image/.test(fs.readFileSync(file, 'utf-8'))) {
+        return true;
+      }
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Skip unreadable manifests — cheap fallback.
+    }
   }
+  return false;
 };
 
 const htmlToUrlPath = (relPath: string): string => {
@@ -415,6 +660,11 @@ const dedupeRoutes = (routes: RouteBehavior[]): RouteBehavior[] => {
     out.push(r);
   }
   return out;
+};
+
+const writeRunShWrapper = (serverDir: string): void => {
+  const dest = path.join(serverDir, RUN_SH_FILENAME);
+  fs.writeFileSync(dest, RUN_SH_SOURCE, { encoding: 'utf-8', mode: 0o755 });
 };
 
 const warnIfImageOptUnreachable = (

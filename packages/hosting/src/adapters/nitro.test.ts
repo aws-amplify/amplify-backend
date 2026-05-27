@@ -63,6 +63,23 @@ const writePackageJson = (
     path.join(projectDir, 'package.json'),
     JSON.stringify({ name: 'fixture', dependencies: deps }),
   );
+  // The nitro adapter probes installed packages (via local-pkg) for
+  // @nuxt/image — synthesise the matching node_modules/<pkg>/ stubs
+  // so the existing fixtures stay representative of "deps installed".
+  for (const [name, spec] of Object.entries(deps)) {
+    const numericMatch =
+      typeof spec === 'string' ? spec.match(/(\d+)\.(\d+)\.(\d+)/) : null;
+    const version = numericMatch
+      ? `${numericMatch[1]}.${numericMatch[2]}.${numericMatch[3]}`
+      : '1.0.0';
+    const pkgDir = path.join(projectDir, 'node_modules', ...name.split('/'));
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({ name, version, main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(pkgDir, 'index.js'), '');
+  }
 };
 
 const writeNuxtConfig = (projectDir: string, source: string): void => {
@@ -190,6 +207,27 @@ void describe('nitroAdapter — IPX provisioning', () => {
       (r) => r.target === 'image-optimization',
     );
     assert.strictEqual(ipxRoute, undefined);
+  });
+
+  void it('does NOT provision IPX Lambda when @nuxt/image is declared but never installed (no node_modules)', () => {
+    writeMinimalNitroOutput(tmpDir);
+    // Manually write package.json *without* the writePackageJson helper
+    // so node_modules/@nuxt/image is NOT created — this is the bug
+    // local-pkg fixes (declared deps that were never `npm install`-ed
+    // would have shipped a dangling 50 MB IPX Lambda).
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        name: 'fixture',
+        dependencies: { nuxt: '^4.0.0', '@nuxt/image': '^2.0.0' },
+      }),
+    );
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(
+      manifest.imageOptimization,
+      undefined,
+      'image-opt Lambda must NOT be provisioned for declared-but-not-installed @nuxt/image',
+    );
   });
 
   void it('does NOT provision IPX Lambda when image: false', () => {

@@ -18,8 +18,8 @@ import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
+import { isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
-import { readProjectDeps } from './index.js';
 import type {
   ComputeResource,
   DeployManifest,
@@ -485,17 +485,20 @@ const buildImageOptBundleIfNeeded = (
 };
 
 /**
- * True if the user has `@nuxt/image` in their direct dependencies AND
- * hasn't explicitly disabled the image module in `nuxt.config`. The
- * image-opt Lambda is only useful when the runtime ships `<NuxtImg>`
- * and uses the IPX provider.
+ * True if `@nuxt/image` is **installed** under the project's
+ * `node_modules/` AND the user has not explicitly disabled the image
+ * module in `nuxt.config`. The image-opt Lambda is only useful when
+ * the runtime ships `<NuxtImg>` and uses the IPX provider; a declared
+ * dep that was never installed (e.g. `npm install` not run) does not
+ * count.
  */
 const projectUsesNuxtImage = (projectDir: string): boolean => {
-  const deps = readProjectDeps(projectDir);
-  if (!('@nuxt/image' in deps)) return false;
-  // The dep is present, but the user may have disabled the module
-  // via nuxt.config — in that case <NuxtImg> isn't wired up and our
-  // ~50 MB IPX Lambda would just sit unused.
+  if (!isPackageExists('@nuxt/image', { paths: [projectDir] })) {
+    return false;
+  }
+  // The package is installed, but the user may have disabled the
+  // module via nuxt.config — in that case <NuxtImg> isn't wired up and
+  // our ~50 MB IPX Lambda would just sit unused.
   return !nuxtConfigBypassesIpx(projectDir);
 };
 
@@ -973,25 +976,5 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
       `(${totalPatches} edits across ${patchedFiles.length} file(s): ${patchedFiles.join(
         ', ',
       )}).\n`,
-  );
-};
-
-/**
- * Detect whether a project uses Nitro by inspecting its package.json deps.
- *
- * Frameworks built on Nitro:
- *   - Nuxt 3+ (`nuxt`)
- *   - SolidStart v1+ (`@solidjs/start`)
- *   - Analog (`@analogjs/platform-server`)
- *   - TanStack Start (`@tanstack/start`)
- *   - Standalone Nitro (`nitropack`)
- */
-export const isNitroProject = (deps: Record<string, string>): boolean => {
-  return (
-    'nuxt' in deps ||
-    'nitropack' in deps ||
-    '@solidjs/start' in deps ||
-    '@analogjs/platform-server' in deps ||
-    '@tanstack/start' in deps
   );
 };

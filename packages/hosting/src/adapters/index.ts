@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import { spaAdapter } from './spa.js';
 import { nextjsAdapter } from './nextjs.js';
-import { isNitroProject, nitroAdapter } from './nitro.js';
+import { nitroAdapter } from './nitro.js';
 import { nuxtAdapter } from './nuxt.js';
 import { astroAdapter } from './astro.js';
 import { DeployManifest } from '../manifest/types.js';
@@ -116,30 +117,43 @@ export const readProjectDepsStrict = (
 };
 
 /**
- * Detect the framework from the project's package.json.
+ * Frameworks built on Nitro (covers Nuxt, SolidStart, Analog,
+ * TanStack Start, and standalone Nitro projects with one adapter).
+ */
+const NITRO_PACKAGES = [
+  'nuxt',
+  'nitropack',
+  '@solidjs/start',
+  '@analogjs/platform-server',
+  '@tanstack/start',
+];
+
+/**
+ * Detect the framework by probing actually-installed packages under the
+ * project's `node_modules/` (via `local-pkg` / Node's resolver). This is
+ * stricter than reading `package.json` spec ranges: a project that
+ * declares `"astro": "^4.0.0"` but never ran `npm install` resolves to
+ * `'spa'` here, not `'astro'`.
  * @param projectDir - absolute path to the project root
  * @returns the detected framework type
  */
 export const detectFramework = (projectDir: string): string => {
-  const pkgPath = path.join(projectDir, 'package.json');
-  if (!fs.existsSync(pkgPath)) return 'static';
+  const opts = { paths: [projectDir] };
 
-  const deps = readProjectDepsStrict(projectDir);
-
-  if ('next' in deps) {
+  if (isPackageExists('next', opts)) {
     return 'nextjs';
   }
 
-  // Detect Nitro by build system, not framework — covers Nuxt, SolidStart,
-  // Analog, TanStack Start, and standalone Nitro projects with one adapter.
-  if (isNitroProject(deps)) {
-    return 'nitro';
+  // Astro auto-detect runs AFTER the Nitro probe: Astro projects can
+  // pull Nitro through integrations, but Nitro-only projects must win
+  // the Nitro adapter. The first match in NITRO_PACKAGES wins.
+  for (const pkg of NITRO_PACKAGES) {
+    if (isPackageExists(pkg, opts)) {
+      return 'nitro';
+    }
   }
 
-  // Astro auto-detect runs after the Nitro check: Astro projects sometimes
-  // depend on Nitro through integrations, but if `astro` is in the deps the
-  // Astro adapter is always the right choice.
-  if ('astro' in deps) {
+  if (isPackageExists('astro', opts)) {
     return 'astro';
   }
 

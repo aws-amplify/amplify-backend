@@ -15,6 +15,26 @@ const writePkg = (
     path.join(dir, 'package.json'),
     JSON.stringify({ name: 'astro-fixture', scripts: extraScripts, ...pkg }),
   );
+  // local-pkg's `getPackageInfoSync` resolves via Node module resolution.
+  // The version gate now reads `node_modules/astro/package.json#version`
+  // — synthesise it from the declared spec range so legacy tests pass.
+  const deps = (pkg.dependencies ?? pkg.devDependencies ?? {}) as Record<
+    string,
+    string
+  >;
+  for (const [name, spec] of Object.entries(deps)) {
+    if (typeof spec !== 'string') continue;
+    const numericMatch = spec.match(/(\d+)\.(\d+)\.(\d+)/);
+    if (!numericMatch) continue;
+    const installed = `${numericMatch[1]}.${numericMatch[2]}.${numericMatch[3]}`;
+    const pkgDir = path.join(dir, 'node_modules', ...name.split('/'));
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({ name, version: installed, main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(pkgDir, 'index.js'), '');
+  }
 };
 
 const writeStaticBuild = (
@@ -59,17 +79,17 @@ const writeServerBuild = (
   );
   if (opts.middleware) {
     fs.writeFileSync(
-      path.join(server, '_middleware.mjs'),
-      'export const handler = async () => ({});',
+      path.join(server, '_astro-internal_middleware.mjs'),
+      'export const onRequest = async () => ({});',
     );
   }
   fs.writeFileSync(
-    path.join(server, 'manifest_abc.json'),
-    JSON.stringify({
+    path.join(server, 'manifest_abc.mjs'),
+    `export const manifest = ${JSON.stringify({
       routes: opts.imageEndpoint
-        ? [{ route: '/_astro/_image', type: 'endpoint' }]
+        ? [{ route: '/_image', type: 'endpoint' }]
         : [],
-    }),
+    })};`,
   );
 };
 
@@ -82,14 +102,82 @@ void describe('astroAdapter — version gating', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('throws when astro is not in deps', () => {
+  void it('throws when astro is not installed', () => {
     writePkg(tmpDir, { dependencies: {} });
     assert.throws(
       () => astroAdapter({ projectDir: tmpDir, skipBuild: true }),
       (error: Error) =>
         error.name === 'UnsupportedAstroVersionError' &&
-        /no astro dependency/.test(error.message),
+        /astro is not installed/.test(error.message),
     );
+  });
+
+  void it('throws when astro is declared in package.json but never installed (npm install skipped)', () => {
+    // package.json claims astro@^5.0.0, but no node_modules/astro/.
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        name: 'fixture',
+        dependencies: { astro: '^5.0.0' },
+      }),
+    );
+    writeStaticBuild(tmpDir);
+    assert.throws(
+      () => astroAdapter({ projectDir: tmpDir, skipBuild: true }),
+      (error: Error) =>
+        error.name === 'UnsupportedAstroVersionError' &&
+        /astro is not installed/.test(error.message),
+    );
+  });
+
+  void it('uses the INSTALLED astro version, not the spec range (drift between package.json ^4.0.0 and node_modules/astro@3.2.0 must fail)', () => {
+    // The spec says ^4.0.0 — under the old detector that would have
+    // passed. The installed version is 3.2.0 — local-pkg reads that
+    // and the version gate fails. This is the bug we're fixing.
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        name: 'fixture',
+        dependencies: { astro: '^4.0.0' },
+      }),
+    );
+    const astroDir = path.join(tmpDir, 'node_modules', 'astro');
+    fs.mkdirSync(astroDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(astroDir, 'package.json'),
+      JSON.stringify({ name: 'astro', version: '3.2.0', main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(astroDir, 'index.js'), '');
+    writeStaticBuild(tmpDir);
+    assert.throws(
+      () => astroAdapter({ projectDir: tmpDir, skipBuild: true }),
+      (error: Error) =>
+        error.name === 'UnsupportedAstroVersionError' &&
+        /installed version is 3\.2\.0/.test(error.message),
+    );
+  });
+
+  void it('accepts non-semver spec ranges (workspace:* / file:../fork) when the installed version is real', () => {
+    // The user's spec is `workspace:*` (pnpm) — semver.coerce returned
+    // null before, blocking legitimate users. local-pkg reads the
+    // real version from disk and accepts.
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({
+        name: 'fixture',
+        dependencies: { astro: 'workspace:*' },
+      }),
+    );
+    const astroDir = path.join(tmpDir, 'node_modules', 'astro');
+    fs.mkdirSync(astroDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(astroDir, 'package.json'),
+      JSON.stringify({ name: 'astro', version: '5.4.1', main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(astroDir, 'index.js'), '');
+    writeStaticBuild(tmpDir);
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.version, 1);
   });
 
   void it('throws when astro version is below 4.0', () => {
@@ -191,22 +279,33 @@ void describe("astroAdapter — output: 'server'", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('emits compute.default with streaming + nodejs20.x', () => {
+  void it('emits compute.default as http-server (LWA) on nodejs20.x', () => {
     writeServerBuild(tmpDir);
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.compute.default, 'compute.default required');
-    assert.strictEqual(manifest.compute.default.type, 'handler');
-    assert.strictEqual(manifest.compute.default.streaming, true);
+    assert.strictEqual(manifest.compute.default.type, 'http-server');
     assert.strictEqual(manifest.compute.default.runtime, 'nodejs20.x');
-    assert.strictEqual(manifest.compute.default.handler, 'entry.handler');
+    assert.strictEqual(
+      manifest.compute.default.entrypoint,
+      path.posix.join('server', 'run.sh'),
+    );
+    assert.strictEqual(manifest.compute.default.port, 3000);
+    // bundle: dist/ so the Lambda zip has server/ + client/ as siblings —
+    // @astrojs/node walks from import.meta.url for that layout.
     assert.strictEqual(
       manifest.compute.default.bundle,
-      path.join(tmpDir, 'dist', 'server'),
+      path.join(tmpDir, 'dist'),
     );
     assert.strictEqual(
       manifest.staticAssets.directory,
       path.join(tmpDir, 'dist', 'client'),
     );
+    const runSh = path.join(tmpDir, 'dist', 'server', 'run.sh');
+    assert.ok(
+      fs.existsSync(runSh),
+      'run.sh must be written into server bundle',
+    );
+    assert.match(fs.readFileSync(runSh, 'utf-8'), /node entry\.mjs/);
   });
 
   void it('routes /_astro/* to static and catches all to default', () => {
@@ -224,24 +323,28 @@ void describe("astroAdapter — output: 'server'", () => {
     );
   });
 
-  void it('detects middleware', () => {
+  void it('does NOT emit manifest.middleware (Astro middleware ships inside entry.mjs)', () => {
+    // Setting manifest.middleware would tell the L3 to provision a
+    // separate Lambda@Edge viewer-request association, which collides
+    // with the CloudFront Function the L3 already wires for asset-prefix
+    // / build-id rewrites. Astro middleware runs in the regional SSR
+    // Lambda — leave it there.
     writeServerBuild(tmpDir, { middleware: true });
-    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.ok(manifest.middleware);
-    assert.strictEqual(manifest.middleware!.handler, '_middleware.handler');
-  });
+    const withMw = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(withMw.middleware, undefined);
 
-  void it('omits middleware when _middleware.mjs is absent', () => {
+    // Same expectation when no middleware bundle exists.
+    fs.rmSync(path.join(tmpDir, 'dist'), { recursive: true, force: true });
     writeServerBuild(tmpDir, { middleware: false });
-    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.strictEqual(manifest.middleware, undefined);
+    const withoutMw = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(withoutMw.middleware, undefined);
   });
 
   void it('detects built-in image endpoint and emits image-opt config', () => {
     writeServerBuild(tmpDir, { imageEndpoint: true });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.imageOptimization);
-    assert.strictEqual(manifest.imageOptimization!.baseURL, '/_astro/_image');
+    assert.strictEqual(manifest.imageOptimization!.baseURL, '/_image');
     assert.deepStrictEqual(manifest.imageOptimization!.formats, [
       'webp',
       'avif',
