@@ -9,7 +9,6 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/node": "^9.1.0",
     "astro": "^5.0.0"
   },
   "overrides": {
