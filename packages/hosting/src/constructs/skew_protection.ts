@@ -32,7 +32,6 @@ const COOKIE_NAME = '__dpl';
  * 2. If present and valid, rewrites the URI to that build's prefix
  * 3. If absent, uses the current (deploy-time) build ID
  * 4. Appends `index.html` for directory-style paths
- *
  * @param buildId - The current build ID baked in at synth time
  * @returns CloudFront Function source code (JavaScript)
  */
@@ -51,6 +50,11 @@ export const generateSkewProtectionViewerRequestCode = (
   }
   if (uri.endsWith('/')) {
     uri = uri + 'index.html';
+  } else {
+    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('.') === -1) {
+      uri = uri + '/index.html';
+    }
   }
   request.uri = '/builds/' + buildId + uri;
   return request;
@@ -65,7 +69,6 @@ export const generateSkewProtectionViewerRequestCode = (
  * 2. Only for HTML responses (text/html), sets the `__dpl` cookie
  *    to the current build ID — pinning the user's session to this build
  * 3. Non-HTML responses (JS, CSS, images) are passed through unchanged
- *
  * @param buildId - The current build ID baked in at synth time
  * @param maxAge  - Cookie lifetime in seconds (default: 86400)
  * @returns CloudFront Function source code (JavaScript)
