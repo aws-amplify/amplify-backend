@@ -335,7 +335,14 @@ void describe('CdnConstruct', () => {
                 ]),
               }),
               CookiesConfig: Match.objectLike({
-                CookieBehavior: 'none',
+                CookieBehavior: 'whitelist',
+                // Next.js Draft Mode preview cookies — cache key
+                // includes them so preview requests bypass cached
+                // anonymous responses.
+                Cookies: Match.arrayWith([
+                  '__prerender_bypass',
+                  '__next_preview_data',
+                ]),
               }),
             }),
           }),

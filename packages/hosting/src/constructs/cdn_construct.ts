@@ -409,7 +409,28 @@ export class CdnConstruct extends Construct {
             // See: node_modules/@opennextjs/aws/dist/core/routing/cacheInterceptor.js
             'next-action',
           ),
-          cookieBehavior: CacheCookieBehavior.none(),
+          // Allowlist Next.js's two preview-mode cookies so requests
+          // carrying them cache-miss and re-render fresh from the SSR
+          // Lambda. With the previous `none()` behavior, CloudFront
+          // stripped the cookies and served the cached anonymous
+          // response — Draft Mode silently broke.
+          //
+          // Hit-rate impact: requests WITHOUT these cookies (the vast
+          // majority) cache-key the same as before, so normal-traffic
+          // hit rate is unchanged. Requests WITH the cookies (CMS
+          // preview sessions) cache-miss by design — that's the whole
+          // point of Draft Mode.
+          //
+          // Cookie names verified from Next.js source:
+          //   node_modules/next/dist/server/api-utils/index.js:113-114
+          //     COOKIE_NAME_PRERENDER_BYPASS = '__prerender_bypass'
+          //     COOKIE_NAME_PRERENDER_DATA   = '__next_preview_data'
+          // CloudFront supports up to 10 cookies per cache policy; we
+          // use 2.
+          cookieBehavior: CacheCookieBehavior.allowList(
+            '__prerender_bypass',
+            '__next_preview_data',
+          ),
           queryStringBehavior: CacheQueryStringBehavior.all(),
           enableAcceptEncodingBrotli: true,
           enableAcceptEncodingGzip: true,
