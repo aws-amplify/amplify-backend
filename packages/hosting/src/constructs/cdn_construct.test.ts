@@ -330,6 +330,8 @@ void describe('CdnConstruct', () => {
                   'next-router-prefetch',
                   'next-router-state-tree',
                   'next-router-segment-prefetch',
+                  // Server Actions identify themselves with this header.
+                  'next-action',
                 ]),
               }),
               CookiesConfig: Match.objectLike({

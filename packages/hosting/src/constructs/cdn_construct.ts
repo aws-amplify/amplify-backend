@@ -400,6 +400,14 @@ export class CdnConstruct extends Construct {
             'next-router-prefetch',
             'next-router-state-tree',
             'next-router-segment-prefetch',
+            // Server Actions POST to the same URL as the page with a
+            // `next-action: <hash>` header identifying which action ran.
+            // CloudFront does not cache POST today, so the immediate
+            // collision risk is theoretical, but the header is part of
+            // OpenNext's request-routing contract and belongs in the
+            // cache key for correctness.
+            // See: node_modules/@opennextjs/aws/dist/core/routing/cacheInterceptor.js
+            'next-action',
           ),
           cookieBehavior: CacheCookieBehavior.none(),
           queryStringBehavior: CacheQueryStringBehavior.all(),
