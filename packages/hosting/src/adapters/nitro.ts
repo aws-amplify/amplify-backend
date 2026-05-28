@@ -15,6 +15,7 @@
  * only sees compute resources, route patterns, and a static-assets dir.
  */
 import { spawn } from './spawn.js';
+import { validateCacheControl } from './shared/cache_control.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -884,6 +885,11 @@ const buildHeaders = (
   const out: NonNullable<DeployManifest['headers']> = [];
   for (const [source, rule] of Object.entries(routeRules)) {
     if (!rule.headers || Object.keys(rule.headers).length === 0) continue;
+    for (const [name, value] of Object.entries(rule.headers)) {
+      if (name.toLowerCase() === 'cache-control') {
+        validateCacheControl(value, `route ${source} (Nitro routeRules)`);
+      }
+    }
     out.push({
       source: normalizeRulePattern(source),
       headers: rule.headers,

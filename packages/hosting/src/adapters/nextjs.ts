@@ -7,6 +7,7 @@
  */
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
+import { validateCacheControl } from './shared/cache_control.js';
 import {
   type TrailingSlashMode,
   emitTrailingSlashRedirects,
@@ -425,7 +426,15 @@ const applyLiftedRoutesManifest = (
       continue;
     }
     const headers: Record<string, string> = {};
-    for (const entry of h.headers) headers[entry.key] = entry.value;
+    for (const entry of h.headers) {
+      if (entry.key.toLowerCase() === 'cache-control') {
+        validateCacheControl(
+          entry.value,
+          `route ${h.source} (Next.js headers config)`,
+        );
+      }
+      headers[entry.key] = entry.value;
+    }
     liftedHeaders.push({
       source: h.source,
       headers,

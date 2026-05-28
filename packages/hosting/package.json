@@ -43,12 +43,14 @@
     "fast-glob": "^3.3.2",
     "jiti": "^2.4.0",
     "local-pkg": "^0.5.0",
+    "parse-cache-control": "^1.0.1",
     "semver": "^7.6.0"
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
     "@opennextjs/aws": "~3.10.0",
     "@types/cross-spawn": "^6.0.6",
+    "@types/parse-cache-control": "^1.0.4",
     "@types/semver": "^7.5.8",
     "zod": "3.25.17"
   },
