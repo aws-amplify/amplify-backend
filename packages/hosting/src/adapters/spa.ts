@@ -2,8 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { HostingError } from '../hosting_error.js';
 import { DeployManifest } from '../manifest/types.js';
-import { copyDirRecursive } from './copy.js';
 import { HOSTING_DIR, STATIC_DIR } from '../constants.js';
+
+/**
+ * Filenames the SPA adapter strips from the static deploy: source maps,
+ * TypeScript incremental build info, and OS metadata. Matched as a
+ * lower-cased basename suffix or exact match.
+ */
+const STATIC_EXCLUDE_SUFFIXES = ['.map', '.tsbuildinfo'];
+const STATIC_EXCLUDE_NAMES = ['.ds_store', 'thumbs.db'];
 
 /**
  * Options for the SPA adapter.
@@ -63,8 +70,24 @@ export const spaAdapter = (
     fs.rmSync(hostingDir, { recursive: true, force: true });
   }
 
-  // Copy all build output to .amplify-hosting/static/
-  copyDirRecursive(buildOutputDir, staticDir);
+  // Copy all build output to .amplify-hosting/static/, stripping source
+  // maps, OS metadata, and TS incremental-build artefacts that should
+  // not be served publicly.
+  fs.cpSync(buildOutputDir, staticDir, {
+    recursive: true,
+    dereference: false,
+    filter: (source) => {
+      if (source === buildOutputDir) return true;
+      try {
+        if (fs.lstatSync(source).isSymbolicLink()) return false;
+      } catch {
+        return false;
+      }
+      const name = path.basename(source).toLowerCase();
+      if (STATIC_EXCLUDE_NAMES.includes(name)) return false;
+      return !STATIC_EXCLUDE_SUFFIXES.some((s) => name.endsWith(s));
+    },
+  });
 
   // Generate deploy manifest. If the build emitted a real 404.html (e.g.
   // Next.js `output: 'export'`, Astro/Hugo and similar SSGs), wire it as

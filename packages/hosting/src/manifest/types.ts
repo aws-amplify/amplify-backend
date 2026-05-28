@@ -196,6 +196,14 @@ export type ImageConfig = {
    * IPX_BASE_URL when the user customizes the `/_ipx` prefix).
    */
   environment?: Record<string, string>;
+
+  /**
+   * Allowlist of remote image hostnames the image-opt service should
+   * fetch from. Mirrors Astro's `image.domains` and Next.js's
+   * `images.domains`. Forward-compat: the L3 does not consume this yet —
+   * adapters write it for parity with the originating framework config.
+   */
+  domains?: string[];
 };
 
 export type MiddlewareConfig = {

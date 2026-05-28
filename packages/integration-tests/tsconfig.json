@@ -22,6 +22,7 @@
     "src/e2e-tests",
     "src/test-projects/standalone-hosting-ssr",
     "src/test-projects/standalone-hosting-nuxt",
+    "src/test-projects/standalone-hosting-astro",
     "src/test-projects/standalone-hosting-spa",
     "src/test-cdk-projects"
   ]

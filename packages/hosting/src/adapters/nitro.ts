@@ -14,9 +14,11 @@
  * The L3 construct never knows which UI framework produced this — it
  * only sees compute resources, route patterns, and a static-assets dir.
  */
-import { execFileSync } from 'child_process';
+import { spawn } from './spawn.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import fg from 'fast-glob';
+import { isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -211,12 +213,10 @@ const runNitroBuild = (
   );
   try {
     const [bin, ...args] = cmd;
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync(bin!, args, {
+    spawn.sync(bin!, args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NITRO_PRESET: preset },
-      shell: true,
     });
   } catch (error) {
     throw new HostingError(
@@ -398,18 +398,14 @@ export const extractJsonObjectAfter = (
  */
 const prunePreCompressedAssets = (publicDir: string): void => {
   if (!fs.existsSync(publicDir)) return;
-  const compressedExt = /\.(gz|br|zst)$/i;
-  const visit = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        visit(full);
-      } else if (entry.isFile() && compressedExt.test(entry.name)) {
-        fs.rmSync(full);
-      }
-    }
-  };
-  visit(publicDir);
+  const compressed = fg.sync('**/*.{gz,br,zst}', {
+    cwd: publicDir,
+    absolute: true,
+    caseSensitiveMatch: false,
+  });
+  for (const f of compressed) {
+    fs.rmSync(f);
+  }
 };
 
 /**
@@ -451,8 +447,7 @@ const buildImageOptBundleIfNeeded = (
   // Force npm to install Linux x64 binaries so sharp's native module
   // matches the Lambda runtime — Lambda is linux-x64.
   try {
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync(
+    spawn.sync(
       'npm',
       [
         'install',
@@ -467,7 +462,6 @@ const buildImageOptBundleIfNeeded = (
       {
         cwd: bundleDir,
         stdio: 'inherit',
-        shell: true,
       },
     );
   } catch (error) {
@@ -487,29 +481,21 @@ const buildImageOptBundleIfNeeded = (
 };
 
 /**
- * True if the user has `@nuxt/image` in their direct dependencies AND
- * hasn't explicitly disabled the image module in `nuxt.config`. The
- * image-opt Lambda is only useful when the runtime ships `<NuxtImg>`
- * and uses the IPX provider.
+ * True if `@nuxt/image` is **installed** under the project's
+ * `node_modules/` AND the user has not explicitly disabled the image
+ * module in `nuxt.config`. The image-opt Lambda is only useful when
+ * the runtime ships `<NuxtImg>` and uses the IPX provider; a declared
+ * dep that was never installed (e.g. `npm install` not run) does not
+ * count.
  */
 const projectUsesNuxtImage = (projectDir: string): boolean => {
-  const pkgPath = path.join(projectDir, 'package.json');
-  if (!fs.existsSync(pkgPath)) return false;
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-    if (!('@nuxt/image' in deps)) return false;
-    // The dep is present, but the user may have disabled the module
-    // via nuxt.config — in that case <NuxtImg> isn't wired up and our
-    // ~50 MB IPX Lambda would just sit unused.
-    return !nuxtConfigBypassesIpx(projectDir);
-    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-  } catch {
+  if (!isPackageExists('@nuxt/image', { paths: [projectDir] })) {
     return false;
   }
+  // The package is installed, but the user may have disabled the
+  // module via nuxt.config — in that case <NuxtImg> isn't wired up and
+  // our ~50 MB IPX Lambda would just sit unused.
+  return !nuxtConfigBypassesIpx(projectDir);
 };
 
 /**
@@ -836,21 +822,9 @@ const buildRoutes = (
   return routes;
 };
 
-/**
- * Recursively collect every `.html` file under `dir`.
- */
 const walkHtmlFiles = (dir: string): string[] => {
   if (!fs.existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walkHtmlFiles(full));
-    } else if (entry.isFile() && entry.name.endsWith('.html')) {
-      out.push(full);
-    }
-  }
-  return out;
+  return fg.sync('**/*.html', { cwd: dir, absolute: true });
 };
 
 /**
@@ -960,39 +934,29 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   let totalPatches = 0;
   const patchedFiles: string[] = [];
 
-  const visit = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        visit(full);
-        continue;
-      }
-      if (!entry.isFile() || !entry.name.endsWith('.mjs')) continue;
-      const src = fs.readFileSync(full, 'utf-8');
-      let patches = 0;
-      let next = src;
-      if (rawPathRe.test(next)) {
-        next = next.replace(rawPathRe, rawPathReplacement);
-        patches++;
-      }
-      if (methodRe.test(next)) {
-        next = next.replace(methodRe, methodReplacement);
-        patches++;
-      }
-      if (bodyDecodeRe.test(next)) {
-        next = next.replace(bodyDecodeRe, bodyDecodeReplacement);
-        patches++;
-      }
-      if (patches > 0) {
-        fs.writeFileSync(full, next, 'utf-8');
-        totalPatches += patches;
-        patchedFiles.push(path.relative(serverDir, full));
-      }
+  if (!fs.existsSync(serverDir)) return;
+  const mjsFiles = fg.sync('**/*.mjs', { cwd: serverDir, absolute: true });
+  for (const full of mjsFiles) {
+    const src = fs.readFileSync(full, 'utf-8');
+    let patches = 0;
+    let next = src;
+    if (rawPathRe.test(next)) {
+      next = next.replace(rawPathRe, rawPathReplacement);
+      patches++;
     }
-  };
-
-  if (fs.existsSync(serverDir)) {
-    visit(serverDir);
+    if (methodRe.test(next)) {
+      next = next.replace(methodRe, methodReplacement);
+      patches++;
+    }
+    if (bodyDecodeRe.test(next)) {
+      next = next.replace(bodyDecodeRe, bodyDecodeReplacement);
+      patches++;
+    }
+    if (patches > 0) {
+      fs.writeFileSync(full, next, 'utf-8');
+      totalPatches += patches;
+      patchedFiles.push(path.relative(serverDir, full));
+    }
   }
 
   if (totalPatches === 0) {
@@ -1008,25 +972,5 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
       `(${totalPatches} edits across ${patchedFiles.length} file(s): ${patchedFiles.join(
         ', ',
       )}).\n`,
-  );
-};
-
-/**
- * Detect whether a project uses Nitro by inspecting its package.json deps.
- *
- * Frameworks built on Nitro:
- *   - Nuxt 3+ (`nuxt`)
- *   - SolidStart v1+ (`@solidjs/start`)
- *   - Analog (`@analogjs/platform-server`)
- *   - TanStack Start (`@tanstack/start`)
- *   - Standalone Nitro (`nitropack`)
- */
-export const isNitroProject = (deps: Record<string, string>): boolean => {
-  return (
-    'nuxt' in deps ||
-    'nitropack' in deps ||
-    '@solidjs/start' in deps ||
-    '@analogjs/platform-server' in deps ||
-    '@tanstack/start' in deps
   );
 };

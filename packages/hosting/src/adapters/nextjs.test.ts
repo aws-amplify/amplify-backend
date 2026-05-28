@@ -3,32 +3,41 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { spawn } from './spawn.js';
 import {
   hasExistingMiddlewareManifest,
   nextjsAdapter,
+  patchEdgeBundlesForLambdaEdge,
+  patchStreamingWrapperForApiGateway,
   projectHasEdgeRuntimeRoutes,
 } from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
-// Direct require to get the real module (not __importStar wrapper)
-// so mock.method can replace the property on the shared module singleton.
-/* eslint-disable @typescript-eslint/no-require-imports */
-const childProcessModule =
-  require('child_process') as typeof import('child_process');
-/* eslint-enable @typescript-eslint/no-require-imports */
-
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
+  let lenientBackup: string | undefined;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-test-'));
-    // Mock execFileSync so OpenNext build doesn't actually run
-    mock.method(childProcessModule, 'execFileSync', () => undefined);
+    // Mock the spawn wrapper so OpenNext build doesn't actually run
+    mock.method(spawn, 'sync', () => undefined);
+    // The fixture stubs don't include OpenNext's streaming-wrapper or
+    // edge-banner signatures, so the brittleness-throw path would fire
+    // under the synthesized inputs. The patches are not under test here;
+    // run them in lenient mode so the manifest-translation assertions
+    // get to run.
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
   });
 
   void it('translates OpenNext output to DeployManifest', () => {
@@ -656,5 +665,263 @@ void describe('projectHasEdgeRuntimeRoutes', () => {
   void it('returns false if no app/ or pages/ directories exist', () => {
     writeFile('lib/util.ts', "export const runtime = 'edge';");
     assert.strictEqual(projectHasEdgeRuntimeRoutes(tmp), false);
+  });
+});
+
+void describe('patchStreamingWrapperForApiGateway — brittleness gating', () => {
+  let tmp: string;
+  let defaultDir: string;
+  let envBackup: string | undefined;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-patch-stream-'));
+    defaultDir = path.join(tmp, 'server-functions', 'default');
+    fs.mkdirSync(defaultDir, { recursive: true });
+    envBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+    if (envBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = envBackup;
+    }
+  });
+
+  void it('throws UpstreamPatchPatternChangedError when no bundle matches', () => {
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.mjs'),
+      'export const handler = async () => ({});',
+    );
+    assert.throws(
+      () => patchStreamingWrapperForApiGateway(tmp),
+      (error: Error) => error.name === 'UpstreamPatchPatternChangedError',
+    );
+  });
+
+  void it('AMPLIFY_HOSTING_LENIENT_PATCHES=1 reverts to a warning', () => {
+    fs.writeFileSync(
+      path.join(defaultDir, 'index.mjs'),
+      'export const handler = async () => ({});',
+    );
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+    assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(tmp));
+  });
+
+  void it('returns silently when server-functions dir is missing', () => {
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-empty-'));
+    assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(empty));
+    fs.rmSync(empty, { recursive: true, force: true });
+  });
+});
+
+void describe('patchEdgeBundlesForLambdaEdge — brittleness gating', () => {
+  let tmp: string;
+  let envBackup: string | undefined;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-patch-edge-'));
+    envBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+    if (envBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = envBackup;
+    }
+  });
+
+  void it('returns silently when there are no edge bundles', () => {
+    fs.mkdirSync(path.join(tmp, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    assert.doesNotThrow(() => patchEdgeBundlesForLambdaEdge(tmp));
+  });
+
+  void it('throws UpstreamPatchPatternChangedError when bundles exist but banner is gone', () => {
+    const dir = path.join(tmp, 'server-functions', 'edge-default');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'index.mjs'),
+      'export const handler = async () => ({}); // no banner here\n',
+    );
+    assert.throws(
+      () => patchEdgeBundlesForLambdaEdge(tmp),
+      (error: Error) => error.name === 'UpstreamPatchPatternChangedError',
+    );
+  });
+
+  void it('AMPLIFY_HOSTING_LENIENT_PATCHES=1 reverts to a warning', () => {
+    const dir = path.join(tmp, 'server-functions', 'edge-default');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'index.mjs'),
+      'export const handler = async () => ({});\n',
+    );
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+    assert.doesNotThrow(() => patchEdgeBundlesForLambdaEdge(tmp));
+  });
+
+  void it('successfully patches a bundle that has the banner', () => {
+    const dir = path.join(tmp, 'server-functions', 'edge-default');
+    fs.mkdirSync(dir, { recursive: true });
+    const bundle = path.join(dir, 'index.mjs');
+    fs.writeFileSync(
+      bundle,
+      'import * as process from "node:process";\nexport const handler = async () => ({});',
+    );
+    assert.doesNotThrow(() => patchEdgeBundlesForLambdaEdge(tmp));
+    const patched = fs.readFileSync(bundle, 'utf-8');
+    assert.match(
+      patched,
+      /const process = \(await import\("node:process"\)\)\.default;/,
+    );
+  });
+});
+
+void describe('detectEdgeRoutes — multi-matcher edge functions', () => {
+  let tmp: string;
+  let manifestPath: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-edge-mm-'));
+    fs.mkdirSync(path.join(tmp, '.next', 'server'), { recursive: true });
+    manifestPath = path.join(
+      tmp,
+      '.next',
+      'server',
+      'middleware-manifest.json',
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  void it('emits one EdgeRoute per matcher (not just matchers[0])', async () => {
+    // Next's matcher.originalSource carries path-to-regexp tokens
+    // (`:path*`). The existing nextPatternToCloudFront translator
+    // only collapses Next file-system tokens (`[name]`, `[...name]`),
+    // so path-to-regexp passes through unchanged. The fix under test
+    // is that ALL matchers (not just matchers[0]) are emitted.
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/admin/:path*' },
+              { originalSource: '/api/admin/:path*' },
+              { originalSource: '/dashboard' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 3, JSON.stringify(routes));
+    const patterns = routes.map((r) => r.pattern).sort();
+    assert.deepStrictEqual(
+      patterns,
+      ['/admin/:path*', '/api/admin/:path*', '/dashboard'].sort(),
+    );
+    assert.ok(routes.every((r) => r.module === 'src/middleware'));
+  });
+
+  void it('translates Next file-system tokens ([name] / [...name]) per matcher', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/api/[locale]/admin' },
+              { originalSource: '/blog/[...slug]' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.deepStrictEqual(routes.map((r) => r.pattern).sort(), [
+      '/api/*/admin',
+      '/blog/*',
+    ]);
+  });
+
+  void it('skips matcher entries missing originalSource without dropping siblings', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [
+              { originalSource: '/keep-me' },
+              {
+                /* malformed: no originalSource */
+              },
+              { originalSource: '/also-keep' },
+            ],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 2);
+    assert.deepStrictEqual(routes.map((r) => r.pattern).sort(), [
+      '/also-keep',
+      '/keep-me',
+    ]);
+  });
+
+  void it('skips function entries without a name', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          unnamed: { matchers: [{ originalSource: '/lost' }] },
+          named: { name: 'named', matchers: [{ originalSource: '/found' }] },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.strictEqual(routes.length, 1);
+    assert.strictEqual(routes[0].pattern, '/found');
+  });
+
+  void it('returns [] when manifest is missing (no edge routes in project)', async () => {
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    assert.deepStrictEqual(detectEdgeRoutes(tmp), []);
+  });
+
+  void it('preserves existing single-matcher behavior', async () => {
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify({
+        functions: {
+          'src/middleware': {
+            name: 'src/middleware',
+            matchers: [{ originalSource: '/api/edge/[id]' }],
+          },
+        },
+      }),
+    );
+    const { detectEdgeRoutes } = await import('./nextjs.js');
+    const routes = detectEdgeRoutes(tmp);
+    assert.deepStrictEqual(routes, [
+      { module: 'src/middleware', pattern: '/api/edge/*' },
+    ]);
   });
 });
