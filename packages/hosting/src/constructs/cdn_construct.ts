@@ -598,8 +598,11 @@ export class CdnConstruct extends Construct {
           },
         ],
       };
-      const prefixed = (suffix: string) =>
-        prependBasePath(basePath, `${assetPrefix}${suffix}`);
+      // Note: when both basePath and assetPrefix are absolute (leading
+      // `/`), Next.js emits asset URLs as `<assetPrefix>/...` WITHOUT
+      // prepending basePath — so the CloudFront behavior must match the
+      // bare assetPrefix path, NOT the basePath-prefixed one.
+      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
       // Add the most-specific prefixed patterns. Skipped if a user route
       // already claims them (defensive — should never overlap in
       // practice).
