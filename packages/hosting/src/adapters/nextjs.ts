@@ -5,7 +5,7 @@
  * The output manifest is framework-agnostic — the L3 construct never knows this
  * came from Next.js.
  */
-import { execFileSync } from 'child_process';
+import { spawn } from './spawn.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -791,12 +791,10 @@ export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
 const runNextBuild = (projectDir: string): void => {
   process.stderr.write(`\u{1F528} Running next build (for edge detection)\n`);
   try {
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync('npm', ['run', 'build'], {
+    spawn.sync('npm', ['run', 'build'], {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
-      shell: true,
     });
   } catch (error) {
     throw new HostingError(
@@ -831,12 +829,10 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
   );
 
   try {
-    // shell: true lets Windows resolve `npx` -> `npx.cmd` via PATHEXT.
-    execFileSync('npx', args, {
+    spawn.sync('npx', args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
-      shell: true,
     });
   } catch (error) {
     // Check if the error is because @opennextjs/aws is not installed

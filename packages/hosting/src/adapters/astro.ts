@@ -24,7 +24,7 @@
  * build (success or failure). When the user already configured
  * `@astrojs/node`, the bridge is skipped.
  */
-import { execFileSync } from 'child_process';
+import { spawn } from './spawn.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -334,7 +334,7 @@ const installAstroJsNode = (projectDir: string): void => {
     `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} (--no-save)\n`,
   );
   try {
-    execFileSync(
+    spawn.sync(
       'npm',
       [
         'install',
@@ -347,7 +347,6 @@ const installAstroJsNode = (projectDir: string): void => {
       {
         cwd: projectDir,
         stdio: 'inherit',
-        shell: true,
       },
     );
   } catch (error) {
@@ -421,11 +420,9 @@ const runAstroBuild = (
   process.stderr.write(`\u{1F528} Running Astro build: ${cmd.join(' ')}\n`);
   try {
     const [bin, ...args] = cmd;
-    // shell: true so Windows resolves `npm` → `npm.cmd` via PATHEXT.
-    execFileSync(bin!, args, {
+    spawn.sync(bin!, args, {
       cwd: projectDir,
       stdio: 'inherit',
-      shell: true,
     });
   } catch (error) {
     throw new HostingError(

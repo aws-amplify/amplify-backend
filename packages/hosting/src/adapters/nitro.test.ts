@@ -3,15 +3,8 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { spawn } from './spawn.js';
 import { nitroAdapter } from './nitro.js';
-
-// Direct require to get the real module (not __importStar wrapper)
-// so mock.method can replace the property on the shared module singleton.
-// Mirrors the pattern in nextjs.test.ts.
-/* eslint-disable @typescript-eslint/no-require-imports */
-const childProcessModule =
-  require('child_process') as typeof import('child_process');
-/* eslint-enable @typescript-eslint/no-require-imports */
 
 /**
  * Build a minimal `.output/` layout that nitroAdapter accepts. Caller
@@ -91,7 +84,7 @@ void describe('nitroAdapter — cache provisioning', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-cache-'));
-    mock.method(childProcessModule, 'execFileSync', () => undefined);
+    mock.method(spawn, 'sync', () => undefined);
   });
 
   afterEach(() => {
@@ -163,7 +156,7 @@ void describe('nitroAdapter — IPX provisioning', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-ipx-'));
-    mock.method(childProcessModule, 'execFileSync', () => undefined);
+    mock.method(spawn, 'sync', () => undefined);
   });
 
   afterEach(() => {
@@ -327,7 +320,7 @@ void describe('nitroAdapter — IPX baseURL plumbing', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-baseurl-'));
-    mock.method(childProcessModule, 'execFileSync', () => undefined);
+    mock.method(spawn, 'sync', () => undefined);
   });
 
   afterEach(() => {

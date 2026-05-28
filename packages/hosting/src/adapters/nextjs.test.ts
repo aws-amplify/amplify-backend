@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { spawn } from './spawn.js';
 import {
   hasExistingMiddlewareManifest,
   nextjsAdapter,
@@ -12,21 +13,14 @@ import {
 } from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
-// Direct require to get the real module (not __importStar wrapper)
-// so mock.method can replace the property on the shared module singleton.
-/* eslint-disable @typescript-eslint/no-require-imports */
-const childProcessModule =
-  require('child_process') as typeof import('child_process');
-/* eslint-enable @typescript-eslint/no-require-imports */
-
 void describe('nextjsAdapter', () => {
   let tmpDir: string;
   let lenientBackup: string | undefined;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-test-'));
-    // Mock execFileSync so OpenNext build doesn't actually run
-    mock.method(childProcessModule, 'execFileSync', () => undefined);
+    // Mock the spawn wrapper so OpenNext build doesn't actually run
+    mock.method(spawn, 'sync', () => undefined);
     // The fixture stubs don't include OpenNext's streaming-wrapper or
     // edge-banner signatures, so the brittleness-throw path would fire
     // under the synthesized inputs. The patches are not under test here;

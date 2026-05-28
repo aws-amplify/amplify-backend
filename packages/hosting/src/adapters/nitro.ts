@@ -14,7 +14,7 @@
  * The L3 construct never knows which UI framework produced this — it
  * only sees compute resources, route patterns, and a static-assets dir.
  */
-import { execFileSync } from 'child_process';
+import { spawn } from './spawn.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -213,12 +213,10 @@ const runNitroBuild = (
   );
   try {
     const [bin, ...args] = cmd;
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync(bin!, args, {
+    spawn.sync(bin!, args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NITRO_PRESET: preset },
-      shell: true,
     });
   } catch (error) {
     throw new HostingError(
@@ -449,8 +447,7 @@ const buildImageOptBundleIfNeeded = (
   // Force npm to install Linux x64 binaries so sharp's native module
   // matches the Lambda runtime — Lambda is linux-x64.
   try {
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync(
+    spawn.sync(
       'npm',
       [
         'install',
@@ -465,7 +462,6 @@ const buildImageOptBundleIfNeeded = (
       {
         cwd: bundleDir,
         stdio: 'inherit',
-        shell: true,
       },
     );
   } catch (error) {
