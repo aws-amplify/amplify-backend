@@ -73,6 +73,18 @@ export type DeployManifest = {
 
   /** Build ID for atomic deployments. */
   buildId?: string;
+
+  /**
+   * Optional URL prefix that prefixes every routable URL on the deployed
+   * site. Maps to Next.js `basePath`, Astro `base`, Nuxt `app.baseURL`.
+   * When set, every CloudFront behavior pattern is prefixed and the bare
+   * domain root issues a 308 redirect to `/<basePath>/`.
+   *
+   * Format: leading slash, no trailing slash. Examples: `/app`, `/docs`.
+   * Use `assetPrefix` for asset-only prefixing; `basePath` covers SSR
+   * routes too.
+   */
+  basePath?: string;
 };
 
 export type ComputeResource = {

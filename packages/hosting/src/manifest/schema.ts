@@ -170,6 +170,14 @@ export const deployManifestSchema = z
         'buildId must be alphanumeric with hyphens, max 64 chars',
       )
       .optional(),
+    basePath: z
+      .string()
+      .regex(
+        /^\/[a-zA-Z0-9_/-]+$/,
+        'basePath must start with /, must not end with /, and must contain only letters, digits, dashes, underscores, and slashes',
+      )
+      .refine((v) => !v.endsWith('/'), 'basePath must not end with /')
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // Validate route targets reference existing compute resources or reserved targets

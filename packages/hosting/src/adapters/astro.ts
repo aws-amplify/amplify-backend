@@ -25,6 +25,7 @@
  * `@astrojs/node`, the bridge is skipped.
  */
 import { spawn } from './spawn.js';
+import { normalizeBasePath } from './shared/basepath.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -114,6 +115,9 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
     (config.trailingSlash as AstroTrailingSlash | undefined) ?? 'ignore';
   const imageDomains = readArrayOfStrings(config, 'image', 'domains');
   const liftedRedirects = liftAstroRedirects(config);
+  const basePath = normalizeBasePath(
+    typeof config.base === 'string' ? config.base : undefined,
+  );
 
   if (!skipBuild) {
     const useBridge =
@@ -188,6 +192,13 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
     manifest.redirects = liftedRedirects.slice(0, REDIRECT_LIFT_CAP);
   }
 
+  if (basePath) {
+    manifest.basePath = basePath;
+    process.stdout.write(
+      `🔗 Detected Astro base=${basePath}; CloudFront behaviors will be prefixed.\n`,
+    );
+  }
+
   // Pre-compressed sibling cleanup — CloudFront re-compresses on the
   // edge based on `Accept-Encoding`; serving the build's `.gz`/`.br`
   // copies as if they were originals breaks negotiation.
@@ -238,6 +249,7 @@ type AstroTrailingSlash = 'always' | 'never' | 'ignore';
 type AstroConfigShape = {
   output?: AstroOutput;
   trailingSlash?: AstroTrailingSlash;
+  base?: string;
   image?: {
     domains?: string[];
   };

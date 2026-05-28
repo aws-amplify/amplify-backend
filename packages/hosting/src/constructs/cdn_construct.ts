@@ -47,6 +47,7 @@ import {
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
+import { prependBasePath } from '../adapters/shared/basepath.js';
 import { DeployManifest } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
@@ -213,13 +214,28 @@ export class CdnConstruct extends Construct {
     // manifest redirects. Redirects short-circuit before the rewrite.
     // CloudFront caps one function per behavior per event type, so we
     // combine them here.
-    const manifestRedirects = manifest.redirects ?? [];
+    // basePath (if set) prefixes every routable URL on the deployed site.
+    // Redirect sources/destinations declared by the framework are
+    // basePath-relative; prefix them here so the CF Function matches the
+    // actual request URIs CloudFront sees.
+    const rawRedirects = manifest.redirects ?? [];
+    const manifestRedirects = manifest.basePath
+      ? rawRedirects.map((r) => ({
+          ...r,
+          source: prependBasePath(manifest.basePath, r.source),
+          destination: prependBasePath(manifest.basePath, r.destination),
+        }))
+      : rawRedirects;
     const buildIdFunction = new CloudFrontFunction(
       this,
       'BuildIdRewriteFunction',
       {
         code: FunctionCode.fromInline(
-          generateBuildIdAndRedirectFunctionCode(buildId, manifestRedirects),
+          generateBuildIdAndRedirectFunctionCode(
+            buildId,
+            manifestRedirects,
+            manifest.basePath,
+          ),
         ),
         runtime: FunctionRuntime.JS_2_0,
         comment:
@@ -499,9 +515,14 @@ export class CdnConstruct extends Construct {
       });
     }
 
+    const basePath = manifest.basePath;
+
     for (const route of specificRoutes) {
       const isStatic = route.target === 'static' || route.target === 's3';
-      const cfPattern = normalizePatternForCloudFront(route.pattern);
+      const cfPattern = prependBasePath(
+        basePath,
+        normalizePatternForCloudFront(route.pattern),
+      );
 
       if (isStatic) {
         additionalBehaviors[cfPattern] = makeStaticBehavior();
@@ -577,7 +598,8 @@ export class CdnConstruct extends Construct {
           },
         ],
       };
-      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
+      const prefixed = (suffix: string) =>
+        prependBasePath(basePath, `${assetPrefix}${suffix}`);
       // Add the most-specific prefixed patterns. Skipped if a user route
       // already claims them (defensive — should never overlap in
       // practice).

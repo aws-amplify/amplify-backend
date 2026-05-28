@@ -179,6 +179,10 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
 
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
+  // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
+  // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
+  // and reading it from `nuxt.config.ts` would require migrating off the
+  // regex-based config scanner — tracked as a separate follow-up PR.
 
   return buildManifest({
     preset: resolvedPreset,

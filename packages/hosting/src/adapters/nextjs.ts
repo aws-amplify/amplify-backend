@@ -6,6 +6,7 @@
  * came from Next.js.
  */
 import { spawn } from './spawn.js';
+import { normalizeBasePath } from './shared/basepath.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -197,12 +198,22 @@ const applyAssetPrefix = (
     'required-server-files.json',
   );
   if (!fs.existsSync(requiredServerFilesPath)) return;
-  let parsed: { config?: { assetPrefix?: string } };
+  let parsed: { config?: { assetPrefix?: string; basePath?: string } };
   try {
     parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
   } catch {
     return;
   }
+  // basePath — the framework-side URL prefix for routes + assets. Read
+  // alongside assetPrefix because they share the same JSON file.
+  const bp = normalizeBasePath(parsed.config?.basePath);
+  if (bp) {
+    manifest.basePath = bp;
+    process.stdout.write(
+      `🔗 Detected Next.js basePath=${bp}; CloudFront behaviors will be prefixed.\n`,
+    );
+  }
+
   const ap = parsed.config?.assetPrefix;
   if (typeof ap !== 'string' || ap === '') return;
   // Strip absolute-URL form (`https://cdn.example.com`) — only path-form

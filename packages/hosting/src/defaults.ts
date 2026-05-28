@@ -163,6 +163,7 @@ const validateRedirects = (redirects: RedirectEntry[]): void => {
 export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
+  basePath?: string,
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {
@@ -173,11 +174,24 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  // basePath strip on static behaviors: S3 stores objects under
+  // /builds/<id>/foo.css, not /builds/<id>/<basePath>/foo.css. Strip the
+  // prefix after redirects evaluate but before the build-id rewrite so
+  // assets resolve. SSR/compute behaviors KEEP basePath — framework
+  // internal routing expects it.
+  const basePathStrip = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri.indexOf(__bp) === 0) {
+    uri = uri.substring(__bp.length);
+    if (uri.length === 0) { uri = '/'; }
+  }
+`
+    : '';
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-  if (uri.endsWith('/')) {
+${basePathStrip}  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
   } else {
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
