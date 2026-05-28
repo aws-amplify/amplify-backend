@@ -7,6 +7,10 @@
  */
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
+import {
+  type TrailingSlashMode,
+  emitTrailingSlashRedirects,
+} from './shared/trailing_slash.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -198,7 +202,13 @@ const applyAssetPrefix = (
     'required-server-files.json',
   );
   if (!fs.existsSync(requiredServerFilesPath)) return;
-  let parsed: { config?: { assetPrefix?: string; basePath?: string } };
+  let parsed: {
+    config?: {
+      assetPrefix?: string;
+      basePath?: string;
+      trailingSlash?: boolean;
+    };
+  };
   try {
     parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
   } catch {
@@ -214,6 +224,13 @@ const applyAssetPrefix = (
     );
   }
 
+  // trailingSlash — Next.js exposes a tri-state via boolean: true ⇒
+  // 'always', false ⇒ 'never', undefined ⇒ 'ignore' (default).
+  const tsRaw = parsed.config?.trailingSlash;
+  const tsMode: TrailingSlashMode =
+    tsRaw === true ? 'always' : tsRaw === false ? 'never' : 'ignore';
+  applyTrailingSlashRedirects(manifest, projectDir, tsMode);
+
   const ap = parsed.config?.assetPrefix;
   if (typeof ap !== 'string' || ap === '') return;
   // Strip absolute-URL form (`https://cdn.example.com`) — only path-form
@@ -228,6 +245,55 @@ const applyAssetPrefix = (
   process.stdout.write(
     `🔗 Detected Next.js assetPrefix=${normalized}; will add CloudFront behaviors for prefixed asset paths.\n`,
   );
+};
+
+const REDIRECT_CAP_NEXTJS = 100;
+
+/**
+ * Read `.next/prerender-manifest.json` for the list of statically
+ * prerendered URL paths and emit canonical-form redirects honoring the
+ * user's `trailingSlash` setting. Caps at 100 entries (matches the
+ * CloudFront Function size budget); user-declared redirects from
+ * `liftSimpleRoutesManifest` get appended *afterwards* with the same
+ * cap split.
+ */
+const applyTrailingSlashRedirects = (
+  manifest: DeployManifest,
+  projectDir: string,
+  mode: TrailingSlashMode,
+): void => {
+  if (mode === 'ignore') return;
+  const prerenderManifestPath = path.join(
+    projectDir,
+    '.next',
+    'prerender-manifest.json',
+  );
+  if (!fs.existsSync(prerenderManifestPath)) return;
+  let parsed: { routes?: Record<string, unknown> };
+  try {
+    parsed = JSON.parse(fs.readFileSync(prerenderManifestPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const paths = Object.keys(parsed.routes ?? {});
+  const ts = emitTrailingSlashRedirects(paths, mode);
+  if (ts.length === 0) return;
+  const existing = manifest.redirects ?? [];
+  const remaining = REDIRECT_CAP_NEXTJS - existing.length;
+  if (remaining <= 0) {
+    process.stderr.write(
+      `⚠️  ${ts.length} trailing-slash redirect(s) skipped — Next.js redirect cap of ${REDIRECT_CAP_NEXTJS} ` +
+        `already filled by user-declared redirects.\n`,
+    );
+    return;
+  }
+  if (ts.length > remaining) {
+    process.stderr.write(
+      `⚠️  ${ts.length} trailing-slash redirects requested; only ${remaining} fit ` +
+        `under the ${REDIRECT_CAP_NEXTJS}-redirect CloudFront Function cap.\n`,
+    );
+  }
+  manifest.redirects = [...existing, ...ts.slice(0, remaining)];
 };
 
 /**

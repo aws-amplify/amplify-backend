@@ -26,6 +26,7 @@
  */
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
+import { emitTrailingSlashRedirects } from './shared/trailing_slash.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -190,6 +191,40 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
       );
     }
     manifest.redirects = liftedRedirects.slice(0, REDIRECT_LIFT_CAP);
+  }
+
+  // Trailing-slash canonical redirects. Append AFTER user-declared lifts
+  // so explicit redirects win the precedence in the CF Function and the
+  // overflow (if any) drops trailing-slash entries first.
+  if (trailingSlash !== 'ignore') {
+    const staticPaths = collectStaticPathsForRedirects(
+      output === 'static' ? distDir : clientDir,
+    );
+    const tsRedirects = emitTrailingSlashRedirects(
+      staticPaths,
+      trailingSlash as 'always' | 'never',
+    );
+    if (tsRedirects.length > 0) {
+      const existing = manifest.redirects ?? [];
+      const remainingCap = REDIRECT_LIFT_CAP - existing.length;
+      if (remainingCap <= 0) {
+        process.stderr.write(
+          `⚠️  ${tsRedirects.length} trailing-slash redirect(s) skipped — ` +
+            `redirect cap of ${REDIRECT_LIFT_CAP} already filled by user-declared redirects.\n`,
+        );
+      } else {
+        if (tsRedirects.length > remainingCap) {
+          process.stderr.write(
+            `⚠️  ${tsRedirects.length} trailing-slash redirects requested; only ${remainingCap} fit ` +
+              `under the ${REDIRECT_LIFT_CAP}-redirect CloudFront Function cap.\n`,
+          );
+        }
+        manifest.redirects = [
+          ...existing,
+          ...tsRedirects.slice(0, remainingCap),
+        ];
+      }
+    }
   }
 
   if (basePath) {
@@ -708,6 +743,21 @@ const htmlToUrlPath = (relPath: string): string => {
   let urlPath = '/' + normalized;
   urlPath = urlPath.replace(/\/index$/, '');
   return urlPath === '' ? '/' : urlPath;
+};
+
+/**
+ * Walk the static asset dir and return the URL paths for prerendered
+ * pages — used to seed `emitTrailingSlashRedirects`. Returns bare paths
+ * with leading slash, no trailing slash. Empty when the directory
+ * doesn't exist (SSR-only project with no prerender).
+ */
+const collectStaticPathsForRedirects = (clientOrDist: string): string[] => {
+  if (!fs.existsSync(clientOrDist)) return [];
+  const html = fg.sync('**/*.html', {
+    cwd: clientOrDist,
+    ignore: ['index.html', '404.html', '500.html'],
+  });
+  return html.map((rel) => htmlToUrlPath(rel)).filter((p) => p !== '/');
 };
 
 const normalizeRoutePattern = (
