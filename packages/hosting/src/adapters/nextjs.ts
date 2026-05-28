@@ -21,6 +21,7 @@ import type {
   CustomHeader,
   DeployManifest,
   Redirect,
+  RemotePattern,
   RouteBehavior,
 } from '../manifest/types.js';
 
@@ -181,6 +182,7 @@ export const nextjsAdapter = (
   // OpenNext server bundle, so behavior is preserved.
   applyLiftedRoutesManifest(manifest, projectDir);
   applyAssetPrefix(manifest, projectDir);
+  applyNextImageConfig(manifest, projectDir);
 
   return manifest;
 };
@@ -246,6 +248,72 @@ const applyAssetPrefix = (
   process.stdout.write(
     `🔗 Detected Next.js assetPrefix=${normalized}; will add CloudFront behaviors for prefixed asset paths.\n`,
   );
+};
+
+/**
+ * Read Next.js `next.config.js#images` from `required-server-files.json`
+ * and populate the optional fields on `manifest.imageOptimization`. By
+ * the time this runs, `next build` has already validated the patterns,
+ * so we trust the shape and only filter entries missing the required
+ * `hostname`.
+ */
+const applyNextImageConfig = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  if (!manifest.imageOptimization) return;
+  const requiredServerFilesPath = path.join(
+    projectDir,
+    '.next',
+    'required-server-files.json',
+  );
+  if (!fs.existsSync(requiredServerFilesPath)) return;
+  let parsed: {
+    config?: {
+      images?: {
+        remotePatterns?: unknown;
+        dangerouslyAllowSVG?: boolean;
+        minimumCacheTTL?: number;
+      };
+    };
+  };
+  try {
+    parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const images = parsed.config?.images;
+  if (!images) return;
+
+  if (Array.isArray(images.remotePatterns)) {
+    const patterns: RemotePattern[] = [];
+    for (const entry of images.remotePatterns) {
+      if (!entry || typeof entry !== 'object') continue;
+      const e = entry as {
+        protocol?: unknown;
+        hostname?: unknown;
+        port?: unknown;
+        pathname?: unknown;
+      };
+      if (typeof e.hostname !== 'string' || e.hostname === '') continue;
+      const p: RemotePattern = { hostname: e.hostname };
+      if (e.protocol === 'http' || e.protocol === 'https') {
+        p.protocol = e.protocol;
+      }
+      if (typeof e.port === 'string') p.port = e.port;
+      if (typeof e.pathname === 'string') p.pathname = e.pathname;
+      patterns.push(p);
+    }
+    if (patterns.length > 0) {
+      manifest.imageOptimization.remotePatterns = patterns;
+    }
+  }
+  if (typeof images.dangerouslyAllowSVG === 'boolean') {
+    manifest.imageOptimization.dangerouslyAllowSVG = images.dangerouslyAllowSVG;
+  }
+  if (typeof images.minimumCacheTTL === 'number') {
+    manifest.imageOptimization.minimumCacheTTL = images.minimumCacheTTL;
+  }
 };
 
 const REDIRECT_CAP_NEXTJS = 100;

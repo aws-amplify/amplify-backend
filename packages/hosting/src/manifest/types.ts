@@ -216,6 +216,34 @@ export type ImageConfig = {
    * adapters write it for parity with the originating framework config.
    */
   domains?: string[];
+
+  /**
+   * More expressive allowlist than `domains`. Each entry can scope the
+   * match by protocol/port/path prefix in addition to hostname. Mirrors
+   * Next.js `images.remotePatterns`.
+   */
+  remotePatterns?: RemotePattern[];
+
+  /**
+   * Permit SVG sources through the image-opt pipeline. SVG can carry
+   * arbitrary script payloads; off by default. Mirrors Next.js
+   * `images.dangerouslyAllowSVG`.
+   */
+  dangerouslyAllowSVG?: boolean;
+
+  /**
+   * Minimum cache TTL (in seconds) the image-opt response should
+   * advertise. Mirrors Next.js `images.minimumCacheTTL`. Wired onto the
+   * image-opt Lambda's env at L3 time.
+   */
+  minimumCacheTTL?: number;
+};
+
+export type RemotePattern = {
+  protocol?: 'http' | 'https';
+  hostname: string;
+  port?: string;
+  pathname?: string;
 };
 
 export type MiddlewareConfig = {
