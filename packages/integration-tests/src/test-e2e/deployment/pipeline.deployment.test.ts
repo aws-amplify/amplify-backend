@@ -10,6 +10,7 @@ import {
   rootTestDir,
 } from '../../setup_test_directory.js';
 import { PipelineTestProjectCreator } from '../../test-project-setup/pipeline.js';
+import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 void describe('pipeline deployment', { timeout: 600_000 }, () => {
@@ -43,14 +44,11 @@ void describe('pipeline deployment', { timeout: 600_000 }, () => {
     });
 
     void it('creates a CodePipeline V2 with correct stages', async () => {
-      const client = new CodePipelineClient({
-        region: process.env.AWS_REGION || 'us-east-1',
-      });
-
       await pipelineProject.verifyPipelineCreated();
       const pipelineName = pipelineProject.pipelineName;
-      assert.ok(pipelineName, 'Pipeline name should be found');
+      assert.ok(pipelineName, 'Pipeline name should be found in stack outputs');
 
+      const client = new CodePipelineClient(e2eToolingClientConfig);
       const response = await client.send(
         new GetPipelineCommand({ name: pipelineName }),
       );
