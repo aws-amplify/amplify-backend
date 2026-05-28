@@ -1,105 +1,55 @@
-/**
- * E2E deployment test for the pipeline via `ampx deploy --pipeline`.
- *
- * Verifies the full CLI deploy path works:
- *   CLI → discovers amplify/pipeline.ts → cdk deploy → pipeline stack created
- *
- * After deploy, validates the pipeline resource exists and has correct stages
- * via the CodePipeline SDK. Does NOT trigger pipeline execution (the CI
- * execution role lacks S3 write access to the pipeline's source bucket).
- */
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
+  CodePipelineClient,
+  GetPipelineCommand,
+} from '@aws-sdk/client-codepipeline';
+import {
   createTestDirectory,
   deleteTestDirectory,
-  rootTestDir,
-} from '../../setup_test_directory.js';
-import {
-  PipelineTestProject,
-  PipelineTestProjectCreator,
-} from '../../test-project-setup/pipeline.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+} from '../setup_test_directory.js';
+import { PipelineTestProjectCreator } from '../../test-project-setup/pipeline.js';
 
-const TEST_TIMEOUT_MS = 10 * 60 * 1000;
+void describe('pipeline deployment', { timeout: 600_000 }, () => {
+  let rootTestDir: string;
+  let pipelineProject: Awaited<
+    ReturnType<PipelineTestProjectCreator['create']>
+  >;
 
-const testProjectCreator = new PipelineTestProjectCreator();
+  before(async () => {
+    rootTestDir = await createTestDirectory('pipeline-e2e');
+  });
 
-void describe(
-  'pipeline deployment e2e test',
-  { concurrency: false, timeout: TEST_TIMEOUT_MS },
-  () => {
+  after(async () => {
+    await deleteTestDirectory(rootTestDir);
+  });
+
+  void describe('deploys pipeline', () => {
     before(async () => {
-      await createTestDirectory(rootTestDir);
+      const creator = new PipelineTestProjectCreator();
+      pipelineProject = await creator.create(rootTestDir);
+      await pipelineProject.deploy();
     });
+
     after(async () => {
-      await deleteTestDirectory(rootTestDir);
+      await pipelineProject?.teardown();
     });
 
-    void describe('deploys pipeline', () => {
-      let testProject: PipelineTestProject;
-      let pipelineIdentifier: BackendIdentifier;
-
-      before(async () => {
-        testProject = await testProjectCreator.createProject(rootTestDir);
-        pipelineIdentifier = {
-          namespace: testProject.pipelineStackName,
-          name: 'pipeline',
-          type: 'standalone',
-        };
-
-        process.stderr.write(
-          `\n=== Pipeline E2E Test [${testProject.pipelineStackName}] ===\n`,
-        );
-
-        // Deploy the pipeline stack via ampx deploy --pipeline
-        await testProject.deploy(pipelineIdentifier);
-
-        // Verify pipeline outputs are populated (no execution trigger)
-        await testProject.verifyPipelineCreated();
+    void it('creates a CodePipeline V2 with correct stages', async () => {
+      const client = new CodePipelineClient({
+        region: process.env.AWS_REGION || 'us-east-1',
       });
+      const pipelines = await pipelineProject.getPipelineName();
+      assert.ok(pipelines, 'Pipeline name should be found');
 
-      after(async () => {
-        process.stderr.write(
-          `\n=== Teardown [${testProject.pipelineStackName}] ===\n`,
-        );
-        try {
-          await testProject.tearDown(pipelineIdentifier);
-        } catch (e) {
-          process.stderr.write(
-            `⚠️ Failed to teardown pipeline. Check for orphaned resources: ${(e as Error).message}\n`,
-          );
-        }
-      });
+      const response = await client.send(
+        new GetPipelineCommand({ name: pipelines }),
+      );
+      assert.ok(response.pipeline, 'Pipeline should exist');
 
-      void it('pipeline stack deployed successfully', () => {
-        assert.ok(
-          testProject.pipelineName,
-          'Pipeline name should be populated from stack outputs',
-        );
-        process.stderr.write(
-          `✅ Pipeline deployed: ${testProject.pipelineName}\n`,
-        );
-      });
-
-      void it('pipeline has expected stages', async () => {
-        const stages = await testProject.getPipelineStages();
-        assert.ok(
-          stages.length >= 2,
-          `Expected at least 2 stages (Source + Build), got ${stages.length}`,
-        );
-
-        const stageNames = stages.map((s) => s.stageName);
-        assert.ok(
-          stageNames.some((n) => n?.includes('Source')),
-          `Pipeline should have a Source stage, got: ${stageNames.join(', ')}`,
-        );
-        assert.ok(
-          stageNames.some((n) => n?.includes('Build')),
-          `Pipeline should have a Build stage, got: ${stageNames.join(', ')}`,
-        );
-        process.stderr.write(`✅ Pipeline stages: ${stageNames.join(', ')}\n`);
-      });
+      const stageNames = response.pipeline.stages?.map((s) => s.name) ?? [];
+      assert.ok(stageNames.includes('Source'), 'Should have Source stage');
+      assert.ok(stageNames.includes('Build'), 'Should have Build stage');
     });
-  },
-);
+  });
+});
