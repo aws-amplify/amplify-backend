@@ -120,6 +120,25 @@ void describe('Deploy Manifest Schema', () => {
     assert.ok(result.success, 'Manifest with image optimization should parse');
   });
 
+  void it('validates manifest with image optimization domains allowlist', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      imageOptimization: {
+        bundle: '/tmp/image-fn',
+        handler: 'index.handler',
+        formats: ['webp'],
+        sizes: [640],
+        domains: ['cdn.example.com', 'images.example.org'],
+      },
+    };
+
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'imageOptimization.domains should parse');
+  });
+
   void it('validates manifest with middleware', () => {
     const manifest: DeployManifest = {
       version: 1,

@@ -5,9 +5,10 @@
  * The output manifest is framework-agnostic — the L3 construct never knows this
  * came from Next.js.
  */
-import { execFileSync } from 'child_process';
+import { spawn } from './spawn.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import fg from 'fast-glob';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -225,7 +226,7 @@ const applyAssetPrefix = (
  * leading `app/` or `pages/`, no extension. `pattern` is the URL pattern
  * with leading `/` (used as the CloudFront cache-behavior PathPattern).
  */
-type EdgeRoute = { module: string; pattern: string };
+export type EdgeRoute = { module: string; pattern: string };
 
 // Shape of the entries we care about in `.next/routes-manifest.json`. Both
 // `redirects[]` and `headers[]` carry a `source` (Next route pattern) and
@@ -390,8 +391,9 @@ const applyLiftedRoutesManifest = (
  * Caller must run `next build` (we do, via runNextBuild) before this.
  * Returns an empty array when the manifest is missing or has no edge
  * functions — both cases are valid (no edge usage in the project).
+ * @internal
  */
-const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
+export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
   const manifestPath = path.join(
     projectDir,
     '.next',
@@ -418,15 +420,21 @@ const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
   const out: EdgeRoute[] = [];
   for (const fn of Object.values(fns)) {
     const moduleName = fn.name;
-    const original = fn.matchers?.[0]?.originalSource;
-    if (!moduleName || !original) continue;
-    const slashed = original.startsWith('/') ? original : `/${original}`;
-    out.push({
-      module: moduleName,
-      // OpenNext docs require CloudFront-compatible patterns in
-      // functions.<n>.patterns; same translation as the route mapper.
-      pattern: nextPatternToCloudFront(slashed),
-    });
+    if (!moduleName) continue;
+    // Iterate every matcher — multi-matcher middleware
+    // (e.g. matcher: ['/admin/:path*', '/api/admin/:path*']) loses every
+    // matcher after the first if we only honor matchers[0].
+    for (const matcher of fn.matchers ?? []) {
+      const original = matcher.originalSource;
+      if (!original) continue;
+      const slashed = original.startsWith('/') ? original : `/${original}`;
+      out.push({
+        module: moduleName,
+        // OpenNext docs require CloudFront-compatible patterns in
+        // functions.<n>.patterns; same translation as the route mapper.
+        pattern: nextPatternToCloudFront(slashed),
+      });
+    }
   }
   return out;
 };
@@ -561,36 +569,24 @@ ${entries}
  *   2. Force the wrapper's identity branch (skip brotli/gzip/deflate);
  *      CloudFront handles compression downstream.
  * Idempotent.
+ * @internal
  */
-const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
+export const patchStreamingWrapperForApiGateway = (
+  openNextDir: string,
+): void => {
   const root = path.join(openNextDir, 'server-functions', 'default');
   // OpenNext puts the streaming wrapper in `default/index.mjs` for flat
   // packages, but in workspace setups it nests the real bundle under
-  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export at
-  // `default/index.mjs`. Walk the tree and patch every index.mjs that
-  // contains the wrapper signature.
-  const stack = [root];
-  const candidates: string[] = [];
-  while (stack.length > 0) {
-    const dir = stack.pop()!;
-    let entries: fs.Dirent[];
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw err;
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        // Skip node_modules — the bundler embeds OpenNext into index.mjs.
-        if (entry.name === 'node_modules') continue;
-        stack.push(full);
-      } else if (entry.isFile() && entry.name === 'index.mjs') {
-        candidates.push(full);
-      }
-    }
-  }
+  // `default/<workspace-path>/index.mjs` and emits a 60-byte re-export
+  // at `default/index.mjs`. Match every index.mjs in the tree (skipping
+  // node_modules — the bundler embeds OpenNext inline) and patch the
+  // ones that contain the wrapper signature.
+  if (!fs.existsSync(root)) return;
+  const candidates = fg.sync('**/index.mjs', {
+    cwd: root,
+    absolute: true,
+    ignore: ['**/node_modules/**'],
+  });
 
   let totalPatches = 0;
   let filesPatched = 0;
@@ -633,11 +629,21 @@ const patchStreamingWrapperForApiGateway = (openNextDir: string): void => {
   }
 
   if (filesPatched === 0) {
-    process.stderr.write(
-      `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
-        `OpenNext may have updated its bundled wrapper; verify wrapper output.\n`,
-    );
-    return;
+    if (process.env.AMPLIFY_HOSTING_LENIENT_PATCHES === '1') {
+      process.stderr.write(
+        `⚠️  Streaming-wrapper patch found nothing to change under ${root}. ` +
+          `Continuing because AMPLIFY_HOSTING_LENIENT_PATCHES=1 is set.\n`,
+      );
+      return;
+    }
+    throw new HostingError('UpstreamPatchPatternChangedError', {
+      message:
+        `Streaming-wrapper patch found nothing to change under ${root}. ` +
+        'OpenNext likely changed its bundled aws-lambda-streaming wrapper.',
+      resolution:
+        'File an issue with the OpenNext version and the regex name (`patchStreamingWrapperForApiGateway`). ' +
+        'To bypass while investigating, set AMPLIFY_HOSTING_LENIENT_PATCHES=1 — note that streaming responses may be malformed without the patch.',
+    });
   }
 
   process.stderr.write(
@@ -668,38 +674,53 @@ const EDGE_PROCESS_BANNER = /^import \* as process from "node:process";/m;
 const EDGE_PROCESS_BANNER_REPLACEMENT =
   'const process = (await import("node:process")).default;';
 
-const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
+/**
+ * Apply the {@link EDGE_PROCESS_BANNER} swap to every edge bundle under
+ * `<openNextDir>/server-functions/edge*\/index.mjs`. Throws
+ * `UpstreamPatchPatternChangedError` when bundles exist but none match the
+ * banner (use `AMPLIFY_HOSTING_LENIENT_PATCHES=1` to revert to a warning).
+ * @internal
+ */
+export const patchEdgeBundlesForLambdaEdge = (openNextDir: string): void => {
   const serverFnDir = path.join(openNextDir, 'server-functions');
-  let entries: fs.Dirent[];
-  try {
-    entries = fs.readdirSync(serverFnDir, { withFileTypes: true });
-  } catch {
-    return;
-  }
+  if (!fs.existsSync(serverFnDir)) return;
+  const bundles = fg.sync('edge*/index.mjs', {
+    cwd: serverFnDir,
+    absolute: true,
+  });
+  if (bundles.length === 0) return;
+
   let total = 0;
-  for (const entry of entries) {
-    if (!entry.isDirectory() || !entry.name.startsWith('edge')) continue;
-    const bundle = path.join(serverFnDir, entry.name, 'index.mjs');
-    let src: string;
-    try {
-      src = fs.readFileSync(bundle, 'utf-8');
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw err;
-    }
+  for (const bundle of bundles) {
+    const src = fs.readFileSync(bundle, 'utf-8');
     if (!EDGE_PROCESS_BANNER.test(src)) continue;
-    const patched = src.replace(
-      EDGE_PROCESS_BANNER,
-      EDGE_PROCESS_BANNER_REPLACEMENT,
+    fs.writeFileSync(
+      bundle,
+      src.replace(EDGE_PROCESS_BANNER, EDGE_PROCESS_BANNER_REPLACEMENT),
+      'utf-8',
     );
-    fs.writeFileSync(bundle, patched, 'utf-8');
     total++;
   }
-  if (total > 0) {
-    process.stderr.write(
-      `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
-    );
+  if (total === 0) {
+    if (process.env.AMPLIFY_HOSTING_LENIENT_PATCHES === '1') {
+      process.stderr.write(
+        `⚠️  Edge-bundle banner patch matched none of ${bundles.length} edge bundle(s). ` +
+          `Continuing because AMPLIFY_HOSTING_LENIENT_PATCHES=1 is set.\n`,
+      );
+      return;
+    }
+    throw new HostingError('UpstreamPatchPatternChangedError', {
+      message:
+        `Edge-bundle banner patch matched none of ${bundles.length} edge bundle(s) under ${serverFnDir}. ` +
+        'OpenNext likely changed the process import banner injected into edge bundles.',
+      resolution:
+        'File an issue with the OpenNext version and the regex name (`patchEdgeBundlesForLambdaEdge`). ' +
+        'To bypass while investigating, set AMPLIFY_HOSTING_LENIENT_PATCHES=1 — Lambda@Edge cold starts may crash without the patch.',
+    });
   }
+  process.stderr.write(
+    `\u{1F527} Patched ${total} edge bundle(s) for Lambda@Edge nodejs20.x compatibility.\n`,
+  );
 };
 
 /**
@@ -737,47 +758,20 @@ export const hasExistingMiddlewareManifest = (projectDir: string): boolean => {
  * @internal
  */
 export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
-  const candidateRoots = [
-    path.join(projectDir, 'app'),
-    path.join(projectDir, 'src', 'app'),
-    path.join(projectDir, 'pages'),
-    path.join(projectDir, 'src', 'pages'),
-  ];
-  // Match `runtime = 'edge'` or `runtime: 'edge'` (and -experimental-).
+  const roots = ['app', 'src/app', 'pages', 'src/pages'].filter((d) =>
+    fs.existsSync(path.join(projectDir, d)),
+  );
+  if (roots.length === 0) return false;
   const pattern = /runtime\s*[:=]\s*['"`](?:edge|experimental-edge)['"`]/;
-  const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']);
-
-  const stack: string[] = candidateRoots.filter((d) => fs.existsSync(d));
-  while (stack.length > 0) {
-    const dir = stack.pop()!;
-    let entries: fs.Dirent[];
+  const files = fg.sync(
+    roots.map((r) => `${r}/**/*.{ts,tsx,js,jsx,mjs}`),
+    { cwd: projectDir, absolute: true, ignore: ['**/node_modules/**'] },
+  );
+  for (const file of files) {
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
+      if (pattern.test(fs.readFileSync(file, 'utf-8'))) return true;
     } catch {
       continue;
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
-          continue;
-        }
-        stack.push(full);
-      } else if (
-        entry.isFile() &&
-        sourceExtensions.has(path.extname(entry.name))
-      ) {
-        try {
-          if (pattern.test(fs.readFileSync(full, 'utf-8'))) {
-            return true;
-          }
-        } catch {
-          // Unreadable file — skip; if a real edge route is hidden behind
-          // an I/O error, the worst case is we don't pre-build and
-          // OpenNext fails with its own clear error.
-          continue;
-        }
-      }
     }
   }
   return false;
@@ -797,12 +791,10 @@ export const projectHasEdgeRuntimeRoutes = (projectDir: string): boolean => {
 const runNextBuild = (projectDir: string): void => {
   process.stderr.write(`\u{1F528} Running next build (for edge detection)\n`);
   try {
-    // shell: true lets Windows resolve `npm` -> `npm.cmd` via PATHEXT.
-    execFileSync('npm', ['run', 'build'], {
+    spawn.sync('npm', ['run', 'build'], {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
-      shell: true,
     });
   } catch (error) {
     throw new HostingError(
@@ -837,12 +829,10 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
   );
 
   try {
-    // shell: true lets Windows resolve `npx` -> `npx.cmd` via PATHEXT.
-    execFileSync('npx', args, {
+    spawn.sync('npx', args, {
       cwd: projectDir,
       stdio: 'inherit',
       env: { ...process.env, NODE_OPTIONS: '' },
-      shell: true,
     });
   } catch (error) {
     // Check if the error is because @opennextjs/aws is not installed
@@ -893,27 +883,14 @@ const copyAmplifyOutputsToServerBundles = (
   openNextDir: string,
 ): void => {
   const outputsFile = path.join(projectDir, 'amplify_outputs.json');
-  if (!fs.existsSync(outputsFile)) {
-    return;
-  }
+  if (!fs.existsSync(outputsFile)) return;
 
-  const targets: string[] = [];
-
-  // Single server function directory
-  const singleFn = path.join(openNextDir, 'server-function');
-  if (fs.existsSync(singleFn)) {
-    targets.push(singleFn);
-  }
-
-  // Multi-function directory (server-functions/<name>/)
-  const multiFnDir = path.join(openNextDir, 'server-functions');
-  if (fs.existsSync(multiFnDir)) {
-    for (const entry of fs.readdirSync(multiFnDir, { withFileTypes: true })) {
-      if (entry.isDirectory()) {
-        targets.push(path.join(multiFnDir, entry.name));
-      }
-    }
-  }
+  // Single (server-function/) and multi (server-functions/<name>/) layouts.
+  const targets = fg.sync(['server-function', 'server-functions/*'], {
+    cwd: openNextDir,
+    absolute: true,
+    onlyDirectories: true,
+  });
 
   for (const target of targets) {
     const dest = path.join(target, 'amplify_outputs.json');
@@ -924,9 +901,7 @@ const copyAmplifyOutputsToServerBundles = (
       );
     }
 
-    // Also copy into .next/standalone/ if it exists — some OpenNext versions
-    // set the Next.js server root there, so page components resolve paths
-    // relative to that subtree.
+    // Some OpenNext versions root the Next.js server at .next/standalone/.
     const standaloneDest = path.join(
       target,
       '.next',

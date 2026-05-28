@@ -23,7 +23,10 @@ import { detectFramework, getAdapter } from './adapters/index.js';
 import { runBuild } from './build/runner.js';
 import * as path from 'path';
 import * as fs from 'fs';
+import { fileURLToPath } from 'node:url';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
+
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 
 export type BackendHosting = ResourceProvider<HostingResources>;
 
@@ -195,7 +198,7 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
   new AttributionMetadataStorage().storeAttributionMetadata(
     rootStack,
     rootStackTypeIdentifier,
-    path.resolve(__dirname, '..', 'package.json'),
+    path.resolve(moduleDir, '..', 'package.json'),
   );
 
   const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
@@ -238,7 +241,7 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       'custom',
-      path.resolve(__dirname, '..', 'package.json'),
+      path.resolve(moduleDir, '..', 'package.json'),
     );
     customStacks[name] = stack;
     return stack;

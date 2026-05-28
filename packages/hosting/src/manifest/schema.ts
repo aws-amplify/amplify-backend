@@ -81,6 +81,7 @@ export const imageConfigSchema = z.object({
     .regex(/^\/[^?#\s]*$/, 'baseURL must be an absolute path starting with /')
     .optional(),
   environment: z.record(z.string(), z.string()).optional(),
+  domains: z.array(z.string()).optional(),
 });
 
 /**
