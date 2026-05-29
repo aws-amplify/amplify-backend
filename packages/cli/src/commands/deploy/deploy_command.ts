@@ -188,11 +188,10 @@ export class DeployCommand implements CommandModule<
             'cdk',
             'deploy',
             '--app',
-            // Quote the entry point to prevent shell injection via paths
-            // containing spaces or metacharacters. execa uses array-based
-            // invocation (shell: false by default), so the path is passed
-            // as a single token to the CDK --app command.
-            `npx tsx "${pipelineEntryPoint}"`,
+            // execa uses array-based invocation (shell: false by default),
+            // so the path is passed as a single token to the CDK --app command.
+            // No manual quoting needed — array elements are naturally shell-safe.
+            `npx tsx ${pipelineEntryPoint}`,
             '--require-approval',
             'never',
             '--all',
