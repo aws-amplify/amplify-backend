@@ -7,10 +7,6 @@ import {
   DeleteStackCommand,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import {
-  CodePipelineClient,
-  GetPipelineStateCommand,
-} from '@aws-sdk/client-codepipeline';
 import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
@@ -72,8 +68,6 @@ export class PipelineTestProject extends TestProjectBase {
 
   pipelineName: string = '';
 
-  private readonly codePipelineClient: CodePipelineClient;
-
   /**
    * Initializes the pipeline test project with stack name and SDK clients.
    */
@@ -95,7 +89,6 @@ export class PipelineTestProject extends TestProjectBase {
     this.sourceProjectAmplifyDirURL = new URL(
       `file://${projectAmplifyDirPath}`,
     );
-    this.codePipelineClient = new CodePipelineClient(e2eToolingClientConfig);
   }
 
   /**
@@ -146,16 +139,6 @@ export class PipelineTestProject extends TestProjectBase {
     const stackOutputs = await this.getStackOutputs(this.pipelineStackName);
     this.pipelineName = stackOutputs.PipelineName;
     process.stderr.write(`Pipeline: ${this.pipelineName}\n`);
-  }
-
-  /**
-   * Get pipeline stages via CodePipeline SDK.
-   */
-  async getPipelineStages() {
-    const state = await this.codePipelineClient.send(
-      new GetPipelineStateCommand({ name: this.pipelineName }),
-    );
-    return state.stageStates ?? [];
   }
 
   /**
