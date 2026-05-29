@@ -97,12 +97,8 @@ export class AmplifyPipelineConstruct<
       return;
     }
 
-    if (props.stageFactory.constructor.name === 'AsyncFunction') {
-      throw new Error(
-        'AmplifyPipelineConstruct: async stageFactory detected in sync constructor. ' +
-          'Use AmplifyPipelineConstruct.create() for async stage factories.',
-      );
-    }
+    // Note: async detection is done at call-site (createBranchPipelineSync)
+    // by checking the return value, which works even with transpiled code.
 
     validateProps(this, props);
 
@@ -361,8 +357,8 @@ const validateStageStacks = (stage: cdk.Stage, stageName: string): void => {
 
   if (stacks.length === 0) {
     throw new Error(
-      `Pipeline: stage '${stageName}' contains no stacks after running stageFactory. ` +
-        'Ensure `stageFactory` creates at least one Stack on the provided scope.',
+      `Pipeline: stage '${stageName}' must contain at least one Stack. ` +
+        'Ensure your hosting.ts or backend.ts creates resources for this stage.',
     );
   }
 };
@@ -396,6 +392,7 @@ const createBranchPipelineSync = <TConfig>(
       },
     );
 
+    let result: void | Promise<void>;
     if (stageConfig.environment) {
       const originalEnv: Record<string, string | undefined> = {};
       for (const [key, value] of Object.entries(stageConfig.environment)) {
@@ -403,7 +400,7 @@ const createBranchPipelineSync = <TConfig>(
         process.env[key] = value;
       }
       try {
-        void props.stageFactory(stage, stageConfig);
+        result = props.stageFactory(stage, stageConfig);
       } finally {
         for (const [key, originalValue] of Object.entries(originalEnv)) {
           if (originalValue === undefined) {
@@ -414,7 +411,14 @@ const createBranchPipelineSync = <TConfig>(
         }
       }
     } else {
-      void props.stageFactory(stage, stageConfig);
+      result = props.stageFactory(stage, stageConfig);
+    }
+
+    if (result && typeof (result as Promise<void>).then === 'function') {
+      throw new Error(
+        'AmplifyPipelineConstruct: async stage factory detected in sync constructor. ' +
+          'Use AmplifyPipelineConstruct.create() for async stage factories.',
+      );
     }
 
     validateStageStacks(stage, stageConfig.name);

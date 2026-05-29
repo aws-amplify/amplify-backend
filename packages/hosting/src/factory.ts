@@ -1,4 +1,4 @@
-import { App, NestedStack, Stack, Tags } from 'aws-cdk-lib';
+import { App, NestedStack, Stack, Stage, Tags } from 'aws-cdk-lib';
 import {
   AmplifyUserError,
   BackendIdentifierConversions,
@@ -170,6 +170,27 @@ export type HostingResult = {
  * @returns Hosting result containing CDK resources, root stack, and a `createStack` helper.
  */
 export const defineHosting = (props: HostingProps = {}): HostingResult => {
+  // Check for pipeline ambient scope — when running inside definePipeline's
+  // stageFactory, attach constructs to the pipeline stage instead of creating
+  // a standalone App.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pipelineScope = (globalThis as any)['__AMPLIFY_PIPELINE_SCOPE__'] as
+    | Stage
+    | undefined;
+
+  if (pipelineScope) {
+    const hostingStack = new Stack(pipelineScope, 'HostingStack');
+    const hostingNestedStack = new NestedStack(hostingStack, 'hosting');
+    const resources = buildHostingConstruct(props, hostingNestedStack);
+
+    return {
+      resources,
+      stack: hostingStack,
+      createStack: (name: string) => new NestedStack(hostingStack, name),
+    };
+  }
+
+  // Normal standalone path — create own App and register IPC listeners
   const app = new App();
   const backendId = getBackendIdentifier(app);
 

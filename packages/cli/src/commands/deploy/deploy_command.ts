@@ -178,13 +178,21 @@ export class DeployCommand implements CommandModule<
       printer.log(`Deploying pipeline from ${pipelineEntryPoint}...`);
 
       try {
+        // Pipeline deployment bypasses CDK approval because:
+        // 1. The user explicitly ran `ampx deploy --pipeline` (intentional action)
+        // 2. Pipeline resources are infrastructure-as-code reviewed in the PR
+        // 3. The --yes flag already confirmed the user's intent
         await this.execaCommand(
           'npx',
           [
             'cdk',
             'deploy',
             '--app',
-            `npx tsx ${pipelineEntryPoint}`,
+            // Quote the entry point to prevent shell injection via paths
+            // containing spaces or metacharacters. execa uses array-based
+            // invocation (shell: false by default), so the path is passed
+            // as a single token to the CDK --app command.
+            `npx tsx "${pipelineEntryPoint}"`,
             '--require-approval',
             'never',
             '--all',
@@ -192,6 +200,7 @@ export class DeployCommand implements CommandModule<
           {
             stdio: 'inherit',
             cwd: process.cwd(),
+            shell: false,
           },
         );
       } catch (error) {

@@ -16,8 +16,9 @@ const AMPLIFY_PIPELINE_SCOPE_KEY = '__AMPLIFY_PIPELINE_SCOPE__';
 
 /**
  * File extensions to search when discovering hosting.ts/backend.ts.
+ * Note: .mjs is excluded because native ESM cannot be loaded via require().
  */
-const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs'];
+const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.cjs'];
 
 /**
  * Define a CI/CD pipeline for Amplify applications.
@@ -67,7 +68,8 @@ const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs'];
  */
 export const definePipeline = (props: DefinePipelineProps): void => {
   const app = new cdk.App();
-  const stackName = 'amplify-pipeline';
+  const repoSuffix = props.source.repo.replace(/[^a-zA-Z0-9]/g, '-');
+  const stackName = props.stackName ?? `amplify-pipeline-${repoSuffix}`;
   const rootStack = new cdk.Stack(app, stackName, {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -78,6 +80,13 @@ export const definePipeline = (props: DefinePipelineProps): void => {
   const amplifyDir = path.resolve(process.cwd(), 'amplify');
   const hostingFile = findFile(amplifyDir, 'hosting');
   const backendFile = findFile(amplifyDir, 'backend');
+
+  if (!hostingFile && !backendFile) {
+    throw new Error(
+      'Could not find amplify/hosting.ts or amplify/backend.ts. ' +
+        'Create at least one to define your application.',
+    );
+  }
 
   const internalStageFactory = (
     scope: cdk.Stage,
@@ -145,19 +154,10 @@ export function getStageConfig<T = Record<string, unknown>>():
  *
  * Use this inside your `stageFactory` to make the pipeline scope available to
  * `defineHosting`/`defineBackend` (which detect the ambient scope via `globalThis`).
+ * @internal
  * @param scope - The CDK Stage provided by the pipeline.
  * @param stageConfig - The full stage configuration for the current stage.
  * @param fn - A callback (sync or async) that imports/executes your application code.
- * @example
- * ```ts
- * definePipeline({
- *   stageFactory: async (scope, stageConfig) => {
- *     await withPipelineScope(scope, stageConfig, async () => {
- *       await import('./hosting.js');
- *     });
- *   },
- * });
- * ```
  */
 // eslint-disable-next-line no-restricted-syntax
 export async function withPipelineScope<T>(
@@ -197,8 +197,11 @@ export function findFile(dir: string, baseName: string): string | undefined {
  *
  * Clears the require cache for the resolved module path before requiring,
  * ensuring each pipeline stage gets a fresh execution of hosting.ts/backend.ts.
- * Uses `require()` (not `import()`) because dynamic `import()` under tsx/esbuild
- * maintains its own ESM module map that doesn't respect `require.cache` deletion.
+ *
+ * Note: Only the target module's cache entry is busted. Transitive dependencies
+ * (modules required by hosting.ts/backend.ts) are NOT cache-busted and will
+ * retain state across stages. If per-stage isolation of transitive deps is needed,
+ * consider using worker_threads or forked processes.
  */
 // eslint-disable-next-line no-restricted-syntax
 function importFresh(filePath: string): void {
