@@ -21,3 +21,16 @@ export {
   generateBuildId,
   generateBuildIdFunctionCode,
 } from './constructs/hosting_construct.js';
+export {
+  definePipeline,
+  getStageConfig,
+  withPipelineScope,
+} from './pipeline/index.js';
+export { AmplifyPipelineConstruct } from './pipeline/index.js';
+export type {
+  PipelineProps,
+  PipelineSourceConfig,
+  PipelineSynthConfig,
+  PipelineStageConfig,
+  BranchConfig,
+} from './pipeline/types.js';
