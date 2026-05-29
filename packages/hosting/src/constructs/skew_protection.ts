@@ -50,11 +50,6 @@ export const generateSkewProtectionViewerRequestCode = (
   }
   if (uri.endsWith('/')) {
     uri = uri + 'index.html';
-  } else {
-    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
-    if (lastSegment.indexOf('.') === -1) {
-      uri = uri + '/index.html';
-    }
   }
   request.uri = '/builds/' + buildId + uri;
   return request;
