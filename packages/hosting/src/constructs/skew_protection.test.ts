@@ -123,6 +123,79 @@ void describe('Skew Protection — Code Generation', () => {
       const code = generateSkewProtectionViewerRequestCode(longId);
       assert.ok(code.includes(longId));
     });
+
+    void it('includes redirect logic when redirects are provided', () => {
+      const redirects = [
+        {
+          source: '/old-page',
+          destination: '/new-page',
+          statusCode: 301 as const,
+        },
+      ];
+      const code = generateSkewProtectionViewerRequestCode(
+        'build-1',
+        redirects,
+      );
+      assert.ok(code.includes('__redirects'));
+      assert.ok(code.includes('/old-page'));
+      assert.ok(code.includes('/new-page'));
+      assert.ok(code.includes('301'));
+      assert.ok(code.includes('Redirect'));
+    });
+
+    void it('places redirect check before cookie/build-id logic', () => {
+      const redirects = [
+        {
+          source: '/moved',
+          destination: '/destination',
+          statusCode: 302 as const,
+        },
+      ];
+      const code = generateSkewProtectionViewerRequestCode(
+        'build-1',
+        redirects,
+      );
+      const redirectIdx = code.indexOf('__redirects');
+      const cookieIdx = code.indexOf('__dpl');
+      assert.ok(
+        redirectIdx < cookieIdx,
+        'Redirects must be checked before cookie logic',
+      );
+    });
+
+    void it('generates no redirect logic when redirects array is empty', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', []);
+      assert.ok(!code.includes('__redirects'));
+    });
+
+    void it('handles wildcard redirect sources', () => {
+      const redirects = [
+        {
+          source: '/blog/*',
+          destination: '/posts/*',
+          statusCode: 308 as const,
+        },
+      ];
+      const code = generateSkewProtectionViewerRequestCode(
+        'build-1',
+        redirects,
+      );
+      assert.ok(code.includes('/blog/*'));
+      assert.ok(code.includes('/posts/*'));
+    });
+
+    void it('throws for too many redirects (over 100)', () => {
+      const redirects = Array.from({ length: 101 }, (_, i) => ({
+        source: `/src-${i}`,
+        destination: `/dst-${i}`,
+        statusCode: 301 as const,
+      }));
+      assert.throws(
+        () => generateSkewProtectionViewerRequestCode('build-1', redirects),
+        (err: unknown) =>
+          err instanceof HostingError && err.name === 'TooManyRedirectsError',
+      );
+    });
   });
 
   void describe('generateSkewProtectionViewerResponseCode', () => {
@@ -448,6 +521,79 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
         code.includes('__dpl'),
       );
       assert.strictEqual(hasCookieLogic, false);
+    });
+  });
+
+  void describe('Skew protection with manifest redirects', () => {
+    void it('includes redirect handling in skew protection function code', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const manifestWithRedirects: DeployManifest = {
+        ...spaManifest,
+        redirects: [{ source: '/old', destination: '/new', statusCode: 301 }],
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: manifestWithRedirects,
+        securityHeadersPolicy: policy,
+        skewProtection: { enabled: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const functions = template.findResources('AWS::CloudFront::Function');
+      /* eslint-disable @typescript-eslint/naming-convention */
+      const functionCodes = Object.values(functions).map(
+        (f: Record<string, unknown>) =>
+          (f as { Properties: { FunctionCode: string } }).Properties
+            .FunctionCode,
+      );
+      /* eslint-enable @typescript-eslint/naming-convention */
+      const skewFn = functionCodes.find(
+        (code) => code.includes('__dpl') && code.includes('__redirects'),
+      );
+      assert.ok(skewFn, 'Skew protection function must include redirect logic');
+      assert.ok(skewFn.includes('/old'));
+      assert.ok(skewFn.includes('/new'));
+    });
+
+    void it('skew protection function handles redirects before cookie logic', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const manifestWithRedirects: DeployManifest = {
+        ...spaManifest,
+        redirects: [
+          { source: '/legacy', destination: '/modern', statusCode: 302 },
+        ],
+      };
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: manifestWithRedirects,
+        securityHeadersPolicy: policy,
+        skewProtection: { enabled: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const functions = template.findResources('AWS::CloudFront::Function');
+      /* eslint-disable @typescript-eslint/naming-convention */
+      const functionCodes = Object.values(functions).map(
+        (f: Record<string, unknown>) =>
+          (f as { Properties: { FunctionCode: string } }).Properties
+            .FunctionCode,
+      );
+      /* eslint-enable @typescript-eslint/naming-convention */
+      const skewFn = functionCodes.find((code) => code.includes('__dpl'))!;
+      const redirectIdx = skewFn.indexOf('__redirects');
+      const cookieIdx = skewFn.indexOf('__dpl');
+      assert.ok(
+        redirectIdx < cookieIdx,
+        'Redirect check must appear before cookie logic in generated code',
+      );
     });
   });
 });

@@ -990,10 +990,13 @@ export class CdnConstruct extends Construct {
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
-          generateSkewProtectionViewerRequestCode(buildId),
+          generateSkewProtectionViewerRequestCode(buildId, redirects),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
-        comment: `Skew protection: routes requests to build from cookie or current build ${buildId}`,
+        comment:
+          redirects.length > 0
+            ? `Skew protection: cookie-based routing + ${redirects.length} redirect rule(s)`
+            : `Skew protection: routes requests to build from cookie or current build ${buildId}`,
       });
     }
     return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {

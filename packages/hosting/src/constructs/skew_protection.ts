@@ -1,4 +1,9 @@
-import { BUILD_ID_PATTERN } from '../defaults.js';
+import {
+  BUILD_ID_PATTERN,
+  RedirectEntry,
+  generateRedirectCheckSnippet,
+  validateRedirects,
+} from '../defaults.js';
 import { HostingError } from '../hosting_error.js';
 
 /**
@@ -28,20 +33,26 @@ const COOKIE_NAME = '__dpl';
  * Generates CloudFront Function code for the viewer-request event.
  *
  * This function:
- * 1. Reads the `__dpl` cookie from the incoming request
- * 2. If present and valid, rewrites the URI to that build's prefix
- * 3. If absent, uses the current (deploy-time) build ID
- * 4. Appends `index.html` for directory-style paths
+ * 1. Checks manifest redirects — if match, returns redirect response immediately
+ * 2. Reads the `__dpl` cookie from the incoming request
+ * 3. If present and valid, rewrites the URI to that build's prefix
+ * 4. If absent, uses the current (deploy-time) build ID
+ * 5. Appends `index.html` for directory-style paths
  * @param buildId - The current build ID baked in at synth time
+ * @param redirects - Manifest redirect entries to evaluate before build-id rewrite
  * @returns CloudFront Function source code (JavaScript)
  */
 export const generateSkewProtectionViewerRequestCode = (
   buildId: string,
+  redirects: RedirectEntry[] = [],
 ): string => {
   validateBuildId(buildId);
+  validateRedirects(redirects);
+  const redirectSnippet = generateRedirectCheckSnippet(redirects);
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
+${redirectSnippet}
   var buildId = '${buildId}';
   var cookieHeader = request.headers.cookie ? request.headers.cookie.value : '';
   var match = cookieHeader.match(/(?:^|;\\s*)${COOKIE_NAME}=([a-zA-Z0-9-]{1,64})/);
