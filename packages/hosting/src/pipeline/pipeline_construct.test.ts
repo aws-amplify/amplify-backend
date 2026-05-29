@@ -405,7 +405,7 @@ void describe('AmplifyPipelineConstruct', () => {
               },
             }),
           ),
-        /stage.*beta.*contains no stacks/i,
+        /stage.*beta.*must contain at least one Stack/i,
       );
     });
 
@@ -728,7 +728,7 @@ void describe('AmplifyPipelineConstruct', () => {
               },
             }),
           ),
-        /async stageFactory.*AmplifyPipelineConstruct\.create/,
+        /async stage factory.*AmplifyPipelineConstruct\.create/,
       );
     });
   });
