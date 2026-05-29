@@ -91,6 +91,17 @@ void describe('Skew Protection — Code Generation', () => {
       assert.ok(code.includes("uri = uri + 'index.html'"));
     });
 
+    void it('appends /index.html for bare paths without file extension', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1');
+      assert.ok(
+        code.includes(
+          "var lastSegment = uri.substring(uri.lastIndexOf('/') + 1)",
+        ),
+      );
+      assert.ok(code.includes("if (lastSegment.indexOf('.') === -1)"));
+      assert.ok(code.includes("uri = uri + '/index.html'"));
+    });
+
     void it('throws for invalid build ID', () => {
       assert.throws(
         () => generateSkewProtectionViewerRequestCode('invalid build!'),

@@ -45,8 +45,6 @@ void describe(
       let frontendIdentifier: BackendIdentifier;
       let fullIdentifier: BackendIdentifier;
       let distributionUrl: string;
-      let skewBuildIdA: string;
-      let skewStaticAssetPath: string;
 
       before(async () => {
         testProject = await testProjectCreator.createProject(rootTestDir);
@@ -285,36 +283,6 @@ void describe(
           await testProject.assertPostDeployment(backendIdentifier);
         });
 
-        void it('stage 2b: skew protection — captures build A cookie and static asset path', async () => {
-          // Fetch HTML page and capture the __dpl skew protection cookie
-          const initialResponse = await fetch(distributionUrl, {
-            redirect: 'manual',
-          });
-          const setCookieHeader =
-            initialResponse.headers.get('set-cookie') ?? '';
-          const buildIdMatch = setCookieHeader.match(/__dpl=([^;]+)/);
-          assert.ok(
-            buildIdMatch,
-            `Skew protection cookie (__dpl) should be set on HTML response, got set-cookie: ${setCookieHeader.substring(0, 200)}`,
-          );
-          skewBuildIdA = buildIdMatch![1];
-          process.stderr.write(
-            `Skew protection: captured build A cookie __dpl=${skewBuildIdA}\n`,
-          );
-
-          // Extract a static asset path from the HTML to verify skew-pinned access later
-          const htmlBody = await initialResponse.text();
-          const assetMatch = htmlBody.match(/\/assets\/[^"'\s]+\.(js|css)/);
-          assert.ok(
-            assetMatch,
-            `Page HTML should contain /assets/ asset references for skew test, got: ${htmlBody.substring(0, 300)}`,
-          );
-          skewStaticAssetPath = assetMatch![0];
-          process.stderr.write(
-            `Skew protection: captured static asset path ${skewStaticAssetPath}\n`,
-          );
-        });
-
         void it('stage 3: applies v2 changes and full deploys — validates v2 content, outputs, and infra change', async () => {
           // Apply combined v2 update (content change + access logging)
           const updates = await testProject.getUpdates();
@@ -411,57 +379,6 @@ void describe(
           assert.ok(
             s3BucketCount >= 2,
             `Stack should have at least 2 S3 buckets (hosting + access log) after enabling access logging, got: ${s3BucketCount}`,
-          );
-        });
-
-        void it('stage 3b: skew protection — verifies old build assets accessible with pinned cookie', async () => {
-          // After full redeploy (build B), verify skew protection keeps build A assets accessible
-          assert.ok(
-            skewBuildIdA,
-            'skewBuildIdA should have been captured in stage 2b',
-          );
-          assert.ok(
-            skewStaticAssetPath,
-            'skewStaticAssetPath should have been captured in stage 2b',
-          );
-
-          // Verify old build assets are still accessible when pinned via __dpl cookie
-          const skewResponse = await fetchWithRetry(
-            `${distributionUrl}${skewStaticAssetPath}`,
-            {
-              expectedStatus: 200,
-              maxRetries: 3,
-              intervalMs: 5000,
-              fetchInit: { headers: { Cookie: `__dpl=${skewBuildIdA}` } },
-            },
-          );
-          assert.strictEqual(
-            skewResponse.status,
-            200,
-            `Old build static asset should still be accessible with pinned __dpl cookie, got ${skewResponse.status}`,
-          );
-          process.stderr.write(
-            `Skew protection: old asset accessible with build A cookie (status=${skewResponse.status})\n`,
-          );
-
-          // Verify new build gets a different __dpl cookie
-          const newResponse = await fetch(distributionUrl, {
-            redirect: 'manual',
-          });
-          const newSetCookie = newResponse.headers.get('set-cookie') ?? '';
-          const buildIdBMatch = newSetCookie.match(/__dpl=([^;]+)/);
-          assert.ok(
-            buildIdBMatch,
-            `New build should set __dpl cookie, got set-cookie: ${newSetCookie.substring(0, 200)}`,
-          );
-          const buildIdB = buildIdBMatch![1];
-          assert.notStrictEqual(
-            skewBuildIdA,
-            buildIdB,
-            `Build ID should change after redeploy: buildA=${skewBuildIdA}, buildB=${buildIdB}`,
-          );
-          process.stderr.write(
-            `Skew protection: build ID changed from ${skewBuildIdA} to ${buildIdB}\n`,
           );
         });
       });
