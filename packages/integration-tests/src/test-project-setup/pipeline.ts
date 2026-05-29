@@ -104,6 +104,11 @@ export class PipelineTestProject extends TestProjectBase {
     );
 
     await fs.writeFile(
+      path.join(this.projectAmplifyDirPath, 'hosting.ts'),
+      this.getHostingFixtureContent(),
+    );
+
+    await fs.writeFile(
       path.join(publicDir, 'index.html'),
       this.getIndexHtmlContent(),
     );
@@ -190,9 +195,17 @@ export class PipelineTestProject extends TestProjectBase {
 
   private getPipelineFixtureContent(): string {
     return `import * as cdk from 'aws-cdk-lib';
+import * as path from 'path';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'node:module';
 import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
 import { AmplifyPipelineConstruct } from '@aws-amplify/hosting/pipeline';
+
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const AMPLIFY_PIPELINE_SCOPE_KEY = '__AMPLIFY_PIPELINE_SCOPE__';
 
 const app = new cdk.App();
 
@@ -236,8 +249,14 @@ const pipeline = new AmplifyPipelineConstruct(stack, 'Pipeline', {
     },
   ],
   stageFactory: (scope: cdk.Stage) => {
-    const appStack = new cdk.Stack(scope, 'AppStack');
-    new cdk.CfnOutput(appStack, 'Placeholder', { value: 'deployed' });
+    (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY] = scope;
+    try {
+      const hostingFile = path.resolve(__dirname, 'hosting');
+      delete require.cache[require.resolve(hostingFile)];
+      require(hostingFile);
+    } finally {
+      delete (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY];
+    }
   },
   _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
 });
@@ -252,6 +271,18 @@ if (mainPipeline) {
 }
 
 app.synth();
+`;
+  }
+
+  private getHostingFixtureContent(): string {
+    return `import { defineHosting, getStageConfig } from '@aws-amplify/hosting';
+
+const stage = getStageConfig<{ domain: string }>();
+
+defineHosting({
+  framework: 'spa',
+  buildOutputDir: 'public',
+});
 `;
   }
 

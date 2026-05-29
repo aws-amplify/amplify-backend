@@ -228,7 +228,7 @@ if (scope) {
     );
   });
 
-  void it('works without hosting.ts or backend.ts (no-op stages still error)', () => {
+  void it('throws when neither hosting.ts nor backend.ts exists', () => {
     // No amplify/hosting.ts or amplify/backend.ts
     process.chdir(tmpDir);
 
@@ -246,7 +246,7 @@ if (scope) {
             },
           ],
         }),
-      /contains no stacks/,
+      /Could not find amplify\/hosting|amplify\/backend/,
     );
   });
 
@@ -285,10 +285,16 @@ void describe('findFile', () => {
     assert.strictEqual(result, path.join(tmpDir, 'hosting.js'));
   });
 
-  void it('finds .mjs file', () => {
+  void it('does not discover .mjs files (ESM not supported via require)', () => {
     fs.writeFileSync(path.join(tmpDir, 'backend.mjs'), '// mjs');
     const result = findFile(tmpDir, 'backend');
-    assert.strictEqual(result, path.join(tmpDir, 'backend.mjs'));
+    assert.strictEqual(result, undefined);
+  });
+
+  void it('finds .cjs file', () => {
+    fs.writeFileSync(path.join(tmpDir, 'backend.cjs'), '// cjs');
+    const result = findFile(tmpDir, 'backend');
+    assert.strictEqual(result, path.join(tmpDir, 'backend.cjs'));
   });
 
   void it('prefers .ts over .js', () => {

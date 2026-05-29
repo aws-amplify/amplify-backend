@@ -269,6 +269,16 @@ export type DefinePipelineProps<TConfig = Record<string, unknown>> = {
    * @default false
    */
   readonly crossAccountKeys?: boolean;
+
+  /**
+   * Optional CloudFormation stack name for the pipeline stack.
+   *
+   * When omitted, defaults to `amplify-pipeline-<sanitized-repo-name>`.
+   * Provide an explicit name if you need a stable stack name or have
+   * multiple pipelines for the same repository in one account/region.
+   * @example 'my-app-pipeline'
+   */
+  readonly stackName?: string;
 };
 
 /**
