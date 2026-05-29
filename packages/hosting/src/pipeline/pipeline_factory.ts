@@ -1,8 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import * as path from 'path';
 import * as fs from 'fs';
+import { createRequire } from 'node:module';
 import { AmplifyPipelineConstruct } from './pipeline_construct.js';
 import type { DefinePipelineProps, PipelineStageConfig } from './types.js';
+
+const require = createRequire(import.meta.url);
 
 /**
  * Global key used to pass the pipeline stage scope to `defineHosting`/`defineBackend`
@@ -37,7 +40,7 @@ const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs'];
  * definePipeline({
  *   source: {
  *     repo: 'my-org/my-app',
- *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/abc',
+ *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb',
  *   },
  *   branches: [
  *     {
@@ -199,9 +202,7 @@ export function findFile(dir: string, baseName: string): string | undefined {
  */
 // eslint-disable-next-line no-restricted-syntax
 function importFresh(filePath: string): void {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const resolved = require.resolve(filePath);
   delete require.cache[resolved];
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require(resolved);
 }

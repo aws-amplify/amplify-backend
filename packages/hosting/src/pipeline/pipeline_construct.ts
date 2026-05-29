@@ -40,7 +40,7 @@ const DEFAULT_SYNTH_COMMANDS = ['npm ci', 'npx cdk synth'];
  * new AmplifyPipelineConstruct(stack, 'Pipeline', {
  *   source: {
  *     repo: 'my-org/my-app',
- *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/abc',
+ *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb',
  *   },
  *   branches: [
  *     {

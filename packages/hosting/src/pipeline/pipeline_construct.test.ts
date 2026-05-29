@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/restrict-template-expressions */
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 import { App, Duration, Stack, Stage } from 'aws-cdk-lib';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+
+const require = createRequire(import.meta.url);
 import { Annotations, Match, Template } from 'aws-cdk-lib/assertions';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
@@ -745,7 +748,6 @@ void describe('getStageConfig', () => {
 
     // Simulate pipeline scope with context
     const app = new App();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const stage = new (require('aws-cdk-lib').Stage)(app, 'TestStage');
     stage.node.setContext(
       'AMPLIFY_STAGE_CONFIG',
@@ -765,7 +767,6 @@ void describe('getStageConfig', () => {
 
   void it('returns undefined when scope exists but no context', () => {
     const app = new App();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const stage = new (require('aws-cdk-lib').Stage)(app, 'EmptyStage');
 
     (globalThis as any).__AMPLIFY_PIPELINE_SCOPE__ = stage;

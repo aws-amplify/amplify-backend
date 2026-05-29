@@ -32,7 +32,7 @@ export type PipelineSourceConfig = {
    * 4. Authorize the GitHub app and select your repository/organization
    * 5. The status changes to `AVAILABLE` — the pipeline can now pull source
    * @see https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-create-github.html
-   * @example 'arn:aws:codeconnections:us-east-1:123456789:connection/abc-def'
+   * @example 'arn:aws:codeconnections:us-east-1:123456789:connection/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb'
    */
   readonly connectionArn: string;
 
@@ -231,7 +231,7 @@ export type BranchConfig<TConfig = Record<string, unknown>> = {
  * definePipeline({
  *   source: {
  *     repo: 'my-org/my-app',
- *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/abc',
+ *     connectionArn: 'arn:aws:codeconnections:us-east-1:123456789:connection/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb',
  *   },
  *   branches: [
  *     {

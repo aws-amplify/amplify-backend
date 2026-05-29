@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 import { App, Stage } from 'aws-cdk-lib';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+
+const require = createRequire(import.meta.url);
 import {
   definePipeline,
   findFile,
@@ -103,6 +106,7 @@ if (scope) {
 
   void it('sets ambient scope and stage config during import', () => {
     // Use a module that captures the stage config via the global
+    // eslint-disable-next-line spellcheck/spell-checker
     const hostingCode = `
 const cdk = require('aws-cdk-lib');
 const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
@@ -185,6 +189,7 @@ if (scope) {
 
   void it('re-imports hosting.ts fresh for each stage (cache busted)', () => {
     // Write hosting that increments a counter file
+    // eslint-disable-next-line spellcheck/spell-checker
     const hostingCode = `
 const cdk = require('aws-cdk-lib');
 const fs = require('fs');
