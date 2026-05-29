@@ -44,8 +44,11 @@ void describe('deploy command', () => {
     destroy: mockHostingDestroyFn,
   };
 
-  // Control whether hosting file exists
+  const mockPipelineExecaFn = mock.fn(() => Promise.resolve());
+
+  // Control whether hosting/pipeline files exist
   let hostingExists = true;
+  let pipelineExists = true;
 
   const mockGetInstance = mock.fn((locator?: unknown) => {
     if (locator) {
@@ -77,6 +80,7 @@ void describe('deploy command', () => {
       mockDeployerFactory,
       mockMiddleware as never,
       mockSsmClient as never,
+      mockPipelineExecaFn as never,
     ) as unknown as import('yargs').CommandModule<object, DeployCommandOptions>;
     const parser = yargs().command(deployCommand);
     return new TestCommandRunner(parser);
@@ -86,6 +90,7 @@ void describe('deploy command', () => {
     generateClientConfigMock.mock.resetCalls();
     mockBackendDeployFn.mock.resetCalls();
     mockHostingDeployFn.mock.resetCalls();
+    mockPipelineExecaFn.mock.resetCalls();
     mockGetInstance.mock.resetCalls();
     mockSsmSend.mock.resetCalls();
     // Reset implementations to defaults
@@ -95,15 +100,21 @@ void describe('deploy command', () => {
     );
     mockBackendDeployFn.mock.mockImplementation(deployResult);
     mockHostingDeployFn.mock.mockImplementation(deployResult);
+    mockPipelineExecaFn.mock.mockImplementation(() => Promise.resolve());
     hostingExists = true;
+    pipelineExists = true;
 
-    // Mock fs.existsSync to control whether hosting entry point "exists".
+    // Mock fs.existsSync to control whether hosting/pipeline entry points "exist".
     // BackendLocator.exists() delegates to fs.existsSync for each supported
-    // extension, so returning `hostingExists` here controls the locator result.
+    // extension (.js, .mjs, .cjs, .ts), so we only match .ts to simulate
+    // the typical user setup and ensure locate() returns the .ts path.
     const originalExistsSync = fs.existsSync;
     mock.method(fs, 'existsSync', (filePath: string) => {
       if (typeof filePath === 'string' && filePath.includes('hosting')) {
-        return hostingExists;
+        return hostingExists && filePath.endsWith('.ts');
+      }
+      if (typeof filePath === 'string' && filePath.includes('pipeline')) {
+        return pipelineExists && filePath.endsWith('.ts');
       }
       return originalExistsSync(filePath);
     });
@@ -280,8 +291,13 @@ void describe('deploy command', () => {
   });
 
   void it('fails if --identifier is not provided', async () => {
-    const output = await getCommandRunner().runCommand('deploy');
-    assert.match(output, /Missing required argument/);
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /Missing required argument/);
+        return true;
+      },
+    );
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
   });
 
@@ -534,6 +550,119 @@ void describe('deploy command', () => {
     );
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
     assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+  });
+
+  void it('rejects --pipeline with --backend', async () => {
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --pipeline --backend --yes',
+        ),
+      (err: TestCommandError) => {
+        assert.match(
+          err.output,
+          /Cannot specify --pipeline with --backend or --frontend/,
+        );
+        return true;
+      },
+    );
+    assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+    assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 0);
+  });
+
+  void it('rejects --pipeline with --frontend', async () => {
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --pipeline --frontend --yes',
+        ),
+      (err: TestCommandError) => {
+        assert.match(
+          err.output,
+          /Cannot specify --pipeline with --backend or --frontend/,
+        );
+        return true;
+      },
+    );
+    assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+    assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 0);
+  });
+
+  void describe('--pipeline flag', () => {
+    void it('deploys pipeline via cdk deploy when pipeline.ts exists', async () => {
+      pipelineExists = true;
+
+      const output = await getCommandRunner().runCommand(
+        'deploy --identifier my-app --pipeline --yes',
+      );
+
+      assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 1);
+      const callArgs = mockPipelineExecaFn.mock.calls[0]
+        .arguments as unknown as unknown[];
+      assert.strictEqual(callArgs[0], 'npx');
+      assert.deepStrictEqual(callArgs[1], [
+        'cdk',
+        'deploy',
+        '--app',
+        'npx tsx amplify/pipeline.ts',
+        '--require-approval',
+        'never',
+        '--all',
+      ]);
+      // Backend and hosting should NOT be deployed
+      assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+      assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
+      assert.match(output, /Pipeline deployment complete/);
+      assert.match(output, /Deployment complete/);
+    });
+
+    void it('throws error when pipeline.ts does not exist', async () => {
+      pipelineExists = false;
+
+      await assert.rejects(
+        () =>
+          getCommandRunner().runCommand(
+            'deploy --identifier my-app --pipeline --yes',
+          ),
+        (err: TestCommandError) => {
+          assert.match(
+            err.output,
+            /Cannot deploy pipeline: no amplify\/pipeline\.ts found/,
+          );
+          return true;
+        },
+      );
+      assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 0);
+      assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+    });
+
+    void it('does not generate client config', async () => {
+      pipelineExists = true;
+
+      await getCommandRunner().runCommand(
+        'deploy --identifier my-app --pipeline --yes',
+      );
+
+      assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
+    });
+
+    void it('propagates pipeline deployment failures as PipelineDeploymentError', async () => {
+      pipelineExists = true;
+      mockPipelineExecaFn.mock.mockImplementationOnce(() =>
+        Promise.reject(new Error('CDK deploy exited with code 1')),
+      );
+
+      await assert.rejects(
+        () =>
+          getCommandRunner().runCommand(
+            'deploy --identifier my-app --pipeline --yes',
+          ),
+        (err: TestCommandError) => {
+          assert.match(err.error.message, /Pipeline deployment failed/);
+          return true;
+        },
+      );
+    });
   });
 
   void describe('preview confirmation prompt', () => {
