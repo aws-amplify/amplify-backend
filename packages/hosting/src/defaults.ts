@@ -174,14 +174,36 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  // basePath canonical-redirect: when basePath is set, the bare domain
+  // root and any path NOT under basePath should 308-redirect to the
+  // basePath-prefixed equivalent. Without this the SSR Lambda's
+  // catch-all serves prerendered content from bare paths, breaking the
+  // basePath contract documented in DeployManifest.basePath.
+  //
+  // Order matters: this runs BEFORE the basePath strip, so requests
+  // that DO start with basePath fall through to the strip + rewrite
+  // path unchanged. Requests that don't get redirected back to the
+  // basePath-prefixed URL (browser then re-requests, hitting the
+  // /<basePath>/* CloudFront behavior).
+  const basePathRedirect = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
+    var __target = uri === '/' ? __bp + '/' : __bp + uri;
+    return {
+      statusCode: 308,
+      statusDescription: 'Permanent Redirect',
+      headers: { location: { value: __target } },
+    };
+  }
+`
+    : '';
   // basePath strip on static behaviors: S3 stores objects under
   // /builds/<id>/foo.css, not /builds/<id>/<basePath>/foo.css. Strip the
   // prefix after redirects evaluate but before the build-id rewrite so
   // assets resolve. SSR/compute behaviors KEEP basePath — framework
   // internal routing expects it.
   const basePathStrip = basePath
-    ? `  var __bp = ${JSON.stringify(basePath)};
-  if (uri.indexOf(__bp) === 0) {
+    ? `  if (uri.indexOf(__bp) === 0) {
     uri = uri.substring(__bp.length);
     if (uri.length === 0) { uri = '/'; }
   }
@@ -191,7 +213,7 @@ export const generateBuildIdAndRedirectFunctionCode = (
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-${basePathStrip}  if (uri.endsWith('/')) {
+${basePathRedirect}${basePathStrip}  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
   } else {
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
