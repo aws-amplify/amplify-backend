@@ -23,18 +23,20 @@ import {
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
 import path from 'path';
+import { execa } from 'execa';
 
 export type DeployCommandOptions =
   ArgumentsKebabCase<DeployCommandOptionsCamelCase>;
 
 type DeployCommandOptionsCamelCase = {
-  identifier: string;
+  identifier: string | undefined;
   profile: string | undefined;
   outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
   backend: boolean;
   frontend: boolean;
+  pipeline: boolean;
   yes: boolean | undefined;
 };
 
@@ -76,6 +78,7 @@ export class DeployCommand implements CommandModule<
     private readonly backendDeployerFactory: BackendDeployerFactory,
     private readonly commandMiddleware: CommandMiddleware,
     private readonly ssmClient: SSMClient,
+    private readonly execaCommand: typeof execa = execa,
   ) {
     this.command = 'deploy';
     this.describe = 'Deploy Amplify backend resources without Amplify Hosting.';
@@ -87,10 +90,20 @@ export class DeployCommand implements CommandModule<
   handler = async (
     args: ArgumentsCamelCase<DeployCommandOptions>,
   ): Promise<void> => {
-    // Validate identifier before deploying
+    // --identifier is required for non-pipeline deployments
+    if (!args.pipeline && !args.identifier) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message: 'Missing required argument: identifier',
+        resolution:
+          'Provide --identifier <name> for backend/frontend deployments. Example: ampx deploy --identifier my-app',
+      });
+    }
+
+    // Validate identifier format when provided
     if (
-      !IDENTIFIER_PATTERN.test(args.identifier) ||
-      args.identifier.length > IDENTIFIER_MAX_LENGTH
+      args.identifier &&
+      (!IDENTIFIER_PATTERN.test(args.identifier) ||
+        args.identifier.length > IDENTIFIER_MAX_LENGTH)
     ) {
       throw new AmplifyUserError('InvalidCommandInputError', {
         message: `Invalid --identifier: "${args.identifier}"`,
@@ -103,6 +116,15 @@ export class DeployCommand implements CommandModule<
         message: 'Cannot specify both --backend and --frontend flags.',
         resolution:
           'Use one flag to deploy selectively, or omit both to deploy everything.',
+      });
+    }
+
+    if (args.pipeline && (args.backend || args.frontend)) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message:
+          'Cannot specify --pipeline with --backend or --frontend flags.',
+        resolution:
+          'Use --pipeline alone to deploy the pipeline stack, or use --backend/--frontend for app deployment.',
       });
     }
 
@@ -137,11 +159,74 @@ export class DeployCommand implements CommandModule<
       return;
     }
 
+    // --pipeline: deploy only the pipeline stack and return early
+    if (args.pipeline) {
+      const pipelineLocator = new BackendLocator(
+        process.cwd(),
+        path.join('amplify', 'pipeline'),
+      );
+
+      if (!pipelineLocator.exists()) {
+        throw new AmplifyUserError('FileConventionError', {
+          message: 'Cannot deploy pipeline: no amplify/pipeline.ts found.',
+          resolution:
+            'Create an amplify/pipeline.ts file that calls definePipeline(), or remove the --pipeline flag.',
+        });
+      }
+
+      const pipelineEntryPoint = pipelineLocator.locate().replace(/\\/g, '/');
+      printer.log(`Deploying pipeline from ${pipelineEntryPoint}...`);
+
+      try {
+        // Pipeline deployment bypasses CDK approval because:
+        // 1. The user explicitly ran `ampx deploy --pipeline` (intentional action)
+        // 2. Pipeline resources are infrastructure-as-code reviewed in the PR
+        // 3. The --yes flag already confirmed the user's intent
+        await this.execaCommand(
+          'npx',
+          [
+            'cdk',
+            'deploy',
+            '--app',
+            // execa uses array-based invocation (shell: false by default),
+            // so the path is passed as a single token to the CDK --app command.
+            // No manual quoting needed — array elements are naturally shell-safe.
+            `npx tsx ${pipelineEntryPoint}`,
+            '--require-approval',
+            'never',
+            '--all',
+          ],
+          {
+            stdio: 'inherit',
+            cwd: process.cwd(),
+            shell: false,
+          },
+        );
+      } catch (error) {
+        throw new AmplifyUserError(
+          'PipelineDeploymentError',
+          {
+            message: 'Pipeline deployment failed.',
+            resolution:
+              'Check the CDK deployment output above for details. Ensure your pipeline.ts is valid and AWS credentials are configured.',
+          },
+          error as Error,
+        );
+      }
+
+      printer.log(`Pipeline deployment complete.`);
+      printer.log('Deployment complete.');
+      return;
+    }
+
     const deployBackend = args.backend || (!args.backend && !args.frontend);
     const deployFrontend = args.frontend || (!args.backend && !args.frontend);
 
+    // At this point, identifier is guaranteed to be defined (validated above for non-pipeline paths)
+    const identifier = args.identifier as string;
+
     const backendId: BackendIdentifier = {
-      namespace: args.identifier,
+      namespace: identifier,
       name: 'backend',
       type: 'standalone',
     };
@@ -204,7 +289,7 @@ export class DeployCommand implements CommandModule<
                 'BackendNotDeployedError',
                 {
                   message: `Backend has not been deployed yet. Run 'ampx deploy --backend' first, or run 'ampx deploy' without flags to deploy everything.`,
-                  resolution: `Deploy the backend first with: ampx deploy --identifier ${args.identifier} --backend`,
+                  resolution: `Deploy the backend first with: ampx deploy --identifier ${identifier} --backend`,
                 },
                 error,
               );
@@ -214,7 +299,7 @@ export class DeployCommand implements CommandModule<
         }
 
         const hostingId: BackendIdentifier = {
-          namespace: args.identifier,
+          namespace: identifier,
           name: 'hosting',
           type: 'standalone',
         };
@@ -243,7 +328,7 @@ export class DeployCommand implements CommandModule<
       .option('identifier', {
         describe:
           'Unique identifier for this deployment. Used as the CloudFormation stack name.',
-        demandOption: true,
+        demandOption: false,
         type: 'string',
         array: false,
       })
@@ -281,6 +366,12 @@ export class DeployCommand implements CommandModule<
       .option('frontend', {
         describe:
           'Deploy only hosting resources. Requires backend to be deployed first.',
+        type: 'boolean',
+        default: false,
+      })
+      .option('pipeline', {
+        describe:
+          'Deploy only the pipeline stack (amplify/pipeline.ts). Cannot be combined with --backend or --frontend.',
         type: 'boolean',
         default: false,
       })

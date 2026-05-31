@@ -25,6 +25,10 @@
     "./error": {
       "types": "./lib/hosting_error.d.ts",
       "default": "./lib/hosting_error.js"
+    },
+    "./pipeline": {
+      "types": "./lib/pipeline/index.d.ts",
+      "default": "./lib/pipeline/index.js"
     }
   },
   "main": "lib/index.js",

@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 1.7.0
+
+### Minor Changes
+
+- 077bd98: Added `stackMappings` option to `defineData()` for distributing resolvers across multiple nested CloudFormation stacks. This helps avoid the 500-resource limit for projects with complex data models.
+
+### Patch Changes
+
+- Updated dependencies [88c4759]
+  - @aws-amplify/backend-output-storage@1.3.5
+  - @aws-amplify/plugin-types@1.12.1
+
 ## 1.6.4
 
 ### Patch Changes
