@@ -453,6 +453,41 @@ void describe(
           );
         });
 
+        void it('stage 2g: multi-matcher edge fn — runs on /admin/foo (first matcher)', async () => {
+          const res = await fetchWithRetry(
+            `${distributionUrl}/admin/some-page`,
+            { expectedStatus: 200 },
+          );
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            '/admin/some-page',
+            'middleware must run on /admin/* pattern',
+          );
+        });
+
+        void it('stage 2h: multi-matcher edge fn — runs on /api/admin/health (SECOND matcher — the bug fix)', async () => {
+          const res = await fetchWithRetry(
+            `${distributionUrl}/api/admin/health`,
+            { expectedStatus: 200 },
+          );
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            '/api/admin/health',
+            'middleware must ALSO run on /api/admin/* — the bug was ignoring the second matcher',
+          );
+        });
+
+        void it('stage 2i: multi-matcher edge fn — does NOT run on unrelated paths', async () => {
+          const res = await fetchWithRetry(`${distributionUrl}/api/health`, {
+            expectedStatus: 200,
+          });
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            null,
+            'middleware must NOT run on /api/health (no matcher covers it)',
+          );
+        });
+
         void it('stage 2c: SSR origin accepts every HTTP verb with body and preserves multi-Set-Cookie + streaming', async () => {
           // Regression coverage for the OAC + Function URL body-hash bug:
           // pre-fix, any non-empty POST/PUT/PATCH returned 403 SignatureDoesNotMatch.
