@@ -49,6 +49,8 @@ void describe(
       let frontendIdentifier: BackendIdentifier;
       let fullIdentifier: BackendIdentifier;
       let distributionUrl: string;
+      let skewBuildIdA: string;
+      let skewStaticAssetPath: string;
 
       before(async () => {
         testProject = await testProjectCreator.createProject(rootTestDir);
@@ -505,6 +507,35 @@ void describe(
           );
         });
 
+        void it('stage 2d: skew protection — captures build A cookie and static asset path', async () => {
+          // Fetch HTML page and capture the __dpl skew protection cookie
+          const initialResponse = await fetch(distributionUrl, {
+            redirect: 'manual',
+          });
+          const setCookieHeader =
+            initialResponse.headers.get('set-cookie') ?? '';
+          const buildIdMatch = setCookieHeader.match(/__dpl=([^;]+)/);
+          assert.ok(
+            buildIdMatch,
+            `Skew protection cookie (__dpl) should be set on HTML response, got set-cookie: ${setCookieHeader.substring(0, 200)}`,
+          );
+          skewBuildIdA = buildIdMatch![1];
+          process.stderr.write(
+            `Skew protection: captured build A cookie __dpl=${skewBuildIdA}\n`,
+          );
+
+          // Extract a static asset path from the HTML to verify skew-pinned access later
+          const htmlBody = await initialResponse.text();
+          const assetMatch = htmlBody.match(/\/_nuxt\/[^"'\s]+\.(js|css|mjs)/);
+          assert.ok(
+            assetMatch,
+            `Page HTML should contain /_nuxt/ asset references for skew test, got: ${htmlBody.substring(0, 300)}`,
+          );
+          skewStaticAssetPath = assetMatch![0];
+          process.stderr.write(
+            `Skew protection: captured static asset path ${skewStaticAssetPath}\n`,
+          );
+        });
         void it('stage 3: SWR cache — verifies S3 cache bucket provisioned and populated', async () => {
           const frontendStackName =
             BackendIdentifierConversions.toStackName(frontendIdentifier);
@@ -831,6 +862,57 @@ void describe(
             finalResponse.status,
             200,
             `Expected HTTP 200 after infra change, got ${finalResponse.status}`,
+          );
+        });
+
+        void it('stage 6b: skew protection — verifies old build assets accessible with pinned cookie', async () => {
+          // After full redeploy (build B), verify skew protection keeps build A assets accessible
+          assert.ok(
+            skewBuildIdA,
+            'skewBuildIdA should have been captured in stage 2d',
+          );
+          assert.ok(
+            skewStaticAssetPath,
+            'skewStaticAssetPath should have been captured in stage 2d',
+          );
+
+          // Verify old build assets are still accessible when pinned via __dpl cookie
+          const skewResponse = await fetchWithRetry(
+            `${distributionUrl}${skewStaticAssetPath}`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+              fetchInit: { headers: { Cookie: `__dpl=${skewBuildIdA}` } },
+            },
+          );
+          assert.strictEqual(
+            skewResponse.status,
+            200,
+            `Old build static asset should still be accessible with pinned __dpl cookie, got ${skewResponse.status}`,
+          );
+          process.stderr.write(
+            `Skew protection: old asset accessible with build A cookie (status=${skewResponse.status})\n`,
+          );
+
+          // Verify new build gets a different __dpl cookie
+          const newResponse = await fetch(distributionUrl, {
+            redirect: 'manual',
+          });
+          const newSetCookie = newResponse.headers.get('set-cookie') ?? '';
+          const buildIdBMatch = newSetCookie.match(/__dpl=([^;]+)/);
+          assert.ok(
+            buildIdBMatch,
+            `New build should set __dpl cookie, got set-cookie: ${newSetCookie.substring(0, 200)}`,
+          );
+          const buildIdB = buildIdBMatch![1];
+          assert.notStrictEqual(
+            skewBuildIdA,
+            buildIdB,
+            `Build ID should change after redeploy: buildA=${skewBuildIdA}, buildB=${buildIdB}`,
+          );
+          process.stderr.write(
+            `Skew protection: build ID changed from ${skewBuildIdA} to ${buildIdB}\n`,
           );
         });
       });
