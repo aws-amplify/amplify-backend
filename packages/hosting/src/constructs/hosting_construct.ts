@@ -158,6 +158,39 @@ export class AmplifyHostingConstruct extends Construct {
     super(scope, id);
 
     const { manifest } = props;
+    // Rewrites stub: adapters lift `routeRules.proxy` (Nitro) and
+    // similar upstream-proxy rules into `manifest.rewrites[]`, but the
+    // L3 doesn't yet provision the per-pattern `HttpOrigin` +
+    // CloudFront-Function origin-rewrite needed to honor them. Until
+    // that lands, fail loud rather than silently dropping the user's
+    // intent — `routeRules.proxy: 'https://upstream/**'` would
+    // otherwise fall through to the SSR Lambda which relays the proxy,
+    // burning a Lambda invocation per request with no operator-visible
+    // signal that the rule didn't take effect.
+    if (manifest.rewrites && manifest.rewrites.length > 0) {
+      throw new HostingError('RewritesNotYetSupportedError', {
+        message:
+          `manifest.rewrites[] is not yet consumed by the hosting L3 (received ${manifest.rewrites.length} rule(s)). ` +
+          `Adapters lift Nitro routeRules.proxy and similar upstream-proxy rules here; the L3 wiring (per-pattern HttpOrigin + CloudFront-Function origin-rewrite) is tracked separately.`,
+        resolution:
+          'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
+      });
+    }
+    // BasicAuth stub: adapters lift `routeRules.basicAuth` (Nitro)
+    // into `manifest.basicAuth[]`, but the L3 doesn't yet emit the
+    // CloudFront Function gate needed to honor it. Failing loud is
+    // critical here — silently dropping a Basic-Auth rule would expose
+    // a path the user explicitly meant to gate (dev/staging surfaces,
+    // pre-launch admin areas).
+    if (manifest.basicAuth && manifest.basicAuth.length > 0) {
+      throw new HostingError('BasicAuthNotYetSupportedError', {
+        message:
+          `manifest.basicAuth[] is not yet consumed by the hosting L3 (received ${manifest.basicAuth.length} rule(s)). ` +
+          `Adapters lift Nitro routeRules.basicAuth here; the L3 will emit a CloudFront Function viewer-request gate once that wiring lands. Failing loud rather than silently exposing the gated path.`,
+        resolution:
+          'Until the L3 wiring lands, remove basicAuth rules from your framework config and gate the path in your SSR handler (or via your IdP). Track the gap on the hosting roadmap before re-introducing routeRules.basicAuth.',
+      });
+    }
     const buildId = manifest.buildId ?? generateBuildId();
 
     // ---- 1. Storage (S3 buckets) ----

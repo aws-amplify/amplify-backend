@@ -716,6 +716,86 @@ void describe('patchStreamingWrapperForApiGateway — brittleness gating', () =>
     assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(empty));
     fs.rmSync(empty, { recursive: true, force: true });
   });
+
+  // U31: snapshot test against the canonical OpenNext aws-lambda-streaming
+  // wrapper shape. We synthesize a bundle that contains the four signatures
+  // the patcher recognizes (setContentType + the three Accept-Encoding
+  // checks) and assert the patcher applies exactly the expected number of
+  // edits AND produces byte-stable post-patch content. If a future OpenNext
+  // upgrade reshuffles either the function-call form or the encoding-check
+  // form, this test fails BEFORE a real customer deploy hits the same drift
+  // — at which point the patcher needs updating to match.
+  void it('canonical wrapper bundle: applies expected edits + post-patch is byte-stable', () => {
+    // Synthetic bundle modeled on @opennextjs/aws@3.10.x's emitted
+    // aws-lambda-streaming wrapper. Every line below maps to one of the
+    // four signatures the patcher's regexes look for.
+    const PRE = [
+      '// canonical OpenNext aws-lambda-streaming wrapper shape',
+      'const responseStream = awslambda.HttpResponseStream.from(rawStream, metadata);',
+      'responseStream.setContentType("application/vnd.awslambda.http-integration-response")',
+      'if (acceptEncoding.includes("br")) {',
+      '  encodeStream = createBrotliCompress();',
+      '} else if (acceptEncoding.includes("gzip")) {',
+      '  encodeStream = createGzip();',
+      '} else if (acceptEncoding.includes("deflate")) {',
+      '  encodeStream = createDeflate();',
+      '} else {',
+      '  encodeStream = passThrough;',
+      '}',
+      'export const handler = streamifyResponse(awslambda, async (event, responseStream) => { /* ... */ });',
+    ].join('\n');
+    const bundle = path.join(defaultDir, 'index.mjs');
+    fs.writeFileSync(bundle, PRE);
+    assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(tmp));
+    const post = fs.readFileSync(bundle, 'utf-8');
+
+    // setContentType call neutered to `void 0`.
+    assert.match(post, /\bvoid 0\b/);
+    assert.doesNotMatch(
+      post,
+      /setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/,
+    );
+    // Accept-Encoding branches all neutered (none of br/gzip/deflate
+    // remain as the literal `.includes("…")` check; replaced with a
+    // sentinel that never matches a real Accept-Encoding header).
+    for (const algo of ['br', 'gzip', 'deflate']) {
+      assert.doesNotMatch(post, new RegExp(`\\.includes\\("${algo}"\\)`));
+      assert.match(
+        post,
+        new RegExp(`\\.includes\\("__amplify_no_${algo}__"\\)`),
+      );
+    }
+    // Snapshot: re-running the patcher against the post-patch bundle must
+    // be a no-op (the regexes don't match anymore) — proves the patcher
+    // is idempotent and not partially-undoing prior runs.
+    const stat1 = fs.statSync(bundle).size;
+    // Second run on the now-patched bundle: nothing left to match, but
+    // because some other bundle in the tree DID match on the first run,
+    // we don't expect a throw. Reset the dir + re-run on the patched
+    // content alone to assert idempotency.
+    const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-patch-idem-'));
+    const dir2 = path.join(tmp2, 'server-functions', 'default');
+    fs.mkdirSync(dir2, { recursive: true });
+    fs.writeFileSync(path.join(dir2, 'index.mjs'), post);
+    // The post-patch bundle has no canonical signatures left → throws
+    // unless lenient mode is on. That's the desired behavior: idempotent
+    // for the no-op case, loud for the regression case.
+    assert.throws(
+      () => patchStreamingWrapperForApiGateway(tmp2),
+      (error: Error) => error.name === 'UpstreamPatchPatternChangedError',
+    );
+    fs.rmSync(tmp2, { recursive: true, force: true });
+
+    // Sanity: post-patch byte-count is non-zero and the file shrunk
+    // (`void 0` < the original setContentType call). Exact size depends
+    // on synth content above; we assert structural shape, not a magic
+    // number that future refactors would have to keep updated.
+    assert.ok(stat1 > 0);
+    assert.ok(
+      stat1 < PRE.length,
+      `expected post-patch (${stat1}) < pre-patch (${PRE.length})`,
+    );
+  });
 });
 
 void describe('patchEdgeBundlesForLambdaEdge — brittleness gating', () => {

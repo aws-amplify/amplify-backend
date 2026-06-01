@@ -263,6 +263,24 @@ Running `ampx deploy` without flags deploys both phases sequentially.
 
 `defineHosting` is not supported with `ampx pipeline-deploy` (branch deployments). Use `ampx deploy` for standalone hosting deployment.
 
+### `HEAD` request `Content-Length` parity
+
+A `HEAD` request to an SSR Lambda returns `Content-Length: 0` instead of the would-be `GET` body length. This is a Nitro / Lambda Function URL upstream limitation: the framework's HTTP server doesn't pre-compute the body for a `HEAD` request, and AWS's response-streaming wrapper passes through whatever the framework sets.
+
+Affected: download managers, CDN HEAD pre-flights, RFC 9110 §9.3.2 strict clients.
+
+Workaround: clients that need an exact length should issue `GET` with `Range: bytes=0-0` (returns the first byte + `Content-Range`) instead of `HEAD`.
+
+### Multi-zone cross-zone navigation cache
+
+When two Amplify Hosting deployments front the same domain (e.g. shop on `/` + blog on `/blog/*` via cross-zone rewrites), navigations between zones currently emit `Cache-Control: private, no-cache` and re-roundtrip both Lambdas on every navigation.
+
+Workaround: set explicit `s-maxage=N` headers on the cross-zone routes via your framework's `headers()` config. Future versions will surface a per-route adapter knob.
+
+### `Range` requests on streaming endpoints
+
+Streaming SSR routes (Nitro `nitro.awsLambda.streaming: true`, Astro 5, Next.js RSC) silently ignore the `Range` header — Lambda Function URL streaming buffers the full body before sending. Use a non-streaming endpoint or fall back to a static `Range`-capable origin (S3 directly, separate file-server Lambda).
+
 ## Custom Framework Adapters
 
 For frameworks not built in (Astro, Remix, SvelteKit, etc.), provide a custom adapter that returns a `DeployManifest`:
