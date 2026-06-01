@@ -285,17 +285,36 @@ export const generateAssetPrefixStripFunctionCode = (
  * Generate CloudFront Function code for compute-origin behaviors:
  * checks redirects first, then propagates the Host header to
  * x-forwarded-host so the SSR handler can construct correct public URLs.
+ *
+ * When basePath is set, also emits a 308 canonical redirect for any URI
+ * that does not start with the basePath. This mirrors the redirect
+ * applied on static behaviors via generateBuildIdAndRedirectFunctionCode
+ * — both functions run on different behaviors but enforce the same
+ * basePath contract from `DeployManifest.basePath`.
  */
 export const generateForwardedHostAndRedirectFunctionCode = (
   redirects: RedirectEntry[] = [],
+  basePath?: string,
 ): string => {
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  const basePathRedirect = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
+    var __target = uri === '/' ? __bp + '/' : __bp + uri;
+    return {
+      statusCode: 308,
+      statusDescription: 'Permanent Redirect',
+      headers: { location: { value: __target } },
+    };
+  }
+`
+    : '';
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-  var host = request.headers.host ? request.headers.host.value : undefined;
+${basePathRedirect}  var host = request.headers.host ? request.headers.host.value : undefined;
   if (host) { request.headers["x-forwarded-host"] = { value: host }; }
   return request;
 }`;

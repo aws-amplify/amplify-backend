@@ -347,7 +347,10 @@ export class CdnConstruct extends Construct {
     const forwardedHostFunction = hasCompute
       ? new CloudFrontFunction(this, 'ForwardedHostFunction', {
           code: FunctionCode.fromInline(
-            generateForwardedHostAndRedirectFunctionCode(manifestRedirects),
+            generateForwardedHostAndRedirectFunctionCode(
+              manifestRedirects,
+              manifest.basePath,
+            ),
           ),
           runtime: FunctionRuntime.JS_2_0,
           comment:
