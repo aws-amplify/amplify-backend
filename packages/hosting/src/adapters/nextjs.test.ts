@@ -10,6 +10,7 @@ import {
   patchEdgeBundlesForLambdaEdge,
   patchStreamingWrapperForApiGateway,
   projectHasEdgeRuntimeRoutes,
+  stripNextInternalLocale,
 } from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
@@ -923,5 +924,178 @@ void describe('detectEdgeRoutes — multi-matcher edge functions', () => {
     assert.deepStrictEqual(routes, [
       { module: 'src/middleware', pattern: '/api/edge/*' },
     ]);
+  });
+});
+
+void describe('stripNextInternalLocale — Pages Router i18n source rewrite', () => {
+  void it('strips a locale group with a sub-path', () => {
+    assert.strictEqual(
+      stripNextInternalLocale(
+        '/:nextInternalLocale(en|fr|es|ja)/secure-headers',
+      ),
+      '/secure-headers',
+    );
+  });
+
+  void it('maps a bare locale-only source to /', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)'),
+      '/',
+    );
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)/'),
+      '/',
+    );
+  });
+
+  void it('preserves trailing wildcards', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)/api/edge/*'),
+      '/api/edge/*',
+    );
+  });
+
+  void it('passes non-i18n sources through unchanged', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/secure-headers'),
+      '/secure-headers',
+    );
+    assert.strictEqual(stripNextInternalLocale('/'), '/');
+    assert.strictEqual(stripNextInternalLocale('/api/edge/*'), '/api/edge/*');
+  });
+
+  void it('does not alter sources with other capture groups', () => {
+    // No nextInternalLocale prefix — leave untouched.
+    assert.strictEqual(
+      stripNextInternalLocale('/:slug(foo|bar)'),
+      '/:slug(foo|bar)',
+    );
+  });
+});
+
+void describe('nextjsAdapter — Pages Router i18n header lift', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-i18n-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  /**
+   * Build the minimal `.open-next/` + `.next/routes-manifest.json`
+   * fixture that nextjsAdapter accepts. Caller passes the routes-manifest
+   * contents.
+   */
+  const writeFixture = (routesManifest: object): void => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    const dotNextDir = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNextDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNextDir, 'routes-manifest.json'),
+      JSON.stringify(routesManifest),
+    );
+  };
+
+  void it('lifts headers when the user has Pages Router i18n configured', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr', 'es', 'ja'] },
+      headers: [
+        {
+          source: '/:nextInternalLocale(en|fr|es|ja)/secure-headers',
+          headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.headers, 'headers should be lifted');
+    const lifted = manifest.headers!.find(
+      (h) => h.source === '/secure-headers',
+    );
+    assert.ok(lifted, '/secure-headers should be lifted from the locale group');
+    assert.strictEqual(lifted!.headers['X-Frame-Options'], 'DENY');
+  });
+
+  void it('lifts redirects with both source and destination locale-prefixed', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr'] },
+      redirects: [
+        {
+          source: '/:nextInternalLocale(en|fr)/old',
+          destination: '/:nextInternalLocale(en|fr)/new',
+          statusCode: 308,
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.redirects, 'redirects should be lifted');
+    const lifted = manifest.redirects!.find((r) => r.source === '/old');
+    assert.ok(lifted);
+    assert.strictEqual(lifted!.destination, '/new');
+    assert.strictEqual(lifted!.statusCode, 308);
+  });
+
+  void it('does NOT strip the locale group when i18n is not configured', () => {
+    // A header source carrying `:nextInternalLocale(...)` without an
+    // `i18n.locales` block is unexpected — leave it as-is so it falls
+    // through to OpenNext (defensive).
+    writeFixture({
+      headers: [
+        {
+          source: '/:nextInternalLocale(en|fr)/secure-headers',
+          headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.strictEqual(
+      manifest.headers,
+      undefined,
+      'no headers should lift without i18n config',
+    );
+  });
+
+  void it('passes through non-i18n header sources unchanged', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr'] },
+      headers: [
+        {
+          source: '/api/static',
+          headers: [{ key: 'X-Custom', value: 'yes' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.headers);
+    assert.strictEqual(manifest.headers!.length, 1);
+    assert.strictEqual(manifest.headers![0].source, '/api/static');
   });
 });

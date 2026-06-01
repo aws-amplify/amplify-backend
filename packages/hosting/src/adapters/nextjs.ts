@@ -395,6 +395,39 @@ type NextRoutesManifest = {
     has?: unknown;
     missing?: unknown;
   }>;
+  /**
+   * Pages Router i18n config. Present when the user sets
+   * `i18n: { locales: [...] }` in next.config; Next then rewrites every
+   * `headers[]` / `redirects[]` source to start with
+   * `/:nextInternalLocale(en|fr|...)/...`. The literal locale group is
+   * not supported by CloudFront's PathPattern (no parens / pipes), so
+   * unless we strip the prefix the rule never makes it past
+   * `isSimpleNextSource` and the user's headers/redirects fall through
+   * to OpenNext where security-named headers are silently dropped.
+   */
+  i18n?: { locales?: string[] };
+};
+
+/**
+ * Pages Router i18n: when next.config sets `i18n: { locales }`, every
+ * routes-manifest source gets prefixed with `/:nextInternalLocale(...)`.
+ * That group blocks `isSimpleNextSource` because it carries `:` and
+ * `(...)` syntax. Strip the locale group (if any) so the bare path can
+ * be lifted to a CloudFront pattern. Leaves non-i18n sources untouched.
+ */
+export const stripNextInternalLocale = (source: string): string => {
+  // Pattern Next emits is exactly `/:nextInternalLocale(<pipe-list>)`
+  // followed by the rest of the URL. Match conservatively — if the
+  // shape differs at all, leave the source alone so we don't misinterpret
+  // it.
+  const match = source.match(/^\/:nextInternalLocale\([a-zA-Z0-9_|-]+\)(.*)$/);
+  if (!match) return source;
+  const rest = match[1];
+  // Resulting source must still start with `/`. When the original was
+  // exactly `/:nextInternalLocale(...)` (the bare locale root), map it
+  // to `/`.
+  if (rest === '' || rest === '/') return '/';
+  return rest.startsWith('/') ? rest : `/${rest}`;
 };
 
 /**
@@ -460,6 +493,16 @@ const applyLiftedRoutesManifest = (
   let skippedRedirects = 0;
   let skippedHeaders = 0;
 
+  // Pages Router with i18n rewrites every source/destination to start
+  // with `/:nextInternalLocale(en|fr|...)`. The locale group is regex
+  // syntax CloudFront PathPatterns can't match — without stripping it,
+  // every rule falls through to OpenNext which silently drops
+  // security-named headers (CloudFront refuses them in the customHeaders
+  // array on the response).
+  const hasI18nLocales = Boolean(routesManifest.i18n?.locales?.length);
+  const normalizeSource = (s: string): string =>
+    hasI18nLocales ? stripNextInternalLocale(s) : s;
+
   for (const r of routesManifest.redirects ?? []) {
     if (r.internal) {
       // Trailing-slash and similar — leave to OpenNext.
@@ -473,13 +516,15 @@ const applyLiftedRoutesManifest = (
       skippedRedirects++;
       continue;
     }
-    if (!isSimpleNextSource(r.source) || !isSimpleNextSource(r.destination)) {
+    const source = normalizeSource(r.source);
+    const destination = normalizeSource(r.destination);
+    if (!isSimpleNextSource(source) || !isSimpleNextSource(destination)) {
       skippedRedirects++;
       continue;
     }
     liftedRedirects.push({
-      source: r.source,
-      destination: r.destination,
+      source,
+      destination,
       statusCode: r.statusCode as 301 | 302 | 307 | 308,
     });
   }
@@ -489,7 +534,8 @@ const applyLiftedRoutesManifest = (
       skippedHeaders++;
       continue;
     }
-    if (!isSimpleNextSource(h.source)) {
+    const source = normalizeSource(h.source);
+    if (!isSimpleNextSource(source)) {
       skippedHeaders++;
       continue;
     }
@@ -498,13 +544,13 @@ const applyLiftedRoutesManifest = (
       if (entry.key.toLowerCase() === 'cache-control') {
         validateCacheControl(
           entry.value,
-          `route ${h.source} (Next.js headers config)`,
+          `route ${source} (Next.js headers config)`,
         );
       }
       headers[entry.key] = entry.value;
     }
     liftedHeaders.push({
-      source: h.source,
+      source,
       headers,
     });
   }
