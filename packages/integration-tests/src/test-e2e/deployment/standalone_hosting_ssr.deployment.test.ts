@@ -418,6 +418,76 @@ void describe(
           process.stderr.write(`Security headers on API route verified\n`);
         });
 
+        void it('stage 2d: lifted redirects — /old-static-path returns 308 with no Lambda invocation', async () => {
+          const start = Date.now();
+          const res = await fetch(`${distributionUrl}/old-static-path`, {
+            redirect: 'manual',
+          });
+          const elapsed = Date.now() - start;
+          assert.strictEqual(res.status, 308, 'permanent redirect must be 308');
+          assert.strictEqual(res.headers.get('location'), '/about');
+          if (elapsed > 200) {
+            process.stderr.write(
+              `⚠️  /old-static-path redirect took ${elapsed}ms — may indicate Lambda hop, not CF Function\n`,
+            );
+          }
+        });
+
+        void it('stage 2e: lifted redirects — /temp-redirect returns 307', async () => {
+          const res = await fetch(`${distributionUrl}/temp-redirect`, {
+            redirect: 'manual',
+          });
+          assert.strictEqual(res.status, 307, 'temporary redirect must be 307');
+          assert.strictEqual(res.headers.get('location'), '/dashboard');
+        });
+
+        void it('stage 2f: lifted redirects do NOT invoke the SSR Lambda', async () => {
+          const res = await fetch(`${distributionUrl}/old-static-path`, {
+            redirect: 'manual',
+          });
+          const apiGwReqId = res.headers.get('x-amzn-requestid');
+          assert.strictEqual(
+            apiGwReqId,
+            null,
+            'lifted redirect should not invoke Lambda (got x-amzn-requestid header)',
+          );
+        });
+
+        void it('stage 2g: multi-matcher edge fn — runs on /admin/foo (first matcher)', async () => {
+          const res = await fetchWithRetry(
+            `${distributionUrl}/admin/some-page`,
+            { expectedStatus: 200 },
+          );
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            '/admin/some-page',
+            'middleware must run on /admin/* pattern',
+          );
+        });
+
+        void it('stage 2h: multi-matcher edge fn — runs on /api/admin/health (SECOND matcher — the bug fix)', async () => {
+          const res = await fetchWithRetry(
+            `${distributionUrl}/api/admin/health`,
+            { expectedStatus: 200 },
+          );
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            '/api/admin/health',
+            'middleware must ALSO run on /api/admin/* — the bug was ignoring the second matcher',
+          );
+        });
+
+        void it('stage 2i: multi-matcher edge fn — does NOT run on unrelated paths', async () => {
+          const res = await fetchWithRetry(`${distributionUrl}/api/health`, {
+            expectedStatus: 200,
+          });
+          assert.strictEqual(
+            res.headers.get('x-amplify-multi-matcher'),
+            null,
+            'middleware must NOT run on /api/health (no matcher covers it)',
+          );
+        });
+
         void it('stage 2c: SSR origin accepts every HTTP verb with body and preserves multi-Set-Cookie + streaming', async () => {
           // Regression coverage for the OAC + Function URL body-hash bug:
           // pre-fix, any non-empty POST/PUT/PATCH returned 403 SignatureDoesNotMatch.

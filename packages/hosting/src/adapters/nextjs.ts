@@ -6,6 +6,12 @@
  * came from Next.js.
  */
 import { spawn } from './spawn.js';
+import { normalizeBasePath } from './shared/basepath.js';
+import { validateCacheControl } from './shared/cache_control.js';
+import {
+  type TrailingSlashMode,
+  emitTrailingSlashRedirects,
+} from './shared/trailing_slash.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -15,6 +21,7 @@ import type {
   CustomHeader,
   DeployManifest,
   Redirect,
+  RemotePattern,
   RouteBehavior,
 } from '../manifest/types.js';
 
@@ -175,6 +182,7 @@ export const nextjsAdapter = (
   // OpenNext server bundle, so behavior is preserved.
   applyLiftedRoutesManifest(manifest, projectDir);
   applyAssetPrefix(manifest, projectDir);
+  applyNextImageConfig(manifest, projectDir);
 
   return manifest;
 };
@@ -197,12 +205,35 @@ const applyAssetPrefix = (
     'required-server-files.json',
   );
   if (!fs.existsSync(requiredServerFilesPath)) return;
-  let parsed: { config?: { assetPrefix?: string } };
+  let parsed: {
+    config?: {
+      assetPrefix?: string;
+      basePath?: string;
+      trailingSlash?: boolean;
+    };
+  };
   try {
     parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
   } catch {
     return;
   }
+  // basePath — the framework-side URL prefix for routes + assets. Read
+  // alongside assetPrefix because they share the same JSON file.
+  const bp = normalizeBasePath(parsed.config?.basePath);
+  if (bp) {
+    manifest.basePath = bp;
+    process.stdout.write(
+      `🔗 Detected Next.js basePath=${bp}; CloudFront behaviors will be prefixed.\n`,
+    );
+  }
+
+  // trailingSlash — Next.js exposes a tri-state via boolean: true ⇒
+  // 'always', false ⇒ 'never', undefined ⇒ 'ignore' (default).
+  const tsRaw = parsed.config?.trailingSlash;
+  const tsMode: TrailingSlashMode =
+    tsRaw === true ? 'always' : tsRaw === false ? 'never' : 'ignore';
+  applyTrailingSlashRedirects(manifest, projectDir, tsMode);
+
   const ap = parsed.config?.assetPrefix;
   if (typeof ap !== 'string' || ap === '') return;
   // Strip absolute-URL form (`https://cdn.example.com`) — only path-form
@@ -217,6 +248,121 @@ const applyAssetPrefix = (
   process.stdout.write(
     `🔗 Detected Next.js assetPrefix=${normalized}; will add CloudFront behaviors for prefixed asset paths.\n`,
   );
+};
+
+/**
+ * Read Next.js `next.config.js#images` from `required-server-files.json`
+ * and populate the optional fields on `manifest.imageOptimization`. By
+ * the time this runs, `next build` has already validated the patterns,
+ * so we trust the shape and only filter entries missing the required
+ * `hostname`.
+ */
+const applyNextImageConfig = (
+  manifest: DeployManifest,
+  projectDir: string,
+): void => {
+  if (!manifest.imageOptimization) return;
+  const requiredServerFilesPath = path.join(
+    projectDir,
+    '.next',
+    'required-server-files.json',
+  );
+  if (!fs.existsSync(requiredServerFilesPath)) return;
+  let parsed: {
+    config?: {
+      images?: {
+        remotePatterns?: unknown;
+        dangerouslyAllowSVG?: boolean;
+        minimumCacheTTL?: number;
+      };
+    };
+  };
+  try {
+    parsed = JSON.parse(fs.readFileSync(requiredServerFilesPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const images = parsed.config?.images;
+  if (!images) return;
+
+  if (Array.isArray(images.remotePatterns)) {
+    const patterns: RemotePattern[] = [];
+    for (const entry of images.remotePatterns) {
+      if (!entry || typeof entry !== 'object') continue;
+      const e = entry as {
+        protocol?: unknown;
+        hostname?: unknown;
+        port?: unknown;
+        pathname?: unknown;
+      };
+      if (typeof e.hostname !== 'string' || e.hostname === '') continue;
+      const p: RemotePattern = { hostname: e.hostname };
+      if (e.protocol === 'http' || e.protocol === 'https') {
+        p.protocol = e.protocol;
+      }
+      if (typeof e.port === 'string') p.port = e.port;
+      if (typeof e.pathname === 'string') p.pathname = e.pathname;
+      patterns.push(p);
+    }
+    if (patterns.length > 0) {
+      manifest.imageOptimization.remotePatterns = patterns;
+    }
+  }
+  if (typeof images.dangerouslyAllowSVG === 'boolean') {
+    manifest.imageOptimization.dangerouslyAllowSVG = images.dangerouslyAllowSVG;
+  }
+  if (typeof images.minimumCacheTTL === 'number') {
+    manifest.imageOptimization.minimumCacheTTL = images.minimumCacheTTL;
+  }
+};
+
+const REDIRECT_CAP_NEXTJS = 100;
+
+/**
+ * Read `.next/prerender-manifest.json` for the list of statically
+ * prerendered URL paths and emit canonical-form redirects honoring the
+ * user's `trailingSlash` setting. Caps at 100 entries (matches the
+ * CloudFront Function size budget); user-declared redirects from
+ * `liftSimpleRoutesManifest` get appended *afterwards* with the same
+ * cap split.
+ */
+const applyTrailingSlashRedirects = (
+  manifest: DeployManifest,
+  projectDir: string,
+  mode: TrailingSlashMode,
+): void => {
+  if (mode === 'ignore') return;
+  const prerenderManifestPath = path.join(
+    projectDir,
+    '.next',
+    'prerender-manifest.json',
+  );
+  if (!fs.existsSync(prerenderManifestPath)) return;
+  let parsed: { routes?: Record<string, unknown> };
+  try {
+    parsed = JSON.parse(fs.readFileSync(prerenderManifestPath, 'utf-8'));
+  } catch {
+    return;
+  }
+  const paths = Object.keys(parsed.routes ?? {});
+  const ts = emitTrailingSlashRedirects(paths, mode);
+  if (ts.length === 0) return;
+  const existing = manifest.redirects ?? [];
+  const remaining = REDIRECT_CAP_NEXTJS - existing.length;
+  if (remaining <= 0) {
+    process.stderr.write(
+      `⚠️  ${ts.length} trailing-slash redirect(s) skipped — Next.js redirect cap of ${REDIRECT_CAP_NEXTJS} ` +
+        `already filled by user-declared redirects.\n`,
+    );
+    return;
+  }
+  if (ts.length > remaining) {
+    process.stderr.write(
+      `⚠️  ${ts.length} trailing-slash redirects requested; only ${remaining} fit ` +
+        `under the ${REDIRECT_CAP_NEXTJS}-redirect CloudFront Function cap.\n`,
+    );
+  }
+  manifest.redirects = [...existing, ...ts.slice(0, remaining)];
 };
 
 /**
@@ -348,7 +494,15 @@ const applyLiftedRoutesManifest = (
       continue;
     }
     const headers: Record<string, string> = {};
-    for (const entry of h.headers) headers[entry.key] = entry.value;
+    for (const entry of h.headers) {
+      if (entry.key.toLowerCase() === 'cache-control') {
+        validateCacheControl(
+          entry.value,
+          `route ${h.source} (Next.js headers config)`,
+        );
+      }
+      headers[entry.key] = entry.value;
+    }
     liftedHeaders.push({
       source: h.source,
       headers,
