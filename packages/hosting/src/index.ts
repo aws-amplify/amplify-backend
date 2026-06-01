@@ -34,3 +34,4 @@ export type {
   PipelineStageConfig,
   BranchConfig,
 } from './pipeline/types.js';
+export type { SkewProtectionConfig } from './constructs/skew_protection.js';

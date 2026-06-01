@@ -65,7 +65,7 @@ export const generateBuildId = (): string => {
  * Manifest redirect entry. Mirrors `Redirect` in `manifest/types.ts` but
  * imported by string here to avoid a circular dep.
  */
-type RedirectEntry = {
+export type RedirectEntry = {
   source: string;
   destination: string;
   statusCode: 301 | 302 | 307 | 308;
@@ -100,7 +100,9 @@ export const MAX_REDIRECTS_IN_FUNCTION = 100;
  * snippet (no `handler` wrapper) so it can be composed with other logic
  * in callers that already have their own handler.
  */
-const generateRedirectCheckSnippet = (redirects: RedirectEntry[]): string => {
+export const generateRedirectCheckSnippet = (
+  redirects: RedirectEntry[],
+): string => {
   if (redirects.length === 0) return '';
   const table = JSON.stringify(redirects);
   return `
@@ -133,7 +135,12 @@ const generateRedirectCheckSnippet = (redirects: RedirectEntry[]): string => {
   }`;
 };
 
-const validateRedirects = (redirects: RedirectEntry[]): void => {
+/**
+ * Validates an array of redirect entries against CloudFront Function limits.
+ * Throws if the redirect count exceeds the function size cap or if any
+ * entry uses an invalid HTTP status code.
+ */
+export const validateRedirects = (redirects: RedirectEntry[]): void => {
   if (redirects.length > MAX_REDIRECTS_IN_FUNCTION) {
     throw new HostingError('TooManyRedirectsError', {
       message: `Manifest declares ${redirects.length} redirects, but CloudFront Functions are limited to ~10 KB. Cap is ${MAX_REDIRECTS_IN_FUNCTION}.`,
