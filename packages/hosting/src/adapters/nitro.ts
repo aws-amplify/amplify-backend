@@ -67,7 +67,85 @@ type NitroBuildInfo = {
   routeRules?: Record<string, NitroRouteRule>;
   config?: {
     awsLambda?: { streaming?: boolean };
+    /**
+     * Nitro experimental WebSocket runtime. Lambda Function URLs and API
+     * Gateway HTTP/REST API don't speak the WS upgrade — we throw at
+     * adapter time rather than letting the build ship a runtime that
+     * silently 502s.
+     */
+    experimental?: { websocket?: boolean };
+    /**
+     * Cron-like tasks. Vercel/Cloudflare wire these to platform schedulers;
+     * Amplify hosting has no EventBridge wiring today, so they would
+     * silently never fire. Throw at adapter time.
+     */
+    scheduledTasks?: Record<string, string[]> | string[];
   };
+};
+
+/**
+ * Nitro presets we support. Anything else falls back to producing an
+ * AWS Lambda bundle, which crashes on cold start when the user's source
+ * targets Cloudflare/Vercel/etc.-specific runtimes.
+ */
+const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
+  'aws-lambda',
+  'aws-lambda-streaming',
+  'node-server',
+  'node',
+]);
+
+/**
+ * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
+ * one we know how to wire into AWS infrastructure. Without this check,
+ * the adapter falls through to producing an aws-lambda handler shape
+ * regardless of what the user picked, and the Lambda crashes on cold
+ * start with `Cannot find module 'cloudflare'` (or similar).
+ */
+const validateNitroPreset = (preset: string): void => {
+  if (SUPPORTED_NITRO_PRESETS.has(preset)) return;
+  throw new HostingError('UnsupportedNitroPresetError', {
+    message: `Nitro preset "${preset}" is not supported by Amplify hosting.`,
+    resolution: `Set NITRO_PRESET (or nitro.preset in your framework config) to one of: ${Array.from(
+      SUPPORTED_NITRO_PRESETS,
+    ).join(', ')}.`,
+  });
+};
+
+/**
+ * Throw on Nitro features that produce a deployable bundle but break
+ * silently on AWS:
+ *   - `experimental.websocket: true` — Lambda Function URLs and API
+ *     Gateway REST/HTTP don't speak the WS upgrade frame.
+ *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform
+ *     schedulers; we have no EventBridge wiring, so the cron silently
+ *     never fires.
+ *
+ * We default to a hard error rather than a deploy-time warning because
+ * the failure mode is invisible at runtime — the user only finds out
+ * weeks later when a scheduled task hasn't run.
+ */
+const validateNitroFeatures = (info: NitroBuildInfo): void => {
+  if (info.config?.experimental?.websocket === true) {
+    throw new HostingError('UnsupportedNitroFeatureError', {
+      message:
+        'Nitro `experimental.websocket: true` is not supported on Amplify hosting (Lambda Function URLs and API Gateway REST cannot complete the WS upgrade).',
+      resolution:
+        'Remove `experimental.websocket` from nitro/nuxt config, or front WebSocket connections via API Gateway WebSocket APIs (separate provisioning).',
+    });
+  }
+  const tasks = info.config?.scheduledTasks;
+  const hasScheduledTasks = Array.isArray(tasks)
+    ? tasks.length > 0
+    : tasks && Object.keys(tasks).length > 0;
+  if (hasScheduledTasks) {
+    throw new HostingError('UnsupportedNitroFeatureError', {
+      message:
+        'Nitro `scheduledTasks` are not wired to AWS EventBridge by this adapter, so they would silently never fire.',
+      resolution:
+        'Remove `scheduledTasks` from nitro/nuxt config and provision the cron via AWS EventBridge (or scheduled CloudWatch rule) separately.',
+    });
+  }
 };
 
 type NitroRouteRule = {
@@ -180,6 +258,8 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
 
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
+  validateNitroPreset(resolvedPreset);
+  validateNitroFeatures(nitroInfo);
   // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
   // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
   // and reading it from `nuxt.config.ts` would require migrating off the

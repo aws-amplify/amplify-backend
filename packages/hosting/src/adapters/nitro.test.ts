@@ -407,3 +407,90 @@ void describe('nitroAdapter — IPX baseURL plumbing', () => {
     );
   });
 });
+
+void describe('nitroAdapter — preset + feature validation', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-validate-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('throws UnsupportedNitroPresetError on unsupported preset (cloudflare)', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'cloudflare' } });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroPresetError',
+    });
+  });
+
+  void it('accepts aws-lambda', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'aws-lambda' } });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('accepts aws-lambda-streaming', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: { preset: 'aws-lambda-streaming' },
+    });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('accepts node-server', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'node-server' } });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('throws UnsupportedNitroFeatureError on experimental.websocket: true', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { experimental: { websocket: true } },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroFeatureError',
+    });
+  });
+
+  void it('throws UnsupportedNitroFeatureError on non-empty scheduledTasks', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { scheduledTasks: { '* * * * *': ['cleanup'] } },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroFeatureError',
+    });
+  });
+
+  void it('does not throw when scheduledTasks is an empty object', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { scheduledTasks: {} },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+});
