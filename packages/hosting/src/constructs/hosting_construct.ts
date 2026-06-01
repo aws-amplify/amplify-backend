@@ -433,6 +433,34 @@ export class AmplifyHostingConstruct extends Construct {
             imageConstruct.function.addEnvironment(key, value);
           }
         }
+
+        // Image-opt safety knobs (Piece 4). These mirror the
+        // user-facing names from Next.js / Astro. OpenNext's image-opt
+        // adapter reads its config from a bundled `nextConfig` rather
+        // than process env, so these env vars are written here for
+        // forward-compat — the framework-side runtime can pick them up
+        // when it migrates to env-based config.
+        if (manifest.imageOptimization.dangerouslyAllowSVG !== undefined) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_ALLOW_SVG',
+            String(manifest.imageOptimization.dangerouslyAllowSVG),
+          );
+        }
+        if (manifest.imageOptimization.minimumCacheTTL !== undefined) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_MIN_CACHE_TTL',
+            String(manifest.imageOptimization.minimumCacheTTL),
+          );
+        }
+        if (
+          manifest.imageOptimization.remotePatterns &&
+          manifest.imageOptimization.remotePatterns.length > 0
+        ) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_REMOTE_PATTERNS',
+            JSON.stringify(manifest.imageOptimization.remotePatterns),
+          );
+        }
       }
     }
 

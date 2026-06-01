@@ -57,6 +57,75 @@ void describe('generateBuildIdAndRedirectFunctionCode', () => {
       { message: /not a redirect status/ },
     );
   });
+
+  void describe('basePath canonical-redirect', () => {
+    const evalFn = (
+      code: string,
+    ): ((event: {
+      request: { uri: string; headers?: Record<string, { value: string }> };
+    }) => unknown) =>
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      new Function(`${code}\nreturn handler;`)() as never;
+
+    void it('bare / 308-redirects to <basePath>/', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        '/app',
+      );
+      const handler = evalFn(code);
+      const result = handler({ request: { uri: '/', headers: {} } }) as {
+        statusCode?: number;
+        headers?: { location: { value: string } };
+      };
+      assert.equal(result.statusCode, 308);
+      assert.equal(result.headers?.location.value, '/app/');
+    });
+
+    void it('bare /about 308-redirects to <basePath>/about', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        '/app',
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/about', headers: {} },
+      }) as {
+        statusCode?: number;
+        headers?: { location: { value: string } };
+      };
+      assert.equal(result.statusCode, 308);
+      assert.equal(result.headers?.location.value, '/app/about');
+    });
+
+    void it('basePath-prefixed URI passes through to build-id rewrite', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        '/app',
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/app/about', headers: {} },
+      }) as { uri?: string; statusCode?: number };
+      assert.equal(result.statusCode, undefined);
+      assert.match(result.uri ?? '', /\/builds\/mybuild-1\/about/);
+    });
+
+    void it('exact basePath URI passes through (does not redirect to itself)', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        '/app',
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/app', headers: {} },
+      }) as { uri?: string; statusCode?: number };
+      assert.equal(result.statusCode, undefined);
+    });
+  });
 });
 
 void describe('generateForwardedHostAndRedirectFunctionCode', () => {
@@ -73,6 +142,59 @@ void describe('generateForwardedHostAndRedirectFunctionCode', () => {
     assert.match(code, /x-forwarded-host/);
     assert.match(code, /__redirects/);
     assert.match(code, /308/);
+  });
+
+  void describe('basePath canonical-redirect on compute behaviors', () => {
+    const evalFn = (
+      code: string,
+    ): ((event: {
+      request: { uri: string; headers?: Record<string, { value: string }> };
+    }) => unknown) =>
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      new Function(`${code}\nreturn handler;`)() as never;
+
+    void it('bare / 308-redirects to <basePath>/', () => {
+      const code = generateForwardedHostAndRedirectFunctionCode([], '/app');
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/', headers: { host: { value: 'x.cf.net' } } },
+      }) as {
+        statusCode?: number;
+        headers?: { location: { value: string } };
+      };
+      assert.equal(result.statusCode, 308);
+      assert.equal(result.headers?.location.value, '/app/');
+    });
+
+    void it('bare /about 308-redirects to <basePath>/about', () => {
+      const code = generateForwardedHostAndRedirectFunctionCode([], '/app');
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/about', headers: { host: { value: 'x.cf.net' } } },
+      }) as {
+        statusCode?: number;
+        headers?: { location: { value: string } };
+      };
+      assert.equal(result.statusCode, 308);
+      assert.equal(result.headers?.location.value, '/app/about');
+    });
+
+    void it('basePath-prefixed URI passes through with x-forwarded-host', () => {
+      const code = generateForwardedHostAndRedirectFunctionCode([], '/app');
+      const handler = evalFn(code);
+      const result = handler({
+        request: {
+          uri: '/app/about',
+          headers: { host: { value: 'x.cf.net' } },
+        },
+      }) as {
+        statusCode?: number;
+        uri?: string;
+        headers?: Record<string, { value: string }>;
+      };
+      assert.equal(result.statusCode, undefined);
+      assert.equal(result.headers?.['x-forwarded-host']?.value, 'x.cf.net');
+    });
   });
 });
 

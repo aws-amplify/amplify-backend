@@ -73,6 +73,18 @@ export type DeployManifest = {
 
   /** Build ID for atomic deployments. */
   buildId?: string;
+
+  /**
+   * Optional URL prefix that prefixes every routable URL on the deployed
+   * site. Maps to Next.js `basePath`, Astro `base`, Nuxt `app.baseURL`.
+   * When set, every CloudFront behavior pattern is prefixed and the bare
+   * domain root issues a 308 redirect to `/<basePath>/`.
+   *
+   * Format: leading slash, no trailing slash. Examples: `/app`, `/docs`.
+   * Use `assetPrefix` for asset-only prefixing; `basePath` covers SSR
+   * routes too.
+   */
+  basePath?: string;
 };
 
 export type ComputeResource = {
@@ -204,6 +216,34 @@ export type ImageConfig = {
    * adapters write it for parity with the originating framework config.
    */
   domains?: string[];
+
+  /**
+   * More expressive allowlist than `domains`. Each entry can scope the
+   * match by protocol/port/path prefix in addition to hostname. Mirrors
+   * Next.js `images.remotePatterns`.
+   */
+  remotePatterns?: RemotePattern[];
+
+  /**
+   * Permit SVG sources through the image-opt pipeline. SVG can carry
+   * arbitrary script payloads; off by default. Mirrors Next.js
+   * `images.dangerouslyAllowSVG`.
+   */
+  dangerouslyAllowSVG?: boolean;
+
+  /**
+   * Minimum cache TTL (in seconds) the image-opt response should
+   * advertise. Mirrors Next.js `images.minimumCacheTTL`. Wired onto the
+   * image-opt Lambda's env at L3 time.
+   */
+  minimumCacheTTL?: number;
+};
+
+export type RemotePattern = {
+  protocol?: 'http' | 'https';
+  hostname: string;
+  port?: string;
+  pathname?: string;
 };
 
 export type MiddlewareConfig = {

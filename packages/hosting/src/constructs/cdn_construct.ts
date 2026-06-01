@@ -47,6 +47,7 @@ import {
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
+import { prependBasePath } from '../adapters/shared/basepath.js';
 import { DeployManifest } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
@@ -213,13 +214,28 @@ export class CdnConstruct extends Construct {
     // manifest redirects. Redirects short-circuit before the rewrite.
     // CloudFront caps one function per behavior per event type, so we
     // combine them here.
-    const manifestRedirects = manifest.redirects ?? [];
+    // basePath (if set) prefixes every routable URL on the deployed site.
+    // Redirect sources/destinations declared by the framework are
+    // basePath-relative; prefix them here so the CF Function matches the
+    // actual request URIs CloudFront sees.
+    const rawRedirects = manifest.redirects ?? [];
+    const manifestRedirects = manifest.basePath
+      ? rawRedirects.map((r) => ({
+          ...r,
+          source: prependBasePath(manifest.basePath, r.source),
+          destination: prependBasePath(manifest.basePath, r.destination),
+        }))
+      : rawRedirects;
     const buildIdFunction = new CloudFrontFunction(
       this,
       'BuildIdRewriteFunction',
       {
         code: FunctionCode.fromInline(
-          generateBuildIdAndRedirectFunctionCode(buildId, manifestRedirects),
+          generateBuildIdAndRedirectFunctionCode(
+            buildId,
+            manifestRedirects,
+            manifest.basePath,
+          ),
         ),
         runtime: FunctionRuntime.JS_2_0,
         comment:
@@ -331,7 +347,10 @@ export class CdnConstruct extends Construct {
     const forwardedHostFunction = hasCompute
       ? new CloudFrontFunction(this, 'ForwardedHostFunction', {
           code: FunctionCode.fromInline(
-            generateForwardedHostAndRedirectFunctionCode(manifestRedirects),
+            generateForwardedHostAndRedirectFunctionCode(
+              manifestRedirects,
+              manifest.basePath,
+            ),
           ),
           runtime: FunctionRuntime.JS_2_0,
           comment:
@@ -384,8 +403,37 @@ export class CdnConstruct extends Construct {
             'next-router-prefetch',
             'next-router-state-tree',
             'next-router-segment-prefetch',
+            // Server Actions POST to the same URL as the page with a
+            // `next-action: <hash>` header identifying which action ran.
+            // CloudFront does not cache POST today, so the immediate
+            // collision risk is theoretical, but the header is part of
+            // OpenNext's request-routing contract and belongs in the
+            // cache key for correctness.
+            // See: node_modules/@opennextjs/aws/dist/core/routing/cacheInterceptor.js
+            'next-action',
           ),
-          cookieBehavior: CacheCookieBehavior.none(),
+          // Allowlist Next.js's two preview-mode cookies so requests
+          // carrying them cache-miss and re-render fresh from the SSR
+          // Lambda. With the previous `none()` behavior, CloudFront
+          // stripped the cookies and served the cached anonymous
+          // response — Draft Mode silently broke.
+          //
+          // Hit-rate impact: requests WITHOUT these cookies (the vast
+          // majority) cache-key the same as before, so normal-traffic
+          // hit rate is unchanged. Requests WITH the cookies (CMS
+          // preview sessions) cache-miss by design — that's the whole
+          // point of Draft Mode.
+          //
+          // Cookie names verified from Next.js source:
+          //   node_modules/next/dist/server/api-utils/index.js:113-114
+          //     COOKIE_NAME_PRERENDER_BYPASS = '__prerender_bypass'
+          //     COOKIE_NAME_PRERENDER_DATA   = '__next_preview_data'
+          // CloudFront supports up to 10 cookies per cache policy; we
+          // use 2.
+          cookieBehavior: CacheCookieBehavior.allowList(
+            '__prerender_bypass',
+            '__next_preview_data',
+          ),
           queryStringBehavior: CacheQueryStringBehavior.all(),
           enableAcceptEncodingBrotli: true,
           enableAcceptEncodingGzip: true,
@@ -499,9 +547,14 @@ export class CdnConstruct extends Construct {
       });
     }
 
+    const basePath = manifest.basePath;
+
     for (const route of specificRoutes) {
       const isStatic = route.target === 'static' || route.target === 's3';
-      const cfPattern = normalizePatternForCloudFront(route.pattern);
+      const cfPattern = prependBasePath(
+        basePath,
+        normalizePatternForCloudFront(route.pattern),
+      );
 
       if (isStatic) {
         additionalBehaviors[cfPattern] = makeStaticBehavior();
@@ -577,6 +630,10 @@ export class CdnConstruct extends Construct {
           },
         ],
       };
+      // Note: when both basePath and assetPrefix are absolute (leading
+      // `/`), Next.js emits asset URLs as `<assetPrefix>/...` WITHOUT
+      // prepending basePath — so the CloudFront behavior must match the
+      // bare assetPrefix path, NOT the basePath-prefixed one.
       const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
       // Add the most-specific prefixed patterns. Skipped if a user route
       // already claims them (defensive — should never overlap in

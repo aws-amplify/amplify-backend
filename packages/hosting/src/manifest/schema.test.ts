@@ -139,6 +139,93 @@ void describe('Deploy Manifest Schema', () => {
     assert.ok(result.success, 'imageOptimization.domains should parse');
   });
 
+  void it('validates manifest with image optimization safety knobs (Piece 4)', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      imageOptimization: {
+        bundle: '/tmp/image-fn',
+        handler: 'index.handler',
+        formats: ['webp'],
+        sizes: [640],
+        remotePatterns: [
+          { hostname: 'images.example.org' },
+          {
+            protocol: 'https',
+            hostname: 'cdn.example.com',
+            pathname: '/img/*',
+          },
+        ],
+        dangerouslyAllowSVG: true,
+        minimumCacheTTL: 60,
+      },
+    };
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'image safety knobs should parse');
+  });
+
+  void it('validates manifest with no image safety knobs (back-compat)', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      imageOptimization: {
+        bundle: '/tmp/image-fn',
+        handler: 'index.handler',
+        formats: ['webp'],
+        sizes: [640],
+      },
+    };
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'baseline image config still parses');
+  });
+
+  void it('rejects remotePattern missing hostname', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      imageOptimization: {
+        bundle: '/tmp/image-fn',
+        handler: 'index.handler',
+        formats: ['webp'],
+        sizes: [640],
+        // @ts-expect-error — exercising schema validation on a bad input
+        remotePatterns: [{ protocol: 'https' }],
+      },
+    };
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(!result.success, 'hostname is required on remotePattern');
+  });
+
+  void it('validates manifest with basePath (Piece 1)', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      basePath: '/app',
+    };
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(result.success, 'basePath should parse');
+  });
+
+  void it('rejects basePath with trailing slash', () => {
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {},
+      staticAssets: { directory: '/tmp/assets' },
+      routes: [{ pattern: '/*', target: 'static' }],
+      basePath: '/app/',
+    };
+    const result = deployManifestSchema.safeParse(manifest);
+    assert.ok(!result.success, 'basePath must not end with /');
+  });
+
   void it('validates manifest with middleware', () => {
     const manifest: DeployManifest = {
       version: 1,

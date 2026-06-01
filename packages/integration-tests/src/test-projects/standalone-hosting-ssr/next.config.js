@@ -9,6 +9,12 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/*': ['./amplify_outputs.json'],
   },
+  async redirects() {
+    return [
+      { source: '/old-static-path', destination: '/about', permanent: true },
+      { source: '/temp-redirect', destination: '/dashboard', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

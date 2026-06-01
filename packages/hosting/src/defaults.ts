@@ -163,6 +163,7 @@ const validateRedirects = (redirects: RedirectEntry[]): void => {
 export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
+  basePath?: string,
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {
@@ -173,11 +174,46 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  // basePath canonical-redirect: when basePath is set, the bare domain
+  // root and any path NOT under basePath should 308-redirect to the
+  // basePath-prefixed equivalent. Without this the SSR Lambda's
+  // catch-all serves prerendered content from bare paths, breaking the
+  // basePath contract documented in DeployManifest.basePath.
+  //
+  // Order matters: this runs BEFORE the basePath strip, so requests
+  // that DO start with basePath fall through to the strip + rewrite
+  // path unchanged. Requests that don't get redirected back to the
+  // basePath-prefixed URL (browser then re-requests, hitting the
+  // /<basePath>/* CloudFront behavior).
+  const basePathRedirect = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
+    var __target = uri === '/' ? __bp + '/' : __bp + uri;
+    return {
+      statusCode: 308,
+      statusDescription: 'Permanent Redirect',
+      headers: { location: { value: __target } },
+    };
+  }
+`
+    : '';
+  // basePath strip on static behaviors: S3 stores objects under
+  // /builds/<id>/foo.css, not /builds/<id>/<basePath>/foo.css. Strip the
+  // prefix after redirects evaluate but before the build-id rewrite so
+  // assets resolve. SSR/compute behaviors KEEP basePath — framework
+  // internal routing expects it.
+  const basePathStrip = basePath
+    ? `  if (uri.indexOf(__bp) === 0) {
+    uri = uri.substring(__bp.length);
+    if (uri.length === 0) { uri = '/'; }
+  }
+`
+    : '';
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-  if (uri.endsWith('/')) {
+${basePathRedirect}${basePathStrip}  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
   } else {
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
@@ -249,17 +285,36 @@ export const generateAssetPrefixStripFunctionCode = (
  * Generate CloudFront Function code for compute-origin behaviors:
  * checks redirects first, then propagates the Host header to
  * x-forwarded-host so the SSR handler can construct correct public URLs.
+ *
+ * When basePath is set, also emits a 308 canonical redirect for any URI
+ * that does not start with the basePath. This mirrors the redirect
+ * applied on static behaviors via generateBuildIdAndRedirectFunctionCode
+ * — both functions run on different behaviors but enforce the same
+ * basePath contract from `DeployManifest.basePath`.
  */
 export const generateForwardedHostAndRedirectFunctionCode = (
   redirects: RedirectEntry[] = [],
+  basePath?: string,
 ): string => {
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  const basePathRedirect = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
+    var __target = uri === '/' ? __bp + '/' : __bp + uri;
+    return {
+      statusCode: 308,
+      statusDescription: 'Permanent Redirect',
+      headers: { location: { value: __target } },
+    };
+  }
+`
+    : '';
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-  var host = request.headers.host ? request.headers.host.value : undefined;
+${basePathRedirect}  var host = request.headers.host ? request.headers.host.value : undefined;
   if (host) { request.headers["x-forwarded-host"] = { value: host }; }
   return request;
 }`;

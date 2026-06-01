@@ -15,6 +15,7 @@
  * only sees compute resources, route patterns, and a static-assets dir.
  */
 import { spawn } from './spawn.js';
+import { validateCacheControl } from './shared/cache_control.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -179,6 +180,10 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
 
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
+  // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
+  // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
+  // and reading it from `nuxt.config.ts` would require migrating off the
+  // regex-based config scanner — tracked as a separate follow-up PR.
 
   return buildManifest({
     preset: resolvedPreset,
@@ -880,6 +885,11 @@ const buildHeaders = (
   const out: NonNullable<DeployManifest['headers']> = [];
   for (const [source, rule] of Object.entries(routeRules)) {
     if (!rule.headers || Object.keys(rule.headers).length === 0) continue;
+    for (const [name, value] of Object.entries(rule.headers)) {
+      if (name.toLowerCase() === 'cache-control') {
+        validateCacheControl(value, `route ${source} (Nitro routeRules)`);
+      }
+    }
     out.push({
       source: normalizeRulePattern(source),
       headers: rule.headers,

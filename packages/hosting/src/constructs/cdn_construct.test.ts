@@ -330,10 +330,19 @@ void describe('CdnConstruct', () => {
                   'next-router-prefetch',
                   'next-router-state-tree',
                   'next-router-segment-prefetch',
+                  // Server Actions identify themselves with this header.
+                  'next-action',
                 ]),
               }),
               CookiesConfig: Match.objectLike({
-                CookieBehavior: 'none',
+                CookieBehavior: 'whitelist',
+                // Next.js Draft Mode preview cookies — cache key
+                // includes them so preview requests bypass cached
+                // anonymous responses.
+                Cookies: Match.arrayWith([
+                  '__prerender_bypass',
+                  '__next_preview_data',
+                ]),
               }),
             }),
           }),

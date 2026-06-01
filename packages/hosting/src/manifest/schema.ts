@@ -71,6 +71,13 @@ export const cacheConfigSchema = z.object({
 /**
  * Zod schema for ImageConfig.
  */
+export const remotePatternSchema = z.object({
+  protocol: z.enum(['http', 'https']).optional(),
+  hostname: z.string().min(1),
+  port: z.string().optional(),
+  pathname: z.string().optional(),
+});
+
 export const imageConfigSchema = z.object({
   bundle: z.string().min(1),
   handler: z.string().min(1),
@@ -82,6 +89,9 @@ export const imageConfigSchema = z.object({
     .optional(),
   environment: z.record(z.string(), z.string()).optional(),
   domains: z.array(z.string()).optional(),
+  remotePatterns: z.array(remotePatternSchema).optional(),
+  dangerouslyAllowSVG: z.boolean().optional(),
+  minimumCacheTTL: z.number().int().nonnegative().optional(),
 });
 
 /**
@@ -169,6 +179,14 @@ export const deployManifestSchema = z
         BUILD_ID_PATTERN,
         'buildId must be alphanumeric with hyphens, max 64 chars',
       )
+      .optional(),
+    basePath: z
+      .string()
+      .regex(
+        /^\/[a-zA-Z0-9_/-]+$/,
+        'basePath must start with /, must not end with /, and must contain only letters, digits, dashes, underscores, and slashes',
+      )
+      .refine((v) => !v.endsWith('/'), 'basePath must not end with /')
       .optional(),
   })
   .superRefine((data, ctx) => {

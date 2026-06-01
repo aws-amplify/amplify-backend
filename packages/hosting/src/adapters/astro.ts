@@ -25,6 +25,8 @@
  * `@astrojs/node`, the bridge is skipped.
  */
 import { spawn } from './spawn.js';
+import { normalizeBasePath } from './shared/basepath.js';
+import { emitTrailingSlashRedirects } from './shared/trailing_slash.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -32,7 +34,12 @@ import semver from 'semver';
 import { createJiti } from 'jiti';
 import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
-import { DeployManifest, Redirect, RouteBehavior } from '../manifest/types.js';
+import {
+  DeployManifest,
+  RemotePattern as ImageRemotePattern,
+  Redirect,
+  RouteBehavior,
+} from '../manifest/types.js';
 
 export type AstroAdapterOptions = {
   /** Project root directory (absolute). */
@@ -113,7 +120,19 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
   const trailingSlash: AstroTrailingSlash =
     (config.trailingSlash as AstroTrailingSlash | undefined) ?? 'ignore';
   const imageDomains = readArrayOfStrings(config, 'image', 'domains');
+  const imageRemotePatterns = readImageRemotePatterns(config);
+  const imageAllowSVG =
+    typeof config.image?.dangerouslyAllowSVG === 'boolean'
+      ? config.image.dangerouslyAllowSVG
+      : undefined;
+  const imageMinimumCacheTTL =
+    typeof config.image?.minimumCacheTTL === 'number'
+      ? config.image.minimumCacheTTL
+      : undefined;
   const liftedRedirects = liftAstroRedirects(config);
+  const basePath = normalizeBasePath(
+    typeof config.base === 'string' ? config.base : undefined,
+  );
 
   if (!skipBuild) {
     const useBridge =
@@ -172,6 +191,9 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
           output,
           trailingSlash,
           imageDomains,
+          imageRemotePatterns,
+          imageAllowSVG,
+          imageMinimumCacheTTL,
         });
 
   // Lift the user's astro.config `redirects:` table out of the SSR
@@ -186,6 +208,47 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
       );
     }
     manifest.redirects = liftedRedirects.slice(0, REDIRECT_LIFT_CAP);
+  }
+
+  // Trailing-slash canonical redirects. Append AFTER user-declared lifts
+  // so explicit redirects win the precedence in the CF Function and the
+  // overflow (if any) drops trailing-slash entries first.
+  if (trailingSlash !== 'ignore') {
+    const staticPaths = collectStaticPathsForRedirects(
+      output === 'static' ? distDir : clientDir,
+    );
+    const tsRedirects = emitTrailingSlashRedirects(
+      staticPaths,
+      trailingSlash as 'always' | 'never',
+    );
+    if (tsRedirects.length > 0) {
+      const existing = manifest.redirects ?? [];
+      const remainingCap = REDIRECT_LIFT_CAP - existing.length;
+      if (remainingCap <= 0) {
+        process.stderr.write(
+          `⚠️  ${tsRedirects.length} trailing-slash redirect(s) skipped — ` +
+            `redirect cap of ${REDIRECT_LIFT_CAP} already filled by user-declared redirects.\n`,
+        );
+      } else {
+        if (tsRedirects.length > remainingCap) {
+          process.stderr.write(
+            `⚠️  ${tsRedirects.length} trailing-slash redirects requested; only ${remainingCap} fit ` +
+              `under the ${REDIRECT_LIFT_CAP}-redirect CloudFront Function cap.\n`,
+          );
+        }
+        manifest.redirects = [
+          ...existing,
+          ...tsRedirects.slice(0, remainingCap),
+        ];
+      }
+    }
+  }
+
+  if (basePath) {
+    manifest.basePath = basePath;
+    process.stdout.write(
+      `🔗 Detected Astro base=${basePath}; CloudFront behaviors will be prefixed.\n`,
+    );
   }
 
   // Pre-compressed sibling cleanup — CloudFront re-compresses on the
@@ -238,8 +301,12 @@ type AstroTrailingSlash = 'always' | 'never' | 'ignore';
 type AstroConfigShape = {
   output?: AstroOutput;
   trailingSlash?: AstroTrailingSlash;
+  base?: string;
   image?: {
     domains?: string[];
+    remotePatterns?: unknown;
+    dangerouslyAllowSVG?: boolean;
+    minimumCacheTTL?: number;
   };
 };
 
@@ -503,6 +570,39 @@ const readArrayOfStrings = (
 };
 
 /**
+ * Parse `astro.config.image.remotePatterns[]` into the manifest's
+ * `RemotePattern[]` shape. Astro's pattern shape mirrors Next.js's;
+ * we accept the same fields and silently drop entries missing
+ * `hostname` (the only required field).
+ */
+const readImageRemotePatterns = (
+  config: AstroConfigShape,
+): ImageRemotePattern[] => {
+  const raw = (config.image as { remotePatterns?: unknown } | undefined)
+    ?.remotePatterns;
+  if (!Array.isArray(raw)) return [];
+  const out: ImageRemotePattern[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue;
+    const e = entry as {
+      protocol?: unknown;
+      hostname?: unknown;
+      port?: unknown;
+      pathname?: unknown;
+    };
+    if (typeof e.hostname !== 'string' || e.hostname === '') continue;
+    const pattern: ImageRemotePattern = { hostname: e.hostname };
+    if (e.protocol === 'http' || e.protocol === 'https') {
+      pattern.protocol = e.protocol;
+    }
+    if (typeof e.port === 'string') pattern.port = e.port;
+    if (typeof e.pathname === 'string') pattern.pathname = e.pathname;
+    out.push(pattern);
+  }
+  return out;
+};
+
+/**
  * Translate Astro's `redirects:` config table into the manifest's
  * `redirects[]` shape. Astro accepts two value forms:
  *   - string shorthand:    `'/old': '/new'`             → 301
@@ -579,9 +679,21 @@ const buildSsrManifest = (input: {
   output: AstroOutput;
   trailingSlash: AstroTrailingSlash;
   imageDomains: string[];
+  imageRemotePatterns: ImageRemotePattern[];
+  imageAllowSVG: boolean | undefined;
+  imageMinimumCacheTTL: number | undefined;
 }): DeployManifest => {
-  const { distDir, clientDir, serverDir, output, trailingSlash, imageDomains } =
-    input;
+  const {
+    distDir,
+    clientDir,
+    serverDir,
+    output,
+    trailingSlash,
+    imageDomains,
+    imageRemotePatterns,
+    imageAllowSVG,
+    imageMinimumCacheTTL,
+  } = input;
 
   // bundle: dist/  — so the Lambda zip has `server/` and `client/` as
   // siblings; @astrojs/node's standalone runtime walks `import.meta.url`
@@ -623,6 +735,15 @@ const buildSsrManifest = (input: {
       sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
       baseURL: '/_image',
       ...(imageDomains.length > 0 ? { domains: imageDomains } : {}),
+      ...(imageRemotePatterns.length > 0
+        ? { remotePatterns: imageRemotePatterns }
+        : {}),
+      ...(imageAllowSVG !== undefined
+        ? { dangerouslyAllowSVG: imageAllowSVG }
+        : {}),
+      ...(imageMinimumCacheTTL !== undefined
+        ? { minimumCacheTTL: imageMinimumCacheTTL }
+        : {}),
     };
   }
 
@@ -696,6 +817,21 @@ const htmlToUrlPath = (relPath: string): string => {
   let urlPath = '/' + normalized;
   urlPath = urlPath.replace(/\/index$/, '');
   return urlPath === '' ? '/' : urlPath;
+};
+
+/**
+ * Walk the static asset dir and return the URL paths for prerendered
+ * pages — used to seed `emitTrailingSlashRedirects`. Returns bare paths
+ * with leading slash, no trailing slash. Empty when the directory
+ * doesn't exist (SSR-only project with no prerender).
+ */
+const collectStaticPathsForRedirects = (clientOrDist: string): string[] => {
+  if (!fs.existsSync(clientOrDist)) return [];
+  const html = fg.sync('**/*.html', {
+    cwd: clientOrDist,
+    ignore: ['index.html', '404.html', '500.html'],
+  });
+  return html.map((rel) => htmlToUrlPath(rel)).filter((p) => p !== '/');
 };
 
 const normalizeRoutePattern = (

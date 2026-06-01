@@ -25,9 +25,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  if (pathname.startsWith('/admin/') || pathname.startsWith('/api/admin/')) {
+    const response = NextResponse.next();
+    response.headers.set('x-amplify-multi-matcher', pathname);
+    return response;
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/old-path', '/legacy-about'],
+  matcher: ['/old-path', '/legacy-about', '/admin/:path*', '/api/admin/:path*'],
 };
