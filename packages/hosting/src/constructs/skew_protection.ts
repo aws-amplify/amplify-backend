@@ -54,10 +54,12 @@ export const generateSkewProtectionViewerRequestCode = (
   var uri = request.uri;
 ${redirectSnippet}
   var buildId = '${buildId}';
-  var cookieHeader = request.headers.cookie ? request.headers.cookie.value : '';
-  var match = cookieHeader.match(/(?:^|;\\s*)${COOKIE_NAME}=([a-zA-Z0-9-]{1,64})/);
-  if (match) {
-    buildId = match[1];
+  var cookie = request.cookies['${COOKIE_NAME}'];
+  if (cookie) {
+    var val = cookie.value;
+    if (/^[a-zA-Z0-9-]{1,64}$/.test(val)) {
+      buildId = val;
+    }
   }
   if (uri.endsWith('/')) {
     uri = uri + 'index.html';
@@ -99,7 +101,7 @@ export const generateSkewProtectionViewerResponseCode = (
   var response = event.response;
   var contentType = response.headers['content-type'] ? response.headers['content-type'].value : '';
   if (contentType.indexOf('text/html') >= 0) {
-    response.headers['set-cookie'] = { value: '${COOKIE_NAME}=${buildId}; Path=/; SameSite=Lax; Max-Age=${maxAge}' };
+    response.cookies['${COOKIE_NAME}'] = { value: '${buildId}', attributes: 'Path=/; SameSite=Lax; Max-Age=${maxAge}' };
   }
   return response;
 }`;

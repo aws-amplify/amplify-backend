@@ -80,9 +80,10 @@ void describe('Skew Protection — Code Generation', () => {
       assert.ok(code.includes('/builds/'));
     });
 
-    void it('uses cookie value when match is found', () => {
+    void it('uses CloudFront Functions cookies API to read __dpl', () => {
       const code = generateSkewProtectionViewerRequestCode('current-build');
-      assert.ok(code.includes('match[1]'));
+      assert.ok(code.includes("request.cookies['__dpl']"));
+      assert.ok(code.includes('cookie.value'));
       assert.ok(code.includes("var buildId = 'current-build'"));
     });
 
@@ -203,7 +204,8 @@ void describe('Skew Protection — Code Generation', () => {
       const code = generateSkewProtectionViewerResponseCode('abc-123');
       assert.ok(code.includes('function handler(event)'));
       assert.ok(code.includes('text/html'));
-      assert.ok(code.includes('__dpl=abc-123'));
+      assert.ok(code.includes("response.cookies['__dpl']"));
+      assert.ok(code.includes("value: 'abc-123'"));
       assert.ok(code.includes('Path=/'));
       assert.ok(code.includes('SameSite=Lax'));
       assert.ok(code.includes('Max-Age=86400'));
@@ -295,9 +297,9 @@ void describe('Skew Protection — CdnConstruct Integration', () => {
       });
 
       const template = Template.fromStack(stack);
-      // Should have response function that sets the cookie
+      // Should have response function that sets the cookie via cookies API
       template.hasResourceProperties('AWS::CloudFront::Function', {
-        FunctionCode: Match.stringLikeRegexp('set-cookie'),
+        FunctionCode: Match.stringLikeRegexp('response\\.cookies'),
       });
     });
 
