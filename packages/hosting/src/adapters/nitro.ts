@@ -1046,23 +1046,77 @@ const buildRedirects = (
 };
 
 /**
- * Translate `headers` route rules into manifest CustomHeaders.
+ * Translate `headers`, `cors`, and `cache.maxAge` route rules into
+ * manifest CustomHeaders.
+ *
+ * Multiple Nitro route-rule fields can produce headers for the same
+ * source pattern. Merge them with user-declared `headers` winning over
+ * auto-emitted ones so the user can always override the cors/cache
+ * defaults if they need to.
+ *
+ *  - `headers: { ... }` lifts as-is.
+ *  - `cors: true` emits the same Access-Control-* set as Nitro's runtime
+ *    middleware so behavior matches when the rule fires at the edge.
+ *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N,
+ *    s-maxage=N` so CloudFront edge-caches the response for N seconds.
+ *    SWR rules are intentionally not lifted — those need server-side
+ *    cache plumbing (covered by `manifest.cache` provisioning).
  */
 const buildHeaders = (
   routeRules: Record<string, NitroRouteRule>,
 ): NonNullable<DeployManifest['headers']> => {
-  const out: NonNullable<DeployManifest['headers']> = [];
-  for (const [source, rule] of Object.entries(routeRules)) {
-    if (!rule.headers || Object.keys(rule.headers).length === 0) continue;
-    for (const [name, value] of Object.entries(rule.headers)) {
-      if (name.toLowerCase() === 'cache-control') {
-        validateCacheControl(value, `route ${source} (Nitro routeRules)`);
-      }
+  const merged = new Map<string, Record<string, string>>();
+  const recordFor = (source: string): Record<string, string> => {
+    const key = normalizeRulePattern(source);
+    let rec = merged.get(key);
+    if (!rec) {
+      rec = {};
+      merged.set(key, rec);
     }
-    out.push({
-      source: normalizeRulePattern(source),
-      headers: rule.headers,
-    });
+    return rec;
+  };
+  for (const [source, rule] of Object.entries(routeRules)) {
+    // 1. `cors: true` — emit the standard Access-Control-* headers.
+    //    Same allow-origin/allow-methods/allow-headers set Nitro's runtime
+    //    middleware applies; `cors: false` is a no-op (default behavior).
+    if (rule.cors === true) {
+      const corsHeaders = recordFor(source);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Origin'] = '*';
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Methods'] =
+        'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD';
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Headers'] =
+        'Content-Type, Authorization';
+    }
+    // 2. `cache.maxAge: N` — translate to a public Cache-Control. We
+    //    emit both `max-age` and `s-maxage` because the L3's
+    //    ssrCachePolicy honors `s-maxage` for CloudFront edge caching;
+    //    `max-age` covers the browser cache.
+    const maxAge = rule.cache?.maxAge;
+    if (typeof maxAge === 'number' && maxAge > 0 && Number.isFinite(maxAge)) {
+      const maxAgeHeaders = recordFor(source);
+      const value = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      maxAgeHeaders['Cache-Control'] = value;
+    }
+    // 3. User-declared `headers: { ... }` wins over the auto-emit
+    //    above. Validate Cache-Control values so invalid directives
+    //    fail at adapter time rather than silently passing through.
+    if (rule.headers && Object.keys(rule.headers).length > 0) {
+      for (const [name, value] of Object.entries(rule.headers)) {
+        if (name.toLowerCase() === 'cache-control') {
+          validateCacheControl(value, `route ${source} (Nitro routeRules)`);
+        }
+      }
+      Object.assign(recordFor(source), rule.headers);
+    }
+  }
+  const out: NonNullable<DeployManifest['headers']> = [];
+  for (const [source, headers] of merged) {
+    if (Object.keys(headers).length === 0) continue;
+    out.push({ source, headers });
   }
   return out;
 };

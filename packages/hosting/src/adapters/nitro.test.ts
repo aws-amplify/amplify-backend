@@ -637,3 +637,119 @@ void describe('nitroAdapter — _amplify-cache.mjs collision protection', () => 
     );
   });
 });
+
+void describe('nitroAdapter — routeRules header lift (cors, cache.maxAge)', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-headers-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('lifts cors: true to standard Access-Control-* headers', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/api/public/**': { cors: true } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/api/public/*');
+    assert.ok(lifted, 'cors: true should produce a manifest.headers entry');
+    assert.strictEqual(lifted!.headers['Access-Control-Allow-Origin'], '*');
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Methods'],
+      /\bGET\b.*\bPOST\b.*\bDELETE\b.*\bOPTIONS\b/,
+    );
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Headers'],
+      /\bContent-Type\b.*\bAuthorization\b/,
+    );
+  });
+
+  void it('does NOT lift cors: false (default behavior — no headers)', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/api/private/**': { cors: false } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.headers, undefined);
+  });
+
+  void it('lifts cache.maxAge to Cache-Control with both max-age and s-maxage', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/news/**': { cache: { maxAge: 60 } } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/news/*');
+    assert.ok(lifted, 'cache.maxAge should produce a manifest.headers entry');
+    assert.strictEqual(
+      lifted!.headers['Cache-Control'],
+      'public, max-age=60, s-maxage=60',
+    );
+  });
+
+  void it('does NOT lift cache.swr (server-side cache plumbing only)', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/news/**': { cache: { swr: true } } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    // swr should still trigger cache provisioning, but NOT a Cache-Control
+    // header (that comes from the SSR Lambda's response).
+    assert.strictEqual(
+      manifest.headers,
+      undefined,
+      'swr should not auto-emit Cache-Control on the route',
+    );
+  });
+
+  void it('user-declared headers win over auto-emitted CORS / Cache-Control', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: {
+        '/api/**': {
+          cors: true,
+          cache: { maxAge: 30 },
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          headers: {
+            'Access-Control-Allow-Origin': 'https://example.com',
+            'Cache-Control': 'public, max-age=300',
+          },
+        },
+      },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers!.find((h) => h.source === '/api/*');
+    assert.ok(lifted);
+    // User wins on overlapping headers...
+    assert.strictEqual(
+      lifted!.headers['Access-Control-Allow-Origin'],
+      'https://example.com',
+    );
+    assert.strictEqual(lifted!.headers['Cache-Control'], 'public, max-age=300');
+    // ...but auto-emitted headers the user didn't specify still apply.
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Methods'],
+      /POST/,
+      'Allow-Methods should fall through to auto-emit when user did not set it',
+    );
+  });
+
+  void it('merges multiple sources independently', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: {
+        '/api/public/**': { cors: true },
+        '/news/**': { cache: { maxAge: 60 } },
+      },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const sources = manifest.headers?.map((h) => h.source).sort();
+    assert.deepStrictEqual(sources, ['/api/public/*', '/news/*']);
+  });
+});
