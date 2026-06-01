@@ -623,6 +623,10 @@ const buildManifest = (input: {
     compute,
     staticAssets: {
       directory: publicDir,
+      // Nuxt content-hashes everything under `_nuxt/`; HTML, public/,
+      // and prerendered routes (e.g. `/about/index.html`) live elsewhere
+      // and must NOT be marked immutable.
+      immutablePaths: ['_nuxt/*'],
     },
     routes: buildRoutes(
       publicDir,

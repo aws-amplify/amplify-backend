@@ -1086,6 +1086,10 @@ const translateOpenNextOutput = (
     compute: {},
     staticAssets: {
       directory: path.join(openNextDir, 'assets'),
+      // Next.js content-hashes everything under `_next/static`; HTML and
+      // public/ live elsewhere in the assets dir and must NOT be marked
+      // immutable (would brick clients on redeploy — see L3 PWA note).
+      immutablePaths: ['_next/static/*'],
     },
     routes: [],
   };

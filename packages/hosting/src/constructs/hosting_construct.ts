@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
@@ -626,17 +628,98 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 12. Atomic Deployment (static assets) ----
-    new BucketDeployment(this, 'AssetDeployment', {
-      sources: [Source.asset(manifest.staticAssets.directory)],
-      destinationBucket: this.bucket,
-      destinationKeyPrefix: `builds/${buildId}/`,
-      cacheControl: [
-        CacheControl.fromString('public, max-age=31536000, immutable'),
-      ],
-      prune: false,
-      distribution: this.distribution,
-      distributionPaths: ['/*'],
-    });
+    // Cache-Control split: hashed asset dirs (e.g. _next/static, _astro,
+    // _nuxt — declared by adapters via `staticAssets.immutablePaths`) get
+    // `immutable, max-age=31536000`. Everything else (HTML, public/) gets
+    // `max-age=0, must-revalidate` so a redeploy invalidates cached HTML
+    // on next request. Without this split, browsers cache `index.html`
+    // references to hashed URLs the new build deleted — PWA brick.
+    //
+    // Font MIME pass: aws s3 sync (driver inside BucketDeployment) infers
+    // Content-Type via Python's mimetypes which lacks `font/woff*` on the
+    // Lambda runtime — fonts ship as `binary/octet-stream` and browsers
+    // reject them under CORS. We re-deploy *only* font extensions with
+    // `contentType` set explicitly (BucketDeployment applies that single
+    // value to every object in the deployment, so per-extension
+    // deployments are required).
+    const immutablePaths = manifest.staticAssets.immutablePaths;
+    const mutableCacheControl =
+      manifest.staticAssets.cacheControl ??
+      'public, max-age=0, must-revalidate';
+    if (immutablePaths && immutablePaths.length > 0) {
+      // Map "_next/static/*" → "_next/static/*" (BucketDeployment uses the
+      // same trailing-* form as awscli sync include/exclude filters).
+      new BucketDeployment(this, 'AssetDeploymentImmutable', {
+        sources: [Source.asset(manifest.staticAssets.directory)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        // sync excludes everything, then re-includes only hashed paths.
+        exclude: ['*'],
+        include: immutablePaths,
+        cacheControl: [
+          CacheControl.fromString('public, max-age=31536000, immutable'),
+        ],
+        prune: false,
+        distribution: this.distribution,
+        distributionPaths: ['/*'],
+      });
+      new BucketDeployment(this, 'AssetDeploymentMutable', {
+        sources: [Source.asset(manifest.staticAssets.directory)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: immutablePaths,
+        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        prune: false,
+      });
+    } else {
+      // Back-compat: adapters that don't declare immutablePaths get the
+      // mutable Cache-Control on everything (safer default than a blanket
+      // `immutable` that bricks on redeploy).
+      new BucketDeployment(this, 'AssetDeployment', {
+        sources: [Source.asset(manifest.staticAssets.directory)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        prune: false,
+        distribution: this.distribution,
+        distributionPaths: ['/*'],
+      });
+    }
+
+    // ---- 12b. Font Content-Type pass ----
+    // Re-deploys font files with the correct MIME type. Each extension
+    // gets its own BucketDeployment because `contentType` applies per
+    // deployment (no per-file inference override). We don't gate this on
+    // immutablePaths — fonts are commonly hashed (Next emits them under
+    // `_next/static/media`) AND non-hashed (`public/fonts/`); applying
+    // a long-lived Cache-Control here would be wrong for the latter, so
+    // we leave Cache-Control unset and let the prior pass govern.
+    //
+    // We only emit a deployment for an extension that actually exists in
+    // the static dir, so projects without fonts pay zero overhead.
+    const FONT_TYPES: Array<[string, string]> = [
+      ['.woff2', 'font/woff2'],
+      ['.woff', 'font/woff'],
+      ['.ttf', 'font/ttf'],
+      ['.otf', 'font/otf'],
+      ['.eot', 'application/vnd.ms-fontobject'],
+    ];
+    const fontExtensionsPresent = detectFontExtensions(
+      manifest.staticAssets.directory,
+      FONT_TYPES.map(([ext]) => ext),
+    );
+    for (const [ext, mime] of FONT_TYPES) {
+      if (!fontExtensionsPresent.has(ext)) continue;
+      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
+        sources: [Source.asset(manifest.staticAssets.directory)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: ['*'],
+        include: [`*${ext}`],
+        contentType: mime,
+        prune: false,
+      });
+    }
   }
 
   /**
@@ -650,3 +733,41 @@ export class AmplifyHostingConstruct extends Construct {
     };
   }
 }
+
+/**
+ * Walk a directory looking for files matching any of the given
+ * extensions. Returns the set of extensions actually present so the
+ * caller can skip emitting empty-on-arrival BucketDeployments.
+ *
+ * Used at synth time only — the directory has already been built before
+ * the L3 runs. Errors (missing dir, permission, etc.) silently return
+ * an empty set: the worst case is a missing font MIME pass, which is
+ * the pre-fix behavior.
+ */
+const detectFontExtensions = (
+  rootDir: string,
+  extensions: readonly string[],
+): Set<string> => {
+  const found = new Set<string>();
+  const exts = new Set(extensions.map((e) => e.toLowerCase()));
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (exts.has(ext)) found.add(ext);
+        if (found.size === exts.size) return;
+      }
+    }
+  };
+  walk(rootDir);
+  return found;
+};

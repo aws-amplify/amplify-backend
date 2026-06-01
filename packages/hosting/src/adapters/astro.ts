@@ -666,7 +666,12 @@ const buildStaticManifest = (distDir: string): DeployManifest => {
   return {
     version: 1,
     compute: {},
-    staticAssets: { directory: distDir },
+    staticAssets: {
+      directory: distDir,
+      // Astro content-hashes assets into `_astro/`; the rest of dist/ is
+      // user HTML and assets from `public/` which must NOT be immutable.
+      immutablePaths: ['_astro/*'],
+    },
     routes: [{ pattern: '/*', target: 'static' }],
     ...(Object.keys(errorPages).length > 0 ? { errorPages } : {}),
   };
@@ -713,7 +718,10 @@ const buildSsrManifest = (input: {
         runtime: 'nodejs20.x',
       },
     },
-    staticAssets: { directory: clientDir },
+    staticAssets: {
+      directory: clientDir,
+      immutablePaths: ['_astro/*'],
+    },
     routes: [],
   };
 

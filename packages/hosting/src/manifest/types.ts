@@ -17,8 +17,30 @@ export type DeployManifest = {
   staticAssets: {
     /** Path to static files directory */
     directory: string;
-    /** Cache-Control header for assets */
+    /**
+     * Cache-Control header for non-hashed assets (HTML, public/, etc.).
+     * Defaults to `public, max-age=0, must-revalidate` so a redeploy
+     * invalidates cached HTML on next request — required to avoid PWA
+     * "brick" scenarios where a cached `index.html` references hashed
+     * URLs that the new deploy already removed.
+     */
     cacheControl?: string;
+    /**
+     * Glob patterns (relative to `directory`) of content-hashed asset
+     * directories. Files matching these globs receive a long-lived,
+     * `immutable` Cache-Control; everything else uses the short-lived
+     * cache above. Adapters set this to the framework's hashed-output
+     * dir(s):
+     *
+     *   Next.js / OpenNext: `['_next/static/*']`
+     *   Astro:              `['_astro/*']`
+     *   Nuxt / Nitro:       `['_nuxt/*']`
+     *
+     * When omitted, all assets receive the single `cacheControl` value
+     * above (back-compat with adapters that don't yet declare hashed
+     * paths).
+     */
+    immutablePaths?: string[];
   };
 
   /** Route behaviors (maps URL patterns to compute/static) */

@@ -216,6 +216,111 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
     });
 
+    void it('splits asset deployment into immutable + mutable when manifest declares immutablePaths', () => {
+      const stack = createStack();
+      const manifest = makeSpaManifest();
+      manifest.staticAssets = {
+        directory: staticDir,
+        immutablePaths: ['_next/static/*'],
+      };
+      new AmplifyHostingConstruct(stack, 'Hosting', { manifest });
+
+      const template = Template.fromStack(stack);
+      const deployments = template.findResources('Custom::CDKBucketDeployment');
+      // Two BucketDeployments: AssetDeploymentImmutable + AssetDeploymentMutable.
+      const ids = Object.keys(deployments);
+      const immutable = ids.find((id) => id.includes('Immutable'));
+      const mutable = ids.find((id) => id.includes('Mutable'));
+      assert.ok(immutable, 'Immutable deployment present');
+      assert.ok(mutable, 'Mutable deployment present');
+      // Hashed paths get long-lived immutable Cache-Control.
+      assert.match(
+        JSON.stringify(deployments[immutable!].Properties),
+        /max-age=31536000.*immutable/,
+      );
+      // Everything else gets the short-lived must-revalidate header so a
+      // redeploy invalidates cached HTML on next request.
+      assert.match(
+        JSON.stringify(deployments[mutable!].Properties),
+        /max-age=0.*must-revalidate/,
+      );
+    });
+
+    void it('falls back to single deployment with mutable Cache-Control when immutablePaths absent', () => {
+      const stack = createStack();
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: makeSpaManifest(),
+      });
+
+      const template = Template.fromStack(stack);
+      const deployments = template.findResources('Custom::CDKBucketDeployment');
+      const ids = Object.keys(deployments);
+      const single = ids.find((id) => id.includes('AssetDeployment'));
+      assert.ok(single, 'AssetDeployment present');
+      // Default Cache-Control no longer hardcoded to immutable — that
+      // would brick PWAs on redeploy. Adapters opt into immutable for
+      // hashed paths only via staticAssets.immutablePaths.
+      assert.match(
+        JSON.stringify(deployments[single!].Properties),
+        /max-age=0.*must-revalidate/,
+      );
+    });
+
+    void it('emits a per-extension Content-Type pass for fonts present in the static dir', () => {
+      // Create a font file in the test static dir before synth.
+      fs.writeFileSync(path.join(staticDir, 'inter.woff2'), 'fake');
+      fs.writeFileSync(path.join(staticDir, 'inter.woff'), 'fake');
+      const stack = createStack();
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: makeSpaManifest(),
+      });
+
+      const template = Template.fromStack(stack);
+      const deployments = template.findResources('Custom::CDKBucketDeployment');
+      const ids = Object.keys(deployments);
+      // One AssetDeployment + two FontTypeDeployments (.woff2, .woff).
+      const fontDeployments = ids.filter((id) =>
+        id.includes('FontTypeDeployment'),
+      );
+      assert.equal(fontDeployments.length, 2, '2 font extensions detected');
+      const json = JSON.stringify(
+        fontDeployments.map((id) => deployments[id].Properties),
+      );
+      assert.match(json, /font\/woff2/);
+      assert.match(json, /font\/woff(?!2)/);
+    });
+
+    void it('emits no font Content-Type pass when the static dir contains no fonts', () => {
+      const stack = createStack();
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: makeSpaManifest(),
+      });
+      const template = Template.fromStack(stack);
+      const deployments = template.findResources('Custom::CDKBucketDeployment');
+      const fontDeployments = Object.keys(deployments).filter((id) =>
+        id.includes('FontTypeDeployment'),
+      );
+      assert.equal(fontDeployments.length, 0);
+    });
+
+    void it('honors staticAssets.cacheControl override on the mutable deployment', () => {
+      const stack = createStack();
+      const manifest = makeSpaManifest();
+      manifest.staticAssets = {
+        directory: staticDir,
+        cacheControl: 'public, max-age=60',
+      };
+      new AmplifyHostingConstruct(stack, 'Hosting', { manifest });
+
+      const template = Template.fromStack(stack);
+      const deployments = template.findResources('Custom::CDKBucketDeployment');
+      const id = Object.keys(deployments)[0];
+      assert.match(
+        JSON.stringify(deployments[id].Properties),
+        /public, max-age=60/,
+      );
+    });
+
     void it('provisions cache infrastructure when manifest declares cache', () => {
       const stack = createStack();
       const manifest = {
