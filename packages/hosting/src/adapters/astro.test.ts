@@ -653,4 +653,91 @@ void describe('astroAdapter — @astrojs/node bridge install', () => {
       'no npm install should run when @astrojs/node is already present',
     );
   });
+
+  void it('runs the bridge when astro.config has no `adapter:` even if @astrojs/node is present in node_modules', () => {
+    // Regression: previously the adapter checked whether @astrojs/node
+    // was on disk to decide if the user had wired their own adapter.
+    // That signal is unreliable — the package can land in node_modules
+    // from a prior install or as a transitive dep without being wired
+    // in astro.config — so the bridge was silently skipped and
+    // `astro build` failed with [NoAdapterInstalled]. Now the bridge
+    // decision keys on `config.adapter` instead, so a config like
+    // `{ output: 'server' }` (no adapter wired) still gets the bridge
+    // even when the package is on disk.
+    //
+    // Capture which `astro build` invocation runs: when the bridge
+    // active, the build command runs against the bridge config dir
+    // (--config <projectDir>/.amplify/astro/config-bridge.mjs); when
+    // the bridge is skipped, it's the user's own astro.config and no
+    // --config flag is passed.
+    const pkgDir = path.join(tmpDir, 'node_modules', '@astrojs', 'node');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({
+        name: '@astrojs/node',
+        version: '9.0.0',
+        main: 'index.js',
+      }),
+    );
+    fs.writeFileSync(path.join(pkgDir, 'index.js'), '');
+
+    astroAdapter({ projectDir: tmpDir });
+
+    const buildCall = spawnCalls.find(
+      (c) => Array.isArray(c[1]) && c[1].some((a: string) => a === 'build'),
+    );
+    assert.ok(buildCall, 'expected an astro build invocation');
+    const args = buildCall[1] as string[];
+    assert.ok(
+      args.includes('--config') &&
+        args.some((a) => a.includes('config-bridge.mjs')),
+      `bridge --config flag must point to the bridge config path; got: ${args.join(' ')}` +
+        '. The adapter must run the bridge when astro.config has no adapter wired, ' +
+        'even when @astrojs/node is already on disk.',
+    );
+  });
+
+  void it('skips the bridge when astro.config has an `adapter:` wired', () => {
+    // The complementary case: when the user explicitly wires an
+    // adapter in astro.config, trust them — do not inject our bridge.
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      [
+        "import node from '@astrojs/node';",
+        'export default {',
+        "  output: 'server',",
+        "  adapter: node({ mode: 'standalone' }),",
+        '};',
+      ].join('\n'),
+    );
+    // The package must be present for the user-config path to import
+    // without throwing.
+    const pkgDir = path.join(tmpDir, 'node_modules', '@astrojs', 'node');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({
+        name: '@astrojs/node',
+        version: '9.0.0',
+        main: 'index.js',
+      }),
+    );
+    fs.writeFileSync(
+      path.join(pkgDir, 'index.js'),
+      'export default () => ({ name: "@astrojs/node", hooks: {} });',
+    );
+
+    astroAdapter({ projectDir: tmpDir });
+
+    const buildCall = spawnCalls.find(
+      (c) => Array.isArray(c[1]) && c[1].some((a: string) => a === 'build'),
+    );
+    assert.ok(buildCall, 'expected an astro build invocation');
+    const args = buildCall[1] as string[];
+    assert.ok(
+      !args.includes('--config'),
+      `bridge --config flag should NOT be present when user wires their own adapter; got: ${args.join(' ')}`,
+    );
+  });
 });

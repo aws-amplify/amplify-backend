@@ -135,14 +135,20 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
   );
 
   if (!skipBuild) {
-    const useBridge =
-      userOutput !== 'static' && !userHasAstroJsNode(projectDir);
+    // Bridge-decision: only honor a user adapter when it's wired in
+    // astro.config (`adapter:` field). Checking `node_modules` alone is
+    // unreliable — `@astrojs/node` can land there from a prior install
+    // or as a transitive dep, and trusting that signal silently skips
+    // the bridge on configs that have no adapter wired, producing the
+    // canonical `[NoAdapterInstalled]` build crash.
+    const userConfiguredAdapter = config.adapter !== undefined;
+    const useBridge = userOutput !== 'static' && !userConfiguredAdapter;
     let cleanupBridge: (() => void) | undefined;
     if (useBridge) {
       cleanupBridge = installAstroBridge(projectDir, bodySizeLimit);
     } else if (userOutput !== 'static') {
       process.stderr.write(
-        '✨ Detected user-configured @astrojs/node; using user config as-is.\n',
+        '✨ Detected user-configured adapter in astro.config; using user config as-is.\n',
       );
     }
     try {
@@ -302,6 +308,15 @@ type AstroConfigShape = {
   output?: AstroOutput;
   trailingSlash?: AstroTrailingSlash;
   base?: string;
+  /**
+   * The user's adapter integration if they wired one themselves.
+   * The bridge only treats the user as having a "user-configured"
+   * adapter when this field is set — checking node_modules alone is
+   * unreliable because `@astrojs/node` can land in node_modules from a
+   * prior install or as a transitive dep without ever being wired in
+   * astro.config.
+   */
+  adapter?: unknown;
   image?: {
     domains?: string[];
     remotePatterns?: unknown;
