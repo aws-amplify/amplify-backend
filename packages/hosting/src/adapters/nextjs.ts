@@ -640,6 +640,69 @@ export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
 };
 
 /**
+ * Inspect a user-authored `open-next.config.ts` for the converter/wrapper
+ * overrides that the L3's API-Gateway-fronted SSR Lambda requires.
+ *
+ * The L3 fronts SSR with API Gateway REST + STREAM mode (B22/B23/B24
+ * cluster). REST sends payload v1; OpenNext defaults to v2. Without
+ * `converter: 'aws-apigw-v1'` every URL renders as `/`. Without
+ * `wrapper: 'aws-lambda-streaming'` POST/PUT bodies are silently dropped.
+ *
+ * When edge routes are detected, the user's config must also declare a
+ * separate edge function — OpenNext refuses to build a project that
+ * declares `runtime = 'edge'` without an explicit split function.
+ *
+ * Why textual scan: the file is TypeScript that may be transpiled at
+ * build time; importing it here would require running the TS compiler
+ * before OpenNext even starts. Two key string tokens (`aws-apigw-v1` and
+ * `aws-lambda-streaming`) are unique enough across the OpenNext config
+ * surface to detect override presence reliably.
+ */
+const validateUserOpenNextConfig = (
+  configFile: string,
+  edgeRoutes: EdgeRoute[] = [],
+): void => {
+  let source: string;
+  try {
+    source = fs.readFileSync(configFile, 'utf-8');
+  } catch (err) {
+    throw new HostingError(
+      'OpenNextConfigUnreadableError',
+      {
+        message: `Found ${configFile} but could not read it.`,
+        resolution:
+          'Ensure the file is readable, or remove it to let the adapter generate the required config.',
+      },
+      err as Error,
+    );
+  }
+  const missing: string[] = [];
+  if (!source.includes('aws-apigw-v1')) {
+    missing.push("converter: 'aws-apigw-v1'");
+  }
+  if (!source.includes('aws-lambda-streaming')) {
+    missing.push("wrapper: 'aws-lambda-streaming'");
+  }
+  // Edge functions must be split out per OpenNext's build-time
+  // requirement. Detect by checking for any `runtime: 'edge'` token in
+  // the user's config when edgeRoutes were detected from the user's
+  // source tree.
+  const needsEdgeBlock = edgeRoutes.length > 0;
+  const hasEdgeBlock = /runtime:\s*['"]edge['"]/.test(source);
+  if (needsEdgeBlock && !hasEdgeBlock) {
+    missing.push(
+      "functions: { edge: { runtime: 'edge', placement: 'global', routes: [...] } }",
+    );
+  }
+  if (missing.length === 0) return;
+  throw new HostingError('IncompatibleOpenNextConfigError', {
+    message: `Found ${configFile}, but it is missing the override(s) the Amplify hosting Lambda runtime requires: ${missing.join(', ')}.`,
+    resolution:
+      'Either delete open-next.config.ts to let the adapter generate one, or add the missing override(s) to your config. Without them: payload v1/v2 mismatch renders every URL as "/", or POST/PUT bodies are silently dropped (response_stream wrapper).',
+  });
+};
+
+/**
  * Generate <projectDir>/open-next.config.ts with `aws-apigw-v1` + streaming
  * wrapper so OpenNext picks them up on its next build. Returns a cleanup
  * closure. No-ops if the user already has their own open-next.config.ts.
@@ -677,17 +740,7 @@ export default config;
     });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
-      const edgeNote =
-        edgeRoutes.length > 0
-          ? `\n   Edge routes detected (${edgeRoutes.map((r) => r.pattern).join(', ')}); ` +
-            `your config must also declare:\n` +
-            `     functions: { edge: { runtime: 'edge', placement: 'global', routes: [...], patterns: [...] } }\n`
-          : '';
-      process.stderr.write(
-        `⚠️  Found existing open-next.config.ts; not generating override.\n` +
-          `   Streaming + POST/PUT compatibility through API Gateway requires:\n` +
-          `     default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } }${edgeNote}`,
-      );
+      validateUserOpenNextConfig(configFile, edgeRoutes);
       return () => undefined;
     }
     throw err;

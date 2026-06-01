@@ -64,6 +64,17 @@ type NitroBuildInfo = {
   framework?: { name?: string; version?: string };
   serverEntry?: string;
   publicDir?: string;
+  /**
+   * Nitro reports the resolved server/public output directories under
+   * an `output` block on recent versions. We honor these instead of
+   * hardcoding `.output/server` and `.output/public` so the adapter
+   * keeps working when Nitro renames the dirs OR the user sets custom
+   * `output:` paths in nitro/nuxt config.
+   */
+  output?: {
+    serverDir?: string;
+    publicDir?: string;
+  };
   routeRules?: Record<string, NitroRouteRule>;
   config?: {
     awsLambda?: { streaming?: boolean };
@@ -167,9 +178,13 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   const effectivePreset = preset ?? 'aws-lambda';
 
   const outputDir = path.join(projectDir, '.output');
-  const serverDir = path.join(outputDir, 'server');
-  const publicDir = path.join(outputDir, 'public');
   const nitroJsonPath = path.join(outputDir, 'nitro.json');
+  // Default Nitro output layout. Overridden below when nitro.json
+  // declares its own `output.serverDir` / `output.publicDir` (defensive:
+  // protects us against future Nitro renames; user-configured `output:`
+  // sections in nitro.config also flow through).
+  let serverDir = path.join(outputDir, 'server');
+  let publicDir = path.join(outputDir, 'public');
 
   if (!skipBuild) {
     // Inject the Amplify cache plugin into the user's source tree so
@@ -182,14 +197,6 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     } finally {
       cachePluginCleanup();
     }
-
-    // Nitro's aws-lambda preset reads event.rawPath / requestContext.http
-    // (HTTP API v2 / Function URL shape). The L3 fronts SSR with REST API
-    // (payload v1: event.path / requestContext.httpMethod). Without the
-    // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
-    if (effectivePreset === 'aws-lambda') {
-      patchNitroHandlerForApiGateway(serverDir);
-    }
   }
 
   if (!fs.existsSync(outputDir)) {
@@ -200,6 +207,49 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     });
   }
 
+  let nitroInfo: NitroBuildInfo = {};
+  if (fs.existsSync(nitroJsonPath)) {
+    try {
+      nitroInfo = JSON.parse(fs.readFileSync(nitroJsonPath, 'utf-8'));
+    } catch (error) {
+      throw new HostingError(
+        'NitroOutputParseError',
+        {
+          message: `Failed to parse Nitro build info at ${nitroJsonPath}.`,
+          resolution:
+            'The .output/nitro.json file contains invalid JSON. Try running the build again.',
+        },
+        error as Error,
+      );
+    }
+  }
+
+  // Honor Nitro's reported output paths when present. nitro.json emits
+  // these as either absolute paths or paths relative to the project root.
+  // Hardcoding `.output/server` and `.output/public` works today but
+  // would break silently if Nitro renames the dirs (or the user
+  // configures custom output paths via nitro.config).
+  if (nitroInfo.output?.serverDir) {
+    serverDir = path.isAbsolute(nitroInfo.output.serverDir)
+      ? nitroInfo.output.serverDir
+      : path.join(projectDir, nitroInfo.output.serverDir);
+  }
+  if (nitroInfo.output?.publicDir) {
+    publicDir = path.isAbsolute(nitroInfo.output.publicDir)
+      ? nitroInfo.output.publicDir
+      : path.join(projectDir, nitroInfo.output.publicDir);
+  }
+
+  if (!skipBuild) {
+    // Nitro's aws-lambda preset reads event.rawPath / requestContext.http
+    // (HTTP API v2 / Function URL shape). The L3 fronts SSR with REST API
+    // (payload v1: event.path / requestContext.httpMethod). Without the
+    // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
+    if (effectivePreset === 'aws-lambda') {
+      patchNitroHandlerForApiGateway(serverDir);
+    }
+  }
+
   if (!fs.existsSync(serverDir)) {
     throw new HostingError('NitroOutputNotFoundError', {
       message: `Nitro server bundle not found at ${serverDir}.`,
@@ -207,6 +257,14 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
         'The build did not produce a server output. Check your framework config and the Nitro preset.',
     });
   }
+
+  // Strip Nitro's pnpm-style isolated dep store. Nitro 2.13.4+ emits
+  // `node_modules/.nitro/` containing cyclic relative symlinks that
+  // crash CDK's asset hasher on macOS with ENAMETOOLONG once the cycle
+  // exhausts PATH_MAX. The dir is build-internal — Nitro inlines or
+  // bundles every dep it needs into the server entry, so the .nitro
+  // store is dead weight inside the Lambda zip anyway.
+  pruneNitroDepStore(serverDir);
 
   // Best-effort copy of amplify_outputs.json into the server bundle so the
   // SSR Lambda can talk to the Amplify backend at runtime. No-op if absent.
@@ -226,23 +284,6 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   // from a path other than the default `/_ipx`. We need the same
   // value so the CloudFront cache behavior + Lambda strip match.
   const ipxBaseURL = imageOptBundle ? findIpxBaseURL(projectDir) : undefined;
-
-  let nitroInfo: NitroBuildInfo = {};
-  if (fs.existsSync(nitroJsonPath)) {
-    try {
-      nitroInfo = JSON.parse(fs.readFileSync(nitroJsonPath, 'utf-8'));
-    } catch (error) {
-      throw new HostingError(
-        'NitroOutputParseError',
-        {
-          message: `Failed to parse Nitro build info at ${nitroJsonPath}.`,
-          resolution:
-            'The .output/nitro.json file contains invalid JSON. Try running the build again.',
-        },
-        error as Error,
-      );
-    }
-  }
 
   // Merge route rules from the user's nuxt.config.ts (visible in
   // nitro.json on some Nitro versions) with the rules Nitro itself
@@ -330,10 +371,21 @@ const CACHE_PLUGIN_FILENAME = '_amplify-cache.mjs';
  * Copy the Amplify cache plugin into the user's `server/plugins/`
  * before Nitro builds. Returns a cleanup function that removes the
  * file (and the `server/plugins/` directory if we created it).
+ *
+ * Refuses to overwrite a pre-existing file at the target path —
+ * silently overwriting and then deleting on cleanup would destroy
+ * user code with no warning.
  */
 const installNitroCachePlugin = (projectDir: string): (() => void) => {
   const pluginsDir = path.join(projectDir, 'server', 'plugins');
   const pluginPath = path.join(pluginsDir, CACHE_PLUGIN_FILENAME);
+
+  if (fs.existsSync(pluginPath)) {
+    throw new HostingError('NitroCachePluginCollisionError', {
+      message: `A file already exists at ${pluginPath}; the Nitro cache plugin would overwrite it.`,
+      resolution: `Rename or delete ${CACHE_PLUGIN_FILENAME} in your server/plugins/ directory. The Amplify Nitro adapter writes its own ${CACHE_PLUGIN_FILENAME} during the build to plumb framework SWR/ISR through the deploy-provisioned S3 cache, then removes it on cleanup.`,
+    });
+  }
 
   // Track what we created so cleanup is exact.
   const createdPluginsDir = !fs.existsSync(pluginsDir);
@@ -490,6 +542,39 @@ const prunePreCompressedAssets = (publicDir: string): void => {
   });
   for (const f of compressed) {
     fs.rmSync(f);
+  }
+};
+
+/**
+ * Remove Nitro's pnpm-style isolated dep store under
+ * `<serverDir>/node_modules/.nitro/`.
+ *
+ * Nitro 2.13.4+ emits a layout where each dep lives at
+ * `node_modules/.nitro/<pkg>@<version>/` and `node_modules/<pkg>/` is a
+ * relative symlink into that store. The store itself contains cyclic
+ * symlinks (a → b → a) which CDK's asset hasher walks on macOS until
+ * `PATH_MAX` is exhausted, surfacing as
+ * `ENAMETOOLONG: name too long, scandir`.
+ *
+ * Removing the `.nitro` dir is safe for the Lambda runtime — Nitro's
+ * server bundle inlines every import it needs at build time, so nothing
+ * in the runtime path resolves through `node_modules/`. Verified against
+ * Nuxt 3.17 and Nuxt 4 builds: the resulting bundle still cold-starts.
+ */
+const pruneNitroDepStore = (serverDir: string): void => {
+  const nitroStore = path.join(serverDir, 'node_modules', '.nitro');
+  if (!fs.existsSync(nitroStore)) return;
+  // Symlink-aware removal: rmSync with force+recursive will handle the
+  // cycle by deleting symlinks as links rather than chasing them. We
+  // wrap in try/catch because partial failure on some filesystems
+  // shouldn't abort the deploy — the worst case is the original
+  // ENAMETOOLONG when CDK tries to hash, which is no worse than today.
+  try {
+    fs.rmSync(nitroStore, { recursive: true, force: true });
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    // Best effort. If pruning fails, the asset hasher will surface its
+    // own error.
   }
 };
 

@@ -1099,3 +1099,83 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
     assert.strictEqual(manifest.headers![0].source, '/api/static');
   });
 });
+
+void describe('nextjsAdapter — incompatible open-next.config.ts', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-config-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  void it('throws IncompatibleOpenNextConfigError when user config lacks both overrides', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `// User-authored config, no overrides
+const config = { default: {} };
+export default config;
+`,
+    );
+    assert.throws(() => nextjsAdapter({ projectDir: tmpDir }), {
+      code: 'IncompatibleOpenNextConfigError',
+    });
+  });
+
+  void it('throws when user config has converter override but is missing the streaming wrapper', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1' } },
+};
+export default config;
+`,
+    );
+    assert.throws(() => nextjsAdapter({ projectDir: tmpDir }), {
+      code: 'IncompatibleOpenNextConfigError',
+    });
+  });
+
+  void it('accepts a user config that contains both required override tokens', () => {
+    // Set up minimum OpenNext output so the adapter doesn't fail
+    // post-config-check on a missing build artefact.
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } },
+};
+export default config;
+`,
+    );
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
+  });
+});

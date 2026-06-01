@@ -494,3 +494,146 @@ void describe('nitroAdapter — preset + feature validation', () => {
     );
   });
 });
+
+void describe('nitroAdapter — output dir resolution from nitro.json', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-outputs-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('honors output.serverDir / output.publicDir from nitro.json', () => {
+    // Lay down the default `.output/` skeleton so the writeMinimalNitroOutput
+    // helper still applies, then add Nitro-reported custom paths.
+    const customServer = path.join(tmpDir, '.output', 'server');
+    const customPublic = path.join(tmpDir, '.output', 'public');
+    fs.mkdirSync(customServer, { recursive: true });
+    fs.mkdirSync(customPublic, { recursive: true });
+    fs.writeFileSync(
+      path.join(customServer, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, '.output', 'nitro.json'),
+      JSON.stringify({
+        preset: 'aws-lambda',
+        // Absolute paths simulate a future Nitro that resolves dirs to
+        // absolute form before writing the JSON.
+        output: { serverDir: customServer, publicDir: customPublic },
+      }),
+    );
+    writePackageJson(tmpDir);
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.staticAssets.directory, customPublic);
+  });
+
+  void it('falls back to .output/server and .output/public when nitro.json omits output paths', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: { preset: 'aws-lambda' },
+    });
+    writePackageJson(tmpDir);
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(
+      manifest.staticAssets.directory,
+      path.join(tmpDir, '.output', 'public'),
+    );
+  });
+});
+
+void describe('nitroAdapter — pruneNitroDepStore', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-prune-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('removes node_modules/.nitro under the server output dir before manifest emission', () => {
+    writeMinimalNitroOutput(tmpDir);
+    writePackageJson(tmpDir);
+    // Synthesize Nitro's pnpm-style isolated dep store with one cyclic
+    // symlink pair (a → b → a). On macOS (and any FS that resolves
+    // symlinks during scandir) walking this cycle exhausts PATH_MAX —
+    // pruneNitroDepStore deletes the store before CDK can hash it.
+    const nitroStore = path.join(
+      tmpDir,
+      '.output',
+      'server',
+      'node_modules',
+      '.nitro',
+    );
+    fs.mkdirSync(nitroStore, { recursive: true });
+    const aDir = path.join(nitroStore, 'a@1.0.0');
+    const bDir = path.join(nitroStore, 'b@1.0.0');
+    fs.mkdirSync(aDir);
+    fs.mkdirSync(bDir);
+    fs.symlinkSync(bDir, path.join(aDir, 'cycle'));
+    fs.symlinkSync(aDir, path.join(bDir, 'cycle'));
+
+    nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(
+      fs.existsSync(nitroStore),
+      false,
+      'node_modules/.nitro must be removed before the asset hasher runs',
+    );
+  });
+
+  void it('is a no-op when there is no node_modules/.nitro directory', () => {
+    writeMinimalNitroOutput(tmpDir);
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+});
+
+void describe('nitroAdapter — _amplify-cache.mjs collision protection', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-collision-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('throws NitroCachePluginCollisionError when user already has _amplify-cache.mjs', () => {
+    writePackageJson(tmpDir);
+    const pluginsDir = path.join(tmpDir, 'server', 'plugins');
+    fs.mkdirSync(pluginsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginsDir, '_amplify-cache.mjs'),
+      '// user-authored',
+    );
+    assert.throws(
+      () =>
+        nitroAdapter({
+          projectDir: tmpDir,
+          // skipBuild: false would normally fire the build; keep the same
+          // path so installNitroCachePlugin runs.
+          skipBuild: false,
+        }),
+      { code: 'NitroCachePluginCollisionError' },
+    );
+    // Original user file preserved (collision check must run before the
+    // overwrite).
+    assert.strictEqual(
+      fs.readFileSync(path.join(pluginsDir, '_amplify-cache.mjs'), 'utf-8'),
+      '// user-authored',
+    );
+  });
+});
