@@ -259,7 +259,7 @@ const buildCodePipeline = <TConfig>(
   branchId: string,
   branchConfig: BranchConfig<TConfig>,
   props: PipelineProps<TConfig>,
-): CodePipeline => {
+): { codePipeline: CodePipeline; source: CodePipelineSource } => {
   const hasTriggerFilters =
     props.source.triggerFilters && props.source.triggerFilters.length > 0;
   if (branchConfig.triggerOnPush === true && hasTriggerFilters) {
@@ -290,7 +290,7 @@ const buildCodePipeline = <TConfig>(
     primaryOutputDirectory: props.synth?.primaryOutputDirectory,
   });
 
-  return new CodePipeline(construct, branchId, {
+  const codePipeline = new CodePipeline(construct, branchId, {
     synth: synthStep,
     selfMutation: props.selfMutation ?? true,
     crossAccountKeys: props.crossAccountKeys ?? false,
@@ -305,12 +305,15 @@ const buildCodePipeline = <TConfig>(
       },
     },
   });
+
+  return { codePipeline, source };
 };
 
 const addStageToCodePipeline = <TConfig>(
   codePipeline: CodePipeline,
   stageConfig: PipelineStageConfig<TConfig>,
   deployStage: DeployStage<TConfig>,
+  additionalPostSteps?: Array<ShellStep | CodeBuildStep>,
 ): void => {
   const pre: Array<ManualApprovalStep | ShellStep> = [];
   const post: Array<ShellStep | CodeBuildStep> = [];
@@ -334,6 +337,10 @@ const addStageToCodePipeline = <TConfig>(
         timeout: cdk.Duration.minutes(timeoutMinutes),
       }),
     );
+  }
+
+  if (additionalPostSteps) {
+    post.push(...additionalPostSteps);
   }
 
   codePipeline.addStage(deployStage, { pre, post });
@@ -374,7 +381,7 @@ const createBranchPipelineSync = <TConfig>(
   const safeBranch = branchConfig.branch.replace(/[^a-zA-Z0-9-]/g, '-');
   const branchId = `${id}-${safeBranch}`;
 
-  const codePipeline = buildCodePipeline(
+  const { codePipeline, source } = buildCodePipeline(
     construct,
     branchId,
     branchConfig,
@@ -422,7 +429,16 @@ const createBranchPipelineSync = <TConfig>(
     }
 
     validateStageStacks(stage, stageConfig.name);
-    addStageToCodePipeline(codePipeline, stageConfig, stage);
+
+    const additionalPostSteps = props._postStageHook
+      ? props._postStageHook({ source, stage, stageConfig })
+      : undefined;
+    addStageToCodePipeline(
+      codePipeline,
+      stageConfig,
+      stage,
+      additionalPostSteps,
+    );
   }
 
   addTriggerFilters(codePipeline, branchConfig, props);
@@ -441,7 +457,7 @@ const createBranchPipelineAsync = async <TConfig>(
   const safeBranch = branchConfig.branch.replace(/[^a-zA-Z0-9-]/g, '-');
   const branchId = `${id}-${safeBranch}`;
 
-  const codePipeline = buildCodePipeline(
+  const { codePipeline, source } = buildCodePipeline(
     construct,
     branchId,
     branchConfig,
@@ -481,7 +497,16 @@ const createBranchPipelineAsync = async <TConfig>(
     }
 
     validateStageStacks(stage, stageConfig.name);
-    addStageToCodePipeline(codePipeline, stageConfig, stage);
+
+    const additionalPostSteps = props._postStageHook
+      ? props._postStageHook({ source, stage, stageConfig })
+      : undefined;
+    addStageToCodePipeline(
+      codePipeline,
+      stageConfig,
+      stage,
+      additionalPostSteps,
+    );
   }
 
   addTriggerFilters(codePipeline, branchConfig, props);
