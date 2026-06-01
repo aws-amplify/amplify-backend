@@ -513,6 +513,17 @@ const applyLiftedRoutesManifest = (
   const normalizeSource = (s: string): string =>
     hasI18nLocales ? stripNextInternalLocale(s) : s;
 
+  // Locale-strip can produce duplicate sources when the user's config
+  // (or Next's manifest emit) contains both a bare and a locale-prefixed
+  // form for the same path. Track which sources have already been lifted
+  // so we can warn the user instead of silently last-wins. Same key
+  // space for redirects and headers — they live in different lift
+  // arrays, but a duplicate source within one type is the meaningful
+  // collision.
+  const seenRedirectSources = new Map<string, string>();
+  const seenHeaderSources = new Map<string, string>();
+  const collisions: string[] = [];
+
   for (const r of routesManifest.redirects ?? []) {
     if (r.internal) {
       // Trailing-slash and similar — leave to OpenNext.
@@ -532,6 +543,14 @@ const applyLiftedRoutesManifest = (
       skippedRedirects++;
       continue;
     }
+    const prior = seenRedirectSources.get(source);
+    if (prior !== undefined && prior !== r.source) {
+      collisions.push(
+        `redirect source ${JSON.stringify(source)} appears in routes-manifest as both ${JSON.stringify(prior)} and ${JSON.stringify(r.source)} after locale strip; keeping the first`,
+      );
+      continue;
+    }
+    seenRedirectSources.set(source, r.source);
     liftedRedirects.push({
       source,
       destination,
@@ -549,6 +568,14 @@ const applyLiftedRoutesManifest = (
       skippedHeaders++;
       continue;
     }
+    const prior = seenHeaderSources.get(source);
+    if (prior !== undefined && prior !== h.source) {
+      collisions.push(
+        `header source ${JSON.stringify(source)} appears in routes-manifest as both ${JSON.stringify(prior)} and ${JSON.stringify(h.source)} after locale strip; keeping the first`,
+      );
+      continue;
+    }
+    seenHeaderSources.set(source, h.source);
     const headers: Record<string, string> = {};
     for (const entry of h.headers) {
       if (entry.key.toLowerCase() === 'cache-control') {
@@ -563,6 +590,15 @@ const applyLiftedRoutesManifest = (
       source,
       headers,
     });
+  }
+
+  if (collisions.length > 0) {
+    process.stderr.write(
+      `⚠️  Next.js i18n locale-strip produced duplicate source patterns:\n` +
+        collisions.map((c) => `   - ${c}\n`).join('') +
+        `   Each conflicting rule's first occurrence wins. To resolve, ` +
+        `disambiguate via has/missing conditions or remove redundant config entries.\n`,
+    );
   }
 
   if (liftedRedirects.length > 0) {
@@ -650,6 +686,56 @@ export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
 };
 
 /**
+ * Strip JS line + block comments + string literals from source so a
+ * subsequent token scan sees only executable code. Without this, a
+ * `// TODO: switch to aws-apigw-v1` comment would falsely satisfy the
+ * presence check, and a string like `const NOTE = 'aws-apigw-v1'` in
+ * an unrelated context would too.
+ *
+ * We replace strings with empty quotes (preserving outer structure) so
+ * the resulting source still parses for our anchored regex matches —
+ * those expect to find the override values *inside* `'...'` or `"..."`.
+ * Therefore we apply a *separate* pass that preserves only the relevant
+ * key:value pairs (see `findOverride`).
+ */
+const stripCommentsForScan = (source: string): string => {
+  // Block comments first (greedy multi-line), then line comments. Order
+  // matters because a `//` inside a `/* ... */` should not be treated as
+  // a line comment.
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+};
+
+/**
+ * Look for a `<key>: '<value>'` (or double-quoted) pair anywhere in the
+ * given source. We don't try to anchor to a specific block (`default:`
+ * vs `functions.x:`) because OpenNext config shapes vary — a `default`
+ * section may live inline, behind a `withApiGw()` helper, or composed
+ * from imported constants. The narrower check would generate too many
+ * false negatives.
+ *
+ * We accept the override as "present" when:
+ *   - the key:value pair appears literally, OR
+ *   - the value appears as a literal string anywhere in the file
+ *     (covers helper-imported configs and `as const` references).
+ *
+ * Combined with comment stripping, this catches the realistic configs
+ * customers write while rejecting the obvious miss-types.
+ */
+const findOverride = (source: string, key: string, value: string): boolean => {
+  // Direct key:value.
+  const kv = new RegExp(`\\b${key}\\s*:\\s*['"\`]${escapeRegex(value)}['"\`]`);
+  if (kv.test(source)) return true;
+  // Bare-value reference (helper-imported / re-exported constant).
+  const bare = new RegExp(`['"\`]${escapeRegex(value)}['"\`]`);
+  return bare.test(source);
+};
+
+const escapeRegex = (s: string): string =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
  * Inspect a user-authored `open-next.config.ts` for the converter/wrapper
  * overrides that the L3's API-Gateway-fronted SSR Lambda requires.
  *
@@ -664,17 +750,19 @@ export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
  *
  * Why textual scan: the file is TypeScript that may be transpiled at
  * build time; importing it here would require running the TS compiler
- * before OpenNext even starts. Two key string tokens (`aws-apigw-v1` and
- * `aws-lambda-streaming`) are unique enough across the OpenNext config
- * surface to detect override presence reliably.
+ * before OpenNext even starts. We strip comments + look for either a
+ * `<key>: '<value>'` pair OR a bare `'<value>'` reference (covers
+ * helper-imported configs); with the comment strip + anchored regex,
+ * substring false-positives from comments and false-negatives from
+ * imported constants are addressed.
  */
 const validateUserOpenNextConfig = (
   configFile: string,
   edgeRoutes: EdgeRoute[] = [],
 ): void => {
-  let source: string;
+  let raw: string;
   try {
-    source = fs.readFileSync(configFile, 'utf-8');
+    raw = fs.readFileSync(configFile, 'utf-8');
   } catch (err) {
     throw new HostingError(
       'OpenNextConfigUnreadableError',
@@ -686,11 +774,12 @@ const validateUserOpenNextConfig = (
       err as Error,
     );
   }
+  const source = stripCommentsForScan(raw);
   const missing: string[] = [];
-  if (!source.includes('aws-apigw-v1')) {
+  if (!findOverride(source, 'converter', 'aws-apigw-v1')) {
     missing.push("converter: 'aws-apigw-v1'");
   }
-  if (!source.includes('aws-lambda-streaming')) {
+  if (!findOverride(source, 'wrapper', 'aws-lambda-streaming')) {
     missing.push("wrapper: 'aws-lambda-streaming'");
   }
   // Edge functions must be split out per OpenNext's build-time
@@ -698,7 +787,7 @@ const validateUserOpenNextConfig = (
   // the user's config when edgeRoutes were detected from the user's
   // source tree.
   const needsEdgeBlock = edgeRoutes.length > 0;
-  const hasEdgeBlock = /runtime:\s*['"]edge['"]/.test(source);
+  const hasEdgeBlock = /\bruntime\s*:\s*['"`]edge['"`]/.test(source);
   if (needsEdgeBlock && !hasEdgeBlock) {
     missing.push(
       "functions: { edge: { runtime: 'edge', placement: 'global', routes: [...] } }",
