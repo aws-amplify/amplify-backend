@@ -1179,3 +1179,125 @@ export default config;
     assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
   });
 });
+
+void describe('nextjsAdapter — OpenNext version-drift warning', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+  let stderrChunks: string[];
+  let restoreStderr: (() => void) | undefined;
+
+  /**
+   * Lay down the minimal `.open-next/` skeleton + an installed
+   * `node_modules/@opennextjs/aws/package.json` at the requested
+   * version so warnIfOpenNextOutOfRange's local-pkg probe finds it.
+   */
+  const writeFixtureWithOpenNextVersion = (version: string): void => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    const openNextPkgDir = path.join(
+      tmpDir,
+      'node_modules',
+      '@opennextjs',
+      'aws',
+    );
+    fs.mkdirSync(openNextPkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextPkgDir, 'package.json'),
+      JSON.stringify({ name: '@opennextjs/aws', version, main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(openNextPkgDir, 'index.js'), '');
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-onv-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+    stderrChunks = [];
+    const orig = process.stderr.write.bind(process.stderr) as (
+      s: string | Uint8Array,
+    ) => boolean;
+    process.stderr.write = ((s: string | Uint8Array) => {
+      stderrChunks.push(typeof s === 'string' ? s : Buffer.from(s).toString());
+      return true;
+    }) as typeof process.stderr.write;
+    restoreStderr = () => {
+      process.stderr.write = orig;
+    };
+  });
+
+  afterEach(() => {
+    restoreStderr?.();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  void it('does NOT warn when @opennextjs/aws is in the verified range', () => {
+    writeFixtureWithOpenNextVersion('3.10.0');
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      !stderrChunks.some((c) => c.includes('outside the version range')),
+      `unexpected drift warning; stderr was: ${stderrChunks.join('')}`,
+    );
+  });
+
+  void it('warns when @opennextjs/aws is above the verified upper bound', () => {
+    writeFixtureWithOpenNextVersion('3.20.0');
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      stderrChunks.some(
+        (c) =>
+          c.includes('@opennextjs/aws@3.20.0') &&
+          c.includes('outside the version range'),
+      ),
+      `expected drift warning; stderr was: ${stderrChunks.join('')}`,
+    );
+  });
+
+  void it('does NOT warn when @opennextjs/aws is not installed (skipBuild path)', () => {
+    // Skip the version check by not writing the package.json — the
+    // adapter still runs because the .open-next/ output is present.
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      !stderrChunks.some((c) => c.includes('outside the version range')),
+      `should not warn when @opennextjs/aws is absent; stderr was: ${stderrChunks.join('')}`,
+    );
+  });
+});

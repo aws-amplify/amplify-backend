@@ -15,6 +15,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
+import semver from 'semver';
+import { getPackageInfoSync } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -132,6 +134,14 @@ export const nextjsAdapter = (
     } finally {
       cleanupConfig?.();
     }
+
+    // Warn when the installed @opennextjs/aws is outside the version
+    // range these patches were tested against. We don't fail because
+    // the patcher itself already throws `UpstreamPatchPatternChangedError`
+    // on no-match — this warning gives a head's-up *before* the patcher
+    // fires, so users hitting a fresh OpenNext version know to expect a
+    // possible patch break and can pin back if needed.
+    warnIfOpenNextOutOfRange(projectDir);
 
     // Patch OpenNext's bundled aws-lambda-streaming wrapper for API Gateway
     // STREAM framing. See patchStreamingWrapperForApiGateway for what changes.
@@ -810,6 +820,38 @@ const renderEdgeFunctionsBlock = (edgeRoutes: EdgeRoute[]): string => {
   functions: {
 ${entries}
   },`;
+};
+
+/**
+ * Range of `@opennextjs/aws` versions whose internals
+ * (`patchStreamingWrapperForApiGateway` + `patchEdgeBundlesForLambdaEdge`)
+ * we've explicitly verified. New OpenNext releases land regularly; we
+ * don't fail the build on out-of-range — the patcher itself throws
+ * `UpstreamPatchPatternChangedError` when it can't find the signatures
+ * — but a stderr warning here makes the cause obvious *before* the
+ * patcher fires.
+ *
+ * Bump the upper bound once a new OpenNext version is verified (run
+ * the integration deploy + the brittleness-gating tests against it).
+ */
+const VERIFIED_OPENNEXT_RANGE = '>=3.10.0 <3.11.0';
+
+/**
+ * Read the installed `@opennextjs/aws` version from the project's
+ * node_modules and emit a stderr warning when it falls outside the
+ * range we've explicitly verified. Best-effort: silent when the package
+ * isn't installed (the L3 path may legitimately run with a pre-built
+ * `.open-next/`) or when the version can't be parsed.
+ */
+const warnIfOpenNextOutOfRange = (projectDir: string): void => {
+  const info = getPackageInfoSync('@opennextjs/aws', { paths: [projectDir] });
+  const version = info?.version;
+  if (!version || !semver.valid(version)) return;
+  if (semver.satisfies(version, VERIFIED_OPENNEXT_RANGE)) return;
+  process.stderr.write(
+    `⚠️  @opennextjs/aws@${version} is outside the version range this adapter was verified against (${VERIFIED_OPENNEXT_RANGE}). ` +
+      `If the streaming-wrapper or edge-bundle patcher errors with UpstreamPatchPatternChangedError, that's the most likely cause — pin to a verified version or file an issue with the OpenNext release notes.\n`,
+  );
 };
 
 /**
