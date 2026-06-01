@@ -631,26 +631,43 @@ export class AmplifyHostingConstruct extends Construct {
     // Cache-Control split: hashed asset dirs (e.g. _next/static, _astro,
     // _nuxt — declared by adapters via `staticAssets.immutablePaths`) get
     // `immutable, max-age=31536000`. Everything else (HTML, public/) gets
-    // `max-age=0, must-revalidate` so a redeploy invalidates cached HTML
-    // on next request. Without this split, browsers cache `index.html`
-    // references to hashed URLs the new build deleted — PWA brick.
+    // `s-maxage=31536000, max-age=0, must-revalidate` so:
     //
-    // Font MIME pass: aws s3 sync (driver inside BucketDeployment) infers
-    // Content-Type via Python's mimetypes which lacks `font/woff*` on the
-    // Lambda runtime — fonts ship as `binary/octet-stream` and browsers
-    // reject them under CORS. We re-deploy *only* font extensions with
-    // `contentType` set explicitly (BucketDeployment applies that single
-    // value to every object in the deployment, so per-extension
-    // deployments are required).
+    //   - CloudFront edge caches the prerendered HTML for ~1y (s-maxage)
+    //     so repeat visits hit the edge in <50ms instead of round-tripping
+    //     to S3 every time;
+    //   - browsers revalidate (max-age=0, must-revalidate) so a redeploy's
+    //     CloudFront invalidation propagates immediately on next request;
+    //   - we explicitly invalidate `/*` on every deploy via
+    //     `distributionPaths` below, so the edge cache flushes on rollout.
+    //
+    // Without the s-maxage component, every request for prerendered HTML
+    // pays the round-trip to S3 (~30-60ms) instead of the edge hit (~5ms).
+    // Without the must-revalidate component, redeploys don't refresh
+    // browser-side until the user hard-reloads.
+    //
+    // Font MIME pass (12b below): aws s3 sync (driver inside
+    // BucketDeployment) infers Content-Type via Python's mimetypes which
+    // lacks `font/woff*` on the Lambda runtime — fonts ship as
+    // `binary/octet-stream` and browsers reject them under CORS. We
+    // re-deploy *only* font extensions with `contentType` set explicitly.
+    //
+    // Source-asset reuse: every BucketDeployment below uses the SAME
+    // `Source.asset(directory)` instance. CDK staging ZIPs the directory
+    // ONCE (asset hash dedup), then references the same staged asset
+    // across every deployment. Without reuse, each deployment re-stages
+    // the directory — a 100 MB `dist/` × 7 deployments = 700 MB of
+    // transient asset uploads + Lambda asset hashes on every cdk synth.
     const immutablePaths = manifest.staticAssets.immutablePaths;
     const mutableCacheControl =
       manifest.staticAssets.cacheControl ??
-      'public, max-age=0, must-revalidate';
+      'public, s-maxage=31536000, max-age=0, must-revalidate';
+    const staticSource = Source.asset(manifest.staticAssets.directory);
     if (immutablePaths && immutablePaths.length > 0) {
       // Map "_next/static/*" → "_next/static/*" (BucketDeployment uses the
       // same trailing-* form as awscli sync include/exclude filters).
       new BucketDeployment(this, 'AssetDeploymentImmutable', {
-        sources: [Source.asset(manifest.staticAssets.directory)],
+        sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         // sync excludes everything, then re-includes only hashed paths.
@@ -664,7 +681,7 @@ export class AmplifyHostingConstruct extends Construct {
         distributionPaths: ['/*'],
       });
       new BucketDeployment(this, 'AssetDeploymentMutable', {
-        sources: [Source.asset(manifest.staticAssets.directory)],
+        sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         exclude: immutablePaths,
@@ -676,7 +693,7 @@ export class AmplifyHostingConstruct extends Construct {
       // mutable Cache-Control on everything (safer default than a blanket
       // `immutable` that bricks on redeploy).
       new BucketDeployment(this, 'AssetDeployment', {
-        sources: [Source.asset(manifest.staticAssets.directory)],
+        sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         cacheControl: [CacheControl.fromString(mutableCacheControl)],
@@ -697,6 +714,11 @@ export class AmplifyHostingConstruct extends Construct {
     //
     // We only emit a deployment for an extension that actually exists in
     // the static dir, so projects without fonts pay zero overhead.
+    //
+    // All font deployments reuse the same `staticSource` Source.asset
+    // declared above — CDK dedups the staged asset zip across all
+    // BucketDeployments via content hash, so the directory is staged
+    // exactly once even with N font extensions present.
     const FONT_TYPES: Array<[string, string]> = [
       ['.woff2', 'font/woff2'],
       ['.woff', 'font/woff'],
@@ -711,7 +733,7 @@ export class AmplifyHostingConstruct extends Construct {
     for (const [ext, mime] of FONT_TYPES) {
       if (!fontExtensionsPresent.has(ext)) continue;
       new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
-        sources: [Source.asset(manifest.staticAssets.directory)],
+        sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         exclude: ['*'],
