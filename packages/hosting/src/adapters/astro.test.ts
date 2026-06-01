@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { astroAdapter } from './astro.js';
+import { spawn } from './spawn.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
 const writePkg = (
@@ -575,5 +576,81 @@ void describe('astroAdapter — redirects lift', () => {
     assert.deepStrictEqual(manifest.redirects, [
       { source: '/old', destination: '/new', statusCode: 301 },
     ]);
+  });
+});
+
+void describe('astroAdapter — @astrojs/node bridge install', () => {
+  let tmpDir: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let spawnCalls: any[][];
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-astro-install-'));
+    writePkg(tmpDir, { dependencies: { astro: '^5.0.0' } });
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { output: 'server' };",
+    );
+    writeServerBuild(tmpDir);
+    spawnCalls = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mock.method(spawn, 'sync', ((...args: any[]) => {
+      spawnCalls.push(args);
+      return undefined;
+    }) as never);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('installs @astrojs/node with --save (not --no-save) so it persists across deploys', () => {
+    astroAdapter({ projectDir: tmpDir });
+    const installCall = spawnCalls.find(
+      (c) => c[0] === 'npm' && c[1].includes('install'),
+    );
+    assert.ok(installCall, 'expected an `npm install` call');
+    const args = installCall[1] as string[];
+    assert.ok(
+      args.includes('--save'),
+      `expected --save in npm install args; got: ${args.join(' ')}`,
+    );
+    assert.ok(
+      !args.includes('--no-save'),
+      `expected --no-save NOT to be passed; got: ${args.join(' ')}`,
+    );
+    // The pin itself must still be passed for npm to know which version
+    // to resolve (latest 9.x).
+    assert.ok(
+      args.some((a) => a.startsWith('@astrojs/node@')),
+      `expected @astrojs/node pin in npm install args; got: ${args.join(' ')}`,
+    );
+  });
+
+  void it('skips install when @astrojs/node is already present in node_modules', () => {
+    // Synthesize the node_modules entry — userHasAstroJsNode reads via
+    // local-pkg's filesystem probe.
+    const pkgDir = path.join(tmpDir, 'node_modules', '@astrojs', 'node');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({
+        name: '@astrojs/node',
+        version: '9.0.0',
+        main: 'index.js',
+      }),
+    );
+    fs.writeFileSync(path.join(pkgDir, 'index.js'), '');
+
+    astroAdapter({ projectDir: tmpDir });
+    const installCall = spawnCalls.find(
+      (c) => c[0] === 'npm' && c[1].includes('install'),
+    );
+    assert.strictEqual(
+      installCall,
+      undefined,
+      'no npm install should run when @astrojs/node is already present',
+    );
   });
 });

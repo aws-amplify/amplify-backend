@@ -397,15 +397,28 @@ const installAstroBridge = (
 };
 
 const installAstroJsNode = (projectDir: string): void => {
+  // Re-check presence right before install: when a user runs the same
+  // adapter twice in a single Node process (rare but observed in test
+  // harnesses), the first call already installed the dep — skip the
+  // second to keep the operation idempotent.
+  if (userHasAstroJsNode(projectDir)) {
+    return;
+  }
+  // Install with --save (the default) instead of --no-save so the
+  // dependency is pinned in the user's package.json. Without that pin,
+  // an incremental redeploy that runs `npm ci` on a fresh checkout
+  // (CI/CD, container builds) reinstates a node_modules without
+  // @astrojs/node — and the next `astro build` fails with
+  // `[NoAdapterInstalled]`.
   process.stderr.write(
-    `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} (--no-save)\n`,
+    `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} (saved to package.json so future builds keep it)\n`,
   );
   try {
     spawn.sync(
       'npm',
       [
         'install',
-        '--no-save',
+        '--save',
         '--no-audit',
         '--no-fund',
         '--silent',
@@ -423,7 +436,7 @@ const installAstroJsNode = (projectDir: string): void => {
         message:
           'Failed to install @astrojs/node — required for the Amplify Astro bridge.',
         resolution:
-          'Try `npm install --no-save @astrojs/node` in your project to diagnose, ' +
+          `Try \`npm install --save ${ASTROJS_NODE_PIN}\` in your project to diagnose, ` +
           'or pin @astrojs/node yourself in package.json and re-run.',
       },
       error as Error,
