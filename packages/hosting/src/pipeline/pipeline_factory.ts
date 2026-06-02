@@ -362,12 +362,12 @@ export function findFile(dir: string, baseName: string): string | undefined {
  * which may import and configure those singletons.
  */
 const CACHE_BUST_PATTERNS = [
-  /@aws-amplify[\\/]/,
-  /packages[\\/]backend/,
-  /packages[\\/]hosting/,
-  /packages[\\/]auth-construct/,
-  /packages[\\/]data-schema/,
-  /[\\/]amplify[\\/]/,
+  /@aws-amplify[/\\]/,
+  /packages[/\\]backend/,
+  /packages[/\\]hosting/,
+  /packages[/\\]auth-construct/,
+  /packages[/\\]data-schema/,
+  /[/\\]amplify[/\\]/,
 ];
 
 /**
