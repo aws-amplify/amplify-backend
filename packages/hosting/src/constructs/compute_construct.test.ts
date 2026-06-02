@@ -386,8 +386,13 @@ void describe('ComputeConstruct', () => {
         logRetention: RetentionDays.ONE_MONTH,
       });
 
+      // `logRetention` is mapped to an explicit `AWS::Logs::LogGroup`
+      // (the deprecated `Function#logRetention` prop emitted a
+      // `Custom::LogRetention` singleton custom resource and triggered
+      // a `will be removed in the next major release` warning on every
+      // synth — gone after R4-#9).
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('Custom::LogRetention', {
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 30,
       });
     });
@@ -402,7 +407,7 @@ void describe('ComputeConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('Custom::LogRetention', {
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 14,
       });
     });

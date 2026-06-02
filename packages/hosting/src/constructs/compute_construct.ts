@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration, Stack, Token } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import {
   Architecture,
   Code,
@@ -12,7 +12,7 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { experimental } from 'aws-cdk-lib/aws-cloudfront';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource } from '../manifest/types.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
@@ -158,6 +158,21 @@ export class ComputeConstruct extends Construct {
 
     const architecture = props.architecture ?? Architecture.X86_64;
 
+    // Pre-create the Lambda log group with the desired retention. Replaces
+    // the deprecated `Function#logRetention` prop (which transitively
+    // creates a singleton custom-resource Lambda + log group); CDK warns
+    // on every synth that the prop will be removed in the next major.
+    // The explicit `LogGroup` lives at the canonical /aws/lambda/<fn>
+    // path Lambda would default to, so wiring is byte-identical from
+    // Lambda's POV — only the CFN graph changes shape.
+    const retention = props.logRetention ?? RetentionDays.TWO_WEEKS;
+    const logGroup = new LogGroup(this, 'FunctionLogGroup', {
+      retention,
+      // Match the prior `logRetention`-driven default — the singleton
+      // log-retention provider didn't retain log groups on stack delete.
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     if (computeResource.type === 'handler') {
       // Native Lambda handler — no Web Adapter needed
       this.function = new LambdaFunction(this, 'Function', {
@@ -169,7 +184,7 @@ export class ComputeConstruct extends Construct {
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
         role: ssrRole,
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
         environment: {
           ...computeResource.environment,
         },
@@ -192,7 +207,7 @@ export class ComputeConstruct extends Construct {
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
         role: ssrRole,
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
         layers: [
           LayerVersion.fromLayerVersionArn(
             this,
