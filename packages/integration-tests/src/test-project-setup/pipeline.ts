@@ -112,11 +112,12 @@ export class PipelineTestProject extends TestProjectBase {
   }
 
   /**
-   * Set up the project by copying static fixtures from the source directory
-   * and writing the dynamic pipeline.ts (which requires a runtime stack name).
+   * Set up the project by copying all fixtures from the source directory.
+   * All files — including pipeline.ts — live on disk as real files.
+   * The pipeline.ts reads PIPELINE_STACK_NAME from env (set at deploy time).
    */
   async writeFixtureFiles(): Promise<void> {
-    // Copy the amplify/ directory (backend.ts, auth/, data/, hosting.ts)
+    // Copy the amplify/ directory (backend.ts, auth/, data/, hosting.ts, pipeline.ts)
     await fs.cp(this.sourceProjectAmplifyDirURL, this.projectAmplifyDirPath, {
       recursive: true,
     });
@@ -126,12 +127,6 @@ export class PipelineTestProject extends TestProjectBase {
     await fs.cp(this.sourceProjectPublicDirURL, destPublicDir, {
       recursive: true,
     });
-
-    // Write pipeline.ts dynamically (it contains the runtime-generated stack name)
-    await fs.writeFile(
-      path.join(this.projectAmplifyDirPath, 'pipeline.ts'),
-      this.getPipelineFixtureContent(),
-    );
 
     // Update package.json with build script for the post-deploy hook
     const rootPkg = JSON.parse(
@@ -167,6 +162,8 @@ export class PipelineTestProject extends TestProjectBase {
     if (region) {
       env.AWS_REGION = region;
     }
+    // Pass the stack name via env so pipeline.ts uses it
+    env.PIPELINE_STACK_NAME = this.pipelineStackName;
 
     await ampxCli(['deploy', '--pipeline', '--yes'], this.projectDirPath, {
       env,
@@ -615,110 +612,5 @@ export class PipelineTestProject extends TestProjectBase {
     }
 
     return resources;
-  }
-
-  // ─── Fixture Content ─────────────────────────────────────────────────────
-
-  private getPipelineFixtureContent(): string {
-    return `import * as cdk from 'aws-cdk-lib';
-import * as path from 'path';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'node:module';
-import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
-import { AmplifyPipelineConstruct } from '@aws-amplify/hosting/pipeline';
-
-const require = createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const AMPLIFY_PIPELINE_SCOPE_KEY = '__AMPLIFY_PIPELINE_SCOPE__';
-
-const app = new cdk.App();
-
-const account = process.env.CDK_DEFAULT_ACCOUNT;
-const region = process.env.CDK_DEFAULT_REGION || process.env.AWS_REGION || 'us-east-1';
-
-if (!account) {
-  throw new Error('CDK_DEFAULT_ACCOUNT not set. Ensure AWS credentials are configured.');
-}
-
-const stack = new cdk.Stack(app, '${this.pipelineStackName}', {
-  env: { account, region },
-});
-
-// S3 bucket for pipeline source (versioned for EventBridge trigger)
-const sourceBucket = new s3.Bucket(stack, 'SourceBucket', {
-  removalPolicy: cdk.RemovalPolicy.DESTROY,
-  autoDeleteObjects: true,
-  versioned: true,
-});
-sourceBucket.grantWrite(new iam.AccountRootPrincipal());
-new cdk.CfnOutput(stack, 'SourceBucketName', { value: sourceBucket.bucketName });
-
-const pipeline = new AmplifyPipelineConstruct(stack, 'Pipeline', {
-  source: {
-    repo: 'test/pipeline-e2e',
-    connectionArn: 'arn:aws:codeconnections:' + region + ':' + account + ':connection/00000000-0000-0000-0000-000000000000',
-  },
-  synth: {
-    commands: ['echo "Using pre-built cloud assembly"'],
-    primaryOutputDirectory: 'cdk.out',
-  },
-  selfMutation: false,
-  branches: [
-    {
-      branch: 'main',
-      stages: [{ name: 'beta' }],
-    },
-  ],
-  stageFactory: (scope) => {
-    // Set the pipeline scope so defineBackend() attaches to this stage
-    (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY] = scope;
-    try {
-      // Import backend.ts — this calls defineBackend() which creates
-      // real Cognito, AppSync, and DynamoDB resources in this stage
-      const backendFile = path.resolve(__dirname, 'backend');
-      delete require.cache[require.resolve(backendFile)];
-      require(backendFile);
-    } finally {
-      delete (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY];
-    }
-  },
-  _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
-});
-
-// Build and output the pipeline name
-const codePipelines = pipeline.codePipelines;
-const mainPipeline = codePipelines.get('main');
-if (mainPipeline) {
-  mainPipeline.buildPipeline();
-  new cdk.CfnOutput(stack, 'PipelineName', {
-    value: mainPipeline.pipeline.pipelineName,
-  });
-
-  // Grant the e2e test roles permissions to start and monitor the pipeline
-  const pipelinePolicy = new iam.Policy(stack, 'PipelineTestPolicy', {
-    statements: [
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: [
-          'codepipeline:StartPipelineExecution',
-          'codepipeline:GetPipelineExecution',
-          'codepipeline:ListPipelineExecutions',
-          'codepipeline:GetPipelineState',
-        ],
-        resources: [mainPipeline.pipeline.pipelineArn, mainPipeline.pipeline.pipelineArn + '/*'],
-      }),
-    ],
-  });
-  const e2eRole = iam.Role.fromRoleName(stack, 'E2EExecutionRole', 'e2e-execution');
-  e2eRole.attachInlinePolicy(pipelinePolicy);
-  const e2eToolingRole = iam.Role.fromRoleName(stack, 'E2EToolingRole', 'e2e-test-tooling');
-  e2eToolingRole.attachInlinePolicy(pipelinePolicy);
-}
-
-app.synth();
-`;
   }
 }
