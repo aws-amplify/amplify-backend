@@ -89,8 +89,11 @@ if (mainPipeline) {
     value: mainPipeline.pipeline.pipelineName,
   });
 
-  // Grant the e2e test roles permissions to start and monitor the pipeline
+  // Grant the e2e test roles permissions to start and monitor the pipeline.
+  // Policy name includes stack name to avoid conflicts when parallel CI jobs
+  // deploy multiple pipeline stacks attaching to the same shared roles.
   const pipelinePolicy = new iam.Policy(stack, 'PipelineTestPolicy', {
+    policyName: `${stackName}-test-policy`,
     statements: [
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,

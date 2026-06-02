@@ -221,12 +221,20 @@ export class PipelineTestProject extends TestProjectBase {
       );
     }
 
-    // Create source.zip with cdk.out + project files using the system zip command
+    // Create source.zip with cdk.out + project files (cross-platform)
     const zipPath = path.join(projectDir, 'source.zip');
-    execSync(
-      `cd "${projectDir}" && zip -r source.zip cdk.out/ amplify/ public/ package.json`,
-      { stdio: 'pipe' },
-    );
+    if (process.platform === 'win32') {
+      // PowerShell's Compress-Archive on Windows
+      execSync(
+        `powershell -Command "Compress-Archive -Path '${path.join(projectDir, 'cdk.out')}','${path.join(projectDir, 'amplify')}','${path.join(projectDir, 'public')}','${path.join(projectDir, 'package.json')}' -DestinationPath '${zipPath}' -Force"`,
+        { stdio: 'pipe' },
+      );
+    } else {
+      execSync(
+        `cd "${projectDir}" && zip -r source.zip cdk.out/ amplify/ public/ package.json`,
+        { stdio: 'pipe' },
+      );
+    }
 
     // Upload to S3
     const zipContent = await fs.readFile(zipPath);
