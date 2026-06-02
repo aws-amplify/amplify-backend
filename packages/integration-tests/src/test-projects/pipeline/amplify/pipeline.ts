@@ -108,6 +108,21 @@ if (mainPipeline) {
           mainPipeline.pipeline.pipelineArn + '/*',
         ],
       }),
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:PutObject', 's3:PutObjectAcl'],
+        resources: [sourceBucket.bucketArn + '/*'],
+      }),
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'cloudformation:DescribeStacks',
+          'cloudformation:ListStackResources',
+          'cloudformation:GetTemplateSummary',
+          'cloudformation:DeleteStack',
+        ],
+        resources: ['*'],
+      }),
     ],
   });
   const e2eRole = iam.Role.fromRoleName(
