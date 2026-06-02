@@ -80,6 +80,10 @@ export class StandaloneHostingSsrTestProjectCreator implements TestProjectCreato
       path.join(sourceDir, 'middleware.ts'),
       path.join(projectRoot, 'middleware.ts'),
     );
+    await fs.cp(
+      path.join(sourceDir, 'custom-404.html'),
+      path.join(projectRoot, 'custom-404.html'),
+    );
 
     // Write the project package.json with Next.js dependencies
     // (overwrite the one created by createEmptyAmplifyProject)

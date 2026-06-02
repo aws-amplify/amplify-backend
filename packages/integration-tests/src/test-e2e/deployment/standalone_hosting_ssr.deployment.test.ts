@@ -490,6 +490,52 @@ void describe(
           );
         });
 
+        void it('stage 2j: custom environment variables — SSR Lambda receives user-defined env vars (M4)', async () => {
+          const envRes = await fetchWithRetry(`${distributionUrl}/api/env`, {
+            expectedStatus: 200,
+            maxRetries: 5,
+            intervalMs: 10000,
+          });
+          assert.strictEqual(
+            envRes.status,
+            200,
+            `API env route should return 200, got ${envRes.status}`,
+          );
+          const envBody = (await envRes.json()) as Record<string, string>;
+          assert.strictEqual(
+            envBody['CUSTOM_TEST_VAR'],
+            'e2e-test-value-12345',
+            `CUSTOM_TEST_VAR should be 'e2e-test-value-12345' (injected via defineHosting environment), got: ${JSON.stringify(envBody)}`,
+          );
+          process.stderr.write(
+            `Custom environment variable verified: CUSTOM_TEST_VAR=${envBody['CUSTOM_TEST_VAR']}\n`,
+          );
+        });
+
+        void it('stage 2k: custom error pages — 404 returns custom HTML content (M5)', async () => {
+          const notFoundRes = await fetchWithRetry(
+            `${distributionUrl}/this-page-does-not-exist-e2e-custom-404`,
+            {
+              expectedStatus: 404,
+              maxRetries: 8,
+              intervalMs: 15000,
+            },
+          );
+          assert.strictEqual(
+            notFoundRes.status,
+            404,
+            `Non-existent route should return 404, got ${notFoundRes.status}`,
+          );
+          const notFoundBody = await notFoundRes.text();
+          assert.ok(
+            notFoundBody.includes('Custom 404 Page - E2E Test'),
+            `404 response body should contain custom error page content "Custom 404 Page - E2E Test", got: ${notFoundBody.substring(0, 500)}`,
+          );
+          process.stderr.write(
+            `Custom 404 error page verified: response contains expected custom content\n`,
+          );
+        });
+
         void it('stage 2c: SSR origin accepts every HTTP verb with body and preserves multi-Set-Cookie + streaming', async () => {
           // Regression coverage for the OAC + Function URL body-hash bug:
           // pre-fix, any non-empty POST/PUT/PATCH returned 403 SignatureDoesNotMatch.
