@@ -135,14 +135,20 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
   );
 
   if (!skipBuild) {
-    const useBridge =
-      userOutput !== 'static' && !userHasAstroJsNode(projectDir);
+    // Bridge-decision: only honor a user adapter when it's wired in
+    // astro.config (`adapter:` field). Checking `node_modules` alone is
+    // unreliable — `@astrojs/node` can land there from a prior install
+    // or as a transitive dep, and trusting that signal silently skips
+    // the bridge on configs that have no adapter wired, producing the
+    // canonical `[NoAdapterInstalled]` build crash.
+    const userConfiguredAdapter = config.adapter !== undefined;
+    const useBridge = userOutput !== 'static' && !userConfiguredAdapter;
     let cleanupBridge: (() => void) | undefined;
     if (useBridge) {
       cleanupBridge = installAstroBridge(projectDir, bodySizeLimit);
     } else if (userOutput !== 'static') {
       process.stderr.write(
-        '✨ Detected user-configured @astrojs/node; using user config as-is.\n',
+        '✨ Detected user-configured adapter in astro.config; using user config as-is.\n',
       );
     }
     try {
@@ -302,6 +308,15 @@ type AstroConfigShape = {
   output?: AstroOutput;
   trailingSlash?: AstroTrailingSlash;
   base?: string;
+  /**
+   * The user's adapter integration if they wired one themselves.
+   * The bridge only treats the user as having a "user-configured"
+   * adapter when this field is set — checking node_modules alone is
+   * unreliable because `@astrojs/node` can land in node_modules from a
+   * prior install or as a transitive dep without ever being wired in
+   * astro.config.
+   */
+  adapter?: unknown;
   image?: {
     domains?: string[];
     remotePatterns?: unknown;
@@ -396,26 +411,99 @@ const installAstroBridge = (
   };
 };
 
+/**
+ * Detect the package manager in use by checking for a lockfile.
+ * pnpm and yarn (especially yarn-berry) write lockfiles in shapes
+ * incompatible with `npm install`; running npm against a pnpm/yarn
+ * project corrupts the lockfile and confuses the next `pnpm install` /
+ * `yarn install` run, breaking the user's regular dev loop.
+ *
+ * Order matters: we check pnpm before yarn before npm because pnpm
+ * projects sometimes carry a stale `package-lock.json` from a prior
+ * tool. Bun ships its own lockfile shape (`bun.lock` or binary
+ * `bun.lockb`); we treat that as bun.
+ *
+ * Return shape: { command, args } so the caller can spawn directly.
+ * We pin the package version via `ASTROJS_NODE_PIN` (e.g.
+ * `@astrojs/node@^9`); each manager's CLI accepts that same form.
+ */
+type PackageManagerInstall = {
+  command: 'pnpm' | 'yarn' | 'bun' | 'npm';
+  args: string[];
+};
+
+const detectPackageManagerInstallCommand = (
+  projectDir: string,
+  packageSpec: string,
+): PackageManagerInstall => {
+  const has = (file: string): boolean =>
+    fs.existsSync(path.join(projectDir, file));
+  if (has('pnpm-lock.yaml')) {
+    return {
+      command: 'pnpm',
+      args: ['add', '--silent', packageSpec],
+    };
+  }
+  if (has('yarn.lock')) {
+    return {
+      command: 'yarn',
+      args: ['add', '--silent', packageSpec],
+    };
+  }
+  if (has('bun.lockb') || has('bun.lock')) {
+    return {
+      command: 'bun',
+      args: ['add', packageSpec],
+    };
+  }
+  // npm default. `--save` is the npm default since v5; we keep it
+  // explicit for clarity vs. the prior `--no-save` form.
+  return {
+    command: 'npm',
+    args: [
+      'install',
+      '--save',
+      '--no-audit',
+      '--no-fund',
+      '--silent',
+      packageSpec,
+    ],
+  };
+};
+
 const installAstroJsNode = (projectDir: string): void => {
+  // Re-check presence right before install: when a user runs the same
+  // adapter twice in a single Node process (rare but observed in test
+  // harnesses), the first call already installed the dep — skip the
+  // second to keep the operation idempotent.
+  if (userHasAstroJsNode(projectDir)) {
+    return;
+  }
+  // Save into the user's package.json (instead of the prior `--no-save`)
+  // so the dependency is pinned. Without that pin, an incremental
+  // redeploy that runs `pnpm install` / `yarn install` / `npm ci` on a
+  // fresh checkout (CI/CD, container builds) reinstates node_modules
+  // without @astrojs/node, and the next `astro build` fails with
+  // `[NoAdapterInstalled]`.
+  //
+  // Detect the user's package manager from their lockfile so we don't
+  // corrupt it (pnpm/yarn lockfiles can't be touched by `npm install`).
+  // The user will see a NEW entry in their package.json + their
+  // lockfile after this install — they should commit both for
+  // reproducibility.
+  const install = detectPackageManagerInstallCommand(
+    projectDir,
+    ASTROJS_NODE_PIN,
+  );
   process.stderr.write(
-    `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} (--no-save)\n`,
+    `\u{1F4E6} Installing ${ASTROJS_NODE_PIN} via ${install.command} ` +
+      `(saved to package.json — commit the change so CI rebuilds reproduce)\n`,
   );
   try {
-    spawn.sync(
-      'npm',
-      [
-        'install',
-        '--no-save',
-        '--no-audit',
-        '--no-fund',
-        '--silent',
-        ASTROJS_NODE_PIN,
-      ],
-      {
-        cwd: projectDir,
-        stdio: 'inherit',
-      },
-    );
+    spawn.sync(install.command, install.args, {
+      cwd: projectDir,
+      stdio: 'inherit',
+    });
   } catch (error) {
     throw new HostingError(
       'AstroBridgeInstallError',
@@ -423,7 +511,7 @@ const installAstroJsNode = (projectDir: string): void => {
         message:
           'Failed to install @astrojs/node — required for the Amplify Astro bridge.',
         resolution:
-          'Try `npm install --no-save @astrojs/node` in your project to diagnose, ' +
+          `Try \`${install.command} ${install.args.join(' ')}\` in your project to diagnose, ` +
           'or pin @astrojs/node yourself in package.json and re-run.',
       },
       error as Error,
@@ -666,7 +754,12 @@ const buildStaticManifest = (distDir: string): DeployManifest => {
   return {
     version: 1,
     compute: {},
-    staticAssets: { directory: distDir },
+    staticAssets: {
+      directory: distDir,
+      // Astro content-hashes assets into `_astro/`; the rest of dist/ is
+      // user HTML and assets from `public/` which must NOT be immutable.
+      immutablePaths: ['_astro/*'],
+    },
     routes: [{ pattern: '/*', target: 'static' }],
     ...(Object.keys(errorPages).length > 0 ? { errorPages } : {}),
   };
@@ -713,7 +806,10 @@ const buildSsrManifest = (input: {
         runtime: 'nodejs20.x',
       },
     },
-    staticAssets: { directory: clientDir },
+    staticAssets: {
+      directory: clientDir,
+      immutablePaths: ['_astro/*'],
+    },
     routes: [],
   };
 

@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
@@ -87,7 +89,16 @@ export type AmplifyHostingConstructProps = {
   /** Compute (Lambda) overrides for all compute resources. */
   compute?: {
     memorySize?: number;
-    timeout?: Duration;
+    /**
+     * Lambda timeout. Accepts either a `cdk.Duration` (preferred) or a
+     * number of seconds for ergonomics — the L3 normalizes both to
+     * `Duration` before handing them to the Lambda construct. A plain
+     * number used to slip through the type at the user-facing API
+     * surface (e.g. when consumed via JS-compiled wrappers) and crash
+     * synth deep inside aws-cdk-lib with `props.timeout.toSeconds is
+     * not a function`. Coercing here makes that surface forgiving.
+     */
+    timeout?: Duration | number;
     reservedConcurrency?: number;
     logRetention?: RetentionDays;
   };
@@ -169,7 +180,48 @@ export class AmplifyHostingConstruct extends Construct {
     super(scope, id);
 
     const { manifest } = props;
+    // Rewrites stub: adapters lift `routeRules.proxy` (Nitro) and
+    // similar upstream-proxy rules into `manifest.rewrites[]`, but the
+    // L3 doesn't yet provision the per-pattern `HttpOrigin` +
+    // CloudFront-Function origin-rewrite needed to honor them. Until
+    // that lands, fail loud rather than silently dropping the user's
+    // intent — `routeRules.proxy: 'https://upstream/**'` would
+    // otherwise fall through to the SSR Lambda which relays the proxy,
+    // burning a Lambda invocation per request with no operator-visible
+    // signal that the rule didn't take effect.
+    if (manifest.rewrites && manifest.rewrites.length > 0) {
+      throw new HostingError('RewritesNotYetSupportedError', {
+        message:
+          `manifest.rewrites[] is not yet consumed by the hosting L3 (received ${manifest.rewrites.length} rule(s)). ` +
+          `Adapters lift Nitro routeRules.proxy and similar upstream-proxy rules here; the L3 wiring (per-pattern HttpOrigin + CloudFront-Function origin-rewrite) is tracked separately.`,
+        resolution:
+          'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
+      });
+    }
+    // BasicAuth stub: adapters lift `routeRules.basicAuth` (Nitro)
+    // into `manifest.basicAuth[]`, but the L3 doesn't yet emit the
+    // CloudFront Function gate needed to honor it. Failing loud is
+    // critical here — silently dropping a Basic-Auth rule would expose
+    // a path the user explicitly meant to gate (dev/staging surfaces,
+    // pre-launch admin areas).
+    if (manifest.basicAuth && manifest.basicAuth.length > 0) {
+      throw new HostingError('BasicAuthNotYetSupportedError', {
+        message:
+          `manifest.basicAuth[] is not yet consumed by the hosting L3 (received ${manifest.basicAuth.length} rule(s)). ` +
+          `Adapters lift Nitro routeRules.basicAuth here; the L3 will emit a CloudFront Function viewer-request gate once that wiring lands. Failing loud rather than silently exposing the gated path.`,
+        resolution:
+          'Until the L3 wiring lands, remove basicAuth rules from your framework config and gate the path in your SSR handler (or via your IdP). Track the gap on the hosting roadmap before re-introducing routeRules.basicAuth.',
+      });
+    }
     const buildId = manifest.buildId ?? generateBuildId();
+
+    // Normalize `compute.timeout` once: callers consuming the L3 from
+    // JS-compiled wrappers (or strict TS users who write
+    // `timeout: 30`) often pass a plain number, which then crashes
+    // deep inside aws-cdk-lib with `props.timeout.toSeconds is not a
+    // function`. Accepting a number here and coercing to `Duration`
+    // turns that into a forgiving, well-typed surface.
+    const computeTimeout = normalizeTimeout(props.compute?.timeout);
 
     // ---- 1. Storage (S3 buckets) ----
     const storage = new StorageConstruct(this, 'Storage', {
@@ -192,7 +244,7 @@ export class AmplifyHostingConstruct extends Construct {
           name,
           computeResource: resource,
           memorySize: props.compute?.memorySize,
-          timeout: props.compute?.timeout,
+          timeout: computeTimeout,
           reservedConcurrency: props.compute?.reservedConcurrency,
           logRetention: props.compute?.logRetention,
           skipRegionValidation: props.skipRegionValidation,
@@ -209,7 +261,7 @@ export class AmplifyHostingConstruct extends Construct {
         name,
         computeResource: resource,
         memorySize: props.compute?.memorySize,
-        timeout: props.compute?.timeout,
+        timeout: computeTimeout,
         reservedConcurrency: props.compute?.reservedConcurrency,
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
@@ -640,17 +692,120 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 12. Atomic Deployment (static assets) ----
-    new BucketDeployment(this, 'AssetDeployment', {
-      sources: [Source.asset(manifest.staticAssets.directory)],
-      destinationBucket: this.bucket,
-      destinationKeyPrefix: `builds/${buildId}/`,
-      cacheControl: [
-        CacheControl.fromString('public, max-age=31536000, immutable'),
-      ],
-      prune: false,
-      distribution: this.distribution,
-      distributionPaths: ['/*'],
-    });
+    // Cache-Control split: hashed asset dirs (e.g. _next/static, _astro,
+    // _nuxt — declared by adapters via `staticAssets.immutablePaths`) get
+    // `immutable, max-age=31536000`. Everything else (HTML, public/) gets
+    // `s-maxage=31536000, max-age=0, must-revalidate` so:
+    //
+    //   - CloudFront edge caches the prerendered HTML for ~1y (s-maxage)
+    //     so repeat visits hit the edge in <50ms instead of round-tripping
+    //     to S3 every time;
+    //   - browsers revalidate (max-age=0, must-revalidate) so a redeploy's
+    //     CloudFront invalidation propagates immediately on next request;
+    //   - we explicitly invalidate `/*` on every deploy via
+    //     `distributionPaths` below, so the edge cache flushes on rollout.
+    //
+    // Without the s-maxage component, every request for prerendered HTML
+    // pays the round-trip to S3 (~30-60ms) instead of the edge hit (~5ms).
+    // Without the must-revalidate component, redeploys don't refresh
+    // browser-side until the user hard-reloads.
+    //
+    // Font MIME pass (12b below): aws s3 sync (driver inside
+    // BucketDeployment) infers Content-Type via Python's mimetypes which
+    // lacks `font/woff*` on the Lambda runtime — fonts ship as
+    // `binary/octet-stream` and browsers reject them under CORS. We
+    // re-deploy *only* font extensions with `contentType` set explicitly.
+    //
+    // Source-asset reuse: every BucketDeployment below uses the SAME
+    // `Source.asset(directory)` instance. CDK staging ZIPs the directory
+    // ONCE (asset hash dedup), then references the same staged asset
+    // across every deployment. Without reuse, each deployment re-stages
+    // the directory — a 100 MB `dist/` × 7 deployments = 700 MB of
+    // transient asset uploads + Lambda asset hashes on every cdk synth.
+    const immutablePaths = manifest.staticAssets.immutablePaths;
+    const mutableCacheControl =
+      manifest.staticAssets.cacheControl ??
+      'public, s-maxage=31536000, max-age=0, must-revalidate';
+    const staticSource = Source.asset(manifest.staticAssets.directory);
+    if (immutablePaths && immutablePaths.length > 0) {
+      // Map "_next/static/*" → "_next/static/*" (BucketDeployment uses the
+      // same trailing-* form as awscli sync include/exclude filters).
+      new BucketDeployment(this, 'AssetDeploymentImmutable', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        // sync excludes everything, then re-includes only hashed paths.
+        exclude: ['*'],
+        include: immutablePaths,
+        cacheControl: [
+          CacheControl.fromString('public, max-age=31536000, immutable'),
+        ],
+        prune: false,
+        distribution: this.distribution,
+        distributionPaths: ['/*'],
+      });
+      new BucketDeployment(this, 'AssetDeploymentMutable', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: immutablePaths,
+        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        prune: false,
+      });
+    } else {
+      // Back-compat: adapters that don't declare immutablePaths get the
+      // mutable Cache-Control on everything (safer default than a blanket
+      // `immutable` that bricks on redeploy).
+      new BucketDeployment(this, 'AssetDeployment', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        prune: false,
+        distribution: this.distribution,
+        distributionPaths: ['/*'],
+      });
+    }
+
+    // ---- 12b. Font Content-Type pass ----
+    // Re-deploys font files with the correct MIME type. Each extension
+    // gets its own BucketDeployment because `contentType` applies per
+    // deployment (no per-file inference override). We don't gate this on
+    // immutablePaths — fonts are commonly hashed (Next emits them under
+    // `_next/static/media`) AND non-hashed (`public/fonts/`); applying
+    // a long-lived Cache-Control here would be wrong for the latter, so
+    // we leave Cache-Control unset and let the prior pass govern.
+    //
+    // We only emit a deployment for an extension that actually exists in
+    // the static dir, so projects without fonts pay zero overhead.
+    //
+    // All font deployments reuse the same `staticSource` Source.asset
+    // declared above — CDK dedups the staged asset zip across all
+    // BucketDeployments via content hash, so the directory is staged
+    // exactly once even with N font extensions present.
+    const FONT_TYPES: Array<[string, string]> = [
+      ['.woff2', 'font/woff2'],
+      ['.woff', 'font/woff'],
+      ['.ttf', 'font/ttf'],
+      ['.otf', 'font/otf'],
+      ['.eot', 'application/vnd.ms-fontobject'],
+    ];
+    const fontExtensionsPresent = detectFontExtensions(
+      manifest.staticAssets.directory,
+      FONT_TYPES.map(([ext]) => ext),
+    );
+    for (const [ext, mime] of FONT_TYPES) {
+      if (!fontExtensionsPresent.has(ext)) continue;
+      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: ['*'],
+        include: [`*${ext}`],
+        contentType: mime,
+        prune: false,
+      });
+    }
   }
 
   /**
@@ -664,3 +819,60 @@ export class AmplifyHostingConstruct extends Construct {
     };
   }
 }
+
+/**
+ * Walk a directory looking for files matching any of the given
+ * extensions. Returns the set of extensions actually present so the
+ * caller can skip emitting empty-on-arrival BucketDeployments.
+ *
+ * Used at synth time only — the directory has already been built before
+ * the L3 runs. Errors (missing dir, permission, etc.) silently return
+ * an empty set: the worst case is a missing font MIME pass, which is
+ * the pre-fix behavior.
+ */
+/**
+ * Coerce a `Duration | number` (seconds) into `Duration | undefined`.
+ *
+ * Public-API ergonomics: callers consuming the L3 from JS-compiled
+ * wrappers (or strict TS users who write `timeout: 30`) often pass a
+ * plain number. Without this coercion the value flows into
+ * aws-cdk-lib's Lambda construct and crashes synth deep in framework
+ * code with `props.timeout.toSeconds is not a function` — surfaced
+ * by the AWS Blocks bug-bash repro (`@aws-blocks/blocks` Hosting
+ * wrapper passing `timeout: 30` straight through). Normalize once
+ * here so both shapes work and the type stays well-defined inside
+ * the L3.
+ */
+const normalizeTimeout = (t?: Duration | number): Duration | undefined => {
+  if (t === undefined) return undefined;
+  if (typeof t === 'number') return Duration.seconds(t);
+  return t;
+};
+
+const detectFontExtensions = (
+  rootDir: string,
+  extensions: readonly string[],
+): Set<string> => {
+  const found = new Set<string>();
+  const exts = new Set(extensions.map((e) => e.toLowerCase()));
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (exts.has(ext)) found.add(ext);
+        if (found.size === exts.size) return;
+      }
+    }
+  };
+  walk(rootDir);
+  return found;
+};

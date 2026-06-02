@@ -15,6 +15,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
+import semver from 'semver';
+import { getPackageInfoSync } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -132,6 +134,14 @@ export const nextjsAdapter = (
     } finally {
       cleanupConfig?.();
     }
+
+    // Warn when the installed @opennextjs/aws is outside the version
+    // range these patches were tested against. We don't fail because
+    // the patcher itself already throws `UpstreamPatchPatternChangedError`
+    // on no-match — this warning gives a head's-up *before* the patcher
+    // fires, so users hitting a fresh OpenNext version know to expect a
+    // possible patch break and can pin back if needed.
+    warnIfOpenNextOutOfRange(projectDir);
 
     // Patch OpenNext's bundled aws-lambda-streaming wrapper for API Gateway
     // STREAM framing. See patchStreamingWrapperForApiGateway for what changes.
@@ -395,6 +405,39 @@ type NextRoutesManifest = {
     has?: unknown;
     missing?: unknown;
   }>;
+  /**
+   * Pages Router i18n config. Present when the user sets
+   * `i18n: { locales: [...] }` in next.config; Next then rewrites every
+   * `headers[]` / `redirects[]` source to start with
+   * `/:nextInternalLocale(en|fr|...)/...`. The literal locale group is
+   * not supported by CloudFront's PathPattern (no parens / pipes), so
+   * unless we strip the prefix the rule never makes it past
+   * `isSimpleNextSource` and the user's headers/redirects fall through
+   * to OpenNext where security-named headers are silently dropped.
+   */
+  i18n?: { locales?: string[] };
+};
+
+/**
+ * Pages Router i18n: when next.config sets `i18n: { locales }`, every
+ * routes-manifest source gets prefixed with `/:nextInternalLocale(...)`.
+ * That group blocks `isSimpleNextSource` because it carries `:` and
+ * `(...)` syntax. Strip the locale group (if any) so the bare path can
+ * be lifted to a CloudFront pattern. Leaves non-i18n sources untouched.
+ */
+export const stripNextInternalLocale = (source: string): string => {
+  // Pattern Next emits is exactly `/:nextInternalLocale(<pipe-list>)`
+  // followed by the rest of the URL. Match conservatively — if the
+  // shape differs at all, leave the source alone so we don't misinterpret
+  // it.
+  const match = source.match(/^\/:nextInternalLocale\([a-zA-Z0-9_|-]+\)(.*)$/);
+  if (!match) return source;
+  const rest = match[1];
+  // Resulting source must still start with `/`. When the original was
+  // exactly `/:nextInternalLocale(...)` (the bare locale root), map it
+  // to `/`.
+  if (rest === '' || rest === '/') return '/';
+  return rest.startsWith('/') ? rest : `/${rest}`;
 };
 
 /**
@@ -460,6 +503,27 @@ const applyLiftedRoutesManifest = (
   let skippedRedirects = 0;
   let skippedHeaders = 0;
 
+  // Pages Router with i18n rewrites every source/destination to start
+  // with `/:nextInternalLocale(en|fr|...)`. The locale group is regex
+  // syntax CloudFront PathPatterns can't match — without stripping it,
+  // every rule falls through to OpenNext which silently drops
+  // security-named headers (CloudFront refuses them in the customHeaders
+  // array on the response).
+  const hasI18nLocales = Boolean(routesManifest.i18n?.locales?.length);
+  const normalizeSource = (s: string): string =>
+    hasI18nLocales ? stripNextInternalLocale(s) : s;
+
+  // Locale-strip can produce duplicate sources when the user's config
+  // (or Next's manifest emit) contains both a bare and a locale-prefixed
+  // form for the same path. Track which sources have already been lifted
+  // so we can warn the user instead of silently last-wins. Same key
+  // space for redirects and headers — they live in different lift
+  // arrays, but a duplicate source within one type is the meaningful
+  // collision.
+  const seenRedirectSources = new Map<string, string>();
+  const seenHeaderSources = new Map<string, string>();
+  const collisions: string[] = [];
+
   for (const r of routesManifest.redirects ?? []) {
     if (r.internal) {
       // Trailing-slash and similar — leave to OpenNext.
@@ -473,13 +537,23 @@ const applyLiftedRoutesManifest = (
       skippedRedirects++;
       continue;
     }
-    if (!isSimpleNextSource(r.source) || !isSimpleNextSource(r.destination)) {
+    const source = normalizeSource(r.source);
+    const destination = normalizeSource(r.destination);
+    if (!isSimpleNextSource(source) || !isSimpleNextSource(destination)) {
       skippedRedirects++;
       continue;
     }
+    const prior = seenRedirectSources.get(source);
+    if (prior !== undefined && prior !== r.source) {
+      collisions.push(
+        `redirect source ${JSON.stringify(source)} appears in routes-manifest as both ${JSON.stringify(prior)} and ${JSON.stringify(r.source)} after locale strip; keeping the first`,
+      );
+      continue;
+    }
+    seenRedirectSources.set(source, r.source);
     liftedRedirects.push({
-      source: r.source,
-      destination: r.destination,
+      source,
+      destination,
       statusCode: r.statusCode as 301 | 302 | 307 | 308,
     });
   }
@@ -489,24 +563,42 @@ const applyLiftedRoutesManifest = (
       skippedHeaders++;
       continue;
     }
-    if (!isSimpleNextSource(h.source)) {
+    const source = normalizeSource(h.source);
+    if (!isSimpleNextSource(source)) {
       skippedHeaders++;
       continue;
     }
+    const prior = seenHeaderSources.get(source);
+    if (prior !== undefined && prior !== h.source) {
+      collisions.push(
+        `header source ${JSON.stringify(source)} appears in routes-manifest as both ${JSON.stringify(prior)} and ${JSON.stringify(h.source)} after locale strip; keeping the first`,
+      );
+      continue;
+    }
+    seenHeaderSources.set(source, h.source);
     const headers: Record<string, string> = {};
     for (const entry of h.headers) {
       if (entry.key.toLowerCase() === 'cache-control') {
         validateCacheControl(
           entry.value,
-          `route ${h.source} (Next.js headers config)`,
+          `route ${source} (Next.js headers config)`,
         );
       }
       headers[entry.key] = entry.value;
     }
     liftedHeaders.push({
-      source: h.source,
+      source,
       headers,
     });
+  }
+
+  if (collisions.length > 0) {
+    process.stderr.write(
+      `⚠️  Next.js i18n locale-strip produced duplicate source patterns:\n` +
+        collisions.map((c) => `   - ${c}\n`).join('') +
+        `   Each conflicting rule's first occurrence wins. To resolve, ` +
+        `disambiguate via has/missing conditions or remove redundant config entries.\n`,
+    );
   }
 
   if (liftedRedirects.length > 0) {
@@ -594,6 +686,122 @@ export const detectEdgeRoutes = (projectDir: string): EdgeRoute[] => {
 };
 
 /**
+ * Strip JS line + block comments + string literals from source so a
+ * subsequent token scan sees only executable code. Without this, a
+ * `// TODO: switch to aws-apigw-v1` comment would falsely satisfy the
+ * presence check, and a string like `const NOTE = 'aws-apigw-v1'` in
+ * an unrelated context would too.
+ *
+ * We replace strings with empty quotes (preserving outer structure) so
+ * the resulting source still parses for our anchored regex matches —
+ * those expect to find the override values *inside* `'...'` or `"..."`.
+ * Therefore we apply a *separate* pass that preserves only the relevant
+ * key:value pairs (see `findOverride`).
+ */
+const stripCommentsForScan = (source: string): string => {
+  // Block comments first (greedy multi-line), then line comments. Order
+  // matters because a `//` inside a `/* ... */` should not be treated as
+  // a line comment.
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+};
+
+/**
+ * Look for a `<key>: '<value>'` (or double-quoted) pair anywhere in the
+ * given source. We don't try to anchor to a specific block (`default:`
+ * vs `functions.x:`) because OpenNext config shapes vary — a `default`
+ * section may live inline, behind a `withApiGw()` helper, or composed
+ * from imported constants. The narrower check would generate too many
+ * false negatives.
+ *
+ * We accept the override as "present" when:
+ *   - the key:value pair appears literally, OR
+ *   - the value appears as a literal string anywhere in the file
+ *     (covers helper-imported configs and `as const` references).
+ *
+ * Combined with comment stripping, this catches the realistic configs
+ * customers write while rejecting the obvious miss-types.
+ */
+const findOverride = (source: string, key: string, value: string): boolean => {
+  // Direct key:value.
+  const kv = new RegExp(`\\b${key}\\s*:\\s*['"\`]${escapeRegex(value)}['"\`]`);
+  if (kv.test(source)) return true;
+  // Bare-value reference (helper-imported / re-exported constant).
+  const bare = new RegExp(`['"\`]${escapeRegex(value)}['"\`]`);
+  return bare.test(source);
+};
+
+const escapeRegex = (s: string): string =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Inspect a user-authored `open-next.config.ts` for the converter/wrapper
+ * overrides that the L3's API-Gateway-fronted SSR Lambda requires.
+ *
+ * The L3 fronts SSR with API Gateway REST + STREAM mode (B22/B23/B24
+ * cluster). REST sends payload v1; OpenNext defaults to v2. Without
+ * `converter: 'aws-apigw-v1'` every URL renders as `/`. Without
+ * `wrapper: 'aws-lambda-streaming'` POST/PUT bodies are silently dropped.
+ *
+ * When edge routes are detected, the user's config must also declare a
+ * separate edge function — OpenNext refuses to build a project that
+ * declares `runtime = 'edge'` without an explicit split function.
+ *
+ * Why textual scan: the file is TypeScript that may be transpiled at
+ * build time; importing it here would require running the TS compiler
+ * before OpenNext even starts. We strip comments + look for either a
+ * `<key>: '<value>'` pair OR a bare `'<value>'` reference (covers
+ * helper-imported configs); with the comment strip + anchored regex,
+ * substring false-positives from comments and false-negatives from
+ * imported constants are addressed.
+ */
+const validateUserOpenNextConfig = (
+  configFile: string,
+  edgeRoutes: EdgeRoute[] = [],
+): void => {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(configFile, 'utf-8');
+  } catch (err) {
+    throw new HostingError(
+      'OpenNextConfigUnreadableError',
+      {
+        message: `Found ${configFile} but could not read it.`,
+        resolution:
+          'Ensure the file is readable, or remove it to let the adapter generate the required config.',
+      },
+      err as Error,
+    );
+  }
+  const source = stripCommentsForScan(raw);
+  const missing: string[] = [];
+  if (!findOverride(source, 'converter', 'aws-apigw-v1')) {
+    missing.push("converter: 'aws-apigw-v1'");
+  }
+  if (!findOverride(source, 'wrapper', 'aws-lambda-streaming')) {
+    missing.push("wrapper: 'aws-lambda-streaming'");
+  }
+  // Edge functions must be split out per OpenNext's build-time
+  // requirement. Detect by checking for any `runtime: 'edge'` token in
+  // the user's config when edgeRoutes were detected from the user's
+  // source tree.
+  const needsEdgeBlock = edgeRoutes.length > 0;
+  const hasEdgeBlock = /\bruntime\s*:\s*['"`]edge['"`]/.test(source);
+  if (needsEdgeBlock && !hasEdgeBlock) {
+    missing.push(
+      "functions: { edge: { runtime: 'edge', placement: 'global', routes: [...] } }",
+    );
+  }
+  if (missing.length === 0) return;
+  throw new HostingError('IncompatibleOpenNextConfigError', {
+    message: `Found ${configFile}, but it is missing the override(s) the Amplify hosting Lambda runtime requires: ${missing.join(', ')}.`,
+    resolution:
+      'Either delete open-next.config.ts to let the adapter generate one, or add the missing override(s) to your config. Without them: payload v1/v2 mismatch renders every URL as "/", or POST/PUT bodies are silently dropped (response_stream wrapper).',
+  });
+};
+
+/**
  * Generate <projectDir>/open-next.config.ts with `aws-apigw-v1` + streaming
  * wrapper so OpenNext picks them up on its next build. Returns a cleanup
  * closure. No-ops if the user already has their own open-next.config.ts.
@@ -611,9 +819,16 @@ const installGeneratedOpenNextConfig = (
 ): (() => void) => {
   const configFile = path.join(projectDir, 'open-next.config.ts');
   const edgeBlock = renderEdgeFunctionsBlock(edgeRoutes);
+  // `minify: true` shrinks the SSR Lambda bundle ~30-50% (esbuild flags
+  // unminified bundles >5MB with a scary "⚠️" — the AWS Blocks bug-bash
+  // saw 34-35 MB and 19/20 testers thought the build was failing). The
+  // semantically-equivalent fix would be externalizing `@aws-sdk/*`
+  // (Lambda runtime ships AWS SDK v3), but OpenNext does not yet expose
+  // an `external` knob in its public config.
   const configBody = `// AUTO-GENERATED by @aws-amplify/hosting — do not edit.
 const config = {
   default: {
+    minify: true,
     override: {
       converter: 'aws-apigw-v1',
       wrapper: 'aws-lambda-streaming',
@@ -631,17 +846,7 @@ export default config;
     });
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
-      const edgeNote =
-        edgeRoutes.length > 0
-          ? `\n   Edge routes detected (${edgeRoutes.map((r) => r.pattern).join(', ')}); ` +
-            `your config must also declare:\n` +
-            `     functions: { edge: { runtime: 'edge', placement: 'global', routes: [...], patterns: [...] } }\n`
-          : '';
-      process.stderr.write(
-        `⚠️  Found existing open-next.config.ts; not generating override.\n` +
-          `   Streaming + POST/PUT compatibility through API Gateway requires:\n` +
-          `     default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } }${edgeNote}`,
-      );
+      validateUserOpenNextConfig(configFile, edgeRoutes);
       return () => undefined;
     }
     throw err;
@@ -711,6 +916,38 @@ const renderEdgeFunctionsBlock = (edgeRoutes: EdgeRoute[]): string => {
   functions: {
 ${entries}
   },`;
+};
+
+/**
+ * Range of `@opennextjs/aws` versions whose internals
+ * (`patchStreamingWrapperForApiGateway` + `patchEdgeBundlesForLambdaEdge`)
+ * we've explicitly verified. New OpenNext releases land regularly; we
+ * don't fail the build on out-of-range — the patcher itself throws
+ * `UpstreamPatchPatternChangedError` when it can't find the signatures
+ * — but a stderr warning here makes the cause obvious *before* the
+ * patcher fires.
+ *
+ * Bump the upper bound once a new OpenNext version is verified (run
+ * the integration deploy + the brittleness-gating tests against it).
+ */
+const VERIFIED_OPENNEXT_RANGE = '>=3.10.0 <3.11.0';
+
+/**
+ * Read the installed `@opennextjs/aws` version from the project's
+ * node_modules and emit a stderr warning when it falls outside the
+ * range we've explicitly verified. Best-effort: silent when the package
+ * isn't installed (the L3 path may legitimately run with a pre-built
+ * `.open-next/`) or when the version can't be parsed.
+ */
+const warnIfOpenNextOutOfRange = (projectDir: string): void => {
+  const info = getPackageInfoSync('@opennextjs/aws', { paths: [projectDir] });
+  const version = info?.version;
+  if (!version || !semver.valid(version)) return;
+  if (semver.satisfies(version, VERIFIED_OPENNEXT_RANGE)) return;
+  process.stderr.write(
+    `⚠️  @opennextjs/aws@${version} is outside the version range this adapter was verified against (${VERIFIED_OPENNEXT_RANGE}). ` +
+      `If the streaming-wrapper or edge-bundle patcher errors with UpstreamPatchPatternChangedError, that's the most likely cause — pin to a verified version or file an issue with the OpenNext release notes.\n`,
+  );
 };
 
 /**
@@ -981,6 +1218,18 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
   process.stderr.write(
     `\u{1F528} Running OpenNext build: npx ${args.join(' ')}\n`,
   );
+  // OpenNext emits a stderr line that reads as a fatal error during this
+  // build:
+  //   ERROR Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible.
+  //   For the wrapper aws-lambda-streaming you should only use the following converters: aws-apigw-v2.
+  // It is not fatal — Amplify hosting fronts the SSR Lambda with API Gateway
+  // v1 (REST API) for `response-streaming-invocations`, and the bundle is
+  // patched after this build finishes (see `patchStreamingWrapperForApiGateway`).
+  // Pre-announce so users running `ampx deploy` for the first time don't think
+  // OpenNext failed.
+  process.stderr.write(
+    `\u{2139}\u{FE0F}  OpenNext may print "Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible" — this is expected. Amplify Hosting fronts the SSR Lambda with API Gateway v1 (REST API) and patches the bundled streaming wrapper after the build.\n`,
+  );
 
   try {
     spawn.sync('npx', args, {
@@ -1086,6 +1335,10 @@ const translateOpenNextOutput = (
     compute: {},
     staticAssets: {
       directory: path.join(openNextDir, 'assets'),
+      // Next.js content-hashes everything under `_next/static`; HTML and
+      // public/ live elsewhere in the assets dir and must NOT be marked
+      // immutable (would brick clients on redeploy — see L3 PWA note).
+      immutablePaths: ['_next/static/*'],
     },
     routes: [],
   };

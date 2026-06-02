@@ -213,6 +213,44 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       },
     });
   });
+
+  void it('accepts compute.timeout as a plain number (seconds) and coerces to Duration', () => {
+    // Regression: AWS Blocks bug-bash repro showed `timeout: 30`
+    // (a plain number) reaching the L3 from a permissive JS-compiled
+    // wrapper and crashing synth deep in aws-cdk-lib with
+    // `props.timeout.toSeconds is not a function`. The L3 surface
+    // now accepts `Duration | number` and normalizes once.
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          runtime: 'nodejs20.x',
+        },
+      },
+      staticAssets: { directory: staticDir },
+      routes: [{ pattern: '/*', target: 'default' }],
+      buildId: 'ssr-timeout-coerce-1',
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+      compute: { timeout: 45 },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Timeout: 45,
+    });
+  });
 });
 
 // ================================================================

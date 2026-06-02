@@ -133,6 +133,19 @@ export const customHeaderSchema = z.object({
   headers: z.record(z.string()),
 });
 
+/**
+ * Zod schema for BasicAuthRule. `users` requires at least one entry
+ * (a rule with no users would gate the path with no way to authenticate).
+ */
+export const basicAuthRuleSchema = z.object({
+  source: z.string().min(1),
+  realm: z.string().min(1).optional(),
+  users: z.record(z.string().min(1)).refine((u) => Object.keys(u).length > 0, {
+    message:
+      'basicAuth.users must contain at least one username:password entry',
+  }),
+});
+
 /** Reserved route targets that don't need a corresponding compute entry. */
 const RESERVED_TARGETS = new Set(['static', 's3', 'image-optimization']);
 
@@ -146,6 +159,7 @@ export const deployManifestSchema = z
     staticAssets: z.object({
       directory: z.string().min(1, 'Static assets directory must not be empty'),
       cacheControl: z.string().optional(),
+      immutablePaths: z.array(z.string().min(1)).optional(),
     }),
     routes: z
       .array(routeBehaviorSchema)
@@ -156,6 +170,7 @@ export const deployManifestSchema = z
     redirects: z.array(redirectSchema).optional(),
     rewrites: z.array(rewriteSchema).optional(),
     headers: z.array(customHeaderSchema).optional(),
+    basicAuth: z.array(basicAuthRuleSchema).optional(),
     assetPrefix: z
       .string()
       .regex(

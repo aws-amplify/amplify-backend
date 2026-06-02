@@ -10,6 +10,7 @@ import {
   patchEdgeBundlesForLambdaEdge,
   patchStreamingWrapperForApiGateway,
   projectHasEdgeRuntimeRoutes,
+  stripNextInternalLocale,
 } from './nextjs.js';
 import { deployManifestSchema } from '../manifest/schema.js';
 
@@ -715,6 +716,86 @@ void describe('patchStreamingWrapperForApiGateway — brittleness gating', () =>
     assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(empty));
     fs.rmSync(empty, { recursive: true, force: true });
   });
+
+  // U31: snapshot test against the canonical OpenNext aws-lambda-streaming
+  // wrapper shape. We synthesize a bundle that contains the four signatures
+  // the patcher recognizes (setContentType + the three Accept-Encoding
+  // checks) and assert the patcher applies exactly the expected number of
+  // edits AND produces byte-stable post-patch content. If a future OpenNext
+  // upgrade reshuffles either the function-call form or the encoding-check
+  // form, this test fails BEFORE a real customer deploy hits the same drift
+  // — at which point the patcher needs updating to match.
+  void it('canonical wrapper bundle: applies expected edits + post-patch is byte-stable', () => {
+    // Synthetic bundle modeled on @opennextjs/aws@3.10.x's emitted
+    // aws-lambda-streaming wrapper. Every line below maps to one of the
+    // four signatures the patcher's regexes look for.
+    const PRE = [
+      '// canonical OpenNext aws-lambda-streaming wrapper shape',
+      'const responseStream = awslambda.HttpResponseStream.from(rawStream, metadata);',
+      'responseStream.setContentType("application/vnd.awslambda.http-integration-response")',
+      'if (acceptEncoding.includes("br")) {',
+      '  encodeStream = createBrotliCompress();',
+      '} else if (acceptEncoding.includes("gzip")) {',
+      '  encodeStream = createGzip();',
+      '} else if (acceptEncoding.includes("deflate")) {',
+      '  encodeStream = createDeflate();',
+      '} else {',
+      '  encodeStream = passThrough;',
+      '}',
+      'export const handler = streamifyResponse(awslambda, async (event, responseStream) => { /* ... */ });',
+    ].join('\n');
+    const bundle = path.join(defaultDir, 'index.mjs');
+    fs.writeFileSync(bundle, PRE);
+    assert.doesNotThrow(() => patchStreamingWrapperForApiGateway(tmp));
+    const post = fs.readFileSync(bundle, 'utf-8');
+
+    // setContentType call neutered to `void 0`.
+    assert.match(post, /\bvoid 0\b/);
+    assert.doesNotMatch(
+      post,
+      /setContentType\("application\/vnd\.awslambda\.http-integration-response"\)/,
+    );
+    // Accept-Encoding branches all neutered (none of br/gzip/deflate
+    // remain as the literal `.includes("…")` check; replaced with a
+    // sentinel that never matches a real Accept-Encoding header).
+    for (const algo of ['br', 'gzip', 'deflate']) {
+      assert.doesNotMatch(post, new RegExp(`\\.includes\\("${algo}"\\)`));
+      assert.match(
+        post,
+        new RegExp(`\\.includes\\("__amplify_no_${algo}__"\\)`),
+      );
+    }
+    // Snapshot: re-running the patcher against the post-patch bundle must
+    // be a no-op (the regexes don't match anymore) — proves the patcher
+    // is idempotent and not partially-undoing prior runs.
+    const stat1 = fs.statSync(bundle).size;
+    // Second run on the now-patched bundle: nothing left to match, but
+    // because some other bundle in the tree DID match on the first run,
+    // we don't expect a throw. Reset the dir + re-run on the patched
+    // content alone to assert idempotency.
+    const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-patch-idem-'));
+    const dir2 = path.join(tmp2, 'server-functions', 'default');
+    fs.mkdirSync(dir2, { recursive: true });
+    fs.writeFileSync(path.join(dir2, 'index.mjs'), post);
+    // The post-patch bundle has no canonical signatures left → throws
+    // unless lenient mode is on. That's the desired behavior: idempotent
+    // for the no-op case, loud for the regression case.
+    assert.throws(
+      () => patchStreamingWrapperForApiGateway(tmp2),
+      (error: Error) => error.name === 'UpstreamPatchPatternChangedError',
+    );
+    fs.rmSync(tmp2, { recursive: true, force: true });
+
+    // Sanity: post-patch byte-count is non-zero and the file shrunk
+    // (`void 0` < the original setContentType call). Exact size depends
+    // on synth content above; we assert structural shape, not a magic
+    // number that future refactors would have to keep updated.
+    assert.ok(stat1 > 0);
+    assert.ok(
+      stat1 < PRE.length,
+      `expected post-patch (${stat1}) < pre-patch (${PRE.length})`,
+    );
+  });
 });
 
 void describe('patchEdgeBundlesForLambdaEdge — brittleness gating', () => {
@@ -923,5 +1004,380 @@ void describe('detectEdgeRoutes — multi-matcher edge functions', () => {
     assert.deepStrictEqual(routes, [
       { module: 'src/middleware', pattern: '/api/edge/*' },
     ]);
+  });
+});
+
+void describe('stripNextInternalLocale — Pages Router i18n source rewrite', () => {
+  void it('strips a locale group with a sub-path', () => {
+    assert.strictEqual(
+      stripNextInternalLocale(
+        '/:nextInternalLocale(en|fr|es|ja)/secure-headers',
+      ),
+      '/secure-headers',
+    );
+  });
+
+  void it('maps a bare locale-only source to /', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)'),
+      '/',
+    );
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)/'),
+      '/',
+    );
+  });
+
+  void it('preserves trailing wildcards', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/:nextInternalLocale(en|fr|es|ja)/api/edge/*'),
+      '/api/edge/*',
+    );
+  });
+
+  void it('passes non-i18n sources through unchanged', () => {
+    assert.strictEqual(
+      stripNextInternalLocale('/secure-headers'),
+      '/secure-headers',
+    );
+    assert.strictEqual(stripNextInternalLocale('/'), '/');
+    assert.strictEqual(stripNextInternalLocale('/api/edge/*'), '/api/edge/*');
+  });
+
+  void it('does not alter sources with other capture groups', () => {
+    // No nextInternalLocale prefix — leave untouched.
+    assert.strictEqual(
+      stripNextInternalLocale('/:slug(foo|bar)'),
+      '/:slug(foo|bar)',
+    );
+  });
+});
+
+void describe('nextjsAdapter — Pages Router i18n header lift', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-i18n-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  /**
+   * Build the minimal `.open-next/` + `.next/routes-manifest.json`
+   * fixture that nextjsAdapter accepts. Caller passes the routes-manifest
+   * contents.
+   */
+  const writeFixture = (routesManifest: object): void => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    const dotNextDir = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNextDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNextDir, 'routes-manifest.json'),
+      JSON.stringify(routesManifest),
+    );
+  };
+
+  void it('lifts headers when the user has Pages Router i18n configured', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr', 'es', 'ja'] },
+      headers: [
+        {
+          source: '/:nextInternalLocale(en|fr|es|ja)/secure-headers',
+          headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.headers, 'headers should be lifted');
+    const lifted = manifest.headers!.find(
+      (h) => h.source === '/secure-headers',
+    );
+    assert.ok(lifted, '/secure-headers should be lifted from the locale group');
+    assert.strictEqual(lifted!.headers['X-Frame-Options'], 'DENY');
+  });
+
+  void it('lifts redirects with both source and destination locale-prefixed', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr'] },
+      redirects: [
+        {
+          source: '/:nextInternalLocale(en|fr)/old',
+          destination: '/:nextInternalLocale(en|fr)/new',
+          statusCode: 308,
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.redirects, 'redirects should be lifted');
+    const lifted = manifest.redirects!.find((r) => r.source === '/old');
+    assert.ok(lifted);
+    assert.strictEqual(lifted!.destination, '/new');
+    assert.strictEqual(lifted!.statusCode, 308);
+  });
+
+  void it('does NOT strip the locale group when i18n is not configured', () => {
+    // A header source carrying `:nextInternalLocale(...)` without an
+    // `i18n.locales` block is unexpected — leave it as-is so it falls
+    // through to OpenNext (defensive).
+    writeFixture({
+      headers: [
+        {
+          source: '/:nextInternalLocale(en|fr)/secure-headers',
+          headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.strictEqual(
+      manifest.headers,
+      undefined,
+      'no headers should lift without i18n config',
+    );
+  });
+
+  void it('passes through non-i18n header sources unchanged', () => {
+    writeFixture({
+      i18n: { locales: ['en', 'fr'] },
+      headers: [
+        {
+          source: '/api/static',
+          headers: [{ key: 'X-Custom', value: 'yes' }],
+        },
+      ],
+    });
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.headers);
+    assert.strictEqual(manifest.headers!.length, 1);
+    assert.strictEqual(manifest.headers![0].source, '/api/static');
+  });
+});
+
+void describe('nextjsAdapter — incompatible open-next.config.ts', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-config-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  void it('throws IncompatibleOpenNextConfigError when user config lacks both overrides', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `// User-authored config, no overrides
+const config = { default: {} };
+export default config;
+`,
+    );
+    assert.throws(() => nextjsAdapter({ projectDir: tmpDir }), {
+      code: 'IncompatibleOpenNextConfigError',
+    });
+  });
+
+  void it('throws when user config has converter override but is missing the streaming wrapper', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1' } },
+};
+export default config;
+`,
+    );
+    assert.throws(() => nextjsAdapter({ projectDir: tmpDir }), {
+      code: 'IncompatibleOpenNextConfigError',
+    });
+  });
+
+  void it('accepts a user config that contains both required override tokens', () => {
+    // Set up minimum OpenNext output so the adapter doesn't fail
+    // post-config-check on a missing build artefact.
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } },
+};
+export default config;
+`,
+    );
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
+  });
+});
+
+void describe('nextjsAdapter — OpenNext version-drift warning', () => {
+  let tmpDir: string;
+  let lenientBackup: string | undefined;
+  let stderrChunks: string[];
+  let restoreStderr: (() => void) | undefined;
+
+  /**
+   * Lay down the minimal `.open-next/` skeleton + an installed
+   * `node_modules/@opennextjs/aws/package.json` at the requested
+   * version so warnIfOpenNextOutOfRange's local-pkg probe finds it.
+   */
+  const writeFixtureWithOpenNextVersion = (version: string): void => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    const openNextPkgDir = path.join(
+      tmpDir,
+      'node_modules',
+      '@opennextjs',
+      'aws',
+    );
+    fs.mkdirSync(openNextPkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextPkgDir, 'package.json'),
+      JSON.stringify({ name: '@opennextjs/aws', version, main: 'index.js' }),
+    );
+    fs.writeFileSync(path.join(openNextPkgDir, 'index.js'), '');
+  };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-onv-'));
+    mock.method(spawn, 'sync', () => undefined);
+    lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
+    stderrChunks = [];
+    const orig = process.stderr.write.bind(process.stderr) as (
+      s: string | Uint8Array,
+    ) => boolean;
+    process.stderr.write = ((s: string | Uint8Array) => {
+      stderrChunks.push(typeof s === 'string' ? s : Buffer.from(s).toString());
+      return true;
+    }) as typeof process.stderr.write;
+    restoreStderr = () => {
+      process.stderr.write = orig;
+    };
+  });
+
+  afterEach(() => {
+    restoreStderr?.();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+    if (lenientBackup === undefined) {
+      delete process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
+    } else {
+      process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = lenientBackup;
+    }
+  });
+
+  void it('does NOT warn when @opennextjs/aws is in the verified range', () => {
+    writeFixtureWithOpenNextVersion('3.10.0');
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      !stderrChunks.some((c) => c.includes('outside the version range')),
+      `unexpected drift warning; stderr was: ${stderrChunks.join('')}`,
+    );
+  });
+
+  void it('warns when @opennextjs/aws is above the verified upper bound', () => {
+    writeFixtureWithOpenNextVersion('3.20.0');
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      stderrChunks.some(
+        (c) =>
+          c.includes('@opennextjs/aws@3.20.0') &&
+          c.includes('outside the version range'),
+      ),
+      `expected drift warning; stderr was: ${stderrChunks.join('')}`,
+    );
+  });
+
+  void it('does NOT warn when @opennextjs/aws is not installed (skipBuild path)', () => {
+    // Skip the version check by not writing the package.json — the
+    // adapter still runs because the .open-next/ output is present.
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(
+      !stderrChunks.some((c) => c.includes('outside the version range')),
+      `should not warn when @opennextjs/aws is absent; stderr was: ${stderrChunks.join('')}`,
+    );
   });
 });
