@@ -66,17 +66,26 @@ if (scope) {
     );
   });
 
-  void it('auto-discovers and invokes backend.ts before hosting.ts', () => {
-    // Write backend.js that records invocation
+  void it('auto-discovers and invokes backend.ts (hosting deployed via post-step)', () => {
+    // Write backend.js that creates a stack using the ambient scope
     const backendCode = `
 const cdk = require('aws-cdk-lib');
 const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
 if (scope) {
-  new cdk.Stack(scope, 'BackendStack');
+  const stack = new cdk.Stack(scope, 'BackendStack');
+  // Simulate CfnOutput for backend stack name (as defineBackend does)
+  new cdk.CfnOutput(stack, 'BackendStackName', { value: stack.stackName });
+  globalThis.__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+    stackNameOutput: new cdk.CfnOutput(stack, 'BackendStackNameForPipeline', { value: stack.stackName }),
+    backendStack: stack,
+  };
 }
 `;
-    // Write hosting.js that records invocation
+    // Write hosting.js — should NOT be imported when backend.ts exists
     const hostingCode = `
+const fs = require('fs');
+const path = require('path');
+fs.writeFileSync(path.join(process.cwd(), 'hosting-was-imported.txt'), 'yes');
 const cdk = require('aws-cdk-lib');
 const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
 if (scope) {
@@ -87,7 +96,7 @@ if (scope) {
     fs.writeFileSync(path.join(tmpDir, 'amplify', 'hosting.js'), hostingCode);
     process.chdir(tmpDir);
 
-    // Both backend and hosting stacks created without error
+    // Both backend and hosting files exist — two-phase deployment is used
     assert.doesNotThrow(() =>
       definePipeline({
         source: {
@@ -101,6 +110,12 @@ if (scope) {
           },
         ],
       }),
+    );
+
+    // Hosting.js should NOT have been imported during stageFactory
+    assert.ok(
+      !fs.existsSync(path.join(tmpDir, 'hosting-was-imported.txt')),
+      'hosting.js should NOT be imported when backend.ts exists (two-phase deployment)',
     );
   });
 
@@ -259,6 +274,296 @@ if (scope) {
       branches: [{ branch: 'main', stages: [{ name: 'x' }] }],
     };
     assert.ok(props, 'DefinePipelineProps should not include stageFactory');
+  });
+
+  void it('imports backend.ts fresh for each stage with full cache busting', () => {
+    // Write backend.js that increments a counter to prove fresh import per stage
+    // eslint-disable-next-line spellcheck/spell-checker
+    const backendCode = `
+const cdk = require('aws-cdk-lib');
+const fs = require('fs');
+const path = require('path');
+const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
+if (scope) {
+  const counterFile = path.join(process.cwd(), 'backend-invoke-count.txt');
+  const count = fs.existsSync(counterFile) ? parseInt(fs.readFileSync(counterFile, 'utf-8'), 10) : 0;
+  fs.writeFileSync(counterFile, String(count + 1));
+  const stack = new cdk.Stack(scope, 'BackendStack-' + (count + 1));
+  new cdk.CfnOutput(stack, 'BackendStackName', { value: stack.stackName });
+  globalThis.__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+    stackNameOutput: new cdk.CfnOutput(stack, 'PipelineBackendName', { value: stack.stackName }),
+    backendStack: stack,
+  };
+}
+`;
+    fs.writeFileSync(path.join(tmpDir, 'amplify', 'backend.js'), backendCode);
+    process.chdir(tmpDir);
+
+    definePipeline({
+      source: {
+        repo: 'my-org/my-app',
+        connectionArn: VALID_CONNECTION_ARN,
+      },
+      branches: [
+        {
+          branch: 'main',
+          stages: [{ name: 'alpha' }, { name: 'beta' }],
+        },
+      ],
+    });
+
+    const counterFile = path.join(tmpDir, 'backend-invoke-count.txt');
+    assert.ok(fs.existsSync(counterFile), 'counter file should exist');
+    const count = parseInt(fs.readFileSync(counterFile, 'utf-8'), 10);
+    assert.strictEqual(
+      count,
+      2,
+      'backend.js should be invoked once per stage (2 stages)',
+    );
+  });
+
+  void it('cache-busts @aws-amplify/* transitive deps (singleton pattern)', () => {
+    // Simulate the real @aws-amplify/backend-auth singleton problem:
+    // A module at a path matching /@aws-amplify\// has a static counter
+    // (like AmplifyAuthFactory.factoryCount). Without cache-busting,
+    // the second stage import would see factoryCount=1 and fail.
+    //
+    // This test creates a fake @aws-amplify/backend-auth module in the
+    // tmp dir's node_modules and a backend.js that requires it.
+    // If cache-busting works, the module is re-executed for each stage,
+    // giving factoryCount=0 each time.
+
+    // Remove the symlinked node_modules (from beforeEach) and create a real directory
+    const realNodeModules = fs.readlinkSync(path.join(tmpDir, 'node_modules'));
+    fs.unlinkSync(path.join(tmpDir, 'node_modules'));
+    fs.mkdirSync(path.join(tmpDir, 'node_modules'), { recursive: true });
+
+    // Symlink aws-cdk-lib and constructs from real node_modules
+    fs.symlinkSync(
+      path.join(realNodeModules, 'aws-cdk-lib'),
+      path.join(tmpDir, 'node_modules', 'aws-cdk-lib'),
+    );
+    fs.symlinkSync(
+      path.join(realNodeModules, 'constructs'),
+      path.join(tmpDir, 'node_modules', 'constructs'),
+    );
+
+    // Create fake @aws-amplify/backend-auth with a singleton counter
+    const fakeAuthDir = path.join(
+      tmpDir,
+      'node_modules',
+      '@aws-amplify',
+      'backend-auth',
+    );
+    fs.mkdirSync(fakeAuthDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(fakeAuthDir, 'index.js'),
+      `
+// Simulates AmplifyAuthFactory.factoryCount singleton pattern
+let factoryCount = 0;
+class AmplifyAuthFactory {
+  static get factoryCount() { return factoryCount; }
+  constructor() {
+    factoryCount++;
+    if (factoryCount > 1) {
+      throw new Error('AmplifyAuthFactory already defined — singleton violation!');
+    }
+  }
+}
+module.exports = { AmplifyAuthFactory };
+`,
+    );
+    fs.writeFileSync(
+      path.join(fakeAuthDir, 'package.json'),
+      JSON.stringify({ name: '@aws-amplify/backend-auth', main: 'index.js' }),
+    );
+
+    // Create fake @aws-amplify/data-schema with a cached schema singleton
+    const fakeDataDir = path.join(
+      tmpDir,
+      'node_modules',
+      '@aws-amplify',
+      'data-schema',
+    );
+    fs.mkdirSync(fakeDataDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(fakeDataDir, 'index.js'),
+      `
+let schemaInstance = null;
+const a = (modelDef) => {
+  if (schemaInstance) throw new Error('Schema already created — singleton violation!');
+  schemaInstance = { models: modelDef };
+  return schemaInstance;
+};
+module.exports = { a };
+`,
+    );
+    fs.writeFileSync(
+      path.join(fakeDataDir, 'package.json'),
+      JSON.stringify({ name: '@aws-amplify/data-schema', main: 'index.js' }),
+    );
+
+    // backend.js imports and uses the singletons — would fail on 2nd stage
+    // without cache-busting
+    const backendCode = `
+const cdk = require('aws-cdk-lib');
+const { AmplifyAuthFactory } = require('@aws-amplify/backend-auth');
+const { a } = require('@aws-amplify/data-schema');
+const fs = require('fs');
+const path = require('path');
+
+const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
+if (scope) {
+  // Instantiate singletons (would throw on 2nd call without cache-busting)
+  new AmplifyAuthFactory();
+  a({ Todo: {} });
+
+  const counterFile = path.join(process.cwd(), 'singleton-invoke-count.txt');
+  const count = fs.existsSync(counterFile) ? parseInt(fs.readFileSync(counterFile, 'utf-8'), 10) : 0;
+  fs.writeFileSync(counterFile, String(count + 1));
+
+  const stack = new cdk.Stack(scope, 'BackendStack-' + (count + 1));
+  new cdk.CfnOutput(stack, 'BackendStackName', { value: stack.stackName });
+  globalThis.__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+    stackNameOutput: new cdk.CfnOutput(stack, 'PipelineBackendName', { value: stack.stackName }),
+    backendStack: stack,
+  };
+}
+`;
+    fs.writeFileSync(path.join(tmpDir, 'amplify', 'backend.js'), backendCode);
+    process.chdir(tmpDir);
+
+    // TWO stages — without cache-busting, the 2nd stage would throw
+    // "AmplifyAuthFactory already defined" or "Schema already created"
+    assert.doesNotThrow(() =>
+      definePipeline({
+        source: {
+          repo: 'my-org/my-app',
+          connectionArn: VALID_CONNECTION_ARN,
+        },
+        branches: [
+          {
+            branch: 'main',
+            stages: [{ name: 'staging' }, { name: 'prod' }],
+          },
+        ],
+      }),
+    );
+
+    // Verify BOTH stages were executed (singletons didn't block 2nd stage)
+    const counterFile = path.join(tmpDir, 'singleton-invoke-count.txt');
+    assert.ok(fs.existsSync(counterFile), 'counter file should exist');
+    const count = parseInt(fs.readFileSync(counterFile, 'utf-8'), 10);
+    assert.strictEqual(
+      count,
+      2,
+      'Both stages must complete — singletons reset between stages via cache-busting',
+    );
+  });
+
+  void it('verifies require.cache entries matching @aws-amplify are removed', () => {
+    // Directly verify that importFresh clears @aws-amplify entries from cache.
+    // We seed require.cache with fake entries and verify they're gone after import.
+    const backendCode = `
+const cdk = require('aws-cdk-lib');
+const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
+if (scope) {
+  const stack = new cdk.Stack(scope, 'BackendStack');
+  new cdk.CfnOutput(stack, 'BackendStackName', { value: stack.stackName });
+  globalThis.__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+    stackNameOutput: new cdk.CfnOutput(stack, 'PipelineBackendName', { value: stack.stackName }),
+    backendStack: stack,
+  };
+}
+`;
+    fs.writeFileSync(path.join(tmpDir, 'amplify', 'backend.js'), backendCode);
+    process.chdir(tmpDir);
+
+    // Seed require.cache with fake entries that match CACHE_BUST_PATTERNS
+    const fakeKeys = [
+      '/node_modules/@aws-amplify/backend-auth/lib/index.js',
+      '/node_modules/@aws-amplify/backend-data/lib/factory.js',
+      '/node_modules/@aws-amplify/data-schema/lib/schema.js',
+      '/node_modules/@aws-amplify/auth-construct/lib/construct.js',
+      '/some/path/packages/backend/lib/backend_factory.js',
+      '/some/path/packages/hosting/lib/factory.js',
+      '/user/project/amplify/auth/resource.js',
+      '/user/project/amplify/data/resource.js',
+    ];
+    for (const key of fakeKeys) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (require as any).cache[key] = { id: key, exports: {} };
+    }
+
+    // Run definePipeline — importFresh should clear all matching entries
+    definePipeline({
+      source: {
+        repo: 'my-org/my-app',
+        connectionArn: VALID_CONNECTION_ARN,
+      },
+      branches: [
+        {
+          branch: 'main',
+          stages: [{ name: 'beta' }],
+        },
+      ],
+    });
+
+    // Verify ALL fake entries matching CACHE_BUST_PATTERNS are gone
+    for (const key of fakeKeys) {
+      assert.strictEqual(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (require as any).cache[key],
+        undefined,
+        `require.cache entry "${key}" should have been cleared by importFresh`,
+      );
+    }
+  });
+
+  void it('creates post-deploy hosting step when both backend and hosting exist', () => {
+    // Backend creates a stack + CfnOutput (mimics defineBackend pipeline mode)
+    const backendCode = `
+const cdk = require('aws-cdk-lib');
+const scope = globalThis.__AMPLIFY_PIPELINE_SCOPE__;
+if (scope) {
+  const stack = new cdk.Stack(scope, 'BackendStack');
+  globalThis.__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+    stackNameOutput: new cdk.CfnOutput(stack, 'BackendStackName', { value: stack.stackName }),
+    backendStack: stack,
+  };
+}
+`;
+    // Hosting file exists but should NOT be imported during synth
+    const hostingCode = `
+const fs = require('fs');
+const path = require('path');
+fs.writeFileSync(path.join(process.cwd(), 'hosting-imported-during-synth.txt'), 'yes');
+`;
+    fs.writeFileSync(path.join(tmpDir, 'amplify', 'backend.js'), backendCode);
+    fs.writeFileSync(path.join(tmpDir, 'amplify', 'hosting.js'), hostingCode);
+    process.chdir(tmpDir);
+
+    // Should not throw — the post-deploy step is added for hosting
+    assert.doesNotThrow(() =>
+      definePipeline({
+        source: {
+          repo: 'my-org/my-app',
+          connectionArn: VALID_CONNECTION_ARN,
+        },
+        branches: [
+          {
+            branch: 'main',
+            stages: [{ name: 'prod' }],
+          },
+        ],
+      }),
+    );
+
+    // Hosting should NOT have been imported during synth (two-phase mode)
+    assert.ok(
+      !fs.existsSync(path.join(tmpDir, 'hosting-imported-during-synth.txt')),
+      'hosting.js must not be imported during synth when backend exists',
+    );
   });
 });
 

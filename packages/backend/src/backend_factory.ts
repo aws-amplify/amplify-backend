@@ -3,7 +3,7 @@ import {
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack, Stage } from 'aws-cdk-lib';
+import { CfnOutput, Stack, Stage } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -169,6 +169,20 @@ const createPipelineStack = (pipelineScope: Stage): Stack => {
   stack.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'pipeline');
   stack.node.setContext(CDKContextKey.BACKEND_NAME, stageName);
   stack.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'standalone');
+
+  // Expose stack name as CfnOutput so the pipeline post-deploy step can
+  // run `ampx generate outputs --stack <name>` after deployment.
+  const stackNameOutput = new CfnOutput(stack, 'BackendStackName', {
+    value: stack.stackName,
+    description: 'Backend stack name for amplify_outputs.json generation',
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any)['__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__'] = {
+    stackNameOutput,
+    backendStack: stack,
+  };
+
   return stack;
 };
 
