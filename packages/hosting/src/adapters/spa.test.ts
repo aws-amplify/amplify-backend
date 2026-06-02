@@ -170,4 +170,48 @@ void describe('spaAdapter', () => {
       `Schema validation failed: ${JSON.stringify(result.error?.issues)}`,
     );
   });
+
+  void it('uses explicit buildOutputDir when provided', () => {
+    const customOut = path.join(tmpDir, 'custom-output');
+    fs.mkdirSync(customOut, { recursive: true });
+    fs.writeFileSync(path.join(customOut, 'index.html'), '<html></html>');
+    fs.writeFileSync(path.join(customOut, 'app.js'), 'app()');
+
+    const manifest = spaAdapter(tmpDir, { buildOutputDir: 'custom-output' });
+
+    assert.strictEqual(manifest.version, 1);
+    assert.strictEqual(manifest.routes[0].target, 'static');
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(fs.existsSync(path.join(staticDir, 'app.js')));
+  });
+
+  void it('detects 404.html and 500.html as error pages', () => {
+    fs.writeFileSync(path.join(buildDir, '404.html'), '<html>Not Found</html>');
+    fs.writeFileSync(
+      path.join(buildDir, '500.html'),
+      '<html>Server Error</html>',
+    );
+
+    const manifest = spaAdapter(tmpDir);
+
+    assert.ok(manifest.errorPages);
+    assert.strictEqual(manifest.errorPages![404], '/404.html');
+    assert.strictEqual(manifest.errorPages![500], '/500.html');
+  });
+
+  void it('skips symlinked files during copy', () => {
+    // Create a symlink in the build directory
+    const realFile = path.join(tmpDir, 'real-target.txt');
+    fs.writeFileSync(realFile, 'real content');
+    fs.symlinkSync(realFile, path.join(buildDir, 'linked-file.txt'));
+
+    const manifest = spaAdapter(tmpDir);
+
+    const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
+    assert.ok(
+      !fs.existsSync(path.join(staticDir, 'linked-file.txt')),
+      'Symlinked files should be excluded from static output',
+    );
+    assert.strictEqual(manifest.version, 1);
+  });
 });
