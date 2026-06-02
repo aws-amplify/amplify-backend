@@ -89,7 +89,16 @@ export type AmplifyHostingConstructProps = {
   /** Compute (Lambda) overrides for all compute resources. */
   compute?: {
     memorySize?: number;
-    timeout?: Duration;
+    /**
+     * Lambda timeout. Accepts either a `cdk.Duration` (preferred) or a
+     * number of seconds for ergonomics — the L3 normalizes both to
+     * `Duration` before handing them to the Lambda construct. A plain
+     * number used to slip through the type at the user-facing API
+     * surface (e.g. when consumed via JS-compiled wrappers) and crash
+     * synth deep inside aws-cdk-lib with `props.timeout.toSeconds is
+     * not a function`. Coercing here makes that surface forgiving.
+     */
+    timeout?: Duration | number;
     reservedConcurrency?: number;
     logRetention?: RetentionDays;
   };
@@ -206,6 +215,14 @@ export class AmplifyHostingConstruct extends Construct {
     }
     const buildId = manifest.buildId ?? generateBuildId();
 
+    // Normalize `compute.timeout` once: callers consuming the L3 from
+    // JS-compiled wrappers (or strict TS users who write
+    // `timeout: 30`) often pass a plain number, which then crashes
+    // deep inside aws-cdk-lib with `props.timeout.toSeconds is not a
+    // function`. Accepting a number here and coercing to `Duration`
+    // turns that into a forgiving, well-typed surface.
+    const computeTimeout = normalizeTimeout(props.compute?.timeout);
+
     // ---- 1. Storage (S3 buckets) ----
     const storage = new StorageConstruct(this, 'Storage', {
       retainOnDelete: props.storage?.retainOnDelete,
@@ -227,7 +244,7 @@ export class AmplifyHostingConstruct extends Construct {
           name,
           computeResource: resource,
           memorySize: props.compute?.memorySize,
-          timeout: props.compute?.timeout,
+          timeout: computeTimeout,
           reservedConcurrency: props.compute?.reservedConcurrency,
           logRetention: props.compute?.logRetention,
           skipRegionValidation: props.skipRegionValidation,
@@ -244,7 +261,7 @@ export class AmplifyHostingConstruct extends Construct {
         name,
         computeResource: resource,
         memorySize: props.compute?.memorySize,
-        timeout: props.compute?.timeout,
+        timeout: computeTimeout,
         reservedConcurrency: props.compute?.reservedConcurrency,
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
@@ -813,6 +830,25 @@ export class AmplifyHostingConstruct extends Construct {
  * an empty set: the worst case is a missing font MIME pass, which is
  * the pre-fix behavior.
  */
+/**
+ * Coerce a `Duration | number` (seconds) into `Duration | undefined`.
+ *
+ * Public-API ergonomics: callers consuming the L3 from JS-compiled
+ * wrappers (or strict TS users who write `timeout: 30`) often pass a
+ * plain number. Without this coercion the value flows into
+ * aws-cdk-lib's Lambda construct and crashes synth deep in framework
+ * code with `props.timeout.toSeconds is not a function` — surfaced
+ * by the AWS Blocks bug-bash repro (`@aws-blocks/blocks` Hosting
+ * wrapper passing `timeout: 30` straight through). Normalize once
+ * here so both shapes work and the type stays well-defined inside
+ * the L3.
+ */
+const normalizeTimeout = (t?: Duration | number): Duration | undefined => {
+  if (t === undefined) return undefined;
+  if (typeof t === 'number') return Duration.seconds(t);
+  return t;
+};
+
 const detectFontExtensions = (
   rootDir: string,
   extensions: readonly string[],

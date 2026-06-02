@@ -127,6 +127,19 @@ export class ComputeConstruct extends Construct {
       props.memorySize ??
       computeResource.memorySize ??
       DEFAULT_LAMBDA_MEMORY_MB;
+    // Defensive: the public L3 surface accepts `Duration | number` and
+    // normalizes upstream, but a non-Duration value reaching us here
+    // (e.g. internal caller mis-typed, or a permissive JS wrapper
+    // bypassing the L3) would crash deep in aws-cdk-lib with
+    // `props.timeout.toSeconds is not a function`. Throw a clear
+    // error pointing at the misuse instead.
+    if (props.timeout !== undefined && !(props.timeout instanceof Duration)) {
+      throw new HostingError('InvalidTimeoutError', {
+        message: `compute.timeout must be a cdk.Duration; received ${typeof props.timeout} (${String(props.timeout)}).`,
+        resolution:
+          'Pass `cdk.Duration.seconds(N)` or, at the L3 surface, a plain number of seconds (the L3 normalizes both).',
+      });
+    }
     const timeout =
       props.timeout ??
       Duration.seconds(

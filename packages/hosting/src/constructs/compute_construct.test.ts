@@ -306,6 +306,29 @@ void describe('ComputeConstruct', () => {
       });
     });
 
+    void it('throws InvalidTimeoutError when timeout is not a Duration', () => {
+      // Regression: AWS Blocks bug-bash repro showed `timeout: 30` (a
+      // plain number) flowing through a permissive JS-compiled wrapper
+      // and crashing deep in aws-cdk-lib with `props.timeout.toSeconds
+      // is not a function`. We now coerce at the L3 surface, but
+      // ComputeConstruct also fails fast for any internal caller that
+      // bypasses normalization.
+      const bundle = createBundleDir();
+      const stack = createStack();
+
+      assert.throws(
+        () =>
+          new ComputeConstruct(stack, 'Compute', {
+            name: 'default',
+            computeResource: handlerResource(bundle),
+            // @ts-expect-error — exercising the runtime guard
+            timeout: 30,
+          }),
+        (err: Error) =>
+          err instanceof HostingError && err.code === 'InvalidTimeoutError',
+      );
+    });
+
     void it('sets reservedConcurrency when provided', () => {
       const bundle = createBundleDir();
       const stack = createStack();
