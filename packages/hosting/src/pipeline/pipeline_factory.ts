@@ -337,6 +337,7 @@ export async function withPipelineScope<T>(
 
 /**
  * Discover a file by base name in a directory, trying known extensions.
+ * @internal
  * @param dir - Directory to search in.
  * @param baseName - File base name without extension (e.g., 'hosting', 'backend').
  * @returns Resolved absolute path, or `undefined` if not found.

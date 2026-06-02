@@ -211,6 +211,13 @@ const validateProps = <TConfig>(
         );
       }
       stageNames.add(stage.name);
+
+      if (!/^[a-zA-Z0-9_-]+$/.test(stage.name)) {
+        throw new Error(
+          `Pipeline: stage name "${stage.name}" contains invalid characters. ` +
+            `Stage names must be alphanumeric with hyphens/underscores (a-zA-Z0-9_-).`,
+        );
+      }
     }
   }
 
