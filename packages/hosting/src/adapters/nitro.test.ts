@@ -407,3 +407,372 @@ void describe('nitroAdapter — IPX baseURL plumbing', () => {
     );
   });
 });
+
+void describe('nitroAdapter — preset + feature validation', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-validate-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('throws UnsupportedNitroPresetError on unsupported preset (cloudflare)', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'cloudflare' } });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroPresetError',
+    });
+  });
+
+  void it('accepts aws-lambda', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'aws-lambda' } });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('accepts aws-lambda-streaming', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: { preset: 'aws-lambda-streaming' },
+    });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('accepts node-server', () => {
+    writeMinimalNitroOutput(tmpDir, { nitroJson: { preset: 'node-server' } });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+
+  void it('throws UnsupportedNitroFeatureError on experimental.websocket: true', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { experimental: { websocket: true } },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroFeatureError',
+    });
+  });
+
+  void it('throws UnsupportedNitroFeatureError on non-empty scheduledTasks', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { scheduledTasks: { '* * * * *': ['cleanup'] } },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
+      code: 'UnsupportedNitroFeatureError',
+    });
+  });
+
+  void it('does not throw when scheduledTasks is an empty object', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { scheduledTasks: {} },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+});
+
+void describe('nitroAdapter — output dir resolution from nitro.json', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-outputs-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('honors output.serverDir / output.publicDir from nitro.json', () => {
+    // Lay down the default `.output/` skeleton so the writeMinimalNitroOutput
+    // helper still applies, then add Nitro-reported custom paths.
+    const customServer = path.join(tmpDir, '.output', 'server');
+    const customPublic = path.join(tmpDir, '.output', 'public');
+    fs.mkdirSync(customServer, { recursive: true });
+    fs.mkdirSync(customPublic, { recursive: true });
+    fs.writeFileSync(
+      path.join(customServer, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, '.output', 'nitro.json'),
+      JSON.stringify({
+        preset: 'aws-lambda',
+        // Absolute paths simulate a future Nitro that resolves dirs to
+        // absolute form before writing the JSON.
+        output: { serverDir: customServer, publicDir: customPublic },
+      }),
+    );
+    writePackageJson(tmpDir);
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.staticAssets.directory, customPublic);
+  });
+
+  void it('falls back to .output/server and .output/public when nitro.json omits output paths', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: { preset: 'aws-lambda' },
+    });
+    writePackageJson(tmpDir);
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(
+      manifest.staticAssets.directory,
+      path.join(tmpDir, '.output', 'public'),
+    );
+  });
+});
+
+void describe('nitroAdapter — materializeNitroDepStore', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-prune-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('removes node_modules/.nitro before manifest emission while preserving symlinked deps', () => {
+    writeMinimalNitroOutput(tmpDir);
+    writePackageJson(tmpDir);
+    // Synthesize Nitro's pnpm-style isolated dep store with one cyclic
+    // symlink pair (a → b → a). On macOS (and any FS that resolves
+    // symlinks during scandir) walking this cycle exhausts PATH_MAX —
+    // we have to remove the store before CDK can hash it.
+    const serverDir = path.join(tmpDir, '.output', 'server');
+    const nm = path.join(serverDir, 'node_modules');
+    const nitroStore = path.join(nm, '.nitro');
+    fs.mkdirSync(nitroStore, { recursive: true });
+    const aDir = path.join(nitroStore, 'a@1.0.0');
+    const bDir = path.join(nitroStore, 'b@1.0.0');
+    fs.mkdirSync(aDir);
+    fs.mkdirSync(bDir);
+    fs.symlinkSync(bDir, path.join(aDir, 'cycle'));
+    fs.symlinkSync(aDir, path.join(bDir, 'cycle'));
+    // Add a real package symlink under node_modules/<pkg>/ → .nitro/<pkg>@<ver>/
+    // Real pkg has a runtime file the Lambda would load.
+    const pkgRealDir = path.join(nitroStore, 'mypkg@1.2.3');
+    fs.mkdirSync(pkgRealDir);
+    fs.writeFileSync(path.join(pkgRealDir, 'index.js'), 'module.exports = 42;');
+    fs.symlinkSync(pkgRealDir, path.join(nm, 'mypkg'));
+
+    nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+
+    assert.strictEqual(
+      fs.existsSync(nitroStore),
+      false,
+      'node_modules/.nitro must be removed before the asset hasher runs',
+    );
+    // Regression: the symlink at node_modules/<pkg>/ must be materialised
+    // into a real directory containing the package contents — pre-fix this
+    // was left dangling and CDK dropped it from the Lambda zip, causing
+    // `Cannot find module` crashes on init.
+    const materialisedPkg = path.join(nm, 'mypkg');
+    assert.strictEqual(
+      fs.existsSync(materialisedPkg),
+      true,
+      'symlinked dep must remain reachable after .nitro/ removal',
+    );
+    assert.strictEqual(
+      fs.lstatSync(materialisedPkg).isDirectory(),
+      true,
+      'symlinked dep must be materialised into a real directory',
+    );
+    assert.strictEqual(
+      fs.readFileSync(path.join(materialisedPkg, 'index.js'), 'utf-8'),
+      'module.exports = 42;',
+      'materialised dep must contain the original file contents',
+    );
+  });
+
+  void it('is a no-op when there is no node_modules/.nitro directory', () => {
+    writeMinimalNitroOutput(tmpDir);
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+  });
+});
+
+void describe('nitroAdapter — _amplify-cache.mjs collision protection', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-collision-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('throws NitroCachePluginCollisionError when user already has _amplify-cache.mjs', () => {
+    writePackageJson(tmpDir);
+    const pluginsDir = path.join(tmpDir, 'server', 'plugins');
+    fs.mkdirSync(pluginsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginsDir, '_amplify-cache.mjs'),
+      '// user-authored',
+    );
+    assert.throws(
+      () =>
+        nitroAdapter({
+          projectDir: tmpDir,
+          // skipBuild: false would normally fire the build; keep the same
+          // path so installNitroCachePlugin runs.
+          skipBuild: false,
+        }),
+      { code: 'NitroCachePluginCollisionError' },
+    );
+    // Original user file preserved (collision check must run before the
+    // overwrite).
+    assert.strictEqual(
+      fs.readFileSync(path.join(pluginsDir, '_amplify-cache.mjs'), 'utf-8'),
+      '// user-authored',
+    );
+  });
+});
+
+void describe('nitroAdapter — routeRules header lift (cors, cache.maxAge)', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-headers-'));
+    mock.method(spawn, 'sync', () => undefined);
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    mock.restoreAll();
+  });
+
+  void it('lifts cors: true to standard Access-Control-* headers', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/api/public/**': { cors: true } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/api/public/*');
+    assert.ok(lifted, 'cors: true should produce a manifest.headers entry');
+    assert.strictEqual(lifted!.headers['Access-Control-Allow-Origin'], '*');
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Methods'],
+      /\bGET\b.*\bPOST\b.*\bDELETE\b.*\bOPTIONS\b/,
+    );
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Headers'],
+      /\bContent-Type\b.*\bAuthorization\b/,
+    );
+  });
+
+  void it('does NOT lift cors: false (default behavior — no headers)', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/api/private/**': { cors: false } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    assert.strictEqual(manifest.headers, undefined);
+  });
+
+  void it('lifts cache.maxAge to Cache-Control with both max-age and s-maxage', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/news/**': { cache: { maxAge: 60 } } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/news/*');
+    assert.ok(lifted, 'cache.maxAge should produce a manifest.headers entry');
+    assert.strictEqual(
+      lifted!.headers['Cache-Control'],
+      'public, max-age=60, s-maxage=60',
+    );
+  });
+
+  void it('does NOT lift cache.swr (server-side cache plumbing only)', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/news/**': { cache: { swr: true } } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    // swr should still trigger cache provisioning, but NOT a Cache-Control
+    // header (that comes from the SSR Lambda's response).
+    assert.strictEqual(
+      manifest.headers,
+      undefined,
+      'swr should not auto-emit Cache-Control on the route',
+    );
+  });
+
+  void it('user-declared headers win over auto-emitted CORS / Cache-Control', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: {
+        '/api/**': {
+          cors: true,
+          cache: { maxAge: 30 },
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          headers: {
+            'Access-Control-Allow-Origin': 'https://example.com',
+            'Cache-Control': 'public, max-age=300',
+          },
+        },
+      },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers!.find((h) => h.source === '/api/*');
+    assert.ok(lifted);
+    // User wins on overlapping headers...
+    assert.strictEqual(
+      lifted!.headers['Access-Control-Allow-Origin'],
+      'https://example.com',
+    );
+    assert.strictEqual(lifted!.headers['Cache-Control'], 'public, max-age=300');
+    // ...but auto-emitted headers the user didn't specify still apply.
+    assert.match(
+      lifted!.headers['Access-Control-Allow-Methods'],
+      /POST/,
+      'Allow-Methods should fall through to auto-emit when user did not set it',
+    );
+  });
+
+  void it('merges multiple sources independently', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: {
+        '/api/public/**': { cors: true },
+        '/news/**': { cache: { maxAge: 60 } },
+      },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const sources = manifest.headers?.map((h) => h.source).sort();
+    assert.deepStrictEqual(sources, ['/api/public/*', '/news/*']);
+  });
+});

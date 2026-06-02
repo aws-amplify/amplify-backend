@@ -64,10 +64,99 @@ type NitroBuildInfo = {
   framework?: { name?: string; version?: string };
   serverEntry?: string;
   publicDir?: string;
+  /**
+   * Nitro reports the resolved server/public output directories under
+   * an `output` block on recent versions. We honor these instead of
+   * hardcoding `.output/server` and `.output/public` so the adapter
+   * keeps working when Nitro renames the dirs OR the user sets custom
+   * `output:` paths in nitro/nuxt config.
+   */
+  output?: {
+    serverDir?: string;
+    publicDir?: string;
+  };
   routeRules?: Record<string, NitroRouteRule>;
   config?: {
     awsLambda?: { streaming?: boolean };
+    /**
+     * Nitro experimental WebSocket runtime. Lambda Function URLs and API
+     * Gateway HTTP/REST API don't speak the WS upgrade — we throw at
+     * adapter time rather than letting the build ship a runtime that
+     * silently 502s.
+     */
+    experimental?: { websocket?: boolean };
+    /**
+     * Cron-like tasks. Vercel/Cloudflare wire these to platform schedulers;
+     * Amplify hosting has no EventBridge wiring today, so they would
+     * silently never fire. Throw at adapter time.
+     */
+    scheduledTasks?: Record<string, string[]> | string[];
   };
+};
+
+/**
+ * Nitro presets we support. Anything else falls back to producing an
+ * AWS Lambda bundle, which crashes on cold start when the user's source
+ * targets Cloudflare/Vercel/etc.-specific runtimes.
+ */
+const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
+  'aws-lambda',
+  'aws-lambda-streaming',
+  'node-server',
+  'node',
+]);
+
+/**
+ * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
+ * one we know how to wire into AWS infrastructure. Without this check,
+ * the adapter falls through to producing an aws-lambda handler shape
+ * regardless of what the user picked, and the Lambda crashes on cold
+ * start with `Cannot find module 'cloudflare'` (or similar).
+ */
+const validateNitroPreset = (preset: string): void => {
+  if (SUPPORTED_NITRO_PRESETS.has(preset)) return;
+  throw new HostingError('UnsupportedNitroPresetError', {
+    message: `Nitro preset "${preset}" is not supported by Amplify hosting.`,
+    resolution: `Set NITRO_PRESET (or nitro.preset in your framework config) to one of: ${Array.from(
+      SUPPORTED_NITRO_PRESETS,
+    ).join(', ')}.`,
+  });
+};
+
+/**
+ * Throw on Nitro features that produce a deployable bundle but break
+ * silently on AWS:
+ *   - `experimental.websocket: true` — Lambda Function URLs and API
+ *     Gateway REST/HTTP don't speak the WS upgrade frame.
+ *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform
+ *     schedulers; we have no EventBridge wiring, so the cron silently
+ *     never fires.
+ *
+ * We default to a hard error rather than a deploy-time warning because
+ * the failure mode is invisible at runtime — the user only finds out
+ * weeks later when a scheduled task hasn't run.
+ */
+const validateNitroFeatures = (info: NitroBuildInfo): void => {
+  if (info.config?.experimental?.websocket === true) {
+    throw new HostingError('UnsupportedNitroFeatureError', {
+      message:
+        'Nitro `experimental.websocket: true` is not supported on Amplify hosting (Lambda Function URLs and API Gateway REST cannot complete the WS upgrade).',
+      resolution:
+        'Remove `experimental.websocket` from nitro/nuxt config, or front WebSocket connections via API Gateway WebSocket APIs (separate provisioning).',
+    });
+  }
+  const tasks = info.config?.scheduledTasks;
+  const hasScheduledTasks = Array.isArray(tasks)
+    ? tasks.length > 0
+    : tasks && Object.keys(tasks).length > 0;
+  if (hasScheduledTasks) {
+    throw new HostingError('UnsupportedNitroFeatureError', {
+      message:
+        'Nitro `scheduledTasks` are not wired to AWS EventBridge by this adapter, so they would silently never fire.',
+      resolution:
+        'Remove `scheduledTasks` from nitro/nuxt config and provision the cron via AWS EventBridge (or scheduled CloudWatch rule) separately.',
+    });
+  }
 };
 
 type NitroRouteRule = {
@@ -76,6 +165,26 @@ type NitroRouteRule = {
   headers?: Record<string, string>;
   cors?: boolean;
   cache?: { swr?: boolean; maxAge?: number };
+  /**
+   * `routeRules.proxy: 'https://upstream.example/**'` — Nitro's
+   * upstream-proxy rule. Today the SSR Lambda relays this on every hit
+   * (paid Lambda invocation). The adapter lifts the rule into
+   * `manifest.rewrites[]`; the L3 will route it via CloudFront's
+   * origin-rewrite path once that's wired (tracked separately —
+   * currently emits a clear error if any rewrites reach the L3).
+   */
+  proxy?: string | { to: string };
+
+  /**
+   * `routeRules.basicAuth: { user: 'admin', password: '...' }` —
+   * Nitro's per-route Basic Auth gate. Adapter lifts to
+   * `manifest.basicAuth[]`. The L3 will (when implemented) emit a
+   * CloudFront Function gate; until then, throws so users hit a clear
+   * failure rather than a silent bypass on dev/staging environments.
+   */
+  basicAuth?:
+    | Record<string, string>
+    | { users: Record<string, string>; realm?: string };
 };
 
 /**
@@ -89,11 +198,25 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   const effectivePreset = preset ?? 'aws-lambda';
 
   const outputDir = path.join(projectDir, '.output');
-  const serverDir = path.join(outputDir, 'server');
-  const publicDir = path.join(outputDir, 'public');
   const nitroJsonPath = path.join(outputDir, 'nitro.json');
+  // Default Nitro output layout. Overridden below when nitro.json
+  // declares its own `output.serverDir` / `output.publicDir` (defensive:
+  // protects us against future Nitro renames; user-configured `output:`
+  // sections in nitro.config also flow through).
+  let serverDir = path.join(outputDir, 'server');
+  let publicDir = path.join(outputDir, 'public');
 
   if (!skipBuild) {
+    // Wipe Nuxt/Nitro build caches before each build so the file-system
+    // auto-scan re-discovers nested `server/api/<subdir>/*` handlers.
+    // Symptom we're guarding against: a previous deploy seeds `.nuxt/`
+    // with a routing table that didn't include the new handler; the
+    // next `npm run build` reuses that cached table and the new route
+    // 404s on production. Wiping the framework-owned caches is safe —
+    // they are regenerated by the build — and confined to the
+    // adapter's working tree (we never touch user source).
+    cleanNitroBuildCaches(projectDir);
+
     // Inject the Amplify cache plugin into the user's source tree so
     // Nitro picks it up at build time. Always remove it after the
     // build completes (even on failure) so we never leave artefacts
@@ -103,14 +226,6 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
       runNitroBuild(projectDir, effectivePreset, buildCommand);
     } finally {
       cachePluginCleanup();
-    }
-
-    // Nitro's aws-lambda preset reads event.rawPath / requestContext.http
-    // (HTTP API v2 / Function URL shape). The L3 fronts SSR with REST API
-    // (payload v1: event.path / requestContext.httpMethod). Without the
-    // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
-    if (effectivePreset === 'aws-lambda') {
-      patchNitroHandlerForApiGateway(serverDir);
     }
   }
 
@@ -122,6 +237,49 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     });
   }
 
+  let nitroInfo: NitroBuildInfo = {};
+  if (fs.existsSync(nitroJsonPath)) {
+    try {
+      nitroInfo = JSON.parse(fs.readFileSync(nitroJsonPath, 'utf-8'));
+    } catch (error) {
+      throw new HostingError(
+        'NitroOutputParseError',
+        {
+          message: `Failed to parse Nitro build info at ${nitroJsonPath}.`,
+          resolution:
+            'The .output/nitro.json file contains invalid JSON. Try running the build again.',
+        },
+        error as Error,
+      );
+    }
+  }
+
+  // Honor Nitro's reported output paths when present. nitro.json emits
+  // these as either absolute paths or paths relative to the project root.
+  // Hardcoding `.output/server` and `.output/public` works today but
+  // would break silently if Nitro renames the dirs (or the user
+  // configures custom output paths via nitro.config).
+  if (nitroInfo.output?.serverDir) {
+    serverDir = path.isAbsolute(nitroInfo.output.serverDir)
+      ? nitroInfo.output.serverDir
+      : path.join(projectDir, nitroInfo.output.serverDir);
+  }
+  if (nitroInfo.output?.publicDir) {
+    publicDir = path.isAbsolute(nitroInfo.output.publicDir)
+      ? nitroInfo.output.publicDir
+      : path.join(projectDir, nitroInfo.output.publicDir);
+  }
+
+  if (!skipBuild) {
+    // Nitro's aws-lambda preset reads event.rawPath / requestContext.http
+    // (HTTP API v2 / Function URL shape). The L3 fronts SSR with REST API
+    // (payload v1: event.path / requestContext.httpMethod). Without the
+    // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
+    if (effectivePreset === 'aws-lambda') {
+      patchNitroHandlerForApiGateway(serverDir);
+    }
+  }
+
   if (!fs.existsSync(serverDir)) {
     throw new HostingError('NitroOutputNotFoundError', {
       message: `Nitro server bundle not found at ${serverDir}.`,
@@ -129,6 +287,18 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
         'The build did not produce a server output. Check your framework config and the Nitro preset.',
     });
   }
+
+  // Materialise Nitro's pnpm-style isolated dep store. Nitro 2.13.4+
+  // emits `node_modules/.nitro/<pkg>@<ver>/` and uses relative symlinks
+  // from `node_modules/<pkg>/` into the store. The store contains cyclic
+  // symlinks that crash CDK's asset hasher on macOS with ENAMETOOLONG
+  // once the cycle exhausts PATH_MAX, so we have to remove `.nitro/` —
+  // but the Lambda bundle DOES resolve transitive deps (e.g.
+  // @smithy/util-utf8 from @aws-crypto/util) through those symlinks at
+  // runtime, so we must dereference them into real copies before
+  // removing the store. See `materializeNitroDepStore` doc for the full
+  // failure mode this prevents.
+  materializeNitroDepStore(serverDir);
 
   // Best-effort copy of amplify_outputs.json into the server bundle so the
   // SSR Lambda can talk to the Amplify backend at runtime. No-op if absent.
@@ -149,23 +319,6 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   // value so the CloudFront cache behavior + Lambda strip match.
   const ipxBaseURL = imageOptBundle ? findIpxBaseURL(projectDir) : undefined;
 
-  let nitroInfo: NitroBuildInfo = {};
-  if (fs.existsSync(nitroJsonPath)) {
-    try {
-      nitroInfo = JSON.parse(fs.readFileSync(nitroJsonPath, 'utf-8'));
-    } catch (error) {
-      throw new HostingError(
-        'NitroOutputParseError',
-        {
-          message: `Failed to parse Nitro build info at ${nitroJsonPath}.`,
-          resolution:
-            'The .output/nitro.json file contains invalid JSON. Try running the build again.',
-        },
-        error as Error,
-      );
-    }
-  }
-
   // Merge route rules from the user's nuxt.config.ts (visible in
   // nitro.json on some Nitro versions) with the rules Nitro itself
   // bakes into the server bundle (Cache-Control for /_nuxt/**,
@@ -180,6 +333,8 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
 
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
+  validateNitroPreset(resolvedPreset);
+  validateNitroFeatures(nitroInfo);
   // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
   // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
   // and reading it from `nuxt.config.ts` would require migrating off the
@@ -194,6 +349,38 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     imageOptBundle,
     ipxBaseURL,
   });
+};
+
+/**
+ * Framework-managed cache directories that Nitro / Nuxt regenerate on
+ * every build. Removing them forces the auto-scan to re-walk
+ * `server/api/**` etc. so newly-added nested handlers are picked up.
+ *
+ * Why these specifically:
+ *   - `.nuxt/`        — Nuxt's typegen + virtual route cache; the
+ *                       culprit for nested-server-route 404s when
+ *                       a handler added between deploys was missed.
+ *   - `.output/`      — Nitro's previous build artefacts; wiping
+ *                       avoids stale serverless bundles being
+ *                       repackaged when the build short-circuits.
+ *   - `node_modules/.cache/nitro/`
+ *                     — Nitro's incremental build cache; its scan
+ *                       table can stick across redeploys.
+ *
+ * We never touch `node_modules/` itself, `package.json`, lockfiles,
+ * or anything outside the project's framework caches.
+ */
+const cleanNitroBuildCaches = (projectDir: string): void => {
+  const caches = [
+    path.join(projectDir, '.nuxt'),
+    path.join(projectDir, '.output'),
+    path.join(projectDir, 'node_modules', '.cache', 'nitro'),
+  ];
+  for (const dir of caches) {
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }
 };
 
 /**
@@ -250,10 +437,21 @@ const CACHE_PLUGIN_FILENAME = '_amplify-cache.mjs';
  * Copy the Amplify cache plugin into the user's `server/plugins/`
  * before Nitro builds. Returns a cleanup function that removes the
  * file (and the `server/plugins/` directory if we created it).
+ *
+ * Refuses to overwrite a pre-existing file at the target path —
+ * silently overwriting and then deleting on cleanup would destroy
+ * user code with no warning.
  */
 const installNitroCachePlugin = (projectDir: string): (() => void) => {
   const pluginsDir = path.join(projectDir, 'server', 'plugins');
   const pluginPath = path.join(pluginsDir, CACHE_PLUGIN_FILENAME);
+
+  if (fs.existsSync(pluginPath)) {
+    throw new HostingError('NitroCachePluginCollisionError', {
+      message: `A file already exists at ${pluginPath}; the Nitro cache plugin would overwrite it.`,
+      resolution: `Rename or delete ${CACHE_PLUGIN_FILENAME} in your server/plugins/ directory. The Amplify Nitro adapter writes its own ${CACHE_PLUGIN_FILENAME} during the build to plumb framework SWR/ISR through the deploy-provisioned S3 cache, then removes it on cleanup.`,
+    });
+  }
 
   // Track what we created so cleanup is exact.
   const createdPluginsDir = !fs.existsSync(pluginsDir);
@@ -410,6 +608,125 @@ const prunePreCompressedAssets = (publicDir: string): void => {
   });
   for (const f of compressed) {
     fs.rmSync(f);
+  }
+};
+
+/**
+ * Materialise Nitro's pnpm-style isolated dep store under
+ * `<serverDir>/node_modules/.nitro/`, then remove the store.
+ *
+ * Nitro 2.13.4+ emits a layout where each dep lives at
+ * `node_modules/.nitro/<pkg>@<version>/` and `node_modules/<pkg>/` is a
+ * relative symlink into that store. The store itself contains cyclic
+ * symlinks (a → b → a) which CDK's asset hasher walks on macOS until
+ * `PATH_MAX` is exhausted, surfacing as
+ * `ENAMETOOLONG: name too long, scandir` — that's why we need to remove
+ * the store before CDK packages.
+ *
+ * The previous implementation just deleted `.nitro/` outright with the
+ * comment "Nitro's server bundle inlines every import it needs at build
+ * time, so nothing in the runtime path resolves through node_modules/."
+ * That is FALSE for the `aws-lambda` preset: Nitro emits real CommonJS
+ * files into `<serverDir>/node_modules/<pkg>/...` (e.g.
+ * `@aws-crypto/util/build/main/convertToBuffer.js`) that DO `require()`
+ * other transitive deps at runtime — `@smithy/util-utf8`,
+ * `@smithy/util-buffer-from`, etc. Those transitive deps live under
+ * `node_modules/@smithy/util-utf8 -> ../.nitro/@smithy/util-utf8@3.0.0`
+ * (a relative symlink into the store). Deleting `.nitro/` left the
+ * symlinks dangling, CDK packaged the broken zip, and the Lambda
+ * crashed on init with `Cannot find module '@smithy/util-utf8'` —
+ * surfaced loudest by the cache plugin's `import '@aws-sdk/client-s3'`,
+ * but the bug was inherent to the dep layout for any nuxt SSR app.
+ *
+ * The fix: walk `<serverDir>/node_modules/` recursively, find every
+ * symlink whose realpath points into `.nitro/`, and replace the symlink
+ * with a deferenced copy of the target. Once every dep has been
+ * materialised, remove `.nitro/`. The asset hasher gets its
+ * cycle-free tree, and the Lambda gets every transitive dep it needs.
+ */
+const materializeNitroDepStore = (serverDir: string): void => {
+  const nm = path.join(serverDir, 'node_modules');
+  const nitroStore = path.join(nm, '.nitro');
+  if (!fs.existsSync(nitroStore)) return;
+  // Resolve `.nitro/` to its realpath up front. On macOS the tmp tree
+  // (`/var/folders/...`) resolves to `/private/var/folders/...`, so the
+  // symlinks we're about to inspect will report a `/private/`-prefixed
+  // realpath; comparing against the unresolved nitroStore would
+  // false-negative every match. Resolve once here so the later
+  // startsWith check works on both real and symlinked tmp roots.
+  const nitroStoreReal = fs.realpathSync(nitroStore);
+
+  // Two-pass walk — collect symlinks first so we don't mutate the tree
+  // we're traversing. We only follow real directories (lstat) — a
+  // symlink encountered during the walk is a leaf, not a recursion
+  // point, so cycles can't bite us here.
+  const symlinks: string[] = [];
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) {
+        symlinks.push(full);
+      } else if (entry.isDirectory()) {
+        // Skip the dep store itself — its contents become real files via
+        // the cpSync below, so there's no need to recurse into it.
+        if (full === nitroStore) continue;
+        walk(full);
+      }
+    }
+  };
+  walk(nm);
+
+  // For each symlink whose realpath is inside `.nitro/`, replace the
+  // symlink with a real copy of the target. `dereference: true` follows
+  // any further symlinks during the copy, so we end up with no symlinks
+  // remaining in the materialized output.
+  for (const linkPath of symlinks) {
+    let target: string;
+    try {
+      target = fs.realpathSync(linkPath);
+    } catch {
+      // Dangling symlink — best-effort: just remove it so it doesn't
+      // confuse the asset hasher.
+      try {
+        fs.rmSync(linkPath, { force: true });
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // intentional
+      }
+      continue;
+    }
+    if (
+      !target.startsWith(nitroStoreReal + path.sep) &&
+      target !== nitroStoreReal
+    ) {
+      // Symlink that doesn't point into `.nitro/` — leave it alone.
+      continue;
+    }
+    try {
+      fs.rmSync(linkPath, { force: true });
+      fs.cpSync(target, linkPath, { recursive: true, dereference: true });
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best effort. A failed materialise will surface as a runtime
+      // `Cannot find module` in the Lambda; the user can re-deploy. We
+      // don't want a transient FS hiccup to abort the whole build.
+    }
+  }
+
+  // Now safe to delete the store — everything that pointed into it has
+  // been replaced with a real copy.
+  try {
+    fs.rmSync(nitroStore, { recursive: true, force: true });
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    // Best effort. If the store can't be removed, the asset hasher
+    // surfaces its own error.
   }
 };
 
@@ -623,6 +940,10 @@ const buildManifest = (input: {
     compute,
     staticAssets: {
       directory: publicDir,
+      // Nuxt content-hashes everything under `_nuxt/`; HTML, public/,
+      // and prerendered routes (e.g. `/about/index.html`) live elsewhere
+      // and must NOT be marked immutable.
+      immutablePaths: ['_nuxt/*'],
     },
     routes: buildRoutes(
       publicDir,
@@ -637,9 +958,19 @@ const buildManifest = (input: {
     manifest.redirects = redirects;
   }
 
+  const rewrites = buildRewrites(routeRules);
+  if (rewrites.length > 0) {
+    manifest.rewrites = rewrites;
+  }
+
   const headers = buildHeaders(routeRules);
   if (headers.length > 0) {
     manifest.headers = headers;
+  }
+
+  const basicAuth = buildBasicAuth(routeRules);
+  if (basicAuth.length > 0) {
+    manifest.basicAuth = basicAuth;
   }
 
   // If any route rule uses SWR / ISR / cache, ask the L3 to provision
@@ -853,6 +1184,71 @@ const normalizeRulePattern = (pattern: string): string => {
 };
 
 /**
+ * Translate `proxy` route rules into manifest Rewrites.
+ *
+ * `routeRules: { '/api/external/**': { proxy: 'https://upstream.example/**' } }`
+ * is Nitro's upstream-proxy form — Nitro's runtime forwards the request
+ * to the destination URL preserving method/body/headers. Without this
+ * lift, every proxied request burns an SSR Lambda invocation just to
+ * relay; with it, CloudFront routes directly to the upstream origin.
+ *
+ * The L3 doesn't yet consume `manifest.rewrites[]` for upstream proxying
+ * — that requires per-pattern `HttpOrigin` provisioning + a CloudFront
+ * Function origin-rewrite step. Until then, the adapter emits the field
+ * (so consumers can see the user's intent) and the L3 throws a clear
+ * `RewritesNotYetSupportedError` instead of silently dropping the rule.
+ */
+const buildRewrites = (
+  routeRules: Record<string, NitroRouteRule>,
+): NonNullable<DeployManifest['rewrites']> => {
+  const out: NonNullable<DeployManifest['rewrites']> = [];
+  for (const [source, rule] of Object.entries(routeRules)) {
+    if (!rule.proxy) continue;
+    const dest = typeof rule.proxy === 'string' ? rule.proxy : rule.proxy.to;
+    out.push({
+      source: normalizeRulePattern(source),
+      destination: dest,
+    });
+  }
+  return out;
+};
+
+/**
+ * Translate `basicAuth` route rules into manifest BasicAuthRules.
+ *
+ * Accepts either Nitro's single-user shorthand (`{ user, password }`)
+ * or the multi-user form (`{ users: { name: pass }, realm }`).
+ * Empty/malformed rules are dropped silently — the L3-side schema
+ * validation catches a `users: {}` rule with a clear error before any
+ * deploy happens.
+ */
+const buildBasicAuth = (
+  routeRules: Record<string, NitroRouteRule>,
+): NonNullable<DeployManifest['basicAuth']> => {
+  const out: NonNullable<DeployManifest['basicAuth']> = [];
+  for (const [source, rule] of Object.entries(routeRules)) {
+    if (!rule.basicAuth) continue;
+    const ba = rule.basicAuth as Record<string, unknown>;
+    let users: Record<string, string> | undefined;
+    let realm: string | undefined;
+    if (typeof ba.users === 'object' && ba.users !== null) {
+      users = ba.users as Record<string, string>;
+      if (typeof ba.realm === 'string') realm = ba.realm;
+    } else if (typeof ba.user === 'string' && typeof ba.password === 'string') {
+      users = { [ba.user]: ba.password };
+      if (typeof ba.realm === 'string') realm = ba.realm;
+    }
+    if (!users || Object.keys(users).length === 0) continue;
+    out.push({
+      source: normalizeRulePattern(source),
+      ...(realm ? { realm } : {}),
+      users,
+    });
+  }
+  return out;
+};
+
+/**
  * Translate `redirect` route rules into manifest Redirects.
  */
 const buildRedirects = (
@@ -877,23 +1273,77 @@ const buildRedirects = (
 };
 
 /**
- * Translate `headers` route rules into manifest CustomHeaders.
+ * Translate `headers`, `cors`, and `cache.maxAge` route rules into
+ * manifest CustomHeaders.
+ *
+ * Multiple Nitro route-rule fields can produce headers for the same
+ * source pattern. Merge them with user-declared `headers` winning over
+ * auto-emitted ones so the user can always override the cors/cache
+ * defaults if they need to.
+ *
+ *  - `headers: { ... }` lifts as-is.
+ *  - `cors: true` emits the same Access-Control-* set as Nitro's runtime
+ *    middleware so behavior matches when the rule fires at the edge.
+ *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N,
+ *    s-maxage=N` so CloudFront edge-caches the response for N seconds.
+ *    SWR rules are intentionally not lifted — those need server-side
+ *    cache plumbing (covered by `manifest.cache` provisioning).
  */
 const buildHeaders = (
   routeRules: Record<string, NitroRouteRule>,
 ): NonNullable<DeployManifest['headers']> => {
-  const out: NonNullable<DeployManifest['headers']> = [];
-  for (const [source, rule] of Object.entries(routeRules)) {
-    if (!rule.headers || Object.keys(rule.headers).length === 0) continue;
-    for (const [name, value] of Object.entries(rule.headers)) {
-      if (name.toLowerCase() === 'cache-control') {
-        validateCacheControl(value, `route ${source} (Nitro routeRules)`);
-      }
+  const merged = new Map<string, Record<string, string>>();
+  const recordFor = (source: string): Record<string, string> => {
+    const key = normalizeRulePattern(source);
+    let rec = merged.get(key);
+    if (!rec) {
+      rec = {};
+      merged.set(key, rec);
     }
-    out.push({
-      source: normalizeRulePattern(source),
-      headers: rule.headers,
-    });
+    return rec;
+  };
+  for (const [source, rule] of Object.entries(routeRules)) {
+    // 1. `cors: true` — emit the standard Access-Control-* headers.
+    //    Same allow-origin/allow-methods/allow-headers set Nitro's runtime
+    //    middleware applies; `cors: false` is a no-op (default behavior).
+    if (rule.cors === true) {
+      const corsHeaders = recordFor(source);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Origin'] = '*';
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Methods'] =
+        'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD';
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      corsHeaders['Access-Control-Allow-Headers'] =
+        'Content-Type, Authorization';
+    }
+    // 2. `cache.maxAge: N` — translate to a public Cache-Control. We
+    //    emit both `max-age` and `s-maxage` because the L3's
+    //    ssrCachePolicy honors `s-maxage` for CloudFront edge caching;
+    //    `max-age` covers the browser cache.
+    const maxAge = rule.cache?.maxAge;
+    if (typeof maxAge === 'number' && maxAge > 0 && Number.isFinite(maxAge)) {
+      const maxAgeHeaders = recordFor(source);
+      const value = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      maxAgeHeaders['Cache-Control'] = value;
+    }
+    // 3. User-declared `headers: { ... }` wins over the auto-emit
+    //    above. Validate Cache-Control values so invalid directives
+    //    fail at adapter time rather than silently passing through.
+    if (rule.headers && Object.keys(rule.headers).length > 0) {
+      for (const [name, value] of Object.entries(rule.headers)) {
+        if (name.toLowerCase() === 'cache-control') {
+          validateCacheControl(value, `route ${source} (Nitro routeRules)`);
+        }
+      }
+      Object.assign(recordFor(source), rule.headers);
+    }
+  }
+  const out: NonNullable<DeployManifest['headers']> = [];
+  for (const [source, headers] of merged) {
+    if (Object.keys(headers).length === 0) continue;
+    out.push({ source, headers });
   }
   return out;
 };

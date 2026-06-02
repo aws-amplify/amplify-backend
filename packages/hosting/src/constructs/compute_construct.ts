@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration, Stack, Token } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import {
   Architecture,
   Code,
@@ -12,7 +12,7 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import { experimental } from 'aws-cdk-lib/aws-cloudfront';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { HostingError } from '../hosting_error.js';
 import { ComputeResource } from '../manifest/types.js';
 import { SSR_DEFAULT_PORT } from '../defaults.js';
@@ -127,6 +127,19 @@ export class ComputeConstruct extends Construct {
       props.memorySize ??
       computeResource.memorySize ??
       DEFAULT_LAMBDA_MEMORY_MB;
+    // Defensive: the public L3 surface accepts `Duration | number` and
+    // normalizes upstream, but a non-Duration value reaching us here
+    // (e.g. internal caller mis-typed, or a permissive JS wrapper
+    // bypassing the L3) would crash deep in aws-cdk-lib with
+    // `props.timeout.toSeconds is not a function`. Throw a clear
+    // error pointing at the misuse instead.
+    if (props.timeout !== undefined && !(props.timeout instanceof Duration)) {
+      throw new HostingError('InvalidTimeoutError', {
+        message: `compute.timeout must be a cdk.Duration; received ${typeof props.timeout} (${String(props.timeout)}).`,
+        resolution:
+          'Pass `cdk.Duration.seconds(N)` or, at the L3 surface, a plain number of seconds (the L3 normalizes both).',
+      });
+    }
     const timeout =
       props.timeout ??
       Duration.seconds(
@@ -145,6 +158,21 @@ export class ComputeConstruct extends Construct {
 
     const architecture = props.architecture ?? Architecture.X86_64;
 
+    // Pre-create the Lambda log group with the desired retention. Replaces
+    // the deprecated `Function#logRetention` prop (which transitively
+    // creates a singleton custom-resource Lambda + log group); CDK warns
+    // on every synth that the prop will be removed in the next major.
+    // The explicit `LogGroup` lives at the canonical /aws/lambda/<fn>
+    // path Lambda would default to, so wiring is byte-identical from
+    // Lambda's POV — only the CFN graph changes shape.
+    const retention = props.logRetention ?? RetentionDays.TWO_WEEKS;
+    const logGroup = new LogGroup(this, 'FunctionLogGroup', {
+      retention,
+      // Match the prior `logRetention`-driven default — the singleton
+      // log-retention provider didn't retain log groups on stack delete.
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     if (computeResource.type === 'handler') {
       // Native Lambda handler — no Web Adapter needed
       this.function = new LambdaFunction(this, 'Function', {
@@ -156,7 +184,7 @@ export class ComputeConstruct extends Construct {
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
         role: ssrRole,
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
         environment: {
           ...computeResource.environment,
         },
@@ -179,7 +207,7 @@ export class ComputeConstruct extends Construct {
         timeout,
         reservedConcurrentExecutions: props.reservedConcurrency,
         role: ssrRole,
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
         layers: [
           LayerVersion.fromLayerVersionArn(
             this,
@@ -218,7 +246,7 @@ export class ComputeConstruct extends Construct {
         architecture,
         memorySize,
         timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
       });
       // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region
     } else {

@@ -306,6 +306,29 @@ void describe('ComputeConstruct', () => {
       });
     });
 
+    void it('throws InvalidTimeoutError when timeout is not a Duration', () => {
+      // Regression: AWS Blocks bug-bash repro showed `timeout: 30` (a
+      // plain number) flowing through a permissive JS-compiled wrapper
+      // and crashing deep in aws-cdk-lib with `props.timeout.toSeconds
+      // is not a function`. We now coerce at the L3 surface, but
+      // ComputeConstruct also fails fast for any internal caller that
+      // bypasses normalization.
+      const bundle = createBundleDir();
+      const stack = createStack();
+
+      assert.throws(
+        () =>
+          new ComputeConstruct(stack, 'Compute', {
+            name: 'default',
+            computeResource: handlerResource(bundle),
+            // @ts-expect-error — exercising the runtime guard
+            timeout: 30,
+          }),
+        (err: Error) =>
+          err instanceof HostingError && err.code === 'InvalidTimeoutError',
+      );
+    });
+
     void it('sets reservedConcurrency when provided', () => {
       const bundle = createBundleDir();
       const stack = createStack();
@@ -363,8 +386,13 @@ void describe('ComputeConstruct', () => {
         logRetention: RetentionDays.ONE_MONTH,
       });
 
+      // `logRetention` is mapped to an explicit `AWS::Logs::LogGroup`
+      // (the deprecated `Function#logRetention` prop emitted a
+      // `Custom::LogRetention` singleton custom resource and triggered
+      // a `will be removed in the next major release` warning on every
+      // synth — gone after R4-#9).
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('Custom::LogRetention', {
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 30,
       });
     });
@@ -379,7 +407,7 @@ void describe('ComputeConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('Custom::LogRetention', {
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
         RetentionInDays: 14,
       });
     });
