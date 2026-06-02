@@ -70,12 +70,23 @@ export class PipelineTestProjectCreator implements TestProjectCreator {
  * (auth + data) and verifies end-to-end resource creation.
  */
 export class PipelineTestProject extends TestProjectBase {
-  readonly sourceProjectAmplifyDirURL: URL;
+  readonly sourceProjectDirPath = '../../src/test-projects/pipeline';
+
+  readonly sourceProjectAmplifyDirURL: URL = new URL(
+    `${this.sourceProjectDirPath}/amplify`,
+    import.meta.url,
+  );
+
   readonly pipelineStackName: string;
 
   pipelineName = '';
   sourceBucketName = '';
   backendStackName = '';
+
+  private readonly sourceProjectPublicDirURL: URL = new URL(
+    `${this.sourceProjectDirPath}/public`,
+    import.meta.url,
+  );
 
   private readonly codePipelineClient: CodePipelineClient;
   private readonly s3Client: S3Client;
@@ -96,132 +107,44 @@ export class PipelineTestProject extends TestProjectBase {
       amplifyClient,
     );
     this.pipelineStackName = `amplify-pipeline-${name.replace(/^test-project-pipeline-/, '')}`;
-    this.sourceProjectAmplifyDirURL = new URL(
-      `file://${projectAmplifyDirPath}`,
-    );
     this.codePipelineClient = new CodePipelineClient(e2eToolingClientConfig);
     this.s3Client = new S3Client(e2eToolingClientConfig);
   }
 
   /**
-   * Write a real Amplify project with auth + data + hosting + pipeline.
+   * Set up the project by copying static fixtures from the source directory
+   * and writing the dynamic pipeline.ts (which requires a runtime stack name).
    */
   async writeFixtureFiles(): Promise<void> {
-    const amplifyDir = this.projectAmplifyDirPath;
-    const projectDir = this.projectDirPath;
+    // Copy the amplify/ directory (backend.ts, auth/, data/, hosting.ts)
+    await fs.cp(this.sourceProjectAmplifyDirURL, this.projectAmplifyDirPath, {
+      recursive: true,
+    });
 
-    // Auth resource
-    const authDir = path.join(amplifyDir, 'auth');
-    await fs.mkdir(authDir, { recursive: true });
+    // Copy the public/ directory (static frontend)
+    const destPublicDir = path.join(this.projectDirPath, 'public');
+    await fs.cp(this.sourceProjectPublicDirURL, destPublicDir, {
+      recursive: true,
+    });
+
+    // Write pipeline.ts dynamically (it contains the runtime-generated stack name)
     await fs.writeFile(
-      path.join(authDir, 'resource.ts'),
-      `import { defineAuth } from '@aws-amplify/backend';
-
-export const auth = defineAuth({
-  loginWith: {
-    email: true,
-  },
-});
-`,
-    );
-
-    // Data resource with a real schema
-    const dataDir = path.join(amplifyDir, 'data');
-    await fs.mkdir(dataDir, { recursive: true });
-    await fs.writeFile(
-      path.join(dataDir, 'resource.ts'),
-      `import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
-
-const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
-      isDone: a.boolean(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
-});
-
-export type Schema = ClientSchema<typeof schema>;
-
-export const data = defineData({
-  schema,
-  authorizationModes: {
-    defaultAuthorizationMode: 'apiKey',
-    apiKeyAuthorizationMode: {
-      expiresInDays: 7,
-    },
-  },
-});
-`,
-    );
-
-    // Backend entry point
-    await fs.writeFile(
-      path.join(amplifyDir, 'backend.ts'),
-      `import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource.js';
-import { data } from './data/resource.js';
-
-defineBackend({
-  auth,
-  data,
-});
-`,
-    );
-
-    // Hosting entry point (SPA)
-    await fs.writeFile(
-      path.join(amplifyDir, 'hosting.ts'),
-      `import { defineHosting } from '@aws-amplify/hosting';
-
-defineHosting({
-  framework: 'spa',
-  buildOutputDir: 'public',
-});
-`,
-    );
-
-    // Pipeline entry point — S3 source for CI (no GitHub dependency)
-    await fs.writeFile(
-      path.join(amplifyDir, 'pipeline.ts'),
+      path.join(this.projectAmplifyDirPath, 'pipeline.ts'),
       this.getPipelineFixtureContent(),
     );
 
-    // Static frontend
-    const publicDir = path.join(projectDir, 'public');
-    await fs.mkdir(publicDir, { recursive: true });
-    await fs.writeFile(
-      path.join(publicDir, 'index.html'),
-      `<!doctype html>
-<html>
-<head><title>Pipeline E2E</title></head>
-<body>
-  <h1>Pipeline E2E Test</h1>
-  <p>Deployed via definePipeline with real auth + data.</p>
-  <script type="module">
-    // Verify amplify_outputs.json is accessible at runtime
-    const resp = await fetch('/amplify_outputs.json');
-    if (resp.ok) {
-      const outputs = await resp.json();
-      document.body.dataset.backendReady = 'true';
-      document.body.dataset.userPoolId = outputs.auth?.user_pool_id || '';
-      document.body.dataset.graphqlUrl = outputs.data?.url || '';
-    }
-  </script>
-</body>
-</html>
-`,
-    );
-
-    // Minimal package.json with build script (for the post-deploy hook)
+    // Update package.json with build script for the post-deploy hook
     const rootPkg = JSON.parse(
-      await fs.readFile(path.join(projectDir, 'package.json'), 'utf-8'),
+      await fs.readFile(
+        path.join(this.projectDirPath, 'package.json'),
+        'utf-8',
+      ),
     );
     rootPkg.scripts = {
       build: 'echo "Build complete — SPA uses static files"',
     };
     await fs.writeFile(
-      path.join(projectDir, 'package.json'),
+      path.join(this.projectDirPath, 'package.json'),
       JSON.stringify(rootPkg, null, 2),
     );
   }
