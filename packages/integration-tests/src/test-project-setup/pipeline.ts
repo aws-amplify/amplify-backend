@@ -11,7 +11,6 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import {
   CodePipelineClient,
-  GetPipelineExecutionCommand,
   ListPipelineExecutionsCommand,
   StartPipelineExecutionCommand,
 } from '@aws-sdk/client-codepipeline';
@@ -253,43 +252,79 @@ export class PipelineTestProject extends TestProjectBase {
   }
 
   /**
-   * Trigger the pipeline via StartPipelineExecution.
-   * Falls back to S3 upload trigger if StartPipelineExecution is denied.
+   * Trigger the pipeline and return an execution ID.
+   *
+   * V2 pipelines with S3 source are triggered by EventBridge when source.zip is
+   * uploaded. We wait for the pipeline to start (via ListPipelineExecutions)
+   * rather than relying on StartPipelineExecution which can return execution IDs
+   * that are not immediately visible to GetPipelineExecution in V2 pipelines.
    */
   async triggerPipeline(): Promise<string> {
-    process.stderr.write(`Triggering pipeline via StartPipelineExecution...\n`);
+    // The S3 upload in createAndUploadSourceZip already triggers the pipeline
+    // via EventBridge. Wait for the execution to appear in the list.
+    process.stderr.write(
+      `Waiting for pipeline execution to start (S3 EventBridge trigger)...\n`,
+    );
 
+    // Also try StartPipelineExecution as a backup trigger
     try {
-      const response = await this.codePipelineClient.send(
+      await this.codePipelineClient.send(
         new StartPipelineExecutionCommand({
           name: this.pipelineName,
         }),
       );
-      const executionId = response.pipelineExecutionId!;
-      process.stderr.write(`Pipeline execution started: ${executionId}\n`);
-      return executionId;
+      process.stderr.write(`StartPipelineExecution sent as backup trigger.\n`);
     } catch (e) {
-      const msg = (e as Error).message;
-      if (msg.includes('AccessDenied') || msg.includes('not authorized')) {
-        process.stderr.write(
-          `StartPipelineExecution denied — S3 upload should have triggered the pipeline.\n`,
-        );
-        // S3 upload already happened in createAndUploadSourceZip — wait for trigger
-        await new Promise((resolve) => setTimeout(resolve, 15_000));
-        const latestId = await this.getLatestExecutionId();
-        if (!latestId) {
-          throw new Error(
-            'Pipeline did not start after S3 upload. Check EventBridge rules.',
-          );
-        }
-        return latestId;
-      }
-      throw e;
+      process.stderr.write(
+        `StartPipelineExecution failed (non-fatal): ${(e as Error).message}\n`,
+      );
     }
+
+    // Poll ListPipelineExecutions to find an InProgress execution
+    const maxWait = 120_000; // 2 minutes to detect execution start
+    const pollInterval = 10_000;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < maxWait) {
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+
+      const response = await this.codePipelineClient.send(
+        new ListPipelineExecutionsCommand({
+          pipelineName: this.pipelineName,
+          maxResults: 5,
+        }),
+      );
+
+      const executions = response.pipelineExecutionSummaries ?? [];
+      const active = executions.find(
+        (e) =>
+          e.status === 'InProgress' ||
+          e.status === 'Stopping' ||
+          e.status === 'Succeeded',
+      );
+
+      if (active?.pipelineExecutionId) {
+        process.stderr.write(
+          `Pipeline execution started: ${active.pipelineExecutionId} (status: ${active.status})\n`,
+        );
+        return active.pipelineExecutionId;
+      }
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+      process.stderr.write(
+        `  [${elapsed}s] No active execution yet (found ${executions.length} executions: ${executions.map((e) => e.status).join(', ')})\n`,
+      );
+    }
+
+    throw new Error(
+      `Pipeline did not start within ${maxWait / 1000}s after S3 upload.`,
+    );
   }
 
   /**
    * Wait for a pipeline execution to reach a terminal state.
+   * Uses ListPipelineExecutions for V2 pipeline compatibility
+   * (GetPipelineExecution can return "not found" for superseded executions in V2).
    * @returns Final status (Succeeded | Failed | Stopped | Cancelled | Superseded | Timeout)
    */
   async waitForPipelineExecution(
@@ -305,16 +340,32 @@ export class PipelineTestProject extends TestProjectBase {
 
     while (Date.now() - startTime < timeoutMs) {
       try {
+        // Use ListPipelineExecutions instead of GetPipelineExecution
+        // because V2 pipelines can have eventual consistency issues with Get
         const response = await this.codePipelineClient.send(
-          new GetPipelineExecutionCommand({
+          new ListPipelineExecutionsCommand({
             pipelineName: this.pipelineName,
-            pipelineExecutionId: executionId,
+            maxResults: 10,
           }),
         );
 
-        const status = response.pipelineExecution?.status ?? 'Unknown';
+        const executions = response.pipelineExecutionSummaries ?? [];
+        // Find our specific execution OR any active execution
+        const target =
+          executions.find((e) => e.pipelineExecutionId === executionId) ??
+          executions.find(
+            (e) =>
+              e.status === 'Succeeded' ||
+              e.status === 'Failed' ||
+              e.status === 'InProgress',
+          );
+
+        const status = target?.status ?? 'NotFound';
+        const foundId = target?.pipelineExecutionId ?? executionId;
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
-        process.stderr.write(`  [${elapsed}s] Execution status: ${status}\n`);
+        process.stderr.write(
+          `  [${elapsed}s] Execution ${foundId.substring(0, 8)}... status: ${status}\n`,
+        );
 
         if (
           status === 'Succeeded' ||

@@ -96,13 +96,13 @@ void describe(
 
       void it(
         'pipeline execution deploys the backend stage',
-        { timeout: 900_000 },
+        { timeout: 660_000 },
         async () => {
           assert.ok(executionId, 'Execution ID must be set from previous test');
 
           const status = await pipelineProject.waitForPipelineExecution(
             executionId,
-            840_000, // 14 minutes — backend deploy takes ~5-10 min
+            600_000, // 10 minutes — backend deploy takes ~3-5 min
           );
 
           process.stderr.write(`Pipeline execution final status: ${status}\n`);
