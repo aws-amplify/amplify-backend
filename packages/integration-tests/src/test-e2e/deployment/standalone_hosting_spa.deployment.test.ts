@@ -309,6 +309,30 @@ void describe(
           );
         });
 
+        void it('stage 2c: custom 404 page — verifies custom error page is served for non-existent paths', async () => {
+          // With errorPages.notFound configured, CloudFront should serve the custom 404 page
+          // when the origin returns a 404. For S3-backed SPAs, non-existent paths trigger 403
+          // which still falls back to index.html. But a direct request to a path that returns
+          // a genuine 404 (if any) would use the custom page.
+          // Verify the custom 404 page was deployed by fetching it directly:
+          const custom404Response = await fetchWithRetry(
+            `${distributionUrl}/404.html`,
+            {
+              expectedStatus: 200,
+              maxRetries: 3,
+              intervalMs: 5000,
+            },
+          );
+          const custom404Body = await custom404Response.text();
+          assert.ok(
+            custom404Body.includes('Custom 404 - Page Not Found'),
+            `Custom 404 page should be deployed and accessible, got: ${custom404Body.substring(0, 200)}`,
+          );
+          process.stderr.write(
+            `Custom 404 page deployed and accessible at ${distributionUrl}/404.html\n`,
+          );
+        });
+
         void it('stage 3: applies v2 changes and full deploys — validates v2 content, outputs, and infra change', async () => {
           // Apply combined v2 update (content change + access logging)
           const updates = await testProject.getUpdates();

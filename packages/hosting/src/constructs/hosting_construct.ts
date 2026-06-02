@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Construct } from 'constructs';
-import * as fs from 'fs';
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
@@ -334,17 +333,6 @@ export class AmplifyHostingConstruct extends Construct {
       }
     }
 
-    // ---- 2a. User-provided environment variables ----
-    if (props.environment) {
-      for (const [, fn] of this.computeFunctions.entries()) {
-        if (fn instanceof LambdaFunction) {
-          for (const [key, value] of Object.entries(props.environment)) {
-            fn.addEnvironment(key, value);
-          }
-        }
-      }
-    }
-
     // ---- 3. Cache infrastructure (ISR) ----
     if (manifest.cache && manifest.cache.driver === 'nitro-s3') {
       // Nitro path: a single S3 bucket fronts Nitro's `useStorage('cache')`
@@ -620,6 +608,42 @@ export class AmplifyHostingConstruct extends Construct {
       middlewareEdgeVersion = middlewareConstruct.function.currentVersion;
     }
 
+    // ---- 5a. User-provided environment variables (applied to ALL compute functions) ----
+    const RESERVED_PREFIXES = [
+      'AWS_',
+      'AMPLIFY_',
+      'OPEN_NEXT_',
+      'CACHE_',
+      'REVALIDATION_',
+    ];
+    const KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+    if (props.environment) {
+      for (const key of Object.keys(props.environment)) {
+        if (!KEY_PATTERN.test(key)) {
+          throw new HostingError('InvalidEnvironmentKeyError', {
+            message: `Environment variable key '${key}' contains invalid characters.`,
+            resolution:
+              'Keys must match [a-zA-Z_][a-zA-Z0-9_]* (letters, numbers, underscores only, cannot start with a number).',
+          });
+        }
+        if (RESERVED_PREFIXES.some((p) => key.startsWith(p))) {
+          throw new HostingError('ReservedEnvironmentKeyError', {
+            message: `Environment variable key '${key}' uses a reserved prefix.`,
+            resolution: `Keys starting with ${RESERVED_PREFIXES.join(', ')} are reserved for internal use.`,
+          });
+        }
+      }
+
+      for (const [, fn] of this.computeFunctions.entries()) {
+        if (fn instanceof LambdaFunction) {
+          for (const [key, value] of Object.entries(props.environment)) {
+            fn.addEnvironment(key, value);
+          }
+        }
+      }
+    }
+
     // ---- 6. WAF (conditional) ----
     // Only create the built-in WAF construct if user didn't provide their own ARN
     if (!props.cdn?.webAclArn) {
@@ -811,10 +835,27 @@ export class AmplifyHostingConstruct extends Construct {
 
     // ---- 11a. Custom error pages ----
     if (props.errorPages?.notFound) {
+      if (!fs.existsSync(props.errorPages.notFound)) {
+        throw new HostingError('CustomErrorPageNotFoundError', {
+          message: `Custom 404 error page not found at path: ${props.errorPages.notFound}`,
+          resolution:
+            'Ensure the notFound path points to an existing HTML file relative to your project root.',
+        });
+      }
       const notFoundContent = fs.readFileSync(
         props.errorPages.notFound,
         'utf-8',
       );
+      if (
+        !notFoundContent.trim().toLowerCase().includes('<html') &&
+        !notFoundContent.trim().toLowerCase().includes('<!doctype')
+      ) {
+        throw new HostingError('InvalidErrorPageContentError', {
+          message: `Custom error page at ${props.errorPages.notFound} does not appear to be valid HTML.`,
+          resolution:
+            'Ensure the file contains valid HTML (should include <html> or <!DOCTYPE> tag).',
+        });
+      }
       new BucketDeployment(this, 'Custom404Deployment', {
         sources: [Source.data('404.html', notFoundContent)],
         destinationBucket: this.bucket,
@@ -823,10 +864,27 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
     if (props.errorPages?.serverError) {
+      if (!fs.existsSync(props.errorPages.serverError)) {
+        throw new HostingError('CustomErrorPageNotFoundError', {
+          message: `Custom 500 error page not found at path: ${props.errorPages.serverError}`,
+          resolution:
+            'Ensure the serverError path points to an existing HTML file relative to your project root.',
+        });
+      }
       const serverErrorContent = fs.readFileSync(
         props.errorPages.serverError,
         'utf-8',
       );
+      if (
+        !serverErrorContent.trim().toLowerCase().includes('<html') &&
+        !serverErrorContent.trim().toLowerCase().includes('<!doctype')
+      ) {
+        throw new HostingError('InvalidErrorPageContentError', {
+          message: `Custom error page at ${props.errorPages.serverError} does not appear to be valid HTML.`,
+          resolution:
+            'Ensure the file contains valid HTML (should include <html> or <!DOCTYPE> tag).',
+        });
+      }
       new BucketDeployment(this, 'Custom500Deployment', {
         sources: [Source.data('500.html', serverErrorContent)],
         destinationBucket: this.bucket,

@@ -1757,7 +1757,7 @@ void describe('AmplifyHostingConstruct — custom environment variables (M4)', (
     }
   });
 
-  void it('adds env vars to multiple compute functions (SSR + image opt)', () => {
+  void it('adds env vars to ALL compute functions including image opt', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir();
     const stack = createStack();
@@ -1802,10 +1802,49 @@ void describe('AmplifyHostingConstruct — custom environment variables (M4)', (
       const vars = env?.Variables as Record<string, unknown> | undefined;
       return vars?.MY_FEATURE_FLAG === 'enabled';
     });
-    // At least the default compute function should have it
-    assert.ok(
-      lambdasWithEnvVar.length >= 1,
-      `Expected at least 1 Lambda with MY_FEATURE_FLAG, got ${lambdasWithEnvVar.length}`,
+    // Both the default compute and image-optimization Lambda should have it (2 total)
+    assert.strictEqual(
+      lambdasWithEnvVar.length,
+      2,
+      `Expected exactly 2 Lambdas with MY_FEATURE_FLAG (default + image-opt), got ${lambdasWithEnvVar.length}`,
+    );
+  });
+
+  void it('throws InvalidEnvironmentKeyError for invalid key characters', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { 'invalid-key': 'value' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'InvalidEnvironmentKeyError');
+        assert.ok(err.message.includes('invalid-key'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws ReservedEnvironmentKeyError for reserved prefix', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { AWS_SECRET: 'forbidden' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ReservedEnvironmentKeyError');
+        assert.ok(err.message.includes('AWS_SECRET'));
+        return true;
+      },
     );
   });
 });
@@ -1999,6 +2038,75 @@ void describe('AmplifyHostingConstruct — custom error pages (M5)', () => {
             ErrorCode: 500,
             ResponseCode: 500,
             ResponsePagePath: Match.stringLikeRegexp('/builds/.*/500\\.html'),
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('throws CustomErrorPageNotFoundError for invalid file path', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          errorPages: { notFound: '/nonexistent/path/404.html' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'CustomErrorPageNotFoundError');
+        assert.ok(err.message.includes('/nonexistent/path/404.html'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws InvalidErrorPageContentError for non-HTML file', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const notHtmlPath = path.join(tmpDir, 'not-html.txt');
+    fs.writeFileSync(notHtmlPath, 'This is just plain text, not HTML');
+
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          errorPages: { notFound: notHtmlPath },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'InvalidErrorPageContentError');
+        assert.ok(err.message.includes('does not appear to be valid HTML'));
+        return true;
+      },
+    );
+  });
+
+  void it('configures custom error pages for SPA mode with CloudFront error responses', () => {
+    const staticDir = createStaticDir();
+    const custom404Path = path.join(tmpDir, '404.html');
+    fs.writeFileSync(
+      custom404Path,
+      '<!DOCTYPE html><html><body>Custom SPA 404</body></html>',
+    );
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      errorPages: { notFound: custom404Path },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 404,
+            ResponseCode: 404,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/404\\.html'),
           }),
         ]),
       },

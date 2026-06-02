@@ -87,9 +87,13 @@ export type HostingProps = {
   };
 
   /**
-   * Custom environment variables injected into all SSR Lambda functions at runtime.
-   * Use for database URLs, API keys, feature flags, etc.
-   * These are runtime env vars — NOT build-time `NEXT_PUBLIC_*` variables.
+   * Custom environment variables injected into all compute Lambda functions at runtime.
+   *
+   * Values appear in plaintext in the CloudFormation template. For sensitive values
+   * (database passwords, API secrets), use AWS Systems Manager Parameter Store or
+   * Secrets Manager and read them at runtime instead.
+   *
+   * Safe for: feature flags, non-secret URLs, region config, service names.
    * @example
    * ```typescript
    * defineHosting({
