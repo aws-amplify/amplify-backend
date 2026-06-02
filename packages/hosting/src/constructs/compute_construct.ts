@@ -246,7 +246,7 @@ export class ComputeConstruct extends Construct {
         architecture,
         memorySize,
         timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
-        logRetention: props.logRetention ?? RetentionDays.TWO_WEEKS,
+        logGroup,
       });
       // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region
     } else {
