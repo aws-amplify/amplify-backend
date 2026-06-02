@@ -1,6 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import {
+  CodeBuildStep,
+  CodePipelineSource,
+  IFileSetProducer,
+  ShellStep,
+} from 'aws-cdk-lib/pipelines';
 
 /**
  * Configuration for the pipeline source (GitHub/CodeConnections).
@@ -351,4 +356,18 @@ export type PipelineProps<TConfig = Record<string, unknown>> = {
    * @internal
    */
   readonly _sourceOverride?: CodePipelineSource;
+
+  /**
+   * Internal hook called after each stage's stageFactory runs.
+   *
+   * Returns additional post-deploy steps to append to the stage.
+   * Used by `definePipeline()` to add the hosting deployment CodeBuild step
+   * after the backend stage deploys.
+   * @internal
+   */
+  readonly _postStageHook?: (params: {
+    source: IFileSetProducer;
+    stage: cdk.Stage;
+    stageConfig: PipelineStageConfig<TConfig>;
+  }) => Array<ShellStep | CodeBuildStep>;
 };
