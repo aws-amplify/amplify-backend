@@ -87,6 +87,42 @@ export type HostingProps = {
   };
 
   /**
+   * Custom environment variables injected into all SSR Lambda functions at runtime.
+   * Use for database URLs, API keys, feature flags, etc.
+   * These are runtime env vars — NOT build-time `NEXT_PUBLIC_*` variables.
+   * @example
+   * ```typescript
+   * defineHosting({
+   *   environment: {
+   *     DATABASE_URL: process.env.DATABASE_URL,
+   *     FEATURE_FLAGS_API_KEY: process.env.FF_KEY,
+   *   },
+   * });
+   * ```
+   */
+  environment?: Record<string, string>;
+
+  /**
+   * Custom error page configuration.
+   * Provide paths to HTML files for custom 404 and 500 error responses.
+   * @example
+   * ```typescript
+   * defineHosting({
+   *   errorPages: {
+   *     notFound: './public/404.html',
+   *     serverError: './public/500.html',
+   *   },
+   * });
+   * ```
+   */
+  errorPages?: {
+    /** Path to a custom 404 HTML file (relative to project root). */
+    notFound?: string;
+    /** Path to a custom 500 HTML file (relative to project root). */
+    serverError?: string;
+  };
+
+  /**
    * CDN (CloudFront) configuration.
    */
   cdn?: {

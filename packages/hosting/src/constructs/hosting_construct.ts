@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Construct } from 'constructs';
+import * as fs from 'fs';
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
@@ -168,6 +169,18 @@ export type AmplifyHostingConstructProps = {
     enabled: boolean;
     retentionDays?: number;
   };
+  /** Custom environment variables for all compute functions. */
+  environment?: Record<string, string>;
+  /**
+   * Custom error page configuration.
+   * Provide paths to HTML files for custom 404 and 500 error responses.
+   */
+  errorPages?: {
+    /** Path to a custom 404 HTML file (relative to project root). */
+    notFound?: string;
+    /** Path to a custom 500 HTML file (relative to project root). */
+    serverError?: string;
+  };
   /**
    * Cookie-based skew protection.
    * When enabled, users mid-session keep receiving assets from their original
@@ -318,6 +331,17 @@ export class AmplifyHostingConstruct extends Construct {
       this.computeFunctions.set(name, computeConstruct.function);
       if (computeConstruct.functionUrl) {
         this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
+      }
+    }
+
+    // ---- 2a. User-provided environment variables ----
+    if (props.environment) {
+      for (const [, fn] of this.computeFunctions.entries()) {
+        if (fn instanceof LambdaFunction) {
+          for (const [key, value] of Object.entries(props.environment)) {
+            fn.addEnvironment(key, value);
+          }
+        }
       }
     }
 
@@ -681,6 +705,12 @@ export class AmplifyHostingConstruct extends Construct {
       skewProtection: props.skewProtection ?? { enabled: true },
       ssrDefaultTtl: props.cdn?.ssrDefaultTtl,
       webAclArn: props.cdn?.webAclArn,
+      customErrorPages: props.errorPages
+        ? {
+            notFound: !!props.errorPages.notFound,
+            serverError: !!props.errorPages.serverError,
+          }
+        : undefined,
     });
 
     this.distribution = cdn.distribution;
@@ -773,6 +803,32 @@ export class AmplifyHostingConstruct extends Construct {
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        prune: false,
+      });
+    }
+
+    // ---- 11a. Custom error pages ----
+    if (props.errorPages?.notFound) {
+      const notFoundContent = fs.readFileSync(
+        props.errorPages.notFound,
+        'utf-8',
+      );
+      new BucketDeployment(this, 'Custom404Deployment', {
+        sources: [Source.data('404.html', notFoundContent)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        prune: false,
+      });
+    }
+    if (props.errorPages?.serverError) {
+      const serverErrorContent = fs.readFileSync(
+        props.errorPages.serverError,
+        'utf-8',
+      );
+      new BucketDeployment(this, 'Custom500Deployment', {
+        sources: [Source.data('500.html', serverErrorContent)],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,
