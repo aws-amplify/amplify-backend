@@ -288,13 +288,17 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     });
   }
 
-  // Strip Nitro's pnpm-style isolated dep store. Nitro 2.13.4+ emits
-  // `node_modules/.nitro/` containing cyclic relative symlinks that
-  // crash CDK's asset hasher on macOS with ENAMETOOLONG once the cycle
-  // exhausts PATH_MAX. The dir is build-internal — Nitro inlines or
-  // bundles every dep it needs into the server entry, so the .nitro
-  // store is dead weight inside the Lambda zip anyway.
-  pruneNitroDepStore(serverDir);
+  // Materialise Nitro's pnpm-style isolated dep store. Nitro 2.13.4+
+  // emits `node_modules/.nitro/<pkg>@<ver>/` and uses relative symlinks
+  // from `node_modules/<pkg>/` into the store. The store contains cyclic
+  // symlinks that crash CDK's asset hasher on macOS with ENAMETOOLONG
+  // once the cycle exhausts PATH_MAX, so we have to remove `.nitro/` —
+  // but the Lambda bundle DOES resolve transitive deps (e.g.
+  // @smithy/util-utf8 from @aws-crypto/util) through those symlinks at
+  // runtime, so we must dereference them into real copies before
+  // removing the store. See `materializeNitroDepStore` doc for the full
+  // failure mode this prevents.
+  materializeNitroDepStore(serverDir);
 
   // Best-effort copy of amplify_outputs.json into the server bundle so the
   // SSR Lambda can talk to the Amplify backend at runtime. No-op if absent.
@@ -608,35 +612,121 @@ const prunePreCompressedAssets = (publicDir: string): void => {
 };
 
 /**
- * Remove Nitro's pnpm-style isolated dep store under
- * `<serverDir>/node_modules/.nitro/`.
+ * Materialise Nitro's pnpm-style isolated dep store under
+ * `<serverDir>/node_modules/.nitro/`, then remove the store.
  *
  * Nitro 2.13.4+ emits a layout where each dep lives at
  * `node_modules/.nitro/<pkg>@<version>/` and `node_modules/<pkg>/` is a
  * relative symlink into that store. The store itself contains cyclic
  * symlinks (a → b → a) which CDK's asset hasher walks on macOS until
  * `PATH_MAX` is exhausted, surfacing as
- * `ENAMETOOLONG: name too long, scandir`.
+ * `ENAMETOOLONG: name too long, scandir` — that's why we need to remove
+ * the store before CDK packages.
  *
- * Removing the `.nitro` dir is safe for the Lambda runtime — Nitro's
- * server bundle inlines every import it needs at build time, so nothing
- * in the runtime path resolves through `node_modules/`. Verified against
- * Nuxt 3.17 and Nuxt 4 builds: the resulting bundle still cold-starts.
+ * The previous implementation just deleted `.nitro/` outright with the
+ * comment "Nitro's server bundle inlines every import it needs at build
+ * time, so nothing in the runtime path resolves through node_modules/."
+ * That is FALSE for the `aws-lambda` preset: Nitro emits real CommonJS
+ * files into `<serverDir>/node_modules/<pkg>/...` (e.g.
+ * `@aws-crypto/util/build/main/convertToBuffer.js`) that DO `require()`
+ * other transitive deps at runtime — `@smithy/util-utf8`,
+ * `@smithy/util-buffer-from`, etc. Those transitive deps live under
+ * `node_modules/@smithy/util-utf8 -> ../.nitro/@smithy/util-utf8@3.0.0`
+ * (a relative symlink into the store). Deleting `.nitro/` left the
+ * symlinks dangling, CDK packaged the broken zip, and the Lambda
+ * crashed on init with `Cannot find module '@smithy/util-utf8'` —
+ * surfaced loudest by the cache plugin's `import '@aws-sdk/client-s3'`,
+ * but the bug was inherent to the dep layout for any nuxt SSR app.
+ *
+ * The fix: walk `<serverDir>/node_modules/` recursively, find every
+ * symlink whose realpath points into `.nitro/`, and replace the symlink
+ * with a deferenced copy of the target. Once every dep has been
+ * materialised, remove `.nitro/`. The asset hasher gets its
+ * cycle-free tree, and the Lambda gets every transitive dep it needs.
  */
-const pruneNitroDepStore = (serverDir: string): void => {
-  const nitroStore = path.join(serverDir, 'node_modules', '.nitro');
+const materializeNitroDepStore = (serverDir: string): void => {
+  const nm = path.join(serverDir, 'node_modules');
+  const nitroStore = path.join(nm, '.nitro');
   if (!fs.existsSync(nitroStore)) return;
-  // Symlink-aware removal: rmSync with force+recursive will handle the
-  // cycle by deleting symlinks as links rather than chasing them. We
-  // wrap in try/catch because partial failure on some filesystems
-  // shouldn't abort the deploy — the worst case is the original
-  // ENAMETOOLONG when CDK tries to hash, which is no worse than today.
+  // Resolve `.nitro/` to its realpath up front. On macOS the tmp tree
+  // (`/var/folders/...`) resolves to `/private/var/folders/...`, so the
+  // symlinks we're about to inspect will report a `/private/`-prefixed
+  // realpath; comparing against the unresolved nitroStore would
+  // false-negative every match. Resolve once here so the later
+  // startsWith check works on both real and symlinked tmp roots.
+  const nitroStoreReal = fs.realpathSync(nitroStore);
+
+  // Two-pass walk — collect symlinks first so we don't mutate the tree
+  // we're traversing. We only follow real directories (lstat) — a
+  // symlink encountered during the walk is a leaf, not a recursion
+  // point, so cycles can't bite us here.
+  const symlinks: string[] = [];
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) {
+        symlinks.push(full);
+      } else if (entry.isDirectory()) {
+        // Skip the dep store itself — its contents become real files via
+        // the cpSync below, so there's no need to recurse into it.
+        if (full === nitroStore) continue;
+        walk(full);
+      }
+    }
+  };
+  walk(nm);
+
+  // For each symlink whose realpath is inside `.nitro/`, replace the
+  // symlink with a real copy of the target. `dereference: true` follows
+  // any further symlinks during the copy, so we end up with no symlinks
+  // remaining in the materialized output.
+  for (const linkPath of symlinks) {
+    let target: string;
+    try {
+      target = fs.realpathSync(linkPath);
+    } catch {
+      // Dangling symlink — best-effort: just remove it so it doesn't
+      // confuse the asset hasher.
+      try {
+        fs.rmSync(linkPath, { force: true });
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // intentional
+      }
+      continue;
+    }
+    if (
+      !target.startsWith(nitroStoreReal + path.sep) &&
+      target !== nitroStoreReal
+    ) {
+      // Symlink that doesn't point into `.nitro/` — leave it alone.
+      continue;
+    }
+    try {
+      fs.rmSync(linkPath, { force: true });
+      fs.cpSync(target, linkPath, { recursive: true, dereference: true });
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best effort. A failed materialise will surface as a runtime
+      // `Cannot find module` in the Lambda; the user can re-deploy. We
+      // don't want a transient FS hiccup to abort the whole build.
+    }
+  }
+
+  // Now safe to delete the store — everything that pointed into it has
+  // been replaced with a real copy.
   try {
     fs.rmSync(nitroStore, { recursive: true, force: true });
     // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
   } catch {
-    // Best effort. If pruning fails, the asset hasher will surface its
-    // own error.
+    // Best effort. If the store can't be removed, the asset hasher
+    // surfaces its own error.
   }
 };
 

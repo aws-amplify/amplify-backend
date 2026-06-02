@@ -546,7 +546,7 @@ void describe('nitroAdapter — output dir resolution from nitro.json', () => {
   });
 });
 
-void describe('nitroAdapter — pruneNitroDepStore', () => {
+void describe('nitroAdapter — materializeNitroDepStore', () => {
   let tmpDir: string;
 
   beforeEach(() => {
@@ -559,20 +559,16 @@ void describe('nitroAdapter — pruneNitroDepStore', () => {
     mock.restoreAll();
   });
 
-  void it('removes node_modules/.nitro under the server output dir before manifest emission', () => {
+  void it('removes node_modules/.nitro before manifest emission while preserving symlinked deps', () => {
     writeMinimalNitroOutput(tmpDir);
     writePackageJson(tmpDir);
     // Synthesize Nitro's pnpm-style isolated dep store with one cyclic
     // symlink pair (a → b → a). On macOS (and any FS that resolves
     // symlinks during scandir) walking this cycle exhausts PATH_MAX —
-    // pruneNitroDepStore deletes the store before CDK can hash it.
-    const nitroStore = path.join(
-      tmpDir,
-      '.output',
-      'server',
-      'node_modules',
-      '.nitro',
-    );
+    // we have to remove the store before CDK can hash it.
+    const serverDir = path.join(tmpDir, '.output', 'server');
+    const nm = path.join(serverDir, 'node_modules');
+    const nitroStore = path.join(nm, '.nitro');
     fs.mkdirSync(nitroStore, { recursive: true });
     const aDir = path.join(nitroStore, 'a@1.0.0');
     const bDir = path.join(nitroStore, 'b@1.0.0');
@@ -580,12 +576,39 @@ void describe('nitroAdapter — pruneNitroDepStore', () => {
     fs.mkdirSync(bDir);
     fs.symlinkSync(bDir, path.join(aDir, 'cycle'));
     fs.symlinkSync(aDir, path.join(bDir, 'cycle'));
+    // Add a real package symlink under node_modules/<pkg>/ → .nitro/<pkg>@<ver>/
+    // Real pkg has a runtime file the Lambda would load.
+    const pkgRealDir = path.join(nitroStore, 'mypkg@1.2.3');
+    fs.mkdirSync(pkgRealDir);
+    fs.writeFileSync(path.join(pkgRealDir, 'index.js'), 'module.exports = 42;');
+    fs.symlinkSync(pkgRealDir, path.join(nm, 'mypkg'));
 
     nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+
     assert.strictEqual(
       fs.existsSync(nitroStore),
       false,
       'node_modules/.nitro must be removed before the asset hasher runs',
+    );
+    // Regression: the symlink at node_modules/<pkg>/ must be materialised
+    // into a real directory containing the package contents — pre-fix this
+    // was left dangling and CDK dropped it from the Lambda zip, causing
+    // `Cannot find module` crashes on init.
+    const materialisedPkg = path.join(nm, 'mypkg');
+    assert.strictEqual(
+      fs.existsSync(materialisedPkg),
+      true,
+      'symlinked dep must remain reachable after .nitro/ removal',
+    );
+    assert.strictEqual(
+      fs.lstatSync(materialisedPkg).isDirectory(),
+      true,
+      'symlinked dep must be materialised into a real directory',
+    );
+    assert.strictEqual(
+      fs.readFileSync(path.join(materialisedPkg, 'index.js'), 'utf-8'),
+      'module.exports = 42;',
+      'materialised dep must contain the original file contents',
     );
   });
 
