@@ -568,6 +568,336 @@ void describe('nextjsAdapter', () => {
       'Should not create amplify_outputs.json if source does not exist',
     );
   });
+
+  void it('lifts simple redirects from routes-manifest.json', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    // Create .next/routes-manifest.json with various redirect types
+    const dotNext = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNext, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNext, 'routes-manifest.json'),
+      JSON.stringify({
+        redirects: [
+          // Simple redirect — should be lifted
+          { source: '/old', destination: '/new', statusCode: 301 },
+          // Has condition — should be skipped
+          {
+            source: '/conditional',
+            destination: '/target',
+            statusCode: 302,
+            has: [{ type: 'header', key: 'x-foo' }],
+          },
+          // Internal redirect — should be skipped
+          {
+            source: '/internal',
+            destination: '/dest',
+            statusCode: 308,
+            internal: true,
+          },
+          // Unsupported status code — should be skipped
+          { source: '/perm', destination: '/dest', statusCode: 200 },
+          // Regex source — should be skipped
+          {
+            source: '/:path(\\d+)',
+            destination: '/page',
+            statusCode: 302,
+          },
+        ],
+        headers: [
+          // Simple header — should be lifted
+          {
+            source: '/api/*',
+            headers: [
+              { key: 'X-Custom-Header', value: 'my-value' },
+              { key: 'Cache-Control', value: 'public, max-age=3600' },
+            ],
+          },
+          // Has condition — should be skipped
+          {
+            source: '/guarded',
+            has: [{ type: 'cookie', key: 'session' }],
+            headers: [{ key: 'X-Guard', value: 'true' }],
+          },
+          // Complex source — should be skipped
+          {
+            source: '/dynamic/:slug*',
+            headers: [{ key: 'X-Dynamic', value: 'yes' }],
+          },
+        ],
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.redirects, 'Should have lifted redirects');
+    assert.strictEqual(manifest.redirects!.length, 1);
+    assert.strictEqual(manifest.redirects![0].source, '/old');
+    assert.strictEqual(manifest.redirects![0].destination, '/new');
+    assert.strictEqual(manifest.redirects![0].statusCode, 301);
+
+    assert.ok(manifest.headers, 'Should have lifted headers');
+    assert.strictEqual(manifest.headers!.length, 1);
+    assert.strictEqual(manifest.headers![0].source, '/api/*');
+  });
+
+  void it('detects basePath and trailingSlash from required-server-files.json', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    // Create .next/required-server-files.json with basePath and trailingSlash
+    const dotNext = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNext, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNext, 'required-server-files.json'),
+      JSON.stringify({
+        config: {
+          basePath: '/docs',
+          trailingSlash: true,
+          assetPrefix: '/cdn-prefix',
+        },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.strictEqual(manifest.basePath, '/docs');
+    assert.strictEqual(manifest.assetPrefix, '/cdn-prefix');
+  });
+
+  void it('ignores absolute-URL assetPrefix', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    const dotNext = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNext, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNext, 'required-server-files.json'),
+      JSON.stringify({
+        config: { assetPrefix: 'https://cdn.example.com' },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.strictEqual(
+      manifest.assetPrefix,
+      undefined,
+      'Absolute-URL assetPrefix should be ignored',
+    );
+  });
+
+  void it('handles edgeFunctions in OpenNext output', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    // Create edge function bundle
+    const edgeFnDir = path.join(openNextDir, 'server-functions', 'edgeFn1');
+    fs.mkdirSync(edgeFnDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(edgeFnDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        edgeFunctions: {
+          edgeFn1: {
+            bundle: '.open-next/server-functions/edgeFn1',
+            handler: 'index.handler',
+            runtime: 'nodejs20.x',
+          },
+        },
+        behaviors: [
+          { pattern: '/api/edge/*', edgeFunction: 'edgeFn1' },
+          { pattern: '/*', origin: 'default' },
+        ],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(
+      manifest.compute['edgeFn1'],
+      'Should map edge function to compute',
+    );
+    assert.strictEqual(manifest.compute['edgeFn1'].type, 'edge');
+    assert.strictEqual(manifest.compute['edgeFn1'].placement, 'global');
+
+    const edgeRoute = manifest.routes.find((r) => r.pattern === '/api/edge/*');
+    assert.ok(edgeRoute, 'Should have edge function route');
+    assert.strictEqual(edgeRoute!.target, 'edgeFn1');
+  });
+
+  void it('detects image optimization function', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+
+    // Create image optimization function with config
+    const imgDir = path.join(openNextDir, 'image-optimization-function');
+    fs.mkdirSync(imgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(imgDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(imgDir, 'config.json'),
+      JSON.stringify({ formats: ['webp'], sizes: [640, 1080] }),
+    );
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+          imageOptimizer: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [
+          { pattern: '/_next/image*', origin: 'imageOptimizer' },
+          { pattern: '/*', origin: 'default' },
+        ],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.imageOptimization, 'Should detect image optimization');
+    assert.deepStrictEqual(manifest.imageOptimization!.formats, ['webp']);
+    assert.deepStrictEqual(manifest.imageOptimization!.sizes, [640, 1080]);
+  });
+
+  void it('handles ecs/docker origin type', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    const ecsDir = path.join(openNextDir, 'server-functions', 'ecs-origin');
+    fs.mkdirSync(ecsDir, { recursive: true });
+    fs.writeFileSync(path.join(ecsDir, 'server.js'), 'require("http")');
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          'ecs-origin': {
+            type: 'ecs',
+            entrypoint: 'server.js',
+            port: 8080,
+            streaming: true,
+          },
+        },
+        behaviors: [{ pattern: '/*', origin: 'ecs-origin' }],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest.compute['ecs-origin']);
+    assert.strictEqual(manifest.compute['ecs-origin'].type, 'http-server');
+    assert.strictEqual(
+      (manifest.compute['ecs-origin'] as { port?: number }).port,
+      8080,
+    );
+  });
+
+  void it('handles trailingSlash false in required-server-files', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: {
+          default: { type: 'function', handler: 'index.handler' },
+        },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    const dotNext = path.join(tmpDir, '.next');
+    fs.mkdirSync(dotNext, { recursive: true });
+    fs.writeFileSync(
+      path.join(dotNext, 'required-server-files.json'),
+      JSON.stringify({ config: { trailingSlash: false } }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    assert.ok(manifest, 'Should produce manifest with trailingSlash false');
+  });
 });
 
 void describe('hasExistingMiddlewareManifest', () => {
