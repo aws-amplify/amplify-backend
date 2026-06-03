@@ -20,7 +20,7 @@ import type {
 const VALID_ARN_PATTERN =
   /^arn:(aws|aws-us-gov|aws-cn):codeconnections:[a-z0-9-]+:\d{12}:connection\/[a-zA-Z0-9-]+$/;
 
-const DEFAULT_SYNTH_COMMANDS = ['npm ci', 'npx cdk synth'];
+const DEFAULT_SYNTH_COMMANDS = ['npm ci', 'npx tsx amplify/pipeline.ts'];
 
 /**
  * CDK Pipelines-based CI/CD pipeline construct (L3).
@@ -211,6 +211,13 @@ const validateProps = <TConfig>(
         );
       }
       stageNames.add(stage.name);
+
+      if (!/^[a-zA-Z0-9_-]+$/.test(stage.name)) {
+        throw new Error(
+          `Pipeline: stage name "${stage.name}" contains invalid characters. ` +
+            `Stage names must be alphanumeric with hyphens/underscores (a-zA-Z0-9_-).`,
+        );
+      }
     }
   }
 

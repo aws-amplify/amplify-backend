@@ -26,6 +26,7 @@
     "src/test-projects/standalone-hosting-astro",
     "src/test-projects/standalone-hosting-astro-basepath",
     "src/test-projects/standalone-hosting-spa",
+    "src/test-projects/pipeline",
     "src/test-cdk-projects"
   ]
 }

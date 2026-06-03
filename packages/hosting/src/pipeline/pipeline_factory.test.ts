@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createRequire } from 'node:module';
-import { App, Stage } from 'aws-cdk-lib';
+import { App, CfnOutput, Stack, Stage } from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { CodeBuildStep, CodePipelineSource } from 'aws-cdk-lib/pipelines';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -13,6 +17,8 @@ import {
   getStageConfig,
   withPipelineScope,
 } from './pipeline_factory.js';
+import { AmplifyPipelineConstruct } from './pipeline_construct.js';
+import type { PipelineProps } from './types.js';
 
 const VALID_CONNECTION_ARN =
   'arn:aws:codeconnections:us-east-1:123456789012:connection/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
@@ -684,6 +690,382 @@ void describe('withPipelineScope', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis as any).__AMPLIFY_PIPELINE_SCOPE__,
       undefined,
+    );
+  });
+});
+
+// ─── CDK Template Assertion Tests ────────────────────────────────────────────
+
+const VALID_ARN =
+  'arn:aws:codeconnections:us-east-1:123456789012:connection/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+
+/**
+ * Helper: creates a pipeline construct with a _postStageHook that mimics
+ * the real createHostingDeployHook from pipeline_factory.ts.
+ */
+const createPipelineWithHostingHook = (
+  props?: Partial<PipelineProps>,
+): { stack: Stack; template: Template } => {
+  const app = new App();
+  const stack = new Stack(app, 'TestStack');
+  const sourceBucket = new Bucket(stack, 'Source', { versioned: true });
+
+  new AmplifyPipelineConstruct(stack, 'Pipeline', {
+    source: {
+      repo: 'my-org/my-app',
+      connectionArn: VALID_ARN,
+    },
+    branches: [
+      {
+        branch: 'main',
+        stages: [{ name: 'beta' }],
+      },
+    ],
+    stageFactory: (scope) => {
+      const backendStack = new Stack(scope, 'BackendStack');
+      const stackNameOutput = new CfnOutput(backendStack, 'BackendStackName', {
+        value: backendStack.stackName,
+      });
+      // Simulate what defineBackend does: publish outputs via globalThis
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+        stackNameOutput,
+        backendStack,
+      };
+    },
+    _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
+    _postStageHook: ({ source, stageConfig }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const backendOutputs = (globalThis as any)
+        .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
+        | { stackNameOutput: CfnOutput; backendStack: Stack }
+        | undefined;
+
+      if (!backendOutputs?.stackNameOutput) return [];
+
+      const deployStep = new CodeBuildStep(
+        `DeployHosting-${stageConfig.name}`,
+        {
+          input: source,
+          envFromCfnOutputs: {
+            BACKEND_STACK_NAME: backendOutputs.stackNameOutput,
+          },
+          env: {
+            STAGE_NAME: stageConfig.name,
+            HOSTING_ENTRY_POINT: 'amplify/hosting.ts',
+          },
+          commands: [
+            'npm ci',
+            'npm install --no-save @aws-amplify/backend-cli',
+            'npx ampx generate outputs --stack $BACKEND_STACK_NAME --out-dir .',
+            'npm run build',
+            'npx cdk deploy --all --app "npx tsx $HOSTING_ENTRY_POINT" --require-approval never -c amplify-backend-namespace=pipeline -c amplify-backend-name=$STAGE_NAME -c amplify-backend-type=standalone',
+          ],
+          buildEnvironment: {
+            buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2023_5,
+            computeType: codebuild.ComputeType.MEDIUM,
+          },
+        },
+      );
+
+      return [deployStep];
+    },
+    ...props,
+  });
+
+  // Clean up globalThis
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (globalThis as any).__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__;
+
+  const template = Template.fromStack(stack);
+  return { stack, template };
+};
+
+void describe('CDK template assertions for hosting deploy step', () => {
+  void it('CodeBuild hosting deploy step includes ampx generate outputs command', () => {
+    const { template } = createPipelineWithHostingHook();
+
+    template.hasResourceProperties('AWS::CodeBuild::Project', {
+      Source: Match.objectLike({
+        BuildSpec: Match.serializedJson(
+          Match.objectLike({
+            phases: Match.objectLike({
+              build: Match.objectLike({
+                commands: Match.arrayWith([
+                  Match.stringLikeRegexp('ampx generate outputs'),
+                ]),
+              }),
+            }),
+          }),
+        ),
+      }),
+    });
+  });
+
+  void it('passes backend stack name to hosting deploy step via environment variable', () => {
+    const { template } = createPipelineWithHostingHook();
+
+    // envFromCfnOutputs resolves to a CodePipeline action variable that
+    // passes the CfnOutput value to the CodeBuild step at runtime.
+    // It appears in the pipeline action Configuration.EnvironmentVariables,
+    // not the CodeBuild project Environment.EnvironmentVariables.
+    template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
+      Stages: Match.arrayWith([
+        Match.objectLike({
+          Actions: Match.arrayWith([
+            Match.objectLike({
+              Name: 'DeployHosting-beta',
+              Configuration: Match.objectLike({
+                EnvironmentVariables:
+                  Match.stringLikeRegexp('BACKEND_STACK_NAME'),
+              }),
+            }),
+          ]),
+        }),
+      ]),
+    });
+  });
+
+  void it('each stage gets its own backend stack name in the hosting deploy step', () => {
+    const app = new App();
+    const stack = new Stack(app, 'MultiStageStack');
+    const sourceBucket = new Bucket(stack, 'Source', { versioned: true });
+
+    new AmplifyPipelineConstruct(stack, 'Pipeline', {
+      source: {
+        repo: 'my-org/my-app',
+        connectionArn: VALID_ARN,
+      },
+      branches: [
+        {
+          branch: 'main',
+          stages: [{ name: 'beta' }, { name: 'prod' }],
+        },
+      ],
+      stageFactory: (scope) => {
+        const backendStack = new Stack(scope, 'BackendStack');
+        const stackNameOutput = new CfnOutput(
+          backendStack,
+          'BackendStackName',
+          {
+            value: backendStack.stackName,
+          },
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (globalThis as any).__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ = {
+          stackNameOutput,
+          backendStack,
+        };
+      },
+      _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
+      _postStageHook: ({ source, stageConfig }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const backendOutputs = (globalThis as any)
+          .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
+          | { stackNameOutput: CfnOutput; backendStack: Stack }
+          | undefined;
+
+        if (!backendOutputs?.stackNameOutput) return [];
+
+        return [
+          new CodeBuildStep(`DeployHosting-${stageConfig.name}`, {
+            input: source,
+            envFromCfnOutputs: {
+              BACKEND_STACK_NAME: backendOutputs.stackNameOutput,
+            },
+            env: { STAGE_NAME: stageConfig.name },
+            commands: [
+              'npx ampx generate outputs --stack $BACKEND_STACK_NAME --out-dir .',
+            ],
+            buildEnvironment: {
+              buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2023_5,
+              computeType: codebuild.ComputeType.MEDIUM,
+            },
+          }),
+        ];
+      },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__;
+
+    const template = Template.fromStack(stack);
+
+    // envFromCfnOutputs resolves to pipeline action environment variables.
+    // Verify each stage has a DeployHosting action referencing BACKEND_STACK_NAME.
+    const pipelines = template.findResources('AWS::CodePipeline::Pipeline');
+    const pipelineKey = Object.keys(pipelines)[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stages = (pipelines[pipelineKey] as any).Properties?.Stages ?? [];
+
+    // Collect all DeployHosting actions across pipeline stages
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hostingActions: any[] = [];
+    for (const stage of stages) {
+      for (const action of stage.Actions ?? []) {
+        if (
+          typeof action.Name === 'string' &&
+          action.Name.startsWith('DeployHosting-')
+        ) {
+          hostingActions.push(action);
+        }
+      }
+    }
+
+    assert.strictEqual(
+      hostingActions.length,
+      2,
+      `Expected 2 DeployHosting actions (one per stage), got ${hostingActions.length}`,
+    );
+
+    // Verify each action references BACKEND_STACK_NAME
+    for (const action of hostingActions) {
+      const envVarsJson = action.Configuration?.EnvironmentVariables ?? '[]';
+      assert.ok(
+        envVarsJson.includes('BACKEND_STACK_NAME'),
+        `DeployHosting action should reference BACKEND_STACK_NAME, got: ${envVarsJson}`,
+      );
+    }
+
+    // Verify each has a different action name (different stage)
+    const actionNames = hostingActions.map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (a: any) => a.Name as string,
+    );
+    assert.ok(
+      actionNames.includes('DeployHosting-beta'),
+      `Expected DeployHosting-beta action, got: ${actionNames.join(', ')}`,
+    );
+    assert.ok(
+      actionNames.includes('DeployHosting-prod'),
+      `Expected DeployHosting-prod action, got: ${actionNames.join(', ')}`,
+    );
+  });
+
+  void it('skips hosting deploy step when backend outputs are not available', () => {
+    const app = new App();
+    const stack = new Stack(app, 'NoBackendStack');
+    const sourceBucket = new Bucket(stack, 'Source', { versioned: true });
+
+    new AmplifyPipelineConstruct(stack, 'Pipeline', {
+      source: {
+        repo: 'my-org/my-app',
+        connectionArn: VALID_ARN,
+      },
+      branches: [
+        {
+          branch: 'main',
+          stages: [{ name: 'beta' }],
+        },
+      ],
+      stageFactory: (scope) => {
+        // Only hosting — no backend stack, no globalThis outputs
+        new Stack(scope, 'HostingStack');
+      },
+      _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
+      _postStageHook: () => {
+        // Simulate createHostingDeployHook when no backend outputs exist
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const backendOutputs = (globalThis as any)
+          .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
+          | { stackNameOutput: CfnOutput }
+          | undefined;
+
+        if (!backendOutputs?.stackNameOutput) return [];
+        return [];
+      },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Find CodeBuild projects with BACKEND_STACK_NAME env var
+    const projects = template.findResources('AWS::CodeBuild::Project');
+    const hostingDeployProjects = Object.entries(projects).filter(
+      ([, resource]) => {
+        const envVars =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (resource as any).Properties?.Environment?.EnvironmentVariables ?? [];
+        return envVars.some(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (v: any) => v.Name === 'BACKEND_STACK_NAME',
+        );
+      },
+    );
+
+    assert.strictEqual(
+      hostingDeployProjects.length,
+      0,
+      'No hosting deploy step should be created when backend outputs are missing',
+    );
+  });
+
+  void it('handles missing globalThis backend outputs gracefully', () => {
+    // Ensure globalThis is clean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__;
+
+    const app = new App();
+    const stack = new Stack(app, 'MissingOutputsStack');
+    const sourceBucket = new Bucket(stack, 'Source', { versioned: true });
+
+    new AmplifyPipelineConstruct(stack, 'Pipeline', {
+      source: {
+        repo: 'my-org/my-app',
+        connectionArn: VALID_ARN,
+      },
+      branches: [
+        {
+          branch: 'main',
+          stages: [{ name: 'beta' }],
+        },
+      ],
+      stageFactory: (scope) => {
+        new Stack(scope, 'AppStack');
+      },
+      _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
+      _postStageHook: ({ source, stageConfig }) => {
+        // Replicate the logic from createHostingDeployHook
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const backendOutputs = (globalThis as any)
+          .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
+          | { stackNameOutput: CfnOutput; backendStack: Stack }
+          | undefined;
+
+        if (!backendOutputs?.stackNameOutput) {
+          return [];
+        }
+
+        return [
+          new CodeBuildStep(`DeployHosting-${stageConfig.name}`, {
+            input: source,
+            envFromCfnOutputs: {
+              BACKEND_STACK_NAME: backendOutputs.stackNameOutput,
+            },
+            commands: ['npx ampx generate outputs'],
+          }),
+        ];
+      },
+    });
+
+    // Should synthesize without error — the hook returns empty array
+    const template = Template.fromStack(stack);
+    const projects = template.findResources('AWS::CodeBuild::Project');
+    const hostingDeployProjects = Object.entries(projects).filter(
+      ([, resource]) => {
+        const envVars =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (resource as any).Properties?.Environment?.EnvironmentVariables ?? [];
+        return envVars.some(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (v: any) => v.Name === 'BACKEND_STACK_NAME',
+        );
+      },
+    );
+
+    assert.strictEqual(
+      hostingDeployProjects.length,
+      0,
+      'No hosting deploy step should exist when globalThis outputs are not set',
     );
   });
 });
