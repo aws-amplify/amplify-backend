@@ -584,9 +584,7 @@ void describe('CdnConstruct', () => {
         string,
         unknown
       >;
-      const origins = distConfig?.['Origins'] as Array<
-        Record<string, unknown>
-      >;
+      const origins = distConfig?.['Origins'] as Array<Record<string, unknown>>;
       const apiOrigin = origins.find((o) => o['OriginCustomHeaders']);
       const customHeaders = apiOrigin?.['OriginCustomHeaders'] as
         | Array<Record<string, string>>

@@ -184,10 +184,7 @@ void describe('generateBuildIdAndRedirectFunctionCode', () => {
       const result = handler({
         request: { uri: '/.well-known/acme-challenge', headers: {} },
       }) as { uri: string };
-      assert.equal(
-        result.uri,
-        '/builds/mybuild-1/.well-known/acme-challenge',
-      );
+      assert.equal(result.uri, '/builds/mybuild-1/.well-known/acme-challenge');
     });
   });
 });
