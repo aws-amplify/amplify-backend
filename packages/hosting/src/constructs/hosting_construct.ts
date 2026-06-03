@@ -686,6 +686,23 @@ export class AmplifyHostingConstruct extends Construct {
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
 
+    // ---- Deletion ordering: Distribution before AccessLogBucket cleanup ----
+    // CloudFront delivers access logs asynchronously. During stack deletion,
+    // CDK's autoDeleteObjects Lambda can empty the bucket, but if the
+    // distribution is still alive it writes MORE logs before being fully
+    // removed — causing "bucket not empty" on the subsequent bucket delete.
+    // Adding a DependsOn from the Distribution to the auto-delete custom
+    // resource ensures CFN deletes the distribution FIRST (stopping log
+    // delivery), THEN fires the auto-delete Lambda to empty the bucket.
+    if (storage.accessLogBucket) {
+      const autoDeleteCr = storage.accessLogBucket.node.tryFindChild(
+        'AutoDeleteObjectsCustomResource',
+      );
+      if (autoDeleteCr) {
+        cdn.distribution.node.addDependency(autoDeleteCr as Construct);
+      }
+    }
+
     // ---- 9a. OPEN_NEXT_ORIGIN env var for URL construction ----
     // OpenNext's origin resolver (pattern-env) reads OPEN_NEXT_ORIGIN as a JSON
     // map of origin names → {host, protocol, port}. Only the primary server
