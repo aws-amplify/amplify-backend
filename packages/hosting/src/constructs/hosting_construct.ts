@@ -40,6 +40,8 @@ import { WafConstruct } from './waf_construct.js';
 import { DnsConstruct } from './dns_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
 import { CdnConstruct } from './cdn_construct.js';
+import { MonitoringConstruct } from './monitoring_construct.js';
+import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
 
 // Re-export build ID helpers for public API + tests
 export { generateBuildIdFunctionCode, generateBuildId } from '../defaults.js';
@@ -124,6 +126,16 @@ export type AmplifyHostingConstructProps = {
     retentionDays?: number;
   };
   /**
+   * Default CloudWatch alarms (P3.1 + P3.2). Off by default. When
+   * enabled, the L3 wires CloudFront 5xx, Lambda error / throttle,
+   * and revalidation-DLQ alarms to an SNS topic. See
+   * `MonitoringConstruct`.
+   */
+  monitoring?: {
+    enabled: boolean;
+    snsTopicArn?: string;
+  };
+  /**
    * Cookie-based skew protection.
    * When enabled, users mid-session keep receiving assets from their original
    * build, preventing asset mismatches during rolling deployments.
@@ -167,7 +179,15 @@ export class AmplifyHostingConstruct extends Construct {
   readonly webAcl?: CfnWebACL;
   readonly cacheTable?: Table;
   readonly revalidationQueue?: Queue;
+  readonly revalidationDlq?: Queue;
   readonly cacheBucket?: Bucket;
+  /**
+   * SNS topic alarm actions are sent to. Set when
+   * `monitoring.enabled === true`. The user subscribes (email, Slack
+   * via webhook, PagerDuty, etc.) via `monitoringTopic.addSubscription(...)`
+   * or by configuring an external listener with the topic ARN.
+   */
+  readonly monitoringTopic?: ITopic;
 
   /**
    * Creates the hosting infrastructure from a framework-agnostic deploy manifest.
@@ -342,7 +362,9 @@ export class AmplifyHostingConstruct extends Construct {
       // SQS queue for async revalidation (FIFO required — OpenNext sends
       // MessageDeduplicationId and MessageGroupId with revalidation messages)
       if (manifest.cache.revalidationQueue) {
-        const revalidationDlq = new Queue(this, 'RevalidationDLQ', {
+        // Hold a reference to the DLQ on the construct so the
+        // monitoring construct can attach an alarm to it later.
+        this.revalidationDlq = new Queue(this, 'RevalidationDLQ', {
           fifo: true,
           retentionPeriod: Duration.days(14),
           encryption: QueueEncryption.SQS_MANAGED,
@@ -355,7 +377,7 @@ export class AmplifyHostingConstruct extends Construct {
           retentionPeriod: Duration.days(1),
           encryption: QueueEncryption.SQS_MANAGED,
           deadLetterQueue: {
-            queue: revalidationDlq,
+            queue: this.revalidationDlq,
             maxReceiveCount: 3,
           },
         });
@@ -463,6 +485,11 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 25,
         },
         reservedConcurrency: 10,
+        // Propagate the SSR Lambda's logRetention to image-opt so a
+        // user who bumped retention for debugability gets the same
+        // window for image-opt logs (intermittent SVG/SSRF rejects
+        // and remote-pattern misses live here).
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);
@@ -526,6 +553,18 @@ export class AmplifyHostingConstruct extends Construct {
             JSON.stringify(manifest.imageOptimization.remotePatterns),
           );
         }
+        // Astro `image.domains` / Next.js `images.domains` ship as a
+        // CSV of bare hostnames — simpler shape than remotePatterns,
+        // honored by the IPX runtime allowlist (P0.1 enforcement).
+        if (
+          manifest.imageOptimization.domains &&
+          manifest.imageOptimization.domains.length > 0
+        ) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_ALLOWED_HOSTNAMES',
+            manifest.imageOptimization.domains.join(','),
+          );
+        }
       }
     }
 
@@ -543,6 +582,11 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 5,
           memorySize: 128,
         },
+        // Lambda@Edge logs land in us-east-1 + every PoP region. The
+        // L3 still passes logRetention so all replicas honor the same
+        // window — the singleton custom-resource-driven retention
+        // would have churned per-region log groups on every redeploy.
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('middleware', middlewareConstruct.function);
@@ -578,7 +622,25 @@ export class AmplifyHostingConstruct extends Construct {
     );
 
     // ---- 9. CloudFront distribution ----
-    const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
+    // Font MIME enforcement (P1.7): inject per-pattern Content-Type
+    // headers into the manifest so the per-pattern RHP machinery in
+    // CdnConstruct stamps the right Content-Type on font responses
+    // even when S3 stored them as `binary/octet-stream`. We only emit
+    // patterns for extensions actually present on disk so projects
+    // without fonts pay zero RHP-quota cost. CloudFront's RHP
+    // overrides origin headers, so the header-set wins regardless of
+    // what S3 returns.
+    const manifestWithFontHeaders: DeployManifest = {
+      ...manifest,
+      headers: [
+        ...(manifest.headers ?? []),
+        ...buildFontMimeHeaders(manifest.staticAssets.directory),
+      ],
+    };
+    const manifestWithBuildId: DeployManifest = {
+      ...manifestWithFontHeaders,
+      buildId,
+    };
 
     // Per-route Lambda@Edge function versions (OpenNext edge routes). Only
     // computes with type === 'edge' get a `currentVersion` from the
@@ -614,6 +676,49 @@ export class AmplifyHostingConstruct extends Construct {
 
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
+
+    // ---- 9c. Default CloudWatch alarms (P3.1 + P3.2) ----
+    // Off by default so the construct stays cheap-by-default; opt in
+    // via `monitoring: { enabled: true }`. When enabled, surfaces the
+    // SNS topic ARN as a CloudFormation output so operators can wire
+    // subscriptions externally without touching the construct again.
+    if (props.monitoring?.enabled) {
+      const userTopic = props.monitoring.snsTopicArn
+        ? Topic.fromTopicArn(
+            this,
+            'AlarmTopicImport',
+            props.monitoring.snsTopicArn,
+          )
+        : undefined;
+      const ssrComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : undefined;
+      const ssrFn = ssrComputeName
+        ? this.computeFunctions.get(ssrComputeName)
+        : undefined;
+      const imgFn = this.computeFunctions.get('image-optimization');
+      const monitoring = new MonitoringConstruct(this, 'Monitoring', {
+        enabled: true,
+        snsTopic: userTopic,
+        distribution: this.distribution,
+        // Lambda@Edge functions don't accept the CW metric helpers we
+        // use; only attach when the SSR compute is a regional Lambda.
+        ssrFunction: ssrFn instanceof LambdaFunction ? ssrFn : undefined,
+        imageFunction: imgFn instanceof LambdaFunction ? imgFn : undefined,
+        revalidationDlq: this.revalidationDlq,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this as any).monitoringTopic = monitoring.topic;
+      if (monitoring.topic) {
+        new CfnOutput(this, 'MonitoringTopicArn', {
+          value: monitoring.topic.topicArn,
+          description:
+            'SNS topic for hosting alarms. Subscribe an email/Slack/PagerDuty endpoint here.',
+        });
+      }
+    }
 
     // ---- 9a. OPEN_NEXT_ORIGIN env var for URL construction ----
     // OpenNext's origin resolver (pattern-env) reads OPEN_NEXT_ORIGIN as a JSON
@@ -767,45 +872,16 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // ---- 12b. Font Content-Type pass ----
-    // Re-deploys font files with the correct MIME type. Each extension
-    // gets its own BucketDeployment because `contentType` applies per
-    // deployment (no per-file inference override). We don't gate this on
-    // immutablePaths — fonts are commonly hashed (Next emits them under
-    // `_next/static/media`) AND non-hashed (`public/fonts/`); applying
-    // a long-lived Cache-Control here would be wrong for the latter, so
-    // we leave Cache-Control unset and let the prior pass govern.
-    //
-    // We only emit a deployment for an extension that actually exists in
-    // the static dir, so projects without fonts pay zero overhead.
-    //
-    // All font deployments reuse the same `staticSource` Source.asset
-    // declared above — CDK dedups the staged asset zip across all
-    // BucketDeployments via content hash, so the directory is staged
-    // exactly once even with N font extensions present.
-    const FONT_TYPES: Array<[string, string]> = [
-      ['.woff2', 'font/woff2'],
-      ['.woff', 'font/woff'],
-      ['.ttf', 'font/ttf'],
-      ['.otf', 'font/otf'],
-      ['.eot', 'application/vnd.ms-fontobject'],
-    ];
-    const fontExtensionsPresent = detectFontExtensions(
-      manifest.staticAssets.directory,
-      FONT_TYPES.map(([ext]) => ext),
-    );
-    for (const [ext, mime] of FONT_TYPES) {
-      if (!fontExtensionsPresent.has(ext)) continue;
-      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: [`*${ext}`],
-        contentType: mime,
-        prune: false,
-      });
-    }
+    // Note on font MIME: the previous implementation re-deployed each
+    // font extension via its own BucketDeployment to overwrite S3's
+    // `binary/octet-stream` default with the correct `font/woff2` etc.
+    // That worked but was fragile — each deployment is a custom
+    // resource backed by a Lambda, and any one failing left fonts with
+    // wrong Content-Type forever (browsers reject under CORS, no
+    // CloudWatch signal). Font MIME enforcement is now done in the
+    // CdnConstruct via per-pattern ResponseHeadersPolicies — see
+    // `injectFontMimeHeaders` further up in this constructor (called
+    // before the CDN construct is built).
   }
 
   /**
@@ -847,6 +923,41 @@ const normalizeTimeout = (t?: Duration | number): Duration | undefined => {
   if (t === undefined) return undefined;
   if (typeof t === 'number') return Duration.seconds(t);
   return t;
+};
+
+/**
+ * Build manifest `headers[]` entries that stamp the right
+ * `Content-Type` on font responses via the per-pattern RHP path. Used
+ * instead of per-extension `BucketDeployment` (P1.7) — RHP overrides
+ * origin headers, so even when S3 stored the file as
+ * `binary/octet-stream` the response carries the right type.
+ *
+ * Returns one entry per *present* extension. Each entry uses a
+ * `*<ext>` source pattern; the per-pattern policy logic in
+ * CdnConstruct synthesizes a static behavior at that pattern when no
+ * other behavior owns it. CloudFront PathPatterns support the leading
+ * `*` wildcard for a single trailing literal, so `*.woff2` matches
+ * any path ending in `.woff2` regardless of directory.
+ */
+const buildFontMimeHeaders = (
+  staticDir: string,
+): Array<{ source: string; headers: Record<string, string> }> => {
+  const FONT_TYPES: Array<[string, string]> = [
+    ['.woff2', 'font/woff2'],
+    ['.woff', 'font/woff'],
+    ['.ttf', 'font/ttf'],
+    ['.otf', 'font/otf'],
+    ['.eot', 'application/vnd.ms-fontobject'],
+  ];
+  const present = detectFontExtensions(
+    staticDir,
+    FONT_TYPES.map(([ext]) => ext),
+  );
+  return FONT_TYPES.filter(([ext]) => present.has(ext)).map(([ext, mime]) => ({
+    source: `*${ext}`,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    headers: { 'Content-Type': mime },
+  }));
 };
 
 const detectFontExtensions = (

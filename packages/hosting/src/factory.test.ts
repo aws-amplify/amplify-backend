@@ -38,10 +38,20 @@ const minimalSpaManifest = (staticDir: string): DeployManifest => ({
 
 /**
  * Create a temporary project directory with static assets.
+ *
+ * The temp tree carries a minimal `package.json` because the factory's
+ * project-root resolver (P3.7) walks up from cwd to the nearest
+ * `package.json` and throws `ProjectRootNotFoundError` otherwise.
+ * Real projects always have one; the file content here is a stub so
+ * `local-pkg`'s readers don't crash on parse.
  */
 const createTestProjectDir = (): string => {
   const tmpDir = fs.mkdtempSync(
     path.join(os.tmpdir(), 'hosting-factory-test-'),
+  );
+  fs.writeFileSync(
+    path.join(tmpDir, 'package.json'),
+    JSON.stringify({ name: 'hosting-factory-test', version: '0.0.0' }),
   );
   const staticDir = path.join(tmpDir, '.amplify-hosting', 'static');
   fs.mkdirSync(staticDir, { recursive: true });

@@ -111,7 +111,7 @@ export type HostingProps = {
     encryptionKey?: IKey;
     /** If true, the S3 bucket is retained on stack deletion. Default: false. */
     retainOnDelete?: boolean;
-    /** Days to retain build artifacts in S3. Default: 365. */
+    /** Days to retain build artifacts in S3. Default: 30. */
     buildRetentionDays?: number;
   };
 
@@ -123,6 +123,24 @@ export type HostingProps = {
     enabled: boolean;
     /** Days to retain access logs. Default: 90. */
     retentionDays?: number;
+  };
+
+  /**
+   * CloudWatch alarm wiring. Off by default (`enabled: false`) so the
+   * construct stays cheap-by-default. When enabled, creates a small
+   * default set of alarms: CloudFront 5xx rate, SSR Lambda
+   * errors/throttles, image-opt errors, and revalidation DLQ depth.
+   * If `snsTopicArn` is omitted, an SNS topic is created and surfaced
+   * via the construct's `monitoringTopic` field for the caller to
+   * subscribe to.
+   */
+  monitoring?: {
+    enabled: boolean;
+    /**
+     * BYO SNS topic ARN for alarm actions. When omitted, an SNS topic
+     * is created.
+     */
+    snsTopicArn?: string;
   };
 };
 

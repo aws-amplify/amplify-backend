@@ -88,7 +88,13 @@ void describe('StorageConstruct', () => {
   // ---- Lifecycle rules ----
 
   void describe('lifecycle rules', () => {
-    void it('sets default build retention of 365 days', () => {
+    void it('sets default build retention of 30 days', () => {
+      // P2.1: default lowered from 365 → 30 days. Customers who need
+      // longer rollback windows must opt in via
+      // `storage.buildRetentionDays`. The previous default produced
+      // ~50 MB × hundreds of builds/year of S3 with negligible
+      // practical value (rollback >30 days back is rare and the
+      // back-end has usually moved on).
       const stack = createStack();
       new StorageConstruct(stack, 'Storage');
       const template = Template.fromStack(stack);
@@ -99,7 +105,7 @@ void describe('StorageConstruct', () => {
             Match.objectLike({
               Id: 'DeleteOldBuilds',
               Prefix: 'builds/',
-              ExpirationInDays: 365,
+              ExpirationInDays: 30,
               Status: 'Enabled',
             }),
           ]),
@@ -328,7 +334,9 @@ void describe('StorageConstruct', () => {
       });
     });
 
-    void it('defaults to 365 days when not specified', () => {
+    void it('defaults to 30 days when not specified', () => {
+      // P2.1 default. See "sets default build retention of 30 days"
+      // above for the rationale.
       const stack = createStack();
       new StorageConstruct(stack, 'Storage');
       const template = Template.fromStack(stack);
@@ -338,7 +346,7 @@ void describe('StorageConstruct', () => {
           Rules: Match.arrayWith([
             Match.objectLike({
               Id: 'DeleteOldBuilds',
-              ExpirationInDays: 365,
+              ExpirationInDays: 30,
             }),
           ]),
         }),

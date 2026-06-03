@@ -165,7 +165,12 @@ export class ComputeConstruct extends Construct {
     // The explicit `LogGroup` lives at the canonical /aws/lambda/<fn>
     // path Lambda would default to, so wiring is byte-identical from
     // Lambda's POV — only the CFN graph changes shape.
-    const retention = props.logRetention ?? RetentionDays.TWO_WEEKS;
+    // 30-day default trades off CloudWatch storage cost (cheap; logs
+    // are <$0.50/GB/month) against debugability of past incidents.
+    // The previous TWO_WEEKS default routinely deleted the build that
+    // first introduced a regression by the time the regression report
+    // landed. Users can still override via `compute.logRetention`.
+    const retention = props.logRetention ?? RetentionDays.ONE_MONTH;
     const logGroup = new LogGroup(this, 'FunctionLogGroup', {
       retention,
       // Match the prior `logRetention`-driven default — the singleton

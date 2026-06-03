@@ -107,6 +107,19 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Verified Nitro version range. The aws-lambda handler patcher
+ * (`patchNitroHandlerForApiGateway`) and the dep-store materializer
+ * have been exercised against Nitro 2.10–2.13; the range below
+ * encodes that. Exported for the X.1 cross-adapter version-pin test.
+ *
+ * Bump in lockstep with verifying. New Nitro versions land regularly;
+ * an out-of-range version emits a warning but doesn't fail the build
+ * — the patcher itself fails loudly with
+ * `UpstreamPatchPatternChangedError` if signatures change.
+ */
+export const VERIFIED_NITRO_RANGE = '>=2.10.0 <3.0.0';
+
+/**
  * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
  * one we know how to wire into AWS infrastructure. Without this check,
  * the adapter falls through to producing an aws-lambda handler shape

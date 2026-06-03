@@ -266,8 +266,15 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
     });
 
-    void it('emits a per-extension Content-Type pass for fonts present in the static dir', () => {
-      // Create a font file in the test static dir before synth.
+    void it('emits per-extension ResponseHeadersPolicies for fonts present in the static dir', () => {
+      // P1.7: font Content-Type enforcement was previously a per-
+      // extension `BucketDeployment` (one Lambda invocation per
+      // extension during deploy, silent on per-pass failure). It now
+      // ships as per-pattern manifest.headers[] entries so the
+      // existing CdnConstruct RHP path stamps the correct
+      // Content-Type at response time. RHP overrides origin headers,
+      // so even if S3 stored the file as `binary/octet-stream` the
+      // viewer sees `font/woff2`.
       fs.writeFileSync(path.join(staticDir, 'inter.woff2'), 'fake');
       fs.writeFileSync(path.join(staticDir, 'inter.woff'), 'fake');
       const stack = createStack();
@@ -276,31 +283,43 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
 
       const template = Template.fromStack(stack);
+      // Verify no per-extension BucketDeployment exists anymore.
       const deployments = template.findResources('Custom::CDKBucketDeployment');
-      const ids = Object.keys(deployments);
-      // One AssetDeployment + two FontTypeDeployments (.woff2, .woff).
-      const fontDeployments = ids.filter((id) =>
+      const fontDeployments = Object.keys(deployments).filter((id) =>
         id.includes('FontTypeDeployment'),
       );
-      assert.equal(fontDeployments.length, 2, '2 font extensions detected');
-      const json = JSON.stringify(
-        fontDeployments.map((id) => deployments[id].Properties),
+      assert.equal(
+        fontDeployments.length,
+        0,
+        'font BucketDeployments removed in P1.7',
       );
-      assert.match(json, /font\/woff2/);
-      assert.match(json, /font\/woff(?!2)/);
+
+      // Verify per-extension RHPs exist instead — each carrying the
+      // right Content-Type via customHeadersConfig.
+      const policies = template.findResources(
+        'AWS::CloudFront::ResponseHeadersPolicy',
+      );
+      const policyJson = JSON.stringify(
+        Object.values(policies).map((p) => p.Properties),
+      );
+      assert.match(policyJson, /font\/woff2/);
+      assert.match(policyJson, /font\/woff(?!2)/);
     });
 
-    void it('emits no font Content-Type pass when the static dir contains no fonts', () => {
+    void it('emits no font RHPs when the static dir contains no fonts', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
         manifest: makeSpaManifest(),
       });
       const template = Template.fromStack(stack);
-      const deployments = template.findResources('Custom::CDKBucketDeployment');
-      const fontDeployments = Object.keys(deployments).filter((id) =>
-        id.includes('FontTypeDeployment'),
+      // No font headers should leak into any RHP.
+      const policies = template.findResources(
+        'AWS::CloudFront::ResponseHeadersPolicy',
       );
-      assert.equal(fontDeployments.length, 0);
+      const policyJson = JSON.stringify(
+        Object.values(policies).map((p) => p.Properties),
+      );
+      assert.doesNotMatch(policyJson, /font\/woff/);
     });
 
     void it('honors staticAssets.cacheControl override on the mutable deployment', () => {

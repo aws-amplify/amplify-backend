@@ -10,8 +10,17 @@ import { IKey } from 'aws-cdk-lib/aws-kms';
 
 // ---- Constants ----
 
-/** Retain build artifacts for 1 year to support rollback scenarios */
-const DEFAULT_BUILD_RETENTION_DAYS = 365;
+/**
+ * Retain build artifacts for 30 days by default.
+ *
+ * The previous 365-day default produced ~50 MB × hundreds of builds
+ * per project per year — real S3 cost on every customer's bill, with
+ * negligible practical value (rollback to a build older than ~30 days
+ * is rare; the back-end has usually moved on so the old artifacts
+ * wouldn't even work end-to-end). Customers who genuinely need long
+ * rollback windows can extend via `storage.buildRetentionDays`.
+ */
+const DEFAULT_BUILD_RETENTION_DAYS = 30;
 
 /** Default retention for access logs */
 const DEFAULT_ACCESS_LOG_RETENTION_DAYS = 90;

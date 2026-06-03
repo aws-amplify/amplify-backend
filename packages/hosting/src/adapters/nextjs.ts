@@ -329,12 +329,33 @@ const applyNextImageConfig = (
 const REDIRECT_CAP_NEXTJS = 100;
 
 /**
- * Read `.next/prerender-manifest.json` for the list of statically
- * prerendered URL paths and emit canonical-form redirects honoring the
- * user's `trailingSlash` setting. Caps at 100 entries (matches the
- * CloudFront Function size budget); user-declared redirects from
- * `liftSimpleRoutesManifest` get appended *afterwards* with the same
- * cap split.
+ * Read every Next.js manifest that lists routable URLs and emit
+ * canonical-form redirects honoring the user's `trailingSlash`
+ * setting. Caps at 100 entries (matches the CloudFront Function size
+ * budget); user-declared redirects from `liftSimpleRoutesManifest`
+ * get appended *afterwards* with the same cap split.
+ *
+ * Sources read (P1.8 — previously only prerender-manifest):
+ *   - `.next/prerender-manifest.json#routes` — pages prerendered via
+ *     `generateStaticParams` with known params, plus Pages Router
+ *     `getStaticProps`. The original implementation only read this.
+ *   - `.next/routes-manifest.json#staticRoutes[].page` — Pages Router
+ *     pages with no dynamic segments (covers static pages even when
+ *     they use `getServerSideProps`, where prerender-manifest is
+ *     empty).
+ *   - `.next/app-paths-manifest.json` — App Router page paths
+ *     including the dynamic-route templates. We strip the `[...]`
+ *     placeholders and emit a redirect for the static prefix; this
+ *     covers the dynamic-route case where viewers land on a path
+ *     that doesn't exist in `prerender-manifest` (P1.8 was
+ *     "inconsistent UX" — `/posts/known-id` redirected,
+ *     `/posts/unknown-id` did not).
+ *
+ * Static-only routes are deduplicated; dynamic routes contribute
+ * their static prefix only (we can't enumerate every possible
+ * `:id`). For the dynamic-route cases the SSR Lambda still has to
+ * canonicalize at runtime — we just give the cheap edge case the
+ * cheap edge handling.
  */
 const applyTrailingSlashRedirects = (
   manifest: DeployManifest,
@@ -342,20 +363,85 @@ const applyTrailingSlashRedirects = (
   mode: TrailingSlashMode,
 ): void => {
   if (mode === 'ignore') return;
+
+  const allPaths = new Set<string>();
+
+  // Source 1: prerender-manifest (legacy)
   const prerenderManifestPath = path.join(
     projectDir,
     '.next',
     'prerender-manifest.json',
   );
-  if (!fs.existsSync(prerenderManifestPath)) return;
-  let parsed: { routes?: Record<string, unknown> };
-  try {
-    parsed = JSON.parse(fs.readFileSync(prerenderManifestPath, 'utf-8'));
-  } catch {
-    return;
+  if (fs.existsSync(prerenderManifestPath)) {
+    try {
+      const parsed = JSON.parse(
+        fs.readFileSync(prerenderManifestPath, 'utf-8'),
+      ) as { routes?: Record<string, unknown> };
+      for (const p of Object.keys(parsed.routes ?? {})) allPaths.add(p);
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // best-effort: malformed manifest leaves allPaths shorter, never blocks deploy
+    }
   }
-  const paths = Object.keys(parsed.routes ?? {});
-  const ts = emitTrailingSlashRedirects(paths, mode);
+
+  // Source 2: routes-manifest staticRoutes (Pages Router)
+  const routesManifestPath = path.join(
+    projectDir,
+    '.next',
+    'routes-manifest.json',
+  );
+  if (fs.existsSync(routesManifestPath)) {
+    try {
+      const parsed = JSON.parse(
+        fs.readFileSync(routesManifestPath, 'utf-8'),
+      ) as { staticRoutes?: Array<{ page?: unknown }> };
+      for (const route of parsed.staticRoutes ?? []) {
+        if (typeof route.page === 'string' && route.page.startsWith('/')) {
+          allPaths.add(route.page);
+        }
+      }
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // best-effort: same rationale as Source 1
+    }
+  }
+
+  // Source 3: app-paths-manifest (App Router). The keys are the route
+  // module paths (e.g. `/about/page`, `/blog/[slug]/page`); we trim
+  // the trailing `/page` and strip `[...]` placeholders down to the
+  // static prefix. Dynamic-only paths (whole path is a `[slug]`) are
+  // skipped since there's no static prefix to redirect.
+  const appPathsManifestPath = path.join(
+    projectDir,
+    '.next',
+    'app-paths-manifest.json',
+  );
+  if (fs.existsSync(appPathsManifestPath)) {
+    try {
+      const parsed = JSON.parse(
+        fs.readFileSync(appPathsManifestPath, 'utf-8'),
+      ) as Record<string, unknown>;
+      for (const key of Object.keys(parsed)) {
+        // Strip `/page`, `/route`, `/layout` suffixes Next emits as
+        // module file names. Layout / route handlers don't have
+        // page paths but are harmless to skip.
+        const trimmed = key.replace(/\/(page|route|layout)$/, '');
+        // Drop the path entirely if any segment is a dynamic
+        // placeholder — we'd be emitting a redirect for a route the
+        // SSR Lambda has to canonicalize anyway.
+        if (/\[.+?\]/.test(trimmed)) continue;
+        if (trimmed === '' || trimmed === '/') continue;
+        allPaths.add(trimmed);
+      }
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // best-effort: same rationale as Source 1
+    }
+  }
+
+  if (allPaths.size === 0) return;
+
+  const ts = emitTrailingSlashRedirects(Array.from(allPaths), mode);
   if (ts.length === 0) return;
   const existing = manifest.redirects ?? [];
   const remaining = REDIRECT_CAP_NEXTJS - existing.length;
@@ -930,7 +1016,10 @@ ${entries}
  * Bump the upper bound once a new OpenNext version is verified (run
  * the integration deploy + the brittleness-gating tests against it).
  */
-const VERIFIED_OPENNEXT_RANGE = '>=3.10.0 <3.11.0';
+// Exported so the X.1 cross-adapter version-pin test can reach it
+// without dynamic imports / scraping. Bump together with the actual
+// verification work.
+export const VERIFIED_OPENNEXT_RANGE = '>=3.10.0 <3.11.0';
 
 /**
  * Read the installed `@opennextjs/aws` version from the project's

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -269,6 +269,39 @@ export class CdnConstruct extends Construct {
 
     if (ssrComputeName && props.computeFunctions) {
       const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+
+      // ---- CloudFront-only access gate (P0.3) ---------------------
+      // The REST API stage URL (`https://{id}.execute-api.{region}.
+      // amazonaws.com/prod/...`) is publicly invokable by default.
+      // Anyone who learns it can call the SSR Lambda directly,
+      // bypassing CloudFront — which means bypassing WAF, geo-
+      // restriction, security-header injection (CSP, HSTS, X-Frame-
+      // Options come from the CloudFront ResponseHeadersPolicy and
+      // are NOT applied on direct API GW responses), and skew
+      // protection.
+      //
+      // Mitigation: a synth-time random secret is injected by
+      // CloudFront on every origin request via a custom origin
+      // header, and a resource policy on the REST API requires the
+      // matching value. CloudFront overwrites any client-supplied
+      // header of the same name before forwarding (documented
+      // behavior of `customHeaders`), so a malicious viewer cannot
+      // smuggle the secret through.
+      //
+      // We use `aws:Referer` because it is one of the few request
+      // headers the API Gateway IAM policy language can match
+      // natively — no Lambda Authorizer, no extra resources.
+      //
+      // The secret is generated at synth time and embedded in BOTH
+      // the API GW resource policy and the HttpOrigin's customHeaders
+      // in the same template, so deploys always update them
+      // atomically (no race window where one moves before the other).
+      // It rotates on every `cdk synth`, which is fine: CloudFront
+      // origin updates propagate in <5 min and the failure mode of a
+      // mid-rotation request is a transient 403 — never a security
+      // bypass.
+      const ssrOriginSecret = randomBytes(16).toString('hex');
+
       // REGIONAL: CloudFront is already in front; edge-optimized would
       // double-proxy and cap streaming idle timeout at 30s.
       const restApi = new RestApi(this, 'SsrRestApi', {
@@ -278,6 +311,32 @@ export class CdnConstruct extends Construct {
         // request bodies (Lambda then sees 2× size) and re-encodes responses,
         // breaking binary uploads, downloads, and streaming.
         binaryMediaTypes: ['*/*'],
+        // Resource policy: deny everything that doesn't carry the
+        // CloudFront-injected secret. This evaluates BEFORE the
+        // Lambda is invoked, so direct hits to the stage URL pay
+        // nothing and surface as 403 from API GW.
+        policy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              principals: [new iam.AnyPrincipal()],
+              actions: ['execute-api:Invoke'],
+              resources: ['execute-api:/*'],
+              conditions: {
+                StringEquals: { 'aws:Referer': ssrOriginSecret },
+              },
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.DENY,
+              principals: [new iam.AnyPrincipal()],
+              actions: ['execute-api:Invoke'],
+              resources: ['execute-api:/*'],
+              conditions: {
+                StringNotEquals: { 'aws:Referer': ssrOriginSecret },
+              },
+            }),
+          ],
+        }),
       });
       const integration = new LambdaIntegration(ssrFn, {
         proxy: true,
@@ -296,6 +355,11 @@ export class CdnConstruct extends Construct {
         ssrComputeName,
         new HttpOrigin(apiHostname, {
           originPath: `/${restApi.deploymentStage.stageName}`,
+          // Inject the CloudFront-only secret on every origin request.
+          // CloudFront's customHeaders OVERWRITE any same-named viewer
+          // header (documented), so a client sending `Referer:` cannot
+          // reach the API GW with their own value here.
+          customHeaders: { Referer: ssrOriginSecret },
         }),
       );
     }
@@ -614,11 +678,22 @@ export class CdnConstruct extends Construct {
       }
     }
 
-    // ---- assetPrefix behaviors (B17) ----
+    // ---- assetPrefix behavior (P2.7) ----
     // When the framework's build emits asset URLs under a prefix
     // (Next.js `assetPrefix: '/shop-static'`), the non-prefixed
-    // `/_next/static/*` behavior won't match. Add prefixed copies that
-    // strip the prefix before falling through to the build-id S3 lookup.
+    // `/_next/static/*` behavior won't match. The previous
+    // implementation emitted four separate prefixed behaviors
+    // (`/<prefix>/_next/static/*`, `/_next/image*`, `/_next/data/*`,
+    // `/_next/*`) — each one consuming a slot of the CloudFront
+    // 24-additional-behavior budget. Customers with even modest
+    // route counts hit the cap.
+    //
+    // We collapse to a single `/<prefix>/*` behavior backed by a
+    // smarter strip function. The function inspects the URI tail
+    // after stripping the prefix and routes the request the same way
+    // CloudFront's first-match-wins behavior matching would have
+    // done — but in code, in O(1), at the edge — saving 3 behaviors
+    // per assetPrefix.
     const assetPrefix = manifest.assetPrefix;
     if (assetPrefix) {
       const stripFunction = new CloudFrontFunction(
@@ -649,22 +724,14 @@ export class CdnConstruct extends Construct {
       };
       // Note: when both basePath and assetPrefix are absolute (leading
       // `/`), Next.js emits asset URLs as `<assetPrefix>/...` WITHOUT
-      // prepending basePath — so the CloudFront behavior must match the
-      // bare assetPrefix path, NOT the basePath-prefixed one.
-      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
-      // Add the most-specific prefixed patterns. Skipped if a user route
-      // already claims them (defensive — should never overlap in
-      // practice).
-      for (const suffix of [
-        '/_next/static/*',
-        '/_next/image*',
-        '/_next/data/*',
-        '/_next/*',
-      ]) {
-        const pat = prefixed(suffix);
-        if (!(pat in additionalBehaviors)) {
-          additionalBehaviors[pat] = prefixedStaticBehavior;
-        }
+      // prepending basePath — so the CloudFront behavior must match
+      // the bare assetPrefix path, NOT the basePath-prefixed one.
+      // One catch-all under the prefix; the strip function handles
+      // _next/static, _next/image, _next/data, and the open _next/*
+      // case uniformly.
+      const catchAllPrefixedPattern = `${assetPrefix}/*`;
+      if (!(catchAllPrefixedPattern in additionalBehaviors)) {
+        additionalBehaviors[catchAllPrefixedPattern] = prefixedStaticBehavior;
       }
     }
 
@@ -696,12 +763,24 @@ export class CdnConstruct extends Construct {
       // share one ResponseHeadersPolicy across all of them so the
       // account-wide CloudFront ResponseHeadersPolicy quota (default 20
       // per account, max 200) doesn't get burned on duplicates.
+      //
+      // The fingerprint includes the SECURITY-HEADER inputs the policy
+      // body will end up containing (CSP value, since other security
+      // header values are constants today). Without that, toggling
+      // `cdn.contentSecurityPolicy` between deploys produced new
+      // construct IDs even when the user's `headers[]` content hadn't
+      // changed — burning quota on every CSP edit (P2.5). With it,
+      // identical (customHeaders × securityHeaderInputs) tuples dedup
+      // across deploys.
       const policyByFingerprint = new Map<string, ResponseHeadersPolicy>();
-      const fingerprint = (headers: Record<string, string>): string =>
-        Object.keys(headers)
+      const securityHeaderFingerprint = props.contentSecurityPolicy ?? '';
+      const fingerprint = (headers: Record<string, string>): string => {
+        const customPart = Object.keys(headers)
           .sort()
           .map((k) => `${k}=${headers[k]}`)
           .join('\n');
+        return `csp=${securityHeaderFingerprint}\n--\n${customPart}`;
+      };
 
       // Construct ID uses the first 8 hex chars of a SHA-256 over the
       // fingerprint. Why a stable hash instead of a counter (0/1/2/...):

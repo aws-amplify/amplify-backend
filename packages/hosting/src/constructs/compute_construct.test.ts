@@ -397,7 +397,10 @@ void describe('ComputeConstruct', () => {
       });
     });
 
-    void it('defaults to TWO_WEEKS when logRetention is not set', () => {
+    void it('defaults to ONE_MONTH when logRetention is not set', () => {
+      // P3.3: bumped from TWO_WEEKS to ONE_MONTH so a regression
+      // reported >2 weeks after introduction still has logs to debug
+      // it. Customers can still override via `compute.logRetention`.
       const bundle = createBundleDir();
       const stack = createStack();
 
@@ -408,7 +411,7 @@ void describe('ComputeConstruct', () => {
 
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Logs::LogGroup', {
-        RetentionInDays: 14,
+        RetentionInDays: 30,
       });
     });
   });

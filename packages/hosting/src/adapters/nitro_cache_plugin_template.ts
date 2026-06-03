@@ -101,7 +101,7 @@ const makeDriver = (client) => ({
   },
 });
 
-export default defineNitroPlugin(() => {
+export default defineNitroPlugin((nitroApp) => {
   if (!bucket || !region) {
     log(
       'AMPLIFY_NITRO_CACHE_BUCKET / _REGION not set — cache stays in-memory ' +
@@ -115,7 +115,7 @@ export default defineNitroPlugin(() => {
   // Don't override a cache mount the user has already configured.
   const existingMounts = storage.getMounts?.('cache') ?? [];
   const userOwned = existingMounts.some(
-    (m) => m.driver?.name && m.driver.name !== 'memory',
+    (m) => m.driver?.name && m.driver.name !== 'memory' && m.driver.name !== 'amplify-hosting-s3-cache',
   );
   if (userOwned) {
     log(
@@ -125,7 +125,60 @@ export default defineNitroPlugin(() => {
   }
 
   const client = new S3Client({ region });
-  storage.mount('cache', makeDriver(client));
+  const amplifyDriver = makeDriver(client);
+  storage.mount('cache', amplifyDriver);
   log(\`mounted S3 cache backend (bucket=\${bucket})\`);
+
+  // Plugin order in Nitro is determined by filename. Our plugin runs
+  // first (the leading underscore puts \`_amplify-cache\` ahead in
+  // alphabetical order), but a later user-named plugin (e.g.
+  // \`zz-storage.ts\`) can rebind the \`cache\` mount AFTER we set it.
+  // Without re-binding, the framework's SWR/ISR rules silently write
+  // to the user's later mount instead of S3 — cache hit rate drops to
+  // 0% across Lambda containers and the symptom is "SWR doesn't work
+  // in production" with no error.
+  //
+  // We watch for displacement via Nitro's \`storage:mounts\` hook (when
+  // available) and re-bind once with a one-time warning. The flag
+  // prevents an infinite remount loop if the user's plugin also
+  // re-asserts on the same hook.
+  let warned = false;
+  const remountIfDisplaced = () => {
+    const mounts = storage.getMounts?.('cache') ?? [];
+    const ours = mounts.some(
+      (m) => m.driver?.name === 'amplify-hosting-s3-cache',
+    );
+    if (ours) return;
+    if (!warned) {
+      log(
+        'cache mount was displaced after init by another plugin — re-binding S3 backend ' +
+          '(set AMPLIFY_NITRO_CACHE_DISABLE=true to opt out)',
+      );
+      warned = true;
+    }
+    storage.mount('cache', amplifyDriver);
+  };
+
+  // Nitro exposes \`hooks.hook\` on the runtime app instance. Probe for
+  // both the storage:mounts variant (newer Nitro) and a generic
+  // \`request\` hook fallback (so we re-check at the top of each
+  // request — cheap inline call, no I/O).
+  if (process.env.AMPLIFY_NITRO_CACHE_DISABLE !== 'true') {
+    if (nitroApp?.hooks?.hook) {
+      try {
+        nitroApp.hooks.hook('storage:mounts', remountIfDisplaced);
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // hook name not supported by this Nitro version — fall back to
+        // the request-time check below.
+      }
+      try {
+        nitroApp.hooks.hook('request', remountIfDisplaced);
+        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+      } catch {
+        // ignore — best-effort
+      }
+    }
+  }
 });
 `;
