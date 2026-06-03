@@ -115,7 +115,10 @@ void describe('AmplifyPipelineConstruct', () => {
             Match.objectLike({
               phases: Match.objectLike({
                 build: Match.objectLike({
-                  commands: Match.arrayWith(['npm ci', 'npx cdk synth']),
+                  commands: Match.arrayWith([
+                    'npm ci',
+                    'npx tsx amplify/pipeline.ts',
+                  ]),
                 }),
               }),
             }),

@@ -20,7 +20,7 @@ import type {
 const VALID_ARN_PATTERN =
   /^arn:(aws|aws-us-gov|aws-cn):codeconnections:[a-z0-9-]+:\d{12}:connection\/[a-zA-Z0-9-]+$/;
 
-const DEFAULT_SYNTH_COMMANDS = ['npm ci', 'npx cdk synth'];
+const DEFAULT_SYNTH_COMMANDS = ['npm ci', 'npx tsx amplify/pipeline.ts'];
 
 /**
  * CDK Pipelines-based CI/CD pipeline construct (L3).
