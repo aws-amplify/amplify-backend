@@ -103,6 +103,24 @@ void describe('Skew Protection — Code Generation', () => {
       assert.ok(code.includes("uri = uri + '/index.html'"));
     });
 
+    void it('rewrites extensionless paths to /index.html when spaFallback is enabled', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', [], {
+        spaFallback: true,
+      });
+      assert.ok(code.includes("uri = '/index.html'"));
+      assert.ok(!code.includes("uri = uri + '/index.html'"));
+    });
+
+    void it('does not rewrite paths with extensions when spaFallback is enabled', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', [], {
+        spaFallback: true,
+      });
+      assert.ok(
+        code.includes("var hasExtension = lastSegment.indexOf('.') !== -1"),
+      );
+      assert.ok(code.includes('if (!hasExtension)'));
+    });
+
     void it('throws for invalid build ID', () => {
       assert.throws(
         () => generateSkewProtectionViewerRequestCode('invalid build!'),

@@ -119,6 +119,17 @@ export type AmplifyHostingConstructProps = {
       countries: string[];
     };
     /**
+     * Default TTL for SSR/compute cache behaviors when the origin response
+     * does not include a `Cache-Control` header. Set this to enable
+     * CloudFront edge caching of SSR responses and improve hit ratio.
+     *
+     * When set, SSR responses without an explicit `Cache-Control` header
+     * are cached at the edge for this duration. The origin can always
+     * override via `s-maxage` or `no-store`.
+     * @default Duration.seconds(0) — no caching unless origin opts in
+     */
+    ssrDefaultTtl?: Duration;
+    /**
      * Bring-your-own ResponseHeadersPolicy. When provided, the construct
      * skips creating its own policy — use this to share a single policy
      * across multiple hosting stacks and avoid the account-level limit
@@ -134,6 +145,16 @@ export type AmplifyHostingConstructProps = {
      * ```
      */
     responseHeadersPolicy?: IResponseHeadersPolicy;
+    /**
+     * ARN of an existing WAFv2 WebACL to associate with the CloudFront
+     * distribution. Use this when you manage WAF rules externally (e.g.
+     * via a shared security account) or need advanced WAF features beyond
+     * the built-in `waf.enabled` rate-limiting.
+     *
+     * Takes precedence over `waf.enabled` — when set, the built-in WAF
+     * construct is not created.
+     */
+    webAclArn?: string;
   };
   /** S3 storage configuration. */
   storage?: {
@@ -250,7 +271,7 @@ export class AmplifyHostingConstruct extends Construct {
     // ---- 1. Storage (S3 buckets) ----
     const storage = new StorageConstruct(this, 'Storage', {
       retainOnDelete: props.storage?.retainOnDelete,
-      accessLogging: props.logging?.enabled,
+      accessLogging: props.logging?.enabled ?? true,
       encryption: props.storage?.encryption,
       encryptionKey: props.storage?.encryptionKey,
       buildRetentionDays: props.storage?.buildRetentionDays,
@@ -655,6 +676,8 @@ export class AmplifyHostingConstruct extends Construct {
       priceClass: props.cdn?.priceClass,
       geoRestriction: props.cdn?.geoRestriction,
       skewProtection: props.skewProtection ?? { enabled: true },
+      ssrDefaultTtl: props.cdn?.ssrDefaultTtl,
+      webAclArn: props.cdn?.webAclArn,
     });
 
     this.distribution = cdn.distribution;

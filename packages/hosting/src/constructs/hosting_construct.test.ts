@@ -1157,7 +1157,7 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('creates ResponseHeadersPolicy with default CSP when cdn.contentSecurityPolicy is not set', () => {
+  void it('uses managed SECURITY_HEADERS policy when cdn.contentSecurityPolicy is not set', () => {
     const staticDir = createStaticDir();
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
@@ -1165,15 +1165,15 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     });
 
     const template = Template.fromStack(stack);
+    // No custom ResponseHeadersPolicy resource should be created
+    template.resourceCountIs('AWS::CloudFront::ResponseHeadersPolicy', 0);
+    // The distribution should reference the managed SECURITY_HEADERS policy ID
     template.hasResourceProperties(
-      'AWS::CloudFront::ResponseHeadersPolicy',
+      'AWS::CloudFront::Distribution',
       Match.objectLike({
-        ResponseHeadersPolicyConfig: Match.objectLike({
-          SecurityHeadersConfig: Match.objectLike({
-            ContentSecurityPolicy: Match.objectLike({
-              ContentSecurityPolicy:
-                Match.stringLikeRegexp("default-src 'self'"),
-            }),
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            ResponseHeadersPolicyId: '67f7725c-6f97-4210-82d7-5512b31e9d03',
           }),
         }),
       }),
@@ -1204,7 +1204,7 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     );
   });
 
-  void it('includes HSTS headers', () => {
+  void it('includes HSTS headers via managed policy (SECURITY_HEADERS includes HSTS by design)', () => {
     const staticDir = createStaticDir();
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
@@ -1212,16 +1212,15 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     });
 
     const template = Template.fromStack(stack);
+    // With no custom CSP, the managed SECURITY_HEADERS policy is used.
+    // The managed policy includes HSTS, X-Content-Type-Options, X-Frame-Options,
+    // X-XSS-Protection, and Referrer-Policy. Verify it's referenced:
     template.hasResourceProperties(
-      'AWS::CloudFront::ResponseHeadersPolicy',
+      'AWS::CloudFront::Distribution',
       Match.objectLike({
-        ResponseHeadersPolicyConfig: Match.objectLike({
-          SecurityHeadersConfig: Match.objectLike({
-            StrictTransportSecurity: Match.objectLike({
-              IncludeSubdomains: true,
-              Preload: true,
-              Override: true,
-            }),
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            ResponseHeadersPolicyId: '67f7725c-6f97-4210-82d7-5512b31e9d03',
           }),
         }),
       }),
@@ -1304,12 +1303,19 @@ void describe('AmplifyHostingConstruct — CDN edge cases', () => {
     });
 
     const template = Template.fromStack(stack);
+    // SPA fallback is now handled in the viewer-request CloudFront Function
+    // (navigation requests rewrite to /index.html before hitting S3).
+    // No custom error responses needed for 403/404 in SPA mode — missing
+    // assets correctly 403 without being caught by a blanket fallback.
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
       DistributionConfig: Match.objectLike({
-        CustomErrorResponses: Match.arrayWith([
-          Match.objectLike({ ErrorCode: 403, ResponseCode: 200 }),
-          Match.objectLike({ ErrorCode: 404, ResponseCode: 200 }),
-        ]),
+        DefaultCacheBehavior: Match.objectLike({
+          FunctionAssociations: Match.arrayWith([
+            Match.objectLike({
+              EventType: 'viewer-request',
+            }),
+          ]),
+        }),
       }),
     });
   });

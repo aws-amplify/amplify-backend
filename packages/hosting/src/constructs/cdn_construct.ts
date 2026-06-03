@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -147,6 +147,17 @@ export type CdnConstructProps = {
   routeEdgeFunctions?: Map<string, IVersion>;
   /** Cookie-based skew protection configuration. */
   skewProtection?: SkewProtectionConfig;
+  /**
+   * Default TTL for SSR/compute cache behaviors when the origin doesn't
+   * set Cache-Control. Enables CDN caching of dynamic responses.
+   * @default Duration.seconds(0)
+   */
+  ssrDefaultTtl?: Duration;
+  /**
+   * ARN of an existing WAFv2 WebACL. When set, takes precedence over
+   * the `webAcl` construct reference.
+   */
+  webAclArn?: string;
 };
 
 // ---- Construct ----
@@ -233,11 +244,20 @@ export class CdnConstruct extends Construct {
       : rawRedirects;
 
     // ---- Build ID rewrite function ----
+    // SPA fallback: when the distribution is static-only with no custom
+    // error pages, navigation requests (no file extension) should serve
+    // /index.html directly. Asset requests (.js, .css) pass through
+    // unchanged so missing assets correctly 403/404 instead of serving HTML.
+    const isSpaFallback =
+      !hasCompute &&
+      (manifest.errorPages === undefined ||
+        Object.keys(manifest.errorPages).length === 0);
     const viewerRequestFunction = this.createViewerRequestFunction(
       buildId,
       skewEnabled,
       manifestRedirects,
       manifest.basePath,
+      { spaFallback: isSpaFallback },
     );
 
     // ---- Skew protection viewer-response function ----
@@ -270,6 +290,12 @@ export class CdnConstruct extends Construct {
 
     if (ssrComputeName && props.computeFunctions) {
       const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+
+      // Origin verification secret — prevents direct APIGW access bypassing
+      // CloudFront's security headers (CSP/HSTS). Requests without this
+      // header are rejected by the APIGW resource policy.
+      const originVerifySecret = randomUUID();
+
       // REGIONAL: CloudFront is already in front; edge-optimized would
       // double-proxy and cap streaming idle timeout at 30s.
       const restApi = new RestApi(this, 'SsrRestApi', {
@@ -279,6 +305,27 @@ export class CdnConstruct extends Construct {
         // request bodies (Lambda then sees 2× size) and re-encodes responses,
         // breaking binary uploads, downloads, and streaming.
         binaryMediaTypes: ['*/*'],
+        policy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              principals: [new iam.AnyPrincipal()],
+              actions: ['execute-api:Invoke'],
+              resources: ['execute-api:/*'],
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.DENY,
+              principals: [new iam.AnyPrincipal()],
+              actions: ['execute-api:Invoke'],
+              resources: ['execute-api:/*'],
+              conditions: {
+                StringNotEquals: {
+                  [`aws:Referer`]: originVerifySecret,
+                },
+              },
+            }),
+          ],
+        }),
       });
       const integration = new LambdaIntegration(ssrFn, {
         proxy: true,
@@ -297,6 +344,9 @@ export class CdnConstruct extends Construct {
         ssrComputeName,
         new HttpOrigin(apiHostname, {
           originPath: `/${restApi.deploymentStage.stageName}`,
+          customHeaders: {
+            Referer: originVerifySecret,
+          },
         }),
       );
     }
@@ -398,7 +448,7 @@ export class CdnConstruct extends Construct {
           comment:
             'SSR/ISR/SWR: honor origin Cache-Control; key on Next.js router headers',
           minTtl: Duration.seconds(0),
-          defaultTtl: Duration.seconds(0),
+          defaultTtl: props.ssrDefaultTtl ?? Duration.seconds(0),
           maxTtl: Duration.days(365),
           headerBehavior: CacheHeaderBehavior.allowList(
             'rsc',
@@ -842,22 +892,24 @@ export class CdnConstruct extends Construct {
         : []),
       ...(isSpaOnly && !hasErrorPages
         ? [
-            {
-              httpStatus: 403,
-              responseHttpStatus: 200,
-              responsePagePath: `/builds/${buildId}/index.html`,
-              ttl: Duration.seconds(0),
-            },
-            {
-              httpStatus: 404,
-              responseHttpStatus: 200,
-              responsePagePath: `/builds/${buildId}/index.html`,
-              ttl: Duration.seconds(0),
-            },
+            // SPA navigation fallback is now handled in the viewer-request
+            // function (rewrites extensionless URIs to /index.html before
+            // hitting S3). Only keep 404 handling for completeness — a true
+            // 404 from S3 means the build-id prefix is wrong (shouldn't
+            // happen in normal operation).
           ]
         : []),
       ...(hasCompute
         ? [
+            // 500: Don't cache Lambda 500s — they're likely transient.
+            // Image-opt Lambda returns 500 for missing images; caching
+            // that error would serve stale errors to all users.
+            {
+              httpStatus: 500,
+              responseHttpStatus: 500,
+              responsePagePath: `/builds/${buildId}/${ERROR_PAGE_KEY}`,
+              ttl: Duration.seconds(0),
+            },
             {
               httpStatus: 502,
               responseHttpStatus: 502,
@@ -896,7 +948,11 @@ export class CdnConstruct extends Construct {
             certificate: props.certificate,
           }
         : {}),
-      ...(props.webAcl ? { webAclId: props.webAcl.attrArn } : {}),
+      ...(props.webAclArn
+        ? { webAclId: props.webAclArn }
+        : props.webAcl
+          ? { webAclId: props.webAcl.attrArn }
+          : {}),
       ...(props.accessLogBucket
         ? { enableLogging: true, logBucket: props.accessLogBucket }
         : {}),
@@ -996,11 +1052,14 @@ export class CdnConstruct extends Construct {
     skewEnabled: boolean,
     redirects: Redirect[],
     basePath?: string,
+    options?: { spaFallback?: boolean },
   ): CloudFrontFunction {
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
-          generateSkewProtectionViewerRequestCode(buildId, redirects),
+          generateSkewProtectionViewerRequestCode(buildId, redirects, {
+            spaFallback: options?.spaFallback,
+          }),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
         comment:
@@ -1011,7 +1070,9 @@ export class CdnConstruct extends Construct {
     }
     return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
       code: FunctionCode.fromInline(
-        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath),
+        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath, {
+          spaFallback: options?.spaFallback,
+        }),
       ),
       runtime: CLOUDFRONT_FUNCTION_RUNTIME,
       comment:

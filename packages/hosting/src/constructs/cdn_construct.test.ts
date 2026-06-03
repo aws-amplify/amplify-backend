@@ -132,14 +132,17 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: Match.objectLike({
-          CustomErrorResponses: Match.arrayWith([
-            Match.objectLike({ ErrorCode: 403, ResponseCode: 200 }),
-            Match.objectLike({ ErrorCode: 404, ResponseCode: 200 }),
-          ]),
-        }),
-      });
+      // SPA fallback is now handled in the viewer-request function
+      // (navigation requests without file extension rewrite to /index.html).
+      // No 403/404 custom error responses needed — missing assets correctly
+      // return 403 without a blanket fallback.
+      const dist = template.findResources('AWS::CloudFront::Distribution');
+      const distProps = Object.values(dist)[0].Properties.DistributionConfig;
+      assert.equal(
+        distProps.CustomErrorResponses,
+        undefined,
+        'SPA should not have custom error responses (fallback is in viewer-request function)',
+      );
     });
 
     void it('creates BuildId CloudFront Function', () => {
@@ -1977,22 +1980,15 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: Match.objectLike({
-          CustomErrorResponses: Match.arrayWith([
-            Match.objectLike({
-              ErrorCode: 403,
-              ResponseCode: 200,
-              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-            }),
-            Match.objectLike({
-              ErrorCode: 404,
-              ResponseCode: 200,
-              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-            }),
-          ]),
-        }),
-      });
+      // SPA fallback is now in the viewer-request function — no error
+      // responses are created for SPA mode without custom error pages.
+      const dist = template.findResources('AWS::CloudFront::Distribution');
+      const distProps = Object.values(dist)[0].Properties.DistributionConfig;
+      assert.equal(
+        distProps.CustomErrorResponses,
+        undefined,
+        'SPA without errorPages should not have custom error responses',
+      );
     });
 
     void it('SSR error responses use buildId prefix in ResponsePagePath for 5xx errors', () => {
