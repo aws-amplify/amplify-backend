@@ -35,7 +35,11 @@ void describe('definePipeline', () => {
     // Symlink node_modules so hosting.js can resolve aws-cdk-lib from tmp dir
     const cdkLibDir = path.dirname(require.resolve('aws-cdk-lib/package.json'));
     const nodeModulesDir = path.dirname(cdkLibDir);
-    fs.symlinkSync(nodeModulesDir, path.join(tmpDir, 'node_modules'), 'dir');
+    fs.symlinkSync(
+      nodeModulesDir,
+      path.join(tmpDir, 'node_modules'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
   });
 
   afterEach(() => {
@@ -348,10 +352,12 @@ if (scope) {
     fs.symlinkSync(
       path.join(realNodeModules, 'aws-cdk-lib'),
       path.join(tmpDir, 'node_modules', 'aws-cdk-lib'),
+      process.platform === 'win32' ? 'junction' : 'dir',
     );
     fs.symlinkSync(
       path.join(realNodeModules, 'constructs'),
       path.join(tmpDir, 'node_modules', 'constructs'),
+      process.platform === 'win32' ? 'junction' : 'dir',
     );
 
     // Create fake @aws-amplify/backend-auth with a singleton counter

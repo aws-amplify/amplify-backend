@@ -1,18 +1,20 @@
 <!doctype html>
 <html>
-<head><title>Pipeline E2E</title></head>
-<body>
-  <h1>Pipeline E2E Test</h1>
-  <p>Deployed via definePipeline with real auth + data.</p>
-  <script type="module">
-    // Verify amplify_outputs.json is accessible at runtime
-    const resp = await fetch('/amplify_outputs.json');
-    if (resp.ok) {
-      const outputs = await resp.json();
-      document.body.dataset.backendReady = 'true';
-      document.body.dataset.userPoolId = outputs.auth?.user_pool_id || '';
-      document.body.dataset.graphqlUrl = outputs.data?.url || '';
-    }
-  </script>
-</body>
+  <head>
+    <title>Pipeline E2E</title>
+  </head>
+  <body>
+    <h1>Pipeline E2E Test</h1>
+    <p>Deployed via definePipeline with real auth + data.</p>
+    <script type="module">
+      // Verify amplify_outputs.json is accessible at runtime
+      const resp = await fetch('/amplify_outputs.json');
+      if (resp.ok) {
+        const outputs = await resp.json();
+        document.body.dataset.backendReady = 'true';
+        document.body.dataset.userPoolId = outputs.auth?.user_pool_id || '';
+        document.body.dataset.graphqlUrl = outputs.data?.url || '';
+      }
+    </script>
+  </body>
 </html>
