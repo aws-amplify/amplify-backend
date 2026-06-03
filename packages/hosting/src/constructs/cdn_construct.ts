@@ -19,6 +19,7 @@ import {
   GeoRestriction,
   HttpVersion,
   IOrigin,
+  IResponseHeadersPolicy,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   PriceClass,
@@ -106,7 +107,7 @@ export type CdnConstructProps = {
   /** Deploy manifest containing routes, buildId, and compute config. */
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
-  securityHeadersPolicy: ResponseHeadersPolicy;
+  securityHeadersPolicy: IResponseHeadersPolicy;
   /**
    * Optional Content-Security-Policy value used when building per-pattern
    * ResponseHeadersPolicies for `manifest.headers[]`. Should match the
@@ -794,9 +795,9 @@ export class CdnConstruct extends Construct {
     // Three modes:
     //  1. Compute origin → 502/503/504 → custom error page (preserves status).
     //  2. Static deploy WITH `manifest.errorPages` (Next.js `output: 'export'`,
-    //     Astro static, etc.) → 404 → /404.html with status 404, no SPA
-    //     fallback. This is the right behavior for any framework that
-    //     emits a real 404 page.
+    //     Astro static, etc.) → 403/404 → /404.html with status 404. S3
+    //     with OAC returns 403 (not 404) for missing keys, so both must
+    //     be handled.
     //  3. Static deploy WITHOUT `manifest.errorPages` (single-page app
     //     with client-side routing) → 403/404 → /index.html with status 200
     //     so the SPA can deep-link any path.
@@ -808,6 +809,15 @@ export class CdnConstruct extends Construct {
     const errorResponses: ErrorResponse[] = [
       ...(isSpaOnly && hasErrorPages
         ? [
+            // S3 with OAC returns 403 for missing keys — map to the
+            // custom 404 page so deep links render the framework's
+            // not-found page instead of a raw CloudFront error.
+            {
+              httpStatus: 403,
+              responseHttpStatus: 404,
+              responsePagePath: `/builds/${buildId}${manifest.errorPages?.[404] ?? '/index.html'}`,
+              ttl: Duration.seconds(0),
+            },
             ...(manifest.errorPages?.[404]
               ? [
                   {

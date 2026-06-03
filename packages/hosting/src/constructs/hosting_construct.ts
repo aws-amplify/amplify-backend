@@ -4,7 +4,9 @@ import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   Distribution,
+  IResponseHeadersPolicy,
   PriceClass,
+  ResponseHeadersPolicy,
   experimental,
 } from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -101,6 +103,12 @@ export type AmplifyHostingConstructProps = {
     timeout?: Duration | number;
     reservedConcurrency?: number;
     logRetention?: RetentionDays;
+    /**
+     * Additional environment variables to inject into all compute Lambda
+     * functions. Merged with (and overrides) any environment variables
+     * declared in the deploy manifest's compute resources.
+     */
+    environment?: Record<string, string>;
   };
   /** CDN (CloudFront) configuration. */
   cdn?: {
@@ -110,6 +118,22 @@ export type AmplifyHostingConstructProps = {
       type: 'whitelist' | 'blacklist';
       countries: string[];
     };
+    /**
+     * Bring-your-own ResponseHeadersPolicy. When provided, the construct
+     * skips creating its own policy — use this to share a single policy
+     * across multiple hosting stacks and avoid the account-level limit
+     * (default 20, max 200 via service-quota increase).
+     *
+     * Create a shared policy once (e.g. in a shared-infra stack):
+     * ```ts
+     * const sharedPolicy = new ResponseHeadersPolicy(sharedStack, 'SharedPolicy', { ... });
+     * ```
+     * Then import by ID in each hosting stack:
+     * ```ts
+     * cdn: { responseHeadersPolicy: ResponseHeadersPolicy.fromResponseHeadersPolicyId(this, 'Imported', policyId) }
+     * ```
+     */
+    responseHeadersPolicy?: IResponseHeadersPolicy;
   };
   /** S3 storage configuration. */
   storage?: {
@@ -248,6 +272,7 @@ export class AmplifyHostingConstruct extends Construct {
           reservedConcurrency: props.compute?.reservedConcurrency,
           logRetention: props.compute?.logRetention,
           skipRegionValidation: props.skipRegionValidation,
+          environment: props.compute?.environment,
         });
         this.computeFunctions.set(name, edgeConstruct.function);
         continue;
@@ -266,6 +291,7 @@ export class AmplifyHostingConstruct extends Construct {
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
         skipFunctionUrl: isSsrCompute,
+        environment: props.compute?.environment,
       });
 
       this.computeFunctions.set(name, computeConstruct.function);
@@ -571,11 +597,30 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 8. Security headers ----
-    const securityHeadersPolicy = createSecurityHeadersPolicy(
-      this,
-      'SecurityHeaders',
-      { contentSecurityPolicy: props.cdn?.contentSecurityPolicy },
-    );
+    // Policy selection priority:
+    //   1. BYO policy via `cdn.responseHeadersPolicy` — share across stacks.
+    //   2. Custom policy when `cdn.contentSecurityPolicy` is configured.
+    //   3. Managed SECURITY_HEADERS policy (default) — consumes no quota.
+    //
+    // The account-level ResponseHeadersPolicy limit is 20 (soft, raisable
+    // to 200). Using the managed policy by default avoids quota exhaustion
+    // when many hosting stacks deploy to the same account. The managed
+    // policy includes HSTS, X-Content-Type-Options, X-Frame-Options,
+    // X-XSS-Protection, and Referrer-Policy. CSP is intentionally omitted
+    // from the default — frameworks (Next.js, Nuxt) emit their own CSP via
+    // response headers, and a blanket L3 CSP would conflict.
+    let securityHeadersPolicy: IResponseHeadersPolicy;
+    if (props.cdn?.responseHeadersPolicy) {
+      securityHeadersPolicy = props.cdn.responseHeadersPolicy;
+    } else if (props.cdn?.contentSecurityPolicy) {
+      securityHeadersPolicy = createSecurityHeadersPolicy(
+        this,
+        'SecurityHeaders',
+        { contentSecurityPolicy: props.cdn.contentSecurityPolicy },
+      );
+    } else {
+      securityHeadersPolicy = ResponseHeadersPolicy.SECURITY_HEADERS;
+    }
 
     // ---- 9. CloudFront distribution ----
     const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
@@ -692,23 +737,15 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 12. Atomic Deployment (static assets) ----
-    // Cache-Control split: hashed asset dirs (e.g. _next/static, _astro,
-    // _nuxt — declared by adapters via `staticAssets.immutablePaths`) get
-    // `immutable, max-age=31536000`. Everything else (HTML, public/) gets
-    // `s-maxage=31536000, max-age=0, must-revalidate` so:
+    // Cache-Control split (3 tiers):
     //
-    //   - CloudFront edge caches the prerendered HTML for ~1y (s-maxage)
-    //     so repeat visits hit the edge in <50ms instead of round-tripping
-    //     to S3 every time;
-    //   - browsers revalidate (max-age=0, must-revalidate) so a redeploy's
-    //     CloudFront invalidation propagates immediately on next request;
-    //   - we explicitly invalidate `/*` on every deploy via
-    //     `distributionPaths` below, so the edge cache flushes on rollout.
-    //
-    // Without the s-maxage component, every request for prerendered HTML
-    // pays the round-trip to S3 (~30-60ms) instead of the edge hit (~5ms).
-    // Without the must-revalidate component, redeploys don't refresh
-    // browser-side until the user hard-reloads.
+    //   1. Hashed assets (`immutablePaths`): `max-age=31536000, immutable`
+    //   2. HTML files: `no-cache, no-store, must-revalidate` — browsers
+    //      must always revalidate so new deploys propagate immediately.
+    //   3. Other mutable assets (images, JSON, etc.):
+    //      `s-maxage=31536000, max-age=0, must-revalidate` — CloudFront
+    //      edge caches for 1y (flushed via `/*` invalidation on deploy);
+    //      browsers always revalidate.
     //
     // Font MIME pass (12b below): aws s3 sync (driver inside
     // BucketDeployment) infers Content-Type via Python's mimetypes which
@@ -723,18 +760,32 @@ export class AmplifyHostingConstruct extends Construct {
     // the directory — a 100 MB `dist/` × 7 deployments = 700 MB of
     // transient asset uploads + Lambda asset hashes on every cdk synth.
     const immutablePaths = manifest.staticAssets.immutablePaths;
+    const noCachePaths = manifest.staticAssets.noCachePaths;
     const mutableCacheControl =
       manifest.staticAssets.cacheControl ??
       'public, s-maxage=31536000, max-age=0, must-revalidate';
+    const htmlCacheControl = 'no-cache, no-store, must-revalidate';
+    const htmlGlobs = ['*.html', '**/*.html'];
     const staticSource = Source.asset(manifest.staticAssets.directory);
+
+    // Deploy no-cache paths (e.g. config.json) — always revalidate.
+    if (noCachePaths && noCachePaths.length > 0) {
+      new BucketDeployment(this, 'AssetDeploymentNoCache', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: ['*'],
+        include: noCachePaths,
+        cacheControl: [CacheControl.fromString(htmlCacheControl)],
+        prune: false,
+      });
+    }
+
     if (immutablePaths && immutablePaths.length > 0) {
-      // Map "_next/static/*" → "_next/static/*" (BucketDeployment uses the
-      // same trailing-* form as awscli sync include/exclude filters).
       new BucketDeployment(this, 'AssetDeploymentImmutable', {
         sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
-        // sync excludes everything, then re-includes only hashed paths.
         exclude: ['*'],
         include: immutablePaths,
         cacheControl: [
@@ -744,26 +795,42 @@ export class AmplifyHostingConstruct extends Construct {
         distribution: this.distribution,
         distributionPaths: ['/*'],
       });
+      new BucketDeployment(this, 'AssetDeploymentHtml', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: ['*'],
+        include: htmlGlobs,
+        cacheControl: [CacheControl.fromString(htmlCacheControl)],
+        prune: false,
+      });
       new BucketDeployment(this, 'AssetDeploymentMutable', {
         sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: immutablePaths,
+        exclude: [...immutablePaths, ...htmlGlobs, ...(noCachePaths ?? [])],
         cacheControl: [CacheControl.fromString(mutableCacheControl)],
         prune: false,
       });
     } else {
-      // Back-compat: adapters that don't declare immutablePaths get the
-      // mutable Cache-Control on everything (safer default than a blanket
-      // `immutable` that bricks on redeploy).
-      new BucketDeployment(this, 'AssetDeployment', {
+      new BucketDeployment(this, 'AssetDeploymentHtml', {
         sources: [staticSource],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
-        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        exclude: ['*'],
+        include: htmlGlobs,
+        cacheControl: [CacheControl.fromString(htmlCacheControl)],
         prune: false,
         distribution: this.distribution,
         distributionPaths: ['/*'],
+      });
+      new BucketDeployment(this, 'AssetDeploymentOther', {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: [...htmlGlobs, ...(noCachePaths ?? [])],
+        cacheControl: [CacheControl.fromString(mutableCacheControl)],
+        prune: false,
       });
     }
 
