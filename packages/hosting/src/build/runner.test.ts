@@ -106,4 +106,37 @@ void describe('runBuild', () => {
 
     assert.ok(result.stdout.trim().endsWith('subdir'));
   });
+
+  void it('truncates long error output in BuildError message', () => {
+    assert.throws(
+      () =>
+        runBuild({
+          command:
+            'node -e "process.stderr.write(\'X\'.repeat(5000)); process.exit(1)"',
+          cwd: tmpDir,
+        }),
+      (error: Error & { resolution?: string }) => {
+        assert.strictEqual(error.name, 'BuildError');
+        assert.ok(
+          error.resolution?.includes('truncated'),
+          'Long output should be truncated in error resolution',
+        );
+        return true;
+      },
+    );
+  });
+
+  void it('handles command that fails with no output', () => {
+    assert.throws(
+      () =>
+        runBuild({
+          command: 'node -e "process.exit(3)"',
+          cwd: tmpDir,
+        }),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'BuildError');
+        return true;
+      },
+    );
+  });
 });
