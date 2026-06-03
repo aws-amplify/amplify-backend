@@ -814,44 +814,58 @@ export class AmplifyHostingConstruct extends Construct {
       manifest.staticAssets.cacheControl ??
       'public, s-maxage=31536000, max-age=0, must-revalidate';
     const staticSource = Source.asset(manifest.staticAssets.directory);
+    // Track the asset deployments so the per-extension font Content-
+    // Type deployments can declare an explicit `addDependency` —
+    // without this, CDK is free to reorder them and a font deployment
+    // that runs BEFORE the matching asset deployment is silently
+    // overwritten with `binary/octet-stream` from the next pass. We
+    // observed this on a live deploy where the font deployment ran 1
+    // minute before the asset deployment that overwrote it.
+    const assetDeployments: BucketDeployment[] = [];
     if (immutablePaths && immutablePaths.length > 0) {
       // Map "_next/static/*" → "_next/static/*" (BucketDeployment uses the
       // same trailing-* form as awscli sync include/exclude filters).
-      new BucketDeployment(this, 'AssetDeploymentImmutable', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        // sync excludes everything, then re-includes only hashed paths.
-        exclude: ['*'],
-        include: immutablePaths,
-        cacheControl: [
-          CacheControl.fromString('public, max-age=31536000, immutable'),
-        ],
-        prune: false,
-        distribution: this.distribution,
-        distributionPaths: ['/*'],
-      });
-      new BucketDeployment(this, 'AssetDeploymentMutable', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: immutablePaths,
-        cacheControl: [CacheControl.fromString(mutableCacheControl)],
-        prune: false,
-      });
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentImmutable', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          // sync excludes everything, then re-includes only hashed paths.
+          exclude: ['*'],
+          include: immutablePaths,
+          cacheControl: [
+            CacheControl.fromString('public, max-age=31536000, immutable'),
+          ],
+          prune: false,
+          distribution: this.distribution,
+          distributionPaths: ['/*'],
+        }),
+      );
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentMutable', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: immutablePaths,
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
+          prune: false,
+        }),
+      );
     } else {
       // Back-compat: adapters that don't declare immutablePaths get the
       // mutable Cache-Control on everything (safer default than a blanket
       // `immutable` that bricks on redeploy).
-      new BucketDeployment(this, 'AssetDeployment', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        cacheControl: [CacheControl.fromString(mutableCacheControl)],
-        prune: false,
-        distribution: this.distribution,
-        distributionPaths: ['/*'],
-      });
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeployment', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
+          prune: false,
+          distribution: this.distribution,
+          distributionPaths: ['/*'],
+        }),
+      );
     }
 
     // ---- 12b. Font Content-Type pass ----
@@ -887,15 +901,28 @@ export class AmplifyHostingConstruct extends Construct {
     );
     for (const [ext, mime] of FONT_TYPES) {
       if (!fontExtensionsPresent.has(ext)) continue;
-      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: [`*${ext}`],
-        contentType: mime,
-        prune: false,
-      });
+      const fontDeployment = new BucketDeployment(
+        this,
+        `FontTypeDeployment${ext.replace('.', '')}`,
+        {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: [`*${ext}`],
+          contentType: mime,
+          prune: false,
+        },
+      );
+      // Force ordering: the font deployment must run AFTER the asset
+      // deployments that ship the same files with the wrong default
+      // Content-Type. Without this dependency, CDK is free to schedule
+      // the font deployment first; the subsequent asset deployment
+      // then re-uploads the font with `binary/octet-stream` and
+      // silently undoes the fix.
+      for (const dep of assetDeployments) {
+        fontDeployment.node.addDependency(dep);
+      }
     }
   }
 
