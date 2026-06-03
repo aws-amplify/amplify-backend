@@ -127,6 +127,60 @@ void describe('AmplifyPipelineConstruct', () => {
       });
     });
 
+    void it('defaults primaryOutputDirectory to cdk.out when synth config is omitted', () => {
+      const app = new App();
+      const stack = new Stack(app, 'DefaultOutputDirStack');
+
+      new AmplifyPipelineConstruct(
+        stack,
+        'Pipeline',
+        defaultPipelineProps({
+          synth: undefined,
+        }),
+      );
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CodeBuild::Project', {
+        Source: Match.objectLike({
+          BuildSpec: Match.serializedJson(
+            Match.objectLike({
+              artifacts: Match.objectLike({
+                'base-directory': 'cdk.out',
+              }),
+            }),
+          ),
+        }),
+      });
+    });
+
+    void it('defaults primaryOutputDirectory to cdk.out when synth is provided without primaryOutputDirectory', () => {
+      const app = new App();
+      const stack = new Stack(app, 'SynthNoPrimaryOutputStack');
+
+      new AmplifyPipelineConstruct(
+        stack,
+        'Pipeline',
+        defaultPipelineProps({
+          synth: {
+            commands: ['npm ci', 'npx tsx amplify/pipeline.ts'],
+          },
+        }),
+      );
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CodeBuild::Project', {
+        Source: Match.objectLike({
+          BuildSpec: Match.serializedJson(
+            Match.objectLike({
+              artifacts: Match.objectLike({
+                'base-directory': 'cdk.out',
+              }),
+            }),
+          ),
+        }),
+      });
+    });
+
     void it('uses custom synth commands when provided', () => {
       const app = new App();
       const stack = new Stack(app, 'CustomCommandsStack');

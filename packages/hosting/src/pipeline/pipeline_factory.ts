@@ -86,7 +86,7 @@ const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.cjs'];
  * ```
  */
 export const definePipeline = (props: DefinePipelineProps): void => {
-  const app = new cdk.App();
+  const app = new cdk.App({ outdir: 'cdk.out' });
   const repoSuffix = props.source.repo.replace(/[^a-zA-Z0-9]/g, '-');
   const stackName = props.stackName ?? `amplify-pipeline-${repoSuffix}`;
   const rootStack = new cdk.Stack(app, stackName, {

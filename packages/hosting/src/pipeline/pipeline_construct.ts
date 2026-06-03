@@ -294,7 +294,7 @@ const buildCodePipeline = <TConfig>(
     installCommands: props.synth?.installCommands,
     commands: synthCommands,
     env: props.synth?.env,
-    primaryOutputDirectory: props.synth?.primaryOutputDirectory,
+    primaryOutputDirectory: props.synth?.primaryOutputDirectory ?? 'cdk.out',
   });
 
   const codePipeline = new CodePipeline(construct, branchId, {
