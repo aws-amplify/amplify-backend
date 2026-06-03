@@ -346,6 +346,54 @@ void describe('AmplifyPipelineConstruct', () => {
       );
     });
 
+    void it('throws on stage names with invalid characters', () => {
+      const app = new App();
+      const stack = new Stack(app, 'InvalidStageNameStack');
+
+      assert.throws(
+        () =>
+          new AmplifyPipelineConstruct(
+            stack,
+            'Pipeline',
+            defaultPipelineProps({
+              branches: [
+                {
+                  branch: 'main',
+                  stages: [{ name: 'my stage!' }],
+                },
+              ],
+            }),
+          ),
+        /stage name "my stage!" contains invalid characters/,
+      );
+    });
+
+    void it('allows valid stage names with alphanumeric, hyphens, and underscores', () => {
+      const app = new App();
+      const stack = new Stack(app, 'ValidStageNameStack');
+
+      assert.doesNotThrow(
+        () =>
+          new AmplifyPipelineConstruct(
+            stack,
+            'Pipeline',
+            defaultPipelineProps({
+              branches: [
+                {
+                  branch: 'main',
+                  stages: [
+                    { name: 'beta' },
+                    { name: 'staging-1' },
+                    { name: 'prod-v2' },
+                    { name: 'MyStage-123' },
+                  ],
+                },
+              ],
+            }),
+          ),
+      );
+    });
+
     void it('throws on empty stages array for a branch', () => {
       const app = new App();
       const stack = new Stack(app, 'EmptyStagesStack');

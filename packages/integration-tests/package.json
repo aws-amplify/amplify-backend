@@ -23,6 +23,7 @@
     "@aws-sdk/client-bedrock-runtime": "3.936.0",
     "@aws-sdk/client-cloudformation": "^3.936.0",
     "@aws-sdk/client-cloudtrail": "^3.937.0",
+    "@aws-sdk/client-codepipeline": "^3.1058.0",
     "@aws-sdk/client-cognito-identity": "^3.936.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
     "@aws-sdk/client-iam": "^3.936.0",

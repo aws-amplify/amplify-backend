@@ -4,6 +4,7 @@ import type { PipelineStageConfig } from './types.js';
 
 /**
  * Props for the {@link DeployStage} construct.
+ * @internal
  */
 export type DeployStageProps<TConfig = Record<string, unknown>> = {
   /** The stage configuration (name, env, config, etc.). */
@@ -15,6 +16,7 @@ export type DeployStageProps<TConfig = Record<string, unknown>> = {
  *
  * The stageFactory populates this Stage with stacks externally (not in
  * the constructor), allowing both sync and async factory patterns.
+ * @internal
  */
 export class DeployStage<TConfig = Record<string, unknown>> extends cdk.Stage {
   /** Creates a new DeployStage. */
