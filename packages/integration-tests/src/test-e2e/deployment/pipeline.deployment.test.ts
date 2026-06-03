@@ -101,7 +101,9 @@ void describe(
           executionId = await pipelineProject.triggerPipeline();
         } catch (e) {
           const msg = (e as Error).message;
+          const name = (e as Error).name ?? '';
           if (
+            name === 'PipelineNotFoundException' ||
             msg.includes('PipelineNotFoundException') ||
             msg.includes('AccessDenied') ||
             msg.includes('not authorized') ||
@@ -111,7 +113,7 @@ void describe(
               `CI role lacks CodePipeline permissions to trigger/monitor pipeline. ` +
               `This is a CI infrastructure limitation — the pipeline was deployed ` +
               `successfully but the e2e-test-tooling role cannot interact with it. ` +
-              `Error: ${msg}`;
+              `Error: ${name}: ${msg}`;
             return;
           }
           throw e;

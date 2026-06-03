@@ -280,7 +280,10 @@ export class PipelineTestProject extends TestProjectBase {
       );
     }
 
-    // Poll ListPipelineExecutions to find an InProgress execution
+    // Poll ListPipelineExecutions to find an InProgress execution.
+    // IAM eventual consistency: the PipelineTestPolicy attached during CDK deploy
+    // may take up to 60s to propagate. CodePipeline returns PipelineNotFoundException
+    // (not AccessDenied) when IAM permissions haven't propagated yet.
     const maxWait = 120_000; // 2 minutes to detect execution start
     const pollInterval = 10_000;
     const startTime = Date.now();
@@ -288,32 +291,47 @@ export class PipelineTestProject extends TestProjectBase {
     while (Date.now() - startTime < maxWait) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
 
-      const response = await this.codePipelineClient.send(
-        new ListPipelineExecutionsCommand({
-          pipelineName: this.pipelineName,
-          maxResults: 5,
-        }),
-      );
-
-      const executions = response.pipelineExecutionSummaries ?? [];
-      const active = executions.find(
-        (e) =>
-          e.status === 'InProgress' ||
-          e.status === 'Stopping' ||
-          e.status === 'Succeeded',
-      );
-
-      if (active?.pipelineExecutionId) {
-        process.stderr.write(
-          `Pipeline execution started: ${active.pipelineExecutionId} (status: ${active.status})\n`,
+      try {
+        const response = await this.codePipelineClient.send(
+          new ListPipelineExecutionsCommand({
+            pipelineName: this.pipelineName,
+            maxResults: 5,
+          }),
         );
-        return active.pipelineExecutionId;
-      }
 
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
-      process.stderr.write(
-        `  [${elapsed}s] No active execution yet (found ${executions.length} executions: ${executions.map((e) => e.status).join(', ')})\n`,
-      );
+        const executions = response.pipelineExecutionSummaries ?? [];
+        const active = executions.find(
+          (e) =>
+            e.status === 'InProgress' ||
+            e.status === 'Stopping' ||
+            e.status === 'Succeeded',
+        );
+
+        if (active?.pipelineExecutionId) {
+          process.stderr.write(
+            `Pipeline execution started: ${active.pipelineExecutionId} (status: ${active.status})\n`,
+          );
+          return active.pipelineExecutionId;
+        }
+
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+        process.stderr.write(
+          `  [${elapsed}s] No active execution yet (found ${executions.length} executions: ${executions.map((e) => e.status).join(', ')})\n`,
+        );
+      } catch (e) {
+        const errorName = (e as Error).name ?? '';
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
+        if (errorName === 'PipelineNotFoundException') {
+          // IAM propagation delay — policy hasn't reached this endpoint yet
+          process.stderr.write(
+            `  [${elapsed}s] ListPipelineExecutions returned PipelineNotFoundException ` +
+              `(IAM propagation delay — retrying)...\n`,
+          );
+          continue;
+        }
+        // Unexpected error — propagate immediately
+        throw e;
+      }
     }
 
     throw new Error(
