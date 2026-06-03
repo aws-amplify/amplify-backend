@@ -118,7 +118,29 @@ void describe('Skew Protection — Code Generation', () => {
       assert.ok(
         code.includes("var hasExtension = lastSegment.indexOf('.') !== -1"),
       );
-      assert.ok(code.includes('if (!hasExtension)'));
+      assert.ok(code.includes('if (!hasExtension'));
+    });
+
+    void it('does not rewrite .well-known paths when spaFallback is enabled', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', [], {
+        spaFallback: true,
+      });
+      assert.ok(
+        code.includes("var isWellKnown = uri.startsWith('/.well-known/')"),
+      );
+      assert.ok(code.includes('!isWellKnown'));
+      // Verify with actual execution
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      const handler = new Function(`${code}\nreturn handler;`)() as (event: {
+        request: { uri: string; cookies: Record<string, unknown> };
+      }) => { uri: string };
+      const result = handler({
+        request: { uri: '/.well-known/acme-challenge', cookies: {} },
+      });
+      assert.ok(
+        !result.uri.endsWith('/index.html'),
+        '.well-known paths must NOT be rewritten to /index.html',
+      );
     });
 
     void it('throws for invalid build ID', () => {

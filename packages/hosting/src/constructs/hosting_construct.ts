@@ -597,12 +597,15 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 6. WAF (conditional) ----
-    const wafConstruct = new WafConstruct(this, 'Waf', {
-      enabled: props.waf?.enabled ?? false,
-      rateLimit: props.waf?.rateLimit,
-      skipRegionValidation: props.skipRegionValidation,
-    });
-    this.webAcl = wafConstruct.webAcl;
+    // Only create the built-in WAF construct if user didn't provide their own ARN
+    if (!props.cdn?.webAclArn) {
+      const wafConstruct = new WafConstruct(this, 'Waf', {
+        enabled: props.waf?.enabled ?? false,
+        rateLimit: props.waf?.rateLimit,
+        skipRegionValidation: props.skipRegionValidation,
+      });
+      this.webAcl = wafConstruct.webAcl;
+    }
 
     // ---- 7. Custom domain resources (conditional) ----
     let dnsConstruct: DnsConstruct | undefined;

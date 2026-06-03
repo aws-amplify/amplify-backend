@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -294,7 +294,13 @@ export class CdnConstruct extends Construct {
       // Origin verification secret — prevents direct APIGW access bypassing
       // CloudFront's security headers (CSP/HSTS). Requests without this
       // header are rejected by the APIGW resource policy.
-      const originVerifySecret = randomUUID();
+      // Deterministic: derived from stack + construct path to avoid
+      // CloudFormation churn on every deploy. Bump the version suffix to rotate.
+      const originVerifySecret = createHash('sha256')
+        .update(Stack.of(this).stackName)
+        .update(this.node.path)
+        .update('origin-verify-v1')
+        .digest('hex');
 
       // REGIONAL: CloudFront is already in front; edge-optimized would
       // double-proxy and cap streaming idle timeout at 30s.
@@ -888,15 +894,6 @@ export class CdnConstruct extends Construct {
                   },
                 ]
               : []),
-          ]
-        : []),
-      ...(isSpaOnly && !hasErrorPages
-        ? [
-            // SPA navigation fallback is now handled in the viewer-request
-            // function (rewrites extensionless URIs to /index.html before
-            // hitting S3). Only keep 404 handling for completeness — a true
-            // 404 from S3 means the build-id prefix is wrong (shouldn't
-            // happen in normal operation).
           ]
         : []),
       ...(hasCompute

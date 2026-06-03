@@ -225,7 +225,8 @@ export const generateBuildIdAndRedirectFunctionCode = (
   const rewriteBlock = spaFallback
     ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
   var hasExtension = lastSegment.indexOf('.') !== -1;
-  if (!hasExtension) {
+  var isWellKnown = uri.startsWith('/.well-known/');
+  if (!hasExtension && !isWellKnown) {
     uri = '/index.html';
   }`
     : `  if (uri.endsWith('/')) {

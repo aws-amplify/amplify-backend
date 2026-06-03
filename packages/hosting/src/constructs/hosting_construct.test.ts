@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
@@ -1608,5 +1608,96 @@ void describe('AmplifyHostingConstruct — KMS Key Policy', () => {
       0,
       'Should NOT create a KMS key with explicit S3_MANAGED encryption',
     );
+  });
+
+  // ---- cdn.ssrDefaultTtl ----
+
+  void describe('cdn.ssrDefaultTtl prop', () => {
+    void it('sets CachePolicy DefaultTTL when provided', () => {
+      const staticDir = createStaticDir();
+      const bundleDir = createBundleDir();
+      const stack = createStack();
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest(staticDir, bundleDir),
+        cdn: { ssrDefaultTtl: Duration.seconds(60) },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            DefaultTTL: 60,
+          }),
+        }),
+      );
+    });
+
+    void it('defaults to 0 when ssrDefaultTtl is omitted', () => {
+      const staticDir = createStaticDir();
+      const bundleDir = createBundleDir();
+      const stack = createStack();
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest(staticDir, bundleDir),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            DefaultTTL: 0,
+          }),
+        }),
+      );
+    });
+  });
+
+  // ---- cdn.webAclArn ----
+
+  void describe('cdn.webAclArn prop', () => {
+    void it('uses provided ARN on the distribution WebACLId', () => {
+      const staticDir = createStaticDir();
+      const stack = createStack();
+      // prettier-ignore
+      // eslint-disable-next-line spellcheck/spell-checker
+      const testArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: spaManifest(staticDir),
+        cdn: { webAclArn: testArn },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          WebACLId: testArn,
+        }),
+      });
+    });
+
+    void it('does NOT create WAF construct when webAclArn is provided', () => {
+      const staticDir = createStaticDir();
+      const stack = createStack();
+      // prettier-ignore
+      // eslint-disable-next-line spellcheck/spell-checker
+      const testArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: spaManifest(staticDir),
+        cdn: { webAclArn: testArn },
+        waf: { enabled: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const webAcls = template.findResources('AWS::WAFv2::WebACL');
+      assert.strictEqual(
+        Object.keys(webAcls).length,
+        0,
+        'Should NOT create a WAF WebACL when cdn.webAclArn is provided',
+      );
+    });
   });
 });

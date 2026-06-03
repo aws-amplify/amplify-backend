@@ -2,11 +2,16 @@
 '@aws-amplify/hosting': patch
 ---
 
-fix(hosting): fix 6 bugs found in agent-driven bug bash
+fix(hosting): fix bugs from agent-driven bug bash
 
-- Fix HTML caching: index.html no longer cached immutably (separate BucketDeployment with no-cache)
-- Fix SPA fallback: 403 error response added for S3+OAC (returns index.html instead of AccessDenied)
-- Fix compression: verified compress:true on all CloudFront behaviors
-- Fix compute.environment: wire user-provided env vars to Lambda function
-- Fix config.json caching: add short TTL to prevent stale config
-- Fix Response Headers Policy: default to managed SECURITY_HEADERS policy (zero quota usage)
+- Fix SPA deep-link fallback: moved from custom error responses to viewer-request function (only rewrites extensionless paths, not assets)
+- Fix SPA fallback in skew protection: spaFallback option passed to both CF functions
+- Fix SSR cache: configurable `cdn.ssrDefaultTtl` prop (defaults to 0 for backward compat)
+- Fix APIGW bypass: origin verification via Referer header + resource policy
+- Fix Response Headers Policy quota: default to managed SECURITY_HEADERS policy
+- Fix HTML caching: separate BucketDeployment with no-cache for HTML files
+- Fix config.json caching: noCachePaths manifest extension
+- Enable access logging by default (new S3 log bucket)
+- Add `cdn.webAclArn` prop for BYO WAF integration
+- Fix image-opt 500 error caching: ttl=0 on error responses
+- Add `compute.environment` prop for user-provided Lambda env vars
