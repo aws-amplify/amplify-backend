@@ -115,7 +115,7 @@ class VanillaCdkSpaTestCdkProject extends TestCdkProjectBase {
       `SPA fallback should return index.html content, got: ${fallbackBody.substring(0, 200)}`,
     );
 
-    // Verify security headers
+    // Verify security headers (managed SECURITY_HEADERS policy)
     const headersResponse = await fetch(distributionUrl);
     const headers = headersResponse.headers;
     assert.ok(
@@ -131,12 +131,9 @@ class VanillaCdkSpaTestCdkProject extends TestCdkProjectBase {
       headers.get('x-frame-options'),
       'Response should include x-frame-options header',
     );
-    const csp = headers.get('content-security-policy');
-    assert.ok(csp, 'Response should include content-security-policy header');
-    assert.ok(
-      csp!.includes('wss:'),
-      `content-security-policy connect-src should include wss:, got: ${csp}`,
-    );
+    // CSP is intentionally omitted from the default managed policy.
+    // Frameworks emit their own CSP; a blanket L3 CSP would conflict.
+    // Customers can provide cdn.contentSecurityPolicy for a custom CSP.
 
     // Verify stack deployed successfully
     const describeResult = await this.cfnClient.send(
