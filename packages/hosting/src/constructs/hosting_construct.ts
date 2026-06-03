@@ -622,25 +622,7 @@ export class AmplifyHostingConstruct extends Construct {
     );
 
     // ---- 9. CloudFront distribution ----
-    // Font MIME enforcement (P1.7): inject per-pattern Content-Type
-    // headers into the manifest so the per-pattern RHP machinery in
-    // CdnConstruct stamps the right Content-Type on font responses
-    // even when S3 stored them as `binary/octet-stream`. We only emit
-    // patterns for extensions actually present on disk so projects
-    // without fonts pay zero RHP-quota cost. CloudFront's RHP
-    // overrides origin headers, so the header-set wins regardless of
-    // what S3 returns.
-    const manifestWithFontHeaders: DeployManifest = {
-      ...manifest,
-      headers: [
-        ...(manifest.headers ?? []),
-        ...buildFontMimeHeaders(manifest.staticAssets.directory),
-      ],
-    };
-    const manifestWithBuildId: DeployManifest = {
-      ...manifestWithFontHeaders,
-      buildId,
-    };
+    const manifestWithBuildId: DeployManifest = { ...manifest, buildId };
 
     // Per-route Lambda@Edge function versions (OpenNext edge routes). Only
     // computes with type === 'edge' get a `currentVersion` from the
@@ -872,16 +854,49 @@ export class AmplifyHostingConstruct extends Construct {
       });
     }
 
-    // Note on font MIME: the previous implementation re-deployed each
-    // font extension via its own BucketDeployment to overwrite S3's
-    // `binary/octet-stream` default with the correct `font/woff2` etc.
-    // That worked but was fragile — each deployment is a custom
-    // resource backed by a Lambda, and any one failing left fonts with
-    // wrong Content-Type forever (browsers reject under CORS, no
-    // CloudWatch signal). Font MIME enforcement is now done in the
-    // CdnConstruct via per-pattern ResponseHeadersPolicies — see
-    // `injectFontMimeHeaders` further up in this constructor (called
-    // before the CDN construct is built).
+    // ---- 12b. Font Content-Type pass ----
+    // S3's `binary/octet-stream` default for font extensions makes
+    // browsers reject fonts under CORS. We re-deploy *only* font
+    // files with `contentType` set explicitly so the right MIME wires
+    // through to the viewer. One BucketDeployment per extension —
+    // each is a CDK custom resource. Failure here would leave fonts
+    // with the wrong Content-Type, but the default monitoring
+    // construct (P3.1, opt-in) alarms on Lambda errors so silent
+    // failures surface in CloudWatch.
+    //
+    // We reuse the same `staticSource` Source.asset declared above —
+    // CDK dedups the staged asset zip across all BucketDeployments
+    // via content hash, so the directory is staged exactly once even
+    // with N font extensions present.
+    //
+    // We don't set Cache-Control here — fonts are commonly hashed
+    // (Next emits them under `_next/static/media`) AND non-hashed
+    // (`public/fonts/`); applying a long-lived Cache-Control here
+    // would be wrong for the latter, so we leave it unset and let the
+    // prior asset deployments govern.
+    const FONT_TYPES: Array<[string, string]> = [
+      ['.woff2', 'font/woff2'],
+      ['.woff', 'font/woff'],
+      ['.ttf', 'font/ttf'],
+      ['.otf', 'font/otf'],
+      ['.eot', 'application/vnd.ms-fontobject'],
+    ];
+    const fontExtensionsPresent = detectFontExtensions(
+      manifest.staticAssets.directory,
+      FONT_TYPES.map(([ext]) => ext),
+    );
+    for (const [ext, mime] of FONT_TYPES) {
+      if (!fontExtensionsPresent.has(ext)) continue;
+      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
+        sources: [staticSource],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        exclude: ['*'],
+        include: [`*${ext}`],
+        contentType: mime,
+        prune: false,
+      });
+    }
   }
 
   /**
@@ -923,41 +938,6 @@ const normalizeTimeout = (t?: Duration | number): Duration | undefined => {
   if (t === undefined) return undefined;
   if (typeof t === 'number') return Duration.seconds(t);
   return t;
-};
-
-/**
- * Build manifest `headers[]` entries that stamp the right
- * `Content-Type` on font responses via the per-pattern RHP path. Used
- * instead of per-extension `BucketDeployment` (P1.7) — RHP overrides
- * origin headers, so even when S3 stored the file as
- * `binary/octet-stream` the response carries the right type.
- *
- * Returns one entry per *present* extension. Each entry uses a
- * `*<ext>` source pattern; the per-pattern policy logic in
- * CdnConstruct synthesizes a static behavior at that pattern when no
- * other behavior owns it. CloudFront PathPatterns support the leading
- * `*` wildcard for a single trailing literal, so `*.woff2` matches
- * any path ending in `.woff2` regardless of directory.
- */
-const buildFontMimeHeaders = (
-  staticDir: string,
-): Array<{ source: string; headers: Record<string, string> }> => {
-  const FONT_TYPES: Array<[string, string]> = [
-    ['.woff2', 'font/woff2'],
-    ['.woff', 'font/woff'],
-    ['.ttf', 'font/ttf'],
-    ['.otf', 'font/otf'],
-    ['.eot', 'application/vnd.ms-fontobject'],
-  ];
-  const present = detectFontExtensions(
-    staticDir,
-    FONT_TYPES.map(([ext]) => ext),
-  );
-  return FONT_TYPES.filter(([ext]) => present.has(ext)).map(([ext, mime]) => ({
-    source: `*${ext}`,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    headers: { 'Content-Type': mime },
-  }));
 };
 
 const detectFontExtensions = (
