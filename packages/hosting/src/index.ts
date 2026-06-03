@@ -21,11 +21,7 @@ export {
   generateBuildId,
   generateBuildIdFunctionCode,
 } from './constructs/hosting_construct.js';
-export {
-  definePipeline,
-  getStageConfig,
-  withPipelineScope,
-} from './pipeline/index.js';
+export { definePipeline, getStageConfig } from './pipeline/index.js';
 export { AmplifyPipelineConstruct } from './pipeline/index.js';
 export type {
   PipelineProps,
