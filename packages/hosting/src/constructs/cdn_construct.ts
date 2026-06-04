@@ -960,6 +960,26 @@ export class CdnConstruct extends Construct {
       }
     }
 
+    // ---- Error-page behavior (B22) ----
+    // CloudFront custom error responses fetch the configured
+    // responsePagePath from the behavior matching that path. Error pages
+    // live at /builds/<buildId>/404.html (or _error.html) in S3. Without
+    // an explicit behavior, the path falls to the default (compute)
+    // behavior and the Lambda can't serve the file — causing CloudFront
+    // to fall back to the original error. Add a direct-to-S3 behavior
+    // for /builds/* so error page fetches resolve correctly.
+    if (errorResponses.length > 0 && hasCompute) {
+      additionalBehaviors['/builds/*'] = {
+        origin: s3Origin,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        compress: true,
+        responseHeadersPolicy: props.securityHeadersPolicy,
+      };
+    }
+
     // ---- Distribution ----
     this.distribution = new Distribution(this, 'HostingDistribution', {
       defaultBehavior,
