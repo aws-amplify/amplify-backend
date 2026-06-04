@@ -947,9 +947,7 @@ export class CdnConstruct extends Construct {
       // For compute (SSR) stacks, the default 502/503/504 error pages are
       // already wired above; only add 500 with the custom page.
       // For static/SPA stacks, add all server error statuses.
-      const serverErrorStatuses = hasCompute
-        ? [403, 500]
-        : [403, 500, 502, 503, 504];
+      const serverErrorStatuses = hasCompute ? [500] : [500, 502, 503, 504];
       for (const status of serverErrorStatuses) {
         errorResponses.push({
           httpStatus: status,

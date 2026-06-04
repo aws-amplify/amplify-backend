@@ -615,7 +615,14 @@ export class AmplifyHostingConstruct extends Construct {
       'OPEN_NEXT_',
       'CACHE_',
       'REVALIDATION_',
+      'NODE_',
+      'LAMBDA_',
     ];
+    const RESERVED_EXACT_KEYS = new Set([
+      '_HANDLER',
+      'LD_PRELOAD',
+      '_X_AMZN_TRACE_ID',
+    ]);
     const KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
     if (props.environment) {
@@ -631,6 +638,27 @@ export class AmplifyHostingConstruct extends Construct {
           throw new HostingError('ReservedEnvironmentKeyError', {
             message: `Environment variable key '${key}' uses a reserved prefix.`,
             resolution: `Keys starting with ${RESERVED_PREFIXES.join(', ')} are reserved for internal use.`,
+          });
+        }
+        if (RESERVED_EXACT_KEYS.has(key)) {
+          throw new HostingError('ReservedEnvironmentKeyError', {
+            message: `Environment variable key '${key}' is a reserved runtime key.`,
+            resolution: `The key '${key}' is reserved by the Lambda runtime and cannot be overridden.`,
+          });
+        }
+        if (key.length > 256) {
+          throw new HostingError('EnvironmentKeyTooLongError', {
+            message: `Environment variable key '${key}' exceeds 256 character limit.`,
+            resolution:
+              'Lambda environment variable keys must be 256 characters or fewer.',
+          });
+        }
+        const value = props.environment[key];
+        if (value.length > 8192) {
+          throw new HostingError('EnvironmentValueTooLongError', {
+            message: `Environment variable value for '${key}' exceeds 8KB limit.`,
+            resolution:
+              'Lambda environment variable values must be 8192 characters or fewer.',
           });
         }
       }
@@ -846,6 +874,12 @@ export class AmplifyHostingConstruct extends Construct {
         props.errorPages.notFound,
         'utf-8',
       );
+      if (notFoundContent.length > 50 * 1024) {
+        throw new HostingError('ErrorPageTooLargeError', {
+          message: `Custom error page at ${props.errorPages.notFound} is ${Math.round(notFoundContent.length / 1024)}KB. Maximum is 50KB.`,
+          resolution: 'Reduce the size of your custom error page HTML file.',
+        });
+      }
       if (
         !notFoundContent.trim().toLowerCase().includes('<html') &&
         !notFoundContent.trim().toLowerCase().includes('<!doctype')
@@ -875,6 +909,12 @@ export class AmplifyHostingConstruct extends Construct {
         props.errorPages.serverError,
         'utf-8',
       );
+      if (serverErrorContent.length > 50 * 1024) {
+        throw new HostingError('ErrorPageTooLargeError', {
+          message: `Custom error page at ${props.errorPages.serverError} is ${Math.round(serverErrorContent.length / 1024)}KB. Maximum is 50KB.`,
+          resolution: 'Reduce the size of your custom error page HTML file.',
+        });
+      }
       if (
         !serverErrorContent.trim().toLowerCase().includes('<html') &&
         !serverErrorContent.trim().toLowerCase().includes('<!doctype')
