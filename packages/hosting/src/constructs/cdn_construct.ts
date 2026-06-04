@@ -682,12 +682,14 @@ export class CdnConstruct extends Construct {
     // ---- assetPrefix behavior (P2.7) ----
     // When the framework's build emits asset URLs under a prefix
     // (Next.js `assetPrefix: '/shop-static'`), the non-prefixed
-    // `/_next/static/*` behavior won't match. The previous
-    // implementation emitted four separate prefixed behaviors
+    // `/_next/static/*` behavior won't match. A naive
+    // implementation emits four separate prefixed behaviors
     // (`/<prefix>/_next/static/*`, `/_next/image*`, `/_next/data/*`,
     // `/_next/*`) — each one consuming a slot of the CloudFront
-    // 24-additional-behavior budget. Customers with even modest
-    // route counts hit the cap.
+    // 24-additional-behavior budget. That scales poorly: the hosting
+    // construct already provisions ~6-10 base behaviors for SSR /
+    // image-opt / static / cache routes, so dedicating four more to
+    // a single config knob is wasteful.
     //
     // We collapse to a single `/<prefix>/*` behavior backed by a
     // smarter strip function. The function inspects the URI tail
