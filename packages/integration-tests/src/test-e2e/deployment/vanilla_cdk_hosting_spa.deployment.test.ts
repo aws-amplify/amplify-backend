@@ -15,7 +15,7 @@ import { VanillaCdkSpaTestCdkProjectCreator } from '../../test-project-setup/cdk
  * 2. Deploys via `cdk deploy` (not `ampx deploy`)
  * 3. Verifies CloudFront serves the SPA content ("Hello Vanilla CDK SPA")
  * 4. Verifies SPA routing fallback (404 → index.html)
- * 5. Verifies security headers (CSP with wss:, HSTS, X-Frame-Options, X-Content-Type-Options)
+ * 5. Verifies security headers (HSTS, X-Frame-Options, X-Content-Type-Options)
  * 6. Tears down via `cdk destroy`
  */
 

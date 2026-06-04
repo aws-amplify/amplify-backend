@@ -41,6 +41,14 @@ export type DeployManifest = {
      * paths).
      */
     immutablePaths?: string[];
+    /**
+     * Glob patterns (relative to `directory`) of files that must never
+     * be cached. These receive `Cache-Control: no-cache, no-store,
+     * must-revalidate`. Use for runtime config files (e.g.
+     * `.blocks-sandbox/config.json`) that change between deploys and
+     * must never serve stale content even briefly.
+     */
+    noCachePaths?: string[];
   };
 
   /** Route behaviors (maps URL patterns to compute/static) */

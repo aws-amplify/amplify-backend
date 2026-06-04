@@ -45,10 +45,27 @@ const COOKIE_NAME = '__dpl';
 export const generateSkewProtectionViewerRequestCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
+  options?: { spaFallback?: boolean },
 ): string => {
   validateBuildId(buildId);
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  const spaFallback = options?.spaFallback ?? false;
+  const rewriteBlock = spaFallback
+    ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+  var hasExtension = lastSegment.indexOf('.') !== -1;
+  var isWellKnown = uri.startsWith('/.well-known/');
+  if (!hasExtension && !isWellKnown) {
+    uri = '/index.html';
+  }`
+    : `  if (uri.endsWith('/')) {
+    uri = uri + 'index.html';
+  } else {
+    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+    if (lastSegment.indexOf('.') === -1) {
+      uri = uri + '/index.html';
+    }
+  }`;
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
@@ -61,14 +78,7 @@ ${redirectSnippet}
       buildId = val;
     }
   }
-  if (uri.endsWith('/')) {
-    uri = uri + 'index.html';
-  } else {
-    var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
-    if (lastSegment.indexOf('.') === -1) {
-      uri = uri + '/index.html';
-    }
-  }
+${rewriteBlock}
   request.uri = '/builds/' + buildId + uri;
   return request;
 }`;
