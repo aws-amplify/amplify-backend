@@ -126,6 +126,21 @@ export type PipelineSynthConfig = {
    * Lambda bundling + frontend builds. Use SMALL for trivial apps or LARGE for monorepos.
    */
   readonly computeType?: codebuild.ComputeType;
+
+  /**
+   * Partial BuildSpec merged into the synth step's CodeBuild project.
+   *
+   * Use this to override runtime versions or add custom build phases.
+   * When omitted, defaults to Node.js 22 runtime (current LTS).
+   * @default BuildSpec with `phases.install.runtime-versions.nodejs: 22`
+   * @example
+   * ```ts
+   * partialBuildSpec: codebuild.BuildSpec.fromObject({
+   *   phases: { install: { 'runtime-versions': { nodejs: 20 } } },
+   * })
+   * ```
+   */
+  readonly partialBuildSpec?: codebuild.BuildSpec;
 };
 
 /**

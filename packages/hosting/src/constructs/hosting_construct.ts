@@ -30,7 +30,7 @@ import { LambdaFunction as LambdaFunctionTarget } from 'aws-cdk-lib/aws-events-t
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
@@ -448,6 +448,15 @@ export class AmplifyHostingConstruct extends Construct {
 
       // Revalidation worker Lambda — processes SQS messages to refresh stale pages
       if (manifest.cache.revalidationFunction && this.revalidationQueue) {
+        const revalidationLogGroup = new LogGroup(
+          this,
+          'RevalidationLogGroup',
+          {
+            retention: props.compute?.logRetention ?? RetentionDays.TWO_WEEKS,
+            removalPolicy: RemovalPolicy.DESTROY,
+          },
+        );
+
         const revalidationFn = new LambdaFunction(
           this,
           'RevalidationFunction',
@@ -457,6 +466,7 @@ export class AmplifyHostingConstruct extends Construct {
             code: Code.fromAsset(manifest.cache.revalidationFunction.bundle),
             timeout: Duration.seconds(30),
             memorySize: 256,
+            logGroup: revalidationLogGroup,
             environment: {
               CACHE_BUCKET_NAME: this.cacheBucket.bucketName,
               CACHE_BUCKET_REGION: Stack.of(this).region,

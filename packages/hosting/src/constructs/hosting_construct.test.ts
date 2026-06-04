@@ -465,6 +465,43 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
     );
   });
 
+  void it('revalidation worker Lambda has explicit LogGroup with retention (no deprecated logRetention prop)', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const revalDir = path.join(tmpDir, 'revalidation-fn');
+    fs.mkdirSync(revalDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(revalDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        revalidationFunction: {
+          bundle: revalDir,
+          handler: 'index.handler',
+        },
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Revalidation Lambda should have an explicit LogGroup with TWO_WEEKS retention
+    template.hasResourceProperties('AWS::Logs::LogGroup', {
+      RetentionInDays: 14,
+    });
+  });
+
   void it('does not deploy revalidation worker when revalidationFunction is not configured', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir();
