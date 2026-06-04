@@ -1,5 +1,6 @@
 [
   "Aaaa",
+  "SKey",
   "aaaaaaaa",
   "abc",
   "abc123",
@@ -265,6 +266,7 @@
   "patchers",
   "pathname",
   "pipelined",
+  "plaintext",
   "pnpm",
   "positionals",
   "posix",
@@ -318,7 +320,6 @@
   "signout",
   "signup",
   "sigv4",
-  "SKey",
   "sms",
   "solidjs",
   "stderr",
