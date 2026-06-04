@@ -222,6 +222,70 @@ void describe('AmplifyPipelineConstruct', () => {
         }),
       });
     });
+
+    void it('includes Node.js 22 runtime version in synth step by default', () => {
+      const app = new App();
+      const stack = new Stack(app, 'Node22DefaultStack');
+
+      new AmplifyPipelineConstruct(stack, 'Pipeline', defaultPipelineProps());
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CodeBuild::Project', {
+        Source: Match.objectLike({
+          BuildSpec: Match.serializedJson(
+            Match.objectLike({
+              phases: Match.objectLike({
+                install: Match.objectLike({
+                  'runtime-versions': {
+                    nodejs: 22,
+                  },
+                }),
+              }),
+            }),
+          ),
+        }),
+      });
+    });
+
+    void it('allows overriding partialBuildSpec via synth config', () => {
+      const app = new App();
+      const stack = new Stack(app, 'CustomBuildSpecStack');
+
+      new AmplifyPipelineConstruct(
+        stack,
+        'Pipeline',
+        defaultPipelineProps({
+          synth: {
+            partialBuildSpec: codebuild.BuildSpec.fromObject({
+              phases: {
+                install: {
+                  'runtime-versions': {
+                    nodejs: 20,
+                  },
+                },
+              },
+            }),
+          },
+        }),
+      );
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CodeBuild::Project', {
+        Source: Match.objectLike({
+          BuildSpec: Match.serializedJson(
+            Match.objectLike({
+              phases: Match.objectLike({
+                install: Match.objectLike({
+                  'runtime-versions': {
+                    nodejs: 20,
+                  },
+                }),
+              }),
+            }),
+          ),
+        }),
+      });
+    });
   });
 
   void describe('multi-branch pipelines', () => {
