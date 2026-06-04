@@ -28,15 +28,19 @@ import { createRequire } from 'node:module';
 // burning bundle size + cold-start time when the runtime already has
 // the same package. createRequire() defers the resolution to Lambda
 // runtime, so Nitro's bundler can't see the import target.
-const require = createRequire(import.meta.url);
-const {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  ListObjectsV2Command,
-  HeadObjectCommand,
-} = require('@aws-sdk/client-s3');
+//
+// The actual \`require()\` call is intentionally INSIDE \`defineNitroPlugin\`
+// (after the env-var early return). Why: Nitro's prerenderer evaluates
+// every plugin during \`nuxt build\` to compile the routing/storage
+// layer. If the SDK require ran at module-load time, prerender would
+// try to resolve \`@aws-sdk/client-s3\` from the user's project — where
+// it isn't installed — and the build would fail with
+// "Cannot find module '@aws-sdk/client-s3'". Deferring to inside the
+// plugin function (after the bucket/region check) means prerender
+// hits the early return path and never touches the SDK; Lambda
+// runtime is the only environment where bucket/region are set, and
+// it has the SDK pre-installed.
+const lazyRequireS3 = () => createRequire(import.meta.url)('@aws-sdk/client-s3');
 
 const bucket = process.env.AMPLIFY_NITRO_CACHE_BUCKET;
 const region = process.env.AMPLIFY_NITRO_CACHE_REGION;
@@ -45,13 +49,13 @@ const keyToS3 = (key) => key.replace(/:/g, '/');
 const log = (msg) =>
   process.stderr.write(\`[amplify-hosting:cache] \${msg}\\n\`);
 
-const makeDriver = (client) => ({
+const makeDriver = ({ client, S3Cmds }) => ({
   name: 'amplify-hosting-s3-cache',
 
   async hasItem(key) {
     try {
       await client.send(
-        new HeadObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
+        new S3Cmds.HeadObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
       );
       return true;
     } catch (err) {
@@ -63,7 +67,7 @@ const makeDriver = (client) => ({
   async getItem(key) {
     try {
       const res = await client.send(
-        new GetObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
+        new S3Cmds.GetObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
       );
       const body = await res.Body.transformToString();
       try {
@@ -80,7 +84,7 @@ const makeDriver = (client) => ({
   async setItem(key, value) {
     const body = typeof value === 'string' ? value : JSON.stringify(value);
     await client.send(
-      new PutObjectCommand({
+      new S3Cmds.PutObjectCommand({
         Bucket: bucket,
         Key: keyToS3(key),
         Body: body,
@@ -91,13 +95,13 @@ const makeDriver = (client) => ({
 
   async removeItem(key) {
     await client.send(
-      new DeleteObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
+      new S3Cmds.DeleteObjectCommand({ Bucket: bucket, Key: keyToS3(key) }),
     );
   },
 
   async getKeys(base) {
     const res = await client.send(
-      new ListObjectsV2Command({
+      new S3Cmds.ListObjectsV2Command({
         Bucket: bucket,
         Prefix: base ? keyToS3(base) : undefined,
       }),
@@ -134,8 +138,12 @@ export default defineNitroPlugin((nitroApp) => {
     return;
   }
 
-  const client = new S3Client({ region });
-  const amplifyDriver = makeDriver(client);
+  // Lazy-resolve the SDK only at runtime (Lambda has it under
+  // /var/runtime/node_modules; build-time prerender doesn't, but
+  // also doesn't reach this branch because env vars aren't set).
+  const S3Cmds = lazyRequireS3();
+  const client = new S3Cmds.S3Client({ region });
+  const amplifyDriver = makeDriver({ client, S3Cmds });
   storage.mount('cache', amplifyDriver);
   log(\`mounted S3 cache backend (bucket=\${bucket})\`);
 
