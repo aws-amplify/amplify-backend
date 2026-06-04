@@ -790,6 +790,7 @@ const buildImageOptBundleIfNeeded = (
         '--no-fund',
         '--silent',
         '--include=optional',
+        '--omit=dev',
         '--os=linux',
         '--cpu=x64',
         '--libc=glibc',
@@ -812,7 +813,106 @@ const buildImageOptBundleIfNeeded = (
     );
   }
 
+  // 2.4 — drop test fixtures, type defs, and other dead weight from
+  // the Lambda zip. Lambda's 250 MB unzipped limit is the hard cap;
+  // a >50 MB unzipped bundle also slows cold starts (Lambda's init
+  // path differs above that threshold). sharp's native binary alone
+  // is ~50 MB so every saved megabyte counts.
+  pruneImageOptBundle(bundleDir);
+
   return bundleDir;
+};
+
+/**
+ * Walk the IPX Lambda's installed `node_modules/` and delete things
+ * that have no business shipping in a production zip:
+ *   - `test/`, `tests/`, `__tests__/`, `test-fixtures/` directories
+ *   - `*.md`, `*.markdown`, `LICENSE*`, `CHANGELOG*` files
+ *   - `*.d.ts` declaration files (Lambda runtime is JS-only)
+ *   - `*.map` source maps
+ *   - `examples/`, `docs/`, `bench/` directories
+ * Best-effort: any FS error is swallowed so a transient permissions
+ * issue can't fail the deploy. The bundle remains usable even if the
+ * prune is partial — these files just aren't on the runtime path.
+ *
+ * Skips `sharp/` entirely. sharp's tarball ships the native binary
+ * inside `sharp/build/Release/` and `sharp/vendor/`; pruning anything
+ * out of those breaks the install. Pruning sharp's `docs/` would be
+ * safe in theory, but the library has changed its layout twice in
+ * recent majors — easier to leave the entire package alone than to
+ * track which directories are safe per version.
+ */
+const pruneImageOptBundle = (bundleDir: string): void => {
+  const nm = path.join(bundleDir, 'node_modules');
+  if (!fs.existsSync(nm)) return;
+
+  const PRUNE_DIRS = new Set([
+    'test',
+    'tests',
+    '__tests__',
+    'test-fixtures',
+    'examples',
+    'example',
+    'docs',
+    'doc',
+    'bench',
+    'benchmark',
+    'benchmarks',
+    'coverage',
+  ]);
+  const PRUNE_FILE_PATTERNS = [
+    /\.md$/i,
+    /\.markdown$/i,
+    /^license/i,
+    /^changelog/i,
+    /^changes$/i,
+    /^history/i,
+    /\.d\.ts$/i,
+    /\.map$/i,
+    /^\.eslintrc/i,
+    /^\.npmignore$/i,
+  ];
+
+  const isInsideSharp = (p: string): boolean => {
+    // path includes "node_modules/sharp" anywhere — covers nested
+    // dep boundaries too.
+    return p.split(path.sep).includes('sharp');
+  };
+
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (isInsideSharp(full)) continue;
+      if (entry.isDirectory()) {
+        if (PRUNE_DIRS.has(entry.name.toLowerCase())) {
+          try {
+            fs.rmSync(full, { recursive: true, force: true });
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+          } catch {
+            // best-effort
+          }
+          continue;
+        }
+        walk(full);
+      } else if (entry.isFile()) {
+        if (PRUNE_FILE_PATTERNS.some((re) => re.test(entry.name))) {
+          try {
+            fs.rmSync(full, { force: true });
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+          } catch {
+            // best-effort
+          }
+        }
+      }
+    }
+  };
+  walk(nm);
 };
 
 /**

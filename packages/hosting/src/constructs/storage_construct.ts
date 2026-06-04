@@ -4,6 +4,8 @@ import {
   BlockPublicAccess,
   Bucket,
   BucketEncryption,
+  InventoryFormat,
+  InventoryFrequency,
   ObjectOwnership,
 } from 'aws-cdk-lib/aws-s3';
 import { IKey } from 'aws-cdk-lib/aws-kms';
@@ -43,6 +45,21 @@ export type StorageConstructProps = {
   buildRetentionDays?: number;
   /** Days to retain access logs. Default: 90. */
   logRetentionDays?: number;
+  /**
+   * Adapter-supplied lifecycle rules for orphaned per-build data
+   * (3.2). Empty / undefined → no extra rules. The default
+   * `builds/` and noncurrent-version rules always run.
+   */
+  extraLifecycleRules?: Array<{ prefix: string; days: number }>;
+  /**
+   * Opt-in S3 inventory configuration (3.3). When true, a daily
+   * CSV inventory of `builds/` lands in a dedicated destination
+   * bucket so operators can audit per-build sizes without running
+   * `aws s3 ls --summarize` per prefix. Off by default — inventory
+   * costs $0.0025 per million objects listed which is negligible
+   * but non-zero, and the destination bucket adds resources.
+   */
+  inventoryEnabled?: boolean;
 };
 
 // ---- Construct ----
@@ -58,6 +75,8 @@ export type StorageConstructProps = {
 export class StorageConstruct extends Construct {
   readonly bucket: Bucket;
   readonly accessLogBucket?: Bucket;
+  /** Destination bucket for S3 inventory (3.3). Set when `inventoryEnabled`. */
+  readonly inventoryBucket?: Bucket;
 
   /**
    * Create hosting storage with the given props.
@@ -74,6 +93,32 @@ export class StorageConstruct extends Construct {
         ? BucketEncryption.KMS
         : BucketEncryption.S3_MANAGED;
 
+    // 3.3 — opt-in S3 inventory destination bucket. Created BEFORE
+    // the hosting bucket so we can pass it as an inventory target.
+    // We always co-locate the inventory bucket in the same stack /
+    // region so cross-region transfer charges don't surprise users.
+    if (props.inventoryEnabled) {
+      this.inventoryBucket = new Bucket(this, 'InventoryBucket', {
+        blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+        encryption: BucketEncryption.S3_MANAGED,
+        objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
+        enforceSSL: true,
+        // Inventory CSVs are operational artifacts — destroy on
+        // stack delete, expire after 90 days. Keeps the audit trail
+        // in reach for quarterly cost reviews without unbounded
+        // growth.
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+        lifecycleRules: [
+          {
+            id: 'ExpireInventoryReports',
+            expiration: Duration.days(90),
+            enabled: true,
+          },
+        ],
+      });
+    }
+
     this.bucket = new Bucket(this, 'HostingBucket', {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: bucketEncryption,
@@ -85,6 +130,27 @@ export class StorageConstruct extends Construct {
         ? RemovalPolicy.RETAIN
         : RemovalPolicy.DESTROY,
       autoDeleteObjects: !retainOnDelete,
+      // 3.3 — daily inventory of `builds/`, written as CSV into the
+      // dedicated destination bucket. CDK requires
+      // `inventoryId` + `destination` shape; the prefix scoping limits
+      // cost (~$0.0025/M objects).
+      ...(this.inventoryBucket
+        ? {
+            inventories: [
+              {
+                destination: {
+                  bucket: this.inventoryBucket,
+                  prefix: 'inventory/',
+                },
+                frequency: InventoryFrequency.DAILY,
+                includeObjectVersions: undefined,
+                format: InventoryFormat.CSV,
+                objectsPrefix: 'builds/',
+                inventoryId: 'BuildsInventory',
+              },
+            ],
+          }
+        : {}),
       lifecycleRules: [
         {
           id: 'DeleteOldBuilds',
@@ -97,12 +163,18 @@ export class StorageConstruct extends Construct {
           noncurrentVersionExpiration: Duration.days(30),
           enabled: true,
         },
-        {
-          id: 'ExpireOrphanedIsrData',
-          prefix: '_next/data/',
-          expiration: Duration.days(30),
+        // 3.2 — Adapter-supplied lifecycle rules. Frameworks that
+        // emit per-build data outside `builds/` (Next's
+        // `_next/data/<id>/...`) declare expiration here. Previously
+        // hardcoded as `_next/data/` with 30 days; now the adapter
+        // owns it so Astro/Nuxt deploys don't carry a Next-specific
+        // dead-weight rule.
+        ...(props.extraLifecycleRules ?? []).map((rule, idx) => ({
+          id: `AdapterLifecycle${idx}`,
+          prefix: rule.prefix,
+          expiration: Duration.days(rule.days),
           enabled: true,
-        },
+        })),
       ],
     });
 

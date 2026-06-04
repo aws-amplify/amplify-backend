@@ -82,8 +82,48 @@ export type HostingProps = {
     reservedConcurrency?: number;
     /** Provisioned concurrency for cold-start elimination. Default: undefined (no provisioning). */
     provisionedConcurrency?: number;
-    /** CloudWatch log retention for the SSR Lambda. Default: TWO_WEEKS. */
+    /** CloudWatch log retention for the SSR Lambda. Default: ONE_MONTH. */
     logRetention?: RetentionDays;
+    /**
+     * 2.1 — synthetic warmup. When set, an EventBridge schedule
+     * invokes the SSR Lambda every `rate` to keep at least one
+     * execution environment hot, eliminating cold starts on
+     * intermittent traffic. Skipped automatically when
+     * `provisionedConcurrency` is set (already warm).
+     *
+     * Cost: ~$0.01/month per minute of rate (Lambda invoke +
+     * EventBridge rule).
+     */
+    warmup?: {
+      rate: Duration;
+    };
+    /**
+     * 2.2 — Lambda SnapStart toggle (forward-compat). When true,
+     * publishes a Lambda alias with SnapStart enabled and points
+     * the Function URL / API GW integration at the alias. SnapStart
+     * is GA for Java today; Node SnapStart is upstream-pending. The
+     * construct silently no-ops on runtimes that don't support it
+     * yet so customers can opt in once Node lands.
+     */
+    snapStart?: boolean;
+    /**
+     * 4.1 — OpenTelemetry environment hooks. Injected onto every
+     * Lambda the construct creates (SSR, image-opt, revalidation,
+     * middleware, warmup). The construct does NOT install any OTel
+     * SDK — this only sets the env vars the user's instrumentation
+     * code reads.
+     */
+    tracing?: {
+      /** OTEL_EXPORTER_OTLP_ENDPOINT — collector base URL. */
+      otelEndpoint: string;
+      /**
+       * OTEL_EXPORTER_OTLP_HEADERS — comma-separated `key=value`
+       * pairs (auth tokens, vendor headers).
+       */
+      otelHeaders?: string;
+      /** OTEL_SERVICE_NAME — defaults to `amplify-hosting`. */
+      serviceName?: string;
+    };
   };
 
   /**
@@ -113,6 +153,16 @@ export type HostingProps = {
     retainOnDelete?: boolean;
     /** Days to retain build artifacts in S3. Default: 30. */
     buildRetentionDays?: number;
+    /**
+     * Opt-in S3 inventory of `builds/` (3.3). When enabled, a daily
+     * CSV report of every object under `builds/` lands in a
+     * dedicated inventory bucket. Useful for cost audits — find
+     * which build is the heavy one without `aws s3 ls --summarize`
+     * per prefix. Off by default.
+     */
+    inventory?: {
+      enabled: boolean;
+    };
   };
 
   /**

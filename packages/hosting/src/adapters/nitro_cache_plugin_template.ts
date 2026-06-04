@@ -19,14 +19,24 @@
  * at `cache`, this plugin no-ops so it never overrides user choice.
  */
 export const NITRO_CACHE_PLUGIN_SOURCE = `import { defineNitroPlugin, useStorage } from '#imports';
-import {
+import { createRequire } from 'node:module';
+
+// 2.3 — externalize @aws-sdk/client-s3 from Nitro's bundle. The
+// Lambda Node 20 runtime ships @aws-sdk/* under /var/runtime/node_modules
+// (~16 MB unzipped). A static \`import { ... } from '@aws-sdk/client-s3'\`
+// would force Nitro/Rollup to bundle the SDK into the server zip,
+// burning bundle size + cold-start time when the runtime already has
+// the same package. createRequire() defers the resolution to Lambda
+// runtime, so Nitro's bundler can't see the import target.
+const require = createRequire(import.meta.url);
+const {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
   HeadObjectCommand,
-} from '@aws-sdk/client-s3';
+} = require('@aws-sdk/client-s3');
 
 const bucket = process.env.AMPLIFY_NITRO_CACHE_BUCKET;
 const region = process.env.AMPLIFY_NITRO_CACHE_REGION;

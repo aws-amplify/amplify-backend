@@ -194,6 +194,17 @@ export const nextjsAdapter = (
   applyAssetPrefix(manifest, projectDir);
   applyNextImageConfig(manifest, projectDir);
 
+  // 3.2 — Next-specific orphaned-data lifecycle. `_next/data/<id>/...`
+  // JSON files live OUTSIDE the build prefix and survive across
+  // builds; without an explicit rule the bucket accumulates them
+  // indefinitely. Previously hardcoded in storage_construct.ts; now
+  // declared by the adapter so non-Next deploys don't carry a
+  // dead-weight rule.
+  manifest.lifecycle = [
+    ...(manifest.lifecycle ?? []),
+    { prefix: '_next/data/', days: 30 },
+  ];
+
   return manifest;
 };
 

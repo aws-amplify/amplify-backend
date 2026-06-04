@@ -136,6 +136,92 @@ export const generateRedirectCheckSnippet = (
 };
 
 /**
+ * Per-pattern Basic-Auth rule (4.2). Mirrors `BasicAuthRule` in
+ * `manifest/types.ts` but imported by structural type to avoid the
+ * defaults → manifest circular dep.
+ */
+export type BasicAuthSnippetRule = {
+  source: string;
+  realm?: string;
+  users: Record<string, string>;
+};
+
+/**
+ * Generate a CloudFront-Function snippet that gates the request on
+ * Basic-Auth. Composable into any viewer-request handler — emit it
+ * AFTER `var uri = request.uri;` but before redirect / build-id /
+ * x-forwarded-host logic so a 401 short-circuits everything else.
+ *
+ * Match semantics mirror redirect snippet — exact match or trailing
+ * `*` wildcard only. Anything else stays in the SSR Lambda where the
+ * framework's own auth handles it.
+ *
+ * Empty `users` (or no rules at all) emits `''` so the caller can
+ * always concatenate without conditional logic.
+ *
+ * Compiled function-size budget: the user→pass map is base64'd at
+ * runtime by CFF. With ~10 rules × ~10 users × short passwords,
+ * the snippet stays well under the 10 KB limit. We don't enforce
+ * a hard cap here — the caller is responsible for noticing huge
+ * inputs.
+ */
+export const generateBasicAuthSnippet = (
+  rules: BasicAuthSnippetRule[],
+): string => {
+  if (!rules || rules.length === 0) return '';
+  // Pre-encode each user:pass at synth time so the function body is
+  // a comparison against base64 strings, not a runtime btoa call.
+  // CFF supports `String.fromCharCode` + manual base64 but the
+  // encoded form is much shorter and faster.
+  const encodedRules = rules.map((rule) => {
+    const encodedUsers: Record<string, true> = {};
+    for (const [user, pass] of Object.entries(rule.users)) {
+      const token = Buffer.from(`${user}:${pass}`, 'utf-8').toString('base64');
+      encodedUsers[token] = true;
+    }
+    return {
+      source: rule.source,
+      realm: rule.realm ?? 'Restricted',
+      users: encodedUsers,
+    };
+  });
+  const table = JSON.stringify(encodedRules);
+  return `
+  var __ba = ${table};
+  for (var __bi = 0; __bi < __ba.length; __bi++) {
+    var __br = __ba[__bi];
+    var __bsrc = __br.source;
+    var __bmatched = false;
+    if (__bsrc.indexOf('*') === -1) {
+      if (uri === __bsrc) { __bmatched = true; }
+    } else if (__bsrc.charAt(__bsrc.length - 1) === '*') {
+      if (uri.indexOf(__bsrc.substring(0, __bsrc.length - 1)) === 0) {
+        __bmatched = true;
+      }
+    }
+    if (!__bmatched) continue;
+    var __auth = request.headers.authorization;
+    var __ok = false;
+    if (__auth && __auth.value) {
+      var __parts = __auth.value.split(' ');
+      if (__parts.length === 2 && __parts[0].toLowerCase() === 'basic') {
+        if (__br.users[__parts[1]] === true) { __ok = true; }
+      }
+    }
+    if (!__ok) {
+      return {
+        statusCode: 401,
+        statusDescription: 'Unauthorized',
+        headers: {
+          'www-authenticate': { value: 'Basic realm="' + __br.realm + '"' },
+        },
+      };
+    }
+    break;
+  }`;
+};
+
+/**
  * Validates an array of redirect entries against CloudFront Function limits.
  * Throws if the redirect count exceeds the function size cap or if any
  * entry uses an invalid HTTP status code.
@@ -171,6 +257,7 @@ export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
   basePath?: string,
+  basicAuth: BasicAuthSnippetRule[] = [],
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {
@@ -181,6 +268,10 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  // 4.2 — Basic-Auth runs FIRST. If the request matches a gated
+  // path and the credentials don't validate, return 401 immediately
+  // — no redirect, no build-id rewrite, no origin invocation.
+  const basicAuthSnippet = generateBasicAuthSnippet(basicAuth);
   // basePath canonical-redirect: when basePath is set, the bare domain
   // root and any path NOT under basePath should 308-redirect to the
   // basePath-prefixed equivalent. Without this the SSR Lambda's
@@ -219,6 +310,7 @@ export const generateBuildIdAndRedirectFunctionCode = (
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
+${basicAuthSnippet}
 ${redirectSnippet}
 ${basePathRedirect}${basePathStrip}  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
@@ -302,9 +394,11 @@ export const generateAssetPrefixStripFunctionCode = (
 export const generateForwardedHostAndRedirectFunctionCode = (
   redirects: RedirectEntry[] = [],
   basePath?: string,
+  basicAuth: BasicAuthSnippetRule[] = [],
 ): string => {
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  const basicAuthSnippet = generateBasicAuthSnippet(basicAuth);
   const basePathRedirect = basePath
     ? `  var __bp = ${JSON.stringify(basePath)};
   if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
@@ -320,6 +414,7 @@ export const generateForwardedHostAndRedirectFunctionCode = (
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
+${basicAuthSnippet}
 ${redirectSnippet}
 ${basePathRedirect}  var host = request.headers.host ? request.headers.host.value : undefined;
   if (host) { request.headers["x-forwarded-host"] = { value: host }; }

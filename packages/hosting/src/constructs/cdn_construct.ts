@@ -48,7 +48,7 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { prependBasePath } from '../adapters/shared/basepath.js';
-import { DeployManifest, Redirect } from '../manifest/types.js';
+import { BasicAuthRule, DeployManifest, Redirect } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
   generateAssetPrefixStripFunctionCode,
@@ -231,12 +231,25 @@ export class CdnConstruct extends Construct {
         }))
       : rawRedirects;
 
+    // 4.2 — Basic-Auth rules carry the same basePath semantics as
+    // redirects: adapters declare them in framework-relative form,
+    // we prefix at synth so the CF Function compares against the
+    // actual request URI (which includes basePath).
+    const rawBasicAuth = manifest.basicAuth ?? [];
+    const manifestBasicAuth = manifest.basePath
+      ? rawBasicAuth.map((rule) => ({
+          ...rule,
+          source: prependBasePath(manifest.basePath, rule.source),
+        }))
+      : rawBasicAuth;
+
     // ---- Build ID rewrite function ----
     const viewerRequestFunction = this.createViewerRequestFunction(
       buildId,
       skewEnabled,
       manifestRedirects,
       manifest.basePath,
+      manifestBasicAuth,
     );
 
     // ---- Skew protection viewer-response function ----
@@ -415,6 +428,7 @@ export class CdnConstruct extends Construct {
             generateForwardedHostAndRedirectFunctionCode(
               manifestRedirects,
               manifest.basePath,
+              manifestBasicAuth,
             ),
           ),
           runtime: CLOUDFRONT_FUNCTION_RUNTIME,
@@ -1065,11 +1079,16 @@ export class CdnConstruct extends Construct {
     skewEnabled: boolean,
     redirects: Redirect[],
     basePath?: string,
+    basicAuth: BasicAuthRule[] = [],
   ): CloudFrontFunction {
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
-          generateSkewProtectionViewerRequestCode(buildId, redirects),
+          generateSkewProtectionViewerRequestCode(
+            buildId,
+            redirects,
+            basicAuth,
+          ),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
         comment:
@@ -1080,7 +1099,12 @@ export class CdnConstruct extends Construct {
     }
     return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
       code: FunctionCode.fromInline(
-        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath),
+        generateBuildIdAndRedirectFunctionCode(
+          buildId,
+          redirects,
+          basePath,
+          basicAuth,
+        ),
       ),
       runtime: CLOUDFRONT_FUNCTION_RUNTIME,
       comment:

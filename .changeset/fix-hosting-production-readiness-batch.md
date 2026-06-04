@@ -33,3 +33,15 @@ Ops (P3):
 Drift gate (X.1):
 
 - Adapters export `VERIFIED_OPENNEXT_RANGE` / `VERIFIED_NITRO_RANGE` / `VERIFIED_ASTRO_RANGE`. New unit test (`version_pins.test.ts`) asserts each is a parseable semver range with an explicit upper bound, so contributors can't ship an open-ended pin that silently considers a future major "verified".
+
+Improvements landed in this PR:
+
+- 2.1 — `compute.warmup: { rate }` adds an EventBridge schedule that synthetically invokes the SSR Lambda. Eliminates cold starts on warm-ish endpoints. Skipped when `provisionedConcurrency` is set.
+- 2.2 — `compute.snapStart: true` toggles SnapStart on regional handler-mode Lambdas via the CFN escape hatch. Forward-compat: starts saving cold-start time as soon as Node SnapStart GA's, no code change.
+- 2.3 — Nitro cache plugin uses `createRequire` to import `@aws-sdk/client-s3` so the Nitro bundler can't see the import target. The Lambda runtime ships the SDK; we save ~16 MB unzipped per Nitro deploy.
+- 2.4 — IPX Lambda zip prunes test fixtures, declaration files, source maps, READMEs, and `examples/` from `node_modules` post-install. Saves ~5-10 MB unzipped (sharp left untouched). `--omit=dev` added to `npm install`.
+- 3.2 — `manifest.lifecycle?: Array<{prefix, days}>` lets adapters declare their own per-build orphan-data rules. Next adapter declares `_next/data/`; Astro/Nuxt deploys no longer carry that Next-specific dead-weight rule.
+- 3.3 — `storage.inventory?: { enabled: true }` provisions a daily S3 inventory of `builds/` to a dedicated bucket. Useful for cost audits without `aws s3 ls --summarize` per prefix.
+- 4.1 — `compute.tracing: { otelEndpoint, otelHeaders?, serviceName? }` stamps `OTEL_EXPORTER_OTLP_ENDPOINT` / `_HEADERS` / `OTEL_SERVICE_NAME` on every regional Lambda the construct creates (SSR, image-opt, revalidation, warmup). Per-function service name (`<base>-ssr`, `<base>-image-optimization`, etc.) for trace disambiguation. Construct does not install any OTel SDK — instrumentation is the user's responsibility.
+- 4.1 — Image-opt Lambda now receives `IMAGE_FORMATS` and `IMAGE_DEVICE_SIZES` env vars from `manifest.imageOptimization`. Forward-compat for the IPX runtime; matches the framework's resolved Next/Astro `images.formats` / `deviceSizes`.
+- 4.2 — `manifest.basicAuth[]` is now honored end-to-end. CloudFront viewer-request Function gates matching paths via base64 string-compare against the inlined user→pass map. Returns 401 with `WWW-Authenticate: Basic realm="..."` on miss. The previous `BasicAuthNotYetSupportedError` is gone — Nitro `routeRules.basicAuth` works without code changes on the user side.

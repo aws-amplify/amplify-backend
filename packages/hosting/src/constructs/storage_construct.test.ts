@@ -438,17 +438,23 @@ void describe('StorageConstruct', () => {
 
   // ---- ISR lifecycle rule ----
 
-  void describe('orphaned ISR data lifecycle', () => {
-    void it('has lifecycle rule for _next/data/ prefix', () => {
+  void describe('adapter-supplied lifecycle (3.2)', () => {
+    void it('emits adapter lifecycle rules from extraLifecycleRules', () => {
+      // 3.2: framework-specific orphan-data rules are now declared
+      // by the adapter (Next: `_next/data/`), not hardcoded in the
+      // storage construct. The construct emits one
+      // `AdapterLifecycle<idx>` rule per entry.
       const stack = createStack();
-      new StorageConstruct(stack, 'Storage');
+      new StorageConstruct(stack, 'Storage', {
+        extraLifecycleRules: [{ prefix: '_next/data/', days: 30 }],
+      });
       const template = Template.fromStack(stack);
 
       template.hasResourceProperties('AWS::S3::Bucket', {
         LifecycleConfiguration: Match.objectLike({
           Rules: Match.arrayWith([
             Match.objectLike({
-              Id: 'ExpireOrphanedIsrData',
+              Id: 'AdapterLifecycle0',
               Prefix: '_next/data/',
               ExpirationInDays: 30,
               Status: 'Enabled',
@@ -456,6 +462,19 @@ void describe('StorageConstruct', () => {
           ]),
         }),
       });
+    });
+
+    void it('emits no adapter rules when extraLifecycleRules is empty', () => {
+      const stack = createStack();
+      new StorageConstruct(stack, 'Storage');
+      const template = Template.fromStack(stack);
+      const buckets = template.findResources('AWS::S3::Bucket');
+      // The CFN template uses PascalCase property names, so we
+      // serialize and grep for the AdapterLifecycle id token rather
+      // than thread typed paths through naming-convention rules.
+      const json = JSON.stringify(Object.values(buckets));
+      const matches = json.match(/AdapterLifecycle\d+/g) ?? [];
+      assert.strictEqual(matches.length, 0);
     });
   });
 

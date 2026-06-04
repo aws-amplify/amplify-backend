@@ -23,6 +23,8 @@ import {
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction as LambdaFunctionTarget } from 'aws-cdk-lib/aws-events-targets';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
@@ -103,6 +105,16 @@ export type AmplifyHostingConstructProps = {
     timeout?: Duration | number;
     reservedConcurrency?: number;
     logRetention?: RetentionDays;
+    /** 2.1 — synthetic warmup schedule. */
+    warmup?: { rate: Duration };
+    /** 2.2 — SnapStart toggle (forward-compat for Node SnapStart). */
+    snapStart?: boolean;
+    /** 4.1 — OpenTelemetry env hooks for SSR / image-opt / revalidation Lambdas. */
+    tracing?: {
+      otelEndpoint: string;
+      otelHeaders?: string;
+      serviceName?: string;
+    };
   };
   /** CDN (CloudFront) configuration. */
   cdn?: {
@@ -119,6 +131,8 @@ export type AmplifyHostingConstructProps = {
     encryptionKey?: IKey;
     retainOnDelete?: boolean;
     buildRetentionDays?: number;
+    /** 3.3 — opt-in daily S3 inventory of `builds/`. */
+    inventory?: { enabled: boolean };
   };
   /** CloudFront access logging configuration. */
   logging?: {
@@ -218,21 +232,18 @@ export class AmplifyHostingConstruct extends Construct {
           'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
       });
     }
-    // BasicAuth stub: adapters lift `routeRules.basicAuth` (Nitro)
-    // into `manifest.basicAuth[]`, but the L3 doesn't yet emit the
-    // CloudFront Function gate needed to honor it. Failing loud is
-    // critical here — silently dropping a Basic-Auth rule would expose
-    // a path the user explicitly meant to gate (dev/staging surfaces,
-    // pre-launch admin areas).
-    if (manifest.basicAuth && manifest.basicAuth.length > 0) {
-      throw new HostingError('BasicAuthNotYetSupportedError', {
-        message:
-          `manifest.basicAuth[] is not yet consumed by the hosting L3 (received ${manifest.basicAuth.length} rule(s)). ` +
-          `Adapters lift Nitro routeRules.basicAuth here; the L3 will emit a CloudFront Function viewer-request gate once that wiring lands. Failing loud rather than silently exposing the gated path.`,
-        resolution:
-          'Until the L3 wiring lands, remove basicAuth rules from your framework config and gate the path in your SSR handler (or via your IdP). Track the gap on the hosting roadmap before re-introducing routeRules.basicAuth.',
-      });
-    }
+    // 4.2 — Basic-Auth gate. Adapters lift `routeRules.basicAuth`
+    // (Nitro) into `manifest.basicAuth[]`. We honor it via a
+    // CloudFront viewer-request Function attached to every matching
+    // path (CdnConstruct does the wiring). The check is base64
+    // string-compare against the user→pass map baked into the
+    // function source at synth time — fits well within CFF's 10 KB
+    // and 1 ms CPU budget.
+    //
+    // Tradeoff: rotating credentials means a redeploy. For the
+    // documented use cases (dev / staging gates, pre-launch admin
+    // surfaces), that's acceptable and far cheaper than running
+    // Lambda@Edge on every gated request.
     const buildId = manifest.buildId ?? generateBuildId();
 
     // Normalize `compute.timeout` once: callers consuming the L3 from
@@ -251,6 +262,13 @@ export class AmplifyHostingConstruct extends Construct {
       encryptionKey: props.storage?.encryptionKey,
       buildRetentionDays: props.storage?.buildRetentionDays,
       logRetentionDays: props.logging?.retentionDays,
+      // 3.2 — adapter-supplied lifecycle rules; storage construct
+      // turns each `{prefix, days}` entry into an S3 lifecycle rule.
+      extraLifecycleRules: manifest.lifecycle,
+      // 3.3 — opt-in S3 inventory. Off by default. When enabled,
+      // a daily CSV inventory of `builds/` lands in the access log
+      // bucket so operators can audit per-build sizes.
+      inventoryEnabled: props.storage?.inventory?.enabled === true,
     });
     this.bucket = storage.bucket;
 
@@ -565,6 +583,26 @@ export class AmplifyHostingConstruct extends Construct {
             manifest.imageOptimization.domains.join(','),
           );
         }
+        // 4.1 — Image-opt parity with framework knobs. The manifest
+        // already carries the framework's resolved `formats` and
+        // `sizes` (Next: `images.formats`/`deviceSizes`; Astro: same
+        // shape via Astro 5 image config). Forward them to the IPX
+        // runtime as CSV env so the Lambda emits only the formats /
+        // sizes the framework expects. Today the IPX runtime ignores
+        // these (forward-compat); when the runtime starts honoring
+        // them, no CDK churn is needed.
+        if (manifest.imageOptimization.formats.length > 0) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_FORMATS',
+            manifest.imageOptimization.formats.join(','),
+          );
+        }
+        if (manifest.imageOptimization.sizes.length > 0) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_DEVICE_SIZES',
+            manifest.imageOptimization.sizes.join(','),
+          );
+        }
       }
     }
 
@@ -591,6 +629,107 @@ export class AmplifyHostingConstruct extends Construct {
       });
       this.computeFunctions.set('middleware', middlewareConstruct.function);
       middlewareEdgeVersion = middlewareConstruct.function.currentVersion;
+    }
+
+    // ---- 5b. OpenTelemetry env hooks (4.1) ----
+    // When the user opts into `compute.tracing`, stamp the OTEL_*
+    // env vars onto every regional Lambda the construct created.
+    // The construct does NOT install any OTel SDK — instrumentation
+    // is the user's responsibility (drop-in via NODE_OPTIONS,
+    // OpenTelemetry Lambda Layer, manually wired SDK, etc.). All
+    // we do here is honor the contract the OTel collector ecosystem
+    // expects: OTEL_EXPORTER_OTLP_ENDPOINT / _HEADERS / OTEL_SERVICE_NAME.
+    //
+    // Lambda@Edge functions are skipped — Lambda@Edge does not
+    // support env vars (the runtime simply discards them).
+    if (props.compute?.tracing) {
+      const tracing = props.compute.tracing;
+      const serviceName = tracing.serviceName ?? 'amplify-hosting';
+      for (const [name, fn] of this.computeFunctions) {
+        if (!(fn instanceof LambdaFunction)) continue;
+        fn.addEnvironment('OTEL_EXPORTER_OTLP_ENDPOINT', tracing.otelEndpoint);
+        if (tracing.otelHeaders) {
+          fn.addEnvironment('OTEL_EXPORTER_OTLP_HEADERS', tracing.otelHeaders);
+        }
+        // Per-function service name disambiguates traces in
+        // collectors that aggregate by service. e.g. `<base>-ssr`,
+        // `<base>-image-optimization`, `<base>-revalidation`.
+        fn.addEnvironment(
+          'OTEL_SERVICE_NAME',
+          name === 'default' || name === 'server'
+            ? `${serviceName}-ssr`
+            : `${serviceName}-${name}`,
+        );
+      }
+    }
+
+    // ---- 5c. SnapStart (2.2 — forward-compat) ----
+    // When the user opts into `compute.snapStart`, attach SnapStart
+    // on every regional handler-mode Lambda. SnapStart is GA for
+    // Java today; Node SnapStart is upstream-pending and will start
+    // working without code changes here once it ships. We use the
+    // CFN escape hatch so we don't depend on a CDK release that
+    // exposes `snapStart` for Node.
+    //
+    // Skipped for:
+    //   - Lambda@Edge: SnapStart is incompatible with replicated
+    //     edge functions.
+    //   - http-server Lambdas: the Web Adapter init path doesn't
+    //     benefit from SnapStart and the boot-process model
+    //     conflicts with snapshot semantics.
+    if (props.compute?.snapStart) {
+      for (const [name, fn] of this.computeFunctions) {
+        if (!(fn instanceof LambdaFunction)) continue;
+        const resource = manifest.compute[name];
+        if (resource?.type !== 'handler') continue;
+        const cfn = fn.node.defaultChild;
+        if (cfn && 'addPropertyOverride' in cfn) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (cfn as any).addPropertyOverride(
+            'SnapStart.ApplyOn',
+            'PublishedVersions',
+          );
+        }
+      }
+    }
+
+    // ---- 5d. Synthetic warmup schedule (2.1) ----
+    // EventBridge schedule → SSR Lambda invoke every N. Customers
+    // using `provisionedConcurrency` are already warm, so we skip
+    // the warmup wiring there to avoid double-paying. Image-opt and
+    // revalidation are not warmed by default — they're inherently
+    // bursty and SnapStart/provisioned-concurrency is a better fit.
+    if (
+      props.compute?.warmup &&
+      !manifest.compute.default?.provisionedConcurrency &&
+      !manifest.compute.server?.provisionedConcurrency
+    ) {
+      const ssrComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : undefined;
+      const ssrFn = ssrComputeName
+        ? this.computeFunctions.get(ssrComputeName)
+        : undefined;
+      if (ssrFn instanceof LambdaFunction) {
+        const rule = new Rule(this, 'WarmupSchedule', {
+          schedule: Schedule.rate(props.compute.warmup.rate),
+          description:
+            '2.1 — keep SSR Lambda warm with a synthetic invoke every N.',
+        });
+        // The synthetic event carries a marker header so the user's
+        // SSR handler can short-circuit (skip rendering work, skip
+        // logging the invocation as production traffic).
+        rule.addTarget(
+          new LambdaFunctionTarget(ssrFn, {
+            event: RuleTargetInput.fromObject({
+              source: 'amplify-hosting-warmup',
+              version: '1',
+            }),
+          }),
+        );
+      }
     }
 
     // ---- 6. WAF (conditional) ----

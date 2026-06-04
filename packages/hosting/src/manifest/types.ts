@@ -97,6 +97,32 @@ export type DeployManifest = {
   buildId?: string;
 
   /**
+   * Adapter-supplied S3 lifecycle rules for orphaned per-build data
+   * that lives outside the build prefix.
+   *
+   * The default `DeleteOldBuilds` lifecycle on `builds/<id>/` covers
+   * everything under the build prefix. Some frameworks emit data
+   * outside the build prefix that survives across builds and needs
+   * its own expiration:
+   *
+   *   - Next.js writes `_next/data/<buildId>/...` JSON files used by
+   *     getStaticProps fallbacks; older entries linger if the user
+   *     toggles `output:` modes.
+   *   - Custom adapters may emit similar per-build asset trees.
+   *
+   * Each entry installs an S3 lifecycle rule expiring objects under
+   * `prefix` after `days`. Adapter code knows where its framework
+   * writes these files; the L3 just installs whatever the adapter
+   * declares. Empty / undefined → no extra rules.
+   */
+  lifecycle?: Array<{
+    /** S3 key prefix to expire — e.g. `_next/data/`. */
+    prefix: string;
+    /** Days after object creation before expiration. */
+    days: number;
+  }>;
+
+  /**
    * Optional URL prefix that prefixes every routable URL on the deployed
    * site. Maps to Next.js `basePath`, Astro `base`, Nuxt `app.baseURL`.
    * When set, every CloudFront behavior pattern is prefixed and the bare

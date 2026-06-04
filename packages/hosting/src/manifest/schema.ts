@@ -195,6 +195,14 @@ export const deployManifestSchema = z
         'buildId must be alphanumeric with hyphens, max 64 chars',
       )
       .optional(),
+    lifecycle: z
+      .array(
+        z.object({
+          prefix: z.string().min(1),
+          days: z.number().int().positive(),
+        }),
+      )
+      .optional(),
     basePath: z
       .string()
       .regex(
