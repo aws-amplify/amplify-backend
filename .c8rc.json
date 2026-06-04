@@ -7,8 +7,11 @@
     "scripts",
     "templates",
     "**/*.test.ts",
+    "**/types.ts",
+    "**/types.d.ts",
     "packages/ai-constructs/lib/conversation/runtime/default_handler_bundled",
     "packages/form-generator/lib/bundled",
+    "packages/hosting/src/pipeline/index.ts",
     "packages/plugin-types",
     "packages/integration-tests"
   ],

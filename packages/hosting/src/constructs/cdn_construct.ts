@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { Construct } from 'constructs';
 import { CfnOutput, Duration, Fn, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -19,6 +19,7 @@ import {
   GeoRestriction,
   HttpVersion,
   IOrigin,
+  IResponseHeadersPolicy,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   PriceClass,
@@ -106,7 +107,7 @@ export type CdnConstructProps = {
   /** Deploy manifest containing routes, buildId, and compute config. */
   manifest: DeployManifest;
   /** CloudFront ResponseHeadersPolicy for security headers. */
-  securityHeadersPolicy: ResponseHeadersPolicy;
+  securityHeadersPolicy: IResponseHeadersPolicy;
   /**
    * Optional Content-Security-Policy value used when building per-pattern
    * ResponseHeadersPolicies for `manifest.headers[]`. Should match the
@@ -146,6 +147,17 @@ export type CdnConstructProps = {
   routeEdgeFunctions?: Map<string, IVersion>;
   /** Cookie-based skew protection configuration. */
   skewProtection?: SkewProtectionConfig;
+  /**
+   * Default TTL for SSR/compute cache behaviors when the origin doesn't
+   * set Cache-Control. Enables CDN caching of dynamic responses.
+   * @default Duration.seconds(0)
+   */
+  ssrDefaultTtl?: Duration;
+  /**
+   * ARN of an existing WAFv2 WebACL. When set, takes precedence over
+   * the `webAcl` construct reference.
+   */
+  webAclArn?: string;
 };
 
 // ---- Construct ----
@@ -244,12 +256,20 @@ export class CdnConstruct extends Construct {
       : rawBasicAuth;
 
     // ---- Build ID rewrite function ----
+    // SPA fallback: when the distribution is static-only with no custom
+    // error pages, navigation requests (no file extension) should serve
+    // /index.html directly. Asset requests (.js, .css) pass through
+    // unchanged so missing assets correctly 403/404 instead of serving HTML.
+    const isSpaFallback =
+      !hasCompute &&
+      (manifest.errorPages === undefined ||
+        Object.keys(manifest.errorPages).length === 0);
     const viewerRequestFunction = this.createViewerRequestFunction(
       buildId,
       skewEnabled,
       manifestRedirects,
       manifest.basePath,
-      manifestBasicAuth,
+      { spaFallback: isSpaFallback, basicAuth: manifestBasicAuth },
     );
 
     // ---- Skew protection viewer-response function ----
@@ -283,37 +303,16 @@ export class CdnConstruct extends Construct {
     if (ssrComputeName && props.computeFunctions) {
       const ssrFn = props.computeFunctions.get(ssrComputeName)!;
 
-      // ---- CloudFront-only access gate (P0.3) ---------------------
-      // The REST API stage URL (`https://{id}.execute-api.{region}.
-      // amazonaws.com/prod/...`) is publicly invokable by default.
-      // Anyone who learns it can call the SSR Lambda directly,
-      // bypassing CloudFront — which means bypassing WAF, geo-
-      // restriction, security-header injection (CSP, HSTS, X-Frame-
-      // Options come from the CloudFront ResponseHeadersPolicy and
-      // are NOT applied on direct API GW responses), and skew
-      // protection.
-      //
-      // Mitigation: a synth-time random secret is injected by
-      // CloudFront on every origin request via a custom origin
-      // header, and a resource policy on the REST API requires the
-      // matching value. CloudFront overwrites any client-supplied
-      // header of the same name before forwarding (documented
-      // behavior of `customHeaders`), so a malicious viewer cannot
-      // smuggle the secret through.
-      //
-      // We use `aws:Referer` because it is one of the few request
-      // headers the API Gateway IAM policy language can match
-      // natively — no Lambda Authorizer, no extra resources.
-      //
-      // The secret is generated at synth time and embedded in BOTH
-      // the API GW resource policy and the HttpOrigin's customHeaders
-      // in the same template, so deploys always update them
-      // atomically (no race window where one moves before the other).
-      // It rotates on every `cdk synth`, which is fine: CloudFront
-      // origin updates propagate in <5 min and the failure mode of a
-      // mid-rotation request is a transient 403 — never a security
-      // bypass.
-      const ssrOriginSecret = randomBytes(16).toString('hex');
+      // Origin verification secret — prevents direct APIGW access bypassing
+      // CloudFront's security headers (CSP/HSTS). Requests without this
+      // header are rejected by the APIGW resource policy.
+      // Deterministic: derived from stack + construct path to avoid
+      // CloudFormation churn on every deploy. Bump the version suffix to rotate.
+      const originVerifySecret = createHash('sha256')
+        .update(Stack.of(this).stackName)
+        .update(this.node.path)
+        .update('origin-verify-v1')
+        .digest('hex');
 
       // REGIONAL: CloudFront is already in front; edge-optimized would
       // double-proxy and cap streaming idle timeout at 30s.
@@ -324,10 +323,11 @@ export class CdnConstruct extends Construct {
         // request bodies (Lambda then sees 2× size) and re-encodes responses,
         // breaking binary uploads, downloads, and streaming.
         binaryMediaTypes: ['*/*'],
-        // Resource policy: deny everything that doesn't carry the
-        // CloudFront-injected secret. This evaluates BEFORE the
-        // Lambda is invoked, so direct hits to the stage URL pay
-        // nothing and surface as 403 from API GW.
+        // Resource policy: ALLOW everything (CloudFront origin reach
+        // hits this), DENY anything missing the deterministic Referer
+        // secret CloudFront injects on every origin request. Direct
+        // hits to the stage URL surface as 403 from API GW before the
+        // Lambda is invoked.
         policy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
@@ -335,9 +335,6 @@ export class CdnConstruct extends Construct {
               principals: [new iam.AnyPrincipal()],
               actions: ['execute-api:Invoke'],
               resources: ['execute-api:/*'],
-              conditions: {
-                StringEquals: { 'aws:Referer': ssrOriginSecret },
-              },
             }),
             new iam.PolicyStatement({
               effect: iam.Effect.DENY,
@@ -345,7 +342,9 @@ export class CdnConstruct extends Construct {
               actions: ['execute-api:Invoke'],
               resources: ['execute-api:/*'],
               conditions: {
-                StringNotEquals: { 'aws:Referer': ssrOriginSecret },
+                StringNotEquals: {
+                  [`aws:Referer`]: originVerifySecret,
+                },
               },
             }),
           ],
@@ -368,11 +367,12 @@ export class CdnConstruct extends Construct {
         ssrComputeName,
         new HttpOrigin(apiHostname, {
           originPath: `/${restApi.deploymentStage.stageName}`,
-          // Inject the CloudFront-only secret on every origin request.
           // CloudFront's customHeaders OVERWRITE any same-named viewer
           // header (documented), so a client sending `Referer:` cannot
           // reach the API GW with their own value here.
-          customHeaders: { Referer: ssrOriginSecret },
+          customHeaders: {
+            Referer: originVerifySecret,
+          },
         }),
       );
     }
@@ -475,7 +475,7 @@ export class CdnConstruct extends Construct {
           comment:
             'SSR/ISR/SWR: honor origin Cache-Control; key on Next.js router headers',
           minTtl: Duration.seconds(0),
-          defaultTtl: Duration.seconds(0),
+          defaultTtl: props.ssrDefaultTtl ?? Duration.seconds(0),
           maxTtl: Duration.days(365),
           headerBehavior: CacheHeaderBehavior.allowList(
             'rsc',
@@ -887,9 +887,9 @@ export class CdnConstruct extends Construct {
     // Three modes:
     //  1. Compute origin → 502/503/504 → custom error page (preserves status).
     //  2. Static deploy WITH `manifest.errorPages` (Next.js `output: 'export'`,
-    //     Astro static, etc.) → 404 → /404.html with status 404, no SPA
-    //     fallback. This is the right behavior for any framework that
-    //     emits a real 404 page.
+    //     Astro static, etc.) → 403/404 → /404.html with status 404. S3
+    //     with OAC returns 403 (not 404) for missing keys, so both must
+    //     be handled.
     //  3. Static deploy WITHOUT `manifest.errorPages` (single-page app
     //     with client-side routing) → 403/404 → /index.html with status 200
     //     so the SPA can deep-link any path.
@@ -901,6 +901,15 @@ export class CdnConstruct extends Construct {
     const errorResponses: ErrorResponse[] = [
       ...(isSpaOnly && hasErrorPages
         ? [
+            // S3 with OAC returns 403 for missing keys — map to the
+            // custom 404 page so deep links render the framework's
+            // not-found page instead of a raw CloudFront error.
+            {
+              httpStatus: 403,
+              responseHttpStatus: 404,
+              responsePagePath: `/builds/${buildId}${manifest.errorPages?.[404] ?? '/index.html'}`,
+              ttl: Duration.seconds(0),
+            },
             ...(manifest.errorPages?.[404]
               ? [
                   {
@@ -923,24 +932,17 @@ export class CdnConstruct extends Construct {
               : []),
           ]
         : []),
-      ...(isSpaOnly && !hasErrorPages
-        ? [
-            {
-              httpStatus: 403,
-              responseHttpStatus: 200,
-              responsePagePath: `/builds/${buildId}/index.html`,
-              ttl: Duration.seconds(0),
-            },
-            {
-              httpStatus: 404,
-              responseHttpStatus: 200,
-              responsePagePath: `/builds/${buildId}/index.html`,
-              ttl: Duration.seconds(0),
-            },
-          ]
-        : []),
       ...(hasCompute
         ? [
+            // 500: Don't cache Lambda 500s — they're likely transient.
+            // Image-opt Lambda returns 500 for missing images; caching
+            // that error would serve stale errors to all users.
+            {
+              httpStatus: 500,
+              responseHttpStatus: 500,
+              responsePagePath: `/builds/${buildId}/${ERROR_PAGE_KEY}`,
+              ttl: Duration.seconds(0),
+            },
             {
               httpStatus: 502,
               responseHttpStatus: 502,
@@ -979,7 +981,11 @@ export class CdnConstruct extends Construct {
             certificate: props.certificate,
           }
         : {}),
-      ...(props.webAcl ? { webAclId: props.webAcl.attrArn } : {}),
+      ...(props.webAclArn
+        ? { webAclId: props.webAclArn }
+        : props.webAcl
+          ? { webAclId: props.webAcl.attrArn }
+          : {}),
       ...(props.accessLogBucket
         ? { enableLogging: true, logBucket: props.accessLogBucket }
         : {}),
@@ -1079,16 +1085,15 @@ export class CdnConstruct extends Construct {
     skewEnabled: boolean,
     redirects: Redirect[],
     basePath?: string,
-    basicAuth: BasicAuthRule[] = [],
+    options?: { spaFallback?: boolean; basicAuth?: BasicAuthRule[] },
   ): CloudFrontFunction {
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
-          generateSkewProtectionViewerRequestCode(
-            buildId,
-            redirects,
-            basicAuth,
-          ),
+          generateSkewProtectionViewerRequestCode(buildId, redirects, {
+            spaFallback: options?.spaFallback,
+            basicAuth: options?.basicAuth,
+          }),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
         comment:
@@ -1099,12 +1104,10 @@ export class CdnConstruct extends Construct {
     }
     return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
       code: FunctionCode.fromInline(
-        generateBuildIdAndRedirectFunctionCode(
-          buildId,
-          redirects,
-          basePath,
-          basicAuth,
-        ),
+        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath, {
+          spaFallback: options?.spaFallback,
+          basicAuth: options?.basicAuth,
+        }),
       ),
       runtime: CLOUDFRONT_FUNCTION_RUNTIME,
       comment:

@@ -242,7 +242,7 @@ class VanillaCdkSsrTestCdkProject extends TestCdkProjectBase {
       `Expected HTTP 200 for static asset, got ${staticResponse.status}`,
     );
 
-    // Verify security headers
+    // Verify security headers (managed SECURITY_HEADERS policy)
     const headersResponse = await fetch(distributionUrl);
     const headers = headersResponse.headers;
     assert.ok(
@@ -258,12 +258,9 @@ class VanillaCdkSsrTestCdkProject extends TestCdkProjectBase {
       headers.get('x-frame-options'),
       'Response should include x-frame-options header',
     );
-    const csp = headers.get('content-security-policy');
-    assert.ok(csp, 'Response should include content-security-policy header');
-    assert.ok(
-      csp!.includes('wss:'),
-      `content-security-policy connect-src should include wss:, got: ${csp}`,
-    );
+    // CSP is intentionally omitted from the default managed policy.
+    // Frameworks emit their own CSP; a blanket L3 CSP would conflict.
+    // Customers can provide cdn.contentSecurityPolicy for a custom CSP.
 
     // Verify stack has Lambda resources (proves SSR compute path was created)
     const hasLambda = await this.stackHasLambdaFunction();

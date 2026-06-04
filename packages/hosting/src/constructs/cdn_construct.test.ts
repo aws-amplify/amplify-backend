@@ -132,14 +132,17 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: Match.objectLike({
-          CustomErrorResponses: Match.arrayWith([
-            Match.objectLike({ ErrorCode: 403, ResponseCode: 200 }),
-            Match.objectLike({ ErrorCode: 404, ResponseCode: 200 }),
-          ]),
-        }),
-      });
+      // SPA fallback is now handled in the viewer-request function
+      // (navigation requests without file extension rewrite to /index.html).
+      // No 403/404 custom error responses needed — missing assets correctly
+      // return 403 without a blanket fallback.
+      const dist = template.findResources('AWS::CloudFront::Distribution');
+      const distProps = Object.values(dist)[0].Properties.DistributionConfig;
+      assert.equal(
+        distProps.CustomErrorResponses,
+        undefined,
+        'SPA should not have custom error responses (fallback is in viewer-request function)',
+      );
     });
 
     void it('creates BuildId CloudFront Function', () => {
@@ -466,6 +469,138 @@ void describe('CdnConstruct', () => {
           ]),
         }),
       });
+    });
+  });
+
+  // ---- APIGW origin verification ----
+
+  void describe('APIGW origin verification (SSR via REST API)', () => {
+    void it('RestApi has resource policy with DENY + StringNotEquals on aws:Referer', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn } = createSsrFunction(stack);
+
+      // Don't pass computeFunctionUrls for 'default' — the L3 skips the
+      // Function URL for SSR compute so that the APIGW origin is used.
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::ApiGateway::RestApi', {
+        Policy: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Effect: 'Deny',
+              Condition: Match.objectLike({
+                StringNotEquals: Match.objectLike({
+                  'aws:Referer': Match.anyValue(),
+                }),
+              }),
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('CloudFront origin custom headers include Referer', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          Origins: Match.arrayWith([
+            Match.objectLike({
+              CustomOriginConfig: Match.anyValue(),
+              OriginCustomHeaders: Match.arrayWith([
+                Match.objectLike({
+                  HeaderName: 'Referer',
+                  HeaderValue: Match.anyValue(),
+                }),
+              ]),
+            }),
+          ]),
+        }),
+      });
+    });
+
+    void it('origin Referer header value matches resource policy secret', () => {
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+      const { fn } = createSsrFunction(stack);
+
+      new CdnConstruct(stack, 'Cdn', {
+        bucket,
+        manifest: ssrManifest,
+        securityHeadersPolicy: policy,
+        computeFunctions: new Map([['default', fn]]),
+      });
+
+      const template = Template.fromStack(stack);
+      const json = template.toJSON() as Record<string, unknown>;
+      const resources = json['Resources'] as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      // Extract the Referer value from the APIGW resource policy
+      const restApi = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::ApiGateway::RestApi',
+      );
+      const restApiProps = restApi?.['Properties'] as Record<string, unknown>;
+      const policyDoc = restApiProps?.['Policy'] as Record<string, unknown>;
+      const statements = policyDoc['Statement'] as Array<
+        Record<string, unknown>
+      >;
+      const denyStatement = statements.find((s) => s['Effect'] === 'Deny');
+      const condition = denyStatement?.['Condition'] as
+        | Record<string, unknown>
+        | undefined;
+      const stringNotEquals = condition?.['StringNotEquals'] as
+        | Record<string, string>
+        | undefined;
+      const policySecret = stringNotEquals?.['aws:Referer'];
+
+      // Extract the Referer custom header value from the CloudFront origin
+      const dist = Object.values(resources).find(
+        (r) => r['Type'] === 'AWS::CloudFront::Distribution',
+      );
+      const distProps = dist?.['Properties'] as Record<string, unknown>;
+      const distConfig = distProps?.['DistributionConfig'] as Record<
+        string,
+        unknown
+      >;
+      const origins = distConfig?.['Origins'] as Array<Record<string, unknown>>;
+      const apiOrigin = origins.find((o) => o['OriginCustomHeaders']);
+      const customHeaders = apiOrigin?.['OriginCustomHeaders'] as
+        | Array<Record<string, string>>
+        | undefined;
+      const refererHeader = customHeaders?.find(
+        (h) => h['HeaderName'] === 'Referer',
+      );
+
+      assert.ok(policySecret, 'Resource policy must contain a Referer secret');
+      assert.ok(refererHeader, 'CloudFront origin must include Referer header');
+      assert.strictEqual(
+        refererHeader['HeaderValue'],
+        policySecret,
+        'Origin Referer header value must match the resource policy secret',
+      );
     });
   });
 
@@ -1978,22 +2113,15 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: Match.objectLike({
-          CustomErrorResponses: Match.arrayWith([
-            Match.objectLike({
-              ErrorCode: 403,
-              ResponseCode: 200,
-              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-            }),
-            Match.objectLike({
-              ErrorCode: 404,
-              ResponseCode: 200,
-              ResponsePagePath: `/builds/${spaManifest.buildId}/index.html`,
-            }),
-          ]),
-        }),
-      });
+      // SPA fallback is now in the viewer-request function — no error
+      // responses are created for SPA mode without custom error pages.
+      const dist = template.findResources('AWS::CloudFront::Distribution');
+      const distProps = Object.values(dist)[0].Properties.DistributionConfig;
+      assert.equal(
+        distProps.CustomErrorResponses,
+        undefined,
+        'SPA without errorPages should not have custom error responses',
+      );
     });
 
     void it('SSR error responses use buildId prefix in ResponsePagePath for 5xx errors', () => {

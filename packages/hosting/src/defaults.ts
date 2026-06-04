@@ -257,7 +257,10 @@ export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
   basePath?: string,
-  basicAuth: BasicAuthSnippetRule[] = [],
+  options?: {
+    spaFallback?: boolean;
+    basicAuth?: BasicAuthSnippetRule[];
+  },
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {
@@ -271,7 +274,7 @@ export const generateBuildIdAndRedirectFunctionCode = (
   // 4.2 — Basic-Auth runs FIRST. If the request matches a gated
   // path and the credentials don't validate, return 401 immediately
   // — no redirect, no build-id rewrite, no origin invocation.
-  const basicAuthSnippet = generateBasicAuthSnippet(basicAuth);
+  const basicAuthSnippet = generateBasicAuthSnippet(options?.basicAuth ?? []);
   // basePath canonical-redirect: when basePath is set, the bare domain
   // root and any path NOT under basePath should 308-redirect to the
   // basePath-prefixed equivalent. Without this the SSR Lambda's
@@ -307,19 +310,32 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
 `
     : '';
-  return `function handler(event) {
-  var request = event.request;
-  var uri = request.uri;
-${basicAuthSnippet}
-${redirectSnippet}
-${basePathRedirect}${basePathStrip}  if (uri.endsWith('/')) {
+  // SPA fallback: for single-page apps, navigation requests (no file
+  // extension) should serve /index.html. Asset requests (.js, .css, etc.)
+  // pass through unchanged — if the file is missing, S3 returns 403/404
+  // which is correct (broken asset link, not a client-side route).
+  const spaFallback = options?.spaFallback ?? false;
+  const rewriteBlock = spaFallback
+    ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+  var hasExtension = lastSegment.indexOf('.') !== -1;
+  var isWellKnown = uri.startsWith('/.well-known/');
+  if (!hasExtension && !isWellKnown) {
+    uri = '/index.html';
+  }`
+    : `  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
   } else {
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
     if (lastSegment.indexOf('.') === -1) {
       uri = uri + '/index.html';
     }
-  }
+  }`;
+  return `function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+${basicAuthSnippet}
+${redirectSnippet}
+${basePathRedirect}${basePathStrip}${rewriteBlock}
   request.uri = '/builds/${buildId}' + uri;
   return request;
 }`;

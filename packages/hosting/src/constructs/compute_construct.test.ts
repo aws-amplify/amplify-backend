@@ -474,4 +474,32 @@ void describe('ComputeConstruct', () => {
       });
     });
   });
+
+  // ---- environment passthrough ----
+
+  void describe('environment passthrough', () => {
+    void it('passes props.environment values to Lambda environment variables', () => {
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        environment: {
+          MY_API_KEY: 'secret-123',
+          FEATURE_FLAG: 'enabled',
+        },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: Match.objectLike({
+          Variables: Match.objectLike({
+            MY_API_KEY: 'secret-123',
+            FEATURE_FLAG: 'enabled',
+          }),
+        }),
+      });
+    });
+  });
 });

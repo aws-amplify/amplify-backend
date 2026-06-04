@@ -144,20 +144,21 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       });
 
       const template = Template.fromStack(stack);
+      // SPA fallback is now handled in the viewer-request CloudFront
+      // Function — extensionless requests rewrite to /index.html before
+      // reaching S3, so missing assets correctly 403 without a blanket
+      // fallback. Verify the function is attached to the default behavior.
       template.hasResourceProperties(
         'AWS::CloudFront::Distribution',
         Match.objectLike({
           DistributionConfig: Match.objectLike({
-            CustomErrorResponses: Match.arrayWith([
-              Match.objectLike({
-                ErrorCode: 403,
-                ResponseCode: 200,
-              }),
-              Match.objectLike({
-                ErrorCode: 404,
-                ResponseCode: 200,
-              }),
-            ]),
+            DefaultCacheBehavior: Match.objectLike({
+              FunctionAssociations: Match.arrayWith([
+                Match.objectLike({
+                  EventType: 'viewer-request',
+                }),
+              ]),
+            }),
           }),
         }),
       );
@@ -246,7 +247,7 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       );
     });
 
-    void it('falls back to single deployment with mutable Cache-Control when immutablePaths absent', () => {
+    void it('splits HTML into separate deployment with no-cache when immutablePaths absent', () => {
       const stack = createStack();
       new AmplifyHostingConstruct(stack, 'Hosting', {
         manifest: makeSpaManifest(),
@@ -255,13 +256,18 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       const template = Template.fromStack(stack);
       const deployments = template.findResources('Custom::CDKBucketDeployment');
       const ids = Object.keys(deployments);
-      const single = ids.find((id) => id.includes('AssetDeployment'));
-      assert.ok(single, 'AssetDeployment present');
-      // Default Cache-Control no longer hardcoded to immutable — that
-      // would brick PWAs on redeploy. Adapters opt into immutable for
-      // hashed paths only via staticAssets.immutablePaths.
+      const htmlDeploy = ids.find((id) => id.includes('AssetDeploymentHtml'));
+      assert.ok(htmlDeploy, 'AssetDeploymentHtml present');
+      // HTML files get no-cache so browsers always revalidate on redeploy.
       assert.match(
-        JSON.stringify(deployments[single!].Properties),
+        JSON.stringify(deployments[htmlDeploy!].Properties),
+        /no-cache.*must-revalidate/,
+      );
+      // Non-HTML gets mutable cache (s-maxage for CDN, max-age=0 for browser).
+      const otherDeploy = ids.find((id) => id.includes('AssetDeploymentOther'));
+      assert.ok(otherDeploy, 'AssetDeploymentOther present');
+      assert.match(
+        JSON.stringify(deployments[otherDeploy!].Properties),
         /max-age=0.*must-revalidate/,
       );
     });
@@ -319,9 +325,12 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
 
       const template = Template.fromStack(stack);
       const deployments = template.findResources('Custom::CDKBucketDeployment');
-      const id = Object.keys(deployments)[0];
+      const ids = Object.keys(deployments);
+      // The cacheControl override applies to the non-HTML "Other" deployment.
+      const otherDeploy = ids.find((id) => id.includes('AssetDeploymentOther'));
+      assert.ok(otherDeploy, 'AssetDeploymentOther present');
       assert.match(
-        JSON.stringify(deployments[id].Properties),
+        JSON.stringify(deployments[otherDeploy!].Properties),
         /public, max-age=60/,
       );
     });

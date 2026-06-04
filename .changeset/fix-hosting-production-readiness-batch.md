@@ -7,7 +7,7 @@ fix(hosting): production-readiness batch addressing pre-GA review findings.
 Security (P0):
 
 - Image-opt Lambda now enforces `IMAGE_REMOTE_PATTERNS` / `IMAGE_ALLOWED_HOSTNAMES` / `IMAGE_ALLOW_SVG` at runtime (default-deny). Previously the env vars were stamped but never read, leaving the optimizer as an SSRF primitive that could fetch any URL it could reach (incl. internal VPC hosts).
-- REST API stage `prod` is now gated by a CloudFront-only secret: a synth-time random value is injected on every origin request via `HttpOrigin.customHeaders` and required by an API GW resource policy keyed on `aws:Referer`. Direct hits to `https://{id}.execute-api.{region}.amazonaws.com/prod/...` are 403'd by API GW before the Lambda fires, restoring the WAF / CSP / HSTS / geo-restriction guarantees that previously only applied to viewers reaching us through CloudFront.
+- REST API stage `prod` gate (origin-verify Referer secret) — landed via [#3218](https://github.com/aws-amplify/amplify-backend/pull/3218) before this PR was rebased, so this PR no longer carries a separate version. The merged variant uses a **deterministic** secret (sha256 over stack name + construct path + version suffix) instead of `randomBytes()` — better, because it doesn't churn the API GW resource policy + CloudFront origin headers on every `cdk synth`.
 
 Customer-visible correctness (P1):
 
@@ -20,7 +20,7 @@ Customer-visible correctness (P1):
 Cost / quota (P2):
 
 - Default S3 build retention dropped from 365 → 30 days. Customers who need longer rollback windows opt in via `storage.buildRetentionDays`.
-- Per-pattern `ResponseHeadersPolicy` fingerprint now includes the security-header inputs (CSP value). Toggling `cdn.contentSecurityPolicy` no longer churns new policies on every deploy and burns the account-wide RHP quota.
+- Per-pattern `ResponseHeadersPolicy` fingerprint now includes the security-header inputs (CSP value) when the user explicitly sets `cdn.contentSecurityPolicy`. Toggling that prop no longer churns new policies on every deploy and burns the account-wide RHP quota. (Note: PR [#3218](https://github.com/aws-amplify/amplify-backend/pull/3218) made the construct default to CloudFront's managed `SECURITY_HEADERS` policy, so the **default** path now consumes zero RHP quota; this fix narrows to the user-supplied-CSP case.)
 - `assetPrefix` collapsed from 4 prefixed cache behaviors (`_next/static/*`, `_next/image*`, `_next/data/*`, `_next/*`) to a single `<assetPrefix>/*` behavior backed by the same strip function, freeing 3 CloudFront behavior slots per deploy.
 
 Ops (P3):

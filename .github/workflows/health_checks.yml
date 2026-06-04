@@ -589,10 +589,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 20
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 20
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
@@ -659,6 +659,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
+      - name: Reset git tree after npm link
+        run: git checkout .
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
