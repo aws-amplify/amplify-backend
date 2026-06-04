@@ -310,6 +310,17 @@ const buildCodePipeline = <TConfig>(
           codebuild.LinuxBuildImage.AMAZON_LINUX_2023_5,
         computeType: props.synth?.computeType ?? codebuild.ComputeType.MEDIUM,
       },
+      partialBuildSpec:
+        props.synth?.partialBuildSpec ??
+        codebuild.BuildSpec.fromObject({
+          phases: {
+            install: {
+              'runtime-versions': {
+                nodejs: 22,
+              },
+            },
+          },
+        }),
     },
   });
 

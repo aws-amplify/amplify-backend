@@ -761,6 +761,15 @@ const createPipelineWithHostingHook = (
             'npm run build',
             'npx cdk deploy --all --app "npx tsx $HOSTING_ENTRY_POINT" --require-approval never -c amplify-backend-namespace=pipeline -c amplify-backend-name=$STAGE_NAME -c amplify-backend-type=standalone',
           ],
+          partialBuildSpec: codebuild.BuildSpec.fromObject({
+            phases: {
+              install: {
+                'runtime-versions': {
+                  nodejs: 22,
+                },
+              },
+            },
+          }),
           buildEnvironment: {
             buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2023_5,
             computeType: codebuild.ComputeType.MEDIUM,
@@ -823,6 +832,26 @@ void describe('CDK template assertions for hosting deploy step', () => {
           ]),
         }),
       ]),
+    });
+  });
+
+  void it('hosting deploy step includes Node.js 22 runtime version', () => {
+    const { template } = createPipelineWithHostingHook();
+
+    template.hasResourceProperties('AWS::CodeBuild::Project', {
+      Source: Match.objectLike({
+        BuildSpec: Match.serializedJson(
+          Match.objectLike({
+            phases: Match.objectLike({
+              install: Match.objectLike({
+                'runtime-versions': {
+                  nodejs: 22,
+                },
+              }),
+            }),
+          }),
+        ),
+      }),
     });
   });
 
