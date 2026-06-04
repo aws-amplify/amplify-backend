@@ -187,17 +187,6 @@ type NitroRouteRule = {
    * currently emits a clear error if any rewrites reach the L3).
    */
   proxy?: string | { to: string };
-
-  /**
-   * `routeRules.basicAuth: { user: 'admin', password: '...' }` —
-   * Nitro's per-route Basic Auth gate. Adapter lifts to
-   * `manifest.basicAuth[]`. The L3 will (when implemented) emit a
-   * CloudFront Function gate; until then, throws so users hit a clear
-   * failure rather than a silent bypass on dev/staging environments.
-   */
-  basicAuth?:
-    | Record<string, string>
-    | { users: Record<string, string>; realm?: string };
 };
 
 /**
@@ -1081,11 +1070,6 @@ const buildManifest = (input: {
     manifest.headers = headers;
   }
 
-  const basicAuth = buildBasicAuth(routeRules);
-  if (basicAuth.length > 0) {
-    manifest.basicAuth = basicAuth;
-  }
-
   // If any route rule uses SWR / ISR / cache, ask the L3 to provision
   // a shared S3-backed cache. Nitro's `useStorage('cache')` reads/writes
   // through the Amplify cache plugin we injected into the build.
@@ -1321,41 +1305,6 @@ const buildRewrites = (
     out.push({
       source: normalizeRulePattern(source),
       destination: dest,
-    });
-  }
-  return out;
-};
-
-/**
- * Translate `basicAuth` route rules into manifest BasicAuthRules.
- *
- * Accepts either Nitro's single-user shorthand (`{ user, password }`)
- * or the multi-user form (`{ users: { name: pass }, realm }`).
- * Empty/malformed rules are dropped silently — the L3-side schema
- * validation catches a `users: {}` rule with a clear error before any
- * deploy happens.
- */
-const buildBasicAuth = (
-  routeRules: Record<string, NitroRouteRule>,
-): NonNullable<DeployManifest['basicAuth']> => {
-  const out: NonNullable<DeployManifest['basicAuth']> = [];
-  for (const [source, rule] of Object.entries(routeRules)) {
-    if (!rule.basicAuth) continue;
-    const ba = rule.basicAuth as Record<string, unknown>;
-    let users: Record<string, string> | undefined;
-    let realm: string | undefined;
-    if (typeof ba.users === 'object' && ba.users !== null) {
-      users = ba.users as Record<string, string>;
-      if (typeof ba.realm === 'string') realm = ba.realm;
-    } else if (typeof ba.user === 'string' && typeof ba.password === 'string') {
-      users = { [ba.user]: ba.password };
-      if (typeof ba.realm === 'string') realm = ba.realm;
-    }
-    if (!users || Object.keys(users).length === 0) continue;
-    out.push({
-      source: normalizeRulePattern(source),
-      ...(realm ? { realm } : {}),
-      users,
     });
   }
   return out;

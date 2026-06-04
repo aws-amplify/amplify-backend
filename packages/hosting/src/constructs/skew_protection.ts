@@ -1,8 +1,6 @@
 import {
   BUILD_ID_PATTERN,
-  BasicAuthSnippetRule,
   RedirectEntry,
-  generateBasicAuthSnippet,
   generateRedirectCheckSnippet,
   validateRedirects,
 } from '../defaults.js';
@@ -49,13 +47,11 @@ export const generateSkewProtectionViewerRequestCode = (
   redirects: RedirectEntry[] = [],
   options?: {
     spaFallback?: boolean;
-    basicAuth?: BasicAuthSnippetRule[];
   },
 ): string => {
   validateBuildId(buildId);
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
-  const basicAuthSnippet = generateBasicAuthSnippet(options?.basicAuth ?? []);
   const spaFallback = options?.spaFallback ?? false;
   const rewriteBlock = spaFallback
     ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
@@ -75,7 +71,6 @@ export const generateSkewProtectionViewerRequestCode = (
   return `function handler(event) {
   var request = event.request;
   var uri = request.uri;
-${basicAuthSnippet}
 ${redirectSnippet}
   var buildId = '${buildId}';
   var cookie = request.cookies['${COOKIE_NAME}'];

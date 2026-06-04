@@ -157,45 +157,43 @@ export default defineNitroPlugin((nitroApp) => {
   // in production" with no error.
   //
   // We watch for displacement via Nitro's \`storage:mounts\` hook (when
-  // available) and re-bind once with a one-time warning. The flag
-  // prevents an infinite remount loop if the user's plugin also
-  // re-asserts on the same hook.
-  let warned = false;
+  // available) and a per-request fallback. After the first remount we
+  // flip \`settled\` so the request-hook fast-path becomes a single
+  // boolean check on the hot path — \`getMounts\` and the array scan are
+  // skipped on every subsequent request.
+  let settled = false;
   const remountIfDisplaced = () => {
+    if (settled) return;
     const mounts = storage.getMounts?.('cache') ?? [];
     const ours = mounts.some(
       (m) => m.driver?.name === 'amplify-hosting-s3-cache',
     );
     if (ours) return;
-    if (!warned) {
-      log(
-        'cache mount was displaced after init by another plugin — re-binding S3 backend ' +
-          '(set AMPLIFY_NITRO_CACHE_DISABLE=true to opt out)',
-      );
-      warned = true;
-    }
+    log(
+      'cache mount was displaced after init by another plugin — re-binding S3 backend',
+    );
     storage.mount('cache', amplifyDriver);
+    settled = true;
   };
 
-  // Nitro exposes \`hooks.hook\` on the runtime app instance. Probe for
-  // both the storage:mounts variant (newer Nitro) and a generic
-  // \`request\` hook fallback (so we re-check at the top of each
-  // request — cheap inline call, no I/O).
-  if (process.env.AMPLIFY_NITRO_CACHE_DISABLE !== 'true') {
-    if (nitroApp?.hooks?.hook) {
-      try {
-        nitroApp.hooks.hook('storage:mounts', remountIfDisplaced);
-        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-      } catch {
-        // hook name not supported by this Nitro version — fall back to
-        // the request-time check below.
-      }
-      try {
-        nitroApp.hooks.hook('request', remountIfDisplaced);
-        // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-      } catch {
-        // ignore — best-effort
-      }
+  // Nitro exposes \`hooks.hook\` on the runtime app instance. Bind to
+  // \`storage:mounts\` (newer Nitro fires this when a mount changes)
+  // AND a generic \`request\` hook fallback that runs the same check
+  // at the top of each request. \`settled\` short-circuits subsequent
+  // calls once the mount is restored.
+  if (nitroApp?.hooks?.hook) {
+    try {
+      nitroApp.hooks.hook('storage:mounts', remountIfDisplaced);
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // hook name not supported by this Nitro version — fall back to
+      // the request-time check below.
+    }
+    try {
+      nitroApp.hooks.hook('request', remountIfDisplaced);
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // ignore — best-effort
     }
   }
 });

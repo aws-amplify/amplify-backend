@@ -98,15 +98,6 @@ export type HostingProps = {
       rate: Duration;
     };
     /**
-     * 2.2 — Lambda SnapStart toggle (forward-compat). When true,
-     * publishes a Lambda alias with SnapStart enabled and points
-     * the Function URL / API GW integration at the alias. SnapStart
-     * is GA for Java today; Node SnapStart is upstream-pending. The
-     * construct silently no-ops on runtimes that don't support it
-     * yet so customers can opt in once Node lands.
-     */
-    snapStart?: boolean;
-    /**
      * 4.1 — OpenTelemetry environment hooks. Injected onto every
      * Lambda the construct creates (SSR, image-opt, revalidation,
      * middleware, warmup). The construct does NOT install any OTel
@@ -176,16 +167,19 @@ export type HostingProps = {
   };
 
   /**
-   * CloudWatch alarm wiring. Off by default (`enabled: false`) so the
-   * construct stays cheap-by-default. When enabled, creates a small
-   * default set of alarms: CloudFront 5xx rate, SSR Lambda
+   * CloudWatch alarm wiring. **Enabled by default** so users get
+   * out-of-the-box visibility into CloudFront 5xx rate, SSR Lambda
    * errors/throttles, image-opt errors, and revalidation DLQ depth.
+   * Idle cost is a few cents per month per alarm — set
+   * `monitoring: { enabled: false }` to opt out.
+   *
    * If `snsTopicArn` is omitted, an SNS topic is created and surfaced
    * via the construct's `monitoringTopic` field for the caller to
    * subscribe to.
    */
   monitoring?: {
-    enabled: boolean;
+    /** @default true */
+    enabled?: boolean;
     /**
      * BYO SNS topic ARN for alarm actions. When omitted, an SNS topic
      * is created.

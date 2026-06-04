@@ -90,6 +90,19 @@ const matchHostname = (host, pattern) => {
   return host === pattern;
 };
 
+// Path-prefix matcher used by remote-source allowlisting. A naive
+// \`startsWith\` lets \`/images\` match \`/images-secret/anything\`, which
+// would let a viewer bypass intent — anchor at a path-segment boundary
+// instead. \`ptn === pathname\` covers exact matches; \`startsWith(ptn + '/')\`
+// covers descendants. \`/**\` wildcard patterns are stripped before being
+// passed in (see caller).
+const matchPathPrefix = (pathname, ptn) => {
+  if (!ptn || ptn === '/') return true;
+  // Drop any trailing slash so '/images/' and '/images' behave the same.
+  const norm = ptn.endsWith('/') ? ptn.slice(0, -1) : ptn;
+  return pathname === norm || pathname.startsWith(norm + '/');
+};
+
 const isRemoteSourceAllowed = (rawSrc) => {
   let parsed;
   try {
@@ -100,6 +113,16 @@ const isRemoteSourceAllowed = (rawSrc) => {
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     return false;
   }
+  // \`username\`/\`password\` (the userinfo component) lets attackers
+  // smuggle hosts past a naive hostname check via shapes like
+  // \`https://allowed.com@evil.com/...\` — the hostname is \`evil.com\`,
+  // not \`allowed.com\`, but the visible string suggests otherwise to
+  // a casual reader. \`URL.hostname\` already strips userinfo for the
+  // matching step below, but reject these outright so we never log
+  // a misleading \`reject remote: <misleading-string>\` line.
+  if (parsed.username || parsed.password) {
+    return false;
+  }
   const host = parsed.hostname;
   if (allowedHostnames.some((h) => matchHostname(host, h))) return true;
   for (const p of parsedRemotePatterns) {
@@ -107,12 +130,12 @@ const isRemoteSourceAllowed = (rawSrc) => {
     if (p.protocol && p.protocol + ':' !== parsed.protocol) continue;
     if (p.port && p.port !== parsed.port) continue;
     if (p.pathname) {
-      // Next.js pathname patterns allow trailing /** wildcard. Translate
-      // to a startsWith check (after stripping /**) for the common case.
+      // Next.js pathname patterns allow trailing /** wildcard. Strip
+      // it and delegate to a segment-boundary-aware matcher.
       const ptn = p.pathname.endsWith('/**')
         ? p.pathname.slice(0, -3)
         : p.pathname;
-      if (!parsed.pathname.startsWith(ptn)) continue;
+      if (!matchPathPrefix(parsed.pathname, ptn)) continue;
     }
     return true;
   }

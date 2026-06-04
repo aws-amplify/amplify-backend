@@ -49,7 +49,7 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { HostingError } from '../hosting_error.js';
 import { prependBasePath } from '../adapters/shared/basepath.js';
-import { BasicAuthRule, DeployManifest, Redirect } from '../manifest/types.js';
+import { DeployManifest, Redirect } from '../manifest/types.js';
 import {
   ERROR_PAGE_KEY,
   generateAssetPrefixStripFunctionCode,
@@ -243,18 +243,6 @@ export class CdnConstruct extends Construct {
         }))
       : rawRedirects;
 
-    // 4.2 — Basic-Auth rules carry the same basePath semantics as
-    // redirects: adapters declare them in framework-relative form,
-    // we prefix at synth so the CF Function compares against the
-    // actual request URI (which includes basePath).
-    const rawBasicAuth = manifest.basicAuth ?? [];
-    const manifestBasicAuth = manifest.basePath
-      ? rawBasicAuth.map((rule) => ({
-          ...rule,
-          source: prependBasePath(manifest.basePath, rule.source),
-        }))
-      : rawBasicAuth;
-
     // ---- Build ID rewrite function ----
     // SPA fallback: when the distribution is static-only with no custom
     // error pages, navigation requests (no file extension) should serve
@@ -269,7 +257,7 @@ export class CdnConstruct extends Construct {
       skewEnabled,
       manifestRedirects,
       manifest.basePath,
-      { spaFallback: isSpaFallback, basicAuth: manifestBasicAuth },
+      { spaFallback: isSpaFallback },
     );
 
     // ---- Skew protection viewer-response function ----
@@ -428,7 +416,6 @@ export class CdnConstruct extends Construct {
             generateForwardedHostAndRedirectFunctionCode(
               manifestRedirects,
               manifest.basePath,
-              manifestBasicAuth,
             ),
           ),
           runtime: CLOUDFRONT_FUNCTION_RUNTIME,
@@ -1085,14 +1072,13 @@ export class CdnConstruct extends Construct {
     skewEnabled: boolean,
     redirects: Redirect[],
     basePath?: string,
-    options?: { spaFallback?: boolean; basicAuth?: BasicAuthRule[] },
+    options?: { spaFallback?: boolean },
   ): CloudFrontFunction {
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
           generateSkewProtectionViewerRequestCode(buildId, redirects, {
             spaFallback: options?.spaFallback,
-            basicAuth: options?.basicAuth,
           }),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
@@ -1106,7 +1092,6 @@ export class CdnConstruct extends Construct {
       code: FunctionCode.fromInline(
         generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath, {
           spaFallback: options?.spaFallback,
-          basicAuth: options?.basicAuth,
         }),
       ),
       runtime: CLOUDFRONT_FUNCTION_RUNTIME,

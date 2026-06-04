@@ -115,8 +115,6 @@ export type AmplifyHostingConstructProps = {
     environment?: Record<string, string>;
     /** 2.1 — synthetic warmup schedule. */
     warmup?: { rate: Duration };
-    /** 2.2 — SnapStart toggle (forward-compat for Node SnapStart). */
-    snapStart?: boolean;
     /** 4.1 — OpenTelemetry env hooks for SSR / image-opt / revalidation Lambdas. */
     tracing?: {
       otelEndpoint: string;
@@ -185,13 +183,14 @@ export type AmplifyHostingConstructProps = {
     retentionDays?: number;
   };
   /**
-   * Default CloudWatch alarms (P3.1 + P3.2). Off by default. When
+   * Default CloudWatch alarms (P3.1 + P3.2). On by default. When
    * enabled, the L3 wires CloudFront 5xx, Lambda error / throttle,
-   * and revalidation-DLQ alarms to an SNS topic. See
-   * `MonitoringConstruct`.
+   * and revalidation-DLQ alarms to an SNS topic. Opt out with
+   * `{ enabled: false }`. See `MonitoringConstruct`.
    */
   monitoring?: {
-    enabled: boolean;
+    /** @default true */
+    enabled?: boolean;
     snsTopicArn?: string;
   };
   /**
@@ -241,12 +240,18 @@ export class AmplifyHostingConstruct extends Construct {
   readonly revalidationDlq?: Queue;
   readonly cacheBucket?: Bucket;
   /**
-   * SNS topic alarm actions are sent to. Set when
-   * `monitoring.enabled === true`. The user subscribes (email, Slack
-   * via webhook, PagerDuty, etc.) via `monitoringTopic.addSubscription(...)`
-   * or by configuring an external listener with the topic ARN.
+   * SNS topic alarm actions are sent to. Set when monitoring is on
+   * (the default). The user subscribes (email, Slack via webhook,
+   * PagerDuty, etc.) via `monitoringTopic.addSubscription(...)` or by
+   * configuring an external listener with the topic ARN.
+   *
+   * Not declared `readonly` because the `MonitoringConstruct` that
+   * owns the topic is built mid-constructor (after the SSR / image-opt
+   * Lambdas it alarms on are wired up), so the value is assigned
+   * after the field declaration runs. Treat it as logically immutable
+   * post-construction — do not reassign from outside the constructor.
    */
-  readonly monitoringTopic?: ITopic;
+  monitoringTopic?: ITopic;
 
   /**
    * Creates the hosting infrastructure from a framework-agnostic deploy manifest.
@@ -277,18 +282,6 @@ export class AmplifyHostingConstruct extends Construct {
           'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
       });
     }
-    // 4.2 — Basic-Auth gate. Adapters lift `routeRules.basicAuth`
-    // (Nitro) into `manifest.basicAuth[]`. We honor it via a
-    // CloudFront viewer-request Function attached to every matching
-    // path (CdnConstruct does the wiring). The check is base64
-    // string-compare against the user→pass map baked into the
-    // function source at synth time — fits well within CFF's 10 KB
-    // and 1 ms CPU budget.
-    //
-    // Tradeoff: rotating credentials means a redeploy. For the
-    // documented use cases (dev / staging gates, pre-launch admin
-    // surfaces), that's acceptable and far cheaper than running
-    // Lambda@Edge on every gated request.
     const buildId = manifest.buildId ?? generateBuildId();
 
     // Normalize `compute.timeout` once: callers consuming the L3 from
@@ -710,42 +703,12 @@ export class AmplifyHostingConstruct extends Construct {
       }
     }
 
-    // ---- 5c. SnapStart (2.2 — forward-compat) ----
-    // When the user opts into `compute.snapStart`, attach SnapStart
-    // on every regional handler-mode Lambda. SnapStart is GA for
-    // Java today; Node SnapStart is upstream-pending and will start
-    // working without code changes here once it ships. We use the
-    // CFN escape hatch so we don't depend on a CDK release that
-    // exposes `snapStart` for Node.
-    //
-    // Skipped for:
-    //   - Lambda@Edge: SnapStart is incompatible with replicated
-    //     edge functions.
-    //   - http-server Lambdas: the Web Adapter init path doesn't
-    //     benefit from SnapStart and the boot-process model
-    //     conflicts with snapshot semantics.
-    if (props.compute?.snapStart) {
-      for (const [name, fn] of this.computeFunctions) {
-        if (!(fn instanceof LambdaFunction)) continue;
-        const resource = manifest.compute[name];
-        if (resource?.type !== 'handler') continue;
-        const cfn = fn.node.defaultChild;
-        if (cfn && 'addPropertyOverride' in cfn) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (cfn as any).addPropertyOverride(
-            'SnapStart.ApplyOn',
-            'PublishedVersions',
-          );
-        }
-      }
-    }
-
-    // ---- 5d. Synthetic warmup schedule (2.1) ----
+    // ---- 5c. Synthetic warmup schedule (2.1) ----
     // EventBridge schedule → SSR Lambda invoke every N. Customers
     // using `provisionedConcurrency` are already warm, so we skip
     // the warmup wiring there to avoid double-paying. Image-opt and
     // revalidation are not warmed by default — they're inherently
-    // bursty and SnapStart/provisioned-concurrency is a better fit.
+    // bursty and provisioned-concurrency is a better fit.
     if (
       props.compute?.warmup &&
       !manifest.compute.default?.provisionedConcurrency &&
@@ -887,12 +850,16 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 9c. Default CloudWatch alarms (P3.1 + P3.2) ----
-    // Off by default so the construct stays cheap-by-default; opt in
-    // via `monitoring: { enabled: true }`. When enabled, surfaces the
-    // SNS topic ARN as a CloudFormation output so operators can wire
-    // subscriptions externally without touching the construct again.
-    if (props.monitoring?.enabled) {
-      const userTopic = props.monitoring.snsTopicArn
+    // Enabled by default — alarms cost cents/month idle and the
+    // out-of-the-box visibility (CloudFront 5xx, Lambda errors/throttles,
+    // image-opt errors, revalidation DLQ depth) is high-value during
+    // the construct's validation phase. Opt out with
+    // `monitoring: { enabled: false }`. When on, surfaces the SNS topic
+    // ARN as a CloudFormation output so operators can wire subscriptions
+    // externally without touching the construct again.
+    const monitoringEnabled = props.monitoring?.enabled ?? true;
+    if (monitoringEnabled) {
+      const userTopic = props.monitoring?.snsTopicArn
         ? Topic.fromTopicArn(
             this,
             'AlarmTopicImport',
@@ -918,8 +885,7 @@ export class AmplifyHostingConstruct extends Construct {
         imageFunction: imgFn instanceof LambdaFunction ? imgFn : undefined,
         revalidationDlq: this.revalidationDlq,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this as any).monitoringTopic = monitoring.topic;
+      this.monitoringTopic = monitoring.topic;
       if (monitoring.topic) {
         new CfnOutput(this, 'MonitoringTopicArn', {
           value: monitoring.topic.topicArn,
