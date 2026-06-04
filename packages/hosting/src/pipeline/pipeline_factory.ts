@@ -201,6 +201,9 @@ const createHostingDeployHook = (
       env: {
         STAGE_NAME: stageConfig.name,
         HOSTING_ENTRY_POINT: relativeHostingPath,
+        ...(stageConfig.config
+          ? { AMPLIFY_STAGE_CONFIG: JSON.stringify(stageConfig.config) }
+          : {}),
       },
       commands: [
         // Install project dependencies
@@ -309,11 +312,31 @@ const createHostingDeployHook = (
 export function getStageConfig<T = Record<string, unknown>>():
   | (PipelineStageConfig<T> & { name: string })
   | undefined {
+  // Phase 1: read from CDK context (inside pipeline stage)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scope = (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY];
-  if (!scope) return undefined;
-  const raw = scope.node.tryGetContext('AMPLIFY_STAGE_CONFIG');
-  return raw ? JSON.parse(raw) : undefined;
+  if (scope) {
+    const raw = scope.node.tryGetContext('AMPLIFY_STAGE_CONFIG');
+    if (raw)
+      return JSON.parse(raw) as PipelineStageConfig<T> & { name: string };
+  }
+
+  // Phase 2 fallback: read from env var (standalone CodeBuild step)
+  const envConfig = process.env.AMPLIFY_STAGE_CONFIG;
+  const envStageName = process.env.STAGE_NAME;
+  if (envConfig) {
+    try {
+      const parsed = JSON.parse(envConfig) as T;
+      return {
+        name: envStageName ?? '',
+        config: parsed,
+      } as PipelineStageConfig<T> & { name: string };
+    } catch {
+      return undefined;
+    }
+  }
+
+  return undefined;
 }
 
 /**
