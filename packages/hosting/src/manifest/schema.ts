@@ -160,6 +160,7 @@ export const deployManifestSchema = z
       directory: z.string().min(1, 'Static assets directory must not be empty'),
       cacheControl: z.string().optional(),
       immutablePaths: z.array(z.string().min(1)).optional(),
+      noCachePaths: z.array(z.string().min(1)).optional(),
     }),
     routes: z
       .array(routeBehaviorSchema)

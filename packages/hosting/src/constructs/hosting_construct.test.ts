@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { AmplifyHostingConstruct } from './hosting_construct.js';
@@ -1157,7 +1157,7 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('creates ResponseHeadersPolicy with default CSP when cdn.contentSecurityPolicy is not set', () => {
+  void it('uses managed SECURITY_HEADERS policy when cdn.contentSecurityPolicy is not set', () => {
     const staticDir = createStaticDir();
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
@@ -1165,15 +1165,15 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     });
 
     const template = Template.fromStack(stack);
+    // No custom ResponseHeadersPolicy resource should be created
+    template.resourceCountIs('AWS::CloudFront::ResponseHeadersPolicy', 0);
+    // The distribution should reference the managed SECURITY_HEADERS policy ID
     template.hasResourceProperties(
-      'AWS::CloudFront::ResponseHeadersPolicy',
+      'AWS::CloudFront::Distribution',
       Match.objectLike({
-        ResponseHeadersPolicyConfig: Match.objectLike({
-          SecurityHeadersConfig: Match.objectLike({
-            ContentSecurityPolicy: Match.objectLike({
-              ContentSecurityPolicy:
-                Match.stringLikeRegexp("default-src 'self'"),
-            }),
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            ResponseHeadersPolicyId: '67f7725c-6f97-4210-82d7-5512b31e9d03',
           }),
         }),
       }),
@@ -1204,7 +1204,7 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     );
   });
 
-  void it('includes HSTS headers', () => {
+  void it('includes HSTS headers via managed policy (SECURITY_HEADERS includes HSTS by design)', () => {
     const staticDir = createStaticDir();
     const stack = createStack();
     new AmplifyHostingConstruct(stack, 'Hosting', {
@@ -1212,16 +1212,15 @@ void describe('AmplifyHostingConstruct — CSP / Security Headers', () => {
     });
 
     const template = Template.fromStack(stack);
+    // With no custom CSP, the managed SECURITY_HEADERS policy is used.
+    // The managed policy includes HSTS, X-Content-Type-Options, X-Frame-Options,
+    // X-XSS-Protection, and Referrer-Policy. Verify it's referenced:
     template.hasResourceProperties(
-      'AWS::CloudFront::ResponseHeadersPolicy',
+      'AWS::CloudFront::Distribution',
       Match.objectLike({
-        ResponseHeadersPolicyConfig: Match.objectLike({
-          SecurityHeadersConfig: Match.objectLike({
-            StrictTransportSecurity: Match.objectLike({
-              IncludeSubdomains: true,
-              Preload: true,
-              Override: true,
-            }),
+        DistributionConfig: Match.objectLike({
+          DefaultCacheBehavior: Match.objectLike({
+            ResponseHeadersPolicyId: '67f7725c-6f97-4210-82d7-5512b31e9d03',
           }),
         }),
       }),
@@ -1304,12 +1303,19 @@ void describe('AmplifyHostingConstruct — CDN edge cases', () => {
     });
 
     const template = Template.fromStack(stack);
+    // SPA fallback is now handled in the viewer-request CloudFront Function
+    // (navigation requests rewrite to /index.html before hitting S3).
+    // No custom error responses needed for 403/404 in SPA mode — missing
+    // assets correctly 403 without being caught by a blanket fallback.
     template.hasResourceProperties('AWS::CloudFront::Distribution', {
       DistributionConfig: Match.objectLike({
-        CustomErrorResponses: Match.arrayWith([
-          Match.objectLike({ ErrorCode: 403, ResponseCode: 200 }),
-          Match.objectLike({ ErrorCode: 404, ResponseCode: 200 }),
-        ]),
+        DefaultCacheBehavior: Match.objectLike({
+          FunctionAssociations: Match.arrayWith([
+            Match.objectLike({
+              EventType: 'viewer-request',
+            }),
+          ]),
+        }),
       }),
     });
   });
@@ -1602,5 +1608,96 @@ void describe('AmplifyHostingConstruct — KMS Key Policy', () => {
       0,
       'Should NOT create a KMS key with explicit S3_MANAGED encryption',
     );
+  });
+
+  // ---- cdn.ssrDefaultTtl ----
+
+  void describe('cdn.ssrDefaultTtl prop', () => {
+    void it('sets CachePolicy DefaultTTL when provided', () => {
+      const staticDir = createStaticDir();
+      const bundleDir = createBundleDir();
+      const stack = createStack();
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest(staticDir, bundleDir),
+        cdn: { ssrDefaultTtl: Duration.seconds(60) },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            DefaultTTL: 60,
+          }),
+        }),
+      );
+    });
+
+    void it('defaults to 0 when ssrDefaultTtl is omitted', () => {
+      const staticDir = createStaticDir();
+      const bundleDir = createBundleDir();
+      const stack = createStack();
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: ssrManifest(staticDir, bundleDir),
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::CloudFront::CachePolicy',
+        Match.objectLike({
+          CachePolicyConfig: Match.objectLike({
+            DefaultTTL: 0,
+          }),
+        }),
+      );
+    });
+  });
+
+  // ---- cdn.webAclArn ----
+
+  void describe('cdn.webAclArn prop', () => {
+    void it('uses provided ARN on the distribution WebACLId', () => {
+      const staticDir = createStaticDir();
+      const stack = createStack();
+      // prettier-ignore
+      // eslint-disable-next-line spellcheck/spell-checker
+      const testArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: spaManifest(staticDir),
+        cdn: { webAclArn: testArn },
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          WebACLId: testArn,
+        }),
+      });
+    });
+
+    void it('does NOT create WAF construct when webAclArn is provided', () => {
+      const staticDir = createStaticDir();
+      const stack = createStack();
+      // prettier-ignore
+      // eslint-disable-next-line spellcheck/spell-checker
+      const testArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+      new AmplifyHostingConstruct(stack, 'Hosting', {
+        manifest: spaManifest(staticDir),
+        cdn: { webAclArn: testArn },
+        waf: { enabled: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const webAcls = template.findResources('AWS::WAFv2::WebACL');
+      assert.strictEqual(
+        Object.keys(webAcls).length,
+        0,
+        'Should NOT create a WAF WebACL when cdn.webAclArn is provided',
+      );
+    });
   });
 });

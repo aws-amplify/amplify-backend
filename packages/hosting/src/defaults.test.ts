@@ -126,6 +126,67 @@ void describe('generateBuildIdAndRedirectFunctionCode', () => {
       assert.equal(result.statusCode, undefined);
     });
   });
+
+  void describe('spaFallback option', () => {
+    const evalFn = (
+      code: string,
+    ): ((event: {
+      request: { uri: string; headers?: Record<string, { value: string }> };
+    }) => unknown) =>
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      new Function(`${code}\nreturn handler;`)() as never;
+
+    void it('rewrites extensionless paths to /index.html when spaFallback=true', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        undefined,
+        { spaFallback: true },
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/about', headers: {} },
+      }) as { uri: string };
+      assert.equal(result.uri, '/builds/mybuild-1/index.html');
+    });
+
+    void it('preserves paths with file extensions when spaFallback=true', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        undefined,
+        { spaFallback: true },
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/static/app.js', headers: {} },
+      }) as { uri: string };
+      assert.equal(result.uri, '/builds/mybuild-1/static/app.js');
+    });
+
+    void it('maintains existing directory rewrite when spaFallback=false (default)', () => {
+      const code = generateBuildIdAndRedirectFunctionCode('mybuild-1');
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/about', headers: {} },
+      }) as { uri: string };
+      assert.equal(result.uri, '/builds/mybuild-1/about/index.html');
+    });
+
+    void it('does NOT rewrite .well-known paths when spaFallback=true', () => {
+      const code = generateBuildIdAndRedirectFunctionCode(
+        'mybuild-1',
+        [],
+        undefined,
+        { spaFallback: true },
+      );
+      const handler = evalFn(code);
+      const result = handler({
+        request: { uri: '/.well-known/acme-challenge', headers: {} },
+      }) as { uri: string };
+      assert.equal(result.uri, '/builds/mybuild-1/.well-known/acme-challenge');
+    });
+  });
 });
 
 void describe('generateForwardedHostAndRedirectFunctionCode', () => {

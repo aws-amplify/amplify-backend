@@ -171,6 +171,7 @@ export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
   basePath?: string,
+  options?: { spaFallback?: boolean },
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {
@@ -216,18 +217,31 @@ export const generateBuildIdAndRedirectFunctionCode = (
   }
 `
     : '';
-  return `function handler(event) {
-  var request = event.request;
-  var uri = request.uri;
-${redirectSnippet}
-${basePathRedirect}${basePathStrip}  if (uri.endsWith('/')) {
+  // SPA fallback: for single-page apps, navigation requests (no file
+  // extension) should serve /index.html. Asset requests (.js, .css, etc.)
+  // pass through unchanged — if the file is missing, S3 returns 403/404
+  // which is correct (broken asset link, not a client-side route).
+  const spaFallback = options?.spaFallback ?? false;
+  const rewriteBlock = spaFallback
+    ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+  var hasExtension = lastSegment.indexOf('.') !== -1;
+  var isWellKnown = uri.startsWith('/.well-known/');
+  if (!hasExtension && !isWellKnown) {
+    uri = '/index.html';
+  }`
+    : `  if (uri.endsWith('/')) {
     uri = uri + 'index.html';
   } else {
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
     if (lastSegment.indexOf('.') === -1) {
       uri = uri + '/index.html';
     }
-  }
+  }`;
+  return `function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+${redirectSnippet}
+${basePathRedirect}${basePathStrip}${rewriteBlock}
   request.uri = '/builds/${buildId}' + uri;
   return request;
 }`;

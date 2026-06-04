@@ -47,7 +47,7 @@ void describe('AmplifyHostingConstruct — vanilla CDK usage', () => {
 
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::CloudFront::Distribution', 1);
-    template.resourceCountIs('AWS::S3::Bucket', 1);
+    template.resourceCountIs('AWS::S3::Bucket', 2); // hosting + access log
   });
 
   void it('works with SSR compute in a vanilla CDK stack', () => {

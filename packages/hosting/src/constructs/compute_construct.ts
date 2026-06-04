@@ -96,6 +96,11 @@ export type ComputeConstructProps = {
    * fronted by API Gateway REST API instead (no orphaned Function URL).
    */
   skipFunctionUrl?: boolean;
+  /**
+   * Additional environment variables to inject into the Lambda function.
+   * Merged with (and overrides) the manifest's compute resource environment.
+   */
+  environment?: Record<string, string>;
 };
 
 // ---- Construct ----
@@ -187,6 +192,7 @@ export class ComputeConstruct extends Construct {
         logGroup,
         environment: {
           ...computeResource.environment,
+          ...props.environment,
         },
       });
     } else if (computeResource.type === 'http-server') {
@@ -220,14 +226,17 @@ export class ComputeConstruct extends Construct {
           AWS_LWA_INVOKE_MODE: 'response_stream',
           PORT: String(port),
           ...computeResource.environment,
+          ...props.environment,
         },
       });
     } else if (computeResource.type === 'edge') {
       // Edge function — Lambda@Edge does not support env vars or Function URLs
-      if (
+      const hasManifestEnv =
         computeResource.environment &&
-        Object.keys(computeResource.environment).length > 0
-      ) {
+        Object.keys(computeResource.environment).length > 0;
+      const hasPropsEnv =
+        props.environment && Object.keys(props.environment).length > 0;
+      if (hasManifestEnv || hasPropsEnv) {
         process.stderr.write(
           `⚠️  Edge compute '${props.name}' has environment variables which Lambda@Edge does not support. They will be stripped.\n`,
         );

@@ -15,7 +15,7 @@ import { VanillaCdkSsrTestCdkProjectCreator } from '../../test-project-setup/cdk
  * 2. Deploys via `cdk deploy` (not `ampx deploy`)
  * 3. Verifies CloudFront serves server-rendered content ("Hello Vanilla CDK SSR")
  * 4. Verifies static assets (/_next/static/) are accessible
- * 5. Verifies security headers (CSP with wss:, HSTS, X-Frame-Options, X-Content-Type-Options)
+ * 5. Verifies security headers (HSTS, X-Frame-Options, X-Content-Type-Options)
  * 6. Verifies the stack contains Lambda resources
  * 7. Tears down via `cdk destroy`
  */
