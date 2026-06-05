@@ -118,6 +118,46 @@ export type HostingProps = {
   };
 
   /**
+   * Custom environment variables injected into all compute Lambda functions at runtime.
+   *
+   * Values appear in plaintext in the CloudFormation template. For sensitive values
+   * (database passwords, API secrets), use AWS Systems Manager Parameter Store or
+   * Secrets Manager and read them at runtime instead.
+   *
+   * Safe for: feature flags, non-secret URLs, region config, service names.
+   * @example
+   * ```typescript
+   * defineHosting({
+   *   environment: {
+   *     DATABASE_URL: process.env.DATABASE_URL,
+   *     FEATURE_FLAGS_API_KEY: process.env.FF_KEY,
+   *   },
+   * });
+   * ```
+   */
+  environment?: Record<string, string>;
+
+  /**
+   * Custom error page configuration.
+   * Provide paths to HTML files for custom 404 and 500 error responses.
+   * @example
+   * ```typescript
+   * defineHosting({
+   *   errorPages: {
+   *     notFound: './public/404.html',
+   *     serverError: './public/500.html',
+   *   },
+   * });
+   * ```
+   */
+  errorPages?: {
+    /** Path to a custom 404 HTML file (relative to project root). */
+    notFound?: string;
+    /** Path to a custom 500 HTML file (relative to project root). */
+    serverError?: string;
+  };
+
+  /**
    * CDN (CloudFront) configuration.
    */
   cdn?: {

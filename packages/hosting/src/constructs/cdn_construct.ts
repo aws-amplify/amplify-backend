@@ -136,6 +136,11 @@ export type CdnConstructProps = {
   };
   /** Custom error page HTML. */
   errorPageHtml?: string;
+  /** Custom error pages configuration for CloudFront error responses. */
+  customErrorPages?: {
+    notFound?: boolean;
+    serverError?: boolean;
+  };
   /** Lambda@Edge function version for middleware (viewer-request). */
   middlewareEdgeFunction?: IVersion;
   /**
@@ -953,6 +958,50 @@ export class CdnConstruct extends Construct {
           ]
         : []),
     ];
+
+    // ---- Custom error pages (user-provided) ----
+    if (props.customErrorPages?.notFound) {
+      errorResponses.push({
+        httpStatus: 404,
+        responseHttpStatus: 404,
+        responsePagePath: `/builds/${buildId}/404.html`,
+        ttl: Duration.seconds(0),
+      });
+    }
+    if (props.customErrorPages?.serverError) {
+      // For compute (SSR) stacks, the default 502/503/504 error pages are
+      // already wired above; only add 500 with the custom page.
+      // For static/SPA stacks, add all server error statuses.
+      const serverErrorStatuses = hasCompute ? [500] : [500, 502, 503, 504];
+      for (const status of serverErrorStatuses) {
+        errorResponses.push({
+          httpStatus: status,
+          responseHttpStatus: status,
+          responsePagePath: `/builds/${buildId}/500.html`,
+          ttl: Duration.seconds(10),
+        });
+      }
+    }
+
+    // ---- Error-page behavior (B22) ----
+    // CloudFront custom error responses fetch the configured
+    // responsePagePath from the behavior matching that path. Error pages
+    // live at /builds/<buildId>/404.html (or _error.html) in S3. Without
+    // an explicit behavior, the path falls to the default (compute)
+    // behavior and the Lambda can't serve the file — causing CloudFront
+    // to fall back to the original error. Add a direct-to-S3 behavior
+    // for /builds/* so error page fetches resolve correctly.
+    if (errorResponses.length > 0 && hasCompute) {
+      additionalBehaviors['/builds/*'] = {
+        origin: s3Origin,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        compress: true,
+        responseHeadersPolicy: props.securityHeadersPolicy,
+      };
+    }
 
     // ---- Distribution ----
     this.distribution = new Distribution(this, 'HostingDistribution', {
