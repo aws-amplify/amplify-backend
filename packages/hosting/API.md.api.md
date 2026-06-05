@@ -22,6 +22,7 @@ import { IFileSetProducer } from 'aws-cdk-lib/pipelines';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { IResponseHeadersPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { ITopic } from 'aws-cdk-lib/aws-sns';
 import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -62,6 +63,9 @@ export class AmplifyHostingConstruct extends Construct {
   getResources(): HostingResources;
   // (undocumented)
   readonly hostedZone?: IHostedZone;
+  monitoringTopic?: ITopic;
+  // (undocumented)
+  readonly revalidationDlq?: Queue;
   // (undocumented)
   readonly revalidationQueue?: Queue;
   // (undocumented)
@@ -80,6 +84,14 @@ export type AmplifyHostingConstructProps = {
     reservedConcurrency?: number;
     logRetention?: RetentionDays;
     environment?: Record<string, string>;
+    warmup?: {
+      rate: Duration;
+    };
+    tracing?: {
+      otelEndpoint: string;
+      otelHeaders?: string;
+      serviceName?: string;
+    };
   };
   cdn?: {
     priceClass?: PriceClass;
@@ -97,6 +109,9 @@ export type AmplifyHostingConstructProps = {
     encryptionKey?: IKey;
     retainOnDelete?: boolean;
     buildRetentionDays?: number;
+    inventory?: {
+      enabled: boolean;
+    };
   };
   logging?: {
     enabled: boolean;
@@ -110,6 +125,10 @@ export type AmplifyHostingConstructProps = {
   errorPages?: {
     notFound?: string;
     serverError?: string;
+  };
+  monitoring?: {
+    enabled?: boolean;
+    snsTopicArn?: string;
   };
   skewProtection?: {
     enabled: boolean;
@@ -210,8 +229,11 @@ export type DeployManifest = {
   assetPrefix?: string;
   errorPages?: Partial<Record<404 | 500, string>>;
   buildId?: string;
+  lifecycle?: Array<{
+    prefix: string;
+    days: number;
+  }>;
   basePath?: string;
-  basicAuth?: BasicAuthRule[];
 };
 
 // @public
@@ -293,6 +315,14 @@ export type HostingProps = {
     reservedConcurrency?: number;
     provisionedConcurrency?: number;
     logRetention?: RetentionDays;
+    warmup?: {
+      rate: Duration;
+    };
+    tracing?: {
+      otelEndpoint: string;
+      otelHeaders?: string;
+      serviceName?: string;
+    };
   };
   environment?: Record<string, string>;
   errorPages?: {
@@ -312,10 +342,17 @@ export type HostingProps = {
     encryptionKey?: IKey;
     retainOnDelete?: boolean;
     buildRetentionDays?: number;
+    inventory?: {
+      enabled: boolean;
+    };
   };
   logging?: {
     enabled: boolean;
     retentionDays?: number;
+  };
+  monitoring?: {
+    enabled?: boolean;
+    snsTopicArn?: string;
   };
 };
 
@@ -447,8 +484,7 @@ export type SkewProtectionConfig = {
 
 // Warnings were encountered during analysis:
 //
-// src/manifest/types.ts:135:3 - (ae-forgotten-export) The symbol "BasicAuthRule" needs to be exported by the entry point index.d.ts
-// src/manifest/types.ts:292:3 - (ae-forgotten-export) The symbol "RemotePattern" needs to be exported by the entry point index.d.ts
+// src/manifest/types.ts:281:3 - (ae-forgotten-export) The symbol "RemotePattern" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 ```
