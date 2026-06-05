@@ -2370,3 +2370,471 @@ void describe('AmplifyHostingConstruct — custom error pages (M5)', () => {
     );
   });
 });
+
+// ================================================================
+// N6: Multi-domain + www redirect
+// ================================================================
+
+void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates A + AAAA records for each domain name in the array', () => {
+    const staticDir = createStaticDir();
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['example.com', 'www.example.com'],
+        hostedZone: 'example.com',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should have 4 records: A + AAAA for each domain
+    const records = template.findResources('AWS::Route53::RecordSet');
+    const recordEntries = Object.values(records);
+    assert.strictEqual(
+      recordEntries.length,
+      4,
+      'Should have 4 DNS records (A+AAAA per domain)',
+    );
+
+    const recordNames = recordEntries.map(
+      (r) => (r as Record<string, Record<string, unknown>>).Properties?.Name,
+    );
+    assert.ok(recordNames.some((n) => String(n).includes('example.com')));
+    assert.ok(recordNames.some((n) => String(n).includes('www.example.com')));
+  });
+
+  void it('CloudFront distribution has multiple aliases for multi-domain', () => {
+    const staticDir = createStaticDir();
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['example.com', 'www.example.com'],
+        hostedZone: 'example.com',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        Aliases: ['example.com', 'www.example.com'],
+      }),
+    });
+  });
+
+  void it('generates www redirect CloudFront Function when wwwRedirect is toApex', () => {
+    const staticDir = createStaticDir();
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['example.com', 'www.example.com'],
+        hostedZone: 'example.com',
+        wwwRedirect: 'toApex',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should find a CloudFront Function whose code includes the www redirect logic
+    const cfFunctions = template.findResources('AWS::CloudFront::Function');
+    const functionCodes = Object.values(cfFunctions).map(
+      (r) =>
+        (r as Record<string, Record<string, unknown>>).Properties
+          ?.FunctionCode as string,
+    );
+    const hasWwwRedirect = functionCodes.some(
+      (code) => code && code.includes("startsWith('www.')"),
+    );
+    assert.ok(hasWwwRedirect, 'Should have www redirect logic in CF Function');
+  });
+
+  void it('does NOT generate www redirect when wwwRedirect is none', () => {
+    const staticDir = createStaticDir();
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['example.com'],
+        hostedZone: 'example.com',
+        wwwRedirect: 'none',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    const cfFunctions = template.findResources('AWS::CloudFront::Function');
+    const functionCodes = Object.values(cfFunctions).map(
+      (r) =>
+        (r as Record<string, Record<string, unknown>>).Properties
+          ?.FunctionCode as string,
+    );
+    const hasWwwRedirect = functionCodes.some(
+      (code) => code && code.includes("startsWith('www.')"),
+    );
+    assert.ok(
+      !hasWwwRedirect,
+      'Should NOT have www redirect logic in CF Function',
+    );
+  });
+
+  void it('backward-compat: single domainName string still works', () => {
+    const staticDir = createStaticDir();
+    const app = new App();
+    const stack = new Stack(app, 'TestStack', {
+      env: { account: '123456789012', region: 'us-east-1' },
+    });
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainName: 'example.com',
+        hostedZone: 'example.com',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        Aliases: ['example.com'],
+      }),
+    });
+  });
+});
+
+// ================================================================
+// P7: Build cache bucket
+// ================================================================
+
+void describe('AmplifyHostingConstruct — P7: Build cache bucket', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates S3 bucket when buildCache.enabled is true', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      buildCache: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should have at least one bucket with lifecycle (the build cache bucket)
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const hasBuildCacheBucket = Object.values(buckets).some((b) => {
+      const str = JSON.stringify(b);
+      return str.includes('"ExpirationInDays":30');
+    });
+    assert.ok(
+      hasBuildCacheBucket,
+      'Should create a build cache bucket with 30-day lifecycle',
+    );
+  });
+
+  void it('exports CfnOutput for build cache bucket name', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      buildCache: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+    const outputs = template.findOutputs('*');
+    const outputKeys = Object.keys(outputs);
+    const hasBuildCacheOutput = outputKeys.some((k) =>
+      k.includes('BuildCacheBucketName'),
+    );
+    assert.ok(
+      hasBuildCacheOutput,
+      'Should have BuildCacheBucketName CfnOutput',
+    );
+  });
+
+  void it('sets AMPLIFY_BUILD_CACHE_BUCKET env var on compute functions', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      buildCache: { enabled: true },
+    });
+
+    const template = Template.fromStack(stack);
+    const lambdas = template.findResources('AWS::Lambda::Function');
+    const hasEnvVar = Object.values(lambdas).some((fn) => {
+      const env = (
+        fn as Record<
+          string,
+          Record<string, Record<string, Record<string, unknown>>>
+        >
+      ).Properties?.Environment?.Variables;
+      return env && 'AMPLIFY_BUILD_CACHE_BUCKET' in env;
+    });
+    assert.ok(
+      hasEnvVar,
+      'Lambda should have AMPLIFY_BUILD_CACHE_BUCKET env var',
+    );
+  });
+
+  void it('does NOT create build cache bucket when disabled', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      buildCache: { enabled: false },
+    });
+
+    const template = Template.fromStack(stack);
+    const outputs = template.findOutputs('*');
+    const outputKeys = Object.keys(outputs);
+    const hasBuildCacheOutput = outputKeys.some((k) =>
+      k.includes('BuildCacheBucketName'),
+    );
+    assert.ok(
+      !hasBuildCacheOutput,
+      'Should NOT have BuildCacheBucketName CfnOutput',
+    );
+  });
+});
+
+// ================================================================
+// P11: Cross-region WAF
+// ================================================================
+
+void describe('AmplifyHostingConstruct — P11: Cross-region WAF', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('uses provided waf.webAclArn on the distribution WebACLId', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const testArn =
+      'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      waf: { enabled: true, webAclArn: testArn },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        WebACLId: testArn,
+      }),
+    });
+  });
+
+  void it('does NOT create WAF WebACL when waf.webAclArn is provided', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const testArn =
+      'arn:aws:wafv2:us-east-1:123456789012:global/webacl/my-waf/abc123';
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      waf: { enabled: true, webAclArn: testArn },
+    });
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::WAFv2::WebACL', 0);
+  });
+
+  void it('creates WAF WebACL normally when webAclArn is NOT provided', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      waf: { enabled: true },
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::WAFv2::WebACL', 1);
+  });
+
+  void it('waf.webAclArn takes precedence over cdn.webAclArn', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const wafArn =
+      'arn:aws:wafv2:us-east-1:123456789012:global/webacl/waf-prop/111';
+    const cdnArn =
+      'arn:aws:wafv2:us-east-1:123456789012:global/webacl/cdn-prop/222';
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      waf: { enabled: true, webAclArn: wafArn },
+      cdn: { webAclArn: cdnArn },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        WebACLId: wafArn,
+      }),
+    });
+  });
+});
+
+// ================================================================
+// BYO domain + hostedZoneId
+// ================================================================
+
+void describe('AmplifyHostingConstruct — BYO domain + hostedZoneId', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('domain with hostedZoneId uses fromHostedZoneId (no lookup)', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const cert = Certificate.fromCertificateArn(
+      stack,
+      'Cert',
+      'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
+    );
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['example.com'],
+        hostedZoneId: 'Z1234567890ABC',
+        certificate: cert,
+      },
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should have A and AAAA records
+    const records = template.findResources('AWS::Route53::RecordSet');
+    const recordEntries = Object.values(records);
+    assert.strictEqual(recordEntries.length, 2, 'Should have A + AAAA records');
+
+    // Should have CloudFront alias
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        Aliases: ['example.com'],
+      }),
+    });
+  });
+
+  void it('domain without hostedZone/hostedZoneId skips DNS records but sets CF aliases', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const cert = Certificate.fromCertificateArn(
+      stack,
+      'Cert',
+      'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
+    );
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['custom.example.com'],
+        certificate: cert,
+      },
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+
+    // Should NOT have Route53 records
+    const records = template.findResources('AWS::Route53::RecordSet');
+    assert.strictEqual(
+      Object.keys(records).length,
+      0,
+      'Should have NO Route53 records for BYO domain',
+    );
+
+    // Should still have CloudFront alias
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({
+        Aliases: ['custom.example.com'],
+      }),
+    });
+  });
+
+  void it('outputs DistributionDomainName when domain is configured', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+    const cert = Certificate.fromCertificateArn(
+      stack,
+      'Cert',
+      'arn:aws:acm:us-east-1:123456789012:certificate/abc-123',
+    );
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      domain: {
+        domainNames: ['custom.example.com'],
+        certificate: cert,
+      },
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const outputs = template.findOutputs('*');
+    const outputKeys = Object.keys(outputs);
+    const hasDistDomainOutput = outputKeys.some((k) =>
+      k.includes('DistributionDomainName'),
+    );
+    assert.ok(
+      hasDistDomainOutput,
+      'Should have DistributionDomainName CfnOutput for BYO domain users',
+    );
+  });
+
+  void it('throws MissingCertificateError when BYO domain has no cert and no hostedZone', () => {
+    const staticDir = createStaticDir();
+    const stack = createStack();
+
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: spaManifest(staticDir),
+          domain: {
+            domainNames: ['example.com'],
+          },
+          skipRegionValidation: true,
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'MissingCertificateError');
+        return true;
+      },
+    );
+  });
+});

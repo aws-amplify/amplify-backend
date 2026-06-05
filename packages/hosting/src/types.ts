@@ -3,7 +3,7 @@ import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { FrameworkAdapterFn } from './adapters/index.js';
 
 /**
@@ -52,12 +52,57 @@ export type HostingProps = {
 
   /**
    * Custom domain configuration.
+   *
+   * Accepts either a single `domainName` (backward-compatible) or an array of
+   * `domainNames` for multi-domain setups.
+   *
+   * When `hostedZone` (or `hostedZoneId`) is provided, Route 53 A/AAAA records
+   * are created automatically. When omitted (BYO domain), the user manages DNS
+   * externally — the distribution domain name is output for CNAME configuration.
+   * @example
+   * ```typescript
+   * // Single domain (backward-compatible)
+   * domain: { domainName: 'example.com', hostedZone: 'example.com' }
+   *
+   * // Multiple domains with www redirect
+   * domain: {
+   *   domainNames: ['example.com', 'www.example.com'],
+   *   hostedZone: 'example.com',
+   *   wwwRedirect: 'toApex',
+   * }
+   *
+   * // BYO domain — user manages DNS externally
+   * domain: {
+   *   domainNames: ['example.com'],
+   *   certificate: myCert,
+   * }
+   * ```
    */
   domain?: {
-    domainName: string;
-    hostedZone: string;
+    /** Single domain name (backward-compatible). Mutually exclusive with `domainNames`. */
+    domainName?: string;
+    /** Array of domain names. All get A/AAAA records and CloudFront aliases. */
+    domainNames?: string[];
+    /**
+     * Route 53 hosted zone domain name (e.g. 'example.com').
+     * When omitted, DNS records are not created — the user must configure
+     * their external DNS to CNAME to the CloudFront distribution domain.
+     */
+    hostedZone?: string;
+    /**
+     * Route 53 hosted zone ID. When provided, avoids `HostedZone.fromLookup()`
+     * (which requires `env: { account, region }` on the stack). Useful in
+     * pipeline stages where account/region aren't known at synth time.
+     */
+    hostedZoneId?: string;
     /** BYO ACM certificate (must be in us-east-1 for CloudFront). */
     certificate?: ICertificate;
+    /**
+     * Redirect www to apex (or vice versa) via a CloudFront Function.
+     * Only effective when both apex and www are included in domain names.
+     * @default 'none'
+     */
+    wwwRedirect?: 'toApex' | 'toWww' | 'none';
   };
 
   /**
@@ -67,6 +112,33 @@ export type HostingProps = {
     enabled: boolean;
     /** Requests per 5-minute window per IP. Default: 1000 */
     rateLimit?: number;
+    /**
+     * ARN of an existing WAFv2 WebACL in us-east-1. When provided, the
+     * construct uses this ACL directly instead of creating a new one.
+     * Enables cross-region deployments (WebACL in us-east-1, stack elsewhere).
+     */
+    webAclArn?: string;
+  };
+
+  /**
+   * Enable build caching. Preserves framework build cache (e.g. `.next/cache`)
+   * between deploys via S3.
+   *
+   * When enabled, an S3 bucket is provisioned (or a user-provided bucket is used)
+   * and the bucket name is exported as a CfnOutput and set as the
+   * `AMPLIFY_BUILD_CACHE_BUCKET` environment variable on compute functions.
+   * Users sync the cache in their CI pipeline.
+   * @example
+   * ```typescript
+   * defineHosting({
+   *   buildCache: { enabled: true },
+   * });
+   * ```
+   */
+  buildCache?: {
+    enabled: boolean;
+    /** S3 bucket to store build cache. If not provided, creates one. */
+    bucket?: IBucket;
   };
 
   /**
@@ -184,4 +256,9 @@ export type HostingResources = {
    * The URL of the deployed site.
    */
   distributionUrl: string;
+
+  /**
+   * The S3 bucket used for build caching (when `buildCache.enabled` is true).
+   */
+  buildCacheBucket?: Bucket;
 };

@@ -123,8 +123,13 @@ export type CdnConstructProps = {
   webAcl?: CfnWebACL;
   /** ACM certificate for custom domain TLS. */
   certificate?: ICertificate;
-  /** Custom domain name for CloudFront aliases. */
-  domainName?: string;
+  /** Custom domain names for CloudFront aliases. */
+  domainNames?: string[];
+  /**
+   * www redirect mode. When set to 'toApex' or 'toWww', a CloudFront Function
+   * redirects between www and apex domains.
+   */
+  wwwRedirect?: 'toApex' | 'toWww' | 'none';
   /** S3 bucket for CloudFront access logging. */
   accessLogBucket?: IBucket;
   /** CloudFront price class. Default: PRICE_CLASS_100 (US, Canada, Europe). */
@@ -262,7 +267,7 @@ export class CdnConstruct extends Construct {
       skewEnabled,
       manifestRedirects,
       manifest.basePath,
-      { spaFallback: isSpaFallback },
+      { spaFallback: isSpaFallback, wwwRedirect: props.wwwRedirect },
     );
 
     // ---- Skew protection viewer-response function ----
@@ -988,9 +993,9 @@ export class CdnConstruct extends Construct {
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: props.priceClass ?? PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
-      ...(props.certificate && props.domainName
+      ...(props.certificate && props.domainNames && props.domainNames.length > 0
         ? {
-            domainNames: [props.domainName],
+            domainNames: props.domainNames,
             certificate: props.certificate,
           }
         : {}),
@@ -1070,8 +1075,9 @@ export class CdnConstruct extends Construct {
     }
 
     // ---- Distribution URL ----
-    this.distributionUrl = props.domainName
-      ? `https://${props.domainName}`
+    const primaryDomain = props.domainNames?.[0];
+    this.distributionUrl = primaryDomain
+      ? `https://${primaryDomain}`
       : `https://${this.distribution.distributionDomainName}`;
 
     // ---- Outputs ----
@@ -1080,9 +1086,9 @@ export class CdnConstruct extends Construct {
       description: 'URL for the hosted site',
     });
 
-    if (props.domainName) {
+    if (primaryDomain) {
       new CfnOutput(this, 'CustomDomain', {
-        value: props.domainName,
+        value: primaryDomain,
         description: 'Custom domain name for the hosted site',
       });
     }
@@ -1092,20 +1098,29 @@ export class CdnConstruct extends Construct {
    * Creates the viewer-request CloudFront Function.
    * When skew protection is enabled, reads the `__dpl` cookie to route users
    * to their pinned build. Otherwise uses a combined build-id rewrite + redirect function.
+   * Optionally prepends www redirect logic when `wwwRedirect` is configured.
    */
   private createViewerRequestFunction(
     buildId: string,
     skewEnabled: boolean,
     redirects: Redirect[],
     basePath?: string,
-    options?: { spaFallback?: boolean },
+    options?: {
+      spaFallback?: boolean;
+      wwwRedirect?: 'toApex' | 'toWww' | 'none';
+    },
   ): CloudFrontFunction {
+    const wwwRedirectSnippet = generateWwwRedirectSnippet(options?.wwwRedirect);
+
     if (skewEnabled) {
       return new CloudFrontFunction(this, 'SkewProtectionRequestFunction', {
         code: FunctionCode.fromInline(
-          generateSkewProtectionViewerRequestCode(buildId, redirects, {
-            spaFallback: options?.spaFallback,
-          }),
+          injectWwwRedirect(
+            generateSkewProtectionViewerRequestCode(buildId, redirects, {
+              spaFallback: options?.spaFallback,
+            }),
+            wwwRedirectSnippet,
+          ),
         ),
         runtime: CLOUDFRONT_FUNCTION_RUNTIME,
         comment:
@@ -1116,9 +1131,12 @@ export class CdnConstruct extends Construct {
     }
     return new CloudFrontFunction(this, 'BuildIdRewriteFunction', {
       code: FunctionCode.fromInline(
-        generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath, {
-          spaFallback: options?.spaFallback,
-        }),
+        injectWwwRedirect(
+          generateBuildIdAndRedirectFunctionCode(buildId, redirects, basePath, {
+            spaFallback: options?.spaFallback,
+          }),
+          wwwRedirectSnippet,
+        ),
       ),
       runtime: CLOUDFRONT_FUNCTION_RUNTIME,
       comment:
@@ -1236,4 +1254,56 @@ const deriveBareStaticPattern = (pattern: string): string | null => {
   // or anything containing additional wildcards (no useful bare form).
   if (bare === '' || bare === '/' || bare.includes('*')) return null;
   return bare;
+};
+
+/**
+ * Generate a JavaScript snippet that performs www ↔ apex redirection.
+ * Returns empty string when wwwRedirect is 'none' or undefined.
+ */
+const generateWwwRedirectSnippet = (
+  wwwRedirect?: 'toApex' | 'toWww' | 'none',
+): string => {
+  if (!wwwRedirect || wwwRedirect === 'none') return '';
+
+  if (wwwRedirect === 'toApex') {
+    return `  var __host = request.headers.host && request.headers.host.value;
+  if (__host && __host.startsWith('www.')) {
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: { location: { value: 'https://' + __host.substring(4) + request.uri + (request.querystring && Object.keys(request.querystring).length > 0 ? '?' + Object.keys(request.querystring).map(function(k) { var v = request.querystring[k]; return v.multiValue ? v.multiValue.map(function(mv) { return k + '=' + mv.value; }).join('&') : k + '=' + v.value; }).join('&') : '') } },
+    };
+  }
+`;
+  }
+
+  // toWww
+  return `  var __host = request.headers.host && request.headers.host.value;
+  if (__host && !__host.startsWith('www.')) {
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: { location: { value: 'https://www.' + __host + request.uri + (request.querystring && Object.keys(request.querystring).length > 0 ? '?' + Object.keys(request.querystring).map(function(k) { var v = request.querystring[k]; return v.multiValue ? v.multiValue.map(function(mv) { return k + '=' + mv.value; }).join('&') : k + '=' + v.value; }).join('&') : '') } },
+    };
+  }
+`;
+};
+
+/**
+ * Inject www redirect snippet into a CloudFront Function's handler body.
+ * Inserts the snippet right after the `var request = event.request;` line.
+ * Returns unmodified code when snippet is empty.
+ */
+const injectWwwRedirect = (functionCode: string, snippet: string): string => {
+  if (!snippet) return functionCode;
+  const marker = 'var request = event.request;';
+  const idx = functionCode.indexOf(marker);
+  if (idx === -1) return functionCode;
+  const insertPos = idx + marker.length;
+  return (
+    functionCode.slice(0, insertPos) +
+    '\n' +
+    snippet +
+    functionCode.slice(insertPos)
+  );
 };

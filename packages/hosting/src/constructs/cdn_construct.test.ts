@@ -948,7 +948,7 @@ void describe('CdnConstruct', () => {
         manifest: spaManifest,
         securityHeadersPolicy: policy,
         certificate: cert,
-        domainName: 'example.com',
+        domainNames: ['example.com'],
       });
 
       const template = Template.fromStack(stack);
@@ -1164,7 +1164,7 @@ void describe('CdnConstruct', () => {
         manifest: spaManifest,
         securityHeadersPolicy: policy,
         certificate: cert,
-        domainName: 'tls-test.example.com',
+        domainNames: ['tls-test.example.com'],
       });
 
       const template = Template.fromStack(stack);
@@ -1471,7 +1471,7 @@ void describe('CdnConstruct', () => {
         manifest: spaManifest,
         securityHeadersPolicy: policy,
         certificate: cert,
-        domainName: 'my-site.example.com',
+        domainNames: ['my-site.example.com'],
       });
 
       assert.strictEqual(cdn.distributionUrl, 'https://my-site.example.com');
