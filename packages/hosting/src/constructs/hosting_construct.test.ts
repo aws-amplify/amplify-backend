@@ -2390,7 +2390,7 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['example.com', 'www.example.com'],
+        domainName: ['example.com', 'www.example.com'],
         hostedZone: 'example.com',
       },
     });
@@ -2423,7 +2423,7 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['example.com', 'www.example.com'],
+        domainName: ['example.com', 'www.example.com'],
         hostedZone: 'example.com',
       },
     });
@@ -2446,7 +2446,7 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['example.com', 'www.example.com'],
+        domainName: ['example.com', 'www.example.com'],
         hostedZone: 'example.com',
         wwwRedirect: 'toApex',
       },
@@ -2477,7 +2477,7 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['example.com'],
+        domainName: ['example.com'],
         hostedZone: 'example.com',
         wwwRedirect: 'none',
       },
@@ -2497,29 +2497,6 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
       !hasWwwRedirect,
       'Should NOT have www redirect logic in CF Function',
     );
-  });
-
-  void it('backward-compat: single domainName string still works', () => {
-    const staticDir = createStaticDir();
-    const app = new App();
-    const stack = new Stack(app, 'TestStack', {
-      env: { account: '123456789012', region: 'us-east-1' },
-    });
-
-    new AmplifyHostingConstruct(stack, 'Hosting', {
-      manifest: spaManifest(staticDir),
-      domain: {
-        domainName: 'example.com',
-        hostedZone: 'example.com',
-      },
-    });
-
-    const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::CloudFront::Distribution', {
-      DistributionConfig: Match.objectLike({
-        Aliases: ['example.com'],
-      }),
-    });
   });
 });
 
@@ -2729,7 +2706,7 @@ void describe('AmplifyHostingConstruct — BYO domain + hostedZoneId', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['example.com'],
+        domainName: ['example.com'],
         hostedZoneId: 'Z1234567890ABC',
         certificate: cert,
       },
@@ -2763,7 +2740,7 @@ void describe('AmplifyHostingConstruct — BYO domain + hostedZoneId', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['custom.example.com'],
+        domainName: ['custom.example.com'],
         certificate: cert,
       },
       skipRegionValidation: true,
@@ -2799,7 +2776,7 @@ void describe('AmplifyHostingConstruct — BYO domain + hostedZoneId', () => {
     new AmplifyHostingConstruct(stack, 'Hosting', {
       manifest: spaManifest(staticDir),
       domain: {
-        domainNames: ['custom.example.com'],
+        domainName: ['custom.example.com'],
         certificate: cert,
       },
       skipRegionValidation: true,
@@ -2826,7 +2803,7 @@ void describe('AmplifyHostingConstruct — BYO domain + hostedZoneId', () => {
         new AmplifyHostingConstruct(stack, 'Hosting', {
           manifest: spaManifest(staticDir),
           domain: {
-            domainNames: ['example.com'],
+            domainName: ['example.com'],
           },
           skipRegionValidation: true,
         });

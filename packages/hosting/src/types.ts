@@ -53,36 +53,31 @@ export type HostingProps = {
   /**
    * Custom domain configuration.
    *
-   * Accepts either a single `domainName` (backward-compatible) or an array of
-   * `domainNames` for multi-domain setups.
-   *
    * When `hostedZone` (or `hostedZoneId`) is provided, Route 53 A/AAAA records
    * are created automatically. When omitted (BYO domain), the user manages DNS
-   * externally — the distribution domain name is output for CNAME configuration.
+   * externally - the distribution domain name is output for CNAME configuration.
    * @example
    * ```typescript
-   * // Single domain (backward-compatible)
+   * // Single domain
    * domain: { domainName: 'example.com', hostedZone: 'example.com' }
    *
    * // Multiple domains with www redirect
    * domain: {
-   *   domainNames: ['example.com', 'www.example.com'],
+   *   domainName: ['example.com', 'www.example.com'],
    *   hostedZone: 'example.com',
    *   wwwRedirect: 'toApex',
    * }
    *
-   * // BYO domain — user manages DNS externally
+   * // BYO domain - user manages DNS externally
    * domain: {
-   *   domainNames: ['example.com'],
+   *   domainName: ['example.com'],
    *   certificate: myCert,
    * }
    * ```
    */
   domain?: {
-    /** Single domain name (backward-compatible). Mutually exclusive with `domainNames`. */
-    domainName?: string;
-    /** Array of domain names. All get A/AAAA records and CloudFront aliases. */
-    domainNames?: string[];
+    /** Domain name(s) for the hosting distribution. Accepts a single domain or an array for multi-domain setups. */
+    domainName: string | string[];
     /**
      * Route 53 hosted zone domain name (e.g. 'example.com').
      * When omitted, DNS records are not created — the user must configure

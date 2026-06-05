@@ -54,10 +54,8 @@ export type { SkewProtectionConfig } from './skew_protection.js';
  * Supports multiple domains and optional www redirect.
  */
 export type HostingDomainConfig = {
-  /** Single domain name (backward-compatible). Mutually exclusive with `domainNames`. */
-  domainName?: string;
-  /** Array of domain names. All get A/AAAA records and CloudFront aliases. */
-  domainNames?: string[];
+  /** Domain name(s) for the hosting distribution. Accepts a single domain or an array for multi-domain setups. */
+  domainName: string | string[];
   /**
    * Route 53 hosted zone domain name. When omitted (along with hostedZoneId),
    * DNS records are not created — user manages DNS externally.
@@ -732,21 +730,10 @@ export class AmplifyHostingConstruct extends Construct {
     const dnsConstructs: DnsConstruct[] = [];
     let resolvedDomainNames: string[] = [];
     if (props.domain) {
-      // Resolve domain names: support both single `domainName` and array `domainNames`
-      resolvedDomainNames = props.domain.domainNames
-        ? [...props.domain.domainNames]
-        : props.domain.domainName
-          ? [props.domain.domainName]
-          : [];
-
-      if (resolvedDomainNames.length === 0) {
-        throw new HostingError('InvalidDomainConfigError', {
-          message:
-            'Domain config must specify either `domainName` or `domainNames` with at least one entry.',
-          resolution:
-            'Set `domain.domainName` (string) or `domain.domainNames` (string[]).',
-        });
-      }
+      // Resolve domain names from single string or array
+      resolvedDomainNames = Array.isArray(props.domain.domainName)
+        ? props.domain.domainName
+        : [props.domain.domainName];
 
       // Create DNS construct for the first/primary domain (handles certificate)
       const primaryDomain = resolvedDomainNames[0];
