@@ -3,6 +3,7 @@ import { Duration } from 'aws-cdk-lib';
 import {
   Alarm,
   ComparisonOperator,
+  MathExpression,
   Metric,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
@@ -22,7 +23,10 @@ import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
  * construct wires a small, opinionated default set:
  *
  *   - CloudFront 5xx error rate > 5% over 5 min
- *   - SSR Lambda error rate > 1% over 5 min  (errors / invocations)
+ *   - SSR Lambda error rate >= 1% of invocations over 5 min
+ *     (CloudWatch math expression `errors / invocations * 100`, so the
+ *     alarm scales with traffic instead of using an absolute count;
+ *     tunable via `ssrErrorRatePercent`)
  *   - SSR Lambda throttles > 0 over 5 min
  *   - SQS DLQ depth >= 1 (any poison message)
  *
@@ -48,6 +52,14 @@ export type MonitoringConstructProps = {
   imageFunction?: LambdaFunction;
   /** Revalidation worker DLQ — depth alarm. */
   revalidationDlq?: Queue;
+  /**
+   * SSR Lambda error-rate alarm threshold, as a **percentage** of
+   * invocations over the evaluation window (`errors / invocations *
+   * 100`). Rate-based so the alarm scales with traffic — an absolute
+   * count is noise on a busy site and a missed outage on a quiet one.
+   * @default 1 (alarm when >=1% of invocations error)
+   */
+  ssrErrorRatePercent?: number;
 };
 
 /**
@@ -100,18 +112,37 @@ export class MonitoringConstruct extends Construct {
     }
 
     if (props.ssrFunction) {
+      // Rate-based error alarm: errors / invocations * 100 >= threshold%.
+      // A math expression keeps the alarm meaningful across traffic
+      // levels — `5 absolute errors` is background noise at 10K RPM and a
+      // full outage at 2 RPM. `fillMetric: 0` on invocations avoids a
+      // divide-by-missing when there's no traffic in the window (the
+      // expression then yields 0, below threshold, so a quiet period
+      // doesn't false-alarm).
+      const errorRatePercent = props.ssrErrorRatePercent ?? 1;
+      const errorRate = new MathExpression({
+        expression: '(errors / invocations) * 100',
+        usingMetrics: {
+          errors: props.ssrFunction.metricErrors({
+            period: Duration.minutes(5),
+            statistic: 'Sum',
+          }),
+          invocations: props.ssrFunction.metricInvocations({
+            period: Duration.minutes(5),
+            statistic: 'Sum',
+          }),
+        },
+        period: Duration.minutes(5),
+        label: 'SSR Lambda error rate (%)',
+      });
       const errors = new Alarm(this, 'SsrLambdaErrors', {
-        metric: props.ssrFunction.metricErrors({
-          period: Duration.minutes(5),
-          statistic: 'Sum',
-        }),
-        threshold: 5,
+        metric: errorRate,
+        threshold: errorRatePercent,
         evaluationPeriods: 1,
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: TreatMissingData.NOT_BREACHING,
-        alarmDescription:
-          'SSR Lambda has produced >=5 errors in the last 5 minutes.',
+        alarmDescription: `SSR Lambda error rate >= ${errorRatePercent}% of invocations over 5 minutes.`,
       });
       errors.addAlarmAction(action);
       this.alarms.push(errors);

@@ -25,7 +25,7 @@ Cost / quota (P2):
 
 Ops (P3):
 
-- Default `monitoring: { enabled: true }` is OFF; opt in to wire CloudFront 5xx, SSR Lambda errors/throttles, image-opt errors, and revalidation DLQ depth alarms. SNS topic ARN surfaced as a CFN output.
+- Default `monitoring` is **ON** (opt out with `{ enabled: false }`): wires CloudFront 5xx, SSR Lambda errors/throttles, image-opt errors, and revalidation DLQ depth alarms. SNS topic ARN surfaced as a CFN output. The SSR error alarm is **rate-based** — a CloudWatch math expression `errors / invocations * 100` (default 1%, tunable via `ssrErrorRatePercent`) — so it scales with traffic instead of firing on an absolute count.
 - Lambda log retention default bumped from 14 → 30 days (image-opt + middleware now propagate the SSR retention setting).
 - `acquireLock` deadline bumped from 1h → 4h so first-time deploys with custom domain + ACM validation aren't treated as stale by a concurrent deploy attempt.
 - `resolveProjectDir` walks up from cwd to nearest `package.json` (override via `AMPLIFY_HOSTING_PROJECT_DIR`). Deploys from a subdirectory now error clearly instead of failing inside the adapter.
@@ -36,7 +36,7 @@ Drift gate (X.1):
 
 Improvements landed in this PR:
 
-- 2.1 — `compute.warmup: { rate }` adds an EventBridge schedule that synthetically invokes the SSR Lambda. Eliminates cold starts on warm-ish endpoints. Skipped when `provisionedConcurrency` is set.
+- 2.1 — `compute.warmup: { rate }` adds an EventBridge schedule that synthetically invokes the SSR Lambda. Eliminates cold starts on warm-ish endpoints. Skipped when `provisionedConcurrency` is set, and **only applied to `handler`-type (OpenNext) compute** — `http-server` (Nitro/Astro via the Lambda Web Adapter) expects an HTTP-shaped event, so a raw JSON warmup payload would error; that case is skipped with a warning.
 - 2.3 — Nitro cache plugin uses `createRequire` to import `@aws-sdk/client-s3` so the Nitro bundler can't see the import target. The Lambda runtime ships the SDK; we save ~16 MB unzipped per Nitro deploy.
 - 2.4 — IPX Lambda zip prunes test fixtures, declaration files, source maps, READMEs, and `examples/` from `node_modules` post-install. Saves ~5-10 MB unzipped (sharp left untouched). `--omit=dev` added to `npm install`.
 - 3.2 — `manifest.lifecycle?: Array<{prefix, days}>` lets adapters declare their own per-build orphan-data rules. Next adapter declares `_next/data/`; Astro/Nuxt deploys no longer carry that Next-specific dead-weight rule.

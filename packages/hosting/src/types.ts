@@ -100,9 +100,20 @@ export type HostingProps = {
     /**
      * 4.1 — OpenTelemetry environment hooks. Injected onto every
      * Lambda the construct creates (SSR, image-opt, revalidation,
-     * middleware, warmup). The construct does NOT install any OTel
-     * SDK — this only sets the env vars the user's instrumentation
-     * code reads.
+     * middleware, warmup).
+     *
+     * **Bring your own instrumentation.** This option ONLY sets the
+     * `OTEL_*` env vars — it does NOT install any OpenTelemetry SDK or
+     * collector. Env vars alone are inert: setting `otelEndpoint`
+     * without also adding instrumentation produces **no traces**. To
+     * actually emit spans you must additionally do ONE of:
+     *   - attach the AWS Distro for OpenTelemetry (ADOT) Lambda layer
+     *     to your functions, or
+     *   - bundle an OTel SDK and auto-instrument via
+     *     `NODE_OPTIONS=--require @opentelemetry/auto-instrumentations-node/register`.
+     *
+     * The construct stays SDK-agnostic on purpose so it doesn't pin an
+     * OTel version or pull a large layer into every deploy.
      */
     tracing?: {
       /** OTEL_EXPORTER_OTLP_ENDPOINT — collector base URL. */

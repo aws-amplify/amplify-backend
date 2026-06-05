@@ -100,18 +100,46 @@ const makeDriver = ({ client, S3Cmds }) => ({
   },
 
   async getKeys(base) {
-    const res = await client.send(
-      new S3Cmds.ListObjectsV2Command({
-        Bucket: bucket,
-        Prefix: base ? keyToS3(base) : undefined,
-      }),
-    );
-    return (res.Contents ?? []).map((obj) => obj.Key.replace(/\\//g, ':'));
+    // ListObjectsV2 returns at most 1000 keys per call. Page through
+    // with ContinuationToken so a cache larger than 1000 entries
+    // doesn't silently truncate (which would make getKeys/clear miss
+    // objects and leak storage).
+    const prefix = base ? keyToS3(base) : undefined;
+    const keys = [];
+    let continuationToken;
+    do {
+      const res = await client.send(
+        new S3Cmds.ListObjectsV2Command({
+          Bucket: bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        }),
+      );
+      for (const obj of res.Contents ?? []) {
+        keys.push(obj.Key.replace(/\\//g, ':'));
+      }
+      continuationToken = res.IsTruncated
+        ? res.NextContinuationToken
+        : undefined;
+    } while (continuationToken);
+    return keys;
   },
 
   async clear(base) {
+    // Batch-delete via DeleteObjects (up to 1000 keys/call) instead of
+    // one DeleteObject per key. Unbounded per-key deletes can hit S3's
+    // ~3,500 DELETE/s per-prefix limit on a large cache and are far
+    // slower. getKeys already paginated, so this handles >1000 keys.
     const keys = await this.getKeys(base);
-    await Promise.all(keys.map((k) => this.removeItem(k)));
+    for (let i = 0; i < keys.length; i += 1000) {
+      const batch = keys.slice(i, i + 1000);
+      await client.send(
+        new S3Cmds.DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: { Objects: batch.map((k) => ({ Key: keyToS3(k) })) },
+        }),
+      );
+    }
   },
 });
 

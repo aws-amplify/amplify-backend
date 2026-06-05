@@ -808,7 +808,18 @@ export class AmplifyHostingConstruct extends Construct {
       const ssrFn = ssrComputeName
         ? this.computeFunctions.get(ssrComputeName)
         : undefined;
-      if (ssrFn instanceof LambdaFunction) {
+      // Warmup only applies to `handler`-type compute (OpenNext): the
+      // synthetic event is a raw JSON object the handler can detect and
+      // short-circuit. `http-server` compute (Nitro / Astro behind the
+      // Lambda Web Adapter) expects an HTTP-shaped event — a raw JSON
+      // payload would 500 on every warmup invoke, turning a cost
+      // optimization into an error-rate generator. Skip it (and warn)
+      // rather than synthesize an HTTP event we'd have to keep in sync
+      // with LWA's expected shape.
+      const ssrComputeType = ssrComputeName
+        ? manifest.compute[ssrComputeName]?.type
+        : undefined;
+      if (ssrFn instanceof LambdaFunction && ssrComputeType === 'handler') {
         const rule = new Rule(this, 'WarmupSchedule', {
           schedule: Schedule.rate(props.compute.warmup.rate),
           description:
@@ -824,6 +835,13 @@ export class AmplifyHostingConstruct extends Construct {
               version: '1',
             }),
           }),
+        );
+      } else if (ssrFn instanceof LambdaFunction && ssrComputeType) {
+        process.stderr.write(
+          `⚠️  Hosting: compute.warmup is set but the SSR compute is '${ssrComputeType}' ` +
+            `(not 'handler'). Warmup is skipped — a synthetic JSON invoke would error on a ` +
+            `Lambda Web Adapter (http-server) function. Use provisionedConcurrency to keep ` +
+            `http-server SSR warm.\n`,
         );
       }
     }
@@ -1268,11 +1286,23 @@ export class AmplifyHostingConstruct extends Construct {
     // via content hash, so the directory is staged exactly once even
     // with N font extensions present.
     //
-    // We don't set Cache-Control here — fonts are commonly hashed
-    // (Next emits them under `_next/static/media`) AND non-hashed
-    // (`public/fonts/`); applying a long-lived Cache-Control here
-    // would be wrong for the latter, so we leave it unset and let the
-    // prior asset deployments govern.
+    // Cache-Control: this pass re-uploads the font objects (a
+    // BucketDeployment always rewrites content + metadata), so it would
+    // CLOBBER whatever Cache-Control the earlier asset deployments set —
+    // leaving hashed fonts under `immutablePaths` with NO directive at
+    // all (browser heuristic caching). We can't perfectly re-tier per
+    // file: a single BucketDeployment applies one Cache-Control to every
+    // match, and its include globs are additive (OR), so "woff2 files
+    // that are ALSO under an immutable path" isn't expressible.
+    //
+    // So we set the MUTABLE tier here, which is the safe universal
+    // choice:
+    //   - non-hashed fonts (`public/fonts/…`): mutable is exactly right
+    //     (they must stay bustable across deploys).
+    //   - hashed fonts (`_next/static/media/…`): CloudFront still edge-
+    //     caches for 1y via `s-maxage`; the browser just revalidates
+    //     (cheap 304). Strictly better than the no-header state this
+    //     pass previously left them in.
     const FONT_TYPES: Array<[string, string]> = [
       ['.woff2', 'font/woff2'],
       ['.woff', 'font/woff'],
@@ -1296,6 +1326,7 @@ export class AmplifyHostingConstruct extends Construct {
           exclude: ['*'],
           include: [`*${ext}`],
           contentType: mime,
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
           prune: false,
         },
       );

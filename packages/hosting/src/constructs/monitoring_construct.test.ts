@@ -175,16 +175,41 @@ void describe('MonitoringConstruct', () => {
 
       template.resourceCountIs('AWS::CloudWatch::Alarm', 2);
 
+      // Errors alarm is RATE-based: a CloudWatch math expression
+      // `(errors / invocations) * 100`, threshold defaults to 1(%).
+      // The alarm has no top-level Namespace/MetricName — those live
+      // inside the `Metrics` array (the math expr + its two inputs).
       template.hasResourceProperties('AWS::CloudWatch::Alarm', {
-        Namespace: 'AWS/Lambda',
-        MetricName: 'Errors',
-        Threshold: 5,
+        Threshold: 1,
+        Metrics: Match.arrayWith([
+          Match.objectLike({
+            Expression: '(errors / invocations) * 100',
+          }),
+        ]),
       });
 
+      // Throttles alarm stays a plain absolute-count metric.
       template.hasResourceProperties('AWS::CloudWatch::Alarm', {
         Namespace: 'AWS/Lambda',
         MetricName: 'Throttles',
         Threshold: 1,
+      });
+    });
+
+    void it('honors a custom ssrErrorRatePercent threshold', () => {
+      const stack = createStack();
+      new MonitoringConstruct(stack, 'Monitoring', {
+        enabled: true,
+        ssrFunction: newLambda(stack, 'Ssr'),
+        ssrErrorRatePercent: 5,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+        Threshold: 5,
+        Metrics: Match.arrayWith([
+          Match.objectLike({ Expression: '(errors / invocations) * 100' }),
+        ]),
       });
     });
   });

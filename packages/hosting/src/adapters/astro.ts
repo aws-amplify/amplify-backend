@@ -81,12 +81,23 @@ const ASTROJS_NODE_PIN = '@astrojs/node@^9';
 /**
  * Verified Astro version range. Exported for the X.1 cross-adapter
  * version-pin test that asserts CI doesn't ship with the adapters
- * outside their verified ranges. The Astro adapter assertAstroVersion
- * accepts anything >= 4.0; the pin below documents the upper bound
- * we've actually exercised (incremented in lockstep on Astro
- * majors).
+ * outside their verified ranges.
+ *
+ * "Verified" here means **believed compatible** (the adapter's
+ * assumptions about `dist/` layout and the `@astrojs/node` bridge hold
+ * across this range), NOT "actively tested against every release in
+ * the range." We exercise the current major + the previous one; the
+ * upper bound is the next major we have NOT validated. Bump it only
+ * after confirming a new major actually works — widening it
+ * speculatively (e.g. `<7.0.0` while 6.x doesn't even exist yet) makes
+ * the documented compatibility claim wider than what we've checked.
+ *
+ * Note this constant is advisory: the runtime hard floor is enforced
+ * separately by `assertAstroVersion` (rejects < 4.0). This range is
+ * consumed by the X.1 cross-adapter version-pin test, which asserts it
+ * stays a parseable range with an explicit upper bound.
  */
-export const VERIFIED_ASTRO_RANGE = '>=4.0.0 <7.0.0';
+export const VERIFIED_ASTRO_RANGE = '>=4.0.0 <6.0.0';
 
 /**
  * Maximum redirects lifted from astro.config to the CloudFront viewer

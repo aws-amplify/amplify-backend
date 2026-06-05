@@ -112,12 +112,21 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
  * have been exercised against Nitro 2.10–2.13; the range below
  * encodes that. Exported for the X.1 cross-adapter version-pin test.
  *
- * Bump in lockstep with verifying. New Nitro versions land regularly;
- * an out-of-range version emits a warning but doesn't fail the build
- * — the patcher itself fails loudly with
- * `UpstreamPatchPatternChangedError` if signatures change.
+ * "Verified" means **believed compatible**, not tested against every
+ * release. The upper bound is the next minor we have NOT validated
+ * (`<2.14.0`) rather than the whole 2.x line (`<3.0.0`): a breaking
+ * change can land in a minor, and a too-wide range would overstate the
+ * compatibility we've actually confirmed. Bump the ceiling in lockstep
+ * with verifying a new minor.
+ *
+ * This constant documents the verified range and is consumed by the
+ * X.1 cross-adapter version-pin test. The real safety net at runtime
+ * is the patcher itself: `patchNitroHandlerForApiGateway` fails loudly
+ * with `UpstreamPatchPatternChangedError` if upstream signatures change,
+ * so an untested-but-compatible Nitro still works and an
+ * untested-and-incompatible one fails clearly rather than silently.
  */
-export const VERIFIED_NITRO_RANGE = '>=2.10.0 <3.0.0';
+export const VERIFIED_NITRO_RANGE = '>=2.10.0 <2.14.0';
 
 /**
  * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
