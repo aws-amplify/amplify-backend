@@ -1738,3 +1738,635 @@ void describe('AmplifyHostingConstruct — KMS Key Policy', () => {
     });
   });
 });
+
+// ================================================================
+// M4: Custom environment variables
+// ================================================================
+
+void describe('AmplifyHostingConstruct — custom environment variables (M4)', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('adds custom environment variables to all compute Lambda functions', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      environment: {
+        DATABASE_URL: 'postgres://localhost:5432/app',
+        API_KEY: 'sk-test-123',
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: Match.objectLike({
+          DATABASE_URL: 'postgres://localhost:5432/app',
+          API_KEY: 'sk-test-123',
+        }),
+      },
+    });
+  });
+
+  void it('does not add extra env vars when environment is not provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+    });
+
+    const template = Template.fromStack(stack);
+    const lambdas = template.findResources('AWS::Lambda::Function');
+    for (const [, resource] of Object.entries(lambdas)) {
+      const props = (resource as Record<string, Record<string, unknown>>)
+        .Properties;
+      const env = props?.Environment as Record<string, unknown> | undefined;
+      const vars = env?.Variables as Record<string, unknown> | undefined;
+      assert.strictEqual(
+        vars !== undefined && 'DATABASE_URL' in vars,
+        false,
+        'Should not have DATABASE_URL when environment is not provided',
+      );
+    }
+  });
+
+  void it('adds env vars to ALL compute functions including image opt', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    const manifest: DeployManifest = {
+      version: 1,
+      compute: {
+        default: {
+          type: 'handler',
+          bundle: bundleDir,
+          handler: 'index.handler',
+          placement: 'regional',
+          streaming: true,
+          runtime: 'nodejs20.x',
+        },
+      },
+      staticAssets: { directory: staticDir },
+      routes: [
+        { pattern: '/_next/static/*', target: 'static' },
+        { pattern: '/*', target: 'default' },
+      ],
+      buildId: 'multi-compute-test',
+      imageOptimization: {
+        bundle: bundleDir,
+        handler: 'index.handler',
+        formats: ['webp'],
+        sizes: [640, 1920],
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      environment: { MY_FEATURE_FLAG: 'enabled' },
+    });
+
+    const template = Template.fromStack(stack);
+    // All user Lambda functions should have the env var
+    const lambdas = template.findResources('AWS::Lambda::Function');
+    const lambdasWithEnvVar = Object.entries(lambdas).filter(([, resource]) => {
+      const props = (resource as Record<string, Record<string, unknown>>)
+        .Properties;
+      const env = props?.Environment as Record<string, unknown> | undefined;
+      const vars = env?.Variables as Record<string, unknown> | undefined;
+      return vars?.MY_FEATURE_FLAG === 'enabled';
+    });
+    // Both the default compute and image-optimization Lambda should have it (2 total)
+    assert.strictEqual(
+      lambdasWithEnvVar.length,
+      2,
+      `Expected exactly 2 Lambdas with MY_FEATURE_FLAG (default + image-opt), got ${lambdasWithEnvVar.length}`,
+    );
+  });
+
+  void it('throws InvalidEnvironmentKeyError for invalid key characters', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { 'invalid-key': 'value' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'InvalidEnvironmentKeyError');
+        assert.ok(err.message.includes('invalid-key'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws ReservedEnvironmentKeyError for reserved prefix', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { AWS_SECRET: 'forbidden' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ReservedEnvironmentKeyError');
+        assert.ok(err.message.includes('AWS_SECRET'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws ReservedEnvironmentKeyError for NODE_ prefix', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { NODE_OPTIONS: '--require=/tmp/evil.js' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ReservedEnvironmentKeyError');
+        assert.ok(err.message.includes('NODE_OPTIONS'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws ReservedEnvironmentKeyError for LAMBDA_ prefix', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { LAMBDA_TASK_ROOT: '/tmp' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ReservedEnvironmentKeyError');
+        assert.ok(err.message.includes('LAMBDA_TASK_ROOT'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws ReservedEnvironmentKeyError for exact reserved keys', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { _HANDLER: 'override' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ReservedEnvironmentKeyError');
+        assert.ok(err.message.includes('_HANDLER'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws EnvironmentKeyTooLongError for keys exceeding 256 chars', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    const longKey = 'A'.repeat(257);
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { [longKey]: 'value' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'EnvironmentKeyTooLongError');
+        assert.ok(err.message.includes('exceeds 256 character limit'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws EnvironmentValueTooLongError for values exceeding 8KB', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    const longValue = 'x'.repeat(8193);
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          environment: { MY_VAR: longValue },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'EnvironmentValueTooLongError');
+        assert.ok(err.message.includes('exceeds 8KB limit'));
+        return true;
+      },
+    );
+  });
+});
+
+// ================================================================
+// M5: Custom error pages
+// ================================================================
+
+void describe('AmplifyHostingConstruct — custom error pages (M5)', () => {
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('creates Custom404Deployment when notFound error page is provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    // Create a custom 404 HTML file
+    const custom404Path = path.join(tmpDir, '404.html');
+    fs.writeFileSync(custom404Path, '<html><body>Custom 404</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { notFound: custom404Path },
+    });
+
+    const template = Template.fromStack(stack);
+    // Should have BucketDeployment resources (at least the built-in error page + custom 404 + asset)
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    assert.ok(
+      Object.keys(deployments).length >= 3,
+      `Expected at least 3 BucketDeployments (error + custom404 + assets), got ${Object.keys(deployments).length}`,
+    );
+  });
+
+  void it('creates Custom500Deployment when serverError page is provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    // Create a custom 500 HTML file
+    const custom500Path = path.join(tmpDir, '500.html');
+    fs.writeFileSync(custom500Path, '<html><body>Custom 500</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { serverError: custom500Path },
+    });
+
+    const template = Template.fromStack(stack);
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    assert.ok(
+      Object.keys(deployments).length >= 3,
+      `Expected at least 3 BucketDeployments (error + custom500 + assets), got ${Object.keys(deployments).length}`,
+    );
+  });
+
+  void it('adds CloudFront custom 404 error response when notFound is provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const custom404Path = path.join(tmpDir, '404.html');
+    fs.writeFileSync(custom404Path, '<html><body>Custom 404</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { notFound: custom404Path },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 404,
+            ResponseCode: 404,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/404\\.html'),
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('adds CloudFront custom 500 error response when serverError is provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const custom500Path = path.join(tmpDir, '500.html');
+    fs.writeFileSync(custom500Path, '<html><body>Custom 500</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { serverError: custom500Path },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 500,
+            ResponseCode: 500,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/500\\.html'),
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('preserves default error behavior when errorPages is not provided', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+    });
+
+    const template = Template.fromStack(stack);
+    // Default SSR behavior: 502/503/504 error responses pointing to _error.html
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 502,
+            ResponsePagePath: Match.stringLikeRegexp(
+              '/builds/.*/_error\\.html',
+            ),
+          }),
+          Match.objectLike({
+            ErrorCode: 503,
+            ResponsePagePath: Match.stringLikeRegexp(
+              '/builds/.*/_error\\.html',
+            ),
+          }),
+          Match.objectLike({
+            ErrorCode: 504,
+            ResponsePagePath: Match.stringLikeRegexp(
+              '/builds/.*/_error\\.html',
+            ),
+          }),
+        ]),
+      },
+    });
+    // Should NOT have custom 404/500 responses
+    const distributions = template.findResources(
+      'AWS::CloudFront::Distribution',
+    );
+    const distConfig = Object.values(distributions)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const distProperties = distConfig.Properties?.DistributionConfig as
+      | Record<string, unknown>
+      | undefined;
+    const errorResponses = (distProperties?.CustomErrorResponses ??
+      []) as Array<Record<string, unknown>>;
+    const has404 = errorResponses.some((r) => r.ErrorCode === 404);
+    assert.strictEqual(
+      has404,
+      false,
+      'Should not have 404 error response by default in SSR mode',
+    );
+  });
+
+  void it('supports both notFound and serverError together', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const custom404Path = path.join(tmpDir, '404.html');
+    const custom500Path = path.join(tmpDir, '500.html');
+    fs.writeFileSync(custom404Path, '<html><body>Not Found</body></html>');
+    fs.writeFileSync(custom500Path, '<html><body>Server Error</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: {
+        notFound: custom404Path,
+        serverError: custom500Path,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 404,
+            ResponseCode: 404,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/404\\.html'),
+          }),
+          Match.objectLike({
+            ErrorCode: 500,
+            ResponseCode: 500,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/500\\.html'),
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('throws CustomErrorPageNotFoundError for invalid file path', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          errorPages: { notFound: '/nonexistent/path/404.html' },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'CustomErrorPageNotFoundError');
+        assert.ok(err.message.includes('/nonexistent/path/404.html'));
+        return true;
+      },
+    );
+  });
+
+  void it('throws InvalidErrorPageContentError for non-HTML file', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const notHtmlPath = path.join(tmpDir, 'not-html.txt');
+    fs.writeFileSync(notHtmlPath, 'This is just plain text, not HTML');
+
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          errorPages: { notFound: notHtmlPath },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'InvalidErrorPageContentError');
+        assert.ok(err.message.includes('does not appear to be valid HTML'));
+        return true;
+      },
+    );
+  });
+
+  void it('configures custom error pages for SPA mode with CloudFront error responses', () => {
+    const staticDir = createStaticDir();
+    const custom404Path = path.join(tmpDir, '404.html');
+    fs.writeFileSync(
+      custom404Path,
+      '<!DOCTYPE html><html><body>Custom SPA 404</body></html>',
+    );
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+      errorPages: { notFound: custom404Path },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CustomErrorResponses: Match.arrayWith([
+          Match.objectLike({
+            ErrorCode: 404,
+            ResponseCode: 404,
+            ResponsePagePath: Match.stringLikeRegexp('/builds/.*/404\\.html'),
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('adds /builds/* behavior routing to S3 when error pages are configured in SSR mode', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const custom404Path = path.join(tmpDir, '404.html');
+    fs.writeFileSync(custom404Path, '<html><body>Custom 404</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { notFound: custom404Path },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: {
+        CacheBehaviors: Match.arrayWith([
+          Match.objectLike({
+            PathPattern: '/builds/*',
+            ViewerProtocolPolicy: 'redirect-to-https',
+          }),
+        ]),
+      },
+    });
+  });
+
+  void it('/builds/* behavior routes to S3 origin (not Lambda)', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const custom500Path = path.join(tmpDir, '500.html');
+    fs.writeFileSync(custom500Path, '<html><body>Server Error</body></html>');
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      errorPages: { serverError: custom500Path },
+    });
+
+    const template = Template.fromStack(stack);
+    const distributions = template.findResources(
+      'AWS::CloudFront::Distribution',
+    );
+    const distConfig = Object.values(distributions)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const distProperties = distConfig.Properties?.DistributionConfig as
+      | Record<string, unknown>
+      | undefined;
+    const cacheBehaviors = (distProperties?.CacheBehaviors ?? []) as Array<
+      Record<string, unknown>
+    >;
+    const buildsBehavior = cacheBehaviors.find(
+      (b) => b.PathPattern === '/builds/*',
+    );
+    assert.ok(buildsBehavior, '/builds/* behavior should exist');
+    // The origin should be S3 (not Lambda@Edge). Verify by checking
+    // that AllowedMethods does not include POST/PUT/DELETE (Lambda behaviors allow all)
+    const allowed = buildsBehavior.AllowedMethods as string[] | undefined;
+    assert.ok(
+      allowed,
+      'AllowedMethods should be present on /builds/* behavior',
+    );
+    assert.ok(
+      !allowed.includes('PUT'),
+      '/builds/* behavior should not allow PUT (S3 read-only)',
+    );
+  });
+
+  void it('does not add /builds/* behavior in SPA mode without custom error pages', () => {
+    const staticDir = createStaticDir();
+
+    const stack = createStack();
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: spaManifest(staticDir),
+    });
+
+    const template = Template.fromStack(stack);
+    const distributions = template.findResources(
+      'AWS::CloudFront::Distribution',
+    );
+    const distConfig = Object.values(distributions)[0] as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const distProperties = distConfig.Properties?.DistributionConfig as
+      | Record<string, unknown>
+      | undefined;
+    const cacheBehaviors = (distProperties?.CacheBehaviors ?? []) as Array<
+      Record<string, unknown>
+    >;
+    const buildsBehavior = cacheBehaviors.find(
+      (b) => b.PathPattern === '/builds/*',
+    );
+    assert.strictEqual(
+      buildsBehavior,
+      undefined,
+      '/builds/* behavior should not exist in SPA mode without custom error pages',
+    );
+  });
+
+  void it('throws ErrorPageTooLargeError for oversized error pages', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const largePath = path.join(tmpDir, 'large-404.html');
+    const largeContent = '<html>' + 'x'.repeat(51 * 1024) + '</html>';
+    fs.writeFileSync(largePath, largeContent);
+
+    const stack = createStack();
+    assert.throws(
+      () => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          errorPages: { notFound: largePath },
+        });
+      },
+      (err: HostingError) => {
+        assert.strictEqual(err.name, 'ErrorPageTooLargeError');
+        assert.ok(err.message.includes('Maximum is 50KB'));
+        return true;
+      },
+    );
+  });
+});
