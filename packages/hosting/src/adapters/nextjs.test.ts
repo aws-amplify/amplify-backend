@@ -153,6 +153,92 @@ void describe('nextjsAdapter', () => {
     );
   });
 
+  void it('surfaces the ISR cache seed dir + tag-table init function', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    // Prebuilt ISR cache dir (what seeds the S3 bucket).
+    fs.mkdirSync(path.join(openNextDir, 'cache', 'BUILDID', 'products'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'cache', 'BUILDID', 'products', '0.cache'),
+      '{"type":"app","html":"<html></html>","rsc":""}',
+    );
+    // dynamodb-provider bundle (the tag-table seeder custom resource).
+    fs.mkdirSync(path.join(openNextDir, 'dynamodb-provider'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'dynamodb-provider', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(openNextDir, 'dynamodb-provider', 'dynamodb-cache.json'),
+      '[]',
+    );
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {
+          initializationFunction: {
+            handler: 'index.handler',
+            bundle: '.open-next/dynamodb-provider',
+          },
+        },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.cache);
+    assert.ok(
+      manifest.cache!.seedDirectory?.endsWith('cache'),
+      'seedDirectory points at .open-next/cache',
+    );
+    assert.ok(
+      manifest.cache!.initFunction?.bundle.includes('dynamodb-provider'),
+      'initFunction bundle points at dynamodb-provider',
+    );
+    assert.strictEqual(manifest.cache!.initFunction!.handler, 'index.handler');
+    assert.doesNotThrow(() => deployManifestSchema.parse(manifest));
+  });
+
+  void it('omits init function when OpenNext emits no initializationFunction', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(openNextDir, 'cache'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    // Cache dir present → seedDirectory set; no init fn meta → initFunction undefined.
+    assert.ok(manifest.cache!.seedDirectory);
+    assert.strictEqual(manifest.cache!.initFunction, undefined);
+  });
+
   void it('does not add cache when ISR is disabled', () => {
     const openNextDir = path.join(tmpDir, '.open-next');
     fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {

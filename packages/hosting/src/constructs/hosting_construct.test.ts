@@ -529,6 +529,124 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::Lambda::EventSourceMapping', 0);
   });
+
+  void it('seeds the cache bucket via BucketDeployment when seedDirectory is set', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const seedDir = path.join(tmpDir, 'cache');
+    fs.mkdirSync(path.join(seedDir, 'BUILDID', 'products'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(seedDir, 'BUILDID', 'products', '0.cache'),
+      '{"type":"app","html":"<html></html>","rsc":""}',
+    );
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        seedDirectory: seedDir,
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // Static-asset deployments also create CDKBucketDeployment resources, so
+    // identify the seed deployment by its construct id (`IsrCacheSeed`).
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    const hasSeed = Object.keys(deployments).some((id) =>
+      id.includes('IsrCacheSeed'),
+    );
+    assert.ok(
+      hasSeed,
+      'Should create a BucketDeployment seeding the cache bucket',
+    );
+  });
+
+  void it('seeds the tag table via a custom resource when initFunction is set', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const initDir = path.join(tmpDir, 'dynamodb-provider');
+    fs.mkdirSync(initDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(initDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(path.join(initDir, 'dynamodb-cache.json'), '[]');
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        initFunction: {
+          bundle: initDir,
+          handler: 'index.handler',
+        },
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // The seed function should be granted write access to the tag table —
+    // assert an IAM policy with DynamoDB write actions exists.
+    template.hasResourceProperties(
+      'AWS::IAM::Policy',
+      Match.objectLike({
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: Match.arrayWith(['dynamodb:PutItem']),
+            }),
+          ]),
+        }),
+      }),
+    );
+  });
+
+  void it('does not seed cache when seedDirectory / initFunction are absent', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    const hasSeed = Object.keys(deployments).some((id) =>
+      id.includes('IsrCacheSeed'),
+    );
+    assert.ok(
+      !hasSeed,
+      'Should not seed the cache bucket when seedDirectory is absent',
+    );
+  });
 });
 
 // ================================================================
