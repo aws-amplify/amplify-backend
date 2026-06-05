@@ -273,7 +273,13 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
     });
 
     void it('emits a per-extension Content-Type pass for fonts present in the static dir', () => {
-      // Create a font file in the test static dir before synth.
+      // Font Content-Type via per-extension BucketDeployment. S3
+      // stores fonts as `binary/octet-stream` by default; this pass
+      // re-uploads the matching files with the right MIME so browsers
+      // accept them under CORS. One BucketDeployment per extension,
+      // each emitted only when at least one file with that extension
+      // exists in the static dir (so projects without fonts pay zero
+      // overhead).
       fs.writeFileSync(path.join(staticDir, 'inter.woff2'), 'fake');
       fs.writeFileSync(path.join(staticDir, 'inter.woff'), 'fake');
       const stack = createStack();
@@ -284,7 +290,6 @@ void describe('Standalone CDK usage (no Amplify CLI)', () => {
       const template = Template.fromStack(stack);
       const deployments = template.findResources('Custom::CDKBucketDeployment');
       const ids = Object.keys(deployments);
-      // One AssetDeployment + two FontTypeDeployments (.woff2, .woff).
       const fontDeployments = ids.filter((id) =>
         id.includes('FontTypeDeployment'),
       );

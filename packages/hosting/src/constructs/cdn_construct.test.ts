@@ -162,7 +162,15 @@ void describe('CdnConstruct', () => {
       });
     });
 
-    void it('emits prefixed _next/* behaviors when manifest.assetPrefix is set (B17)', () => {
+    void it('emits a single prefixed catch-all when manifest.assetPrefix is set (P2.7)', () => {
+      // P2.7: previous implementation emitted FOUR prefixed
+      // behaviors (`_next/static/*`, `_next/image*`, `_next/data/*`,
+      // `_next/*`) — each consuming a slot of the CloudFront 24-
+      // additional-behavior cap. Customers with even modest route
+      // counts hit the cap. Now we emit a single `<assetPrefix>/*`
+      // behavior backed by the same strip function; CloudFront's
+      // longest-prefix-wins matching is irrelevant here because
+      // there's only one pattern under the prefix.
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');
       const policy = createSecurityHeadersPolicy(stack, 'SH', {});
@@ -179,26 +187,19 @@ void describe('CdnConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      // Prefixed _next/* behaviors should exist on the distribution.
+      // Exactly one /<prefix>/* behavior should exist on the
+      // distribution.
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: Match.objectLike({
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
-              PathPattern: '/shop-static/_next/static/*',
-            }),
-            Match.objectLike({
-              PathPattern: '/shop-static/_next/image*',
-            }),
-            Match.objectLike({
-              PathPattern: '/shop-static/_next/data/*',
-            }),
-            Match.objectLike({
-              PathPattern: '/shop-static/_next/*',
+              PathPattern: '/shop-static/*',
             }),
           ]),
         }),
       });
-      // Should have created a strip function.
+      // Should have created the strip function with the prefix baked
+      // into its source.
       template.hasResourceProperties('AWS::CloudFront::Function', {
         FunctionCode: Match.stringLikeRegexp('shop-static'),
       });

@@ -107,6 +107,28 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Verified Nitro version range. The aws-lambda handler patcher
+ * (`patchNitroHandlerForApiGateway`) and the dep-store materializer
+ * have been exercised against Nitro 2.10–2.13; the range below
+ * encodes that. Exported for the X.1 cross-adapter version-pin test.
+ *
+ * "Verified" means **believed compatible**, not tested against every
+ * release. The upper bound is the next minor we have NOT validated
+ * (`<2.14.0`) rather than the whole 2.x line (`<3.0.0`): a breaking
+ * change can land in a minor, and a too-wide range would overstate the
+ * compatibility we've actually confirmed. Bump the ceiling in lockstep
+ * with verifying a new minor.
+ *
+ * This constant documents the verified range and is consumed by the
+ * X.1 cross-adapter version-pin test. The real safety net at runtime
+ * is the patcher itself: `patchNitroHandlerForApiGateway` fails loudly
+ * with `UpstreamPatchPatternChangedError` if upstream signatures change,
+ * so an untested-but-compatible Nitro still works and an
+ * untested-and-incompatible one fails clearly rather than silently.
+ */
+export const VERIFIED_NITRO_RANGE = '>=2.10.0 <2.14.0';
+
+/**
  * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
  * one we know how to wire into AWS infrastructure. Without this check,
  * the adapter falls through to producing an aws-lambda handler shape
@@ -174,17 +196,6 @@ type NitroRouteRule = {
    * currently emits a clear error if any rewrites reach the L3).
    */
   proxy?: string | { to: string };
-
-  /**
-   * `routeRules.basicAuth: { user: 'admin', password: '...' }` —
-   * Nitro's per-route Basic Auth gate. Adapter lifts to
-   * `manifest.basicAuth[]`. The L3 will (when implemented) emit a
-   * CloudFront Function gate; until then, throws so users hit a clear
-   * failure rather than a silent bypass on dev/staging environments.
-   */
-  basicAuth?:
-    | Record<string, string>
-    | { users: Record<string, string>; realm?: string };
 };
 
 /**
@@ -777,6 +788,7 @@ const buildImageOptBundleIfNeeded = (
         '--no-fund',
         '--silent',
         '--include=optional',
+        '--omit=dev',
         '--os=linux',
         '--cpu=x64',
         '--libc=glibc',
@@ -799,7 +811,106 @@ const buildImageOptBundleIfNeeded = (
     );
   }
 
+  // 2.4 — drop test fixtures, type defs, and other dead weight from
+  // the Lambda zip. Lambda's 250 MB unzipped limit is the hard cap;
+  // a >50 MB unzipped bundle also slows cold starts (Lambda's init
+  // path differs above that threshold). sharp's native binary alone
+  // is ~50 MB so every saved megabyte counts.
+  pruneImageOptBundle(bundleDir);
+
   return bundleDir;
+};
+
+/**
+ * Walk the IPX Lambda's installed `node_modules/` and delete things
+ * that have no business shipping in a production zip:
+ *   - `test/`, `tests/`, `__tests__/`, `test-fixtures/` directories
+ *   - `*.md`, `*.markdown`, `LICENSE*`, `CHANGELOG*` files
+ *   - `*.d.ts` declaration files (Lambda runtime is JS-only)
+ *   - `*.map` source maps
+ *   - `examples/`, `docs/`, `bench/` directories
+ * Best-effort: any FS error is swallowed so a transient permissions
+ * issue can't fail the deploy. The bundle remains usable even if the
+ * prune is partial — these files just aren't on the runtime path.
+ *
+ * Skips `sharp/` entirely. sharp's tarball ships the native binary
+ * inside `sharp/build/Release/` and `sharp/vendor/`; pruning anything
+ * out of those breaks the install. Pruning sharp's `docs/` would be
+ * safe in theory, but the library has changed its layout twice in
+ * recent majors — easier to leave the entire package alone than to
+ * track which directories are safe per version.
+ */
+const pruneImageOptBundle = (bundleDir: string): void => {
+  const nm = path.join(bundleDir, 'node_modules');
+  if (!fs.existsSync(nm)) return;
+
+  const PRUNE_DIRS = new Set([
+    'test',
+    'tests',
+    '__tests__',
+    'test-fixtures',
+    'examples',
+    'example',
+    'docs',
+    'doc',
+    'bench',
+    'benchmark',
+    'benchmarks',
+    'coverage',
+  ]);
+  const PRUNE_FILE_PATTERNS = [
+    /\.md$/i,
+    /\.markdown$/i,
+    /^license/i,
+    /^changelog/i,
+    /^changes$/i,
+    /^history/i,
+    /\.d\.ts$/i,
+    /\.map$/i,
+    /^\.eslintrc/i,
+    /^\.npmignore$/i,
+  ];
+
+  const isInsideSharp = (p: string): boolean => {
+    // path includes "node_modules/sharp" anywhere — covers nested
+    // dep boundaries too.
+    return p.split(path.sep).includes('sharp');
+  };
+
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (isInsideSharp(full)) continue;
+      if (entry.isDirectory()) {
+        if (PRUNE_DIRS.has(entry.name.toLowerCase())) {
+          try {
+            fs.rmSync(full, { recursive: true, force: true });
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+          } catch {
+            // best-effort
+          }
+          continue;
+        }
+        walk(full);
+      } else if (entry.isFile()) {
+        if (PRUNE_FILE_PATTERNS.some((re) => re.test(entry.name))) {
+          try {
+            fs.rmSync(full, { force: true });
+            // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+          } catch {
+            // best-effort
+          }
+        }
+      }
+    }
+  };
+  walk(nm);
 };
 
 /**
@@ -966,11 +1077,6 @@ const buildManifest = (input: {
   const headers = buildHeaders(routeRules);
   if (headers.length > 0) {
     manifest.headers = headers;
-  }
-
-  const basicAuth = buildBasicAuth(routeRules);
-  if (basicAuth.length > 0) {
-    manifest.basicAuth = basicAuth;
   }
 
   // If any route rule uses SWR / ISR / cache, ask the L3 to provision
@@ -1208,41 +1314,6 @@ const buildRewrites = (
     out.push({
       source: normalizeRulePattern(source),
       destination: dest,
-    });
-  }
-  return out;
-};
-
-/**
- * Translate `basicAuth` route rules into manifest BasicAuthRules.
- *
- * Accepts either Nitro's single-user shorthand (`{ user, password }`)
- * or the multi-user form (`{ users: { name: pass }, realm }`).
- * Empty/malformed rules are dropped silently — the L3-side schema
- * validation catches a `users: {}` rule with a clear error before any
- * deploy happens.
- */
-const buildBasicAuth = (
-  routeRules: Record<string, NitroRouteRule>,
-): NonNullable<DeployManifest['basicAuth']> => {
-  const out: NonNullable<DeployManifest['basicAuth']> = [];
-  for (const [source, rule] of Object.entries(routeRules)) {
-    if (!rule.basicAuth) continue;
-    const ba = rule.basicAuth as Record<string, unknown>;
-    let users: Record<string, string> | undefined;
-    let realm: string | undefined;
-    if (typeof ba.users === 'object' && ba.users !== null) {
-      users = ba.users as Record<string, string>;
-      if (typeof ba.realm === 'string') realm = ba.realm;
-    } else if (typeof ba.user === 'string' && typeof ba.password === 'string') {
-      users = { [ba.user]: ba.password };
-      if (typeof ba.realm === 'string') realm = ba.realm;
-    }
-    if (!users || Object.keys(users).length === 0) continue;
-    out.push({
-      source: normalizeRulePattern(source),
-      ...(realm ? { realm } : {}),
-      users,
     });
   }
   return out;

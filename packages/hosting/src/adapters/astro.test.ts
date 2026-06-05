@@ -413,7 +413,20 @@ void describe("astroAdapter — output: 'hybrid'", () => {
     assert.strictEqual(patterns[patterns.length - 1], '/*');
   });
 
-  void it("trailingSlash: 'always' appends / to bare prerendered routes", () => {
+  void it("trailingSlash: 'always' still emits both bare and subtree forms (P1.6)", () => {
+    // P1.6: when `trailingSlash: 'always'`, the previous adapter
+    // emitted only the slashed form (`/about/`). With CloudFront's
+    // first-match-wins behavior matching, that meant `/about` (the
+    // bare form) fell through to the catch-all → SSR Lambda before
+    // the canonical-form redirect could fire. Now we emit BOTH
+    // patterns (`/about` bare + `/about/*` subtree) so:
+    //
+    //   - `/about` matches the bare static behavior → 200 from S3
+    //     (or, if the trailing-slash redirect is in front, 308 to
+    //     `/about/` first; either way no Lambda).
+    //   - `/about/` matches `/about/*` (CloudFront `*` matches zero
+    //     or more chars) → 200 from S3.
+    //   - `/about/img.png` matches `/about/*` → 200 from S3.
     fs.writeFileSync(
       path.join(tmpDir, 'astro.config.mjs'),
       "export default { output: 'hybrid', trailingSlash: 'always' };",
@@ -421,7 +434,14 @@ void describe("astroAdapter — output: 'hybrid'", () => {
     writeServerBuild(tmpDir, { prerendered: ['about'] });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
     const patterns = manifest.routes.map((r) => r.pattern);
-    assert.ok(patterns.includes('/about/'));
+    assert.ok(
+      patterns.includes('/about'),
+      'bare /about emitted regardless of trailingSlash mode',
+    );
+    assert.ok(
+      patterns.includes('/about/*'),
+      '/about/* subtree covers slashed + asset siblings',
+    );
   });
 });
 

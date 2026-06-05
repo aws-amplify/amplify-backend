@@ -105,6 +105,32 @@ export type DeployManifest = {
   buildId?: string;
 
   /**
+   * Adapter-supplied S3 lifecycle rules for orphaned per-build data
+   * that lives outside the build prefix.
+   *
+   * The default `DeleteOldBuilds` lifecycle on `builds/<id>/` covers
+   * everything under the build prefix. Some frameworks emit data
+   * outside the build prefix that survives across builds and needs
+   * its own expiration:
+   *
+   *   - Next.js writes `_next/data/<buildId>/...` JSON files used by
+   *     getStaticProps fallbacks; older entries linger if the user
+   *     toggles `output:` modes.
+   *   - Custom adapters may emit similar per-build asset trees.
+   *
+   * Each entry installs an S3 lifecycle rule expiring objects under
+   * `prefix` after `days`. Adapter code knows where its framework
+   * writes these files; the L3 just installs whatever the adapter
+   * declares. Empty / undefined → no extra rules.
+   */
+  lifecycle?: Array<{
+    /** S3 key prefix to expire — e.g. `_next/data/`. */
+    prefix: string;
+    /** Days after object creation before expiration. */
+    days: number;
+  }>;
+
+  /**
    * Optional URL prefix that prefixes every routable URL on the deployed
    * site. Maps to Next.js `basePath`, Astro `base`, Nuxt `app.baseURL`.
    * When set, every CloudFront behavior pattern is prefixed and the bare
@@ -115,43 +141,6 @@ export type DeployManifest = {
    * routes too.
    */
   basePath?: string;
-
-  /**
-   * Per-route Basic Auth gate. Adapters set this from
-   * `routeRules.basicAuth` (Nitro) or equivalent. The L3 will (when
-   * implemented) emit a CloudFront Function at viewer-request that
-   * compares the `Authorization: Basic <base64>` header against the
-   * supplied user/pass and returns 401 with `WWW-Authenticate: Basic
-   * realm="..."` on mismatch.
-   *
-   * Why CloudFront Function vs. Lambda@Edge: Basic-Auth string compare
-   * fits in 10 KB and runs in <1ms at viewer-request — cheaper than
-   * Lambda@Edge ($0.60/M req → $0/M for CF Functions on most tiers).
-   *
-   * NOT YET CONSUMED by the L3 — adapter-side manifest field only.
-   * Validating by failing loud (RewritesNotYetSupportedError-style)
-   * if any rule reaches the L3.
-   */
-  basicAuth?: BasicAuthRule[];
-};
-
-/**
- * Per-pattern Basic Auth gate. Source pattern uses the same shape as
- * `RouteBehavior.pattern` (CloudFront PathPattern: globs OK).
- *
- * `realm` is what the browser shows in the prompt dialog. Default
- * `"Restricted"` if omitted.
- *
- * `users` is a map of `username → password`. The CloudFront Function
- * will base64-decode the request's `Authorization` header and exact-
- * match against this map. Multi-user supported because deploys often
- * gate dev/staging environments for a small team rather than one
- * shared password.
- */
-export type BasicAuthRule = {
-  source: string;
-  realm?: string;
-  users: Record<string, string>;
 };
 
 export type ComputeResource = {

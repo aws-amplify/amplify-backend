@@ -316,6 +316,11 @@ export class CdnConstruct extends Construct {
         // request bodies (Lambda then sees 2× size) and re-encodes responses,
         // breaking binary uploads, downloads, and streaming.
         binaryMediaTypes: ['*/*'],
+        // Resource policy: ALLOW everything (CloudFront origin reach
+        // hits this), DENY anything missing the deterministic Referer
+        // secret CloudFront injects on every origin request. Direct
+        // hits to the stage URL surface as 403 from API GW before the
+        // Lambda is invoked.
         policy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
@@ -355,6 +360,9 @@ export class CdnConstruct extends Construct {
         ssrComputeName,
         new HttpOrigin(apiHostname, {
           originPath: `/${restApi.deploymentStage.stageName}`,
+          // CloudFront's customHeaders OVERWRITE any same-named viewer
+          // header (documented), so a client sending `Referer:` cannot
+          // reach the API GW with their own value here.
           customHeaders: {
             Referer: originVerifySecret,
           },
@@ -676,11 +684,24 @@ export class CdnConstruct extends Construct {
       }
     }
 
-    // ---- assetPrefix behaviors (B17) ----
+    // ---- assetPrefix behavior (P2.7) ----
     // When the framework's build emits asset URLs under a prefix
     // (Next.js `assetPrefix: '/shop-static'`), the non-prefixed
-    // `/_next/static/*` behavior won't match. Add prefixed copies that
-    // strip the prefix before falling through to the build-id S3 lookup.
+    // `/_next/static/*` behavior won't match. A naive
+    // implementation emits four separate prefixed behaviors
+    // (`/<prefix>/_next/static/*`, `/_next/image*`, `/_next/data/*`,
+    // `/_next/*`) — each one consuming a slot of the CloudFront
+    // 24-additional-behavior budget. That scales poorly: the hosting
+    // construct already provisions ~6-10 base behaviors for SSR /
+    // image-opt / static / cache routes, so dedicating four more to
+    // a single config knob is wasteful.
+    //
+    // We collapse to a single `/<prefix>/*` behavior backed by a
+    // smarter strip function. The function inspects the URI tail
+    // after stripping the prefix and routes the request the same way
+    // CloudFront's first-match-wins behavior matching would have
+    // done — but in code, in O(1), at the edge — saving 3 behaviors
+    // per assetPrefix.
     const assetPrefix = manifest.assetPrefix;
     if (assetPrefix) {
       const stripFunction = new CloudFrontFunction(
@@ -711,22 +732,14 @@ export class CdnConstruct extends Construct {
       };
       // Note: when both basePath and assetPrefix are absolute (leading
       // `/`), Next.js emits asset URLs as `<assetPrefix>/...` WITHOUT
-      // prepending basePath — so the CloudFront behavior must match the
-      // bare assetPrefix path, NOT the basePath-prefixed one.
-      const prefixed = (suffix: string) => `${assetPrefix}${suffix}`;
-      // Add the most-specific prefixed patterns. Skipped if a user route
-      // already claims them (defensive — should never overlap in
-      // practice).
-      for (const suffix of [
-        '/_next/static/*',
-        '/_next/image*',
-        '/_next/data/*',
-        '/_next/*',
-      ]) {
-        const pat = prefixed(suffix);
-        if (!(pat in additionalBehaviors)) {
-          additionalBehaviors[pat] = prefixedStaticBehavior;
-        }
+      // prepending basePath — so the CloudFront behavior must match
+      // the bare assetPrefix path, NOT the basePath-prefixed one.
+      // One catch-all under the prefix; the strip function handles
+      // _next/static, _next/image, _next/data, and the open _next/*
+      // case uniformly.
+      const catchAllPrefixedPattern = `${assetPrefix}/*`;
+      if (!(catchAllPrefixedPattern in additionalBehaviors)) {
+        additionalBehaviors[catchAllPrefixedPattern] = prefixedStaticBehavior;
       }
     }
 
@@ -758,12 +771,24 @@ export class CdnConstruct extends Construct {
       // share one ResponseHeadersPolicy across all of them so the
       // account-wide CloudFront ResponseHeadersPolicy quota (default 20
       // per account, max 200) doesn't get burned on duplicates.
+      //
+      // The fingerprint includes the SECURITY-HEADER inputs the policy
+      // body will end up containing (CSP value, since other security
+      // header values are constants today). Without that, toggling
+      // `cdn.contentSecurityPolicy` between deploys produced new
+      // construct IDs even when the user's `headers[]` content hadn't
+      // changed — burning quota on every CSP edit (P2.5). With it,
+      // identical (customHeaders × securityHeaderInputs) tuples dedup
+      // across deploys.
       const policyByFingerprint = new Map<string, ResponseHeadersPolicy>();
-      const fingerprint = (headers: Record<string, string>): string =>
-        Object.keys(headers)
+      const securityHeaderFingerprint = props.contentSecurityPolicy ?? '';
+      const fingerprint = (headers: Record<string, string>): string => {
+        const customPart = Object.keys(headers)
           .sort()
           .map((k) => `${k}=${headers[k]}`)
           .join('\n');
+        return `csp=${securityHeaderFingerprint}\n--\n${customPart}`;
+      };
 
       // Construct ID uses the first 8 hex chars of a SHA-256 over the
       // fingerprint. Why a stable hash instead of a counter (0/1/2/...):

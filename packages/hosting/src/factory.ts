@@ -34,7 +34,15 @@ export type BackendHosting = ResourceProvider<HostingResources>;
 const getLockFilePath = (projectDir: string): string =>
   path.join(projectDir, '.amplify-hosting-deploy.lock');
 
-const LOCK_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour stale lock timeout
+// 4-hour stale-lock window. First-time deploys with custom domain +
+// ACM validation can run >1h on cold accounts (DnsValidatedCertificate
+// + CloudFront propagation). A shorter window let a second `ampx
+// deploy` treat the in-progress first as "stale" and try to take over,
+// potentially racing CDK staging writes. Bumping to 4h keeps legitimate
+// fresh-account deploys from getting stomped while still recovering
+// from genuinely-orphaned locks (process killed, machine rebooted)
+// within the same workday.
+const LOCK_TIMEOUT_MS = 4 * 60 * 60 * 1000;
 
 /**
  * Acquire a file-based deploy lock to prevent concurrent deployments.
@@ -276,13 +284,64 @@ export const defineHosting = (props: HostingProps = {}): HostingResult => {
 };
 
 /**
+ * Locate the project root by walking up from `process.cwd()` until we
+ * find a `package.json`. CI systems and rare dev-loop cases run
+ * `ampx deploy` from a subdirectory of the project — `process.cwd()`
+ * would then resolve to e.g. `<repo>/packages/web/`, the adapter
+ * wouldn't find `amplify/`, and the deploy would fail deep inside the
+ * adapter (`OpenNextOutputNotFoundError`) with no indication that
+ * cwd was the root cause.
+ *
+ * Walking up to the nearest `package.json` is the same heuristic
+ * `local-pkg` and most build tools use. We stop at the filesystem
+ * root and throw a clear error pointing at the misconfiguration.
+ *
+ * Override: `AMPLIFY_HOSTING_PROJECT_DIR` (absolute path) for callers
+ * that want explicit control (e.g. tests, monorepo scripts).
+ */
+const resolveProjectDir = (): string => {
+  const override = process.env.AMPLIFY_HOSTING_PROJECT_DIR;
+  if (override) {
+    if (!path.isAbsolute(override)) {
+      throw new AmplifyUserError('InvalidProjectDirError', {
+        message: `AMPLIFY_HOSTING_PROJECT_DIR must be an absolute path; got "${override}".`,
+        resolution: 'Pass an absolute path or unset the variable.',
+      });
+    }
+    if (!fs.existsSync(path.join(override, 'package.json'))) {
+      throw new AmplifyUserError('InvalidProjectDirError', {
+        message: `AMPLIFY_HOSTING_PROJECT_DIR is set to "${override}" but no package.json exists there.`,
+        resolution:
+          'Point AMPLIFY_HOSTING_PROJECT_DIR at the directory containing your package.json.',
+      });
+    }
+    return override;
+  }
+  let dir = process.cwd();
+  for (;;) {
+    if (fs.existsSync(path.join(dir, 'package.json'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      // Reached the filesystem root without finding package.json.
+      throw new AmplifyUserError('ProjectRootNotFoundError', {
+        message: `Could not find a package.json walking up from ${process.cwd()}.`,
+        resolution:
+          'Run `ampx deploy` from your project directory (the one containing package.json + amplify/), ' +
+          'or set AMPLIFY_HOSTING_PROJECT_DIR to an absolute path.',
+      });
+    }
+    dir = parent;
+  }
+};
+
+/**
  * Build the hosting construct from props.
  */
 const buildHostingConstruct = (
   props: HostingProps,
   scope: Stack,
 ): HostingResources => {
-  const projectDir = process.cwd();
+  const projectDir = resolveProjectDir();
   acquireLock(projectDir);
   try {
     return doBuildHostingConstruct(props, scope, projectDir);
@@ -326,6 +385,7 @@ const doBuildHostingConstruct = (
     cdn: props.cdn,
     storage: props.storage,
     logging: props.logging,
+    monitoring: props.monitoring,
     environment: props.environment,
     errorPages: props.errorPages,
   };

@@ -45,7 +45,9 @@ const COOKIE_NAME = '__dpl';
 export const generateSkewProtectionViewerRequestCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
-  options?: { spaFallback?: boolean },
+  options?: {
+    spaFallback?: boolean;
+  },
 ): string => {
   validateBuildId(buildId);
   validateRedirects(redirects);
@@ -107,8 +109,17 @@ export const generateSkewProtectionViewerResponseCode = (
       resolution: 'Provide a maxAge value between 0 and 2592000 seconds.',
     });
   }
+  // Status-gated cookie set: only pin a user to *this* build when the
+  // origin produced a successful HTML response. Without the gate, a
+  // viewer hitting a 503 mid-deploy gets a __dpl cookie pointing at
+  // the broken build for maxAge seconds — every subsequent request
+  // sticks to the bad version even after the fleet recovers. Sticky
+  // failures are felt loudest during a rolling deploy where one PoP
+  // briefly serves errors while others are healthy.
   return `function handler(event) {
   var response = event.response;
+  var status = response.statusCode;
+  if (status >= 400) { return response; }
   var contentType = response.headers['content-type'] ? response.headers['content-type'].value : '';
   if (contentType.indexOf('text/html') >= 0) {
     response.cookies['${COOKIE_NAME}'] = { value: '${buildId}', attributes: 'Path=/; SameSite=Lax; Max-Age=${maxAge}' };
