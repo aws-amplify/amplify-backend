@@ -171,7 +171,9 @@ export const generateBuildIdAndRedirectFunctionCode = (
   buildId: string,
   redirects: RedirectEntry[] = [],
   basePath?: string,
-  options?: { spaFallback?: boolean },
+  options?: {
+    spaFallback?: boolean;
+  },
 ): string => {
   if (!BUILD_ID_PATTERN.test(buildId)) {
     throw new HostingError('InvalidBuildIdError', {

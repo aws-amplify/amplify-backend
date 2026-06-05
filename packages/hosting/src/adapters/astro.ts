@@ -79,6 +79,27 @@ const BRIDGE_CONFIG_FILE = 'config-bridge.mjs';
 const ASTROJS_NODE_PIN = '@astrojs/node@^9';
 
 /**
+ * Verified Astro version range. Exported for the X.1 cross-adapter
+ * version-pin test that asserts CI doesn't ship with the adapters
+ * outside their verified ranges.
+ *
+ * "Verified" here means **believed compatible** (the adapter's
+ * assumptions about `dist/` layout and the `@astrojs/node` bridge hold
+ * across this range), NOT "actively tested against every release in
+ * the range." We exercise the current major + the previous one; the
+ * upper bound is the next major we have NOT validated. Bump it only
+ * after confirming a new major actually works — widening it
+ * speculatively (e.g. `<7.0.0` while 6.x doesn't even exist yet) makes
+ * the documented compatibility claim wider than what we've checked.
+ *
+ * Note this constant is advisory: the runtime hard floor is enforced
+ * separately by `assertAstroVersion` (rejects < 4.0). This range is
+ * consumed by the X.1 cross-adapter version-pin test, which asserts it
+ * stays a parseable range with an explicit upper bound.
+ */
+export const VERIFIED_ASTRO_RANGE = '>=4.0.0 <6.0.0';
+
+/**
  * Maximum redirects lifted from astro.config to the CloudFront viewer
  * Function. Matches the cap applied to Next.js's lifted redirects so the
  * compiled CFF stays under the 10 KB limit; anything past this stays in
@@ -195,7 +216,6 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
           clientDir,
           serverDir,
           output,
-          trailingSlash,
           imageDomains,
           imageRemotePatterns,
           imageAllowSVG,
@@ -770,18 +790,21 @@ const buildSsrManifest = (input: {
   clientDir: string;
   serverDir: string;
   output: AstroOutput;
-  trailingSlash: AstroTrailingSlash;
   imageDomains: string[];
   imageRemotePatterns: ImageRemotePattern[];
   imageAllowSVG: boolean | undefined;
   imageMinimumCacheTTL: number | undefined;
 }): DeployManifest => {
+  // P1.6: bare and subtree forms are emitted unconditionally for
+  // prerendered routes; the `emitTrailingSlashRedirects` post-pass
+  // produces the canonical 308 if the user wants one. The
+  // `trailingSlash` mode is read at the top-level adapter and used
+  // there, not here.
   const {
     distDir,
     clientDir,
     serverDir,
     output,
-    trailingSlash,
     imageDomains,
     imageRemotePatterns,
     imageAllowSVG,
@@ -852,6 +875,18 @@ const buildSsrManifest = (input: {
 
   // Hybrid: route prerendered HTML pages to the static origin so the
   // SSR Lambda doesn't burn invocations rendering frozen content.
+  //
+  // CloudFront PathPatterns are not "match either trailing-slash or
+  // bare" — `/about/*` matches `/about/x` but NOT `/about`. Without
+  // both forms the bare path falls through to the catch-all → SSR
+  // Lambda, silently re-rendering frozen content (and ruining SSG
+  // semantics + costing Lambda invocations the user didn't sign up
+  // for). Emit BOTH forms regardless of trailingSlash mode:
+  //   - `<urlPath>/*` covers sibling assets (the framework prefetches
+  //     `_payload.json` and similar adjacent to the prerendered HTML)
+  //   - `<urlPath>` covers the bare URL itself
+  // The L3 deduplicates these against any existing static behaviors
+  // via `addRoute`'s `seenPatterns` guard.
   if (output === 'hybrid') {
     const prerendered = fg.sync('**/*.html', {
       cwd: clientDir,
@@ -861,8 +896,12 @@ const buildSsrManifest = (input: {
       const urlPath = htmlToUrlPath(html);
       if (urlPath === '/') continue;
       routes.push({ pattern: `${urlPath}/*`, target: 'static' });
-      const bare = normalizeRoutePattern(urlPath, trailingSlash);
-      if (bare !== '/') routes.push({ pattern: bare, target: 'static' });
+      // Emit the bare path unconditionally — `trailingSlash: 'always'`
+      // doesn't make the bare form optional, it just means a 308
+      // redirect bounces the viewer to the slashed form. Without the
+      // bare behavior CloudFront falls through to the SSR catch-all
+      // before the trailing-slash redirect can fire.
+      routes.push({ pattern: urlPath, target: 'static' });
     }
   }
 
@@ -928,18 +967,6 @@ const collectStaticPathsForRedirects = (clientOrDist: string): string[] => {
     ignore: ['index.html', '404.html', '500.html'],
   });
   return html.map((rel) => htmlToUrlPath(rel)).filter((p) => p !== '/');
-};
-
-const normalizeRoutePattern = (
-  pattern: string,
-  trailingSlash: AstroTrailingSlash,
-): string => {
-  if (pattern === '/' || pattern.endsWith('/*')) return pattern;
-  const stripped = pattern.replace(/\/+$/, '');
-  if (trailingSlash === 'always') {
-    return stripped + '/';
-  }
-  return stripped;
 };
 
 const dedupeRoutes = (routes: RouteBehavior[]): RouteBehavior[] => {

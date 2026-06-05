@@ -133,19 +133,6 @@ export const customHeaderSchema = z.object({
   headers: z.record(z.string()),
 });
 
-/**
- * Zod schema for BasicAuthRule. `users` requires at least one entry
- * (a rule with no users would gate the path with no way to authenticate).
- */
-export const basicAuthRuleSchema = z.object({
-  source: z.string().min(1),
-  realm: z.string().min(1).optional(),
-  users: z.record(z.string().min(1)).refine((u) => Object.keys(u).length > 0, {
-    message:
-      'basicAuth.users must contain at least one username:password entry',
-  }),
-});
-
 /** Reserved route targets that don't need a corresponding compute entry. */
 const RESERVED_TARGETS = new Set(['static', 's3', 'image-optimization']);
 
@@ -171,7 +158,6 @@ export const deployManifestSchema = z
     redirects: z.array(redirectSchema).optional(),
     rewrites: z.array(rewriteSchema).optional(),
     headers: z.array(customHeaderSchema).optional(),
-    basicAuth: z.array(basicAuthRuleSchema).optional(),
     assetPrefix: z
       .string()
       .regex(
@@ -194,6 +180,14 @@ export const deployManifestSchema = z
       .regex(
         BUILD_ID_PATTERN,
         'buildId must be alphanumeric with hyphens, max 64 chars',
+      )
+      .optional(),
+    lifecycle: z
+      .array(
+        z.object({
+          prefix: z.string().min(1),
+          days: z.number().int().positive(),
+        }),
       )
       .optional(),
     basePath: z

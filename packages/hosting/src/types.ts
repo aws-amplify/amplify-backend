@@ -149,8 +149,50 @@ export type HostingProps = {
     reservedConcurrency?: number;
     /** Provisioned concurrency for cold-start elimination. Default: undefined (no provisioning). */
     provisionedConcurrency?: number;
-    /** CloudWatch log retention for the SSR Lambda. Default: TWO_WEEKS. */
+    /** CloudWatch log retention for the SSR Lambda. Default: ONE_MONTH. */
     logRetention?: RetentionDays;
+    /**
+     * 2.1 — synthetic warmup. When set, an EventBridge schedule
+     * invokes the SSR Lambda every `rate` to keep at least one
+     * execution environment hot, eliminating cold starts on
+     * intermittent traffic. Skipped automatically when
+     * `provisionedConcurrency` is set (already warm).
+     *
+     * Cost: ~$0.01/month per minute of rate (Lambda invoke +
+     * EventBridge rule).
+     */
+    warmup?: {
+      rate: Duration;
+    };
+    /**
+     * 4.1 — OpenTelemetry environment hooks. Injected onto every
+     * Lambda the construct creates (SSR, image-opt, revalidation,
+     * middleware, warmup).
+     *
+     * **Bring your own instrumentation.** This option ONLY sets the
+     * `OTEL_*` env vars — it does NOT install any OpenTelemetry SDK or
+     * collector. Env vars alone are inert: setting `otelEndpoint`
+     * without also adding instrumentation produces **no traces**. To
+     * actually emit spans you must additionally do ONE of:
+     *   - attach the AWS Distro for OpenTelemetry (ADOT) Lambda layer
+     *     to your functions, or
+     *   - bundle an OTel SDK and auto-instrument via
+     *     `NODE_OPTIONS=--require @opentelemetry/auto-instrumentations-node/register`.
+     *
+     * The construct stays SDK-agnostic on purpose so it doesn't pin an
+     * OTel version or pull a large layer into every deploy.
+     */
+    tracing?: {
+      /** OTEL_EXPORTER_OTLP_ENDPOINT — collector base URL. */
+      otelEndpoint: string;
+      /**
+       * OTEL_EXPORTER_OTLP_HEADERS — comma-separated `key=value`
+       * pairs (auth tokens, vendor headers).
+       */
+      otelHeaders?: string;
+      /** OTEL_SERVICE_NAME — defaults to `amplify-hosting`. */
+      serviceName?: string;
+    };
   };
 
   /**
@@ -218,8 +260,18 @@ export type HostingProps = {
     encryptionKey?: IKey;
     /** If true, the S3 bucket is retained on stack deletion. Default: false. */
     retainOnDelete?: boolean;
-    /** Days to retain build artifacts in S3. Default: 365. */
+    /** Days to retain build artifacts in S3. Default: 30. */
     buildRetentionDays?: number;
+    /**
+     * Opt-in S3 inventory of `builds/` (3.3). When enabled, a daily
+     * CSV report of every object under `builds/` lands in a
+     * dedicated inventory bucket. Useful for cost audits — find
+     * which build is the heavy one without `aws s3 ls --summarize`
+     * per prefix. Off by default.
+     */
+    inventory?: {
+      enabled: boolean;
+    };
   };
 
   /**
@@ -230,6 +282,27 @@ export type HostingProps = {
     enabled: boolean;
     /** Days to retain access logs. Default: 90. */
     retentionDays?: number;
+  };
+
+  /**
+   * CloudWatch alarm wiring. **Enabled by default** so users get
+   * out-of-the-box visibility into CloudFront 5xx rate, SSR Lambda
+   * errors/throttles, image-opt errors, and revalidation DLQ depth.
+   * Idle cost is a few cents per month per alarm — set
+   * `monitoring: { enabled: false }` to opt out.
+   *
+   * If `snsTopicArn` is omitted, an SNS topic is created and surfaced
+   * via the construct's `monitoringTopic` field for the caller to
+   * subscribe to.
+   */
+  monitoring?: {
+    /** @default true */
+    enabled?: boolean;
+    /**
+     * BYO SNS topic ARN for alarm actions. When omitted, an SNS topic
+     * is created.
+     */
+    snsTopicArn?: string;
   };
 };
 
