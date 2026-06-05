@@ -160,6 +160,11 @@ export type CacheConfig = {
         bundle: string;
         handler: string;
     };
+    seedDirectory?: string;
+    initFunction?: {
+        bundle: string;
+        handler: string;
+    };
 };
 
 // @public (undocumented)
@@ -451,7 +456,7 @@ export type SkewProtectionConfig = {
 
 // Warnings were encountered during analysis:
 //
-// src/manifest/types.ts:281:3 - (ae-forgotten-export) The symbol "RemotePattern" needs to be exported by the entry point index.d.ts
+// src/manifest/types.ts:307:3 - (ae-forgotten-export) The symbol "RemotePattern" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
