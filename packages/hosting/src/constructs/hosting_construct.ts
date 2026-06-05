@@ -25,6 +25,8 @@ import {
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction as LambdaFunctionTarget } from 'aws-cdk-lib/aws-events-targets';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { IKey } from 'aws-cdk-lib/aws-kms';
@@ -42,6 +44,8 @@ import { WafConstruct } from './waf_construct.js';
 import { DnsConstruct } from './dns_construct.js';
 import { createSecurityHeadersPolicy } from './security_headers.js';
 import { CdnConstruct } from './cdn_construct.js';
+import { MonitoringConstruct } from './monitoring_construct.js';
+import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
 
 // Re-export build ID helpers for public API + tests
 export { generateBuildIdFunctionCode, generateBuildId } from '../defaults.js';
@@ -109,6 +113,14 @@ export type AmplifyHostingConstructProps = {
      * declared in the deploy manifest's compute resources.
      */
     environment?: Record<string, string>;
+    /** 2.1 — synthetic warmup schedule. */
+    warmup?: { rate: Duration };
+    /** 4.1 — OpenTelemetry env hooks for SSR / image-opt / revalidation Lambdas. */
+    tracing?: {
+      otelEndpoint: string;
+      otelHeaders?: string;
+      serviceName?: string;
+    };
   };
   /** CDN (CloudFront) configuration. */
   cdn?: {
@@ -162,6 +174,8 @@ export type AmplifyHostingConstructProps = {
     encryptionKey?: IKey;
     retainOnDelete?: boolean;
     buildRetentionDays?: number;
+    /** 3.3 — opt-in daily S3 inventory of `builds/`. */
+    inventory?: { enabled: boolean };
   };
   /** CloudFront access logging configuration. */
   logging?: {
@@ -179,6 +193,17 @@ export type AmplifyHostingConstructProps = {
     notFound?: string;
     /** Path to a custom 500 HTML file (relative to project root). */
     serverError?: string;
+  };
+  /**
+   * Default CloudWatch alarms (P3.1 + P3.2). On by default. When
+   * enabled, the L3 wires CloudFront 5xx, Lambda error / throttle,
+   * and revalidation-DLQ alarms to an SNS topic. Opt out with
+   * `{ enabled: false }`. See `MonitoringConstruct`.
+   */
+  monitoring?: {
+    /** @default true */
+    enabled?: boolean;
+    snsTopicArn?: string;
   };
   /**
    * Cookie-based skew protection.
@@ -224,7 +249,21 @@ export class AmplifyHostingConstruct extends Construct {
   readonly webAcl?: CfnWebACL;
   readonly cacheTable?: Table;
   readonly revalidationQueue?: Queue;
+  readonly revalidationDlq?: Queue;
   readonly cacheBucket?: Bucket;
+  /**
+   * SNS topic alarm actions are sent to. Set when monitoring is on
+   * (the default). The user subscribes (email, Slack via webhook,
+   * PagerDuty, etc.) via `monitoringTopic.addSubscription(...)` or by
+   * configuring an external listener with the topic ARN.
+   *
+   * Not declared `readonly` because the `MonitoringConstruct` that
+   * owns the topic is built mid-constructor (after the SSR / image-opt
+   * Lambdas it alarms on are wired up), so the value is assigned
+   * after the field declaration runs. Treat it as logically immutable
+   * post-construction — do not reassign from outside the constructor.
+   */
+  monitoringTopic?: ITopic;
 
   /**
    * Creates the hosting infrastructure from a framework-agnostic deploy manifest.
@@ -255,21 +294,6 @@ export class AmplifyHostingConstruct extends Construct {
           'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
       });
     }
-    // BasicAuth stub: adapters lift `routeRules.basicAuth` (Nitro)
-    // into `manifest.basicAuth[]`, but the L3 doesn't yet emit the
-    // CloudFront Function gate needed to honor it. Failing loud is
-    // critical here — silently dropping a Basic-Auth rule would expose
-    // a path the user explicitly meant to gate (dev/staging surfaces,
-    // pre-launch admin areas).
-    if (manifest.basicAuth && manifest.basicAuth.length > 0) {
-      throw new HostingError('BasicAuthNotYetSupportedError', {
-        message:
-          `manifest.basicAuth[] is not yet consumed by the hosting L3 (received ${manifest.basicAuth.length} rule(s)). ` +
-          `Adapters lift Nitro routeRules.basicAuth here; the L3 will emit a CloudFront Function viewer-request gate once that wiring lands. Failing loud rather than silently exposing the gated path.`,
-        resolution:
-          'Until the L3 wiring lands, remove basicAuth rules from your framework config and gate the path in your SSR handler (or via your IdP). Track the gap on the hosting roadmap before re-introducing routeRules.basicAuth.',
-      });
-    }
     const buildId = manifest.buildId ?? generateBuildId();
 
     // Normalize `compute.timeout` once: callers consuming the L3 from
@@ -288,6 +312,13 @@ export class AmplifyHostingConstruct extends Construct {
       encryptionKey: props.storage?.encryptionKey,
       buildRetentionDays: props.storage?.buildRetentionDays,
       logRetentionDays: props.logging?.retentionDays,
+      // 3.2 — adapter-supplied lifecycle rules; storage construct
+      // turns each `{prefix, days}` entry into an S3 lifecycle rule.
+      extraLifecycleRules: manifest.lifecycle,
+      // 3.3 — opt-in S3 inventory. Off by default. When enabled,
+      // a daily CSV inventory of `builds/` lands in the access log
+      // bucket so operators can audit per-build sizes.
+      inventoryEnabled: props.storage?.inventory?.enabled === true,
     });
     this.bucket = storage.bucket;
 
@@ -401,7 +432,9 @@ export class AmplifyHostingConstruct extends Construct {
       // SQS queue for async revalidation (FIFO required — OpenNext sends
       // MessageDeduplicationId and MessageGroupId with revalidation messages)
       if (manifest.cache.revalidationQueue) {
-        const revalidationDlq = new Queue(this, 'RevalidationDLQ', {
+        // Hold a reference to the DLQ on the construct so the
+        // monitoring construct can attach an alarm to it later.
+        this.revalidationDlq = new Queue(this, 'RevalidationDLQ', {
           fifo: true,
           retentionPeriod: Duration.days(14),
           encryption: QueueEncryption.SQS_MANAGED,
@@ -414,7 +447,7 @@ export class AmplifyHostingConstruct extends Construct {
           retentionPeriod: Duration.days(1),
           encryption: QueueEncryption.SQS_MANAGED,
           deadLetterQueue: {
-            queue: revalidationDlq,
+            queue: this.revalidationDlq,
             maxReceiveCount: 3,
           },
         });
@@ -532,6 +565,11 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 25,
         },
         reservedConcurrency: 10,
+        // Propagate the SSR Lambda's logRetention to image-opt so a
+        // user who bumped retention for debugability gets the same
+        // window for image-opt logs (intermittent SVG/SSRF rejects
+        // and remote-pattern misses live here).
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('image-optimization', imageConstruct.function);
@@ -595,6 +633,38 @@ export class AmplifyHostingConstruct extends Construct {
             JSON.stringify(manifest.imageOptimization.remotePatterns),
           );
         }
+        // Astro `image.domains` / Next.js `images.domains` ship as a
+        // CSV of bare hostnames — simpler shape than remotePatterns,
+        // honored by the IPX runtime allowlist (P0.1 enforcement).
+        if (
+          manifest.imageOptimization.domains &&
+          manifest.imageOptimization.domains.length > 0
+        ) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_ALLOWED_HOSTNAMES',
+            manifest.imageOptimization.domains.join(','),
+          );
+        }
+        // 4.1 — Image-opt parity with framework knobs. The manifest
+        // already carries the framework's resolved `formats` and
+        // `sizes` (Next: `images.formats`/`deviceSizes`; Astro: same
+        // shape via Astro 5 image config). Forward them to the IPX
+        // runtime as CSV env so the Lambda emits only the formats /
+        // sizes the framework expects. Today the IPX runtime ignores
+        // these (forward-compat); when the runtime starts honoring
+        // them, no CDK churn is needed.
+        if (manifest.imageOptimization.formats.length > 0) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_FORMATS',
+            manifest.imageOptimization.formats.join(','),
+          );
+        }
+        if (manifest.imageOptimization.sizes.length > 0) {
+          imageConstruct.function.addEnvironment(
+            'IMAGE_DEVICE_SIZES',
+            manifest.imageOptimization.sizes.join(','),
+          );
+        }
       }
     }
 
@@ -612,6 +682,11 @@ export class AmplifyHostingConstruct extends Construct {
           timeout: 5,
           memorySize: 128,
         },
+        // Lambda@Edge logs land in us-east-1 + every PoP region. The
+        // L3 still passes logRetention so all replicas honor the same
+        // window — the singleton custom-resource-driven retention
+        // would have churned per-region log groups on every redeploy.
+        logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
       });
       this.computeFunctions.set('middleware', middlewareConstruct.function);
@@ -679,6 +754,95 @@ export class AmplifyHostingConstruct extends Construct {
             fn.addEnvironment(key, value);
           }
         }
+      }
+    }
+
+    // ---- 5b. OpenTelemetry env hooks (4.1) ----
+    // When the user opts into `compute.tracing`, stamp the OTEL_*
+    // env vars onto every regional Lambda the construct created.
+    // The construct does NOT install any OTel SDK — instrumentation
+    // is the user's responsibility (drop-in via NODE_OPTIONS,
+    // OpenTelemetry Lambda Layer, manually wired SDK, etc.). All
+    // we do here is honor the contract the OTel collector ecosystem
+    // expects: OTEL_EXPORTER_OTLP_ENDPOINT / _HEADERS / OTEL_SERVICE_NAME.
+    //
+    // Lambda@Edge functions are skipped — Lambda@Edge does not
+    // support env vars (the runtime simply discards them).
+    if (props.compute?.tracing) {
+      const tracing = props.compute.tracing;
+      const serviceName = tracing.serviceName ?? 'amplify-hosting';
+      for (const [name, fn] of this.computeFunctions) {
+        if (!(fn instanceof LambdaFunction)) continue;
+        fn.addEnvironment('OTEL_EXPORTER_OTLP_ENDPOINT', tracing.otelEndpoint);
+        if (tracing.otelHeaders) {
+          fn.addEnvironment('OTEL_EXPORTER_OTLP_HEADERS', tracing.otelHeaders);
+        }
+        // Per-function service name disambiguates traces in
+        // collectors that aggregate by service. e.g. `<base>-ssr`,
+        // `<base>-image-optimization`, `<base>-revalidation`.
+        fn.addEnvironment(
+          'OTEL_SERVICE_NAME',
+          name === 'default' || name === 'server'
+            ? `${serviceName}-ssr`
+            : `${serviceName}-${name}`,
+        );
+      }
+    }
+
+    // ---- 5c. Synthetic warmup schedule (2.1) ----
+    // EventBridge schedule → SSR Lambda invoke every N. Customers
+    // using `provisionedConcurrency` are already warm, so we skip
+    // the warmup wiring there to avoid double-paying. Image-opt and
+    // revalidation are not warmed by default — they're inherently
+    // bursty and provisioned-concurrency is a better fit.
+    if (
+      props.compute?.warmup &&
+      !manifest.compute.default?.provisionedConcurrency &&
+      !manifest.compute.server?.provisionedConcurrency
+    ) {
+      const ssrComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : undefined;
+      const ssrFn = ssrComputeName
+        ? this.computeFunctions.get(ssrComputeName)
+        : undefined;
+      // Warmup only applies to `handler`-type compute (OpenNext): the
+      // synthetic event is a raw JSON object the handler can detect and
+      // short-circuit. `http-server` compute (Nitro / Astro behind the
+      // Lambda Web Adapter) expects an HTTP-shaped event — a raw JSON
+      // payload would 500 on every warmup invoke, turning a cost
+      // optimization into an error-rate generator. Skip it (and warn)
+      // rather than synthesize an HTTP event we'd have to keep in sync
+      // with LWA's expected shape.
+      const ssrComputeType = ssrComputeName
+        ? manifest.compute[ssrComputeName]?.type
+        : undefined;
+      if (ssrFn instanceof LambdaFunction && ssrComputeType === 'handler') {
+        const rule = new Rule(this, 'WarmupSchedule', {
+          schedule: Schedule.rate(props.compute.warmup.rate),
+          description:
+            '2.1 — keep SSR Lambda warm with a synthetic invoke every N.',
+        });
+        // The synthetic event carries a marker header so the user's
+        // SSR handler can short-circuit (skip rendering work, skip
+        // logging the invocation as production traffic).
+        rule.addTarget(
+          new LambdaFunctionTarget(ssrFn, {
+            event: RuleTargetInput.fromObject({
+              source: 'amplify-hosting-warmup',
+              version: '1',
+            }),
+          }),
+        );
+      } else if (ssrFn instanceof LambdaFunction && ssrComputeType) {
+        process.stderr.write(
+          `⚠️  Hosting: compute.warmup is set but the SSR compute is '${ssrComputeType}' ` +
+            `(not 'handler'). Warmup is skipped — a synthetic JSON invoke would error on a ` +
+            `Lambda Web Adapter (http-server) function. Use provisionedConcurrency to keep ` +
+            `http-server SSR warm.\n`,
+        );
       }
     }
 
@@ -792,6 +956,52 @@ export class AmplifyHostingConstruct extends Construct {
       );
       if (autoDeleteCr) {
         cdn.distribution.node.addDependency(autoDeleteCr as Construct);
+      }
+    }
+
+    // ---- 9c. Default CloudWatch alarms (P3.1 + P3.2) ----
+    // Enabled by default — alarms cost cents/month idle and the
+    // out-of-the-box visibility (CloudFront 5xx, Lambda errors/throttles,
+    // image-opt errors, revalidation DLQ depth) is high-value during
+    // the construct's validation phase. Opt out with
+    // `monitoring: { enabled: false }`. When on, surfaces the SNS topic
+    // ARN as a CloudFormation output so operators can wire subscriptions
+    // externally without touching the construct again.
+    const monitoringEnabled = props.monitoring?.enabled ?? true;
+    if (monitoringEnabled) {
+      const userTopic = props.monitoring?.snsTopicArn
+        ? Topic.fromTopicArn(
+            this,
+            'AlarmTopicImport',
+            props.monitoring.snsTopicArn,
+          )
+        : undefined;
+      const ssrComputeName = this.computeFunctions.has('default')
+        ? 'default'
+        : this.computeFunctions.has('server')
+          ? 'server'
+          : undefined;
+      const ssrFn = ssrComputeName
+        ? this.computeFunctions.get(ssrComputeName)
+        : undefined;
+      const imgFn = this.computeFunctions.get('image-optimization');
+      const monitoring = new MonitoringConstruct(this, 'Monitoring', {
+        enabled: true,
+        snsTopic: userTopic,
+        distribution: this.distribution,
+        // Lambda@Edge functions don't accept the CW metric helpers we
+        // use; only attach when the SSR compute is a regional Lambda.
+        ssrFunction: ssrFn instanceof LambdaFunction ? ssrFn : undefined,
+        imageFunction: imgFn instanceof LambdaFunction ? imgFn : undefined,
+        revalidationDlq: this.revalidationDlq,
+      });
+      this.monitoringTopic = monitoring.topic;
+      if (monitoring.topic) {
+        new CfnOutput(this, 'MonitoringTopicArn', {
+          value: monitoring.topic.topicArn,
+          description:
+            'SNS topic for hosting alarms. Subscribe an email/Slack/PagerDuty endpoint here.',
+        });
       }
     }
 
@@ -974,89 +1184,125 @@ export class AmplifyHostingConstruct extends Construct {
     const htmlCacheControl = 'no-cache, no-store, must-revalidate';
     const htmlGlobs = ['*.html', '**/*.html'];
     const staticSource = Source.asset(manifest.staticAssets.directory);
+    // Track the asset deployments so the per-extension font Content-
+    // Type deployments can declare an explicit `addDependency` —
+    // without this, CDK is free to reorder them and a font deployment
+    // that runs BEFORE the matching asset deployment is silently
+    // overwritten with `binary/octet-stream` from the next pass. We
+    // observed this on a live deploy where the font deployment ran 1
+    // minute before the asset deployment that overwrote it.
+    const assetDeployments: BucketDeployment[] = [];
 
     // Deploy no-cache paths (e.g. config.json) — always revalidate.
     if (noCachePaths && noCachePaths.length > 0) {
-      new BucketDeployment(this, 'AssetDeploymentNoCache', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: noCachePaths,
-        cacheControl: [CacheControl.fromString(htmlCacheControl)],
-        prune: false,
-      });
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentNoCache', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: noCachePaths,
+          cacheControl: [CacheControl.fromString(htmlCacheControl)],
+          prune: false,
+        }),
+      );
     }
 
     if (immutablePaths && immutablePaths.length > 0) {
-      new BucketDeployment(this, 'AssetDeploymentImmutable', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: immutablePaths,
-        cacheControl: [
-          CacheControl.fromString('public, max-age=31536000, immutable'),
-        ],
-        prune: false,
-        distribution: this.distribution,
-        distributionPaths: ['/*'],
-      });
-      new BucketDeployment(this, 'AssetDeploymentHtml', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: htmlGlobs,
-        cacheControl: [CacheControl.fromString(htmlCacheControl)],
-        prune: false,
-      });
-      new BucketDeployment(this, 'AssetDeploymentMutable', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: [...immutablePaths, ...htmlGlobs, ...(noCachePaths ?? [])],
-        cacheControl: [CacheControl.fromString(mutableCacheControl)],
-        prune: false,
-      });
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentImmutable', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: immutablePaths,
+          cacheControl: [
+            CacheControl.fromString('public, max-age=31536000, immutable'),
+          ],
+          prune: false,
+          distribution: this.distribution,
+          distributionPaths: ['/*'],
+        }),
+      );
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentHtml', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: htmlGlobs,
+          cacheControl: [CacheControl.fromString(htmlCacheControl)],
+          prune: false,
+        }),
+      );
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentMutable', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: [...immutablePaths, ...htmlGlobs, ...(noCachePaths ?? [])],
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
+          prune: false,
+        }),
+      );
     } else {
-      new BucketDeployment(this, 'AssetDeploymentHtml', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: htmlGlobs,
-        cacheControl: [CacheControl.fromString(htmlCacheControl)],
-        prune: false,
-        distribution: this.distribution,
-        distributionPaths: ['/*'],
-      });
-      new BucketDeployment(this, 'AssetDeploymentOther', {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: [...htmlGlobs, ...(noCachePaths ?? [])],
-        cacheControl: [CacheControl.fromString(mutableCacheControl)],
-        prune: false,
-      });
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentHtml', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: htmlGlobs,
+          cacheControl: [CacheControl.fromString(htmlCacheControl)],
+          prune: false,
+          distribution: this.distribution,
+          distributionPaths: ['/*'],
+        }),
+      );
+      assetDeployments.push(
+        new BucketDeployment(this, 'AssetDeploymentOther', {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: [...htmlGlobs, ...(noCachePaths ?? [])],
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
+          prune: false,
+        }),
+      );
     }
 
     // ---- 12b. Font Content-Type pass ----
-    // Re-deploys font files with the correct MIME type. Each extension
-    // gets its own BucketDeployment because `contentType` applies per
-    // deployment (no per-file inference override). We don't gate this on
-    // immutablePaths — fonts are commonly hashed (Next emits them under
-    // `_next/static/media`) AND non-hashed (`public/fonts/`); applying
-    // a long-lived Cache-Control here would be wrong for the latter, so
-    // we leave Cache-Control unset and let the prior pass govern.
+    // S3's `binary/octet-stream` default for font extensions makes
+    // browsers reject fonts under CORS. We re-deploy *only* font
+    // files with `contentType` set explicitly so the right MIME wires
+    // through to the viewer. One BucketDeployment per extension —
+    // each is a CDK custom resource. Failure here would leave fonts
+    // with the wrong Content-Type, but the default monitoring
+    // construct (P3.1, opt-in) alarms on Lambda errors so silent
+    // failures surface in CloudWatch.
     //
-    // We only emit a deployment for an extension that actually exists in
-    // the static dir, so projects without fonts pay zero overhead.
+    // We reuse the same `staticSource` Source.asset declared above —
+    // CDK dedups the staged asset zip across all BucketDeployments
+    // via content hash, so the directory is staged exactly once even
+    // with N font extensions present.
     //
-    // All font deployments reuse the same `staticSource` Source.asset
-    // declared above — CDK dedups the staged asset zip across all
-    // BucketDeployments via content hash, so the directory is staged
-    // exactly once even with N font extensions present.
+    // Cache-Control: this pass re-uploads the font objects (a
+    // BucketDeployment always rewrites content + metadata), so it would
+    // CLOBBER whatever Cache-Control the earlier asset deployments set —
+    // leaving hashed fonts under `immutablePaths` with NO directive at
+    // all (browser heuristic caching). We can't perfectly re-tier per
+    // file: a single BucketDeployment applies one Cache-Control to every
+    // match, and its include globs are additive (OR), so "woff2 files
+    // that are ALSO under an immutable path" isn't expressible.
+    //
+    // So we set the MUTABLE tier here, which is the safe universal
+    // choice:
+    //   - non-hashed fonts (`public/fonts/…`): mutable is exactly right
+    //     (they must stay bustable across deploys).
+    //   - hashed fonts (`_next/static/media/…`): CloudFront still edge-
+    //     caches for 1y via `s-maxage`; the browser just revalidates
+    //     (cheap 304). Strictly better than the no-header state this
+    //     pass previously left them in.
     const FONT_TYPES: Array<[string, string]> = [
       ['.woff2', 'font/woff2'],
       ['.woff', 'font/woff'],
@@ -1070,15 +1316,29 @@ export class AmplifyHostingConstruct extends Construct {
     );
     for (const [ext, mime] of FONT_TYPES) {
       if (!fontExtensionsPresent.has(ext)) continue;
-      new BucketDeployment(this, `FontTypeDeployment${ext.replace('.', '')}`, {
-        sources: [staticSource],
-        destinationBucket: this.bucket,
-        destinationKeyPrefix: `builds/${buildId}/`,
-        exclude: ['*'],
-        include: [`*${ext}`],
-        contentType: mime,
-        prune: false,
-      });
+      const fontDeployment = new BucketDeployment(
+        this,
+        `FontTypeDeployment${ext.replace('.', '')}`,
+        {
+          sources: [staticSource],
+          destinationBucket: this.bucket,
+          destinationKeyPrefix: `builds/${buildId}/`,
+          exclude: ['*'],
+          include: [`*${ext}`],
+          contentType: mime,
+          cacheControl: [CacheControl.fromString(mutableCacheControl)],
+          prune: false,
+        },
+      );
+      // Force ordering: the font deployment must run AFTER the asset
+      // deployments that ship the same files with the wrong default
+      // Content-Type. Without this dependency, CDK is free to schedule
+      // the font deployment first; the subsequent asset deployment
+      // then re-uploads the font with `binary/octet-stream` and
+      // silently undoes the fix.
+      for (const dep of assetDeployments) {
+        fontDeployment.node.addDependency(dep);
+      }
     }
   }
 
