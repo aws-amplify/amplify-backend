@@ -108,6 +108,16 @@ export const VERIFIED_ASTRO_RANGE = '>=4.0.0 <6.0.0';
 const REDIRECT_LIFT_CAP = 100;
 
 /**
+ * Max prerendered pages routed directly to S3. Each consumes up to 2
+ * CloudFront cache behaviors (subtree `/<page>/*` + bare `/<page>`), and
+ * the distribution allows only 24 additional behaviors total — the
+ * construct already spends several on `_astro/*`, image-opt, the
+ * catch-all, etc. Cap conservatively; overflow pages still serve
+ * correctly through the SSR Lambda.
+ */
+const MAX_PRERENDERED_STATIC_PAGES = 8;
+
+/**
  * Lambda Web Adapter exec wrapper. The LWA's `/opt/bootstrap` runs
  * `$_HANDLER` as a child process — without a `node` shebang, bash
  * would parse `entry.mjs` as shell, so we wrap in `run.sh`.
@@ -873,8 +883,19 @@ const buildSsrManifest = (input: {
 
   const routes: RouteBehavior[] = [{ pattern: '/_astro/*', target: 'static' }];
 
-  // Hybrid: route prerendered HTML pages to the static origin so the
-  // SSR Lambda doesn't burn invocations rendering frozen content.
+  // Route prerendered HTML pages to the static (S3) origin so the SSR
+  // Lambda doesn't burn invocations rendering frozen content.
+  //
+  // This runs for BOTH `hybrid` AND `server` output. Astro 5 deprecated
+  // `output: 'hybrid'` — the modern way to mix static + dynamic is
+  // `output: 'server'` with per-page `export const prerender = true`.
+  // Such a build still emits the prerendered pages' HTML into
+  // `dist/client/` (same as hybrid did), so gating this on `=== 'hybrid'`
+  // missed every prerendered page in a `server` build, sending them all
+  // through the catch-all Lambda. Walking `clientDir` for `*.html` works
+  // for both modes: if there are no prerendered pages, the walk is empty
+  // and we just emit the catch-all. (`static` mode never reaches here —
+  // it uses `buildStaticManifest`.)
   //
   // CloudFront PathPatterns are not "match either trailing-slash or
   // bare" — `/about/*` matches `/about/x` but NOT `/about`. Without
@@ -887,14 +908,34 @@ const buildSsrManifest = (input: {
   //   - `<urlPath>` covers the bare URL itself
   // The L3 deduplicates these against any existing static behaviors
   // via `addRoute`'s `seenPatterns` guard.
-  if (output === 'hybrid') {
+  //
+  // Budget: each page consumes up to 2 CloudFront behaviors (subtree +
+  // bare). Cap at MAX_PRERENDERED_STATIC_PAGES so a large static site
+  // can't blow the 24-additional-behavior limit; overflow pages stay on
+  // the SSR Lambda (correct, just not optimized) and we log the count.
+  if (output !== 'static') {
     const prerendered = fg.sync('**/*.html', {
       cwd: clientDir,
-      ignore: ['index.html'],
+      ignore: ['index.html', '404.html', '500.html'],
     });
+    const pages: string[] = [];
+    const seen = new Set<string>();
     for (const html of prerendered) {
       const urlPath = htmlToUrlPath(html);
-      if (urlPath === '/') continue;
+      if (urlPath === '/' || seen.has(urlPath)) continue;
+      seen.add(urlPath);
+      pages.push(urlPath);
+    }
+    let kept = pages;
+    if (pages.length > MAX_PRERENDERED_STATIC_PAGES) {
+      kept = pages.slice(0, MAX_PRERENDERED_STATIC_PAGES);
+      process.stderr.write(
+        `ℹ️  Hosting: ${pages.length} prerendered Astro pages detected, but only the first ` +
+          `${MAX_PRERENDERED_STATIC_PAGES} are routed directly to S3 (CloudFront behavior-count budget). ` +
+          `The remaining ${pages.length - MAX_PRERENDERED_STATIC_PAGES} still serve correctly via the SSR Lambda.\n`,
+      );
+    }
+    for (const urlPath of kept) {
       routes.push({ pattern: `${urlPath}/*`, target: 'static' });
       // Emit the bare path unconditionally — `trailingSlash: 'always'`
       // doesn't make the bare form optional, it just means a 308

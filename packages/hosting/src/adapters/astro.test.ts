@@ -445,6 +445,81 @@ void describe("astroAdapter — output: 'hybrid'", () => {
   });
 });
 
+void describe("astroAdapter — output: 'server' with per-page prerender", () => {
+  // Astro 5 deprecated `output: 'hybrid'`; the modern way to mix static
+  // and dynamic is `output: 'server'` + per-page `export const prerender
+  // = true`. Such a build still emits the prerendered pages' HTML into
+  // `dist/client/`. This block guards the fix that routes those pages to
+  // S3 — previously the static-routing was gated on `output === 'hybrid'`
+  // and `server` builds sent every prerendered page through the SSR
+  // Lambda.
+  let tmpDir: string;
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-astro-server-'));
+    writePkg(tmpDir, { dependencies: { astro: '^5.0.0' } });
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { output: 'server' };",
+    );
+  });
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('routes prerendered pages in a server build to S3 (the fix)', () => {
+    writeServerBuild(tmpDir, { prerendered: ['about', 'blog'] });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const patterns = manifest.routes.map((r) => r.pattern);
+    // Both forms, for both pages, all targeting static (S3) — not the
+    // catch-all Lambda.
+    for (const p of ['/about', '/about/*', '/blog', '/blog/*']) {
+      const route = manifest.routes.find((r) => r.pattern === p);
+      assert.ok(route, `expected a route for ${p}`);
+      assert.strictEqual(route!.target, 'static', `${p} should serve from S3`);
+    }
+    assert.strictEqual(
+      patterns[patterns.length - 1],
+      '/*',
+      'catch-all SSR route stays last',
+    );
+  });
+
+  void it('a server build with NO prerendered pages emits only the catch-all', () => {
+    // Pure-SSR app: nothing prerendered → no static page routes, just
+    // the asset behavior + catch-all. (Walk is empty, no-op.)
+    writeServerBuild(tmpDir, { prerendered: [] });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const pageStatics = manifest.routes.filter(
+      (r) => r.target === 'static' && r.pattern !== '/_astro/*',
+    );
+    assert.strictEqual(
+      pageStatics.length,
+      0,
+      'no prerendered pages → no per-page static routes',
+    );
+    assert.ok(manifest.routes.some((r) => r.pattern === '/*'));
+  });
+
+  void it('caps prerendered static routes to protect the CloudFront behavior budget', () => {
+    // 12 prerendered pages > MAX_PRERENDERED_STATIC_PAGES (8). Only the
+    // first 8 get static routes; the rest fall through to the Lambda.
+    // Each kept page emits 2 patterns (bare + subtree) = 16 static page
+    // behaviors, comfortably under the 24 cap with room for asset /
+    // image-opt / catch-all.
+    const many = Array.from({ length: 12 }, (_, i) => `page${i}`);
+    writeServerBuild(tmpDir, { prerendered: many });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const barePageRoutes = manifest.routes.filter(
+      (r) => r.target === 'static' && /^\/page\d+$/.test(r.pattern), // bare form only
+    );
+    assert.strictEqual(
+      barePageRoutes.length,
+      8,
+      'caps at MAX_PRERENDERED_STATIC_PAGES bare routes',
+    );
+  });
+});
+
 void describe('astroAdapter — config loading edge cases', () => {
   let tmpDir: string;
   beforeEach(() => {
