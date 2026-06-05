@@ -51,6 +51,12 @@ type OpenNextOutput = {
     [key: string]: unknown;
     disableIncrementalCache?: boolean;
     imageOptimization?: boolean;
+    /**
+     * One-shot DynamoDB tag-table seeder (`dynamodb-provider`). OpenNext
+     * emits this when the tag cache is enabled; its bundle contains a
+     * CFN-custom-resource handler + the prebuilt `dynamodb-cache.json`.
+     */
+    initializationFunction?: { handler?: string; bundle?: string };
   };
 };
 
@@ -1499,8 +1505,9 @@ const translateOpenNextOutput = (
   if (output.additionalProps?.disableIncrementalCache !== true) {
     const revalidationFnDir = path.join(openNextDir, 'revalidation-function');
     const hasRevalidationFn = fs.existsSync(revalidationFnDir);
-    const hasIsrEvidence =
-      hasRevalidationFn || fs.existsSync(path.join(openNextDir, 'cache'));
+    const cacheDir = path.join(openNextDir, 'cache');
+    const hasCacheDir = fs.existsSync(cacheDir);
+    const hasIsrEvidence = hasRevalidationFn || hasCacheDir;
 
     if (hasIsrEvidence) {
       const computeNames = Object.keys(manifest.compute);
@@ -1508,6 +1515,28 @@ const translateOpenNextOutput = (
         computeNames.find((n) => n === 'default' || n === 'server') ??
         computeNames[0];
       if (primaryComputeName) {
+        // Seed the cache bucket with the build's prebuilt ISR/SSG cache
+        // (.open-next/cache) so prerendered pages are a cache HIT on the
+        // first request instead of a cold on-demand render. The on-disk
+        // layout is already `<buildId>/<route>.cache`, which matches what
+        // the runtime reads (CACHE_BUCKET_KEY_PREFIX is empty + keys are
+        // namespaced by OPEN_NEXT_BUILD_ID).
+        const seedDirectory = hasCacheDir ? cacheDir : undefined;
+
+        // Seed the DynamoDB tag table with the build's prebuilt tag rows
+        // via OpenNext's dynamodb-provider (a CFN-custom-resource handler
+        // bundling `dynamodb-cache.json`). Without it, tag revalidation
+        // can't purge a page until that page has been hit once.
+        const initFnMeta = output.additionalProps?.initializationFunction;
+        const initFnDir = path.join(openNextDir, 'dynamodb-provider');
+        const initFunction =
+          initFnMeta && fs.existsSync(initFnDir)
+            ? {
+                bundle: initFnDir,
+                handler: initFnMeta.handler ?? 'index.handler',
+              }
+            : undefined;
+
         manifest.cache = {
           computeResource: primaryComputeName,
           tagRevalidation: true,
@@ -1515,6 +1544,8 @@ const translateOpenNextOutput = (
           revalidationFunction: hasRevalidationFn
             ? { bundle: revalidationFnDir, handler: 'index.handler' }
             : undefined,
+          ...(seedDirectory ? { seedDirectory } : {}),
+          ...(initFunction ? { initFunction } : {}),
         };
       }
     }

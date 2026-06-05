@@ -66,6 +66,13 @@ export const cacheConfigSchema = z.object({
       handler: z.string().min(1),
     })
     .optional(),
+  seedDirectory: z.string().min(1).optional(),
+  initFunction: z
+    .object({
+      bundle: z.string().min(1),
+      handler: z.string().min(1),
+    })
+    .optional(),
 });
 
 /**

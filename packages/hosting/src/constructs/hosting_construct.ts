@@ -1,7 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import {
+  CfnOutput,
+  CustomResource,
+  Duration,
+  Fn,
+  RemovalPolicy,
+  Stack,
+} from 'aws-cdk-lib';
+import { Provider } from 'aws-cdk-lib/custom-resources';
 import {
   Distribution,
   IResponseHeadersPolicy,
@@ -580,6 +588,57 @@ export class AmplifyHostingConstruct extends Construct {
             Stack.of(this).region,
           );
         }
+      }
+
+      // ---- 3b. Seed the ISR cache (S3 + DynamoDB tag table) ----
+      // Without seeding, every prerendered ISR/SSG page is a cold
+      // on-demand render on first request (cache MISS) and tag-based
+      // revalidation can't purge a page until it's been hit once. We
+      // upload the build's prebuilt cache and seed the tag table so the
+      // build-time prerender is actually used.
+      if (manifest.cache.seedDirectory && this.cacheBucket) {
+        // The on-disk layout is `<buildId>/<route>.cache`, which is
+        // exactly the key the runtime reads (empty CACHE_BUCKET_KEY_PREFIX
+        // + OPEN_NEXT_BUILD_ID namespacing), so upload preserves keys.
+        // `prune: false` so we never delete a concurrent build's objects;
+        // each build writes under its own `<buildId>/` prefix.
+        new BucketDeployment(this, 'IsrCacheSeed', {
+          sources: [Source.asset(manifest.cache.seedDirectory)],
+          destinationBucket: this.cacheBucket,
+          prune: false,
+          // The cache blobs are not Cache-Control-sensitive (read by the
+          // Lambda via the SDK, never served through CloudFront), but set
+          // a private directive so an accidental public read is non-cacheable.
+          cacheControl: [CacheControl.fromString('private, no-store')],
+        });
+      }
+
+      if (manifest.cache.initFunction && this.cacheTable) {
+        // OpenNext's dynamodb-provider is a CloudFormation custom-resource
+        // handler: it reads its bundled `dynamodb-cache.json` and writes the
+        // build's tag→path rows into CACHE_DYNAMO_TABLE on create/update.
+        const initFn = new LambdaFunction(this, 'IsrTagTableSeedFn', {
+          runtime: Runtime.NODEJS_20_X,
+          handler: manifest.cache.initFunction.handler,
+          code: Code.fromAsset(manifest.cache.initFunction.bundle),
+          timeout: Duration.minutes(5),
+          memorySize: 512,
+          environment: {
+            CACHE_DYNAMO_TABLE: this.cacheTable.tableName,
+            CACHE_BUCKET_REGION: Stack.of(this).region,
+          },
+        });
+        this.cacheTable.grantReadWriteData(initFn);
+
+        const initProvider = new Provider(this, 'IsrTagTableSeedProvider', {
+          onEventHandler: initFn,
+        });
+        // `buildId` in the properties makes the custom resource re-run on
+        // every new build (new prerendered tag set), not just on create.
+        new CustomResource(this, 'IsrTagTableSeed', {
+          serviceToken: initProvider.serviceToken,
+          properties: { buildId },
+        });
       }
     }
 

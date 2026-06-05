@@ -233,6 +233,32 @@ export type CacheConfig = {
     /** Handler entry point (e.g. 'index.handler') */
     handler: string;
   };
+
+  /**
+   * Directory of prebuilt incremental-cache files to seed the S3 cache
+   * bucket with at deploy time (OpenNext's `.open-next/cache`). Without
+   * this, every prerendered ISR/SSG page is a cold render on first
+   * request (cache MISS) until it self-populates. The L3 uploads this
+   * directory's contents to the cache bucket under the build-id prefix
+   * the runtime reads. Only honoured when `driver === 'opennext'`.
+   */
+  seedDirectory?: string;
+
+  /**
+   * One-shot initialization function that seeds the DynamoDB tag table
+   * with the build's prebuilt tag→path rows (OpenNext's
+   * `dynamodb-provider`, which reads its bundled `dynamodb-cache.json`).
+   * The L3 wires it as a CloudFormation custom resource that runs once
+   * per deploy. Without it, tag-based revalidation can't purge a page
+   * until that page has been requested at least once. Only honoured
+   * when `driver === 'opennext'` and `tagRevalidation` is true.
+   */
+  initFunction?: {
+    /** Path to the initialization function bundle directory */
+    bundle: string;
+    /** Handler entry point (e.g. 'index.handler') */
+    handler: string;
+  };
 };
 
 export type ImageConfig = {
