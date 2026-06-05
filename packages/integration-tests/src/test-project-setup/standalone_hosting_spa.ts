@@ -62,6 +62,14 @@ export class StandaloneHostingSpaTestProjectCreator implements TestProjectCreato
     const destDistDir = path.join(projectRoot, 'dist');
     await fs.cp(sourceDistDir, destDistDir, { recursive: true });
 
+    // Copy the custom-404.html file
+    const sourceCustom404 = new URL(
+      `${project.sourceProjectDirPath}/custom-404.html`,
+      import.meta.url,
+    );
+    const destCustom404 = path.join(projectRoot, 'custom-404.html');
+    await fs.cp(sourceCustom404, destCustom404);
+
     return project;
   };
 }

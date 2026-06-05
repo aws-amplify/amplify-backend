@@ -168,6 +168,18 @@ export type AmplifyHostingConstructProps = {
     enabled: boolean;
     retentionDays?: number;
   };
+  /** Custom environment variables for all compute functions. */
+  environment?: Record<string, string>;
+  /**
+   * Custom error page configuration.
+   * Provide paths to HTML files for custom 404 and 500 error responses.
+   */
+  errorPages?: {
+    /** Path to a custom 404 HTML file (relative to project root). */
+    notFound?: string;
+    /** Path to a custom 500 HTML file (relative to project root). */
+    serverError?: string;
+  };
   /**
    * Cookie-based skew protection.
    * When enabled, users mid-session keep receiving assets from their original
@@ -606,6 +618,70 @@ export class AmplifyHostingConstruct extends Construct {
       middlewareEdgeVersion = middlewareConstruct.function.currentVersion;
     }
 
+    // ---- 5a. User-provided environment variables (applied to ALL compute functions) ----
+    const RESERVED_PREFIXES = [
+      'AWS_',
+      'AMPLIFY_',
+      'OPEN_NEXT_',
+      'CACHE_',
+      'REVALIDATION_',
+      'NODE_',
+      'LAMBDA_',
+    ];
+    const RESERVED_EXACT_KEYS = new Set([
+      '_HANDLER',
+      'LD_PRELOAD',
+      '_X_AMZN_TRACE_ID',
+    ]);
+    const KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+    if (props.environment) {
+      for (const key of Object.keys(props.environment)) {
+        if (!KEY_PATTERN.test(key)) {
+          throw new HostingError('InvalidEnvironmentKeyError', {
+            message: `Environment variable key '${key}' contains invalid characters.`,
+            resolution:
+              'Keys must match [a-zA-Z_][a-zA-Z0-9_]* (letters, numbers, underscores only, cannot start with a number).',
+          });
+        }
+        if (RESERVED_PREFIXES.some((p) => key.startsWith(p))) {
+          throw new HostingError('ReservedEnvironmentKeyError', {
+            message: `Environment variable key '${key}' uses a reserved prefix.`,
+            resolution: `Keys starting with ${RESERVED_PREFIXES.join(', ')} are reserved for internal use.`,
+          });
+        }
+        if (RESERVED_EXACT_KEYS.has(key)) {
+          throw new HostingError('ReservedEnvironmentKeyError', {
+            message: `Environment variable key '${key}' is a reserved runtime key.`,
+            resolution: `The key '${key}' is reserved by the Lambda runtime and cannot be overridden.`,
+          });
+        }
+        if (key.length > 256) {
+          throw new HostingError('EnvironmentKeyTooLongError', {
+            message: `Environment variable key '${key}' exceeds 256 character limit.`,
+            resolution:
+              'Lambda environment variable keys must be 256 characters or fewer.',
+          });
+        }
+        const value = props.environment[key];
+        if (value.length > 8192) {
+          throw new HostingError('EnvironmentValueTooLongError', {
+            message: `Environment variable value for '${key}' exceeds 8KB limit.`,
+            resolution:
+              'Lambda environment variable values must be 8192 characters or fewer.',
+          });
+        }
+      }
+
+      for (const [, fn] of this.computeFunctions.entries()) {
+        if (fn instanceof LambdaFunction) {
+          for (const [key, value] of Object.entries(props.environment)) {
+            fn.addEnvironment(key, value);
+          }
+        }
+      }
+    }
+
     // ---- 6. WAF (conditional) ----
     // Only create the built-in WAF construct if user didn't provide their own ARN
     if (!props.cdn?.webAclArn) {
@@ -691,6 +767,12 @@ export class AmplifyHostingConstruct extends Construct {
       skewProtection: props.skewProtection ?? { enabled: true },
       ssrDefaultTtl: props.cdn?.ssrDefaultTtl,
       webAclArn: props.cdn?.webAclArn,
+      customErrorPages: props.errorPages
+        ? {
+            notFound: !!props.errorPages.notFound,
+            serverError: !!props.errorPages.serverError,
+          }
+        : undefined,
     });
 
     this.distribution = cdn.distribution;
@@ -783,6 +865,78 @@ export class AmplifyHostingConstruct extends Construct {
     if (hasCompute) {
       new BucketDeployment(this, 'ErrorPageDeployment', {
         sources: [Source.data(ERROR_PAGE_KEY, cdn.errorPageHtml)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        prune: false,
+      });
+    }
+
+    // ---- 11a. Custom error pages ----
+    if (props.errorPages?.notFound) {
+      if (!fs.existsSync(props.errorPages.notFound)) {
+        throw new HostingError('CustomErrorPageNotFoundError', {
+          message: `Custom 404 error page not found at path: ${props.errorPages.notFound}`,
+          resolution:
+            'Ensure the notFound path points to an existing HTML file relative to your project root.',
+        });
+      }
+      const notFoundContent = fs.readFileSync(
+        props.errorPages.notFound,
+        'utf-8',
+      );
+      if (notFoundContent.length > 50 * 1024) {
+        throw new HostingError('ErrorPageTooLargeError', {
+          message: `Custom error page at ${props.errorPages.notFound} is ${Math.round(notFoundContent.length / 1024)}KB. Maximum is 50KB.`,
+          resolution: 'Reduce the size of your custom error page HTML file.',
+        });
+      }
+      if (
+        !notFoundContent.trim().toLowerCase().includes('<html') &&
+        !notFoundContent.trim().toLowerCase().includes('<!doctype')
+      ) {
+        throw new HostingError('InvalidErrorPageContentError', {
+          message: `Custom error page at ${props.errorPages.notFound} does not appear to be valid HTML.`,
+          resolution:
+            'Ensure the file contains valid HTML (should include <html> or <!DOCTYPE> tag).',
+        });
+      }
+      new BucketDeployment(this, 'Custom404Deployment', {
+        sources: [Source.data('404.html', notFoundContent)],
+        destinationBucket: this.bucket,
+        destinationKeyPrefix: `builds/${buildId}/`,
+        prune: false,
+      });
+    }
+    if (props.errorPages?.serverError) {
+      if (!fs.existsSync(props.errorPages.serverError)) {
+        throw new HostingError('CustomErrorPageNotFoundError', {
+          message: `Custom 500 error page not found at path: ${props.errorPages.serverError}`,
+          resolution:
+            'Ensure the serverError path points to an existing HTML file relative to your project root.',
+        });
+      }
+      const serverErrorContent = fs.readFileSync(
+        props.errorPages.serverError,
+        'utf-8',
+      );
+      if (serverErrorContent.length > 50 * 1024) {
+        throw new HostingError('ErrorPageTooLargeError', {
+          message: `Custom error page at ${props.errorPages.serverError} is ${Math.round(serverErrorContent.length / 1024)}KB. Maximum is 50KB.`,
+          resolution: 'Reduce the size of your custom error page HTML file.',
+        });
+      }
+      if (
+        !serverErrorContent.trim().toLowerCase().includes('<html') &&
+        !serverErrorContent.trim().toLowerCase().includes('<!doctype')
+      ) {
+        throw new HostingError('InvalidErrorPageContentError', {
+          message: `Custom error page at ${props.errorPages.serverError} does not appear to be valid HTML.`,
+          resolution:
+            'Ensure the file contains valid HTML (should include <html> or <!DOCTYPE> tag).',
+        });
+      }
+      new BucketDeployment(this, 'Custom500Deployment', {
+        sources: [Source.data('500.html', serverErrorContent)],
         destinationBucket: this.bucket,
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,

@@ -326,6 +326,8 @@ const doBuildHostingConstruct = (
     cdn: props.cdn,
     storage: props.storage,
     logging: props.logging,
+    environment: props.environment,
+    errorPages: props.errorPages,
   };
 
   const hostingConstruct = new AmplifyHostingConstruct(
