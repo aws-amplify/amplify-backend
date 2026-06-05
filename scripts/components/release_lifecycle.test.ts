@@ -92,6 +92,10 @@ void describe('release lifecycle', async () => {
     await gitClient.switchToBranch('main');
     await npmClient.init();
 
+    // Pin human-id@4.1.3 to fix ESM/CJS breakage with @changesets/cli
+    // human-id@4.2.0 switched to ESM-only, breaking @changesets/cli which requires it
+    await npmClient.install(['human-id@4.1.3']);
+
     await npmClient.initWorkspacePackage(cantaloupePackageName);
     await setPackageToPublic(
       path.join(testWorkingDir, 'packages', cantaloupePackageName),
