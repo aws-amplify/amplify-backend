@@ -149,12 +149,15 @@ export const nextjsAdapter = (
     // possible patch break and can pin back if needed.
     warnIfOpenNextOutOfRange(projectDir);
 
-    // Patch OpenNext's bundled aws-lambda-streaming wrapper for API Gateway
-    // STREAM framing. See patchStreamingWrapperForApiGateway for what changes.
-    patchStreamingWrapperForApiGateway(openNextDir);
+    // Streaming-wrapper patch removed: the generated open-next.config.ts now
+    // selects the native `aws-apigw-streaming` wrapper (OpenNext >= the version
+    // that ships it), which emits API-Gateway-safe STREAM framing directly.
+    // The old build-time monkeypatch (patchStreamingWrapperForApiGateway) is no
+    // longer applied — see the aws-apigw-streaming OpenNext PR.
 
     // Patch each edge bundle's process import banner for Lambda@Edge
-    // nodejs20.x compatibility. See patchEdgeBundleForLambdaEdge.
+    // nodejs20.x compatibility. See patchEdgeBundleForLambdaEdge. (Unrelated to
+    // the streaming wrapper; still required.)
     patchEdgeBundlesForLambdaEdge(openNextDir);
   }
 
@@ -882,8 +885,8 @@ const validateUserOpenNextConfig = (
   if (!findOverride(source, 'converter', 'aws-apigw-v1')) {
     missing.push("converter: 'aws-apigw-v1'");
   }
-  if (!findOverride(source, 'wrapper', 'aws-lambda-streaming')) {
-    missing.push("wrapper: 'aws-lambda-streaming'");
+  if (!findOverride(source, 'wrapper', 'aws-apigw-streaming')) {
+    missing.push("wrapper: 'aws-apigw-streaming'");
   }
   // Edge functions must be split out per OpenNext's build-time
   // requirement. Detect by checking for any `runtime: 'edge'` token in
@@ -934,7 +937,7 @@ const config = {
     minify: true,
     override: {
       converter: 'aws-apigw-v1',
-      wrapper: 'aws-lambda-streaming',
+      wrapper: 'aws-apigw-streaming',
     },
   },${edgeBlock}
 };
@@ -1324,18 +1327,11 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
   process.stderr.write(
     `\u{1F528} Running OpenNext build: npx ${args.join(' ')}\n`,
   );
-  // OpenNext emits a stderr line that reads as a fatal error during this
-  // build:
-  //   ERROR Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible.
-  //   For the wrapper aws-lambda-streaming you should only use the following converters: aws-apigw-v2.
-  // It is not fatal — Amplify hosting fronts the SSR Lambda with API Gateway
-  // v1 (REST API) for `response-streaming-invocations`, and the bundle is
-  // patched after this build finishes (see `patchStreamingWrapperForApiGateway`).
-  // Pre-announce so users running `ampx deploy` for the first time don't think
-  // OpenNext failed.
-  process.stderr.write(
-    `\u{2139}\u{FE0F}  OpenNext may print "Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible" — this is expected. Amplify Hosting fronts the SSR Lambda with API Gateway v1 (REST API) and patches the bundled streaming wrapper after the build.\n`,
-  );
+  // The generated open-next.config.ts selects `aws-apigw-streaming` +
+  // `aws-apigw-v1`. That pairing is explicitly allowed by OpenNext's
+  // compatibility matrix (the native wrapper supports API Gateway REST +
+  // STREAM), so OpenNext no longer prints the old "wrapper/converter not
+  // compatible" warning and no post-build bundle patch is required.
 
   try {
     spawn.sync('npx', args, {

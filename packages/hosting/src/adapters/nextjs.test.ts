@@ -1650,7 +1650,7 @@ export default config;
     fs.writeFileSync(
       path.join(tmpDir, 'open-next.config.ts'),
       `const config = {
-  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } },
+  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-apigw-streaming' } },
 };
 export default config;
 `,
