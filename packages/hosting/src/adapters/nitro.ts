@@ -108,6 +108,16 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * `stale-while-revalidate` window (seconds) emitted for SWR route rules.
+ * One year — matches the SWR window OpenNext/Next emit for ISR pages
+ * (`stale-while-revalidate=31536000`): once a page is fresh-cached, a stale
+ * copy can still be served for essentially this long while the background
+ * refresh runs. The freshness window is the rule's own `maxAge` (the
+ * `s-maxage`); this constant is only the trailing stale grace period.
+ */
+const SWR_STALE_WINDOW_SECONDS = 31536000;
+
+/**
  * Verified Nitro version range. The aws-lambda handler patcher
  * (`patchNitroHandlerForApiGateway`) and the dep-store materializer
  * have been exercised against Nitro 2.10–2.13; the range below
@@ -1378,10 +1388,12 @@ const buildRedirects = (
  *  - `headers: { ... }` lifts as-is.
  *  - `cors: true` emits the same Access-Control-* set as Nitro's runtime
  *    middleware so behavior matches when the rule fires at the edge.
- *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N,
- *    s-maxage=N` so CloudFront edge-caches the response for N seconds.
- *    SWR rules are intentionally not lifted — those need server-side
- *    cache plumbing (covered by `manifest.cache` provisioning).
+ *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N, s-maxage=N`
+ *    so CloudFront edge-caches the response for N seconds.
+ *  - SWR rules (`cache: { swr: true, maxAge: N }`) emit
+ *    `public, s-maxage=N, stale-while-revalidate=…` (no `max-age`) so the
+ *    edge serves stale-while-revalidating instead of hard-caching. Background
+ *    regeneration still relies on `manifest.cache` provisioning.
  */
 const buildHeaders = (
   routeRules: Record<string, NitroRouteRule>,
@@ -1411,16 +1423,25 @@ const buildHeaders = (
       corsHeaders['Access-Control-Allow-Headers'] =
         'Content-Type, Authorization';
     }
-    // 2. `cache.maxAge: N` — translate to a public Cache-Control. We
-    //    emit both `max-age` and `s-maxage` because the L3's
-    //    ssrCachePolicy honors `s-maxage` for CloudFront edge caching;
-    //    `max-age` covers the browser cache.
+    // 2. `cache.maxAge: N` — translate to a public Cache-Control.
     const maxAge = rule.cache?.maxAge;
     if (typeof maxAge === 'number' && maxAge > 0 && Number.isFinite(maxAge)) {
-      const maxAgeHeaders = recordFor(source);
-      const value = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
+      const cacheHeaders = recordFor(source);
+      // SWR (`cache: { swr: true, maxAge: N }`, or the `swr: N` shorthand
+      // Nitro normalizes into it) means "serve fresh for N seconds, then
+      // serve STALE while revalidating in the background" — NOT "cache hard
+      // for N seconds". Emit `s-maxage=N, stale-while-revalidate=…` and NO
+      // `max-age`, so the browser always revalidates while CloudFront serves
+      // the stale edge copy. A plain `max-age=N` would let browsers pin the
+      // stale response with no revalidation — the opposite of SWR.
+      const isSwr =
+        rule.cache?.swr === true ||
+        Boolean((rule as Record<string, unknown>).swr);
+      const value = isSwr
+        ? `public, s-maxage=${maxAge}, stale-while-revalidate=${SWR_STALE_WINDOW_SECONDS}`
+        : `public, max-age=${maxAge}, s-maxage=${maxAge}`;
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      maxAgeHeaders['Cache-Control'] = value;
+      cacheHeaders['Cache-Control'] = value;
     }
     // 3. User-declared `headers: { ... }` wins over the auto-emit
     //    above. Validate Cache-Control values so invalid directives

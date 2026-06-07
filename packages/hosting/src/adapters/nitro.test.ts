@@ -716,19 +716,52 @@ void describe('nitroAdapter — routeRules header lift (cors, cache.maxAge)', ()
     );
   });
 
-  void it('does NOT lift cache.swr (server-side cache plumbing only)', () => {
+  void it('does NOT lift cache.swr without a maxAge (no freshness window to express)', () => {
     writeMinimalNitroOutput(tmpDir, {
       bundledRouteRules: { '/news/**': { cache: { swr: true } } },
     });
     writePackageJson(tmpDir, { nuxt: '^4.0.0' });
     const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
-    // swr should still trigger cache provisioning, but NOT a Cache-Control
-    // header (that comes from the SSR Lambda's response).
+    // swr:true alone (no maxAge) has no freshness window to encode → no header.
     assert.strictEqual(
       manifest.headers,
       undefined,
-      'swr should not auto-emit Cache-Control on the route',
+      'swr without maxAge should not auto-emit Cache-Control',
     );
+  });
+
+  void it('lifts SWR (cache.swr + maxAge) to s-maxage + stale-while-revalidate, no max-age', () => {
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: { '/news/**': { cache: { swr: true, maxAge: 30 } } },
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/news/*');
+    assert.ok(lifted, 'SWR should produce a manifest.headers entry');
+    const cc = lifted!.headers['Cache-Control'];
+    // SWR semantics: edge fresh for maxAge, then serve stale while
+    // revalidating. NO max-age (browsers must revalidate).
+    assert.match(cc, /\bs-maxage=30\b/);
+    assert.match(cc, /\bstale-while-revalidate=\d+\b/);
+    assert.doesNotMatch(cc, /\bmax-age=/, 'SWR must not emit max-age');
+  });
+
+  void it('lifts the swr: <number> shorthand to SWR Cache-Control', () => {
+    // Nitro accepts `swr: 30` as shorthand; the adapter treats the untyped
+    // top-level `swr` flag as SWR intent when a maxAge is present.
+    writeMinimalNitroOutput(tmpDir, {
+      bundledRouteRules: {
+        '/feed/**': { swr: true, cache: { maxAge: 45 } },
+      } as never,
+    });
+    writePackageJson(tmpDir, { nuxt: '^4.0.0' });
+    const manifest = nitroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const lifted = manifest.headers?.find((h) => h.source === '/feed/*');
+    assert.ok(lifted);
+    const cc = lifted!.headers['Cache-Control'];
+    assert.match(cc, /\bs-maxage=45\b/);
+    assert.match(cc, /\bstale-while-revalidate=\d+\b/);
+    assert.doesNotMatch(cc, /\bmax-age=/);
   });
 
   void it('user-declared headers win over auto-emitted CORS / Cache-Control', () => {
