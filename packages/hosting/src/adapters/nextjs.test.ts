@@ -153,6 +153,48 @@ void describe('nextjsAdapter', () => {
     );
   });
 
+  void it('does not provision DynamoDB when disableTagCache is set', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(openNextDir, 'revalidation-function'), {
+      recursive: true,
+    });
+    // S3 incremental cache stays; only the tag cache is disabled.
+    fs.mkdirSync(path.join(openNextDir, 'cache'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: { disableTagCache: true },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.cache, 'incremental cache still provisioned');
+    assert.strictEqual(
+      manifest.cache!.tagRevalidation,
+      false,
+      'tag cache (DynamoDB) must be off when disableTagCache is set',
+    );
+    assert.strictEqual(
+      manifest.cache!.initFunction,
+      undefined,
+      'no tag-table seeder when tag cache is disabled',
+    );
+    // S3 incremental cache seeding is unaffected.
+    assert.ok(manifest.cache!.seedDirectory);
+  });
+
   void it('surfaces the ISR cache seed dir + tag-table init function', () => {
     const openNextDir = path.join(tmpDir, '.open-next');
     fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {

@@ -50,6 +50,14 @@ type OpenNextOutput = {
   additionalProps?: {
     [key: string]: unknown;
     disableIncrementalCache?: boolean;
+    /**
+     * OpenNext's `disableTagCache` — turns off the DynamoDB tag table while
+     * keeping the S3 incremental cache. When true, we must NOT provision
+     * DynamoDB (it would be an unused, billed resource). OpenNext also omits
+     * the `dynamodb-provider` directory in this mode, which we treat as a
+     * secondary signal.
+     */
+    disableTagCache?: boolean;
     imageOptimization?: boolean;
     /**
      * One-shot DynamoDB tag-table seeder (`dynamodb-provider`). OpenNext
@@ -1523,6 +1531,14 @@ const translateOpenNextOutput = (
         // namespaced by OPEN_NEXT_BUILD_ID).
         const seedDirectory = hasCacheDir ? cacheDir : undefined;
 
+        // Honor OpenNext's `disableTagCache`: when set, the user opted out of
+        // the DynamoDB tag table (keeping only the S3 incremental cache).
+        // Provisioning DynamoDB anyway is a billed, unused resource, and
+        // OpenNext omits the `dynamodb-provider` bundle in this mode so there
+        // would be nothing to seed it with.
+        const tagCacheEnabled =
+          output.additionalProps?.disableTagCache !== true;
+
         // Seed the DynamoDB tag table with the build's prebuilt tag rows
         // via OpenNext's dynamodb-provider (a CFN-custom-resource handler
         // bundling `dynamodb-cache.json`). Without it, tag revalidation
@@ -1530,7 +1546,7 @@ const translateOpenNextOutput = (
         const initFnMeta = output.additionalProps?.initializationFunction;
         const initFnDir = path.join(openNextDir, 'dynamodb-provider');
         const initFunction =
-          initFnMeta && fs.existsSync(initFnDir)
+          tagCacheEnabled && initFnMeta && fs.existsSync(initFnDir)
             ? {
                 bundle: initFnDir,
                 handler: initFnMeta.handler ?? 'index.handler',
@@ -1539,7 +1555,7 @@ const translateOpenNextOutput = (
 
         manifest.cache = {
           computeResource: primaryComputeName,
-          tagRevalidation: true,
+          tagRevalidation: tagCacheEnabled,
           revalidationQueue: true,
           revalidationFunction: hasRevalidationFn
             ? { bundle: revalidationFnDir, handler: 'index.handler' }
