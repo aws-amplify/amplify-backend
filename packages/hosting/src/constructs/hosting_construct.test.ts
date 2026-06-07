@@ -252,6 +252,30 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
     });
   });
 
+  void it('wires compute.provisionedConcurrency into a live alias on the SSR Lambda', () => {
+    // Regression for the silently-dropped prop: the L3 used to forward only
+    // memory/timeout/reserved to the SSR ComputeConstruct, so
+    // compute.provisionedConcurrency was inert. Now it creates a `live`
+    // alias the REST integration targets.
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      skipRegionValidation: true,
+      compute: { provisionedConcurrency: 4 },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Lambda::Alias', {
+      Name: 'live',
+      ProvisionedConcurrencyConfig: Match.objectLike({
+        ProvisionedConcurrentExecutions: 4,
+      }),
+    });
+  });
+
   void it('throws when skewProtection.maxAge exceeds storage.buildRetentionDays', () => {
     const staticDir = createStaticDir();
     const bundleDir = createBundleDir();

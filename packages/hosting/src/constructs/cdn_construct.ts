@@ -119,6 +119,13 @@ export type CdnConstructProps = {
   computeFunctionUrls?: Map<string, IFunctionUrl>;
   /** Map of compute name → Lambda function for OAC permission patching. */
   computeFunctions?: Map<string, IFunction>;
+  /**
+   * Map of compute name → `live` alias for resources with provisioned
+   * concurrency. When the SSR compute has an alias, the REST API
+   * integration targets it (the warm alias) instead of `$LATEST`, so
+   * provisioned instances actually serve request traffic.
+   */
+  computeAliases?: Map<string, IFunction>;
   /** WAFv2 WebACL to associate with the distribution. */
   webAcl?: CfnWebACL;
   /** ACM certificate for custom domain TLS. */
@@ -294,7 +301,13 @@ export class CdnConstruct extends Construct {
           : undefined;
 
     if (ssrComputeName && props.computeFunctions) {
-      const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+      // Target the warm `live` alias when provisioned concurrency is set;
+      // otherwise the unqualified function ($LATEST). Without this, the
+      // REST integration always hit $LATEST and provisioned instances on
+      // the alias sat idle.
+      const ssrFn =
+        props.computeAliases?.get(ssrComputeName) ??
+        props.computeFunctions.get(ssrComputeName)!;
 
       // Origin verification secret — prevents direct APIGW access bypassing
       // CloudFront's security headers (CSP/HSTS). Requests without this

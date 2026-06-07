@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import {
+  Alias,
   Architecture,
   Code,
   FunctionUrl,
@@ -83,6 +84,14 @@ export type ComputeConstructProps = {
   timeout?: Duration;
   /** Reserved concurrent executions. Default: undefined (no reservation). */
   reservedConcurrency?: number;
+  /**
+   * Provisioned concurrency for cold-start elimination. When > 0, a `live`
+   * alias is created with this many always-warm execution environments, and
+   * the alias becomes the routing target (Function URL and — for SSR — the
+   * caller's REST API integration via the exposed {@link alias}). Default:
+   * undefined (no provisioning; `$LATEST` serves traffic).
+   */
+  provisionedConcurrency?: number;
   /** Lambda Web Adapter layer version. Default: 22. */
   webAdapterVersion?: number;
   /** CloudWatch log retention. Default: TWO_WEEKS. */
@@ -118,6 +127,13 @@ export type ComputeConstructProps = {
 export class ComputeConstruct extends Construct {
   readonly function: LambdaFunction | experimental.EdgeFunction;
   readonly functionUrl: FunctionUrl | undefined;
+  /**
+   * The `live` alias backing provisioned concurrency, when
+   * `provisionedConcurrency > 0`. Exposed so the L3 can point an
+   * API Gateway integration at the warm alias for SSR compute (which has
+   * no Function URL). Undefined when provisioned concurrency is not set.
+   */
+  readonly alias: Alias | undefined;
 
   /**
    * Creates a compute resource (Lambda function) based on the compute type.
@@ -271,6 +287,23 @@ export class ComputeConstruct extends Construct {
       });
     }
 
+    // Provisioned-concurrency alias. The prop (L3 user surface) takes
+    // precedence over the manifest value (adapter-derived). Created for any
+    // non-edge compute when provisioning is requested — INCLUDING SSR, where
+    // `skipFunctionUrl` is set: the REST API integration must target the warm
+    // `live` alias (not `$LATEST`), or the provisioned instances sit idle.
+    const provisionedConcurrency =
+      props.provisionedConcurrency ?? computeResource.provisionedConcurrency;
+    if (
+      computeResource.type !== 'edge' &&
+      provisionedConcurrency &&
+      provisionedConcurrency > 0
+    ) {
+      this.alias = (this.function as LambdaFunction).addAlias('live', {
+        provisionedConcurrentExecutions: provisionedConcurrency,
+      });
+    }
+
     // Function URL — skipped for edge (unsupported) or SSR (REST API instead).
     if (computeResource.type !== 'edge' && !props.skipFunctionUrl) {
       const invokeMode =
@@ -278,25 +311,12 @@ export class ComputeConstruct extends Construct {
           ? InvokeMode.RESPONSE_STREAM
           : InvokeMode.BUFFERED;
 
-      if (
-        computeResource.provisionedConcurrency &&
-        computeResource.provisionedConcurrency > 0
-      ) {
-        // Point Function URL at the alias (warm instances) instead of $LATEST
-        const alias = (this.function as LambdaFunction).addAlias('live', {
-          provisionedConcurrentExecutions:
-            computeResource.provisionedConcurrency,
-        });
-        this.functionUrl = alias.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
-          invokeMode,
-        });
-      } else {
-        this.functionUrl = this.function.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
-          invokeMode,
-        });
-      }
+      // Point the Function URL at the warm alias when one exists.
+      const urlTarget = this.alias ?? this.function;
+      this.functionUrl = urlTarget.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode,
+      });
     }
   }
 

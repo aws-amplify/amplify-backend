@@ -473,6 +473,34 @@ void describe('ComputeConstruct', () => {
         InvokeMode: 'RESPONSE_STREAM',
       });
     });
+
+    void it('creates the alias (no Function URL) for SSR via the provisionedConcurrency prop', () => {
+      // SSR compute sets skipFunctionUrl=true; the alias must still be
+      // created so the L3 can point the REST API integration at it. The
+      // prop (L3 user surface) drives this, not the manifest value.
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      const compute = new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        skipFunctionUrl: true,
+        provisionedConcurrency: 3,
+      });
+
+      // The alias is exposed for the caller to target.
+      assert.ok(compute.alias, 'alias should be exposed');
+      assert.strictEqual(compute.functionUrl, undefined, 'no Function URL');
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Lambda::Alias', {
+        Name: 'live',
+        ProvisionedConcurrencyConfig: Match.objectLike({
+          ProvisionedConcurrentExecutions: 3,
+        }),
+      });
+      template.resourceCountIs('AWS::Lambda::Url', 0);
+    });
   });
 
   // ---- environment passthrough ----

@@ -26,6 +26,7 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import {
+  Alias,
   Code,
   FunctionUrl,
   IVersion,
@@ -114,6 +115,13 @@ export type AmplifyHostingConstructProps = {
      */
     timeout?: Duration | number;
     reservedConcurrency?: number;
+    /**
+     * Provisioned concurrency for the SSR Lambda (cold-start elimination).
+     * When > 0, the construct creates a `live` alias with this many
+     * always-warm execution environments and points the SSR REST API
+     * integration at the alias. Default: undefined (no provisioning).
+     */
+    provisionedConcurrency?: number;
     logRetention?: RetentionDays;
     /**
      * Additional environment variables to inject into all compute Lambda
@@ -252,6 +260,12 @@ export class AmplifyHostingConstruct extends Construct {
     LambdaFunction | experimental.EdgeFunction
   > = new Map();
   readonly computeFunctionUrls: Map<string, FunctionUrl> = new Map();
+  /**
+   * `live` aliases for compute resources with provisioned concurrency.
+   * Passed to the CDN so the SSR REST API integration targets the warm
+   * alias instead of `$LATEST`.
+   */
+  readonly computeAliases: Map<string, Alias> = new Map();
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
@@ -376,6 +390,13 @@ export class AmplifyHostingConstruct extends Construct {
         memorySize: props.compute?.memorySize,
         timeout: computeTimeout,
         reservedConcurrency: props.compute?.reservedConcurrency,
+        // Forward the L3 user-facing provisioned-concurrency knob to the SSR
+        // compute. Previously this was silently dropped — only a
+        // manifest-level value (which adapters don't set from user input) was
+        // honored, so `compute.provisionedConcurrency` was inert.
+        provisionedConcurrency: isSsrCompute
+          ? props.compute?.provisionedConcurrency
+          : undefined,
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
         skipFunctionUrl: isSsrCompute,
@@ -385,6 +406,9 @@ export class AmplifyHostingConstruct extends Construct {
       this.computeFunctions.set(name, computeConstruct.function);
       if (computeConstruct.functionUrl) {
         this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
+      }
+      if (computeConstruct.alias) {
+        this.computeAliases.set(name, computeConstruct.alias);
       }
     }
 
@@ -872,6 +896,9 @@ export class AmplifyHostingConstruct extends Construct {
     // bursty and provisioned-concurrency is a better fit.
     if (
       props.compute?.warmup &&
+      // Skip warmup when provisioned concurrency keeps the SSR Lambda warm —
+      // whether set via the L3 prop or a manifest compute resource.
+      !props.compute?.provisionedConcurrency &&
       !manifest.compute.default?.provisionedConcurrency &&
       !manifest.compute.server?.provisionedConcurrency
     ) {
@@ -995,6 +1022,7 @@ export class AmplifyHostingConstruct extends Construct {
       contentSecurityPolicy: props.cdn?.contentSecurityPolicy,
       computeFunctionUrls: this.computeFunctionUrls,
       computeFunctions: this.computeFunctions,
+      computeAliases: this.computeAliases,
       middlewareEdgeFunction: middlewareEdgeVersion,
       routeEdgeFunctions,
       webAcl: this.webAcl,
