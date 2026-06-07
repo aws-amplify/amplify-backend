@@ -34,12 +34,7 @@ import semver from 'semver';
 import { createJiti } from 'jiti';
 import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
-import {
-  DeployManifest,
-  RemotePattern as ImageRemotePattern,
-  Redirect,
-  RouteBehavior,
-} from '../manifest/types.js';
+import { DeployManifest, Redirect, RouteBehavior } from '../manifest/types.js';
 
 export type AstroAdapterOptions = {
   /** Project root directory (absolute). */
@@ -150,16 +145,6 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
     (config.output as AstroOutput | undefined) ?? 'static';
   const trailingSlash: AstroTrailingSlash =
     (config.trailingSlash as AstroTrailingSlash | undefined) ?? 'ignore';
-  const imageDomains = readArrayOfStrings(config, 'image', 'domains');
-  const imageRemotePatterns = readImageRemotePatterns(config);
-  const imageAllowSVG =
-    typeof config.image?.dangerouslyAllowSVG === 'boolean'
-      ? config.image.dangerouslyAllowSVG
-      : undefined;
-  const imageMinimumCacheTTL =
-    typeof config.image?.minimumCacheTTL === 'number'
-      ? config.image.minimumCacheTTL
-      : undefined;
   const liftedRedirects = liftAstroRedirects(config);
   const basePath = normalizeBasePath(
     typeof config.base === 'string' ? config.base : undefined,
@@ -226,10 +211,6 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
           clientDir,
           serverDir,
           output,
-          imageDomains,
-          imageRemotePatterns,
-          imageAllowSVG,
-          imageMinimumCacheTTL,
         });
 
   // Lift the user's astro.config `redirects:` table out of the SSR
@@ -673,53 +654,6 @@ const loadAstroConfig = (projectDir: string): AstroConfigShape => {
   }
 };
 
-const readArrayOfStrings = (
-  obj: Record<string, unknown>,
-  ...keys: string[]
-): string[] => {
-  let cur: unknown = obj;
-  for (const k of keys) {
-    if (!cur || typeof cur !== 'object') return [];
-    cur = (cur as Record<string, unknown>)[k];
-  }
-  return Array.isArray(cur) && cur.every((v) => typeof v === 'string')
-    ? (cur as string[])
-    : [];
-};
-
-/**
- * Parse `astro.config.image.remotePatterns[]` into the manifest's
- * `RemotePattern[]` shape. Astro's pattern shape mirrors Next.js's;
- * we accept the same fields and silently drop entries missing
- * `hostname` (the only required field).
- */
-const readImageRemotePatterns = (
-  config: AstroConfigShape,
-): ImageRemotePattern[] => {
-  const raw = (config.image as { remotePatterns?: unknown } | undefined)
-    ?.remotePatterns;
-  if (!Array.isArray(raw)) return [];
-  const out: ImageRemotePattern[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== 'object') continue;
-    const e = entry as {
-      protocol?: unknown;
-      hostname?: unknown;
-      port?: unknown;
-      pathname?: unknown;
-    };
-    if (typeof e.hostname !== 'string' || e.hostname === '') continue;
-    const pattern: ImageRemotePattern = { hostname: e.hostname };
-    if (e.protocol === 'http' || e.protocol === 'https') {
-      pattern.protocol = e.protocol;
-    }
-    if (typeof e.port === 'string') pattern.port = e.port;
-    if (typeof e.pathname === 'string') pattern.pathname = e.pathname;
-    out.push(pattern);
-  }
-  return out;
-};
-
 /**
  * Translate Astro's `redirects:` config table into the manifest's
  * `redirects[]` shape. Astro accepts two value forms:
@@ -800,26 +734,13 @@ const buildSsrManifest = (input: {
   clientDir: string;
   serverDir: string;
   output: AstroOutput;
-  imageDomains: string[];
-  imageRemotePatterns: ImageRemotePattern[];
-  imageAllowSVG: boolean | undefined;
-  imageMinimumCacheTTL: number | undefined;
 }): DeployManifest => {
   // P1.6: bare and subtree forms are emitted unconditionally for
   // prerendered routes; the `emitTrailingSlashRedirects` post-pass
   // produces the canonical 308 if the user wants one. The
   // `trailingSlash` mode is read at the top-level adapter and used
   // there, not here.
-  const {
-    distDir,
-    clientDir,
-    serverDir,
-    output,
-    imageDomains,
-    imageRemotePatterns,
-    imageAllowSVG,
-    imageMinimumCacheTTL,
-  } = input;
+  const { distDir, clientDir, serverDir, output } = input;
 
   // bundle: dist/  — so the Lambda zip has `server/` and `client/` as
   // siblings; @astrojs/node's standalone runtime walks `import.meta.url`
@@ -855,26 +776,18 @@ const buildSsrManifest = (input: {
   // attaches to viewer-request for asset-prefix / build-id rewrites.
   // The middleware bundle is still inspected later for diagnostics.
 
-  // Astro's built-in image endpoint shows up in the server manifest.
-  if (hasAstroImageEndpoint(serverDir)) {
-    manifest.imageOptimization = {
-      bundle: serverDir,
-      handler: 'entry.handler',
-      formats: ['webp', 'avif'],
-      sizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-      baseURL: '/_image',
-      ...(imageDomains.length > 0 ? { domains: imageDomains } : {}),
-      ...(imageRemotePatterns.length > 0
-        ? { remotePatterns: imageRemotePatterns }
-        : {}),
-      ...(imageAllowSVG !== undefined
-        ? { dangerouslyAllowSVG: imageAllowSVG }
-        : {}),
-      ...(imageMinimumCacheTTL !== undefined
-        ? { minimumCacheTTL: imageMinimumCacheTTL }
-        : {}),
-    };
-  }
+  // NOTE: Astro's image endpoint (`/_image`) is served by the standalone
+  // server inside the SSR Lambda (it lives in `entry.mjs` alongside every
+  // other route), so we deliberately do NOT set `manifest.imageOptimization`.
+  //
+  // We used to: it pointed a `type:'handler'` image Lambda at Astro's
+  // `entry.handler` (an HTTP-server listener, not a native handler) and
+  // emitted no route targeting `/_image`. The result was a fully dead
+  // Lambda (1024 MB, reserved-concurrency 10) that received zero traffic —
+  // CloudFront sent `/_image` to the catch-all SSR Lambda anyway — and that
+  // would have crashed on the wrong invocation contract if it ever had been
+  // wired. Letting `/_image` ride the SSR Lambda is correct: Astro applies
+  // its own `image.domains` / `image.remotePatterns` there at runtime.
 
   const errorPages = detectErrorPages(clientDir);
   if (Object.keys(errorPages).length > 0) {
@@ -963,29 +876,6 @@ const detectErrorPages = (
     out[500] = '/500.html';
   }
   return out;
-};
-
-const hasAstroImageEndpoint = (serverDir: string): boolean => {
-  if (!fs.existsSync(serverDir)) return false;
-  const matches = fg.sync(
-    ['manifest_*.json', 'manifest_*.mjs', 'manifest.json'],
-    {
-      cwd: serverDir,
-      absolute: true,
-      onlyFiles: true,
-    },
-  );
-  for (const file of matches) {
-    try {
-      if (/_image|_astro\/_image/.test(fs.readFileSync(file, 'utf-8'))) {
-        return true;
-      }
-      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-    } catch {
-      // Skip unreadable manifests — cheap fallback.
-    }
-  }
-  return false;
 };
 
 const htmlToUrlPath = (relPath: string): string => {

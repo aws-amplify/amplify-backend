@@ -341,27 +341,32 @@ void describe("astroAdapter — output: 'server'", () => {
     assert.strictEqual(withoutMw.middleware, undefined);
   });
 
-  void it('detects built-in image endpoint and emits image-opt config', () => {
+  void it('does NOT emit a separate image-opt Lambda; /_image rides the SSR Lambda', () => {
+    // Astro serves /_image from the standalone server inside the SSR Lambda
+    // (entry.mjs). A separate image-opt compute would be dead (no route
+    // targets it) and mis-typed (handler vs http-server), so the adapter
+    // must not set manifest.imageOptimization.
     writeServerBuild(tmpDir, { imageEndpoint: true });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.ok(manifest.imageOptimization);
-    assert.strictEqual(manifest.imageOptimization!.baseURL, '/_image');
-    assert.deepStrictEqual(manifest.imageOptimization!.formats, [
-      'webp',
-      'avif',
-    ]);
+    assert.strictEqual(manifest.imageOptimization, undefined);
+    // And no route should single out /_image — it falls through to the
+    // catch-all SSR route.
+    const imageRoute = manifest.routes.find(
+      (r) => r.pattern === '/_image' || r.target === 'image-optimization',
+    );
+    assert.strictEqual(imageRoute, undefined);
   });
 
-  void it('passes image.domains from astro.config through to the manifest', () => {
+  void it('ignores astro.config image.domains (no image-opt Lambda to configure)', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'astro.config.mjs'),
       "export default { output: 'server', image: { domains: ['cdn.example.com'] } };",
     );
     writeServerBuild(tmpDir, { imageEndpoint: true });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.deepStrictEqual(manifest.imageOptimization!.domains, [
-      'cdn.example.com',
-    ]);
+    // Astro applies image.domains itself at runtime inside the SSR Lambda;
+    // the L3 has no image-opt Lambda for Astro to forward them to.
+    assert.strictEqual(manifest.imageOptimization, undefined);
   });
 
   void it('throws when entry.mjs is missing', () => {
