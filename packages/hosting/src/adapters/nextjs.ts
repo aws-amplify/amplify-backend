@@ -890,8 +890,16 @@ const validateUserOpenNextConfig = (
   if (!findOverride(source, 'converter', 'aws-apigw-v1')) {
     missing.push("converter: 'aws-apigw-v1'");
   }
-  if (!findOverride(source, 'wrapper', 'aws-lambda-streaming')) {
-    missing.push("wrapper: 'aws-lambda-streaming'");
+  // Accept either the patched community wrapper (`aws-lambda-streaming`) or
+  // OpenNext's native API Gateway streaming wrapper (`aws-apigw-streaming`,
+  // the upstream PR). Both produce a handler compatible with the REST API
+  // STREAM integration; rejecting the native one would force users onto the
+  // wrapper we monkeypatch even after upstream ships the proper fix.
+  const hasStreamingWrapper =
+    findOverride(source, 'wrapper', 'aws-lambda-streaming') ||
+    findOverride(source, 'wrapper', 'aws-apigw-streaming');
+  if (!hasStreamingWrapper) {
+    missing.push("wrapper: 'aws-lambda-streaming' (or 'aws-apigw-streaming')");
   }
   // Edge functions must be split out per OpenNext's build-time
   // requirement. Detect by checking for any `runtime: 'edge'` token in

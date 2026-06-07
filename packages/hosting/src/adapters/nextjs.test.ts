@@ -1716,6 +1716,38 @@ export default config;
     );
     assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
   });
+
+  void it("accepts OpenNext's native 'aws-apigw-streaming' wrapper", () => {
+    // The upstream native wrapper is the better long-term option than the
+    // community 'aws-lambda-streaming' we monkeypatch; the validator must
+    // not reject a user who adopts it.
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-apigw-streaming' } },
+};
+export default config;
+`,
+    );
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
+  });
 });
 
 void describe('nextjsAdapter — OpenNext version-drift warning', () => {
