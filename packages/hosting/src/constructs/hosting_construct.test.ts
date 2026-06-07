@@ -251,6 +251,41 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       Timeout: 45,
     });
   });
+
+  void it('throws when skewProtection.maxAge exceeds storage.buildRetentionDays', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    // 7 days retention = 604800s; a 14-day (1209600s) cookie would pin a
+    // returning viewer to a build prefix the lifecycle rule already deleted.
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          skipRegionValidation: true,
+          storage: { buildRetentionDays: 7 },
+          skewProtection: { enabled: true, maxAge: 14 * 24 * 60 * 60 },
+        }),
+      (error: Error) => error.name === 'InvalidSkewProtectionMaxAgeError',
+    );
+  });
+
+  void it('allows skewProtection.maxAge within storage.buildRetentionDays', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    assert.doesNotThrow(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          skipRegionValidation: true,
+          storage: { buildRetentionDays: 30 },
+          skewProtection: { enabled: true, maxAge: 24 * 60 * 60 },
+        }),
+    );
+  });
 });
 
 // ================================================================

@@ -304,6 +304,22 @@ export class AmplifyHostingConstruct extends Construct {
     }
     const buildId = manifest.buildId ?? generateBuildId();
 
+    // Skew-protection cookie must not outlive the build artifacts it pins
+    // to. A `maxAge` longer than `buildRetentionDays` lets a returning
+    // viewer present a cookie for a build whose `builds/<id>/` prefix the
+    // S3 lifecycle rule has already deleted → hard 403 on every asset.
+    if (props.skewProtection?.enabled && props.skewProtection.maxAge) {
+      const retentionDays = props.storage?.buildRetentionDays ?? 30;
+      const retentionSeconds = retentionDays * 24 * 60 * 60;
+      if (props.skewProtection.maxAge > retentionSeconds) {
+        throw new HostingError('InvalidSkewProtectionMaxAgeError', {
+          message: `skewProtection.maxAge (${props.skewProtection.maxAge}s) exceeds storage.buildRetentionDays (${retentionDays}d = ${retentionSeconds}s).`,
+          resolution:
+            'Lower skewProtection.maxAge to at most storage.buildRetentionDays (in seconds), or raise storage.buildRetentionDays. A cookie that outlives the build prefix pins returning viewers to a deleted build → 403.',
+        });
+      }
+    }
+
     // Normalize `compute.timeout` once: callers consuming the L3 from
     // JS-compiled wrappers (or strict TS users who write
     // `timeout: 30`) often pass a plain number, which then crashes
