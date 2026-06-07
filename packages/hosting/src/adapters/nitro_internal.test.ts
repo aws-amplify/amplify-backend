@@ -4,9 +4,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {
+  VERIFIED_NITRO_RANGE,
   extractJsonObjectAfter,
   patchNitroHandlerForApiGateway,
   resolveNitroBundlePath,
+  warnIfNitroOutOfRange,
 } from './nitro.js';
 
 /**
@@ -159,9 +161,12 @@ void describe('patchNitroHandlerForApiGateway', () => {
     );
   });
 
-  void it('logs a warning and does not throw when no patterns are found', () => {
-    // Future Nitro version with refactored handler — patch must skip
-    // gracefully, not crash, not corrupt the file.
+  void it('logs an info note and does not throw when no patterns are found', () => {
+    // Nitro v3 (and any release with a REST-compatible request shape) needs
+    // no patch — zero patches is a legitimate, working state, NOT an error.
+    // The patch must skip gracefully: not throw, not corrupt the file. The
+    // version-range warning (warnIfNitroOutOfRange) is the real "unverified
+    // nitropack" signal; the patcher itself never hard-fails here.
     const bundle = path.join(tmp, 'chunks', 'nitro', 'nitro.mjs');
     writeFile(bundle, '// completely refactored, no patterns here\n');
     const original = fs.readFileSync(bundle, 'utf-8');
@@ -183,9 +188,16 @@ void describe('patchNitroHandlerForApiGateway', () => {
       original,
       'bundle must be untouched when no patterns matched',
     );
+    const out = stderrChunks.join('');
     assert.ok(
-      stderrChunks.join('').includes('found nothing to change'),
-      'must emit a drift-detection warning',
+      out.includes('found nothing to change'),
+      'must emit a no-op note',
+    );
+    // Must NOT be framed as a hard warning/error — zero patches is expected
+    // on v3. (Info-level marker, mentions the v3 "no patch needed" case.)
+    assert.ok(
+      out.includes('ℹ️') && out.includes('Nitro v3'),
+      'note must reassure that zero patches is expected on v3+',
     );
   });
 
@@ -193,6 +205,74 @@ void describe('patchNitroHandlerForApiGateway', () => {
     assert.doesNotThrow(() =>
       patchNitroHandlerForApiGateway(path.join(tmp, 'does', 'not', 'exist')),
     );
+  });
+});
+
+void describe('warnIfNitroOutOfRange', () => {
+  let tmp: string;
+  let stderrChunks: string[];
+  let restoreStderr: (() => void) | undefined;
+
+  const writeNitropack = (version: string): void => {
+    const pkgDir = path.join(tmp, 'node_modules', 'nitropack');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({ name: 'nitropack', version }),
+    );
+  };
+
+  const captureStderr = (): void => {
+    stderrChunks = [];
+    const original = process.stderr.write.bind(process.stderr);
+    process.stderr.write = ((chunk: string | Uint8Array): boolean => {
+      stderrChunks.push(chunk.toString());
+      return true;
+    }) as typeof process.stderr.write;
+    restoreStderr = () => {
+      process.stderr.write = original;
+    };
+  };
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nitro-ver-'));
+    captureStderr();
+  });
+  afterEach(() => {
+    restoreStderr?.();
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  void it('does NOT warn when nitropack is in the verified range', () => {
+    writeNitropack('2.13.0');
+    warnIfNitroOutOfRange(tmp);
+    assert.ok(
+      !stderrChunks.join('').includes('outside the version range'),
+      `unexpected warning; stderr: ${stderrChunks.join('')}`,
+    );
+  });
+
+  void it('warns when nitropack is above the verified upper bound (e.g. v3)', () => {
+    writeNitropack('3.0.0');
+    warnIfNitroOutOfRange(tmp);
+    const out = stderrChunks.join('');
+    assert.ok(
+      out.includes('nitropack@3.0.0') &&
+        out.includes('outside the version range'),
+      `expected version warning; stderr: ${out}`,
+    );
+  });
+
+  void it('does NOT warn (or crash) when nitropack is not installed', () => {
+    warnIfNitroOutOfRange(tmp);
+    assert.ok(
+      !stderrChunks.join('').includes('outside the version range'),
+      'should be silent when nitropack is absent',
+    );
+  });
+
+  void it('VERIFIED_NITRO_RANGE is a parseable range with an explicit upper bound', () => {
+    assert.ok(VERIFIED_NITRO_RANGE.includes('<'), 'must have an upper bound');
   });
 });
 

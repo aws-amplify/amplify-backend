@@ -19,7 +19,8 @@ import { validateCacheControl } from './shared/cache_control.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
-import { isPackageExists } from 'local-pkg';
+import semver from 'semver';
+import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -120,13 +121,32 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
  * with verifying a new minor.
  *
  * This constant documents the verified range and is consumed by the
- * X.1 cross-adapter version-pin test. The real safety net at runtime
- * is the patcher itself: `patchNitroHandlerForApiGateway` fails loudly
- * with `UpstreamPatchPatternChangedError` if upstream signatures change,
- * so an untested-but-compatible Nitro still works and an
- * untested-and-incompatible one fails clearly rather than silently.
+ * X.1 cross-adapter version-pin test. The runtime safety net is the
+ * version-range warning (`warnIfNitroOutOfRange`), NOT a hard failure in the
+ * patcher: zero patches is a legitimate state — Nitro v3 (and any release
+ * that adopts a REST-compatible request shape) needs no patch at all, and a
+ * throw there would break a build that actually works. The patcher therefore
+ * warns (not throws) on zero patches; the version warning is what flags an
+ * unverified nitropack so a genuine signature drift is investigated.
  */
 export const VERIFIED_NITRO_RANGE = '>=2.10.0 <2.14.0';
+
+/**
+ * Warn when the installed `nitropack` is outside {@link VERIFIED_NITRO_RANGE}.
+ * Mirrors the Next.js adapter's `warnIfOpenNextOutOfRange`: advisory only —
+ * the hard safety net is the patcher's `UpstreamPatchPatternChangedError`.
+ * @internal
+ */
+export const warnIfNitroOutOfRange = (projectDir: string): void => {
+  const info = getPackageInfoSync('nitropack', { paths: [projectDir] });
+  const version = info?.version;
+  if (!version || !semver.valid(version)) return;
+  if (semver.satisfies(version, VERIFIED_NITRO_RANGE)) return;
+  process.stderr.write(
+    `⚠️  nitropack@${version} is outside the version range this adapter was verified against (${VERIFIED_NITRO_RANGE}). ` +
+      `If the aws-lambda handler patcher errors with UpstreamPatchPatternChangedError, that's the most likely cause — pin to a verified version or file an issue.\n`,
+  );
+};
 
 /**
  * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
@@ -287,6 +307,9 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     // (payload v1: event.path / requestContext.httpMethod). Without the
     // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
     if (effectivePreset === 'aws-lambda') {
+      // Flag an unverified nitropack BEFORE patching so a signature drift
+      // (or a v3 build that legitimately needs no patch) is contextualized.
+      warnIfNitroOutOfRange(projectDir);
       patchNitroHandlerForApiGateway(serverDir);
     }
   }
@@ -1491,9 +1514,20 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   }
 
   if (totalPatches === 0) {
+    // Zero patches is NOT an error. Two benign causes:
+    //   1. Nitro v3 (and any release with a REST-compatible request shape)
+    //      needs no patch — upstream reads both v1/v2 fields, so there's
+    //      nothing to rewrite. Verified working with no patching.
+    //   2. The handler is already patched (idempotent re-run).
+    // A genuine signature drift on an OLDER Nitro that DID need patching is
+    // surfaced separately by `warnIfNitroOutOfRange` (the installed nitropack
+    // would be outside the verified range). We deliberately do not throw here
+    // — doing so would break the working v3 path.
     process.stderr.write(
-      `⚠️  Nitro handler patch found nothing to change under ${serverDir}. ` +
-        `Nitro may have updated its bundled aws-lambda preset; verify the request-shape.\n`,
+      `ℹ️  Nitro handler patch found nothing to change under ${serverDir} — ` +
+        `expected on Nitro v3+ (no patch needed) or a re-run. If you see broken ` +
+        `routing or corrupt binary POSTs on an older Nitro, check the nitropack ` +
+        `version against the verified range.\n`,
     );
     return;
   }
