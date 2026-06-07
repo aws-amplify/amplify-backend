@@ -192,12 +192,22 @@ export class ComputeConstruct extends Construct {
     // first introduced a regression by the time the regression report
     // landed. Users can still override via `compute.logRetention`.
     const retention = props.logRetention ?? RetentionDays.ONE_MONTH;
-    const logGroup = new LogGroup(this, 'FunctionLogGroup', {
-      retention,
-      // Match the prior `logRetention`-driven default — the singleton
-      // log-retention provider didn't retain log groups on stack delete.
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
+    // Lambda@Edge does NOT get an explicit LogGroup: `experimental.EdgeFunction`
+    // hoists into the us-east-1 edge-lambda-stack, but this LogGroup lives in
+    // the stack's region — passing it cross-environment fails synth
+    // ("Cannot use resource ... in a cross-environment fashion"). Edge logs
+    // are written per-replica-region under CloudWatch's default
+    // `/aws/lambda/us-east-1.<fn>` groups anyway, which the stack region's
+    // LogGroup could never represent.
+    const logGroup =
+      computeResource.type === 'edge'
+        ? undefined
+        : new LogGroup(this, 'FunctionLogGroup', {
+            retention,
+            // Match the prior `logRetention`-driven default — the singleton
+            // log-retention provider didn't retain log groups on stack delete.
+            removalPolicy: RemovalPolicy.DESTROY,
+          });
 
     if (computeResource.type === 'handler') {
       // Native Lambda handler — no Web Adapter needed
@@ -269,15 +279,26 @@ export class ComputeConstruct extends Construct {
           `Warning: Lambda@Edge viewer-request timeout capped at ${edgeMaxTimeout}s (requested ${requestedTimeout}s)\n`,
         );
       }
-      this.function = new experimental.EdgeFunction(this, 'EdgeFunction', {
-        runtime: this.resolveRuntime(computeResource.runtime),
-        handler: computeResource.handler ?? 'index.handler',
-        code: Code.fromAsset(computeResource.bundle),
-        architecture,
-        memorySize,
-        timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
-        logGroup,
-      });
+      // Child id MUST be unique per edge compute. On the cross-region path
+      // (stack region !== us-east-1) `experimental.EdgeFunction` hoists every
+      // instance into ONE shared `edge-lambda-stack`; a literal `'EdgeFunction'`
+      // id then collides on the 2nd edge route with "already a Construct with
+      // name 'EdgeFunction'". Scoping the id by `props.name` (e.g. `edge1`,
+      // `edge2`) gives each a distinct id in that shared stack. (In-region
+      // deploys never collided — they scope under the unique outer construct.)
+      this.function = new experimental.EdgeFunction(
+        this,
+        `EdgeFunction-${props.name}`,
+        {
+          runtime: this.resolveRuntime(computeResource.runtime),
+          handler: computeResource.handler ?? 'index.handler',
+          code: Code.fromAsset(computeResource.bundle),
+          architecture,
+          memorySize,
+          timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
+          logGroup,
+        },
+      );
       // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region
     } else {
       throw new HostingError('UnsupportedComputeTypeError', {

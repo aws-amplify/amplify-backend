@@ -269,6 +269,31 @@ void describe('ComputeConstruct', () => {
         Timeout: 5,
       });
     });
+
+    void it('supports multiple edge computes on the cross-region path (unique EdgeFunction id)', () => {
+      // Regression: on a non-us-east-1 stack, experimental.EdgeFunction hoists
+      // every instance into one shared edge-lambda-stack. A literal
+      // 'EdgeFunction' child id collided on the 2nd edge compute. The id is
+      // now scoped by props.name, so two edge computes coexist.
+      const bundle = createBundleDir();
+      const stack = createEnvStack('eu-west-1', '123456789012');
+
+      new ComputeConstruct(stack, 'Compute-edge1', {
+        name: 'edge1',
+        computeResource: edgeResource(bundle),
+      });
+      // Must not throw "already a Construct with name 'EdgeFunction'".
+      assert.doesNotThrow(() => {
+        new ComputeConstruct(stack, 'Compute-edge2', {
+          name: 'edge2',
+          computeResource: edgeResource(bundle),
+        });
+      });
+
+      // Synthesizing the app materializes the shared edge-lambda-stack; if the
+      // ids collided this would throw.
+      assert.doesNotThrow(() => App.of(stack)?.synth());
+    });
   });
 
   // ---- Custom overrides ----
