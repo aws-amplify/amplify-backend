@@ -436,6 +436,20 @@ export class CdnConstruct extends Construct {
         })
       : undefined;
 
+    // ---- Serialize CloudFront Function creation ----
+    // The CloudFront CreateFunction API has a strict rate limit (~1 TPS).
+    // Without explicit ordering, CloudFormation dispatches all CF Function
+    // creates in parallel, causing "Rate exceeded" failures. Chain them
+    // so each waits for the previous to finish.
+    if (forwardedHostFunction) {
+      forwardedHostFunction.node.addDependency(viewerRequestFunction);
+    }
+    if (viewerResponseFunction) {
+      viewerResponseFunction.node.addDependency(
+        forwardedHostFunction ?? viewerRequestFunction,
+      );
+    }
+
     // ---- SSR cache policy (B21) ----
     // CACHING_DISABLED used to short-circuit caching on every compute
     // behavior, which silently broke ISR/SWR: the framework's
@@ -719,6 +733,12 @@ export class CdnConstruct extends Construct {
           runtime: CLOUDFRONT_FUNCTION_RUNTIME,
           comment: `Strip Next.js assetPrefix=${assetPrefix} before S3 lookup`,
         },
+      );
+      // Chain to the last CF Function to stay within rate limits.
+      stripFunction.node.addDependency(
+        viewerResponseFunction ??
+          forwardedHostFunction ??
+          viewerRequestFunction,
       );
       const prefixedStaticBehavior: BehaviorOptions = {
         origin: s3Origin,
