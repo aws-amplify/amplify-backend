@@ -79,7 +79,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify(outputManifest),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.strictEqual(manifest.version, 1);
 
@@ -132,7 +132,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.cache);
     assert.strictEqual(manifest.cache!.tagRevalidation, true);
@@ -175,7 +175,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.strictEqual(manifest.cache, undefined);
   });
 
@@ -209,7 +209,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.imageOptimization);
     assert.strictEqual(manifest.imageOptimization!.bundle, imgDir);
@@ -250,7 +250,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.middleware);
     assert.strictEqual(manifest.middleware!.bundle, mwDir);
@@ -259,7 +259,7 @@ void describe('nextjsAdapter', () => {
 
   void it('throws when open-next output is missing', () => {
     assert.throws(
-      () => nextjsAdapter({ projectDir: tmpDir }),
+      () => nextjsAdapter({ projectDir: tmpDir, skipBuild: true }),
       (error: Error) => {
         assert.strictEqual(error.name, 'OpenNextOutputNotFoundError');
         return true;
@@ -294,7 +294,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.compute['default']);
     assert.strictEqual(manifest.compute['default'].type, 'http-server');
@@ -328,7 +328,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.compute['default']);
     assert.strictEqual(manifest.compute['default'].type, 'edge');
@@ -361,7 +361,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     // s3 should not be in compute
     assert.strictEqual(manifest.compute['s3'], undefined);
@@ -393,7 +393,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     const catchAll = manifest.routes.find((r) => r.pattern === '/*');
     assert.ok(catchAll, 'Should add catch-all route');
@@ -433,7 +433,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     const result = deployManifestSchema.safeParse(manifest);
     assert.ok(
       result.success,
@@ -475,7 +475,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify(amplifyOutputs),
     );
 
-    nextjsAdapter({ projectDir: tmpDir });
+    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     // Verify amplify_outputs.json was copied into server-function/
     const copiedPath = path.join(serverFnDir, 'amplify_outputs.json');
@@ -523,7 +523,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify({ data: { url: 'https://example.com' } }),
     );
 
-    nextjsAdapter({ projectDir: tmpDir });
+    nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     // Both server function dirs should have the file
     assert.ok(
@@ -558,7 +558,7 @@ void describe('nextjsAdapter', () => {
     );
 
     // No amplify_outputs.json — should not throw
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(
       manifest,
       'Should produce a manifest even without amplify_outputs.json',
@@ -646,7 +646,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.redirects, 'Should have lifted redirects');
     assert.strictEqual(manifest.redirects!.length, 1);
@@ -694,7 +694,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.strictEqual(manifest.basePath, '/docs');
     assert.strictEqual(manifest.assetPrefix, '/cdn-prefix');
@@ -730,7 +730,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.strictEqual(
       manifest.assetPrefix,
       undefined,
@@ -776,7 +776,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(
       manifest.compute['edgeFn1'],
@@ -828,7 +828,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.imageOptimization, 'Should detect image optimization');
     assert.deepStrictEqual(manifest.imageOptimization!.formats, ['webp']);
@@ -858,7 +858,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.compute['ecs-origin']);
     assert.strictEqual(manifest.compute['ecs-origin'].type, 'http-server');
     assert.strictEqual(
@@ -895,7 +895,7 @@ void describe('nextjsAdapter', () => {
       JSON.stringify({ config: { trailingSlash: false } }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest, 'Should produce manifest with trailingSlash false');
   });
 });
@@ -1445,7 +1445,7 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
         },
       ],
     });
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.headers, 'headers should be lifted');
     const lifted = manifest.headers!.find(
       (h) => h.source === '/secure-headers',
@@ -1465,7 +1465,7 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
         },
       ],
     });
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.redirects, 'redirects should be lifted');
     const lifted = manifest.redirects!.find((r) => r.source === '/old');
     assert.ok(lifted);
@@ -1485,7 +1485,7 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
         },
       ],
     });
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.strictEqual(
       manifest.headers,
       undefined,
@@ -1503,7 +1503,7 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
         },
       ],
     });
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.headers);
     assert.strictEqual(manifest.headers!.length, 1);
     assert.strictEqual(manifest.headers![0].source, '/api/static');
@@ -1513,10 +1513,14 @@ void describe('nextjsAdapter — Pages Router i18n header lift', () => {
 void describe('nextjsAdapter — incompatible open-next.config.ts', () => {
   let tmpDir: string;
   let lenientBackup: string | undefined;
+  let buildOutputCreator: (() => void) | undefined;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-config-'));
-    mock.method(spawn, 'sync', () => undefined);
+    buildOutputCreator = undefined;
+    mock.method(spawn, 'sync', () => {
+      buildOutputCreator?.();
+    });
     lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
     process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
   });
@@ -1569,23 +1573,25 @@ export default config;
 export default config;
 `,
     );
-    const openNextDir = path.join(tmpDir, '.open-next');
-    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
-      recursive: true,
-    });
-    fs.writeFileSync(
-      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
-      'export const handler = async () => {};',
-    );
-    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
-    fs.writeFileSync(
-      path.join(openNextDir, 'open-next.output.json'),
-      JSON.stringify({
-        origins: { default: { type: 'function', handler: 'index.handler' } },
-        behaviors: [{ pattern: '/*', origin: 'default' }],
-        additionalProps: {},
-      }),
-    );
+    buildOutputCreator = () => {
+      const openNextDir = path.join(tmpDir, '.open-next');
+      fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+        'export const handler = async () => {};',
+      );
+      fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+      fs.writeFileSync(
+        path.join(openNextDir, 'open-next.output.json'),
+        JSON.stringify({
+          origins: { default: { type: 'function', handler: 'index.handler' } },
+          behaviors: [{ pattern: '/*', origin: 'default' }],
+          additionalProps: {},
+        }),
+      );
+    };
     assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
   });
 });
@@ -1595,6 +1601,7 @@ void describe('nextjsAdapter — OpenNext version-drift warning', () => {
   let lenientBackup: string | undefined;
   let stderrChunks: string[];
   let restoreStderr: (() => void) | undefined;
+  let buildOutputCreator: (() => void) | undefined;
 
   /**
    * Lay down the minimal `.open-next/` skeleton + an installed
@@ -1602,23 +1609,6 @@ void describe('nextjsAdapter — OpenNext version-drift warning', () => {
    * version so warnIfOpenNextOutOfRange's local-pkg probe finds it.
    */
   const writeFixtureWithOpenNextVersion = (version: string): void => {
-    const openNextDir = path.join(tmpDir, '.open-next');
-    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
-      recursive: true,
-    });
-    fs.writeFileSync(
-      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
-      'export const handler = async () => {};',
-    );
-    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
-    fs.writeFileSync(
-      path.join(openNextDir, 'open-next.output.json'),
-      JSON.stringify({
-        origins: { default: { type: 'function', handler: 'index.handler' } },
-        behaviors: [{ pattern: '/*', origin: 'default' }],
-        additionalProps: {},
-      }),
-    );
     const openNextPkgDir = path.join(
       tmpDir,
       'node_modules',
@@ -1631,11 +1621,33 @@ void describe('nextjsAdapter — OpenNext version-drift warning', () => {
       JSON.stringify({ name: '@opennextjs/aws', version, main: 'index.js' }),
     );
     fs.writeFileSync(path.join(openNextPkgDir, 'index.js'), '');
+    buildOutputCreator = () => {
+      const openNextDir = path.join(tmpDir, '.open-next');
+      fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+        'export const handler = async () => {};',
+      );
+      fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+      fs.writeFileSync(
+        path.join(openNextDir, 'open-next.output.json'),
+        JSON.stringify({
+          origins: { default: { type: 'function', handler: 'index.handler' } },
+          behaviors: [{ pattern: '/*', origin: 'default' }],
+          additionalProps: {},
+        }),
+      );
+    };
   };
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nextjs-onv-'));
-    mock.method(spawn, 'sync', () => undefined);
+    buildOutputCreator = undefined;
+    mock.method(spawn, 'sync', () => {
+      buildOutputCreator?.();
+    });
     lenientBackup = process.env.AMPLIFY_HOSTING_LENIENT_PATCHES;
     process.env.AMPLIFY_HOSTING_LENIENT_PATCHES = '1';
     stderrChunks = [];
@@ -1687,23 +1699,25 @@ void describe('nextjsAdapter — OpenNext version-drift warning', () => {
   void it('does NOT warn when @opennextjs/aws is not installed (skipBuild path)', () => {
     // Skip the version check by not writing the package.json — the
     // adapter still runs because the .open-next/ output is present.
-    const openNextDir = path.join(tmpDir, '.open-next');
-    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
-      recursive: true,
-    });
-    fs.writeFileSync(
-      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
-      'export const handler = async () => {};',
-    );
-    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
-    fs.writeFileSync(
-      path.join(openNextDir, 'open-next.output.json'),
-      JSON.stringify({
-        origins: { default: { type: 'function', handler: 'index.handler' } },
-        behaviors: [{ pattern: '/*', origin: 'default' }],
-        additionalProps: {},
-      }),
-    );
+    buildOutputCreator = () => {
+      const openNextDir = path.join(tmpDir, '.open-next');
+      fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+        'export const handler = async () => {};',
+      );
+      fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+      fs.writeFileSync(
+        path.join(openNextDir, 'open-next.output.json'),
+        JSON.stringify({
+          origins: { default: { type: 'function', handler: 'index.handler' } },
+          behaviors: [{ pattern: '/*', origin: 'default' }],
+          additionalProps: {},
+        }),
+      );
+    };
     nextjsAdapter({ projectDir: tmpDir });
     assert.ok(
       !stderrChunks.some((c) => c.includes('outside the version range')),
