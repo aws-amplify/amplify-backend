@@ -410,13 +410,25 @@ void describe('nitroAdapter — IPX baseURL plumbing', () => {
 
 void describe('nitroAdapter — preset + feature validation', () => {
   let tmpDir: string;
+  let stderrChunks: string[];
+  let restoreStderr: (() => void) | undefined;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-validate-'));
     mock.method(spawn, 'sync', () => undefined);
+    stderrChunks = [];
+    const original = process.stderr.write.bind(process.stderr);
+    process.stderr.write = ((chunk: string | Uint8Array): boolean => {
+      stderrChunks.push(chunk.toString());
+      return true;
+    }) as typeof process.stderr.write;
+    restoreStderr = () => {
+      process.stderr.write = original;
+    };
   });
 
   afterEach(() => {
+    restoreStderr?.();
     fs.rmSync(tmpDir, { recursive: true, force: true });
     mock.restoreAll();
   });
@@ -455,7 +467,7 @@ void describe('nitroAdapter — preset + feature validation', () => {
     );
   });
 
-  void it('throws UnsupportedNitroFeatureError on experimental.websocket: true', () => {
+  void it('warns (does not throw) on experimental.websocket: true (Nitro 2.x key)', () => {
     writeMinimalNitroOutput(tmpDir, {
       nitroJson: {
         preset: 'aws-lambda',
@@ -463,12 +475,36 @@ void describe('nitroAdapter — preset + feature validation', () => {
       },
     });
     writePackageJson(tmpDir);
-    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
-      code: 'UnsupportedNitroFeatureError',
-    });
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+    assert.ok(
+      stderrChunks.join('').includes('WebSocket'),
+      'must warn about unsupported WebSocket',
+    );
   });
 
-  void it('throws UnsupportedNitroFeatureError on non-empty scheduledTasks', () => {
+  void it('warns (does not throw) on features.websocket: true (Nitro 3 key)', () => {
+    // Nitro 3 / the `nitro` package renamed the flag from
+    // experimental.websocket to features.websocket; the warning must catch
+    // both or a v3 WS app silently deploys and 200s on upgrade with no notice.
+    writeMinimalNitroOutput(tmpDir, {
+      nitroJson: {
+        preset: 'aws-lambda',
+        config: { features: { websocket: true } },
+      },
+    });
+    writePackageJson(tmpDir);
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+    assert.ok(
+      stderrChunks.join('').includes('WebSocket'),
+      'must warn about unsupported WebSocket (Nitro 3 key)',
+    );
+  });
+
+  void it('warns (does not throw) on non-empty scheduledTasks', () => {
     writeMinimalNitroOutput(tmpDir, {
       nitroJson: {
         preset: 'aws-lambda',
@@ -476,12 +512,16 @@ void describe('nitroAdapter — preset + feature validation', () => {
       },
     });
     writePackageJson(tmpDir);
-    assert.throws(() => nitroAdapter({ projectDir: tmpDir, skipBuild: true }), {
-      code: 'UnsupportedNitroFeatureError',
-    });
+    assert.doesNotThrow(() =>
+      nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+    assert.ok(
+      stderrChunks.join('').includes('scheduledTasks'),
+      'must warn that scheduledTasks never fire',
+    );
   });
 
-  void it('does not throw when scheduledTasks is an empty object', () => {
+  void it('does not warn when scheduledTasks is an empty object', () => {
     writeMinimalNitroOutput(tmpDir, {
       nitroJson: {
         preset: 'aws-lambda',
@@ -491,6 +531,11 @@ void describe('nitroAdapter — preset + feature validation', () => {
     writePackageJson(tmpDir);
     assert.doesNotThrow(() =>
       nitroAdapter({ projectDir: tmpDir, skipBuild: true }),
+    );
+    assert.strictEqual(
+      stderrChunks.join('').includes('scheduledTasks'),
+      false,
+      'empty scheduledTasks must not warn',
     );
   });
 });

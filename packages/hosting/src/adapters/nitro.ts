@@ -16,6 +16,11 @@
  */
 import { spawn } from './spawn.js';
 import { validateCacheControl } from './shared/cache_control.js';
+import {
+  warnIfVercelCron,
+  warnUnschedulableCron,
+  warnUnsupportedWebSocket,
+} from './shared/feature_warnings.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -80,12 +85,18 @@ type NitroBuildInfo = {
   config?: {
     awsLambda?: { streaming?: boolean };
     /**
-     * Nitro experimental WebSocket runtime. Lambda Function URLs and API
-     * Gateway HTTP/REST API don't speak the WS upgrade — we throw at
-     * adapter time rather than letting the build ship a runtime that
-     * silently 502s.
+     * Nitro WebSocket runtime. Lambda Function URLs and API Gateway
+     * HTTP/REST cannot complete the WS upgrade (no persistent socket;
+     * Nitro itself only lists Node/Bun/Deno/Cloudflare as WS-capable
+     * targets, not AWS Lambda) — we throw at adapter time rather than ship
+     * a runtime that silently 200s instead of 101s.
+     *
+     * The flag was renamed across Nitro majors: Nitro 2.x used
+     * `experimental.websocket`; Nitro 3 / the `nitro` package uses
+     * `features.websocket`. We check both so the guard keeps firing.
      */
     experimental?: { websocket?: boolean };
+    features?: { websocket?: boolean };
     /**
      * Cron-like tasks. Vercel/Cloudflare wire these to platform schedulers;
      * Amplify hosting has no EventBridge wiring today, so they would
@@ -176,38 +187,37 @@ const validateNitroPreset = (preset: string): void => {
 };
 
 /**
- * Throw on Nitro features that produce a deployable bundle but break
- * silently on AWS:
- *   - `experimental.websocket: true` — Lambda Function URLs and API
- *     Gateway REST/HTTP don't speak the WS upgrade frame.
- *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform
- *     schedulers; we have no EventBridge wiring, so the cron silently
- *     never fires.
+ * Warn (do NOT throw) about Nitro features that produce a deployable bundle
+ * but can't work on this architecture:
+ *   - WebSocket (`experimental.websocket` in Nitro 2.x, `features.websocket`
+ *     in Nitro 3) — Lambda + API Gateway REST can't complete the WS upgrade
+ *     (Nitro only supports WS on Node/Bun/Deno/Cloudflare, not AWS Lambda).
+ *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform schedulers;
+ *     we have no EventBridge wiring, so the cron silently never fires.
  *
- * We default to a hard error rather than a deploy-time warning because
- * the failure mode is invisible at runtime — the user only finds out
- * weeks later when a scheduled task hasn't run.
+ * Warnings, not hard errors: neither feature is widely supported on
+ * serverless SSR, and the rest of the app deploys and serves correctly. We
+ * surface a clear warning so the unsupported behavior isn't a silent runtime
+ * surprise, but we don't block the deploy.
  */
-const validateNitroFeatures = (info: NitroBuildInfo): void => {
-  if (info.config?.experimental?.websocket === true) {
-    throw new HostingError('UnsupportedNitroFeatureError', {
-      message:
-        'Nitro `experimental.websocket: true` is not supported on Amplify hosting (Lambda Function URLs and API Gateway REST cannot complete the WS upgrade).',
-      resolution:
-        'Remove `experimental.websocket` from nitro/nuxt config, or front WebSocket connections via API Gateway WebSocket APIs (separate provisioning).',
-    });
+const warnNitroUnsupportedFeatures = (info: NitroBuildInfo): void => {
+  // Nitro renamed the flag: 2.x = `experimental.websocket`, 3.x / `nitro`
+  // package = `features.websocket`. Check both so the warning survives the
+  // major bump.
+  if (
+    info.config?.experimental?.websocket === true ||
+    info.config?.features?.websocket === true
+  ) {
+    warnUnsupportedWebSocket(
+      'Nitro WebSocket support (`experimental.websocket` / `features.websocket: true`)',
+    );
   }
   const tasks = info.config?.scheduledTasks;
   const hasScheduledTasks = Array.isArray(tasks)
     ? tasks.length > 0
     : tasks && Object.keys(tasks).length > 0;
   if (hasScheduledTasks) {
-    throw new HostingError('UnsupportedNitroFeatureError', {
-      message:
-        'Nitro `scheduledTasks` are not wired to AWS EventBridge by this adapter, so they would silently never fire.',
-      resolution:
-        'Remove `scheduledTasks` from nitro/nuxt config and provision the cron via AWS EventBridge (or scheduled CloudWatch rule) separately.',
-    });
+    warnUnschedulableCron('Nitro `scheduledTasks` are declared');
   }
 };
 
@@ -378,7 +388,10 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
   validateNitroPreset(resolvedPreset);
-  validateNitroFeatures(nitroInfo);
+  warnNitroUnsupportedFeatures(nitroInfo);
+  // Nuxt/Nitro projects can also carry a vercel.json with crons (e.g. set up
+  // for a Vercel preview) — warn for parity with the Next/Astro path.
+  warnIfVercelCron(projectDir);
   // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
   // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
   // and reading it from `nuxt.config.ts` would require migrating off the

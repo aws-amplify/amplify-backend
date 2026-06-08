@@ -8,6 +8,7 @@
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
 import { validateCacheControl } from './shared/cache_control.js';
+import { warnIfVercelCron } from './shared/feature_warnings.js';
 import {
   type TrailingSlashMode,
   emitTrailingSlashRedirects,
@@ -207,6 +208,16 @@ export const nextjsAdapter = (
   applyLiftedRoutesManifest(manifest, projectDir);
   applyAssetPrefix(manifest, projectDir);
   applyNextImageConfig(manifest, projectDir);
+
+  // Warn (don't fail) when `vercel.json` declares crons: there is no general
+  // scheduled-task wiring (EventBridge is used only for opt-in compute.warmup),
+  // so a declared cron silently never fires.
+  //
+  // WebSocket is deliberately NOT detected for Next: there is no server-side
+  // WS feature in Next to key off (WS needs a custom server OpenNext discards),
+  // and a `ws`/`socket.io` dependency is overwhelmingly client-side usage that
+  // works fine — flagging it would false-positive on legitimate apps.
+  warnIfVercelCron(projectDir);
 
   // 3.2 — Next-specific orphaned-data lifecycle. `_next/data/<id>/...`
   // JSON files live OUTSIDE the build prefix and survive across

@@ -27,6 +27,7 @@
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
 import { emitTrailingSlashRedirects } from './shared/trailing_slash.js';
+import { warnIfVercelCron } from './shared/feature_warnings.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
@@ -267,6 +268,12 @@ export const astroAdapter = (options: AstroAdapterOptions): DeployManifest => {
       `🔗 Detected Astro base=${basePath}; CloudFront behaviors will be prefixed.\n`,
     );
   }
+
+  // Warn (don't fail) when a vercel.json declares crons — the hosting
+  // architecture wires no scheduler, so they would silently never fire.
+  // (Astro has no native cron/WebSocket server feature to detect; client-only
+  // WebSocket usage works fine.)
+  warnIfVercelCron(projectDir);
 
   // Pre-compressed sibling cleanup — CloudFront re-compresses on the
   // edge based on `Accept-Encoding`; serving the build's `.gz`/`.br`
