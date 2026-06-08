@@ -298,23 +298,23 @@ export class AmplifyHostingConstruct extends Construct {
     super(scope, id);
 
     const { manifest } = props;
-    // Rewrites stub: adapters lift `routeRules.proxy` (Nitro) and
-    // similar upstream-proxy rules into `manifest.rewrites[]`, but the
-    // L3 doesn't yet provision the per-pattern `HttpOrigin` +
-    // CloudFront-Function origin-rewrite needed to honor them. Until
-    // that lands, fail loud rather than silently dropping the user's
-    // intent — `routeRules.proxy: 'https://upstream/**'` would
-    // otherwise fall through to the SSR Lambda which relays the proxy,
-    // burning a Lambda invocation per request with no operator-visible
-    // signal that the rule didn't take effect.
+    // Rewrites (upstream proxy): adapters lift `routeRules.proxy` (Nitro) and
+    // similar upstream-proxy rules into `manifest.rewrites[]`. The L3 doesn't
+    // yet provision the edge-optimized path (per-pattern `HttpOrigin` +
+    // CloudFront-Function origin-rewrite) — BUT these rules still WORK:
+    // proxied requests fall through to the catch-all SSR route, where the
+    // bundled Nitro runtime relays them to the upstream. So we warn (not
+    // throw): the app deploys and proxies correctly; it just pays one SSR
+    // Lambda invocation per proxied request instead of routing at the edge.
+    // Throwing here would block a deployable, working app.
     if (manifest.rewrites && manifest.rewrites.length > 0) {
-      throw new HostingError('RewritesNotYetSupportedError', {
-        message:
-          `manifest.rewrites[] is not yet consumed by the hosting L3 (received ${manifest.rewrites.length} rule(s)). ` +
-          `Adapters lift Nitro routeRules.proxy and similar upstream-proxy rules here; the L3 wiring (per-pattern HttpOrigin + CloudFront-Function origin-rewrite) is tracked separately.`,
-        resolution:
-          'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
-      });
+      process.stderr.write(
+        `⚠️  Hosting: ${manifest.rewrites.length} upstream-proxy rewrite rule(s) ` +
+          `(e.g. Nitro routeRules.proxy) are not edge-optimized yet — they are ` +
+          `relayed by the SSR Lambda at runtime (one invocation per proxied ` +
+          `request) rather than routed directly at CloudFront. The rules still ` +
+          `work; this is a cost/latency note, not an error.\n`,
+      );
     }
     const buildId = manifest.buildId ?? generateBuildId();
 

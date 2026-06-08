@@ -232,8 +232,9 @@ type NitroRouteRule = {
    * upstream-proxy rule. Today the SSR Lambda relays this on every hit
    * (paid Lambda invocation). The adapter lifts the rule into
    * `manifest.rewrites[]`; the L3 will route it via CloudFront's
-   * origin-rewrite path once that's wired (tracked separately —
-   * currently emits a clear error if any rewrites reach the L3).
+   * origin-rewrite path once that's wired (tracked separately). Until then
+   * the proxy still works via the SSR Lambda runtime — the L3 warns that it
+   * isn't edge-optimized rather than failing the deploy.
    */
   proxy?: string | { to: string };
 };
@@ -1344,11 +1345,13 @@ const normalizeRulePattern = (pattern: string): string => {
  * lift, every proxied request burns an SSR Lambda invocation just to
  * relay; with it, CloudFront routes directly to the upstream origin.
  *
- * The L3 doesn't yet consume `manifest.rewrites[]` for upstream proxying
- * — that requires per-pattern `HttpOrigin` provisioning + a CloudFront
- * Function origin-rewrite step. Until then, the adapter emits the field
- * (so consumers can see the user's intent) and the L3 throws a clear
- * `RewritesNotYetSupportedError` instead of silently dropping the rule.
+ * The L3 doesn't yet consume `manifest.rewrites[]` for edge-optimized
+ * upstream proxying — that requires per-pattern `HttpOrigin` provisioning +
+ * a CloudFront Function origin-rewrite step. Until then the rule still WORKS:
+ * the proxied path matches the catch-all `/* → default` route, so the bundled
+ * Nitro runtime relays it to the upstream from inside the SSR Lambda. The
+ * adapter emits the field (so the L3 can warn that it's not edge-optimized and
+ * so future wiring can consume it), but the app deploys and proxies correctly.
  */
 const buildRewrites = (
   routeRules: Record<string, NitroRouteRule>,
