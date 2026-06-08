@@ -1,5 +1,9 @@
 import { Duration } from 'aws-cdk-lib';
-import { Distribution, PriceClass } from 'aws-cdk-lib/aws-cloudfront';
+import {
+  Distribution,
+  IResponseHeadersPolicy,
+  PriceClass,
+} from 'aws-cdk-lib/aws-cloudfront';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { IKey } from 'aws-cdk-lib/aws-kms';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -143,8 +147,12 @@ export type HostingProps = {
   compute?: {
     /** Lambda memory size in MB. Default: 1024 */
     memorySize?: number;
-    /** Lambda timeout. Default: 30 seconds. */
-    timeout?: Duration;
+    /**
+     * Lambda timeout — a `Duration` or a plain number of seconds. Default:
+     * 30 seconds. The number form exists for ergonomic JS callers; the L3
+     * coerces both via `normalizeTimeout`.
+     */
+    timeout?: Duration | number;
     /** Reserved concurrent executions. Default: undefined (no reservation). */
     reservedConcurrency?: number;
     /** Provisioned concurrency for cold-start elimination. Default: undefined (no provisioning). */
@@ -248,6 +256,25 @@ export type HostingProps = {
       type: 'whitelist' | 'blacklist';
       countries: string[];
     };
+    /**
+     * Default TTL for SSR/compute cache behaviors when the origin response
+     * has no `Cache-Control` header. Set this to enable edge caching of SSR
+     * responses; the origin can still override via `s-maxage`/`no-store`.
+     * @default Duration.seconds(0) — no caching unless the origin opts in.
+     */
+    ssrDefaultTtl?: Duration;
+    /**
+     * Bring-your-own ResponseHeadersPolicy. When provided, the construct
+     * skips creating its own — share one policy across stacks to avoid the
+     * account-level policy limit (default 20, max 200 via quota increase).
+     */
+    responseHeadersPolicy?: IResponseHeadersPolicy;
+    /**
+     * ARN of an existing WAFv2 WebACL to associate with the distribution.
+     * Use when you manage WAF externally or need rules beyond the built-in
+     * `waf.enabled` rate-limiting. Takes precedence over `waf.enabled`.
+     */
+    webAclArn?: string;
   };
 
   /**
@@ -303,6 +330,24 @@ export type HostingProps = {
      * is created.
      */
     snsTopicArn?: string;
+  };
+
+  /**
+   * Cookie-based skew protection. When enabled, viewers mid-session keep
+   * receiving assets from their original build, preventing asset mismatches
+   * during rolling deploys.
+   *
+   * **Enabled by default.** Set `{ enabled: false }` to disable (e.g. when
+   * debugging a pinned-to-broken-build situation). Tune `maxAge` to align
+   * the cookie lifetime with `storage.buildRetentionDays` — a `maxAge`
+   * longer than the build retention can pin a returning viewer to a
+   * lifecycle-deleted build prefix (→ 403).
+   * @default \{ enabled: true \}
+   */
+  skewProtection?: {
+    enabled: boolean;
+    /** How long to honor old build cookies (seconds). Default: 86400 (24h). */
+    maxAge?: number;
   };
 };
 

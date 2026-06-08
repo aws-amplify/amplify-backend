@@ -668,6 +668,75 @@ void describe('CdnConstruct', () => {
       );
     });
 
+    void it('counts derived bare behaviors — throws when subtree routes double past the cap', () => {
+      // Regression (T13): the old guard counted manifest routes BEFORE the
+      // L3 derived a bare `/page` behavior from each `/page/*` route. 13
+      // subtree routes (13 ≤ 24, so the old guard passed) expand to 13
+      // subtree + 13 bare = 26 actual behaviors > 24 — which used to fail
+      // opaquely in CloudFormation. The authoritative count must catch it.
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const subtreeRoutes = Array.from({ length: 13 }, (_, i) => ({
+        pattern: `/page-${i}/*`,
+        target: 'static',
+      }));
+      subtreeRoutes.push({ pattern: '/*', target: 'static' });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {},
+        staticAssets: { directory: '/tmp/assets' },
+        routes: subtreeRoutes,
+        buildId: 'test-derive-1',
+      };
+
+      assert.throws(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest,
+            securityHeadersPolicy: policy,
+          }),
+        (error: unknown) => {
+          assert.ok(error instanceof HostingError);
+          assert.strictEqual(error.name, 'TooManyRoutesError');
+          return true;
+        },
+      );
+    });
+
+    void it('allows subtree routes whose derived count stays within the cap', () => {
+      // 11 subtree routes → 11 + 11 derived bare = 22 behaviors ≤ 24. OK.
+      const stack = createStack();
+      const bucket = new Bucket(stack, 'Bucket');
+      const policy = createSecurityHeadersPolicy(stack, 'SH', {});
+
+      const subtreeRoutes = Array.from({ length: 11 }, (_, i) => ({
+        pattern: `/page-${i}/*`,
+        target: 'static',
+      }));
+      subtreeRoutes.push({ pattern: '/*', target: 'static' });
+
+      const manifest: DeployManifest = {
+        version: 1,
+        compute: {},
+        staticAssets: { directory: '/tmp/assets' },
+        routes: subtreeRoutes,
+        buildId: 'test-derive-2',
+      };
+
+      assert.doesNotThrow(
+        () =>
+          new CdnConstruct(stack, 'Cdn', {
+            bucket,
+            manifest,
+            securityHeadersPolicy: policy,
+          }),
+      );
+    });
+
     void it('throws EmptyGeoRestrictionError for empty countries', () => {
       const stack = createStack();
       const bucket = new Bucket(stack, 'Bucket');

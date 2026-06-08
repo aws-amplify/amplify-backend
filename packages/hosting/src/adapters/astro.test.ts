@@ -341,27 +341,32 @@ void describe("astroAdapter — output: 'server'", () => {
     assert.strictEqual(withoutMw.middleware, undefined);
   });
 
-  void it('detects built-in image endpoint and emits image-opt config', () => {
+  void it('does NOT emit a separate image-opt Lambda; /_image rides the SSR Lambda', () => {
+    // Astro serves /_image from the standalone server inside the SSR Lambda
+    // (entry.mjs). A separate image-opt compute would be dead (no route
+    // targets it) and mis-typed (handler vs http-server), so the adapter
+    // must not set manifest.imageOptimization.
     writeServerBuild(tmpDir, { imageEndpoint: true });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.ok(manifest.imageOptimization);
-    assert.strictEqual(manifest.imageOptimization!.baseURL, '/_image');
-    assert.deepStrictEqual(manifest.imageOptimization!.formats, [
-      'webp',
-      'avif',
-    ]);
+    assert.strictEqual(manifest.imageOptimization, undefined);
+    // And no route should single out /_image — it falls through to the
+    // catch-all SSR route.
+    const imageRoute = manifest.routes.find(
+      (r) => r.pattern === '/_image' || r.target === 'image-optimization',
+    );
+    assert.strictEqual(imageRoute, undefined);
   });
 
-  void it('passes image.domains from astro.config through to the manifest', () => {
+  void it('ignores astro.config image.domains (no image-opt Lambda to configure)', () => {
     fs.writeFileSync(
       path.join(tmpDir, 'astro.config.mjs'),
       "export default { output: 'server', image: { domains: ['cdn.example.com'] } };",
     );
     writeServerBuild(tmpDir, { imageEndpoint: true });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
-    assert.deepStrictEqual(manifest.imageOptimization!.domains, [
-      'cdn.example.com',
-    ]);
+    // Astro applies image.domains itself at runtime inside the SSR Lambda;
+    // the L3 has no image-opt Lambda for Astro to forward them to.
+    assert.strictEqual(manifest.imageOptimization, undefined);
   });
 
   void it('throws when entry.mjs is missing', () => {
@@ -402,31 +407,24 @@ void describe("astroAdapter — output: 'hybrid'", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('emits explicit static routes for prerendered pages', () => {
+  void it('emits a static subtree route per prerendered page (L3 derives bare)', () => {
     writeServerBuild(tmpDir, { prerendered: ['about', 'blog'] });
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
     const patterns = manifest.routes.map((r) => r.pattern);
+    // The adapter emits the `/<page>/*` subtree; the L3's
+    // deriveBareStaticPattern adds the bare `/<page>` behavior at synth.
     assert.ok(patterns.includes('/about/*'));
-    assert.ok(patterns.includes('/about'));
     assert.ok(patterns.includes('/blog/*'));
-    assert.ok(patterns.includes('/blog'));
+    // Bare forms are NOT emitted by the adapter anymore.
+    assert.ok(!patterns.includes('/about'));
+    assert.ok(!patterns.includes('/blog'));
     assert.strictEqual(patterns[patterns.length - 1], '/*');
   });
 
-  void it("trailingSlash: 'always' still emits both bare and subtree forms (P1.6)", () => {
-    // P1.6: when `trailingSlash: 'always'`, the previous adapter
-    // emitted only the slashed form (`/about/`). With CloudFront's
-    // first-match-wins behavior matching, that meant `/about` (the
-    // bare form) fell through to the catch-all → SSR Lambda before
-    // the canonical-form redirect could fire. Now we emit BOTH
-    // patterns (`/about` bare + `/about/*` subtree) so:
-    //
-    //   - `/about` matches the bare static behavior → 200 from S3
-    //     (or, if the trailing-slash redirect is in front, 308 to
-    //     `/about/` first; either way no Lambda).
-    //   - `/about/` matches `/about/*` (CloudFront `*` matches zero
-    //     or more chars) → 200 from S3.
-    //   - `/about/img.png` matches `/about/*` → 200 from S3.
+  void it("trailingSlash: 'always' still emits the subtree static route", () => {
+    // The bare `/about` behavior is derived by the L3 (deriveBareStaticPattern)
+    // from the `/about/*` subtree route, so the adapter only needs to emit the
+    // subtree form regardless of trailingSlash mode.
     fs.writeFileSync(
       path.join(tmpDir, 'astro.config.mjs'),
       "export default { output: 'hybrid', trailingSlash: 'always' };",
@@ -435,12 +433,93 @@ void describe("astroAdapter — output: 'hybrid'", () => {
     const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
     const patterns = manifest.routes.map((r) => r.pattern);
     assert.ok(
-      patterns.includes('/about'),
-      'bare /about emitted regardless of trailingSlash mode',
-    );
-    assert.ok(
       patterns.includes('/about/*'),
-      '/about/* subtree covers slashed + asset siblings',
+      '/about/* subtree covers slashed + asset siblings; L3 derives bare /about',
+    );
+  });
+});
+
+void describe("astroAdapter — output: 'server' with per-page prerender", () => {
+  // Astro 5 deprecated `output: 'hybrid'`; the modern way to mix static
+  // and dynamic is `output: 'server'` + per-page `export const prerender
+  // = true`. Such a build still emits the prerendered pages' HTML into
+  // `dist/client/`. This block guards the fix that routes those pages to
+  // S3 — previously the static-routing was gated on `output === 'hybrid'`
+  // and `server` builds sent every prerendered page through the SSR
+  // Lambda.
+  let tmpDir: string;
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-astro-server-'));
+    writePkg(tmpDir, { dependencies: { astro: '^5.0.0' } });
+    fs.writeFileSync(
+      path.join(tmpDir, 'astro.config.mjs'),
+      "export default { output: 'server' };",
+    );
+  });
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  void it('routes prerendered pages in a server build to S3 (the fix)', () => {
+    writeServerBuild(tmpDir, { prerendered: ['about', 'blog'] });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const patterns = manifest.routes.map((r) => r.pattern);
+    // Subtree route per page, targeting static (S3) — not the catch-all
+    // Lambda. The L3 derives the bare `/about` / `/blog` behaviors.
+    for (const p of ['/about/*', '/blog/*']) {
+      const route = manifest.routes.find((r) => r.pattern === p);
+      assert.ok(route, `expected a route for ${p}`);
+      assert.strictEqual(route!.target, 'static', `${p} should serve from S3`);
+    }
+    assert.strictEqual(
+      patterns[patterns.length - 1],
+      '/*',
+      'catch-all SSR route stays last',
+    );
+  });
+
+  void it('a server build with NO prerendered pages emits only the catch-all', () => {
+    // Pure-SSR app: nothing prerendered → no static page routes, just
+    // the asset behavior + catch-all. (Walk is empty, no-op.)
+    writeServerBuild(tmpDir, { prerendered: [] });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const pageStatics = manifest.routes.filter(
+      (r) => r.target === 'static' && r.pattern !== '/_astro/*',
+    );
+    assert.strictEqual(
+      pageStatics.length,
+      0,
+      'no prerendered pages → no per-page static routes',
+    );
+    assert.ok(manifest.routes.some((r) => r.pattern === '/*'));
+  });
+
+  void it('emits one static subtree route per prerendered page (no adapter-side cap)', () => {
+    // The adapter no longer caps prerendered pages — it emits a `/<page>/*`
+    // static route for each, matching the Nitro adapter. The CloudFront
+    // 24-behavior budget is enforced centrally by the L3 (CdnConstruct),
+    // which also derives the bare `/<page>` behavior. This keeps both
+    // adapters consistent (one limit check at the construction level).
+    const many = Array.from({ length: 12 }, (_, i) => `page${i}`);
+    writeServerBuild(tmpDir, { prerendered: many });
+    const manifest = astroAdapter({ projectDir: tmpDir, skipBuild: true });
+    const subtreeRoutes = manifest.routes.filter(
+      (r) => r.target === 'static' && /^\/page\d+\/\*$/.test(r.pattern),
+    );
+    assert.strictEqual(
+      subtreeRoutes.length,
+      12,
+      'all 12 prerendered pages get a /<page>/* static route — no cap',
+    );
+    // The adapter does NOT emit the bare `/<page>` form anymore; the L3
+    // derives it from the subtree route.
+    const bareRoutes = manifest.routes.filter(
+      (r) => r.target === 'static' && /^\/page\d+$/.test(r.pattern),
+    );
+    assert.strictEqual(
+      bareRoutes.length,
+      0,
+      'bare routes are derived by the L3, not emitted by the adapter',
     );
   });
 });

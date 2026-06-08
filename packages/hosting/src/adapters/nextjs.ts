@@ -8,6 +8,7 @@
 import { spawn } from './spawn.js';
 import { normalizeBasePath } from './shared/basepath.js';
 import { validateCacheControl } from './shared/cache_control.js';
+import { warnIfVercelCron } from './shared/feature_warnings.js';
 import {
   type TrailingSlashMode,
   emitTrailingSlashRedirects,
@@ -50,6 +51,14 @@ type OpenNextOutput = {
   additionalProps?: {
     [key: string]: unknown;
     disableIncrementalCache?: boolean;
+    /**
+     * OpenNext's `disableTagCache` — turns off the DynamoDB tag table while
+     * keeping the S3 incremental cache. When true, we must NOT provision
+     * DynamoDB (it would be an unused, billed resource). OpenNext also omits
+     * the `dynamodb-provider` directory in this mode, which we treat as a
+     * secondary signal.
+     */
+    disableTagCache?: boolean;
     imageOptimization?: boolean;
     /**
      * One-shot DynamoDB tag-table seeder (`dynamodb-provider`). OpenNext
@@ -199,6 +208,16 @@ export const nextjsAdapter = (
   applyLiftedRoutesManifest(manifest, projectDir);
   applyAssetPrefix(manifest, projectDir);
   applyNextImageConfig(manifest, projectDir);
+
+  // Warn (don't fail) when `vercel.json` declares crons: there is no general
+  // scheduled-task wiring (EventBridge is used only for opt-in compute.warmup),
+  // so a declared cron silently never fires.
+  //
+  // WebSocket is deliberately NOT detected for Next: there is no server-side
+  // WS feature in Next to key off (WS needs a custom server OpenNext discards),
+  // and a `ws`/`socket.io` dependency is overwhelmingly client-side usage that
+  // works fine — flagging it would false-positive on legitimate apps.
+  warnIfVercelCron(projectDir);
 
   // 3.2 — Next-specific orphaned-data lifecycle. `_next/data/<id>/...`
   // JSON files live OUTSIDE the build prefix and survive across
@@ -882,8 +901,16 @@ const validateUserOpenNextConfig = (
   if (!findOverride(source, 'converter', 'aws-apigw-v1')) {
     missing.push("converter: 'aws-apigw-v1'");
   }
-  if (!findOverride(source, 'wrapper', 'aws-lambda-streaming')) {
-    missing.push("wrapper: 'aws-lambda-streaming'");
+  // Accept either the patched community wrapper (`aws-lambda-streaming`) or
+  // OpenNext's native API Gateway streaming wrapper (`aws-apigw-streaming`,
+  // the upstream PR). Both produce a handler compatible with the REST API
+  // STREAM integration; rejecting the native one would force users onto the
+  // wrapper we monkeypatch even after upstream ships the proper fix.
+  const hasStreamingWrapper =
+    findOverride(source, 'wrapper', 'aws-lambda-streaming') ||
+    findOverride(source, 'wrapper', 'aws-apigw-streaming');
+  if (!hasStreamingWrapper) {
+    missing.push("wrapper: 'aws-lambda-streaming' (or 'aws-apigw-streaming')");
   }
   // Edge functions must be split out per OpenNext's build-time
   // requirement. Detect by checking for any `runtime: 'edge'` token in
@@ -1337,6 +1364,14 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
     `\u{2139}\u{FE0F}  OpenNext may print "Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible" — this is expected. Amplify Hosting fronts the SSR Lambda with API Gateway v1 (REST API) and patches the bundled streaming wrapper after the build.\n`,
   );
 
+  // Clear .open-next build output before OpenNext regenerates it.
+  // This prevents esbuild errors from stale artifacts when the Next.js app
+  // has changed (e.g., deleted files still referenced in old bundles).
+  const openNextOutputDir = path.join(projectDir, '.open-next');
+  if (fs.existsSync(openNextOutputDir)) {
+    fs.rmSync(openNextOutputDir, { recursive: true, force: true });
+  }
+
   try {
     spawn.sync('npx', args, {
       cwd: projectDir,
@@ -1523,6 +1558,14 @@ const translateOpenNextOutput = (
         // namespaced by OPEN_NEXT_BUILD_ID).
         const seedDirectory = hasCacheDir ? cacheDir : undefined;
 
+        // Honor OpenNext's `disableTagCache`: when set, the user opted out of
+        // the DynamoDB tag table (keeping only the S3 incremental cache).
+        // Provisioning DynamoDB anyway is a billed, unused resource, and
+        // OpenNext omits the `dynamodb-provider` bundle in this mode so there
+        // would be nothing to seed it with.
+        const tagCacheEnabled =
+          output.additionalProps?.disableTagCache !== true;
+
         // Seed the DynamoDB tag table with the build's prebuilt tag rows
         // via OpenNext's dynamodb-provider (a CFN-custom-resource handler
         // bundling `dynamodb-cache.json`). Without it, tag revalidation
@@ -1530,7 +1573,7 @@ const translateOpenNextOutput = (
         const initFnMeta = output.additionalProps?.initializationFunction;
         const initFnDir = path.join(openNextDir, 'dynamodb-provider');
         const initFunction =
-          initFnMeta && fs.existsSync(initFnDir)
+          tagCacheEnabled && initFnMeta && fs.existsSync(initFnDir)
             ? {
                 bundle: initFnDir,
                 handler: initFnMeta.handler ?? 'index.handler',
@@ -1539,7 +1582,7 @@ const translateOpenNextOutput = (
 
         manifest.cache = {
           computeResource: primaryComputeName,
-          tagRevalidation: true,
+          tagRevalidation: tagCacheEnabled,
           revalidationQueue: true,
           revalidationFunction: hasRevalidationFn
             ? { bundle: revalidationFnDir, handler: 'index.handler' }
