@@ -2524,11 +2524,19 @@ void describe('AmplifyHostingConstruct — N6: Multi-domain + www redirect', () 
       'Should have 4 DNS records (A+AAAA per domain)',
     );
 
-    const recordNames = recordEntries.map(
-      (r) => (r as Record<string, Record<string, unknown>>).Properties?.Name,
+    const recordNames = recordEntries.map((r) =>
+      String((r as Record<string, Record<string, unknown>>).Properties?.Name),
     );
-    assert.ok(recordNames.some((n) => String(n).includes('example.com')));
-    assert.ok(recordNames.some((n) => String(n).includes('www.example.com')));
+    assert.ok(
+      recordNames.some((n) => n === 'example.com' || n === 'example.com.'),
+      `Expected a record for 'example.com' but got: ${JSON.stringify(recordNames)}`,
+    );
+    assert.ok(
+      recordNames.some(
+        (n) => n === 'www.example.com' || n === 'www.example.com.',
+      ),
+      `Expected a record for 'www.example.com' but got: ${JSON.stringify(recordNames)}`,
+    );
   });
 
   void it('CloudFront distribution has multiple aliases for multi-domain', () => {
