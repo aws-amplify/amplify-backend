@@ -123,8 +123,8 @@ export type CdnConstructProps = {
   webAcl?: CfnWebACL;
   /** ACM certificate for custom domain TLS. */
   certificate?: ICertificate;
-  /** Custom domain names for CloudFront aliases. */
-  domainNames?: string[];
+  /** Custom domain name(s) for CloudFront aliases. */
+  domainName?: string | string[];
   /**
    * www redirect mode. When set to 'toApex' or 'toWww', a CloudFront Function
    * redirects between www and apex domains.
@@ -1018,9 +1018,11 @@ export class CdnConstruct extends Construct {
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: props.priceClass ?? PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
-      ...(props.certificate && props.domainNames && props.domainNames.length > 0
+      ...(props.certificate && props.domainName
         ? {
-            domainNames: props.domainNames,
+            domainNames: Array.isArray(props.domainName)
+              ? props.domainName
+              : [props.domainName],
             certificate: props.certificate,
           }
         : {}),
@@ -1100,7 +1102,12 @@ export class CdnConstruct extends Construct {
     }
 
     // ---- Distribution URL ----
-    const primaryDomain = props.domainNames?.[0];
+    const domainNames = Array.isArray(props.domainName)
+      ? props.domainName
+      : props.domainName
+        ? [props.domainName]
+        : [];
+    const primaryDomain = domainNames[0];
     this.distributionUrl = primaryDomain
       ? `https://${primaryDomain}`
       : `https://${this.distribution.distributionDomainName}`;

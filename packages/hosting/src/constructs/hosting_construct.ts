@@ -1038,7 +1038,7 @@ export class AmplifyHostingConstruct extends Construct {
       routeEdgeFunctions,
       webAcl: this.webAcl,
       certificate: this.certificate,
-      domainNames:
+      domainName:
         resolvedDomainNames.length > 0 ? resolvedDomainNames : undefined,
       wwwRedirect: props.domain?.wwwRedirect,
       accessLogBucket: storage.accessLogBucket,
