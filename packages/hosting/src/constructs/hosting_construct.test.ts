@@ -251,6 +251,100 @@ void describe('AmplifyHostingConstruct — SSR mode', () => {
       Timeout: 45,
     });
   });
+
+  void it('does not throw on manifest.rewrites (upstream proxy); warns instead', () => {
+    // routeRules.proxy lifts to manifest.rewrites[]. The L3 doesn't edge-route
+    // them yet, but they WORK via the SSR Lambda's Nitro runtime — so the
+    // construct must deploy (warn), not throw and block a working app.
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const stderrChunks: string[] = [];
+    const original = process.stderr.write.bind(process.stderr);
+    process.stderr.write = ((chunk: string | Uint8Array): boolean => {
+      stderrChunks.push(chunk.toString());
+      return true;
+    }) as typeof process.stderr.write;
+    try {
+      assert.doesNotThrow(() => {
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: {
+            ...ssrManifest(staticDir, bundleDir),
+            rewrites: [
+              { source: '/api/external/*', destination: 'https://upstream/*' },
+            ],
+          },
+          skipRegionValidation: true,
+        });
+      });
+    } finally {
+      process.stderr.write = original;
+    }
+    assert.ok(
+      stderrChunks.join('').includes('upstream-proxy rewrite'),
+      'must warn that proxy rewrites are not edge-optimized',
+    );
+  });
+
+  void it('wires compute.provisionedConcurrency into a live alias on the SSR Lambda', () => {
+    // Regression for the silently-dropped prop: the L3 used to forward only
+    // memory/timeout/reserved to the SSR ComputeConstruct, so
+    // compute.provisionedConcurrency was inert. Now it creates a `live`
+    // alias the REST integration targets.
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest: ssrManifest(staticDir, bundleDir),
+      skipRegionValidation: true,
+      compute: { provisionedConcurrency: 4 },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Lambda::Alias', {
+      Name: 'live',
+      ProvisionedConcurrencyConfig: Match.objectLike({
+        ProvisionedConcurrentExecutions: 4,
+      }),
+    });
+  });
+
+  void it('throws when skewProtection.maxAge exceeds storage.buildRetentionDays', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    // 7 days retention = 604800s; a 14-day (1209600s) cookie would pin a
+    // returning viewer to a build prefix the lifecycle rule already deleted.
+    assert.throws(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          skipRegionValidation: true,
+          storage: { buildRetentionDays: 7 },
+          skewProtection: { enabled: true, maxAge: 14 * 24 * 60 * 60 },
+        }),
+      (error: Error) => error.name === 'InvalidSkewProtectionMaxAgeError',
+    );
+  });
+
+  void it('allows skewProtection.maxAge within storage.buildRetentionDays', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    assert.doesNotThrow(
+      () =>
+        new AmplifyHostingConstruct(stack, 'Hosting', {
+          manifest: ssrManifest(staticDir, bundleDir),
+          skipRegionValidation: true,
+          storage: { buildRetentionDays: 30 },
+          skewProtection: { enabled: true, maxAge: 24 * 60 * 60 },
+        }),
+    );
+  });
 });
 
 // ================================================================
@@ -528,6 +622,124 @@ void describe('AmplifyHostingConstruct — Cache/ISR', () => {
 
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::Lambda::EventSourceMapping', 0);
+  });
+
+  void it('seeds the cache bucket via BucketDeployment when seedDirectory is set', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const seedDir = path.join(tmpDir, 'cache');
+    fs.mkdirSync(path.join(seedDir, 'BUILDID', 'products'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(seedDir, 'BUILDID', 'products', '0.cache'),
+      '{"type":"app","html":"<html></html>","rsc":""}',
+    );
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        seedDirectory: seedDir,
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // Static-asset deployments also create CDKBucketDeployment resources, so
+    // identify the seed deployment by its construct id (`IsrCacheSeed`).
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    const hasSeed = Object.keys(deployments).some((id) =>
+      id.includes('IsrCacheSeed'),
+    );
+    assert.ok(
+      hasSeed,
+      'Should create a BucketDeployment seeding the cache bucket',
+    );
+  });
+
+  void it('seeds the tag table via a custom resource when initFunction is set', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const initDir = path.join(tmpDir, 'dynamodb-provider');
+    fs.mkdirSync(initDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(initDir, 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(path.join(initDir, 'dynamodb-cache.json'), '[]');
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+        initFunction: {
+          bundle: initDir,
+          handler: 'index.handler',
+        },
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    // The seed function should be granted write access to the tag table —
+    // assert an IAM policy with DynamoDB write actions exists.
+    template.hasResourceProperties(
+      'AWS::IAM::Policy',
+      Match.objectLike({
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: Match.arrayWith(['dynamodb:PutItem']),
+            }),
+          ]),
+        }),
+      }),
+    );
+  });
+
+  void it('does not seed cache when seedDirectory / initFunction are absent', () => {
+    const staticDir = createStaticDir();
+    const bundleDir = createBundleDir();
+    const stack = createStack();
+
+    const manifest: DeployManifest = {
+      ...ssrManifest(staticDir, bundleDir),
+      cache: {
+        computeResource: 'default',
+        tagRevalidation: true,
+        revalidationQueue: true,
+      },
+    };
+
+    new AmplifyHostingConstruct(stack, 'Hosting', {
+      manifest,
+      skipRegionValidation: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const deployments = template.findResources('Custom::CDKBucketDeployment');
+    const hasSeed = Object.keys(deployments).some((id) =>
+      id.includes('IsrCacheSeed'),
+    );
+    assert.ok(
+      !hasSeed,
+      'Should not seed the cache bucket when seedDirectory is absent',
+    );
   });
 });
 

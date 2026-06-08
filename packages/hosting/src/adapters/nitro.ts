@@ -16,10 +16,16 @@
  */
 import { spawn } from './spawn.js';
 import { validateCacheControl } from './shared/cache_control.js';
+import {
+  warnIfVercelCron,
+  warnUnschedulableCron,
+  warnUnsupportedWebSocket,
+} from './shared/feature_warnings.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import fg from 'fast-glob';
-import { isPackageExists } from 'local-pkg';
+import semver from 'semver';
+import { getPackageInfoSync, isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import type {
   ComputeResource,
@@ -79,12 +85,18 @@ type NitroBuildInfo = {
   config?: {
     awsLambda?: { streaming?: boolean };
     /**
-     * Nitro experimental WebSocket runtime. Lambda Function URLs and API
-     * Gateway HTTP/REST API don't speak the WS upgrade — we throw at
-     * adapter time rather than letting the build ship a runtime that
-     * silently 502s.
+     * Nitro WebSocket runtime. Lambda Function URLs and API Gateway
+     * HTTP/REST cannot complete the WS upgrade (no persistent socket;
+     * Nitro itself only lists Node/Bun/Deno/Cloudflare as WS-capable
+     * targets, not AWS Lambda) — we throw at adapter time rather than ship
+     * a runtime that silently 200s instead of 101s.
+     *
+     * The flag was renamed across Nitro majors: Nitro 2.x used
+     * `experimental.websocket`; Nitro 3 / the `nitro` package uses
+     * `features.websocket`. We check both so the guard keeps firing.
      */
     experimental?: { websocket?: boolean };
+    features?: { websocket?: boolean };
     /**
      * Cron-like tasks. Vercel/Cloudflare wire these to platform schedulers;
      * Amplify hosting has no EventBridge wiring today, so they would
@@ -107,6 +119,16 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * `stale-while-revalidate` window (seconds) emitted for SWR route rules.
+ * One year — matches the SWR window OpenNext/Next emit for ISR pages
+ * (`stale-while-revalidate=31536000`): once a page is fresh-cached, a stale
+ * copy can still be served for essentially this long while the background
+ * refresh runs. The freshness window is the rule's own `maxAge` (the
+ * `s-maxage`); this constant is only the trailing stale grace period.
+ */
+const SWR_STALE_WINDOW_SECONDS = 31536000;
+
+/**
  * Verified Nitro version range. The aws-lambda handler patcher
  * (`patchNitroHandlerForApiGateway`) and the dep-store materializer
  * have been exercised against Nitro 2.10–2.13; the range below
@@ -120,13 +142,32 @@ const SUPPORTED_NITRO_PRESETS: ReadonlySet<string> = new Set([
  * with verifying a new minor.
  *
  * This constant documents the verified range and is consumed by the
- * X.1 cross-adapter version-pin test. The real safety net at runtime
- * is the patcher itself: `patchNitroHandlerForApiGateway` fails loudly
- * with `UpstreamPatchPatternChangedError` if upstream signatures change,
- * so an untested-but-compatible Nitro still works and an
- * untested-and-incompatible one fails clearly rather than silently.
+ * X.1 cross-adapter version-pin test. The runtime safety net is the
+ * version-range warning (`warnIfNitroOutOfRange`), NOT a hard failure in the
+ * patcher: zero patches is a legitimate state — Nitro v3 (and any release
+ * that adopts a REST-compatible request shape) needs no patch at all, and a
+ * throw there would break a build that actually works. The patcher therefore
+ * warns (not throws) on zero patches; the version warning is what flags an
+ * unverified nitropack so a genuine signature drift is investigated.
  */
 export const VERIFIED_NITRO_RANGE = '>=2.10.0 <2.14.0';
+
+/**
+ * Warn when the installed `nitropack` is outside {@link VERIFIED_NITRO_RANGE}.
+ * Mirrors the Next.js adapter's `warnIfOpenNextOutOfRange`: advisory only —
+ * the hard safety net is the patcher's `UpstreamPatchPatternChangedError`.
+ * @internal
+ */
+export const warnIfNitroOutOfRange = (projectDir: string): void => {
+  const info = getPackageInfoSync('nitropack', { paths: [projectDir] });
+  const version = info?.version;
+  if (!version || !semver.valid(version)) return;
+  if (semver.satisfies(version, VERIFIED_NITRO_RANGE)) return;
+  process.stderr.write(
+    `⚠️  nitropack@${version} is outside the version range this adapter was verified against (${VERIFIED_NITRO_RANGE}). ` +
+      `If the aws-lambda handler patcher errors with UpstreamPatchPatternChangedError, that's the most likely cause — pin to a verified version or file an issue.\n`,
+  );
+};
 
 /**
  * Throw `UnsupportedNitroPresetError` when the resolved preset isn't
@@ -146,38 +187,37 @@ const validateNitroPreset = (preset: string): void => {
 };
 
 /**
- * Throw on Nitro features that produce a deployable bundle but break
- * silently on AWS:
- *   - `experimental.websocket: true` — Lambda Function URLs and API
- *     Gateway REST/HTTP don't speak the WS upgrade frame.
- *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform
- *     schedulers; we have no EventBridge wiring, so the cron silently
- *     never fires.
+ * Warn (do NOT throw) about Nitro features that produce a deployable bundle
+ * but can't work on this architecture:
+ *   - WebSocket (`experimental.websocket` in Nitro 2.x, `features.websocket`
+ *     in Nitro 3) — Lambda + API Gateway REST can't complete the WS upgrade
+ *     (Nitro only supports WS on Node/Bun/Deno/Cloudflare, not AWS Lambda).
+ *   - `scheduledTasks` — Vercel/Cloudflare wire these to platform schedulers;
+ *     we have no EventBridge wiring, so the cron silently never fires.
  *
- * We default to a hard error rather than a deploy-time warning because
- * the failure mode is invisible at runtime — the user only finds out
- * weeks later when a scheduled task hasn't run.
+ * Warnings, not hard errors: neither feature is widely supported on
+ * serverless SSR, and the rest of the app deploys and serves correctly. We
+ * surface a clear warning so the unsupported behavior isn't a silent runtime
+ * surprise, but we don't block the deploy.
  */
-const validateNitroFeatures = (info: NitroBuildInfo): void => {
-  if (info.config?.experimental?.websocket === true) {
-    throw new HostingError('UnsupportedNitroFeatureError', {
-      message:
-        'Nitro `experimental.websocket: true` is not supported on Amplify hosting (Lambda Function URLs and API Gateway REST cannot complete the WS upgrade).',
-      resolution:
-        'Remove `experimental.websocket` from nitro/nuxt config, or front WebSocket connections via API Gateway WebSocket APIs (separate provisioning).',
-    });
+const warnNitroUnsupportedFeatures = (info: NitroBuildInfo): void => {
+  // Nitro renamed the flag: 2.x = `experimental.websocket`, 3.x / `nitro`
+  // package = `features.websocket`. Check both so the warning survives the
+  // major bump.
+  if (
+    info.config?.experimental?.websocket === true ||
+    info.config?.features?.websocket === true
+  ) {
+    warnUnsupportedWebSocket(
+      'Nitro WebSocket support (`experimental.websocket` / `features.websocket: true`)',
+    );
   }
   const tasks = info.config?.scheduledTasks;
   const hasScheduledTasks = Array.isArray(tasks)
     ? tasks.length > 0
     : tasks && Object.keys(tasks).length > 0;
   if (hasScheduledTasks) {
-    throw new HostingError('UnsupportedNitroFeatureError', {
-      message:
-        'Nitro `scheduledTasks` are not wired to AWS EventBridge by this adapter, so they would silently never fire.',
-      resolution:
-        'Remove `scheduledTasks` from nitro/nuxt config and provision the cron via AWS EventBridge (or scheduled CloudWatch rule) separately.',
-    });
+    warnUnschedulableCron('Nitro `scheduledTasks` are declared');
   }
 };
 
@@ -192,8 +232,9 @@ type NitroRouteRule = {
    * upstream-proxy rule. Today the SSR Lambda relays this on every hit
    * (paid Lambda invocation). The adapter lifts the rule into
    * `manifest.rewrites[]`; the L3 will route it via CloudFront's
-   * origin-rewrite path once that's wired (tracked separately —
-   * currently emits a clear error if any rewrites reach the L3).
+   * origin-rewrite path once that's wired (tracked separately). Until then
+   * the proxy still works via the SSR Lambda runtime — the L3 warns that it
+   * isn't edge-optimized rather than failing the deploy.
    */
   proxy?: string | { to: string };
 };
@@ -287,6 +328,9 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
     // (payload v1: event.path / requestContext.httpMethod). Without the
     // patch every URL renders as `/`. See patchNitroHandlerForApiGateway.
     if (effectivePreset === 'aws-lambda') {
+      // Flag an unverified nitropack BEFORE patching so a signature drift
+      // (or a v3 build that legitimately needs no patch) is contextualized.
+      warnIfNitroOutOfRange(projectDir);
       patchNitroHandlerForApiGateway(serverDir);
     }
   }
@@ -345,7 +389,10 @@ export const nitroAdapter = (options: NitroAdapterOptions): DeployManifest => {
   const resolvedPreset = nitroInfo.preset ?? effectivePreset;
   const awsLambdaStreaming = nitroInfo.config?.awsLambda?.streaming === true;
   validateNitroPreset(resolvedPreset);
-  validateNitroFeatures(nitroInfo);
+  warnNitroUnsupportedFeatures(nitroInfo);
+  // Nuxt/Nitro projects can also carry a vercel.json with crons (e.g. set up
+  // for a Vercel preview) — warn for parity with the Next/Astro path.
+  warnIfVercelCron(projectDir);
   // basePath: skipped for Nitro/Nuxt. The framework-side equivalent
   // (`app.baseURL` in nuxt.config) is not exposed in `.output/nitro.json`,
   // and reading it from `nuxt.config.ts` would require migrating off the
@@ -1298,11 +1345,13 @@ const normalizeRulePattern = (pattern: string): string => {
  * lift, every proxied request burns an SSR Lambda invocation just to
  * relay; with it, CloudFront routes directly to the upstream origin.
  *
- * The L3 doesn't yet consume `manifest.rewrites[]` for upstream proxying
- * — that requires per-pattern `HttpOrigin` provisioning + a CloudFront
- * Function origin-rewrite step. Until then, the adapter emits the field
- * (so consumers can see the user's intent) and the L3 throws a clear
- * `RewritesNotYetSupportedError` instead of silently dropping the rule.
+ * The L3 doesn't yet consume `manifest.rewrites[]` for edge-optimized
+ * upstream proxying — that requires per-pattern `HttpOrigin` provisioning +
+ * a CloudFront Function origin-rewrite step. Until then the rule still WORKS:
+ * the proxied path matches the catch-all `/* → default` route, so the bundled
+ * Nitro runtime relays it to the upstream from inside the SSR Lambda. The
+ * adapter emits the field (so the L3 can warn that it's not edge-optimized and
+ * so future wiring can consume it), but the app deploys and proxies correctly.
  */
 const buildRewrites = (
   routeRules: Record<string, NitroRouteRule>,
@@ -1355,10 +1404,12 @@ const buildRedirects = (
  *  - `headers: { ... }` lifts as-is.
  *  - `cors: true` emits the same Access-Control-* set as Nitro's runtime
  *    middleware so behavior matches when the rule fires at the edge.
- *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N,
- *    s-maxage=N` so CloudFront edge-caches the response for N seconds.
- *    SWR rules are intentionally not lifted — those need server-side
- *    cache plumbing (covered by `manifest.cache` provisioning).
+ *  - `cache.maxAge: N` emits `Cache-Control: public, max-age=N, s-maxage=N`
+ *    so CloudFront edge-caches the response for N seconds.
+ *  - SWR rules (`cache: { swr: true, maxAge: N }`) emit
+ *    `public, s-maxage=N, stale-while-revalidate=…` (no `max-age`) so the
+ *    edge serves stale-while-revalidating instead of hard-caching. Background
+ *    regeneration still relies on `manifest.cache` provisioning.
  */
 const buildHeaders = (
   routeRules: Record<string, NitroRouteRule>,
@@ -1388,16 +1439,25 @@ const buildHeaders = (
       corsHeaders['Access-Control-Allow-Headers'] =
         'Content-Type, Authorization';
     }
-    // 2. `cache.maxAge: N` — translate to a public Cache-Control. We
-    //    emit both `max-age` and `s-maxage` because the L3's
-    //    ssrCachePolicy honors `s-maxage` for CloudFront edge caching;
-    //    `max-age` covers the browser cache.
+    // 2. `cache.maxAge: N` — translate to a public Cache-Control.
     const maxAge = rule.cache?.maxAge;
     if (typeof maxAge === 'number' && maxAge > 0 && Number.isFinite(maxAge)) {
-      const maxAgeHeaders = recordFor(source);
-      const value = `public, max-age=${maxAge}, s-maxage=${maxAge}`;
+      const cacheHeaders = recordFor(source);
+      // SWR (`cache: { swr: true, maxAge: N }`, or the `swr: N` shorthand
+      // Nitro normalizes into it) means "serve fresh for N seconds, then
+      // serve STALE while revalidating in the background" — NOT "cache hard
+      // for N seconds". Emit `s-maxage=N, stale-while-revalidate=…` and NO
+      // `max-age`, so the browser always revalidates while CloudFront serves
+      // the stale edge copy. A plain `max-age=N` would let browsers pin the
+      // stale response with no revalidation — the opposite of SWR.
+      const isSwr =
+        rule.cache?.swr === true ||
+        Boolean((rule as Record<string, unknown>).swr);
+      const value = isSwr
+        ? `public, s-maxage=${maxAge}, stale-while-revalidate=${SWR_STALE_WINDOW_SECONDS}`
+        : `public, max-age=${maxAge}, s-maxage=${maxAge}`;
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      maxAgeHeaders['Cache-Control'] = value;
+      cacheHeaders['Cache-Control'] = value;
     }
     // 3. User-declared `headers: { ... }` wins over the auto-emit
     //    above. Validate Cache-Control values so invalid directives
@@ -1491,9 +1551,20 @@ export const patchNitroHandlerForApiGateway = (serverDir: string): void => {
   }
 
   if (totalPatches === 0) {
+    // Zero patches is NOT an error. Two benign causes:
+    //   1. Nitro v3 (and any release with a REST-compatible request shape)
+    //      needs no patch — upstream reads both v1/v2 fields, so there's
+    //      nothing to rewrite. Verified working with no patching.
+    //   2. The handler is already patched (idempotent re-run).
+    // A genuine signature drift on an OLDER Nitro that DID need patching is
+    // surfaced separately by `warnIfNitroOutOfRange` (the installed nitropack
+    // would be outside the verified range). We deliberately do not throw here
+    // — doing so would break the working v3 path.
     process.stderr.write(
-      `⚠️  Nitro handler patch found nothing to change under ${serverDir}. ` +
-        `Nitro may have updated its bundled aws-lambda preset; verify the request-shape.\n`,
+      `ℹ️  Nitro handler patch found nothing to change under ${serverDir} — ` +
+        `expected on Nitro v3+ (no patch needed) or a re-run. If you see broken ` +
+        `routing or corrupt binary POSTs on an older Nitro, check the nitropack ` +
+        `version against the verified range.\n`,
     );
     return;
   }

@@ -388,6 +388,7 @@ const doBuildHostingConstruct = (
     monitoring: props.monitoring,
     environment: props.environment,
     errorPages: props.errorPages,
+    skewProtection: props.skewProtection,
   };
 
   const hostingConstruct = new AmplifyHostingConstruct(
