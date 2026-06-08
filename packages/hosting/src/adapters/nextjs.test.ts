@@ -178,7 +178,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.cache, 'incremental cache still provisioned');
     assert.strictEqual(
@@ -240,7 +240,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
 
     assert.ok(manifest.cache);
     assert.ok(
@@ -275,8 +275,7 @@ void describe('nextjsAdapter', () => {
       }),
     );
 
-    const manifest = nextjsAdapter({ projectDir: tmpDir });
-    // Cache dir present → seedDirectory set; no init fn meta → initFunction undefined.
+    const manifest = nextjsAdapter({ projectDir: tmpDir, skipBuild: true });
     assert.ok(manifest.cache!.seedDirectory);
     assert.strictEqual(manifest.cache!.initFunction, undefined);
   });
@@ -1735,23 +1734,25 @@ export default config;
 export default config;
 `,
     );
-    const openNextDir = path.join(tmpDir, '.open-next');
-    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
-      recursive: true,
-    });
-    fs.writeFileSync(
-      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
-      'export const handler = async () => {};',
-    );
-    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
-    fs.writeFileSync(
-      path.join(openNextDir, 'open-next.output.json'),
-      JSON.stringify({
-        origins: { default: { type: 'function', handler: 'index.handler' } },
-        behaviors: [{ pattern: '/*', origin: 'default' }],
-        additionalProps: {},
-      }),
-    );
+    buildOutputCreator = () => {
+      const openNextDir = path.join(tmpDir, '.open-next');
+      fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+        'export const handler = async () => {};',
+      );
+      fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+      fs.writeFileSync(
+        path.join(openNextDir, 'open-next.output.json'),
+        JSON.stringify({
+          origins: { default: { type: 'function', handler: 'index.handler' } },
+          behaviors: [{ pattern: '/*', origin: 'default' }],
+          additionalProps: {},
+        }),
+      );
+    };
     assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
   });
 });
