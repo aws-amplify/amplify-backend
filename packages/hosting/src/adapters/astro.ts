@@ -104,16 +104,6 @@ export const VERIFIED_ASTRO_RANGE = '>=4.0.0 <6.0.0';
 const REDIRECT_LIFT_CAP = 100;
 
 /**
- * Max prerendered pages routed directly to S3. Each consumes up to 2
- * CloudFront cache behaviors (subtree `/<page>/*` + bare `/<page>`), and
- * the distribution allows only 24 additional behaviors total — the
- * construct already spends several on `_astro/*`, image-opt, the
- * catch-all, etc. Cap conservatively; overflow pages still serve
- * correctly through the SSR Lambda.
- */
-const MAX_PRERENDERED_STATIC_PAGES = 8;
-
-/**
  * Lambda Web Adapter exec wrapper. The LWA's `/opt/bootstrap` runs
  * `$_HANDLER` as a child process — without a `node` shebang, bash
  * would parse `entry.mjs` as shell, so we wrap in `run.sh`.
@@ -817,52 +807,25 @@ const buildSsrManifest = (input: {
   // and we just emit the catch-all. (`static` mode never reaches here —
   // it uses `buildStaticManifest`.)
   //
-  // CloudFront PathPatterns are not "match either trailing-slash or
-  // bare" — `/about/*` matches `/about/x` but NOT `/about`. Without
-  // both forms the bare path falls through to the catch-all → SSR
-  // Lambda, silently re-rendering frozen content (and ruining SSG
-  // semantics + costing Lambda invocations the user didn't sign up
-  // for). Emit BOTH forms regardless of trailingSlash mode:
-  //   - `<urlPath>/*` covers sibling assets (the framework prefetches
-  //     `_payload.json` and similar adjacent to the prerendered HTML)
-  //   - `<urlPath>` covers the bare URL itself
-  // The L3 deduplicates these against any existing static behaviors
-  // via `addRoute`'s `seenPatterns` guard.
-  //
-  // Budget: each page consumes up to 2 CloudFront behaviors (subtree +
-  // bare). Cap at MAX_PRERENDERED_STATIC_PAGES so a large static site
-  // can't blow the 24-additional-behavior limit; overflow pages stay on
-  // the SSR Lambda (correct, just not optimized) and we log the count.
+  // Emit a `<urlPath>/*` static (S3) route per prerendered page, matching
+  // the Nitro adapter. We do NOT cap the count here: the CloudFront
+  // 24-additional-behavior budget is enforced centrally by the L3
+  // (`CdnConstruct`) so both adapters share one consistent limit check,
+  // rather than each adapter applying its own divergent cap. The L3 also
+  // derives the bare `<urlPath>` behavior from each `<urlPath>/*` route, so
+  // both the bare and trailing-slash forms hit S3 (the bare path is needed
+  // because CloudFront `/about/*` does NOT match `/about`).
   if (output !== 'static') {
     const prerendered = fg.sync('**/*.html', {
       cwd: clientDir,
       ignore: ['index.html', '404.html', '500.html'],
     });
-    const pages: string[] = [];
     const seen = new Set<string>();
     for (const html of prerendered) {
       const urlPath = htmlToUrlPath(html);
       if (urlPath === '/' || seen.has(urlPath)) continue;
       seen.add(urlPath);
-      pages.push(urlPath);
-    }
-    let kept = pages;
-    if (pages.length > MAX_PRERENDERED_STATIC_PAGES) {
-      kept = pages.slice(0, MAX_PRERENDERED_STATIC_PAGES);
-      process.stderr.write(
-        `ℹ️  Hosting: ${pages.length} prerendered Astro pages detected, but only the first ` +
-          `${MAX_PRERENDERED_STATIC_PAGES} are routed directly to S3 (CloudFront behavior-count budget). ` +
-          `The remaining ${pages.length - MAX_PRERENDERED_STATIC_PAGES} still serve correctly via the SSR Lambda.\n`,
-      );
-    }
-    for (const urlPath of kept) {
       routes.push({ pattern: `${urlPath}/*`, target: 'static' });
-      // Emit the bare path unconditionally — `trailingSlash: 'always'`
-      // doesn't make the bare form optional, it just means a 308
-      // redirect bounces the viewer to the slashed form. Without the
-      // bare behavior CloudFront falls through to the SSR catch-all
-      // before the trailing-slash redirect can fire.
-      routes.push({ pattern: urlPath, target: 'static' });
     }
   }
 
