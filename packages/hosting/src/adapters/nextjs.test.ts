@@ -153,6 +153,134 @@ void describe('nextjsAdapter', () => {
     );
   });
 
+  void it('does not provision DynamoDB when disableTagCache is set', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(openNextDir, 'revalidation-function'), {
+      recursive: true,
+    });
+    // S3 incremental cache stays; only the tag cache is disabled.
+    fs.mkdirSync(path.join(openNextDir, 'cache'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: { disableTagCache: true },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.cache, 'incremental cache still provisioned');
+    assert.strictEqual(
+      manifest.cache!.tagRevalidation,
+      false,
+      'tag cache (DynamoDB) must be off when disableTagCache is set',
+    );
+    assert.strictEqual(
+      manifest.cache!.initFunction,
+      undefined,
+      'no tag-table seeder when tag cache is disabled',
+    );
+    // S3 incremental cache seeding is unaffected.
+    assert.ok(manifest.cache!.seedDirectory);
+  });
+
+  void it('surfaces the ISR cache seed dir + tag-table init function', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    // Prebuilt ISR cache dir (what seeds the S3 bucket).
+    fs.mkdirSync(path.join(openNextDir, 'cache', 'BUILDID', 'products'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'cache', 'BUILDID', 'products', '0.cache'),
+      '{"type":"app","html":"<html></html>","rsc":""}',
+    );
+    // dynamodb-provider bundle (the tag-table seeder custom resource).
+    fs.mkdirSync(path.join(openNextDir, 'dynamodb-provider'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'dynamodb-provider', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.writeFileSync(
+      path.join(openNextDir, 'dynamodb-provider', 'dynamodb-cache.json'),
+      '[]',
+    );
+
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {
+          initializationFunction: {
+            handler: 'index.handler',
+            bundle: '.open-next/dynamodb-provider',
+          },
+        },
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+
+    assert.ok(manifest.cache);
+    assert.ok(
+      manifest.cache!.seedDirectory?.endsWith('cache'),
+      'seedDirectory points at .open-next/cache',
+    );
+    assert.ok(
+      manifest.cache!.initFunction?.bundle.includes('dynamodb-provider'),
+      'initFunction bundle points at dynamodb-provider',
+    );
+    assert.strictEqual(manifest.cache!.initFunction!.handler, 'index.handler');
+    assert.doesNotThrow(() => deployManifestSchema.parse(manifest));
+  });
+
+  void it('omits init function when OpenNext emits no initializationFunction', () => {
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.mkdirSync(path.join(openNextDir, 'cache'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+
+    const manifest = nextjsAdapter({ projectDir: tmpDir });
+    // Cache dir present → seedDirectory set; no init fn meta → initFunction undefined.
+    assert.ok(manifest.cache!.seedDirectory);
+    assert.strictEqual(manifest.cache!.initFunction, undefined);
+  });
+
   void it('does not add cache when ISR is disabled', () => {
     const openNextDir = path.join(tmpDir, '.open-next');
     fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
@@ -1565,6 +1693,38 @@ export default config;
       path.join(tmpDir, 'open-next.config.ts'),
       `const config = {
   default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-lambda-streaming' } },
+};
+export default config;
+`,
+    );
+    const openNextDir = path.join(tmpDir, '.open-next');
+    fs.mkdirSync(path.join(openNextDir, 'server-functions', 'default'), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(openNextDir, 'server-functions', 'default', 'index.mjs'),
+      'export const handler = async () => {};',
+    );
+    fs.mkdirSync(path.join(openNextDir, 'assets'), { recursive: true });
+    fs.writeFileSync(
+      path.join(openNextDir, 'open-next.output.json'),
+      JSON.stringify({
+        origins: { default: { type: 'function', handler: 'index.handler' } },
+        behaviors: [{ pattern: '/*', origin: 'default' }],
+        additionalProps: {},
+      }),
+    );
+    assert.doesNotThrow(() => nextjsAdapter({ projectDir: tmpDir }));
+  });
+
+  void it("accepts OpenNext's native 'aws-apigw-streaming' wrapper", () => {
+    // The upstream native wrapper is the better long-term option than the
+    // community 'aws-lambda-streaming' we monkeypatch; the validator must
+    // not reject a user who adopts it.
+    fs.writeFileSync(
+      path.join(tmpDir, 'open-next.config.ts'),
+      `const config = {
+  default: { override: { converter: 'aws-apigw-v1', wrapper: 'aws-apigw-streaming' } },
 };
 export default config;
 `,

@@ -119,6 +119,13 @@ export type CdnConstructProps = {
   computeFunctionUrls?: Map<string, IFunctionUrl>;
   /** Map of compute name → Lambda function for OAC permission patching. */
   computeFunctions?: Map<string, IFunction>;
+  /**
+   * Map of compute name → `live` alias for resources with provisioned
+   * concurrency. When the SSR compute has an alias, the REST API
+   * integration targets it (the warm alias) instead of `$LATEST`, so
+   * provisioned instances actually serve request traffic.
+   */
+  computeAliases?: Map<string, IFunction>;
   /** WAFv2 WebACL to associate with the distribution. */
   webAcl?: CfnWebACL;
   /** ACM certificate for custom domain TLS. */
@@ -294,7 +301,13 @@ export class CdnConstruct extends Construct {
           : undefined;
 
     if (ssrComputeName && props.computeFunctions) {
-      const ssrFn = props.computeFunctions.get(ssrComputeName)!;
+      // Target the warm `live` alias when provisioned concurrency is set;
+      // otherwise the unqualified function ($LATEST). Without this, the
+      // REST integration always hit $LATEST and provisioned instances on
+      // the alias sat idle.
+      const ssrFn =
+        props.computeAliases?.get(ssrComputeName) ??
+        props.computeFunctions.get(ssrComputeName)!;
 
       // Origin verification secret — prevents direct APIGW access bypassing
       // CloudFront's security headers (CSP/HSTS). Requests without this
@@ -625,14 +638,13 @@ export class CdnConstruct extends Construct {
         (a, b) => routeSpecificity(b.pattern) - routeSpecificity(a.pattern),
       );
 
-    // Validate CloudFront behavior limit
-    if (specificRoutes.length > MAX_ADDITIONAL_BEHAVIORS) {
-      throw new HostingError('TooManyRoutesError', {
-        message: `The manifest declares ${specificRoutes.length} specific routes, but CloudFront supports a maximum of ${MAX_ADDITIONAL_BEHAVIORS} additional cache behaviors.`,
-        resolution:
-          'Reduce the number of routes in your deploy manifest. Consider consolidating routes with similar patterns.',
-      });
-    }
+    // NOTE: the CloudFront behavior-count limit is NOT validated here.
+    // `specificRoutes.length` under-counts the real total — each static
+    // route also spawns a derived bare behavior (`deriveBareStaticPattern`),
+    // and header / assetPrefix / `/builds/*` behaviors are added later. The
+    // authoritative check runs after `additionalBehaviors` is fully built
+    // (just before the Distribution is created), so it counts what actually
+    // ships. See the `TooManyRoutesError` throw below.
 
     const basePath = manifest.basePath;
 
@@ -1003,13 +1015,29 @@ export class CdnConstruct extends Construct {
       };
     }
 
+    // ---- Authoritative CloudFront behavior-count check ----
+    // Count the REAL additional behaviors now that every source has
+    // contributed: per-route static/compute/edge behaviors, the derived bare
+    // static paths, assetPrefix, custom-header behaviors, and `/builds/*`.
+    // This is the single enforcement point for both adapters — neither the
+    // Next/Astro nor the Nitro adapter caps prerendered-page routes itself;
+    // they emit one `/<page>/*` route per page and rely on this check to fail
+    // loudly (rather than CloudFormation failing opaquely at deploy time when
+    // the 25-behavior hard limit is exceeded).
+    const additionalBehaviorCount = Object.keys(additionalBehaviors).length;
+    if (additionalBehaviorCount > MAX_ADDITIONAL_BEHAVIORS) {
+      throw new HostingError('TooManyRoutesError', {
+        message: `This distribution would create ${additionalBehaviorCount} CloudFront cache behaviors, but the maximum is ${MAX_ADDITIONAL_BEHAVIORS} (CloudFront allows ${MAX_ADDITIONAL_BEHAVIORS + 1} including the default). Each prerendered page consumes up to 2 behaviors (the \`/page/*\` subtree plus a derived bare \`/page\`).`,
+        resolution:
+          'Reduce the number of distinctly-routed prerendered pages or custom-header/assetPrefix patterns. Pages that are not given a dedicated behavior still serve correctly through the SSR Lambda — consider prerendering fewer top-level routes, or grouping pages under a shared path prefix so one `/<prefix>/*` behavior covers them.',
+      });
+    }
+
     // ---- Distribution ----
     this.distribution = new Distribution(this, 'HostingDistribution', {
       defaultBehavior,
       additionalBehaviors:
-        Object.keys(additionalBehaviors).length > 0
-          ? additionalBehaviors
-          : undefined,
+        additionalBehaviorCount > 0 ? additionalBehaviors : undefined,
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: props.priceClass ?? PriceClass.PRICE_CLASS_100,
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,

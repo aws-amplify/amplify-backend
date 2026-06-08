@@ -1,6 +1,7 @@
 import { Construct } from 'constructs';
 import { Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import {
+  Alias,
   Architecture,
   Code,
   FunctionUrl,
@@ -83,6 +84,14 @@ export type ComputeConstructProps = {
   timeout?: Duration;
   /** Reserved concurrent executions. Default: undefined (no reservation). */
   reservedConcurrency?: number;
+  /**
+   * Provisioned concurrency for cold-start elimination. When > 0, a `live`
+   * alias is created with this many always-warm execution environments, and
+   * the alias becomes the routing target (Function URL and — for SSR — the
+   * caller's REST API integration via the exposed {@link alias}). Default:
+   * undefined (no provisioning; `$LATEST` serves traffic).
+   */
+  provisionedConcurrency?: number;
   /** Lambda Web Adapter layer version. Default: 22. */
   webAdapterVersion?: number;
   /** CloudWatch log retention. Default: TWO_WEEKS. */
@@ -118,6 +127,13 @@ export type ComputeConstructProps = {
 export class ComputeConstruct extends Construct {
   readonly function: LambdaFunction | experimental.EdgeFunction;
   readonly functionUrl: FunctionUrl | undefined;
+  /**
+   * The `live` alias backing provisioned concurrency, when
+   * `provisionedConcurrency > 0`. Exposed so the L3 can point an
+   * API Gateway integration at the warm alias for SSR compute (which has
+   * no Function URL). Undefined when provisioned concurrency is not set.
+   */
+  readonly alias: Alias | undefined;
 
   /**
    * Creates a compute resource (Lambda function) based on the compute type.
@@ -176,12 +192,22 @@ export class ComputeConstruct extends Construct {
     // first introduced a regression by the time the regression report
     // landed. Users can still override via `compute.logRetention`.
     const retention = props.logRetention ?? RetentionDays.ONE_MONTH;
-    const logGroup = new LogGroup(this, 'FunctionLogGroup', {
-      retention,
-      // Match the prior `logRetention`-driven default — the singleton
-      // log-retention provider didn't retain log groups on stack delete.
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
+    // Lambda@Edge does NOT get an explicit LogGroup: `experimental.EdgeFunction`
+    // hoists into the us-east-1 edge-lambda-stack, but this LogGroup lives in
+    // the stack's region — passing it cross-environment fails synth
+    // ("Cannot use resource ... in a cross-environment fashion"). Edge logs
+    // are written per-replica-region under CloudWatch's default
+    // `/aws/lambda/us-east-1.<fn>` groups anyway, which the stack region's
+    // LogGroup could never represent.
+    const logGroup =
+      computeResource.type === 'edge'
+        ? undefined
+        : new LogGroup(this, 'FunctionLogGroup', {
+            retention,
+            // Match the prior `logRetention`-driven default — the singleton
+            // log-retention provider didn't retain log groups on stack delete.
+            removalPolicy: RemovalPolicy.DESTROY,
+          });
 
     if (computeResource.type === 'handler') {
       // Native Lambda handler — no Web Adapter needed
@@ -253,21 +279,49 @@ export class ComputeConstruct extends Construct {
           `Warning: Lambda@Edge viewer-request timeout capped at ${edgeMaxTimeout}s (requested ${requestedTimeout}s)\n`,
         );
       }
-      this.function = new experimental.EdgeFunction(this, 'EdgeFunction', {
-        runtime: this.resolveRuntime(computeResource.runtime),
-        handler: computeResource.handler ?? 'index.handler',
-        code: Code.fromAsset(computeResource.bundle),
-        architecture,
-        memorySize,
-        timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
-        logGroup,
-      });
+      // Child id MUST be unique per edge compute. On the cross-region path
+      // (stack region !== us-east-1) `experimental.EdgeFunction` hoists every
+      // instance into ONE shared `edge-lambda-stack`; a literal `'EdgeFunction'`
+      // id then collides on the 2nd edge route with "already a Construct with
+      // name 'EdgeFunction'". Scoping the id by `props.name` (e.g. `edge1`,
+      // `edge2`) gives each a distinct id in that shared stack. (In-region
+      // deploys never collided — they scope under the unique outer construct.)
+      this.function = new experimental.EdgeFunction(
+        this,
+        `EdgeFunction-${props.name}`,
+        {
+          runtime: this.resolveRuntime(computeResource.runtime),
+          handler: computeResource.handler ?? 'index.handler',
+          code: Code.fromAsset(computeResource.bundle),
+          architecture,
+          memorySize,
+          timeout: Duration.seconds(Math.min(requestedTimeout, edgeMaxTimeout)),
+          logGroup,
+        },
+      );
       // Note: EdgeFunction auto-deploys to us-east-1 regardless of stack region
     } else {
       throw new HostingError('UnsupportedComputeTypeError', {
         message: `Unsupported compute type: "${String(computeResource.type)}"`,
         resolution:
           'Use a supported compute type: handler, http-server, or edge.',
+      });
+    }
+
+    // Provisioned-concurrency alias. The prop (L3 user surface) takes
+    // precedence over the manifest value (adapter-derived). Created for any
+    // non-edge compute when provisioning is requested — INCLUDING SSR, where
+    // `skipFunctionUrl` is set: the REST API integration must target the warm
+    // `live` alias (not `$LATEST`), or the provisioned instances sit idle.
+    const provisionedConcurrency =
+      props.provisionedConcurrency ?? computeResource.provisionedConcurrency;
+    if (
+      computeResource.type !== 'edge' &&
+      provisionedConcurrency &&
+      provisionedConcurrency > 0
+    ) {
+      this.alias = (this.function as LambdaFunction).addAlias('live', {
+        provisionedConcurrentExecutions: provisionedConcurrency,
       });
     }
 
@@ -278,25 +332,12 @@ export class ComputeConstruct extends Construct {
           ? InvokeMode.RESPONSE_STREAM
           : InvokeMode.BUFFERED;
 
-      if (
-        computeResource.provisionedConcurrency &&
-        computeResource.provisionedConcurrency > 0
-      ) {
-        // Point Function URL at the alias (warm instances) instead of $LATEST
-        const alias = (this.function as LambdaFunction).addAlias('live', {
-          provisionedConcurrentExecutions:
-            computeResource.provisionedConcurrency,
-        });
-        this.functionUrl = alias.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
-          invokeMode,
-        });
-      } else {
-        this.functionUrl = this.function.addFunctionUrl({
-          authType: FunctionUrlAuthType.AWS_IAM,
-          invokeMode,
-        });
-      }
+      // Point the Function URL at the warm alias when one exists.
+      const urlTarget = this.alias ?? this.function;
+      this.functionUrl = urlTarget.addFunctionUrl({
+        authType: FunctionUrlAuthType.AWS_IAM,
+        invokeMode,
+      });
     }
   }
 

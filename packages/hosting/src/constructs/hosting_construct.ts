@@ -1,7 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, Fn, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import {
+  CfnOutput,
+  CustomResource,
+  Duration,
+  Fn,
+  RemovalPolicy,
+  Stack,
+} from 'aws-cdk-lib';
+import { Provider } from 'aws-cdk-lib/custom-resources';
 import {
   Distribution,
   IResponseHeadersPolicy,
@@ -18,6 +26,7 @@ import {
   Source,
 } from 'aws-cdk-lib/aws-s3-deployment';
 import {
+  Alias,
   Code,
   FunctionUrl,
   IVersion,
@@ -106,6 +115,13 @@ export type AmplifyHostingConstructProps = {
      */
     timeout?: Duration | number;
     reservedConcurrency?: number;
+    /**
+     * Provisioned concurrency for the SSR Lambda (cold-start elimination).
+     * When > 0, the construct creates a `live` alias with this many
+     * always-warm execution environments and points the SSR REST API
+     * integration at the alias. Default: undefined (no provisioning).
+     */
+    provisionedConcurrency?: number;
     logRetention?: RetentionDays;
     /**
      * Additional environment variables to inject into all compute Lambda
@@ -244,6 +260,12 @@ export class AmplifyHostingConstruct extends Construct {
     LambdaFunction | experimental.EdgeFunction
   > = new Map();
   readonly computeFunctionUrls: Map<string, FunctionUrl> = new Map();
+  /**
+   * `live` aliases for compute resources with provisioned concurrency.
+   * Passed to the CDN so the SSR REST API integration targets the warm
+   * alias instead of `$LATEST`.
+   */
+  readonly computeAliases: Map<string, Alias> = new Map();
   readonly certificate?: ICertificate;
   readonly hostedZone?: IHostedZone;
   readonly webAcl?: CfnWebACL;
@@ -276,25 +298,41 @@ export class AmplifyHostingConstruct extends Construct {
     super(scope, id);
 
     const { manifest } = props;
-    // Rewrites stub: adapters lift `routeRules.proxy` (Nitro) and
-    // similar upstream-proxy rules into `manifest.rewrites[]`, but the
-    // L3 doesn't yet provision the per-pattern `HttpOrigin` +
-    // CloudFront-Function origin-rewrite needed to honor them. Until
-    // that lands, fail loud rather than silently dropping the user's
-    // intent — `routeRules.proxy: 'https://upstream/**'` would
-    // otherwise fall through to the SSR Lambda which relays the proxy,
-    // burning a Lambda invocation per request with no operator-visible
-    // signal that the rule didn't take effect.
+    // Rewrites (upstream proxy): adapters lift `routeRules.proxy` (Nitro) and
+    // similar upstream-proxy rules into `manifest.rewrites[]`. The L3 doesn't
+    // yet provision the edge-optimized path (per-pattern `HttpOrigin` +
+    // CloudFront-Function origin-rewrite) — BUT these rules still WORK:
+    // proxied requests fall through to the catch-all SSR route, where the
+    // bundled Nitro runtime relays them to the upstream. So we warn (not
+    // throw): the app deploys and proxies correctly; it just pays one SSR
+    // Lambda invocation per proxied request instead of routing at the edge.
+    // Throwing here would block a deployable, working app.
     if (manifest.rewrites && manifest.rewrites.length > 0) {
-      throw new HostingError('RewritesNotYetSupportedError', {
-        message:
-          `manifest.rewrites[] is not yet consumed by the hosting L3 (received ${manifest.rewrites.length} rule(s)). ` +
-          `Adapters lift Nitro routeRules.proxy and similar upstream-proxy rules here; the L3 wiring (per-pattern HttpOrigin + CloudFront-Function origin-rewrite) is tracked separately.`,
-        resolution:
-          'Until the L3 wiring lands, remove proxy rules from your framework config and inline the upstream call in your SSR handler. Track the gap on the hosting roadmap before re-introducing routeRules.proxy.',
-      });
+      process.stderr.write(
+        `⚠️  Hosting: ${manifest.rewrites.length} upstream-proxy rewrite rule(s) ` +
+          `(e.g. Nitro routeRules.proxy) are not edge-optimized yet — they are ` +
+          `relayed by the SSR Lambda at runtime (one invocation per proxied ` +
+          `request) rather than routed directly at CloudFront. The rules still ` +
+          `work; this is a cost/latency note, not an error.\n`,
+      );
     }
     const buildId = manifest.buildId ?? generateBuildId();
+
+    // Skew-protection cookie must not outlive the build artifacts it pins
+    // to. A `maxAge` longer than `buildRetentionDays` lets a returning
+    // viewer present a cookie for a build whose `builds/<id>/` prefix the
+    // S3 lifecycle rule has already deleted → hard 403 on every asset.
+    if (props.skewProtection?.enabled && props.skewProtection.maxAge) {
+      const retentionDays = props.storage?.buildRetentionDays ?? 30;
+      const retentionSeconds = retentionDays * 24 * 60 * 60;
+      if (props.skewProtection.maxAge > retentionSeconds) {
+        throw new HostingError('InvalidSkewProtectionMaxAgeError', {
+          message: `skewProtection.maxAge (${props.skewProtection.maxAge}s) exceeds storage.buildRetentionDays (${retentionDays}d = ${retentionSeconds}s).`,
+          resolution:
+            'Lower skewProtection.maxAge to at most storage.buildRetentionDays (in seconds), or raise storage.buildRetentionDays. A cookie that outlives the build prefix pins returning viewers to a deleted build → 403.',
+        });
+      }
+    }
 
     // Normalize `compute.timeout` once: callers consuming the L3 from
     // JS-compiled wrappers (or strict TS users who write
@@ -352,6 +390,13 @@ export class AmplifyHostingConstruct extends Construct {
         memorySize: props.compute?.memorySize,
         timeout: computeTimeout,
         reservedConcurrency: props.compute?.reservedConcurrency,
+        // Forward the L3 user-facing provisioned-concurrency knob to the SSR
+        // compute. Previously this was silently dropped — only a
+        // manifest-level value (which adapters don't set from user input) was
+        // honored, so `compute.provisionedConcurrency` was inert.
+        provisionedConcurrency: isSsrCompute
+          ? props.compute?.provisionedConcurrency
+          : undefined,
         logRetention: props.compute?.logRetention,
         skipRegionValidation: props.skipRegionValidation,
         skipFunctionUrl: isSsrCompute,
@@ -361,6 +406,9 @@ export class AmplifyHostingConstruct extends Construct {
       this.computeFunctions.set(name, computeConstruct.function);
       if (computeConstruct.functionUrl) {
         this.computeFunctionUrls.set(name, computeConstruct.functionUrl);
+      }
+      if (computeConstruct.alias) {
+        this.computeAliases.set(name, computeConstruct.alias);
       }
     }
 
@@ -548,6 +596,57 @@ export class AmplifyHostingConstruct extends Construct {
             Stack.of(this).region,
           );
         }
+      }
+
+      // ---- 3b. Seed the ISR cache (S3 + DynamoDB tag table) ----
+      // Without seeding, every prerendered ISR/SSG page is a cold
+      // on-demand render on first request (cache MISS) and tag-based
+      // revalidation can't purge a page until it's been hit once. We
+      // upload the build's prebuilt cache and seed the tag table so the
+      // build-time prerender is actually used.
+      if (manifest.cache.seedDirectory && this.cacheBucket) {
+        // The on-disk layout is `<buildId>/<route>.cache`, which is
+        // exactly the key the runtime reads (empty CACHE_BUCKET_KEY_PREFIX
+        // + OPEN_NEXT_BUILD_ID namespacing), so upload preserves keys.
+        // `prune: false` so we never delete a concurrent build's objects;
+        // each build writes under its own `<buildId>/` prefix.
+        new BucketDeployment(this, 'IsrCacheSeed', {
+          sources: [Source.asset(manifest.cache.seedDirectory)],
+          destinationBucket: this.cacheBucket,
+          prune: false,
+          // The cache blobs are not Cache-Control-sensitive (read by the
+          // Lambda via the SDK, never served through CloudFront), but set
+          // a private directive so an accidental public read is non-cacheable.
+          cacheControl: [CacheControl.fromString('private, no-store')],
+        });
+      }
+
+      if (manifest.cache.initFunction && this.cacheTable) {
+        // OpenNext's dynamodb-provider is a CloudFormation custom-resource
+        // handler: it reads its bundled `dynamodb-cache.json` and writes the
+        // build's tag→path rows into CACHE_DYNAMO_TABLE on create/update.
+        const initFn = new LambdaFunction(this, 'IsrTagTableSeedFn', {
+          runtime: Runtime.NODEJS_20_X,
+          handler: manifest.cache.initFunction.handler,
+          code: Code.fromAsset(manifest.cache.initFunction.bundle),
+          timeout: Duration.minutes(5),
+          memorySize: 512,
+          environment: {
+            CACHE_DYNAMO_TABLE: this.cacheTable.tableName,
+            CACHE_BUCKET_REGION: Stack.of(this).region,
+          },
+        });
+        this.cacheTable.grantReadWriteData(initFn);
+
+        const initProvider = new Provider(this, 'IsrTagTableSeedProvider', {
+          onEventHandler: initFn,
+        });
+        // `buildId` in the properties makes the custom resource re-run on
+        // every new build (new prerendered tag set), not just on create.
+        new CustomResource(this, 'IsrTagTableSeed', {
+          serviceToken: initProvider.serviceToken,
+          properties: { buildId },
+        });
       }
     }
 
@@ -797,6 +896,9 @@ export class AmplifyHostingConstruct extends Construct {
     // bursty and provisioned-concurrency is a better fit.
     if (
       props.compute?.warmup &&
+      // Skip warmup when provisioned concurrency keeps the SSR Lambda warm —
+      // whether set via the L3 prop or a manifest compute resource.
+      !props.compute?.provisionedConcurrency &&
       !manifest.compute.default?.provisionedConcurrency &&
       !manifest.compute.server?.provisionedConcurrency
     ) {
@@ -920,6 +1022,7 @@ export class AmplifyHostingConstruct extends Construct {
       contentSecurityPolicy: props.cdn?.contentSecurityPolicy,
       computeFunctionUrls: this.computeFunctionUrls,
       computeFunctions: this.computeFunctions,
+      computeAliases: this.computeAliases,
       middlewareEdgeFunction: middlewareEdgeVersion,
       routeEdgeFunctions,
       webAcl: this.webAcl,

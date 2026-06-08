@@ -269,6 +269,31 @@ void describe('ComputeConstruct', () => {
         Timeout: 5,
       });
     });
+
+    void it('supports multiple edge computes on the cross-region path (unique EdgeFunction id)', () => {
+      // Regression: on a non-us-east-1 stack, experimental.EdgeFunction hoists
+      // every instance into one shared edge-lambda-stack. A literal
+      // 'EdgeFunction' child id collided on the 2nd edge compute. The id is
+      // now scoped by props.name, so two edge computes coexist.
+      const bundle = createBundleDir();
+      const stack = createEnvStack('eu-west-1', '123456789012');
+
+      new ComputeConstruct(stack, 'Compute-edge1', {
+        name: 'edge1',
+        computeResource: edgeResource(bundle),
+      });
+      // Must not throw "already a Construct with name 'EdgeFunction'".
+      assert.doesNotThrow(() => {
+        new ComputeConstruct(stack, 'Compute-edge2', {
+          name: 'edge2',
+          computeResource: edgeResource(bundle),
+        });
+      });
+
+      // Synthesizing the app materializes the shared edge-lambda-stack; if the
+      // ids collided this would throw.
+      assert.doesNotThrow(() => App.of(stack)?.synth());
+    });
   });
 
   // ---- Custom overrides ----
@@ -472,6 +497,34 @@ void describe('ComputeConstruct', () => {
         AuthType: 'AWS_IAM',
         InvokeMode: 'RESPONSE_STREAM',
       });
+    });
+
+    void it('creates the alias (no Function URL) for SSR via the provisionedConcurrency prop', () => {
+      // SSR compute sets skipFunctionUrl=true; the alias must still be
+      // created so the L3 can point the REST API integration at it. The
+      // prop (L3 user surface) drives this, not the manifest value.
+      const bundle = createBundleDir();
+      const stack = createEnvStack();
+
+      const compute = new ComputeConstruct(stack, 'Compute', {
+        name: 'default',
+        computeResource: handlerResource(bundle),
+        skipFunctionUrl: true,
+        provisionedConcurrency: 3,
+      });
+
+      // The alias is exposed for the caller to target.
+      assert.ok(compute.alias, 'alias should be exposed');
+      assert.strictEqual(compute.functionUrl, undefined, 'no Function URL');
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Lambda::Alias', {
+        Name: 'live',
+        ProvisionedConcurrencyConfig: Match.objectLike({
+          ProvisionedConcurrentExecutions: 3,
+        }),
+      });
+      template.resourceCountIs('AWS::Lambda::Url', 0);
     });
   });
 
