@@ -1364,6 +1364,14 @@ const runOpenNextBuild = (projectDir: string, configPath?: string): void => {
     `\u{2139}\u{FE0F}  OpenNext may print "Wrapper aws-lambda-streaming and converter aws-apigw-v1 are not compatible" — this is expected. Amplify Hosting fronts the SSR Lambda with API Gateway v1 (REST API) and patches the bundled streaming wrapper after the build.\n`,
   );
 
+  // Clear .open-next build output before OpenNext regenerates it.
+  // This prevents esbuild errors from stale artifacts when the Next.js app
+  // has changed (e.g., deleted files still referenced in old bundles).
+  const openNextOutputDir = path.join(projectDir, '.open-next');
+  if (fs.existsSync(openNextOutputDir)) {
+    fs.rmSync(openNextOutputDir, { recursive: true, force: true });
+  }
+
   try {
     spawn.sync('npx', args, {
       cwd: projectDir,
