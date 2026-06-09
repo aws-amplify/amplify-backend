@@ -1234,7 +1234,7 @@ void describe('CdnConstruct', () => {
         manifest: spaManifest,
         securityHeadersPolicy: policy,
         certificate: cert,
-        domainName: 'tls-test.example.com',
+        domainName: ['tls-test.example.com'],
       });
 
       const template = Template.fromStack(stack);

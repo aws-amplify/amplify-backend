@@ -64,12 +64,28 @@ export type { SkewProtectionConfig } from './skew_protection.js';
 
 /**
  * Domain configuration for custom domain support.
+ * Supports multiple domains and optional www redirect.
  */
 export type HostingDomainConfig = {
-  domainName: string;
-  hostedZone: string;
+  /** Domain name(s) for the hosting distribution. Accepts a single domain or an array for multi-domain setups. */
+  domainName: string | string[];
+  /**
+   * Route 53 hosted zone domain name. When omitted (along with hostedZoneId),
+   * DNS records are not created — user manages DNS externally.
+   */
+  hostedZone?: string;
+  /**
+   * Route 53 hosted zone ID. Avoids HostedZone.fromLookup() which requires
+   * env: { account, region } on the stack. Useful in pipeline stages.
+   */
+  hostedZoneId?: string;
   /** BYO certificate — avoids deprecated DnsValidatedCertificate when provided. */
   certificate?: ICertificate;
+  /**
+   * Redirect www to apex (or vice versa) via a CloudFront Function.
+   * @default 'none'
+   */
+  wwwRedirect?: 'toApex' | 'toWww' | 'none';
 };
 
 /**
@@ -79,6 +95,12 @@ export type HostingWafConfig = {
   enabled: boolean;
   /** Requests per 5-minute window per IP. Default: 1000 */
   rateLimit?: number;
+  /**
+   * ARN of an existing WAFv2 WebACL in us-east-1. When provided, the
+   * construct uses this ACL directly instead of creating a new one.
+   * Enables cross-region deployments.
+   */
+  webAclArn?: string;
 };
 
 /**
@@ -201,6 +223,15 @@ export type AmplifyHostingConstructProps = {
   /** Custom environment variables for all compute functions. */
   environment?: Record<string, string>;
   /**
+   * Build cache configuration. When enabled, provisions an S3 bucket for
+   * framework build caches and exports the bucket name.
+   */
+  buildCache?: {
+    enabled: boolean;
+    /** BYO S3 bucket for build cache storage. Creates one if not provided. */
+    bucket?: s3.IBucket;
+  };
+  /**
    * Custom error page configuration.
    * Provide paths to HTML files for custom 404 and 500 error responses.
    */
@@ -271,6 +302,7 @@ export class AmplifyHostingConstruct extends Construct {
   readonly webAcl?: CfnWebACL;
   readonly cacheTable?: Table;
   readonly revalidationQueue?: Queue;
+  readonly buildCacheBucket?: Bucket;
   readonly revalidationDlq?: Queue;
   readonly cacheBucket?: Bucket;
   /**
@@ -949,8 +981,9 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 6. WAF (conditional) ----
-    // Only create the built-in WAF construct if user didn't provide their own ARN
-    if (!props.cdn?.webAclArn) {
+    // Determine effective WebACL ARN: waf.webAclArn > cdn.webAclArn > create new
+    const effectiveWebAclArn = props.waf?.webAclArn ?? props.cdn?.webAclArn;
+    if (!effectiveWebAclArn) {
       const wafConstruct = new WafConstruct(this, 'Waf', {
         enabled: props.waf?.enabled ?? false,
         rateLimit: props.waf?.rateLimit,
@@ -960,16 +993,38 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 7. Custom domain resources (conditional) ----
-    let dnsConstruct: DnsConstruct | undefined;
+    const dnsConstructs: DnsConstruct[] = [];
+    let resolvedDomainNames: string[] = [];
     if (props.domain) {
-      dnsConstruct = new DnsConstruct(this, 'Dns', {
-        domainName: props.domain.domainName,
+      // Resolve domain names from single string or array
+      resolvedDomainNames = Array.isArray(props.domain.domainName)
+        ? props.domain.domainName
+        : [props.domain.domainName];
+
+      // Create DNS construct for the first/primary domain (handles certificate)
+      const primaryDomain = resolvedDomainNames[0];
+      const primaryDns = new DnsConstruct(this, 'Dns', {
+        domainName: primaryDomain,
         hostedZone: props.domain.hostedZone,
+        hostedZoneId: props.domain.hostedZoneId,
         certificate: props.domain.certificate,
         skipRegionValidation: props.skipRegionValidation,
       });
-      this.certificate = dnsConstruct.certificate;
-      this.hostedZone = dnsConstruct.hostedZone;
+      dnsConstructs.push(primaryDns);
+      this.certificate = primaryDns.certificate;
+      this.hostedZone = primaryDns.hostedZone;
+
+      // Additional domains share the same certificate but get separate DNS records
+      for (let i = 1; i < resolvedDomainNames.length; i++) {
+        const additionalDns = new DnsConstruct(this, `Dns${i + 1}`, {
+          domainName: resolvedDomainNames[i],
+          hostedZone: props.domain.hostedZone,
+          hostedZoneId: props.domain.hostedZoneId,
+          certificate: primaryDns.certificate,
+          skipRegionValidation: props.skipRegionValidation,
+        });
+        dnsConstructs.push(additionalDns);
+      }
     }
 
     // ---- 8. Security headers ----
@@ -1027,13 +1082,15 @@ export class AmplifyHostingConstruct extends Construct {
       routeEdgeFunctions,
       webAcl: this.webAcl,
       certificate: this.certificate,
-      domainName: props.domain?.domainName,
+      domainName:
+        resolvedDomainNames.length > 0 ? resolvedDomainNames : undefined,
+      wwwRedirect: props.domain?.wwwRedirect,
       accessLogBucket: storage.accessLogBucket,
       priceClass: props.cdn?.priceClass,
       geoRestriction: props.cdn?.geoRestriction,
       skewProtection: props.skewProtection ?? { enabled: true },
       ssrDefaultTtl: props.cdn?.ssrDefaultTtl,
-      webAclArn: props.cdn?.webAclArn,
+      webAclArn: effectiveWebAclArn ?? props.cdn?.webAclArn,
       customErrorPages: props.errorPages
         ? {
             notFound: !!props.errorPages.notFound,
@@ -1044,6 +1101,16 @@ export class AmplifyHostingConstruct extends Construct {
 
     this.distribution = cdn.distribution;
     this.distributionUrl = cdn.distributionUrl;
+
+    // Output the CloudFront distribution domain when custom domain is configured.
+    // BYO domain users need this to set up their external DNS CNAME.
+    if (resolvedDomainNames.length > 0) {
+      new CfnOutput(this, 'DistributionDomainName', {
+        value: this.distribution.distributionDomainName,
+        description:
+          'CloudFront distribution domain name. Point your DNS CNAME to this value.',
+      });
+    }
 
     // ---- Deletion ordering: Distribution before AccessLogBucket cleanup ----
     // CloudFront delivers access logs asynchronously. During stack deletion,
@@ -1170,8 +1237,10 @@ export class AmplifyHostingConstruct extends Construct {
     }
 
     // ---- 10. DNS records ----
-    if (props.domain && dnsConstruct) {
-      dnsConstruct.createDnsRecords(this.distribution);
+    if (props.domain && dnsConstructs.length > 0) {
+      for (const dns of dnsConstructs) {
+        dns.createDnsRecords(this.distribution);
+      }
     }
 
     // ---- 11. Error page deployment (SSR only) ----
@@ -1254,6 +1323,37 @@ export class AmplifyHostingConstruct extends Construct {
         destinationKeyPrefix: `builds/${buildId}/`,
         prune: false,
       });
+    }
+
+    // ---- 11b. Build cache bucket ----
+    if (props.buildCache?.enabled) {
+      if (props.buildCache.bucket) {
+        this.buildCacheBucket = props.buildCache.bucket as Bucket;
+      } else {
+        this.buildCacheBucket = new Bucket(this, 'BuildCacheBucket', {
+          removalPolicy: RemovalPolicy.DESTROY,
+          autoDeleteObjects: true,
+          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+          enforceSSL: true,
+          lifecycleRules: [{ expiration: Duration.days(30) }],
+        });
+      }
+
+      new CfnOutput(this, 'BuildCacheBucketName', {
+        value: this.buildCacheBucket.bucketName,
+        description:
+          'S3 bucket for framework build cache. Sync .next/cache (or equivalent) in CI.',
+      });
+
+      // Set env var on all compute functions so they know the bucket name
+      for (const [, fn] of this.computeFunctions.entries()) {
+        if (fn instanceof LambdaFunction) {
+          fn.addEnvironment(
+            'AMPLIFY_BUILD_CACHE_BUCKET',
+            this.buildCacheBucket.bucketName,
+          );
+        }
+      }
     }
 
     // ---- 12. Atomic Deployment (static assets) ----
@@ -1453,6 +1553,7 @@ export class AmplifyHostingConstruct extends Construct {
       bucket: this.bucket,
       distribution: this.distribution,
       distributionUrl: this.distributionUrl,
+      buildCacheBucket: this.buildCacheBucket,
     };
   }
 }
