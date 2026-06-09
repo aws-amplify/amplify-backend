@@ -136,7 +136,6 @@ const NITRO_PACKAGES = [
  * transitive and peer dependencies installed by other packages — leading
  * to false positives (e.g. a Vite SPA being detected as Next.js because
  * another package declares `next` as a peer dep).
- *
  * @param projectDir - absolute path to the project root
  * @returns the detected framework type
  */
