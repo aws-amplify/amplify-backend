@@ -11,10 +11,31 @@ import {
 } from './index.js';
 
 /**
- * Materialise a fake `node_modules/<name>/package.json` so `local-pkg`'s
- * `isPackageExists` / `getPackageInfoSync` can resolve the package via
- * Node's module resolution. Detection is now installed-package based,
- * so a `package.json` declaration alone is not enough.
+ * Write a `package.json` to the given directory with the provided
+ * dependencies and/or devDependencies.
+ */
+const writePackageJson = (
+  projectDir: string,
+  pkg: {
+    name?: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+  },
+): void => {
+  fs.writeFileSync(
+    path.join(projectDir, 'package.json'),
+    JSON.stringify({ name: 'test-project', ...pkg }),
+  );
+};
+
+/**
+ * Materialise a fake `node_modules/<name>/package.json` so the package
+ * appears installed via Node's module resolution — but NOT necessarily
+ * declared in the project's own `package.json`.
+ *
+ * Used to simulate transitive / peer dep installations that should NOT
+ * trigger framework detection.
  */
 const installFakePackage = (
   projectDir: string,
@@ -27,9 +48,6 @@ const installFakePackage = (
     path.join(pkgDir, 'package.json'),
     JSON.stringify({ name, version, main: 'index.js' }),
   );
-  // local-pkg uses Node's `createRequire` → resolveFrom; both need
-  // a "main" file to exist OR an `exports` map. Drop a stub so the
-  // resolver doesn't fail on packages we never actually load.
   fs.writeFileSync(path.join(pkgDir, 'index.js'), '');
 };
 
@@ -44,59 +62,67 @@ void describe('detectFramework', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  void it('detects nextjs when next is installed', () => {
-    installFakePackage(tmpDir, 'next', '14.0.0');
+  void it('detects nextjs when next is in dependencies', () => {
+    writePackageJson(tmpDir, { dependencies: { next: '^14.0.0' } });
     assert.strictEqual(detectFramework(tmpDir), 'nextjs');
   });
 
-  void it('returns spa for React project without next installed', () => {
-    installFakePackage(tmpDir, 'react', '18.0.0');
-    installFakePackage(tmpDir, 'vite', '5.0.0');
+  void it('detects nextjs when next is in devDependencies', () => {
+    writePackageJson(tmpDir, { devDependencies: { next: '^14.0.0' } });
+    assert.strictEqual(detectFramework(tmpDir), 'nextjs');
+  });
+
+  void it('returns spa for Vite/React project without next in package.json', () => {
+    writePackageJson(tmpDir, {
+      dependencies: { react: '^18.0.0', vite: '^5.0.0' },
+    });
+    assert.strictEqual(detectFramework(tmpDir), 'spa');
+  });
+
+  void it('returns spa when next is installed in node_modules (peer dep) but NOT in project deps — regression #833', () => {
+    // This is the KEY regression test: next is resolvable from
+    // node_modules (e.g. installed as a peer dep of @aws-blocks/core)
+    // but the project's own package.json does NOT list it.
+    writePackageJson(tmpDir, {
+      dependencies: { react: '^18.0.0', vite: '^5.0.0' },
+    });
+    installFakePackage(tmpDir, 'next', '14.0.0');
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
 
   void it('returns spa when no package.json exists', () => {
-    // No package.json, no node_modules — nothing to detect.
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
 
   void it('returns spa for project with empty dependencies', () => {
-    fs.writeFileSync(
-      path.join(tmpDir, 'package.json'),
-      JSON.stringify({ name: 'my-app', dependencies: {} }),
-    );
+    writePackageJson(tmpDir, { dependencies: {} });
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
 
-  void it('returns spa when package.json is corrupted (detection no longer parses it)', () => {
-    // detectFramework probes node_modules now — package.json syntax
-    // doesn't matter. Corrupt files surface elsewhere (build phase).
+  void it('returns spa when package.json is corrupted', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), '{ invalid json !!!');
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
 
-  void it('detects astro when astro is installed', () => {
-    installFakePackage(tmpDir, 'astro', '5.0.0');
+  void it('detects astro when astro is in dependencies', () => {
+    writePackageJson(tmpDir, { dependencies: { astro: '^5.0.0' } });
     assert.strictEqual(detectFramework(tmpDir), 'astro');
   });
 
-  void it('returns spa when astro is declared in package.json but NOT installed (npm install was skipped)', () => {
-    fs.writeFileSync(
-      path.join(tmpDir, 'package.json'),
-      JSON.stringify({ dependencies: { astro: '^5.0.0' } }),
-    );
-    // No node_modules/astro/ — declared-but-not-installed must not
-    // resolve to 'astro'. This is the bug local-pkg fixes.
+  void it('returns spa when astro is in node_modules but NOT in project deps', () => {
+    writePackageJson(tmpDir, { dependencies: { react: '^18.0.0' } });
+    installFakePackage(tmpDir, 'astro', '5.0.0');
     assert.strictEqual(detectFramework(tmpDir), 'spa');
   });
 
-  void it('prefers nitro over astro when both are installed', () => {
-    installFakePackage(tmpDir, 'astro', '5.0.0');
-    installFakePackage(tmpDir, 'nitropack', '2.0.0');
+  void it('prefers nitro over astro when both are in deps', () => {
+    writePackageJson(tmpDir, {
+      dependencies: { astro: '^5.0.0', nitropack: '^2.0.0' },
+    });
     assert.strictEqual(detectFramework(tmpDir), 'nitro');
   });
 
-  void it('detects nitro from any of nuxt / @solidjs/start / @analogjs/platform-server / @tanstack/start', () => {
+  void it('detects nitro from nuxt / @solidjs/start / @analogjs/platform-server / @tanstack/start', () => {
     for (const pkg of [
       'nuxt',
       '@solidjs/start',
@@ -105,12 +131,18 @@ void describe('detectFramework', () => {
     ]) {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hosting-nitro-'));
       try {
-        installFakePackage(dir, pkg, '1.0.0');
+        writePackageJson(dir, { dependencies: { [pkg]: '^1.0.0' } });
         assert.strictEqual(detectFramework(dir), 'nitro', `pkg=${pkg}`);
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
     }
+  });
+
+  void it('detects nuxt as nitro when nuxt is in node_modules AND in project deps', () => {
+    writePackageJson(tmpDir, { dependencies: { nuxt: '^3.0.0' } });
+    installFakePackage(tmpDir, 'nuxt', '3.0.0');
+    assert.strictEqual(detectFramework(tmpDir), 'nitro');
   });
 });
 
