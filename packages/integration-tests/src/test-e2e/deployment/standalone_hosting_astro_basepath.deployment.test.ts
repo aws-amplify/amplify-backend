@@ -153,15 +153,21 @@ void describe(
         });
 
         void it('trailingSlash always: /app/about/ serves directly', async () => {
-          const res = await fetch(`${distributionUrl}/app/about/`, {
-            redirect: 'manual',
+          const res = await fetchWithRetry(`${distributionUrl}/app/about/`, {
+            fetchInit: { redirect: 'manual' },
+            expectedStatus: 200,
+            maxRetries: 5,
+            intervalMs: 10000,
           });
           assert.strictEqual(res.status, 200);
         });
 
         void it('trailingSlash always: no infinite loop on /app/', async () => {
-          const res = await fetch(`${distributionUrl}/app/`, {
-            redirect: 'manual',
+          const res = await fetchWithRetry(`${distributionUrl}/app/`, {
+            fetchInit: { redirect: 'manual' },
+            expectedStatus: 200,
+            maxRetries: 5,
+            intervalMs: 10000,
           });
           assert.strictEqual(res.status, 200, '/app/ must serve, not redirect');
         });
