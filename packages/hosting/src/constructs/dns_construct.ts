@@ -24,7 +24,12 @@ export type DnsConstructProps = {
   /** Fully qualified domain name (e.g. 'www.example.com'). */
   domainName: string;
   /** Hosted zone domain (e.g. 'example.com'). */
-  hostedZone: string;
+  hostedZone?: string;
+  /**
+   * Hosted zone ID. When provided, uses `HostedZone.fromHostedZoneId()` instead
+   * of `fromLookup()` — avoids requiring `env: { account, region }` on the stack.
+   */
+  hostedZoneId?: string;
   /** BYO certificate — avoids deprecated DnsValidatedCertificate when provided. */
   certificate?: ICertificate;
   /**
@@ -50,7 +55,7 @@ export type DnsConstructProps = {
  */
 export class DnsConstruct extends Construct {
   readonly certificate: ICertificate;
-  readonly hostedZone: IHostedZone;
+  readonly hostedZone?: IHostedZone;
   private readonly domainName: string;
   private dnsRecordsCreated = false;
 
@@ -62,8 +67,10 @@ export class DnsConstruct extends Construct {
 
     this.domainName = props.domainName;
 
-    // Validate domain belongs to hosted zone
-    this.validateDomainConfig(props.domainName, props.hostedZone);
+    // Validate domain belongs to hosted zone (only when hostedZone name is provided)
+    if (props.hostedZone) {
+      this.validateDomainConfig(props.domainName, props.hostedZone);
+    }
 
     // Best-effort region check for BYO certificates — CloudFront requires
     // ACM certificates in us-east-1. If the ARN is a concrete (non-token)
@@ -80,15 +87,30 @@ export class DnsConstruct extends Construct {
       }
     }
 
-    // Look up hosted zone
-    this.hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: props.hostedZone,
-    });
+    // Resolve hosted zone: by ID (no lookup), by name (lookup), or skip (BYO domain)
+    if (props.hostedZoneId) {
+      // fromHostedZoneAttributes avoids fromLookup (which needs env account/region)
+      // while still exposing zoneName for ARecord/AaaaRecord to consume.
+      const zoneName = props.hostedZone ?? props.domainName;
+      this.hostedZone = HostedZone.fromHostedZoneAttributes(
+        this,
+        'HostedZone',
+        {
+          hostedZoneId: props.hostedZoneId,
+          zoneName,
+        },
+      );
+    } else if (props.hostedZone) {
+      this.hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
+        domainName: props.hostedZone,
+      });
+    }
+    // If neither hostedZoneId nor hostedZone → BYO domain, no DNS records
 
     // Certificate: BYO or create via DnsValidatedCertificate
     if (props.certificate) {
       this.certificate = props.certificate;
-    } else {
+    } else if (this.hostedZone) {
       // DnsValidatedCertificate is deprecated since CDK v2.69.0, but the replacement
       // (Certificate + crossRegionReferences: true) requires a two-stack architecture,
       // is still experimental after 3+ years, cannot use HostedZone.fromLookup(), and
@@ -101,6 +123,13 @@ export class DnsConstruct extends Construct {
         hostedZone: this.hostedZone,
         region: 'us-east-1',
       });
+    } else {
+      throw new HostingError('MissingCertificateError', {
+        message:
+          'A BYO certificate is required when neither hostedZone nor hostedZoneId is provided.',
+        resolution:
+          'Provide `certificate` when using BYO domain, or specify `hostedZone` / `hostedZoneId` for automatic certificate provisioning.',
+      });
     }
 
     // Create DNS records if distribution is available now
@@ -112,9 +141,12 @@ export class DnsConstruct extends Construct {
   /**
    * Create A + AAAA records pointing to the given CloudFront distribution.
    * Call this after distribution creation when distribution was not passed
-   * in the constructor props.
+   * in the constructor props. No-op when no hosted zone is configured (BYO domain).
    */
   createDnsRecords(distribution: IDistribution): void {
+    if (!this.hostedZone) {
+      return; // BYO domain — user manages DNS externally
+    }
     if (this.dnsRecordsCreated) {
       throw new HostingError('DuplicateDnsRecordsError', {
         message:

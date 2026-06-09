@@ -388,6 +388,7 @@ const doBuildHostingConstruct = (
     monitoring: props.monitoring,
     environment: props.environment,
     errorPages: props.errorPages,
+    buildCache: props.buildCache,
     skewProtection: props.skewProtection,
   };
 
