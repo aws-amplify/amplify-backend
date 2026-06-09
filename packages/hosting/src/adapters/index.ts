@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { isPackageExists } from 'local-pkg';
 import { HostingError } from '../hosting_error.js';
 import { spaAdapter } from './spa.js';
 import { nextjsAdapter } from './nextjs.js';
@@ -129,31 +128,35 @@ const NITRO_PACKAGES = [
 ];
 
 /**
- * Detect the framework by probing actually-installed packages under the
- * project's `node_modules/` (via `local-pkg` / Node's resolver). This is
- * stricter than reading `package.json` spec ranges: a project that
- * declares `"astro": "^4.0.0"` but never ran `npm install` resolves to
- * `'spa'` here, not `'astro'`.
+ * Detect the framework by reading the project's own `package.json`
+ * `dependencies`, `devDependencies`, and `peerDependencies`.
+ *
+ * This intentionally does NOT use node_modules resolution (e.g.
+ * `isPackageExists` from `local-pkg`) because that approach picks up
+ * transitive and peer dependencies installed by other packages — leading
+ * to false positives (e.g. a Vite SPA being detected as Next.js because
+ * another package declares `next` as a peer dep).
+ *
  * @param projectDir - absolute path to the project root
  * @returns the detected framework type
  */
 export const detectFramework = (projectDir: string): string => {
-  const opts = { paths: [projectDir] };
+  const deps = readProjectDeps(projectDir);
 
-  if (isPackageExists('next', opts)) {
+  if ('next' in deps) {
     return 'nextjs';
   }
 
-  // Astro auto-detect runs AFTER the Nitro probe: Astro projects can
-  // pull Nitro through integrations, but Nitro-only projects must win
-  // the Nitro adapter. The first match in NITRO_PACKAGES wins.
+  // Nitro probe runs BEFORE Astro: Astro projects can pull Nitro
+  // through integrations, but Nitro-only projects must win the Nitro
+  // adapter. The first match in NITRO_PACKAGES wins.
   for (const pkg of NITRO_PACKAGES) {
-    if (isPackageExists(pkg, opts)) {
+    if (pkg in deps) {
       return 'nitro';
     }
   }
 
-  if (isPackageExists('astro', opts)) {
+  if ('astro' in deps) {
     return 'astro';
   }
 
