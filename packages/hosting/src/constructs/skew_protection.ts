@@ -47,11 +47,32 @@ export const generateSkewProtectionViewerRequestCode = (
   redirects: RedirectEntry[] = [],
   options?: {
     spaFallback?: boolean;
+    basePath?: string;
   },
 ): string => {
   validateBuildId(buildId);
   validateRedirects(redirects);
   const redirectSnippet = generateRedirectCheckSnippet(redirects);
+  const basePath = options?.basePath;
+  const basePathRedirect = basePath
+    ? `  var __bp = ${JSON.stringify(basePath)};
+  if (uri !== __bp && uri.indexOf(__bp + '/') !== 0) {
+    var __target = uri === '/' ? __bp + '/' : __bp + uri;
+    return {
+      statusCode: 308,
+      statusDescription: 'Permanent Redirect',
+      headers: { location: { value: __target } },
+    };
+  }
+`
+    : '';
+  const basePathStrip = basePath
+    ? `  if (uri.indexOf(__bp) === 0) {
+    uri = uri.substring(__bp.length);
+    if (uri.length === 0) { uri = '/'; }
+  }
+`
+    : '';
   const spaFallback = options?.spaFallback ?? false;
   const rewriteBlock = spaFallback
     ? `  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
@@ -72,7 +93,7 @@ export const generateSkewProtectionViewerRequestCode = (
   var request = event.request;
   var uri = request.uri;
 ${redirectSnippet}
-  var buildId = '${buildId}';
+${basePathRedirect}${basePathStrip}  var buildId = '${buildId}';
   var cookie = request.cookies['${COOKIE_NAME}'];
   if (cookie) {
     var val = cookie.value;

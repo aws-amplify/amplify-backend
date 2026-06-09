@@ -237,6 +237,44 @@ void describe('Skew Protection — Code Generation', () => {
           err instanceof HostingError && err.name === 'TooManyRedirectsError',
       );
     });
+
+    void it('strips basePath before build-id rewrite when basePath is set', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', [], {
+        basePath: '/app',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      const handler = new Function(`${code}\nreturn handler;`)() as (event: {
+        request: { uri: string; cookies: Record<string, unknown> };
+      }) => { uri: string } | { statusCode: number };
+      const result = handler({
+        request: { uri: '/app/about/', cookies: {} },
+      });
+      assert.strictEqual(
+        (result as { uri: string }).uri,
+        '/builds/build-1/about/index.html',
+        'basePath /app must be stripped so /app/about/ resolves to /builds/build-1/about/index.html',
+      );
+    });
+
+    void it('redirects requests without basePath prefix to basePath-prefixed URL', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', [], {
+        basePath: '/app',
+      });
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+      const handler = new Function(`${code}\nreturn handler;`)() as (event: {
+        request: { uri: string; cookies: Record<string, unknown> };
+      }) => { statusCode: number; headers: { location: { value: string } } };
+      const result = handler({
+        request: { uri: '/', cookies: {} },
+      });
+      assert.strictEqual(result.statusCode, 308);
+      assert.strictEqual(result.headers.location.value, '/app/');
+    });
+
+    void it('does not include basePath logic when basePath is not set', () => {
+      const code = generateSkewProtectionViewerRequestCode('build-1', []);
+      assert.ok(!code.includes('__bp'));
+    });
   });
 
   void describe('generateSkewProtectionViewerResponseCode', () => {

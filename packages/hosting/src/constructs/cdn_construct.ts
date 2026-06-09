@@ -1198,6 +1198,7 @@ export class CdnConstruct extends Construct {
           injectWwwRedirect(
             generateSkewProtectionViewerRequestCode(buildId, redirects, {
               spaFallback: options?.spaFallback,
+              basePath,
             }),
             wwwRedirectSnippet,
           ),
