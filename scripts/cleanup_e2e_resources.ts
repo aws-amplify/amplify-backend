@@ -198,11 +198,12 @@ const listAllStaleTestStacks = async (
 ): Promise<Array<StackSummary>> => {
   let nextToken: string | undefined = undefined;
   const stackSummaries: Array<StackSummary> = [];
-  // Stack name prefix to exclude: the persistent hosting health-check app's stacks.
-  // All branches of this app are protected (the main-branch stack is the one that
-  // repeatedly ends up in DELETE_FAILED when the reaper races with the health-check).
+  // Stack name prefix to exclude: ONLY the persistent hosting health-check app's
+  // main-branch stack (amplify-<appId>-main-branch-*). Ephemeral PR-branch stacks
+  // of the same app (amplify-<appId>-<otherBranch>-branch-*) are still reaped,
+  // mirroring the branchName !== 'main' guard in hosting.test.ts pruneStaleBranches.
   const hostingAppStackPrefix = hostingTestAppId
-    ? `${TEST_AMPLIFY_RESOURCE_PREFIX}${hostingTestAppId}-`
+    ? `${TEST_AMPLIFY_RESOURCE_PREFIX}${hostingTestAppId}-main-branch-`
     : undefined;
   do {
     const listStacksResponse: ListStacksCommandOutput = await cfnClient.send(
