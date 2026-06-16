@@ -102,6 +102,14 @@ const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
 const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
 
 /**
+ * The name of the persistent Amplify app used by the Gen2 hosting health-check.
+ * This app and its main-branch stack must NEVER be auto-deleted by the stale-stack
+ * reaper — it is a long-lived fixture, not a ephemeral test resource.
+ * Mirrors the `branchName !== 'main'` guard in hosting.test.ts pruneStaleBranches.
+ */
+const HOSTING_TEST_APP_NAME = 'hosting-test-app';
+
+/**
  * Stacks are considered stale after 2 hours.
  * Log groups are considered stale after 7 days. For troubleshooting purposes.
  * Other resources are considered stale after 3 hours.
@@ -145,9 +153,57 @@ const isStale = (creationDate: Date | undefined): boolean | undefined => {
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
-const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
+/**
+ * Resolves the Amplify appId for the persistent hosting health-check app
+ * (HOSTING_TEST_APP_NAME). Returns undefined if the app cannot be found or
+ * the lookup fails — in that case the caller must NOT skip cleanup entirely,
+ * it simply proceeds without the exclusion (fail-open, not fail-closed).
+ */
+const resolveHostingTestAppId = async (): Promise<string | undefined> => {
+  let nextToken: string | undefined = undefined;
+  try {
+    do {
+      const listAppsCommandOutput: ListAppsCommandOutput =
+        await amplifyClient.send(
+          new ListAppsCommand({
+            maxResults: 100,
+            nextToken,
+          }),
+        );
+      nextToken = listAppsCommandOutput.nextToken;
+      const match = listAppsCommandOutput.apps?.find(
+        (app: App) => app.name === HOSTING_TEST_APP_NAME,
+      );
+      if (match?.appId) {
+        console.log(
+          `Resolved persistent hosting app '${HOSTING_TEST_APP_NAME}' → appId ${match.appId}. Its stacks will be excluded from stale-stack cleanup.`,
+        );
+        return match.appId;
+      }
+    } while (nextToken);
+    console.warn(
+      `Warning: persistent hosting app '${HOSTING_TEST_APP_NAME}' not found in this account/region. Proceeding without exclusion.`,
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.warn(
+      `Warning: failed to resolve hosting app id for '${HOSTING_TEST_APP_NAME}': ${errorMessage}. Proceeding without exclusion.`,
+    );
+  }
+  return undefined;
+};
+
+const listAllStaleTestStacks = async (
+  hostingTestAppId: string | undefined,
+): Promise<Array<StackSummary>> => {
   let nextToken: string | undefined = undefined;
   const stackSummaries: Array<StackSummary> = [];
+  // Stack name prefix to exclude: the persistent hosting health-check app's stacks.
+  // All branches of this app are protected (the main-branch stack is the one that
+  // repeatedly ends up in DELETE_FAILED when the reaper races with the health-check).
+  const hostingAppStackPrefix = hostingTestAppId
+    ? `${TEST_AMPLIFY_RESOURCE_PREFIX}${hostingTestAppId}-`
+    : undefined;
   do {
     const listStacksResponse: ListStacksCommandOutput = await cfnClient.send(
       new ListStacksCommand({
@@ -161,7 +217,13 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
         stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
-        isStackStale(stackSummary),
+        isStackStale(stackSummary) &&
+        // Exclude the persistent hosting health-check app's stacks so the
+        // stale-stack reaper never triggers a DELETE_FAILED loop on them.
+        !(
+          hostingAppStackPrefix &&
+          stackSummary.StackName?.startsWith(hostingAppStackPrefix)
+        ),
     ).forEach((item) => {
       stackSummaries.push(item);
     });
@@ -169,7 +231,10 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
   return stackSummaries;
 };
 
-const allStaleStacks = await listAllStaleTestStacks();
+// Resolve the persistent hosting app's id BEFORE listing stale stacks so we
+// can exclude its CFN stacks from deletion.
+const hostingTestAppId = await resolveHostingTestAppId();
+const allStaleStacks = await listAllStaleTestStacks(hostingTestAppId);
 
 for (const staleStack of allStaleStacks) {
   if (staleStack.StackName) {
