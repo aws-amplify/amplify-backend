@@ -91,6 +91,8 @@ The hosting package uses a two-layer architecture:
 
 The construct is completely framework-agnostic. It never knows whether the manifest came from Next.js, Astro, or a custom adapter.
 
+> **Implementation note:** The framework adapters and the L3 CDK construct are provided by [`@aws-blocks/hosting`](https://www.npmjs.com/package/@aws-blocks/core). `@aws-amplify/hosting` re-exports them (the construct under the `AmplifyHostingConstruct` alias) and adds the Amplify-specific glue — `defineHosting()`, `definePipeline()`, and the backend-output integration.
+
 ### Adapter Pipeline
 
 ```

@@ -4,215 +4,107 @@
 
 ```ts
 
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
+import { HostingConstruct as AmplifyHostingConstruct } from '@aws-blocks/hosting/constructs';
+import { HostingConstructProps as AmplifyHostingConstructProps } from '@aws-blocks/hosting/constructs';
+import { CacheConfig } from '@aws-blocks/hosting';
+import * as cdk from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import { CodeBuildStep } from 'aws-cdk-lib/pipelines';
+import { CodePipeline } from 'aws-cdk-lib/pipelines';
+import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import { ComputeResource } from '@aws-blocks/hosting';
 import { Construct } from 'constructs';
-import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
-import { Duration } from 'aws-cdk-lib';
-import { experimental } from 'aws-cdk-lib/aws-cloudfront';
-import { Function as Function_2 } from 'aws-cdk-lib/aws-lambda';
-import { FunctionUrl } from 'aws-cdk-lib/aws-lambda';
-import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { IHostedZone } from 'aws-cdk-lib/aws-route53';
-import { IKey } from 'aws-cdk-lib/aws-kms';
-import { PriceClass } from 'aws-cdk-lib/aws-cloudfront';
-import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { CustomHeader } from '@aws-blocks/hosting';
+import { DeployManifest } from '@aws-blocks/hosting';
+import { FrameworkAdapterFn } from '@aws-blocks/hosting/adapters';
+import { FrameworkType } from '@aws-blocks/hosting';
+import { generateBuildId } from '@aws-blocks/hosting/constructs';
+import { generateBuildIdFunctionCode } from '@aws-blocks/hosting/constructs';
+import { HostingDomainConfig } from '@aws-blocks/hosting/constructs';
+import { HostingError } from '@aws-blocks/hosting/error';
+import { HostingProps } from '@aws-blocks/hosting';
+import { HostingResources } from '@aws-blocks/hosting';
+import { HostingWafConfig } from '@aws-blocks/hosting/constructs';
+import { IFileSetProducer } from 'aws-cdk-lib/pipelines';
+import { ImageConfig } from '@aws-blocks/hosting';
+import { MiddlewareConfig } from '@aws-blocks/hosting';
+import { NextjsAdapterOptions } from '@aws-blocks/hosting/adapters';
+import { Redirect } from '@aws-blocks/hosting';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Rewrite } from '@aws-blocks/hosting';
+import { RouteBehavior } from '@aws-blocks/hosting';
+import { ShellStep } from 'aws-cdk-lib/pipelines';
+import { SkewProtectionConfig } from '@aws-blocks/hosting/constructs';
 import { Stack } from 'aws-cdk-lib';
-import { Table } from 'aws-cdk-lib/aws-dynamodb';
+
+export { AmplifyHostingConstruct }
+
+export { AmplifyHostingConstructProps }
 
 // @public
-export class AmplifyHostingConstruct extends Construct {
-    constructor(scope: Construct, id: string, props: AmplifyHostingConstructProps);
-    // (undocumented)
-    readonly bucket: Bucket;
-    // (undocumented)
-    readonly cacheBucket?: Bucket;
-    // (undocumented)
-    readonly cacheTable?: Table;
-    // (undocumented)
-    readonly certificate?: ICertificate;
-    // (undocumented)
-    readonly computeFunctions: Map<string, Function_2 | experimental.EdgeFunction>;
-    // (undocumented)
-    readonly computeFunctionUrls: Map<string, FunctionUrl>;
-    // (undocumented)
-    readonly distribution: Distribution;
-    // (undocumented)
-    readonly distributionUrl: string;
-    getResources(): HostingResources;
-    // (undocumented)
-    readonly hostedZone?: IHostedZone;
-    // (undocumented)
-    readonly revalidationQueue?: Queue;
-    // (undocumented)
-    readonly webAcl?: CfnWebACL;
+export class AmplifyPipelineConstruct<TConfig = Record<string, unknown>> extends Construct {
+    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>, _internal?: {
+        marker: symbol;
+        pipelines: Map<string, CodePipeline>;
+    });
+    readonly codePipelines: ReadonlyMap<string, CodePipeline>;
+    static create<TConfig = Record<string, unknown>>(scope: Construct, id: string, props: PipelineProps<TConfig>): Promise<AmplifyPipelineConstruct<TConfig>>;
 }
-
-// @public
-export type AmplifyHostingConstructProps = {
-    manifest: DeployManifest;
-    skipRegionValidation?: boolean;
-    domain?: HostingDomainConfig;
-    waf?: HostingWafConfig;
-    compute?: {
-        memorySize?: number;
-        timeout?: Duration;
-        reservedConcurrency?: number;
-        logRetention?: RetentionDays;
-    };
-    cdn?: {
-        priceClass?: PriceClass;
-        contentSecurityPolicy?: string;
-        geoRestriction?: {
-            type: 'whitelist' | 'blacklist';
-            countries: string[];
-        };
-    };
-    storage?: {
-        encryption?: 'S3_MANAGED' | 'KMS';
-        encryptionKey?: IKey;
-        retainOnDelete?: boolean;
-        buildRetentionDays?: number;
-    };
-    logging?: {
-        enabled: boolean;
-        retentionDays?: number;
-    };
-};
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
 
-// @public (undocumented)
-export type CacheConfig = {
-    computeResource: string;
-    tagRevalidation: boolean;
-    revalidationQueue: boolean;
+// @public
+export type BranchConfig<TConfig = Record<string, unknown>> = {
+    readonly branch: string;
+    readonly stages: Array<PipelineStageConfig<TConfig>>;
+    readonly triggerOnPush?: boolean;
 };
 
-// @public (undocumented)
-export type ComputeResource = {
-    type: 'handler' | 'http-server' | 'edge';
-    bundle: string;
-    handler?: string;
-    entrypoint?: string;
-    port?: number;
-    placement: 'regional' | 'global';
-    streaming?: boolean;
-    runtime?: string;
-    memorySize?: number;
-    timeout?: number;
-    environment?: Record<string, string>;
-    provisionedConcurrency?: number;
-};
+export { CacheConfig }
 
-// @public (undocumented)
-export type CustomHeader = {
-    source: string;
-    headers: Record<string, string>;
-};
+export { ComputeResource }
+
+export { CustomHeader }
 
 // @public
 export const defineHosting: (props?: HostingProps) => HostingResult;
 
 // @public
-export type DeployManifest = {
-    version: 1;
-    compute: Record<string, ComputeResource>;
-    staticAssets: {
-        directory: string;
-        cacheControl?: string;
-    };
-    routes: RouteBehavior[];
-    cache?: CacheConfig;
-    imageOptimization?: ImageConfig;
-    middleware?: MiddlewareConfig;
-    redirects?: Redirect[];
-    rewrites?: Rewrite[];
-    headers?: CustomHeader[];
-    buildId?: string;
+export const definePipeline: (props: DefinePipelineProps) => void;
+
+// @public
+export type DefinePipelineProps<TConfig = Record<string, unknown>> = {
+    readonly source: PipelineSourceConfig;
+    readonly synth?: PipelineSynthConfig;
+    readonly branches: Array<BranchConfig<TConfig>>;
+    readonly selfMutation?: boolean;
+    readonly crossAccountKeys?: boolean;
+    readonly stackName?: string;
 };
 
-// @public
-export type FrameworkAdapterFn = (projectDir: string) => DeployManifest;
+export { DeployManifest }
+
+export { FrameworkAdapterFn }
+
+export { FrameworkType }
+
+export { generateBuildId }
+
+export { generateBuildIdFunctionCode }
 
 // @public
-export type FrameworkType = 'nextjs' | 'spa' | 'static' | (string & {});
+export function getStageConfig<T = Record<string, unknown>>(): (PipelineStageConfig<T> & {
+    name: string;
+}) | undefined;
 
-// @public
-export const generateBuildId: () => string;
+export { HostingDomainConfig }
 
-// @public
-export const generateBuildIdFunctionCode: (buildId: string) => string;
+export { HostingError }
 
-// @public
-export type HostingDomainConfig = {
-    domainName: string;
-    hostedZone: string;
-    certificate?: ICertificate;
-};
+export { HostingProps }
 
-// @public
-export class HostingError extends Error {
-    constructor(code: string, opts: {
-        message: string;
-        resolution: string;
-    }, cause?: Error);
-    // (undocumented)
-    readonly code: string;
-    // (undocumented)
-    readonly resolution: string;
-}
-
-// @public
-export type HostingProps = {
-    buildCommand?: string;
-    framework?: FrameworkType;
-    customAdapter?: FrameworkAdapterFn;
-    domain?: {
-        domainName: string;
-        hostedZone: string;
-        certificate?: ICertificate;
-    };
-    waf?: {
-        enabled: boolean;
-        rateLimit?: number;
-    };
-    compute?: {
-        memorySize?: number;
-        timeout?: Duration;
-        reservedConcurrency?: number;
-        provisionedConcurrency?: number;
-        logRetention?: RetentionDays;
-    };
-    cdn?: {
-        priceClass?: PriceClass;
-        contentSecurityPolicy?: string;
-        geoRestriction?: {
-            type: 'whitelist' | 'blacklist';
-            countries: string[];
-        };
-    };
-    storage?: {
-        encryption?: 'S3_MANAGED' | 'KMS';
-        encryptionKey?: IKey;
-        retainOnDelete?: boolean;
-        buildRetentionDays?: number;
-    };
-    logging?: {
-        enabled: boolean;
-        retentionDays?: number;
-    };
-};
-
-// @public
-export type HostingResources = {
-    bucket: Bucket;
-    distribution: Distribution;
-    distributionUrl: string;
-};
+export { HostingResources }
 
 // @public
 export type HostingResult = {
@@ -221,53 +113,68 @@ export type HostingResult = {
     createStack: (name: string) => Stack;
 };
 
+export { HostingWafConfig }
+
+export { ImageConfig }
+
+export { MiddlewareConfig }
+
+export { NextjsAdapterOptions }
+
 // @public
-export type HostingWafConfig = {
-    enabled: boolean;
-    rateLimit?: number;
+export type PipelineProps<TConfig = Record<string, unknown>> = {
+    readonly source: PipelineSourceConfig;
+    readonly synth?: PipelineSynthConfig;
+    readonly branches: Array<BranchConfig<TConfig>>;
+    readonly stageFactory: (scope: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => void | Promise<void>;
+    readonly selfMutation?: boolean;
+    readonly crossAccountKeys?: boolean;
+    readonly _sourceOverride?: CodePipelineSource;
+    readonly _postStageHook?: (params: {
+        source: IFileSetProducer;
+        stage: cdk.Stage;
+        stageConfig: PipelineStageConfig<TConfig>;
+    }) => Array<ShellStep | CodeBuildStep>;
 };
 
-// @public (undocumented)
-export type ImageConfig = {
-    bundle: string;
-    handler: string;
-    formats: string[];
-    sizes: number[];
+// @public
+export type PipelineSourceConfig = {
+    readonly repo: string;
+    readonly connectionArn: string;
+    readonly triggerOnPush?: boolean;
+    readonly triggerFilters?: string[];
 };
 
-// @public (undocumented)
-export type MiddlewareConfig = {
-    bundle: string;
-    handler: string;
-    matchers: string[];
+// @public
+export type PipelineStageConfig<TConfig = Record<string, unknown>> = {
+    readonly name: string;
+    readonly env?: cdk.Environment;
+    readonly requireApproval?: boolean;
+    readonly approvalComment?: string;
+    readonly bakeTime?: cdk.Duration;
+    readonly config?: TConfig;
+    readonly environment?: Record<string, string>;
 };
 
-// @public (undocumented)
-export type NextjsAdapterOptions = {
-    projectDir: string;
-    skipBuild?: boolean;
-    configPath?: string;
+// @public
+export type PipelineSynthConfig = {
+    readonly commands?: string[];
+    readonly installCommands?: string[];
+    readonly buildImage?: codebuild.IBuildImage;
+    readonly env?: Record<string, string>;
+    readonly primaryOutputDirectory?: string;
+    readonly dockerEnabled?: boolean;
+    readonly computeType?: codebuild.ComputeType;
+    readonly partialBuildSpec?: codebuild.BuildSpec;
 };
 
-// @public (undocumented)
-export type Redirect = {
-    source: string;
-    destination: string;
-    statusCode: 301 | 302 | 307 | 308;
-};
+export { Redirect }
 
-// @public (undocumented)
-export type Rewrite = {
-    source: string;
-    destination: string;
-};
+export { Rewrite }
 
-// @public (undocumented)
-export type RouteBehavior = {
-    pattern: string;
-    target: string;
-    fallback?: string;
-};
+export { RouteBehavior }
+
+export { SkewProtectionConfig }
 
 // (No @packageDocumentation comment for this package)
 
