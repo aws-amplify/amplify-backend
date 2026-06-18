@@ -6,7 +6,7 @@ import * as os from 'os';
 import { CfnOutput, NestedStack, Stack } from 'aws-cdk-lib';
 import { CDKContextKey } from '@aws-amplify/platform-core';
 import { HostingResult, defineHosting } from './factory.js';
-import { DeployManifest } from './manifest/types.js';
+import { DeployManifest } from '@aws-blocks/hosting';
 
 /**
  * Set CDK context values that defineHosting reads via `new App()`.
