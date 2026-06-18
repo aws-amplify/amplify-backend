@@ -108,7 +108,8 @@
     "packages/*"
   ],
   "overrides": {
-    "aws-cdk-lib": "2.257.0"
+    "aws-cdk-lib": "2.257.0",
+    "@aws-cdk/cloud-assembly-schema": "53.28.0"
   },
   "lint-staged": {
     "*.ts": [
