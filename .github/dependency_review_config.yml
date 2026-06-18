@@ -45,3 +45,10 @@ allow-ghsas:
   - 'GHSA-jmr7-xgp7-cmfj' # fast-xml-parser DoS through entity expansion in DOCTYPE (HIGH)
   - 'GHSA-gh4j-gqv2-49f6' # fast-xml-parser XMLBuilder XML Comment and CDATA injection (MODERATE)
   - 'GHSA-fj3w-jwp8-x2g3' # fast-xml-parser stack overflow in XMLBuilder with preserveOrder (LOW)
+  # Transitive vulnerabilities reachable via @opennextjs/aws -> next. @opennextjs/aws is an
+  # optional peer dependency of @aws-blocks/hosting (which @aws-amplify/hosting consumes), so npm
+  # installs it on a runtime path. These advisories pre-exist on the base branch (where the same
+  # packages were dev-scoped) and cannot be patched without upstream @opennextjs/aws / next releases.
+  - 'GHSA-gv7w-rqvm-qjhr' # esbuild dev-server enables any website to read responses (HIGH)
+  - 'GHSA-qx2v-qp2m-jg93' # postcss XSS via unescaped </style> in CSS stringify output (MODERATE)
+  - 'GHSA-q8mj-m7cp-5q26' # qs DoS: qs.stringify crashes on null/undefined comma-format entries (MODERATE)

@@ -350,6 +350,58 @@ const buildHostingConstruct = (
   }
 };
 
+/**
+ * Copy `amplify_outputs.json` from the project root into every compute
+ * resource's bundle directory so the SSR runtime can read backend
+ * configuration (Cognito, AppSync, S3) at request time.
+ *
+ * `ampx deploy --backend` writes `amplify_outputs.json` to the project root,
+ * but the framework adapters (provided by `@aws-blocks/hosting`) are
+ * Amplify-agnostic and do not know about that file — so the deployed Lambda
+ * bundle would otherwise ship without it and `Amplify.configure(...)` /
+ * direct config reads would find nothing. This Amplify-specific glue restores
+ * the behavior the in-repo adapters previously performed inline.
+ *
+ * Best-effort: silently does nothing when the file is absent (backend-less
+ * hosting) and never overwrites a copy an adapter already placed.
+ */
+const copyAmplifyOutputsToComputeBundles = (
+  manifest: { compute?: Record<string, { bundle?: string }> },
+  projectDir: string,
+): void => {
+  const src = path.join(projectDir, 'amplify_outputs.json');
+  if (!fs.existsSync(src)) return;
+
+  const bundleDirs = new Set<string>();
+  for (const compute of Object.values(manifest.compute ?? {})) {
+    // `bundle` may point at a file or a directory depending on the adapter;
+    // normalize to the directory that becomes the Lambda task root.
+    if (!compute.bundle) continue;
+    const resolved = path.isAbsolute(compute.bundle)
+      ? compute.bundle
+      : path.join(projectDir, compute.bundle);
+    const dir =
+      fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()
+        ? resolved
+        : path.dirname(resolved);
+    bundleDirs.add(dir);
+  }
+
+  for (const dir of bundleDirs) {
+    const dest = path.join(dir, 'amplify_outputs.json');
+    if (fs.existsSync(dest)) continue;
+    try {
+      fs.copyFileSync(src, dest);
+      process.stderr.write(
+        `Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
+      );
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best-effort: a missing/locked bundle dir must not fail the deploy.
+    }
+  }
+};
+
 const doBuildHostingConstruct = (
   props: HostingProps,
   scope: Stack,
@@ -376,6 +428,11 @@ const doBuildHostingConstruct = (
   const adapter =
     props.customAdapter ?? getAdapter(framework, props.buildOutputDir);
   const manifest = adapter(projectDir);
+
+  // Amplify-specific: ship amplify_outputs.json inside each compute bundle so
+  // the SSR runtime can read backend config. The upstream adapters don't do
+  // this (they're Amplify-agnostic).
+  copyAmplifyOutputsToComputeBundles(manifest, projectDir);
 
   const constructProps: AmplifyHostingConstructProps = {
     manifest,
