@@ -1,26 +1,5 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import type { PipelineStageConfig } from './types.js';
-
-/**
- * Props for the {@link DeployStage} construct.
- * @internal
- */
-export type DeployStageProps<TConfig = Record<string, unknown>> = {
-  /** The stage configuration (name, env, config, etc.). */
-  readonly stageConfig: PipelineStageConfig<TConfig>;
-} & cdk.StageProps;
-
-/**
- * A CDK Stage used by the pipeline to represent a deployment environment.
- *
- * The stageFactory populates this Stage with stacks externally (not in
- * the constructor), allowing both sync and async factory patterns.
- * @internal
- */
-export class DeployStage<TConfig = Record<string, unknown>> extends cdk.Stage {
-  /** Creates a new DeployStage. */
-  constructor(scope: Construct, id: string, props: DeployStageProps<TConfig>) {
-    super(scope, id, { env: props.stageConfig.env });
-  }
-}
+// The `DeployStage` construct (a CDK Stage the pipeline populates with stacks)
+// now lives in `@aws-blocks/pipeline`. Re-exported here so the pipeline module
+// keeps its public API against the shared implementation.
+export { DeployStage } from '@aws-blocks/pipeline';
+export type { DeployStageProps } from '@aws-blocks/pipeline';

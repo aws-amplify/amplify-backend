@@ -1,42 +1,42 @@
-import * as cdk from 'aws-cdk-lib';
-import { Annotations } from 'aws-cdk-lib';
-import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+// The generic CI/CD pipeline construct now lives in `@aws-blocks/pipeline`
+// (exported there as `Pipeline`). This module is a THIN wrapper that:
+//
+//   1. re-exports it under the historical `AmplifyPipelineConstruct` name, and
+//   2. adds the one piece of Amplify-specific behavior that aws-blocks does not
+//      model — the two-phase hosting deploy, injected via `_postStageHook`.
+//
+// Everything else (source, synth, branches, approvals, bake time, trigger
+// filters, cross-account, validation, sync/async construction) is delegated to
+// aws-blocks unchanged. See ./pipeline_factory.ts for `definePipeline()`, which
+// supplies the `_postStageHook` used here.
+import type * as cdk from 'aws-cdk-lib';
 import {
-  CodeBuildStep,
   CodePipeline,
-  CodePipelineSource,
-  ManualApprovalStep,
   ShellStep,
+  type CodeBuildStep,
+  type IFileSetProducer,
 } from 'aws-cdk-lib/pipelines';
-import { Construct } from 'constructs';
-import { DeployStage } from './deploy_stage.js';
-import type {
-  BranchConfig,
-  PipelineProps,
-  PipelineStageConfig,
-} from './types.js';
-
-const VALID_ARN_PATTERN =
-  /^arn:(aws|aws-us-gov|aws-cn):codeconnections:[a-z0-9-]+:\d{12}:connection\/[a-zA-Z0-9-]+$/;
-
-const DEFAULT_SYNTH_COMMANDS = [
-  'npm ci',
-  'npx cdk synth --app "npx tsx amplify/pipeline.ts"',
-];
+import { Pipeline } from '@aws-blocks/pipeline';
+import type { Construct } from 'constructs';
+import type { PipelineProps, PipelineStageConfig } from './types.js';
 
 /**
  * CDK Pipelines-based CI/CD pipeline construct (L3).
  *
- * Creates one self-mutating CodePipeline V2 per branch entry. Each pipeline:
- * - Pulls source from GitHub via CodeConnections (OAuth, no tokens)
- * - Runs synth (install + cdk synth)
- * - Self-mutates if the pipeline definition changes
- * - Deploys to ordered stages with optional manual approval and baking time
+ * A thin wrapper over `@aws-blocks/pipeline`'s `Pipeline`. It behaves
+ * identically to the upstream construct — one self-mutating CodePipeline V2 per
+ * branch, deploying to ordered stages with optional approval and bake time —
+ * with a single addition: when `_postStageHook` is supplied (by
+ * `definePipeline()`), the returned post-deploy steps are appended to each
+ * stage. That hook is how the Amplify two-phase deployment (deploy backend →
+ * generate outputs → build frontend → deploy hosting) is expressed on top of
+ * the generic pipeline.
  *
- * Multiple branches each get their own independent pipeline, named
- * `${id}-${branch}`. This allows different branches to have different
- * stage configurations and deployment topologies.
+ * The hook must observe per-stage state captured *while each stage's
+ * `stageFactory` runs* (e.g. the backend `CfnOutput` published to `globalThis`
+ * by `defineBackend()`), so this wrapper wraps the caller's `stageFactory` to
+ * invoke the hook inline and stashes the result, then appends the steps to the
+ * built `StageDeployment` via `addPost()`.
  * @template TConfig - Type of the user-defined `config` object passed to each stage.
  * @example Sync stageFactory
  * ```ts
@@ -72,55 +72,27 @@ const DEFAULT_SYNTH_COMMANDS = [
  */
 export class AmplifyPipelineConstruct<
   TConfig = Record<string, unknown>,
-> extends Construct {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  private static readonly _ASYNC_INIT = Symbol('asyncInit');
-
-  /** The underlying CDK Pipelines CodePipeline instances, keyed by branch name. */
-  public readonly codePipelines: ReadonlyMap<string, CodePipeline>;
-
+> extends Pipeline<TConfig> {
   /**
    * Create an AmplifyPipelineConstruct with a synchronous stageFactory.
    *
-   * For async stageFactory, use the static `AmplifyPipelineConstruct.create()` method instead.
+   * For an async stageFactory, use the static
+   * `AmplifyPipelineConstruct.create()` method instead.
    */
-  constructor(
-    scope: Construct,
-    id: string,
-    props: PipelineProps<TConfig>,
-    _internal?: { marker: symbol; pipelines: Map<string, CodePipeline> },
-  ) {
-    super(scope, id);
-
-    if (
-      _internal &&
-      _internal.marker === AmplifyPipelineConstruct._ASYNC_INIT
-    ) {
-      this.codePipelines = _internal.pipelines;
-      return;
-    }
-
-    // Note: async detection is done at call-site (createBranchPipelineSync)
-    // by checking the return value, which works even with transpiled code.
-
-    validateProps(this, props);
-
-    const pipelines = new Map<string, CodePipeline>();
-
-    for (const branchConfig of props.branches) {
-      const pipeline = createBranchPipelineSync(this, id, branchConfig, props);
-      pipelines.set(branchConfig.branch, pipeline);
-    }
-
-    this.codePipelines = pipelines;
+  constructor(scope: Construct, id: string, props: PipelineProps<TConfig>) {
+    // Steps produced by _postStageHook, keyed by stage name. Populated inline
+    // by the wrapped stageFactory as each stage synthesizes, then drained onto
+    // the built StageDeployments after super() returns.
+    const postSteps = new Map<string, Array<ShellStep | CodeBuildStep>>();
+    super(scope, id, wrapProps(props, postSteps));
+    applyPostStageHook(this.codePipelines, postSteps);
   }
 
   /**
    * Async factory for pipelines that use an async stageFactory.
    *
-   * Use this when your stageFactory needs to `await` async operations.
-   * The method awaits each stage factory call before proceeding, ensuring
-   * all CDK constructs are fully initialized before synthesis.
+   * Use this when your stageFactory needs to `await` async operations. Mirrors
+   * `Pipeline.create()` and additionally applies the `_postStageHook` steps.
    */
   // eslint-disable-next-line no-restricted-syntax
   static async create<TConfig = Record<string, unknown>>(
@@ -128,436 +100,127 @@ export class AmplifyPipelineConstruct<
     id: string,
     props: PipelineProps<TConfig>,
   ): Promise<AmplifyPipelineConstruct<TConfig>> {
-    const instance = new AmplifyPipelineConstruct<TConfig>(scope, id, props, {
-      marker: AmplifyPipelineConstruct._ASYNC_INIT,
-      pipelines: new Map(),
-    });
-
-    validateProps(instance, props);
-
-    const pipelines = new Map<string, CodePipeline>();
-
-    for (const branchConfig of props.branches) {
-      const pipeline = await createBranchPipelineAsync(
-        instance,
-        id,
-        branchConfig,
-        props,
-      );
-      pipelines.set(branchConfig.branch, pipeline);
-    }
-
-    (
-      instance as { codePipelines: ReadonlyMap<string, CodePipeline> }
-    ).codePipelines = pipelines;
-
+    const postSteps = new Map<string, Array<ShellStep | CodeBuildStep>>();
+    const instance = (await Pipeline.create<TConfig>(
+      scope,
+      id,
+      wrapProps(props, postSteps),
+    )) as AmplifyPipelineConstruct<TConfig>;
+    // Reparent the prototype so callers get an AmplifyPipelineConstruct
+    // instance (Pipeline.create constructs a base Pipeline internally).
+    Object.setPrototypeOf(instance, AmplifyPipelineConstruct.prototype);
+    applyPostStageHook(instance.codePipelines, postSteps);
     return instance;
   }
 }
 
-// ─── Shared helpers ──────────────────────────────────────────────
-
-const validateProps = <TConfig>(
-  construct: Construct,
+/**
+ * Wrap the caller's props so that `_postStageHook` is invoked inline while each
+ * stage's `stageFactory` runs, capturing the returned steps for later
+ * injection. The `_postStageHook` prop itself is stripped before delegating to
+ * aws-blocks (which does not understand it).
+ */
+const wrapProps = <TConfig>(
   props: PipelineProps<TConfig>,
-): void => {
-  if (props.branches.length === 0) {
-    throw new Error('Pipeline: `branches` must not be empty.');
+  postSteps: Map<string, Array<ShellStep | CodeBuildStep>>,
+): PipelineProps<TConfig> => {
+  const { _postStageHook, stageFactory, ...rest } = props;
+
+  if (!_postStageHook) {
+    return props;
   }
 
-  if (!props.source.repo.includes('/')) {
-    throw new Error(
-      `Pipeline: \`repo\` must be in "owner/repo" format (got "${props.source.repo}").`,
-    );
-  }
-
-  if (!VALID_ARN_PATTERN.test(props.source.connectionArn)) {
-    throw new Error(
-      'Pipeline: `connectionArn` must be a valid CodeConnections ARN ' +
-        'in the format "arn:aws:codeconnections:<region>:<account-id>:connection/<connection-id>". ' +
-        'Accepted partitions: aws, aws-us-gov, aws-cn. ' +
-        'Create a CodeConnections connection in the AWS Console under Developer Tools > Connections, ' +
-        'then complete the OAuth handshake before using it.',
-    );
-  }
-
-  if (
-    props.source.triggerOnPush === true &&
-    props.source.triggerFilters?.length
-  ) {
-    throw new Error(
-      'Pipeline: source.triggerOnPush cannot be true when source.triggerFilters are set. ' +
-        'CodePipeline uses filters instead of push triggers when filters are configured.',
-    );
-  }
-
-  const branchNames = new Set<string>();
-  for (const branchConfig of props.branches) {
-    if (branchNames.has(branchConfig.branch)) {
-      throw new Error(
-        `Pipeline: duplicate branch name "${branchConfig.branch}". Each branch must be unique.`,
-      );
-    }
-    branchNames.add(branchConfig.branch);
-
-    if (branchConfig.stages.length === 0) {
-      throw new Error(
-        `Pipeline: branch "${branchConfig.branch}" has an empty \`stages\` array. At least one stage is required.`,
-      );
-    }
-
-    const stageNames = new Set<string>();
-    for (const stage of branchConfig.stages) {
-      if (stageNames.has(stage.name)) {
-        throw new Error(
-          `Pipeline: duplicate stage name "${stage.name}" in branch "${branchConfig.branch}". Stage names must be unique within a branch.`,
-        );
-      }
-      stageNames.add(stage.name);
-
-      if (!/^[a-zA-Z0-9_-]+$/.test(stage.name)) {
-        throw new Error(
-          `Pipeline: stage name "${stage.name}" contains invalid characters. ` +
-            `Stage names must be alphanumeric with hyphens/underscores (a-zA-Z0-9_-).`,
-        );
-      }
-    }
-  }
-
-  const sanitizedBranches = props.branches.map((b) =>
-    b.branch.replace(/[^a-zA-Z0-9-]/g, '-'),
-  );
-  const seen = new Set<string>();
-  for (let i = 0; i < sanitizedBranches.length; i++) {
-    if (seen.has(sanitizedBranches[i])) {
-      throw new Error(
-        `Pipeline: branch '${props.branches[i].branch}' produces a collision after sanitization. ` +
-          `Use more distinct branch names.`,
-      );
-    }
-    seen.add(sanitizedBranches[i]);
-  }
-
-  const pipelineAccount = cdk.Stack.of(construct).account;
-  const hasCrossAccount =
-    !cdk.Token.isUnresolved(pipelineAccount) &&
-    props.branches.some((b) =>
-      b.stages.some(
-        (s) =>
-          s.env?.account &&
-          !cdk.Token.isUnresolved(s.env.account) &&
-          s.env.account !== pipelineAccount,
-      ),
-    );
-  if (hasCrossAccount && !props.crossAccountKeys) {
-    throw new Error(
-      'Pipeline: crossAccountKeys must be true when deploying to different accounts. ' +
-        'This creates a KMS key (~$1/month) for cross-account artifact encryption.',
-    );
-  }
-
-  if (props.synth?.computeType === codebuild.ComputeType.SMALL) {
-    Annotations.of(construct).addWarning(
-      'ComputeType.SMALL (3GB RAM) may be insufficient for apps with Lambda bundling or frontend builds. ' +
-        'If synth fails with exit code 137 (OOM), remove the computeType override to use the default MEDIUM (7GB).',
-    );
-  }
-};
-
-const buildCodePipeline = <TConfig>(
-  construct: Construct,
-  branchId: string,
-  branchConfig: BranchConfig<TConfig>,
-  props: PipelineProps<TConfig>,
-): { codePipeline: CodePipeline; source: CodePipelineSource } => {
-  const hasTriggerFilters =
-    props.source.triggerFilters && props.source.triggerFilters.length > 0;
-  if (branchConfig.triggerOnPush === true && hasTriggerFilters) {
-    throw new Error(
-      `Pipeline branch '${branchConfig.branch}': triggerOnPush cannot be true when triggerFilters are set. ` +
-        'CodePipeline uses filters instead of push triggers when filters are configured.',
-    );
-  }
-  // When triggerFilters are set, CodePipeline uses the filter-based trigger
-  // configuration (added via pipeline.addTrigger) instead of push triggers
-  const triggerOnPush = hasTriggerFilters
-    ? false
-    : (branchConfig.triggerOnPush ?? props.source.triggerOnPush ?? true);
-
-  const source =
-    props._sourceOverride ??
-    CodePipelineSource.connection(props.source.repo, branchConfig.branch, {
-      connectionArn: props.source.connectionArn,
-      triggerOnPush,
-    });
-
-  const synthCommands = props.synth?.commands ?? DEFAULT_SYNTH_COMMANDS;
-  const synthStep = new ShellStep('Synth', {
-    input: source,
-    installCommands: props.synth?.installCommands,
-    commands: synthCommands,
-    env: props.synth?.env,
-    primaryOutputDirectory: props.synth?.primaryOutputDirectory,
-  });
-
-  const codePipeline = new CodePipeline(construct, branchId, {
-    synth: synthStep,
-    selfMutation: props.selfMutation ?? true,
-    crossAccountKeys: props.crossAccountKeys ?? false,
-    pipelineType: codepipeline.PipelineType.V2,
-    dockerEnabledForSynth: props.synth?.dockerEnabled ?? false,
-    synthCodeBuildDefaults: {
-      buildEnvironment: {
-        buildImage:
-          props.synth?.buildImage ??
-          codebuild.LinuxBuildImage.AMAZON_LINUX_2023_5,
-        computeType: props.synth?.computeType ?? codebuild.ComputeType.MEDIUM,
-      },
-      partialBuildSpec:
-        props.synth?.partialBuildSpec ??
-        codebuild.BuildSpec.fromObject({
-          phases: {
-            install: {
-              'runtime-versions': {
-                nodejs: 22,
-              },
-            },
-          },
-        }),
-    },
-  });
-
-  return { codePipeline, source };
-};
-
-const addStageToCodePipeline = <TConfig>(
-  codePipeline: CodePipeline,
-  stageConfig: PipelineStageConfig<TConfig>,
-  deployStage: DeployStage<TConfig>,
-  additionalPostSteps?: Array<ShellStep | CodeBuildStep>,
-): void => {
-  const pre: Array<ManualApprovalStep | ShellStep> = [];
-  const post: Array<ShellStep | CodeBuildStep> = [];
-
-  if (stageConfig.requireApproval) {
-    pre.push(
-      new ManualApprovalStep(`Approve-${stageConfig.name}`, {
-        comment:
-          stageConfig.approvalComment ??
-          `Approve deployment to ${stageConfig.name}`,
-      }),
-    );
-  }
-
-  if (stageConfig.bakeTime) {
-    const seconds = stageConfig.bakeTime.toSeconds();
-    const timeoutMinutes = stageConfig.bakeTime.toMinutes() + 30;
-    post.push(
-      new CodeBuildStep(`BakingTime-${stageConfig.name}`, {
-        commands: [`echo "Baking for ${seconds}s..." && sleep ${seconds}`],
-        timeout: cdk.Duration.minutes(timeoutMinutes),
-      }),
-    );
-  }
-
-  if (additionalPostSteps) {
-    post.push(...additionalPostSteps);
-  }
-
-  codePipeline.addStage(deployStage, { pre, post });
-};
-
-const validateBakingTime = <TConfig>(
-  stageConfig: PipelineStageConfig<TConfig>,
-): void => {
-  if (stageConfig.bakeTime && stageConfig.bakeTime.toMinutes() > 55) {
-    throw new Error(
-      `Pipeline: bakeTime for stage '${stageConfig.name}' exceeds 55 minutes (CodeBuild timeout limit). ` +
-        'Use requireApproval with external monitoring for longer baking periods.',
-    );
-  }
-};
-
-const validateStageStacks = (stage: cdk.Stage, stageName: string): void => {
-  const stacks = stage.node.children.filter(
-    (c): c is cdk.Stack => c instanceof cdk.Stack,
-  );
-
-  if (stacks.length === 0) {
-    throw new Error(
-      `Pipeline: stage '${stageName}' must contain at least one Stack. ` +
-        'Ensure your hosting.ts or backend.ts creates resources for this stage.',
-    );
-  }
-};
-
-// ─── Sync path ───────────────────────────────────────────────────
-
-const createBranchPipelineSync = <TConfig>(
-  construct: Construct,
-  id: string,
-  branchConfig: BranchConfig<TConfig>,
-  props: PipelineProps<TConfig>,
-): CodePipeline => {
-  const safeBranch = branchConfig.branch.replace(/[^a-zA-Z0-9-]/g, '-');
-  const branchId = `${id}-${safeBranch}`;
-
-  const { codePipeline, source } = buildCodePipeline(
-    construct,
-    branchId,
-    branchConfig,
-    props,
-  );
-
-  for (const stageConfig of branchConfig.stages) {
-    validateBakingTime(stageConfig);
-
-    const stage = new DeployStage(
-      construct,
-      `${branchId}-Stage-${stageConfig.name}`,
-      {
+  const wrappedStageFactory = (
+    stage: cdk.Stage,
+    stageConfig: PipelineStageConfig<TConfig>,
+  ): void | Promise<void> => {
+    const runHook = () => {
+      const steps = _postStageHook({
+        // The synth step's first input is the pipeline source file set — reuse
+        // it as the hosting deploy step's input rather than creating a second
+        // source action.
+        source: resolveSource(stage),
+        stage,
         stageConfig,
-      },
-    );
-
-    let result: void | Promise<void>;
-    if (stageConfig.environment) {
-      const originalEnv: Record<string, string | undefined> = {};
-      for (const [key, value] of Object.entries(stageConfig.environment)) {
-        originalEnv[key] = process.env[key];
-        process.env[key] = value;
+      });
+      if (steps.length > 0) {
+        // aws-blocks names the DeployStage `${id}-${safeBranch}-Stage-${name}`,
+        // which becomes the StageDeployment.stageName. Key on that so post
+        // steps land on the correct stage even across multiple branches.
+        postSteps.set(stage.stageName, steps);
       }
-      try {
-        result = props.stageFactory(stage, stageConfig);
-      } finally {
-        for (const [key, originalValue] of Object.entries(originalEnv)) {
-          if (originalValue === undefined) {
-            delete process.env[key];
-          } else {
-            process.env[key] = originalValue;
-          }
-        }
-      }
-    } else {
-      result = props.stageFactory(stage, stageConfig);
-    }
+    };
 
+    const result = stageFactory(stage, stageConfig);
     if (result && typeof (result as Promise<void>).then === 'function') {
-      throw new Error(
-        'AmplifyPipelineConstruct: async stage factory detected in sync constructor. ' +
-          'Use AmplifyPipelineConstruct.create() for async stage factories.',
-      );
+      return (result as Promise<void>).then(runHook);
     }
+    runHook();
+    return result;
+  };
 
-    validateStageStacks(stage, stageConfig.name);
-
-    const additionalPostSteps = props._postStageHook
-      ? props._postStageHook({ source, stage, stageConfig })
-      : undefined;
-    addStageToCodePipeline(
-      codePipeline,
-      stageConfig,
-      stage,
-      additionalPostSteps,
-    );
-  }
-
-  addTriggerFilters(codePipeline, branchConfig, props);
-
-  return codePipeline;
+  return { ...rest, stageFactory: wrappedStageFactory };
 };
 
-// ─── Async path ──────────────────────────────────────────────────
-
-const createBranchPipelineAsync = async <TConfig>(
-  construct: Construct,
-  id: string,
-  branchConfig: BranchConfig<TConfig>,
-  props: PipelineProps<TConfig>,
-): Promise<CodePipeline> => {
-  const safeBranch = branchConfig.branch.replace(/[^a-zA-Z0-9-]/g, '-');
-  const branchId = `${id}-${safeBranch}`;
-
-  const { codePipeline, source } = buildCodePipeline(
-    construct,
-    branchId,
-    branchConfig,
-    props,
-  );
-
-  for (const stageConfig of branchConfig.stages) {
-    validateBakingTime(stageConfig);
-
-    const stage = new DeployStage(
-      construct,
-      `${branchId}-Stage-${stageConfig.name}`,
-      {
-        stageConfig,
-      },
-    );
-
-    if (stageConfig.environment) {
-      const originalEnv: Record<string, string | undefined> = {};
-      for (const [key, value] of Object.entries(stageConfig.environment)) {
-        originalEnv[key] = process.env[key];
-        process.env[key] = value;
-      }
-      try {
-        await props.stageFactory(stage, stageConfig);
-      } finally {
-        for (const [key, originalValue] of Object.entries(originalEnv)) {
-          if (originalValue === undefined) {
-            delete process.env[key];
-          } else {
-            process.env[key] = originalValue;
-          }
+/**
+ * Resolve the pipeline source file set for a given stage.
+ *
+ * The `_postStageHook` needs an `IFileSetProducer` to use as the hosting deploy
+ * step's `input` — specifically the source checkout of the SAME branch pipeline
+ * the stage belongs to (each branch has its own source action).
+ *
+ * aws-blocks names the branch CodePipeline `${id}-${safeBranch}` and the stage
+ * `${id}-${safeBranch}-Stage-${name}`, so the stage's construct id begins with
+ * the owning pipeline's id followed by `-Stage-`. We match on that to pick the
+ * correct branch pipeline, then read its synth ShellStep's primary input (the
+ * source file set).
+ *
+ * Falls back to `undefined` (the hook tolerates a missing source by producing
+ * no steps) if the source cannot be resolved.
+ */
+const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
+  const parent = stage.node.scope as Construct | undefined;
+  if (parent) {
+    for (const child of parent.node.children) {
+      if (
+        child instanceof CodePipeline &&
+        stage.node.id.startsWith(`${child.node.id}-Stage-`)
+      ) {
+        const synth = child.synth;
+        if (synth instanceof ShellStep && synth.inputs.length > 0) {
+          return synth.inputs[0].fileSet;
         }
+        return synth;
       }
-    } else {
-      await props.stageFactory(stage, stageConfig);
     }
-
-    validateStageStacks(stage, stageConfig.name);
-
-    const additionalPostSteps = props._postStageHook
-      ? props._postStageHook({ source, stage, stageConfig })
-      : undefined;
-    addStageToCodePipeline(
-      codePipeline,
-      stageConfig,
-      stage,
-      additionalPostSteps,
-    );
   }
-
-  addTriggerFilters(codePipeline, branchConfig, props);
-
-  return codePipeline;
+  // Should not happen in practice; the hook returns [] when source is falsy.
+  return undefined as unknown as IFileSetProducer;
 };
 
-const addTriggerFilters = <TConfig>(
-  codePipeline: CodePipeline,
-  branchConfig: BranchConfig<TConfig>,
-  props: PipelineProps<TConfig>,
+/**
+ * Append the captured `_postStageHook` steps to the built stage deployments.
+ *
+ * aws-blocks builds each branch's CodePipeline (adding stages via `addStage`,
+ * which internally creates a Wave named after the stage) inside its
+ * constructor. The pipeline remains mutable until `buildPipeline()`, so we can
+ * still attach post steps here via `StageDeployment.addPost()`.
+ */
+const applyPostStageHook = (
+  codePipelines: ReadonlyMap<string, CodePipeline>,
+  postSteps: Map<string, Array<ShellStep | CodeBuildStep>>,
 ): void => {
-  const triggerFilters = props.source.triggerFilters;
-  if (!triggerFilters || triggerFilters.length === 0) {
+  if (postSteps.size === 0) {
     return;
   }
-
-  codePipeline.buildPipeline();
-
-  const sourceAction = codePipeline.pipeline.stages[0].actions[0];
-  codePipeline.pipeline.addTrigger({
-    providerType: codepipeline.ProviderType.CODE_STAR_SOURCE_CONNECTION,
-    gitConfiguration: {
-      sourceAction,
-      pushFilter: [
-        {
-          branchesIncludes: [branchConfig.branch],
-          filePathsIncludes: triggerFilters,
-        },
-      ],
-    },
-  });
+  for (const codePipeline of codePipelines.values()) {
+    for (const wave of codePipeline.waves) {
+      for (const stageDeployment of wave.stages) {
+        const steps = postSteps.get(stageDeployment.stageName);
+        if (steps) {
+          stageDeployment.addPost(...steps);
+        }
+      }
+    }
+  }
 };

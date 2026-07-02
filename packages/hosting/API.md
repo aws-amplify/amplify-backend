@@ -6,6 +6,7 @@
 
 import { HostingConstruct as AmplifyHostingConstruct } from '@aws-blocks/hosting/constructs';
 import { HostingConstructProps as AmplifyHostingConstructProps } from '@aws-blocks/hosting/constructs';
+import { BranchConfig } from '@aws-blocks/pipeline';
 import { CacheConfig } from '@aws-blocks/hosting';
 import * as cdk from 'aws-cdk-lib';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
@@ -29,6 +30,11 @@ import { IFileSetProducer } from 'aws-cdk-lib/pipelines';
 import { ImageConfig } from '@aws-blocks/hosting';
 import { MiddlewareConfig } from '@aws-blocks/hosting';
 import { NextjsAdapterOptions } from '@aws-blocks/hosting/adapters';
+import { Pipeline } from '@aws-blocks/pipeline';
+import { PipelineProps as PipelineProps_2 } from '@aws-blocks/pipeline';
+import { PipelineSourceConfig } from '@aws-blocks/pipeline';
+import { PipelineStageConfig } from '@aws-blocks/pipeline';
+import { PipelineSynthConfig } from '@aws-blocks/pipeline';
 import { Redirect } from '@aws-blocks/hosting';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Rewrite } from '@aws-blocks/hosting';
@@ -42,24 +48,15 @@ export { AmplifyHostingConstruct }
 export { AmplifyHostingConstructProps }
 
 // @public
-export class AmplifyPipelineConstruct<TConfig = Record<string, unknown>> extends Construct {
-    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>, _internal?: {
-        marker: symbol;
-        pipelines: Map<string, CodePipeline>;
-    });
-    readonly codePipelines: ReadonlyMap<string, CodePipeline>;
+export class AmplifyPipelineConstruct<TConfig = Record<string, unknown>> extends Pipeline<TConfig> {
+    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>);
     static create<TConfig = Record<string, unknown>>(scope: Construct, id: string, props: PipelineProps<TConfig>): Promise<AmplifyPipelineConstruct<TConfig>>;
 }
 
 // @public (undocumented)
 export type BackendHosting = ResourceProvider<HostingResources>;
 
-// @public
-export type BranchConfig<TConfig = Record<string, unknown>> = {
-    readonly branch: string;
-    readonly stages: Array<PipelineStageConfig<TConfig>>;
-    readonly triggerOnPush?: boolean;
-};
+export { BranchConfig }
 
 export { CacheConfig }
 
@@ -122,14 +119,8 @@ export { MiddlewareConfig }
 export { NextjsAdapterOptions }
 
 // @public
-export type PipelineProps<TConfig = Record<string, unknown>> = {
-    readonly source: PipelineSourceConfig;
-    readonly synth?: PipelineSynthConfig;
-    readonly branches: Array<BranchConfig<TConfig>>;
+export type PipelineProps<TConfig = Record<string, unknown>> = PipelineProps_2<TConfig> & {
     readonly stageFactory: (scope: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => void | Promise<void>;
-    readonly selfMutation?: boolean;
-    readonly crossAccountKeys?: boolean;
-    readonly _sourceOverride?: CodePipelineSource;
     readonly _postStageHook?: (params: {
         source: IFileSetProducer;
         stage: cdk.Stage;
@@ -137,36 +128,11 @@ export type PipelineProps<TConfig = Record<string, unknown>> = {
     }) => Array<ShellStep | CodeBuildStep>;
 };
 
-// @public
-export type PipelineSourceConfig = {
-    readonly repo: string;
-    readonly connectionArn: string;
-    readonly triggerOnPush?: boolean;
-    readonly triggerFilters?: string[];
-};
+export { PipelineSourceConfig }
 
-// @public
-export type PipelineStageConfig<TConfig = Record<string, unknown>> = {
-    readonly name: string;
-    readonly env?: cdk.Environment;
-    readonly requireApproval?: boolean;
-    readonly approvalComment?: string;
-    readonly bakeTime?: cdk.Duration;
-    readonly config?: TConfig;
-    readonly environment?: Record<string, string>;
-};
+export { PipelineStageConfig }
 
-// @public
-export type PipelineSynthConfig = {
-    readonly commands?: string[];
-    readonly installCommands?: string[];
-    readonly buildImage?: codebuild.IBuildImage;
-    readonly env?: Record<string, string>;
-    readonly primaryOutputDirectory?: string;
-    readonly dockerEnabled?: boolean;
-    readonly computeType?: codebuild.ComputeType;
-    readonly partialBuildSpec?: codebuild.BuildSpec;
-};
+export { PipelineSynthConfig }
 
 export { Redirect }
 
