@@ -8,6 +8,7 @@ import {
   DEFAULT_PUSH_TITLE,
 } from '../constants.js';
 import {
+  CampaignContext,
   MessageSource,
   ParsedPushEvent,
   ProfileTarget,
@@ -20,29 +21,49 @@ import {
  * Parse a raw Connect Journey Custom-action event into a flat list of profile
  * targets plus the message to deliver.
  *
- * DEFENSIVE / batch-aware. The exact Journey Custom-action envelope for the
- * outbound-campaigns batch is not publicly documented, so this accepts the
- * documented batch shape AND the common variants (so a Connect segment batch,
- * a single-profile invoke, and a direct test invoke all work):
+ * PRIMARY (real) shape — the Amazon Connect Outbound Campaigns v2 journey
+ * invocation, confirmed from a live journey run (RequestId
+ * 78da5698-8f31-4662-bf7b-d69502347fde):
  *
- *   1. Batch:   { Items: [ { CustomerProfiles: [ { ProfileId, CustomerData } ] } ] }
- *   2. Flat:    { CustomerProfiles: [ { ProfileId, CustomerData } ] }
- *   3. Single:  { ProfileId, CustomerData? }  (or lowercase `profileId`)
+ *   {
+ *     InvocationMetadata: { CampaignContext: { CampaignId, RunId, ActionId, CampaignName } },
+ *     Items: { CustomerProfiles: [ { ProfileId, CustomerData, IdempotencyToken }, ... ] }
+ *   }
+ *
+ * Note the real shape's quirks, all handled here:
+ *   - `Items` is an OBJECT `{ CustomerProfiles: [...] }`, NOT an array;
+ *   - each entry's `CustomerData` is a SERIALIZED JSON STRING (camelCase keys:
+ *     `profileId`, `firstName`, `lastName`, `emailAddress`, `address`,
+ *     `attributes.*`) that must be `JSON.parse`d;
+ *   - `ProfileId` is top-level PascalCase on each entry (used for device
+ *     lookup) and there is an `IdempotencyToken`;
+ *   - there is NO `messageTitle` / `messageBody` — message copy falls back to
+ *     the event-level / default copy (message sourcing by campaign is a
+ *     separate, not-yet-implemented feature).
+ *
+ * BACKWARD COMPATIBILITY — earlier hand-crafted / direct-invoke shapes still parse:
+ *   1. Batch (Items ARRAY): { Items: [ { CustomerProfiles: [ { ProfileId, CustomerData } ] } ] }
+ *   2. Flat:                { CustomerProfiles: [ { ProfileId, CustomerData } ] }
+ *   3. Single:              { ProfileId, CustomerData? }  (or lowercase `profileId`)
+ * and `CustomerData` may be a plain object (PascalCase or camelCase) rather
+ * than a serialized string.
  *
  * Message content is sourced from an event-level `Message` / `message` object
  * ({ Title/title, Body/body, Data/data }) or top-level `title`/`body`, and
  * falls back to sensible defaults.
  *
  * Keys are matched case-insensitively for `ProfileId` / `CustomerProfiles` /
- * `CustomerData` so minor envelope differences don't drop targets.
+ * `CustomerData` / `Items` so minor envelope differences don't drop targets.
  */
 export const parsePushEvent = (event: unknown): ParsedPushEvent => {
   const root = isRecord(event) ? event : {};
   const { targets, parsePath } = extractTargets(root);
+  const campaign = extractCampaign(root);
   return {
     targets,
     message: extractMessage(root),
     parsePath,
+    ...(campaign ? { campaign } : {}),
   };
 };
 
@@ -85,23 +106,29 @@ const extractTargets = (
       if (!profileId) {
         continue;
       }
-      const customerData = pick(entry, 'CustomerData', 'customerData');
       targets.push({
         profileId,
-        customerData: isRecord(customerData) ? customerData : undefined,
+        customerData: coerceCustomerData(
+          pick(entry, 'CustomerData', 'customerData'),
+        ),
       });
     }
   };
 
-  // 1. Batch shape: { Items: [ { CustomerProfiles: [...] } ] }
+  // 1. Batch shape. PRIMARY (real journey): `Items` is an OBJECT
+  //    { CustomerProfiles: [...] }. BACKWARD COMPATIBILITY: `Items` is an ARRAY of
+  //    { CustomerProfiles: [...] }. Normalize both to a list of item records.
   const items = pick(root, 'Items', 'items');
-  if (Array.isArray(items)) {
-    for (const item of items) {
-      if (isRecord(item)) {
-        addFromCustomerProfiles(
-          pick(item, 'CustomerProfiles', 'customerProfiles'),
-        );
-      }
+  const itemList: unknown[] = Array.isArray(items)
+    ? items
+    : isRecord(items)
+      ? [items]
+      : [];
+  for (const item of itemList) {
+    if (isRecord(item)) {
+      addFromCustomerProfiles(
+        pick(item, 'CustomerProfiles', 'customerProfiles'),
+      );
     }
   }
   const batchCount = targets.length;
@@ -114,10 +141,11 @@ const extractTargets = (
   if (targets.length === 0) {
     const profileId = asString(pick(root, 'ProfileId', 'profileId'));
     if (profileId) {
-      const customerData = pick(root, 'CustomerData', 'customerData');
       targets.push({
         profileId,
-        customerData: isRecord(customerData) ? customerData : undefined,
+        customerData: coerceCustomerData(
+          pick(root, 'CustomerData', 'customerData'),
+        ),
       });
     }
   }
@@ -132,6 +160,62 @@ const extractTargets = (
           : 'none';
 
   return { targets, parsePath };
+};
+
+/**
+ * Coerce a raw `CustomerData` value into a property bag.
+ *
+ * The real Connect journey delivers `CustomerData` as a SERIALIZED JSON STRING
+ * (camelCase keys), so a string is `JSON.parse`d. Backward compatibility: a plain
+ * object (PascalCase or camelCase, from earlier hand-crafted / direct-invoke
+ * payloads) is used as-is. Anything else — or a string that isn't valid JSON,
+ * or JSON that isn't an object — yields `undefined` so a malformed entry never
+ * aborts the batch.
+ */
+const coerceCustomerData = (
+  raw: unknown,
+): Record<string, unknown> | undefined => {
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+      return isRecord(parsed) ? parsed : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return isRecord(raw) ? raw : undefined;
+};
+
+/**
+ * Extract the Outbound Campaigns v2 journey context from
+ * `InvocationMetadata.CampaignContext`, when present. Returns `undefined` when
+ * the envelope carries no campaign metadata (e.g. direct-invoke test payloads)
+ * or when none of the expected fields resolve.
+ */
+const extractCampaign = (
+  root: Record<string, unknown>,
+): CampaignContext | undefined => {
+  const meta = pick(root, 'InvocationMetadata', 'invocationMetadata');
+  if (!isRecord(meta)) {
+    return undefined;
+  }
+  const ctx = pick(meta, 'CampaignContext', 'campaignContext');
+  if (!isRecord(ctx)) {
+    return undefined;
+  }
+  const campaign: CampaignContext = {
+    campaignId: asString(pick(ctx, 'CampaignId', 'campaignId')),
+    campaignName: asString(pick(ctx, 'CampaignName', 'campaignName')),
+    actionId: asString(pick(ctx, 'ActionId', 'actionId')),
+    runId: asString(pick(ctx, 'RunId', 'runId')),
+  };
+  return Object.values(campaign).some((v) => v !== undefined)
+    ? campaign
+    : undefined;
 };
 
 const extractMessage = (root: Record<string, unknown>): PushMessage => {

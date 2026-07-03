@@ -63,6 +63,7 @@ export const handler = async (
       parsePath: parsed.parsePath,
       profileCount: parsed.targets.length,
       profileIds: parsed.targets.map((t) => t.profileId),
+      campaign: parsed.campaign ?? null,
       message: {
         title: parsed.message.title,
         body: parsed.message.body,

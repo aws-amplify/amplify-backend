@@ -79,6 +79,24 @@ export type ProfileTarget = {
 /** Which envelope shape {@link parsePushEvent} matched, for observability. */
 export type PushEventParsePath = 'batch' | 'flat' | 'single' | 'none';
 
+/**
+ * The Outbound Campaigns v2 journey context carried on the real invocation
+ * envelope under `InvocationMetadata.CampaignContext`. Extracted for
+ * observability and for the upcoming message-copy-by-campaign feature (message
+ * sourcing is NOT implemented off this yet). All fields optional/defensive
+ * since direct-invoke test payloads omit them.
+ */
+export type CampaignContext = {
+  /** The Connect campaign / journey id. */
+  campaignId?: string;
+  /** The human-readable campaign / journey name (e.g. `journey-2`). */
+  campaignName?: string;
+  /** The journey action id (e.g. the Custom-action block name). */
+  actionId?: string;
+  /** The specific campaign run id for this invocation. */
+  runId?: string;
+};
+
 /** The normalized result of parsing a raw Journey Custom-action event. */
 export type ParsedPushEvent = {
   /** Every profile the event targeted (batches are flattened). */
@@ -91,6 +109,12 @@ export type ParsedPushEvent = {
    * real Connect Journey Custom-action payload shape can be confirmed.
    */
   parsePath: PushEventParsePath;
+  /**
+   * The journey/campaign context from `InvocationMetadata.CampaignContext`,
+   * when present on the envelope (real Outbound Campaigns v2 journeys), else
+   * `undefined` (direct-invoke test payloads).
+   */
+  campaign?: CampaignContext;
 };
 
 /** Delivery outcome for a single device (one `SendMessages` call). */
