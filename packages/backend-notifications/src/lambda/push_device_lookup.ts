@@ -8,6 +8,7 @@ import {
 } from '@aws-sdk/client-customer-profiles';
 
 import { OBJECT_TYPE_DEVICE } from '../constants.js';
+import { maskToken } from './mask.js';
 import { withTransientRetry } from './retry.js';
 
 /** A registered device resolved from the profile's AmplifyDevice objects. */
@@ -83,6 +84,19 @@ export const listDevices = async (
     }
     nextToken = res.NextToken;
   } while (nextToken);
+
+  console.log(
+    '[push] devices.resolved',
+    JSON.stringify({
+      profileId,
+      count: devices.length,
+      devices: devices.map((d) => ({
+        deviceId: d.deviceId,
+        channelType: d.channelType,
+        deviceToken: maskToken(d.deviceToken),
+      })),
+    }),
+  );
 
   return devices;
 };

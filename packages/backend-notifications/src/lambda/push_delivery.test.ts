@@ -58,18 +58,30 @@ const profilesFor = (
   return { client, deletes };
 };
 
-/** Fake Pinpoint that maps each token to a DeliveryStatus via `statusByToken`. */
-const pinpointFor = (statusByToken: Record<string, string>): PinpointClient =>
+/**
+ * Fake Pinpoint that maps each token to a DeliveryStatus (and optional
+ * StatusMessage) via `statusByToken`. A bare string is shorthand for
+ * `{ status }` with no StatusMessage.
+ */
+type StatusSpec = string | { status: string; statusMessage?: string };
+const pinpointFor = (
+  statusByToken: Record<string, StatusSpec>,
+): PinpointClient =>
   ({
     send: (command: { input: unknown }): Promise<unknown> => {
       const input = command.input as SendMessagesCommandInput;
       const token = Object.keys(input.MessageRequest?.Addresses ?? {})[0];
+      const spec = statusByToken[token] ?? 'SUCCESSFUL';
+      const status = typeof spec === 'string' ? spec : spec.status;
+      const statusMessage =
+        typeof spec === 'string' ? undefined : spec.statusMessage;
       return Promise.resolve({
         MessageResponse: {
           Result: {
             [token]: {
-              DeliveryStatus: statusByToken[token] ?? 'SUCCESSFUL',
+              DeliveryStatus: status,
               StatusCode: 200,
+              StatusMessage: statusMessage,
             },
           },
         },
@@ -107,7 +119,7 @@ void describe('deliverToProfile', () => {
     assert.strictEqual(res.devices.length, 2);
   });
 
-  void it('deletes the device object on PERMANENT_FAILURE (stale-token cleanup)', async () => {
+  void it('deletes the device object on an invalid-token PERMANENT_FAILURE (stale-token cleanup)', async () => {
     const { client, deletes } = profilesFor({
       p1: [
         { key: 'good', token: 't-good', channel: 'APNS' },
@@ -116,7 +128,7 @@ void describe('deliverToProfile', () => {
     });
     const pinpoint = pinpointFor({
       't-good': 'SUCCESSFUL',
-      't-dead': 'PERMANENT_FAILURE',
+      't-dead': { status: 'PERMANENT_FAILURE', statusMessage: 'Unregistered' },
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
@@ -127,6 +139,31 @@ void describe('deliverToProfile', () => {
     assert.strictEqual(res.failed, 1);
     assert.strictEqual(res.cleaned, 1);
     assert.deepStrictEqual(deletes, ['dead']);
+  });
+
+  void it('does NOT delete on a channel-misconfig PERMANENT_FAILURE (conservative cleanup keeps the token)', async () => {
+    const { client, deletes } = profilesFor({
+      p1: [
+        { key: 'good', token: 't-good', channel: 'APNS' },
+        { key: 'kept', token: 't-kept', channel: 'GCM' },
+      ],
+    });
+    const pinpoint = pinpointFor({
+      't-good': 'SUCCESSFUL',
+      't-kept': {
+        status: 'PERMANENT_FAILURE',
+        statusMessage: 'No channel of type GCM is enabled for the application',
+      },
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpoint),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.delivered, 1);
+    assert.strictEqual(res.failed, 1);
+    assert.strictEqual(res.cleaned, 0);
+    assert.deepStrictEqual(deletes, []);
   });
 
   void it('skips a device with an unsupported / missing channel (failed, no send)', async () => {
@@ -179,12 +216,13 @@ void describe('deliverToTargets', () => {
     });
     const pinpoint = pinpointFor({
       t1: 'SUCCESSFUL',
-      t2: 'PERMANENT_FAILURE',
+      t2: { status: 'PERMANENT_FAILURE', statusMessage: 'NotRegistered' },
       t3: 'SUCCESSFUL',
     });
     const summary = await deliverToTargets(deps(client, pinpoint), {
       targets: [{ profileId: 'p1' }, { profileId: 'p2' }],
       message: MESSAGE,
+      parsePath: 'batch',
     });
     assert.strictEqual(summary.profilesProcessed, 2);
     assert.strictEqual(summary.totalDelivered, 2);

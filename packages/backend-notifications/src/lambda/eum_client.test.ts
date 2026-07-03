@@ -8,7 +8,7 @@ import type {
   SendMessagesCommand,
   SendMessagesCommandInput,
 } from '@aws-sdk/client-pinpoint';
-import { deliverToDevice } from './eum_client.js';
+import { deliverToDevice, isInvalidTokenFailure } from './eum_client.js';
 import { PushMessage } from './push_types.js';
 
 const MESSAGE: PushMessage = { title: 'T', body: 'B' };
@@ -70,7 +70,7 @@ void describe('deliverToDevice', () => {
     assert.ok(input.MessageRequest?.MessageConfiguration?.GCMMessage);
   });
 
-  void it('flags PERMANENT_FAILURE as failed AND stale (triggers cleanup)', async () => {
+  void it('flags a PERMANENT_FAILURE with an invalid-token StatusMessage as stale (triggers cleanup)', async () => {
     const { client } = fakePinpoint({
       status: 'PERMANENT_FAILURE',
       statusCode: 410,
@@ -87,6 +87,36 @@ void describe('deliverToDevice', () => {
     assert.strictEqual(res.stale, true);
     assert.strictEqual(res.status, 'PERMANENT_FAILURE');
     assert.strictEqual(res.statusCode, 410);
+  });
+
+  void it('treats a channel-misconfig PERMANENT_FAILURE as failed but NOT stale (conservative cleanup)', async () => {
+    const { client } = fakePinpoint({
+      status: 'PERMANENT_FAILURE',
+      statusCode: 400,
+      statusMessage:
+        'No channel of type GCM is enabled for the application b31c292f',
+    });
+    const res = await deliverToDevice(
+      client,
+      'app',
+      'good-token',
+      'GCM',
+      MESSAGE,
+    );
+    assert.strictEqual(res.delivered, false);
+    assert.strictEqual(res.status, 'PERMANENT_FAILURE');
+    assert.strictEqual(
+      res.stale,
+      false,
+      'channel-not-enabled must NOT delete the device',
+    );
+  });
+
+  void it('does not delete on a PERMANENT_FAILURE with no StatusMessage (unknown → keep)', async () => {
+    const { client } = fakePinpoint({ status: 'PERMANENT_FAILURE' });
+    const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
+    assert.strictEqual(res.delivered, false);
+    assert.strictEqual(res.stale, false);
   });
 
   void it('treats TEMPORARY_FAILURE / THROTTLED as failed but NOT stale', async () => {
@@ -117,5 +147,46 @@ void describe('deliverToDevice', () => {
     const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
     assert.strictEqual(res.status, 'UNKNOWN_FAILURE');
     assert.strictEqual(res.delivered, false);
+  });
+});
+
+void describe('isInvalidTokenFailure', () => {
+  void it('returns true only for PERMANENT_FAILURE with a known invalid-token indicator', () => {
+    for (const msg of [
+      'BadDeviceToken',
+      'Unregistered',
+      'DeviceTokenNotForTopic',
+      'NotRegistered',
+      'InvalidRegistration',
+      'MismatchSenderId',
+      'The device token is Unregistered by APNs', // substring match, any case
+    ]) {
+      assert.strictEqual(
+        isInvalidTokenFailure('PERMANENT_FAILURE', msg),
+        true,
+        msg,
+      );
+    }
+  });
+
+  void it('returns false for channel/app/transient/unknown failures (keep the token)', () => {
+    assert.strictEqual(
+      isInvalidTokenFailure(
+        'PERMANENT_FAILURE',
+        'No channel of type GCM is enabled for the application',
+      ),
+      false,
+    );
+    assert.strictEqual(
+      isInvalidTokenFailure('PERMANENT_FAILURE', undefined),
+      false,
+    );
+    assert.strictEqual(
+      isInvalidTokenFailure('TEMPORARY_FAILURE', 'Unregistered'),
+      false,
+    );
+    assert.strictEqual(isInvalidTokenFailure('THROTTLED', undefined), false);
+    assert.strictEqual(isInvalidTokenFailure('OPT_OUT', undefined), false);
+    assert.strictEqual(isInvalidTokenFailure('SUCCESSFUL', undefined), false);
   });
 });

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint';
+import { maskToken } from './mask.js';
 import { buildMessageConfiguration } from './push_payload.js';
 import {
   DeviceDeliveryResult,
@@ -10,22 +11,67 @@ import {
 } from './push_types.js';
 
 /**
- * Pinpoint `DeliveryStatus` values that mean the push token is permanently
- * invalid and its backing device object should be deleted (stale-token
- * cleanup). `PERMANENT_FAILURE` covers unregistered / invalid tokens rejected
- * by FCM / APNs.
+ * Case-insensitive substrings of a Pinpoint per-address `StatusMessage` that
+ * indicate the DEVICE TOKEN itself is permanently invalid — the ONLY condition
+ * that justifies deleting the backing AmplifyDevice object (stale-token
+ * cleanup).
+ *
+ * - APNs: `BadDeviceToken`, `Unregistered`, `DeviceTokenNotForTopic`
+ * - FCM / GCM: `NotRegistered`, `InvalidRegistration`, `MismatchSenderId`
+ *
+ * Everything else that yields a non-delivery — a channel that is not enabled on
+ * the EUM/Pinpoint application, missing channel credentials, `OPT_OUT`,
+ * `THROTTLED`, `TEMPORARY_FAILURE`, or a `PERMANENT_FAILURE` whose message does
+ * not match a token-invalidity signal — is treated as a transient / config
+ * problem and the token is KEPT. Deleting on those would wrongly wipe valid
+ * device registrations (e.g. when the app simply has no APNS/GCM channel yet).
  */
-const STALE_STATUSES = new Set<string>(['PERMANENT_FAILURE']);
+const INVALID_TOKEN_INDICATORS = [
+  'BadDeviceToken',
+  'Unregistered',
+  'DeviceTokenNotForTopic',
+  'NotRegistered',
+  'InvalidRegistration',
+  'MismatchSenderId',
+];
+
+/**
+ * Decide whether a per-address delivery failure represents a permanently
+ * invalid TOKEN (safe to delete) versus a channel / app misconfiguration or
+ * transient error (keep the token).
+ *
+ * Conservative by design: returns `true` ONLY for a `PERMANENT_FAILURE` whose
+ * `StatusMessage` matches a known invalid-token indicator. The default for any
+ * ambiguous or unknown failure is `false` (keep the device).
+ */
+export const isInvalidTokenFailure = (
+  status: string,
+  statusMessage: string | undefined,
+): boolean => {
+  if (status !== 'PERMANENT_FAILURE') {
+    return false;
+  }
+  const haystack = (statusMessage ?? '').toLowerCase();
+  return INVALID_TOKEN_INDICATORS.some((indicator) =>
+    haystack.includes(indicator.toLowerCase()),
+  );
+};
 
 /**
  * Deliver a single push to one device via AWS End User Messaging (Pinpoint
  * `SendMessages`), addressing the message to the device token on its channel.
  *
  * Returns a structured per-device result classifying the Pinpoint
- * `DeliveryStatus` into delivered / failed and flagging a permanently-invalid
- * token as `stale` so the caller can delete its device object. A thrown call
- * (e.g. the channel is not configured on the EUM app) is caught and reported as
- * `status: 'ERROR'` (failed, NOT stale — the token itself may be fine).
+ * `DeliveryStatus` into delivered / failed and flagging ONLY a genuinely
+ * invalid token as `stale` (via {@link isInvalidTokenFailure}) so the caller
+ * can delete its device object. A thrown call (e.g. the channel is not
+ * configured on the EUM app) is caught and reported as `status: 'ERROR'`
+ * (failed, NOT stale — the token itself may be fine).
+ *
+ * Emits greppable `[push] send.*` / `[push] classify` log lines carrying the
+ * request channel and the FULL per-address response (DeliveryStatus /
+ * StatusCode / StatusMessage) plus the keep-vs-delete decision, so a failed
+ * send can be diagnosed as channel-not-enabled vs invalid-token from the logs.
  */
 export const deliverToDevice = async (
   pinpoint: PinpointClient,
@@ -34,6 +80,7 @@ export const deliverToDevice = async (
   channelType: PushChannelType,
   message: PushMessage,
 ): Promise<DeviceDeliveryResult> => {
+  const masked = maskToken(deviceToken);
   try {
     const res = await pinpoint.send(
       new SendMessagesCommand({
@@ -49,24 +96,63 @@ export const deliverToDevice = async (
 
     const result = res.MessageResponse?.Result?.[deviceToken];
     const status = result?.DeliveryStatus ?? 'UNKNOWN_FAILURE';
+    const statusCode = result?.StatusCode;
+    const statusMessage = result?.StatusMessage;
+    const stale = isInvalidTokenFailure(status, statusMessage);
+
+    console.log(
+      '[push] send.response',
+      JSON.stringify({
+        channelType,
+        deviceToken: masked,
+        deliveryStatus: status,
+        statusCode,
+        statusMessage,
+      }),
+    );
+    console.log(
+      '[push] classify',
+      JSON.stringify({
+        deviceToken: masked,
+        channelType,
+        deliveryStatus: status,
+        decision: stale ? 'STALE_DELETE' : 'KEEP',
+        reason: stale
+          ? 'StatusMessage matched an invalid-token indicator'
+          : `not a token-invalidity signal (status=${status})`,
+        statusMessage,
+      }),
+    );
 
     return {
       deviceToken,
       channelType,
       status,
       delivered: status === 'SUCCESSFUL',
-      stale: STALE_STATUSES.has(status),
-      statusCode: result?.StatusCode,
-      statusMessage: result?.StatusMessage,
+      stale,
+      statusCode,
+      statusMessage,
     };
   } catch (err) {
+    const statusMessage = err instanceof Error ? err.message : 'unknown error';
+    console.log(
+      '[push] send.error',
+      JSON.stringify({
+        channelType,
+        deviceToken: masked,
+        deliveryStatus: 'ERROR',
+        decision: 'KEEP',
+        reason: 'SendMessages threw (e.g. channel not configured) — token kept',
+        statusMessage,
+      }),
+    );
     return {
       deviceToken,
       channelType,
       status: 'ERROR',
       delivered: false,
       stale: false,
-      statusMessage: err instanceof Error ? err.message : 'unknown error',
+      statusMessage,
     };
   }
 };

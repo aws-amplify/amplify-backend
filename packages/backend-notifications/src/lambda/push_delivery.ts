@@ -5,6 +5,7 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 
 import { deliverToDevice } from './eum_client.js';
+import { maskToken } from './mask.js';
 import { deleteDevice, listDevices } from './push_device_lookup.js';
 import { normalizeChannelType } from './push_payload.js';
 import {
@@ -84,6 +85,16 @@ export const deliverToProfile = async (
     }
 
     if (outcome.stale) {
+      console.log(
+        '[push] cleanup.delete',
+        JSON.stringify({
+          profileId: target.profileId,
+          objectUniqueKey: device.objectUniqueKey,
+          deviceToken: maskToken(device.deviceToken),
+          channelType,
+          reason: outcome.statusMessage ?? outcome.status,
+        }),
+      );
       const deletedOk = await deleteDevice(
         profiles,
         domainName,

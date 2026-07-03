@@ -47,12 +47,21 @@ export type ProfileTarget = {
   customerData?: Record<string, unknown>;
 };
 
+/** Which envelope shape {@link parsePushEvent} matched, for observability. */
+export type PushEventParsePath = 'batch' | 'flat' | 'single' | 'none';
+
 /** The normalized result of parsing a raw Journey Custom-action event. */
 export type ParsedPushEvent = {
   /** Every profile the event targeted (batches are flattened). */
   targets: ProfileTarget[];
   /** The message content resolved from the event (with defaults applied). */
   message: PushMessage;
+  /**
+   * The envelope shape that produced the targets (`batch` / `flat` / `single`),
+   * or `none` when no targets were resolvable. Logged by the handler so the
+   * real Connect Journey Custom-action payload shape can be confirmed.
+   */
+  parsePath: PushEventParsePath;
 };
 
 /** Delivery outcome for a single device (one `SendMessages` call). */
@@ -75,8 +84,10 @@ export type DeviceDeliveryResult = {
   /** Whether delivery succeeded. */
   delivered: boolean;
   /**
-   * Whether this represents a permanently-invalid token whose backing
-   * AmplifyDevice object should be deleted (stale-token cleanup).
+   * Whether this represents a permanently-invalid TOKEN whose backing
+   * AmplifyDevice object should be deleted (stale-token cleanup). Set ONLY for
+   * a token-invalidity signal (see `isInvalidTokenFailure`); channel / app
+   * misconfiguration and transient failures are `false` (token kept).
    */
   stale: boolean;
   /** Pinpoint numeric status code, when available. */

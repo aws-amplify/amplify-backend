@@ -31,6 +31,10 @@ const pinpoint = new PinpointClient({});
 export const handler = async (
   event: unknown,
 ): Promise<PushDeliveryResponse> => {
+  // Top priority: capture the EXACT raw event so the real Connect Journey
+  // Custom-action envelope shape can be inspected from CloudWatch.
+  console.log('[push] rawEvent', JSON.stringify(event));
+
   const domainName = process.env[ENV_DOMAIN_NAME];
   const applicationId = process.env[ENV_EUM_APPLICATION_ID];
   if (!domainName || !applicationId) {
@@ -45,8 +49,22 @@ export const handler = async (
   }
 
   const parsed = parsePushEvent(event);
+  console.log(
+    '[push] parsed',
+    JSON.stringify({
+      parsePath: parsed.parsePath,
+      profileCount: parsed.targets.length,
+      profileIds: parsed.targets.map((t) => t.profileId),
+      message: {
+        title: parsed.message.title,
+        body: parsed.message.body,
+        hasData: Boolean(parsed.message.data),
+      },
+    }),
+  );
+
   if (parsed.targets.length === 0) {
-    console.warn('Push event contained no resolvable profile targets');
+    console.warn('[push] no resolvable profile targets in event');
     return {
       profilesProcessed: 0,
       totalDelivered: 0,
@@ -61,12 +79,15 @@ export const handler = async (
     parsed,
   );
 
-  console.log('Push delivery summary', {
-    profilesProcessed: summary.profilesProcessed,
-    totalDelivered: summary.totalDelivered,
-    totalFailed: summary.totalFailed,
-    totalCleaned: summary.totalCleaned,
-  });
+  console.log(
+    '[push] summary',
+    JSON.stringify({
+      profilesProcessed: summary.profilesProcessed,
+      totalDelivered: summary.totalDelivered,
+      totalFailed: summary.totalFailed,
+      totalCleaned: summary.totalCleaned,
+    }),
+  );
 
   return summary;
 };

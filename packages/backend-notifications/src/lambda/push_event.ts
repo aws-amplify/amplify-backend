@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../constants.js';
-import { ParsedPushEvent, ProfileTarget, PushMessage } from './push_types.js';
+import {
+  ParsedPushEvent,
+  ProfileTarget,
+  PushEventParsePath,
+  PushMessage,
+} from './push_types.js';
 
 /**
  * Parse a raw Connect Journey Custom-action event into a flat list of profile
@@ -26,9 +31,11 @@ import { ParsedPushEvent, ProfileTarget, PushMessage } from './push_types.js';
  */
 export const parsePushEvent = (event: unknown): ParsedPushEvent => {
   const root = isRecord(event) ? event : {};
+  const { targets, parsePath } = extractTargets(root);
   return {
-    targets: extractTargets(root),
+    targets,
     message: extractMessage(root),
+    parsePath,
   };
 };
 
@@ -54,7 +61,9 @@ const pick = (obj: Record<string, unknown>, ...names: string[]): unknown => {
 const asString = (v: unknown): string | undefined =>
   typeof v === 'string' && v.length > 0 ? v : undefined;
 
-const extractTargets = (root: Record<string, unknown>): ProfileTarget[] => {
+const extractTargets = (
+  root: Record<string, unknown>,
+): { targets: ProfileTarget[]; parsePath: PushEventParsePath } => {
   const targets: ProfileTarget[] = [];
 
   const addFromCustomerProfiles = (value: unknown): void => {
@@ -88,9 +97,11 @@ const extractTargets = (root: Record<string, unknown>): ProfileTarget[] => {
       }
     }
   }
+  const batchCount = targets.length;
 
   // 2. Flat shape: { CustomerProfiles: [...] }
   addFromCustomerProfiles(pick(root, 'CustomerProfiles', 'customerProfiles'));
+  const flatCount = targets.length - batchCount;
 
   // 3. Single-profile / direct-invoke shape: { ProfileId, CustomerData? }
   if (targets.length === 0) {
@@ -104,7 +115,16 @@ const extractTargets = (root: Record<string, unknown>): ProfileTarget[] => {
     }
   }
 
-  return targets;
+  const parsePath: PushEventParsePath =
+    batchCount > 0
+      ? 'batch'
+      : flatCount > 0
+        ? 'flat'
+        : targets.length > 0
+          ? 'single'
+          : 'none';
+
+  return { targets, parsePath };
 };
 
 const extractMessage = (root: Record<string, unknown>): PushMessage => {
