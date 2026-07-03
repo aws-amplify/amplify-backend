@@ -25,6 +25,31 @@ export const MAX_ATTRIBUTE_LENGTH = 255;
 /** Environment variable carrying the Customer Profiles domain name. */
 export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
 
+/**
+ * Environment variable carrying the AWS End User Messaging / Pinpoint
+ * application (project) id the push-delivery Lambda calls `SendMessages`
+ * against.
+ */
+export const ENV_EUM_APPLICATION_ID = 'EUM_APPLICATION_ID';
+
+/** Default push-notification title when the event carries none. */
+export const DEFAULT_PUSH_TITLE = 'Notification';
+
+/** Default push-notification body when the event carries none. */
+export const DEFAULT_PUSH_BODY = 'You have a new notification.';
+
+/**
+ * Service principals allowed to invoke the push-delivery Lambda via a
+ * resource-based policy. Amazon Connect Journey Custom-actions invoke Lambda
+ * under `connect.amazonaws.com`; Outbound Campaigns v2 uses
+ * `connect-campaigns.amazonaws.com`. Granting both lets the customer's Journey
+ * / campaign call the push Lambda without a broad wildcard principal.
+ */
+export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
+  'connect.amazonaws.com',
+  'connect-campaigns.amazonaws.com',
+];
+
 /** Default Customer Profiles domain name created when none is supplied. */
 export const DEFAULT_DOMAIN_NAME = 'AmplifyIdentifyUserPoc';
 

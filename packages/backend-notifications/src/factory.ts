@@ -42,7 +42,10 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       jwtIssuer: `https://cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       jwtAudience: [userPoolClient.userPoolClientId],
       domainName: this.props.domainName,
+      createDomain: this.props.createDomain,
       expirationDays: this.props.expirationDays,
+      push: this.props.push,
+      eumApplicationId: this.props.eumApplicationId,
     });
   };
 }
@@ -61,6 +64,17 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     getInstanceProps: ConstructFactoryGetInstanceProps,
   ): AmplifyNotifications => {
     const { constructContainer, outputStorageStrategy } = getInstanceProps;
+
+    // In the default attach mode the object types register into an EXISTING
+    // domain, so a domain name must be supplied — there is no sensible default.
+    if (!this.props.createDomain && !this.props.domainName) {
+      throw new AmplifyUserError('NotificationsMissingDomainNameError', {
+        message:
+          'defineNotifications requires `domainName` when attaching to an existing Customer Profiles domain (the default mode).',
+        resolution:
+          'Pass the name of the existing domain, e.g. `defineNotifications({ domainName: "amazon-connect-amplify" })` (the domain Amazon Connect created for your instance), or set `createDomain: true` to provision a new domain.',
+      });
+    }
 
     // Resolve THIS app's auth resource (Cognito user pool + client) so the JWT
     // authorizer trusts only tokens issued by this backend.
@@ -121,11 +135,16 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
 
 /**
  * Include an Amazon Connect Customer Profiles-backed notifications resource in
- * your Amplify backend. It provisions a Customer Profiles domain, the
- * AmplifyProfile / AmplifyDevice object types, a least-privilege identify-user
- * Lambda, and an HTTP API whose Cognito JWT authorizer is wired to this app's
- * user pool. The invoke endpoint / region are surfaced under `custom` in
- * `amplify_outputs.json`.
+ * your Amplify backend. It registers the AmplifyProfile / AmplifyDevice object
+ * types, a least-privilege identify-user Lambda, and an HTTP API whose Cognito
+ * JWT authorizer is wired to this app's user pool. The invoke endpoint / region
+ * are surfaced under `custom` in `amplify_outputs.json`.
+ *
+ * By default it runs in ATTACH mode: it registers the object types INTO an
+ * existing Customer Profiles domain (`domainName` — e.g. the domain Amazon
+ * Connect auto-creates for your instance) without creating a domain or touching
+ * its other integrations. Pass `createDomain: true` to provision a brand-new
+ * domain (with Identity Resolution auto-merge) for a greenfield deployment.
  * @example
  * import { defineBackend } from '@aws-amplify/backend';
  * import { defineNotifications } from '@aws-amplify/backend-notifications';
@@ -133,7 +152,8 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  *
  * defineBackend({
  *   auth,
- *   notifications: defineNotifications({ domainName: 'MyAppProfiles' }),
+ *   // Attach to the domain Amazon Connect created for your instance:
+ *   notifications: defineNotifications({ domainName: 'amazon-connect-amplify' }),
  * });
  */
 export const defineNotifications = (

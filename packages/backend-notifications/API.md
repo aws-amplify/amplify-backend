@@ -5,7 +5,9 @@
 ```ts
 
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
-import type { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
+import { CfnDomain } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -29,8 +31,11 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[];
 export class AmplifyNotifications extends Construct implements ResourceProvider<NotificationsResources>, StackProvider {
     constructor(scope: Construct, id: string, props: AmplifyNotificationsProps);
     readonly apiEndpoint: string;
+    readonly createdDomain: boolean;
     readonly domainName: string;
+    readonly eumApplicationId?: string;
     readonly identifyUserPath = "/identify-user";
+    readonly pushFunctionArn?: string;
     readonly resources: NotificationsResources;
     readonly stack: Stack;
 }
@@ -40,8 +45,12 @@ export type AmplifyNotificationsProps = {
     readonly jwtIssuer: string;
     readonly jwtAudience: string[];
     readonly domainName?: string;
+    readonly createDomain?: boolean;
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
+    readonly push?: boolean;
+    readonly eumApplicationId?: string;
+    readonly pushLambdaCodePath?: string;
 };
 
 // @public
@@ -65,14 +74,22 @@ export type KeyMap = CfnObjectType.KeyMapProperty;
 // @public
 export type NotificationsFactoryProps = {
     domainName?: string;
+    createDomain?: boolean;
     expirationDays?: number;
     outputKey?: string;
+    push?: boolean;
+    eumApplicationId?: string;
 };
 
 // @public
 export type NotificationsResources = {
     identifyUserFunction: lambda.IFunction;
     httpApi: apigwv2.HttpApi;
+    domain?: CfnDomain;
+    profileObjectType: CfnObjectType;
+    deviceObjectType: CfnObjectType;
+    pushFunction?: lambda.IFunction;
+    pushApplication?: CfnApp;
 };
 
 // @public
