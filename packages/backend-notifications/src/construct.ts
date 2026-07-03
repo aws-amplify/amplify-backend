@@ -435,6 +435,83 @@ export class AmplifyNotifications
         }),
       );
 
+      // ---- Runtime message-template resolution (Q in Connect) -------------
+      // The push Lambda resolves per-profile copy from a Q in Connect (Wisdom)
+      // PUSH message template at runtime: it discovers the knowledge base from
+      // the journey's campaign (DescribeCampaign -> connectInstanceId ->
+      // ListIntegrationAssociations) and renders the template whose name matches
+      // the Custom-action ActionId. Least-privilege, scoped to this account /
+      // region. IAM prefixes confirmed empirically: campaign actions use
+      // `connect-campaigns`, integration listing uses `connect`, and Q in
+      // Connect message-template actions use the `wisdom` prefix (Q in Connect
+      // is the rebrand of Amazon Connect Wisdom; the SDK client is
+      // `@aws-sdk/client-qconnect` but IAM/ARNs remain `wisdom`).
+      pushFn.addToRolePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['connect-campaigns:DescribeCampaign'],
+          resources: [
+            Arn.format(
+              {
+                service: 'connect-campaigns',
+                resource: 'campaign',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+          ],
+        }),
+      );
+      pushFn.addToRolePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['connect:ListIntegrationAssociations'],
+          resources: [
+            Arn.format(
+              {
+                service: 'connect',
+                resource: 'instance',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+          ],
+        }),
+      );
+      pushFn.addToRolePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'wisdom:SearchMessageTemplates',
+            'wisdom:ListMessageTemplates',
+            'wisdom:GetMessageTemplate',
+            'wisdom:RenderMessageTemplate',
+          ],
+          resources: [
+            Arn.format(
+              {
+                service: 'wisdom',
+                resource: 'knowledge-base',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+            Arn.format(
+              {
+                service: 'wisdom',
+                resource: 'message-template',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+          ],
+        }),
+      );
+
       // ---- Invoke resource policy for Amazon Connect ----------------------
       // A Connect Journey Custom-action (and Outbound Campaigns v2) invokes
       // this Lambda through the connect / connect-campaigns service principal.

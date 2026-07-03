@@ -3,18 +3,32 @@
 
 import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
+import { ConnectCampaignsV2Client } from '@aws-sdk/client-connectcampaignsv2';
+import { ConnectClient } from '@aws-sdk/client-connect';
+import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../constants.js';
 import { parsePushEvent } from './push_event.js';
 import { deliverToTargets } from './push_delivery.js';
+import {
+  PushTemplateContext,
+  resolvePushTemplateContext,
+} from './push_message_template.js';
 import { PushDeliveryResponse } from './push_types.js';
 
 /**
  * Module-level clients so warm invocations reuse the connection pool. Region is
  * resolved from the standard AWS_REGION Lambda environment variable.
+ *
+ * `campaigns` / `connect` / `qconnect` back runtime message-template resolution:
+ * discovering the Q in Connect knowledge base from the journey's campaign and
+ * rendering the PUSH template whose name matches the Custom-action ActionId.
  */
 const profiles = new CustomerProfilesClient({});
 const pinpoint = new PinpointClient({});
+const campaigns = new ConnectCampaignsV2Client({});
+const connect = new ConnectClient({});
+const qconnect = new QConnectClient({});
 
 /**
  * Push-delivery Lambda invoked by an Amazon Connect Journey Custom-action
@@ -83,8 +97,22 @@ export const handler = async (
     };
   }
 
+  // Resolve the Q in Connect PUSH message template ONCE per invocation (KB
+  // discovery + template lookup are per-journey, not per-profile). When the
+  // event carries campaign metadata, the template whose name == the
+  // Custom-action ActionId is used to render personalized per-platform copy;
+  // otherwise (or on any miss/failure) delivery falls back to the CustomerData /
+  // event / default copy.
+  let templateContext: PushTemplateContext | undefined;
+  if (parsed.campaign) {
+    templateContext = await resolvePushTemplateContext(
+      { campaigns, connect, qconnect },
+      parsed.campaign,
+    );
+  }
+
   const summary = await deliverToTargets(
-    { profiles, pinpoint, domainName, applicationId },
+    { profiles, pinpoint, domainName, applicationId, templateContext },
     parsed,
   );
 

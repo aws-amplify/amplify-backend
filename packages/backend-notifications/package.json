@@ -33,8 +33,11 @@
   "devDependencies": {
     "@aws-amplify/backend-output-storage": "^1.3.5",
     "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
+    "@aws-sdk/client-connect": "^3.1079.0",
+    "@aws-sdk/client-connectcampaignsv2": "^3.1079.0",
     "@aws-sdk/client-customer-profiles": "^3.936.0",
     "@aws-sdk/client-pinpoint": "^3.936.0",
+    "@aws-sdk/client-qconnect": "^3.1079.0",
     "@types/aws-lambda": "^8.10.137"
   },
   "peerDependencies": {

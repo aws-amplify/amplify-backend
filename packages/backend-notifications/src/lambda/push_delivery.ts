@@ -10,10 +10,15 @@ import { deleteDevice, listDevices } from './push_device_lookup.js';
 import { resolveProfileMessage } from './push_event.js';
 import { normalizeChannelType } from './push_payload.js';
 import {
+  PushTemplateContext,
+  renderProfileChannelMessages,
+} from './push_message_template.js';
+import {
   DeviceDeliveryResult,
   ParsedPushEvent,
   ProfileDeliveryResult,
   ProfileTarget,
+  PushChannelType,
   PushDeliveryResponse,
   PushMessage,
 } from './push_types.js';
@@ -26,6 +31,14 @@ export type DeliveryDeps = {
   domainName: string;
   /** AWS End User Messaging / Pinpoint application id to send from. */
   applicationId: string;
+  /**
+   * The resolved Q in Connect PUSH message template for this journey run, when
+   * one was found (see {@link resolvePushTemplateContext}). When present, each
+   * profile's copy is rendered from the template (per-platform) and takes
+   * precedence over the CustomerData / event / default copy; when absent,
+   * delivery uses the non-templated per-profile copy exactly as before.
+   */
+  templateContext?: PushTemplateContext;
 };
 
 /**
@@ -37,11 +50,18 @@ export type DeliveryDeps = {
  * recorded as a `SKIPPED` failure rather than being sent. A device whose
  * delivery returns `PERMANENT_FAILURE` has its AmplifyDevice object deleted;
  * the per-device result records whether that cleanup succeeded.
+ *
+ * `message` is the profile's fallback copy. When `perChannel` is supplied (from
+ * a rendered Q Connect template), the message for a device's channel is taken
+ * from it (falling back to `message` for any channel the template did not
+ * define), so iOS (`APNS`) and Android (`GCM`) devices can receive
+ * platform-specific copy.
  */
 export const deliverToProfile = async (
   deps: DeliveryDeps,
   target: ProfileTarget,
   message: PushMessage,
+  perChannel?: Partial<Record<PushChannelType, PushMessage>>,
 ): Promise<ProfileDeliveryResult> => {
   const { profiles, pinpoint, domainName, applicationId } = deps;
   const devices = await listDevices(profiles, domainName, target.profileId);
@@ -69,12 +89,13 @@ export const deliverToProfile = async (
       continue;
     }
 
+    const channelMessage = perChannel?.[channelType] ?? message;
     const outcome = await deliverToDevice(
       pinpoint,
       applicationId,
       device.deviceToken,
       channelType,
-      message,
+      channelMessage,
     );
     outcome.objectUniqueKey = device.objectUniqueKey;
     results.push(outcome);
@@ -135,6 +156,19 @@ export const deliverToTargets = async (
     // own CustomerData.messageTitle / messageBody (falling back to event-level
     // copy, then defaults) — not a single batch-level message.
     const resolved = resolveProfileMessage(target, parsed.message);
+
+    // When a Q Connect PUSH template was resolved for this journey run, render
+    // it per profile to get personalized, per-platform (APNS / GCM) copy that
+    // takes precedence over the fallback above. A render miss/failure leaves
+    // `perChannel` undefined so delivery uses the fallback copy.
+    let perChannel: Partial<Record<PushChannelType, PushMessage>> | undefined;
+    if (deps.templateContext) {
+      perChannel = await renderProfileChannelMessages(
+        deps.templateContext,
+        target,
+      );
+    }
+
     // NOTE (PII / not production-safe): title/body may echo journey-authored
     // copy; logged here to confirm the resolved copy + its source per profile.
     // Reduce/omit before production.
@@ -147,9 +181,13 @@ export const deliverToTargets = async (
         titleSource: resolved.titleSource,
         bodySource: resolved.bodySource,
         hasData: Boolean(resolved.message.data),
+        templateApplied: Boolean(perChannel),
+        templateChannels: perChannel ? Object.keys(perChannel) : [],
       }),
     );
-    results.push(await deliverToProfile(deps, target, resolved.message));
+    results.push(
+      await deliverToProfile(deps, target, resolved.message, perChannel),
+    );
   }
 
   return {

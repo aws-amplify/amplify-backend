@@ -12,11 +12,13 @@ import type {
   PinpointClient,
   SendMessagesCommandInput,
 } from '@aws-sdk/client-pinpoint';
+import type { QConnectClient } from '@aws-sdk/client-qconnect';
 import {
   DeliveryDeps,
   deliverToProfile,
   deliverToTargets,
 } from './push_delivery.js';
+import { PushTemplateContext } from './push_message_template.js';
 import { PushMessage } from './push_types.js';
 
 const MESSAGE: PushMessage = { title: 'T', body: 'B' };
@@ -361,5 +363,128 @@ void describe('deliverToTargets — per-profile message wiring', () => {
     assert.strictEqual(byToken['t1'].body, 'Body P1');
     assert.strictEqual(byToken['t2'].title, 'For P2');
     assert.strictEqual(byToken['t2'].body, 'Body P2');
+  });
+});
+
+/**
+ * Fake QConnect that renders a fixed per-platform template, substituting the
+ * profile's `firstName` custom attribute into the title/body so the test can
+ * prove the RENDERED, personalized copy (not the CustomerData / default copy)
+ * reaches the SendMessages payload — and that APNS vs GCM get platform copy.
+ */
+const templateQConnect = (): QConnectClient =>
+  ({
+    send: (command: {
+      constructor: { name: string };
+      input: { attributes?: { customAttributes?: Record<string, string> } };
+    }): Promise<unknown> => {
+      const name = command.constructor.name;
+      if (name === 'RenderMessageTemplateCommand') {
+        const first =
+          command.input.attributes?.customAttributes?.firstName ?? '';
+        return Promise.resolve({
+          content: {
+            push: {
+              apns: {
+                title: `iOS ${first}`,
+                body: { content: `Hello ${first} on iOS` },
+              },
+              fcm: {
+                title: `Android ${first}`,
+                body: { content: `Hello ${first} on Android` },
+              },
+            },
+          },
+          attributesNotInterpolated: [],
+        });
+      }
+      return Promise.reject(new Error(`unexpected ${name}`));
+    },
+  }) as unknown as QConnectClient;
+
+void describe('deliverToTargets — Q Connect template copy wins and is per-platform', () => {
+  void it('renders the template per profile and routes APNS/GCM copy into the payload', async () => {
+    const { client: profiles } = profilesFor({
+      p1: [
+        { key: 'k1', token: 'apns-tok', channel: 'APNS' },
+        { key: 'k2', token: 'gcm-tok', channel: 'FCM' },
+      ],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    const templateContext: PushTemplateContext = {
+      qconnect: templateQConnect(),
+      knowledgeBaseId: 'kb-1234',
+      messageTemplateId: 'tmpl-push-1',
+      templateName: 'Push Notification',
+    };
+
+    await deliverToTargets(
+      { ...deps(profiles, pinpoint), templateContext },
+      {
+        targets: [
+          {
+            profileId: 'p1',
+            // CustomerData copy would normally win, but the resolved template
+            // takes precedence; firstName feeds {{Attributes.firstName}}.
+            customerData: {
+              firstName: 'Manual',
+              messageTitle: 'ShouldNotWin',
+              messageBody: 'ShouldNotWin',
+            },
+          },
+        ],
+        message: { title: 'Notification', body: 'default' },
+        parsePath: 'batch',
+        campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
+      },
+    );
+
+    const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
+    assert.strictEqual(byToken['apns-tok'].title, 'iOS Manual');
+    assert.strictEqual(byToken['apns-tok'].body, 'Hello Manual on iOS');
+    assert.strictEqual(byToken['gcm-tok'].title, 'Android Manual');
+    assert.strictEqual(byToken['gcm-tok'].body, 'Hello Manual on Android');
+  });
+
+  void it('falls back to CustomerData/default copy when the template render yields no push content', async () => {
+    const { client: profiles } = profilesFor({
+      p1: [{ key: 'k1', token: 'apns-tok', channel: 'APNS' }],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    const emptyQConnect = {
+      send: (): Promise<unknown> => Promise.resolve({ content: { email: {} } }),
+    } as unknown as QConnectClient;
+
+    await deliverToTargets(
+      {
+        ...deps(profiles, pinpoint),
+        templateContext: {
+          qconnect: emptyQConnect,
+          knowledgeBaseId: 'kb-1234',
+          messageTemplateId: 'tmpl-push-1',
+          templateName: 'Push Notification',
+        },
+      },
+      {
+        targets: [
+          {
+            profileId: 'p1',
+            customerData: {
+              messageTitle: 'CustomerData Wins',
+              messageBody: 'CustomerData Body',
+            },
+          },
+        ],
+        message: { title: 'Notification', body: 'default' },
+        parsePath: 'batch',
+        campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
+      },
+    );
+
+    assert.strictEqual(sent.length, 1);
+    assert.strictEqual(sent[0].title, 'CustomerData Wins');
+    assert.strictEqual(sent[0].body, 'CustomerData Body');
   });
 });
