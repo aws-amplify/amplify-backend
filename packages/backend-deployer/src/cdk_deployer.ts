@@ -198,6 +198,103 @@ export class CDKDeployer implements BackendDeployer {
     }
   };
 
+  /**
+   * Invokes cdk synth API without deploying
+   */
+  synth = async (backendId: BackendIdentifier, synthProps?: DeployProps) => {
+    AssetStaging.clearAssetHashCache();
+
+    const cx = await this.getCdkCloudAssembly(
+      backendId,
+      synthProps?.secretLastUpdated?.getTime(),
+    );
+
+    const synthStartTime = Date.now();
+    let synthAssembly,
+      synthError: Error | undefined = undefined;
+    await this.ioHost.notify({
+      message: `Backend synthesis started`,
+      code: 'SYNTH_STARTED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
+      data: undefined,
+    });
+
+    try {
+      synthAssembly = await this.cdkToolkit.synth(cx, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+      });
+    } catch (error) {
+      synthError = error as Error;
+    }
+
+    const synthTimeSeconds =
+      Math.floor((Date.now() - synthStartTime) / 10) / 100;
+
+    await this.ioHost.notify({
+      message: `Backend synthesized in ${synthTimeSeconds} seconds`,
+      code: 'SYNTH_FINISHED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'result',
+      data: undefined,
+    });
+
+    if (synthProps?.validateAppSources) {
+      const typeCheckStartTime = Date.now();
+      await this.ioHost.notify({
+        message: `Backend type checks started`,
+        code: 'TS_STARTED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'info',
+        data: undefined,
+      });
+
+      try {
+        await this.compileProject(path.dirname(this.backendLocator.locate()));
+      } catch (typeError) {
+        if (
+          synthError &&
+          AmplifyError.isAmplifyError(typeError) &&
+          typeError.name === 'FunctionEnvVarFileNotGeneratedError'
+        ) {
+          throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
+        }
+        throw typeError;
+      } finally {
+        const typeCheckTimeSeconds =
+          Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
+        await this.ioHost.notify({
+          message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
+          code: 'TS_FINISHED',
+          action: 'amplify',
+          time: new Date(),
+          level: 'result',
+          data: undefined,
+        });
+      }
+    }
+
+    if (synthError) {
+      await synthAssembly?.dispose();
+      throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
+    }
+
+    await synthAssembly?.dispose();
+
+    return {
+      deploymentTimes: {
+        synthesisTime: synthTimeSeconds,
+        totalTime: synthTimeSeconds,
+      },
+      cloudAssemblyPath: this.absoluteCloudAssemblyLocation,
+    };
+  };
+
   compileProject = (projectDirectory: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       const worker = new Worker(new URL('ts_compiler.js', import.meta.url), {
