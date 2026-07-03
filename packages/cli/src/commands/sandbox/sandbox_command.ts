@@ -27,6 +27,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
   {
     dirToWatch: string | undefined;
     exclude: string[] | undefined;
+    debounceMs: number | undefined;
     outputsFormat: ClientConfigFormat | undefined;
     outputsOutDir: string | undefined;
     outputsVersion: string;
@@ -155,6 +156,7 @@ export class SandboxCommand implements CommandModule<
       exclude: watchExclusions,
       identifier: args.identifier,
       watchForChanges: !args.once,
+      debounceMs: args.debounceMs,
       functionStreamingOptions,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
@@ -182,6 +184,14 @@ export class SandboxCommand implements CommandModule<
           type: 'string',
           array: true,
           global: false,
+        })
+        .option('debounce-ms', {
+          describe:
+            'Delay in milliseconds to wait after a file change before triggering a deployment. Increase this value when using AI coding tools or format-on-save to batch rapid file changes into a single deployment.',
+          type: 'number',
+          array: false,
+          global: false,
+          default: 300,
         })
         .option('identifier', {
           describe:
