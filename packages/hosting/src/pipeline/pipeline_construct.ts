@@ -11,10 +11,10 @@
 // supplies the `_postStageHook` used here.
 import type * as cdk from 'aws-cdk-lib';
 import {
-  CodePipeline,
-  ShellStep,
   type CodeBuildStep,
+  CodePipeline,
   type IFileSetProducer,
+  ShellStep,
 } from 'aws-cdk-lib/pipelines';
 import { Pipeline } from '@aws-blocks/pipeline';
 import type { Construct } from 'constructs';
@@ -106,7 +106,7 @@ export class AmplifyPipelineConstruct<
       id,
       wrapProps(props, postSteps),
     )) as AmplifyPipelineConstruct<TConfig>;
-    // Reparent the prototype so callers get an AmplifyPipelineConstruct
+    // Re-assign the prototype so callers get an AmplifyPipelineConstruct
     // instance (Pipeline.create constructs a base Pipeline internally).
     Object.setPrototypeOf(instance, AmplifyPipelineConstruct.prototype);
     applyPostStageHook(instance.codePipelines, postSteps);
@@ -130,32 +130,46 @@ const wrapProps = <TConfig>(
     return props;
   }
 
+  // NOTE: `wrappedStageFactory` must NOT be an async function. aws-blocks'
+  // sync constructor rejects `stageFactory.constructor.name === 'AsyncFunction'`
+  // to steer callers to `Pipeline.create()`. It stays a plain function and
+  // defers the await-after-factory case to `runHookAfter` (a real async
+  // helper) so the sync path is preserved and no `.then()` is needed.
+  const runHook = (stage: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => {
+    const steps = _postStageHook({
+      // The synth step's first input is the pipeline source file set — reuse
+      // it as the hosting deploy step's input rather than creating a second
+      // source action.
+      source: resolveSource(stage),
+      stage,
+      stageConfig,
+    });
+    if (steps.length > 0) {
+      // aws-blocks names the DeployStage `${id}-${safeBranch}-Stage-${name}`,
+      // which becomes the StageDeployment.stageName. Key on that so post
+      // steps land on the correct stage even across multiple branches.
+      postSteps.set(stage.stageName, steps);
+    }
+  };
+
+  const runHookAfter = async (
+    pending: Promise<void>,
+    stage: cdk.Stage,
+    stageConfig: PipelineStageConfig<TConfig>,
+  ): Promise<void> => {
+    await pending;
+    runHook(stage, stageConfig);
+  };
+
   const wrappedStageFactory = (
     stage: cdk.Stage,
     stageConfig: PipelineStageConfig<TConfig>,
   ): void | Promise<void> => {
-    const runHook = () => {
-      const steps = _postStageHook({
-        // The synth step's first input is the pipeline source file set — reuse
-        // it as the hosting deploy step's input rather than creating a second
-        // source action.
-        source: resolveSource(stage),
-        stage,
-        stageConfig,
-      });
-      if (steps.length > 0) {
-        // aws-blocks names the DeployStage `${id}-${safeBranch}-Stage-${name}`,
-        // which becomes the StageDeployment.stageName. Key on that so post
-        // steps land on the correct stage even across multiple branches.
-        postSteps.set(stage.stageName, steps);
-      }
-    };
-
     const result = stageFactory(stage, stageConfig);
     if (result && typeof (result as Promise<void>).then === 'function') {
-      return (result as Promise<void>).then(runHook);
+      return runHookAfter(result as Promise<void>, stage, stageConfig);
     }
-    runHook();
+    runHook(stage, stageConfig);
     return result;
   };
 

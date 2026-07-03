@@ -14,10 +14,10 @@ import type {
   ShellStep,
 } from 'aws-cdk-lib/pipelines';
 import type {
-  BranchConfig,
   PipelineProps as BlocksPipelineProps,
-  PipelineStageConfig,
+  BranchConfig,
   PipelineSourceConfig,
+  PipelineStageConfig,
   PipelineSynthConfig,
 } from '@aws-blocks/pipeline';
 

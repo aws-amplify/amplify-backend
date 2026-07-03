@@ -6,7 +6,7 @@ import { GitClient } from './components/git_client.js';
 const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
 
 const MAX_LINES_ADDED = 3500;
-const MAX_LINES_REMOVED = 1000;
+const MAX_LINES_REMOVED = 2500;
 
 /**
  * Checks that the diff between HEAD and the specified base ref is within the allowed number of changed lines

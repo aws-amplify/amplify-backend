@@ -111,11 +111,11 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
     // self-mutation off, the only CodeBuild projects are Synth + our step.
     const template = Template.fromStack(stack);
     const projects = template.findResources('AWS::CodeBuild::Project');
-    const buildspecs = Object.values(projects).map((p: any) =>
+    const buildSpecs = Object.values(projects).map((p: any) =>
       JSON.stringify(p.Properties?.Source?.BuildSpec ?? ''),
     );
     assert.ok(
-      buildspecs.some((b) => b.includes('echo deploy-hosting')),
+      buildSpecs.some((b) => b.includes('echo deploy-hosting')),
       'expected the injected DeployHosting step to appear as a CodeBuild action',
     );
   });
