@@ -30,7 +30,7 @@ inputs:
   attempt_timeout_minutes:
     description: Timeout for each attempt in minutes
     required: false
-    default: '25'
+    default: '40'
   retry_attempts:
     description: Number of retry attempts for the main script
     required: false
