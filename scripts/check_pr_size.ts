@@ -3,7 +3,14 @@ import { GitClient } from './components/git_client.js';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
-const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
+// `.changeset/` is release metadata (like package-lock/API reports), not source
+// churn — consolidating/squashing changesets should not count against PR size.
+const EXCLUDE = [
+  'package-lock.json',
+  'API.md',
+  'expected-cdk-out',
+  '.changeset/',
+];
 
 const MAX_LINES_ADDED = 3500;
 const MAX_LINES_REMOVED = 2500;
