@@ -49,7 +49,10 @@ export { AmplifyHostingConstructProps }
 
 // @public
 export class AmplifyPipelineConstruct<TConfig = Record<string, unknown>> extends Pipeline<TConfig> {
-    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>);
+    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>, _internal?: {
+        marker: symbol;
+        pipelines: Map<string, CodePipeline>;
+    });
     static create<TConfig = Record<string, unknown>>(scope: Construct, id: string, props: PipelineProps<TConfig>): Promise<AmplifyPipelineConstruct<TConfig>>;
 }
 

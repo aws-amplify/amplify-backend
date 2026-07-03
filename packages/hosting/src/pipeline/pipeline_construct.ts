@@ -78,14 +78,29 @@ export class AmplifyPipelineConstruct<
    *
    * For an async stageFactory, use the static
    * `AmplifyPipelineConstruct.create()` method instead.
+   *
+   * `_internal` is an async-init escape hatch (marker + pipelines map) forwarded
+   * to the upstream `Pipeline`; when present the base defers pipeline building,
+   * so the `_postStageHook` steps are applied later by `create()` instead.
    */
-  constructor(scope: Construct, id: string, props: PipelineProps<TConfig>) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: PipelineProps<TConfig>,
+    _internal?: {
+      marker: symbol;
+      pipelines: Map<string, CodePipeline>;
+    },
+  ) {
     // Steps produced by _postStageHook, keyed by stage name. Populated inline
     // by the wrapped stageFactory as each stage synthesizes, then drained onto
     // the built StageDeployments after super() returns.
     const postSteps = new Map<string, Array<ShellStep | CodeBuildStep>>();
-    super(scope, id, wrapProps(props, postSteps));
-    applyPostStageHook(this.codePipelines, postSteps);
+    super(scope, id, wrapProps(props, postSteps), _internal);
+    // In async-init mode the base skips building; create() applies the hook.
+    if (!_internal) {
+      applyPostStageHook(this.codePipelines, postSteps);
+    }
   }
 
   /**
