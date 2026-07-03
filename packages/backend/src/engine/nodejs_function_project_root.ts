@@ -38,7 +38,6 @@ export type NodejsFunctionBundlingRoot = {
  * root once the package is installed under `node_modules`. Both values must be
  * passed to `NodejsFunction` so it does not fall back to cwd-based discovery for
  * the lock file.
- *
  * @param handlerDir - Absolute directory containing the bundled handler entry.
  * @param packageRootFallback - Absolute package root to use when no lock file is
  *   found above the handler (still contains the entry, so containment passes).
