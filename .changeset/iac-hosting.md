@@ -1,6 +1,7 @@
 ---
 '@aws-amplify/backend': minor
 '@aws-amplify/backend-cli': minor
+'create-amplify': minor
 '@aws-amplify/backend-data': minor
 '@aws-amplify/backend-deployer': minor
 '@aws-amplify/backend-storage': minor
