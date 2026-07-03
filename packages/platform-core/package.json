@@ -36,7 +36,7 @@
     "@aws-amplify/plugin-types": "^1.12.1",
     "@aws-sdk/client-sts": "^3.936.0",
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/core": "^2.0.0",
+    "@opentelemetry/core": "^2.8.0",
     "@opentelemetry/sdk-trace-base": "^2.0.0",
     "is-ci": "^4.1.0",
     "lodash.mergewith": "^4.6.2",
@@ -46,7 +46,7 @@
     "zod": "3.25.17"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.234.1",
+    "aws-cdk-lib": "^2.246.0",
     "constructs": "^10.0.0"
   }
 }
