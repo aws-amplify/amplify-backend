@@ -374,6 +374,14 @@ export type ExternalProviderOptions = {
    * List of allowed logout URLs for the identity providers.
    */
   logoutUrls: string[];
+  /**
+   * Enable Cognito Managed Login instead of the classic Hosted UI.
+   * Managed Login provides modern authentication flows including the
+   * OIDC prompt parameter and a no-code branding designer.
+   * Requires User Pool to be on the Essentials tier or higher (default for new pools).
+   * @default false
+   */
+  managedLogin?: boolean;
 };
 
 /**
