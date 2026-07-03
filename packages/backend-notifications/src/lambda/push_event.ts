@@ -1,12 +1,19 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../constants.js';
 import {
+  CUSTOMER_DATA_BODY_KEY,
+  CUSTOMER_DATA_TITLE_KEY,
+  DEFAULT_PUSH_BODY,
+  DEFAULT_PUSH_TITLE,
+} from '../constants.js';
+import {
+  MessageSource,
   ParsedPushEvent,
   ProfileTarget,
   PushEventParsePath,
   PushMessage,
+  ResolvedProfileMessage,
 } from './push_types.js';
 
 /**
@@ -139,6 +146,52 @@ const extractMessage = (root: Record<string, unknown>): PushMessage => {
   const data = coerceData(rawData);
 
   return data ? { title, body, data } : { title, body };
+};
+
+/**
+ * Resolve the push title/body to deliver to ONE profile, honoring the journey
+ * author's per-profile copy.
+ *
+ * Precedence (highest first):
+ *   1. the profile's own `CustomerData.messageTitle` / `CustomerData.messageBody`
+ *      (case-sensitive, exactly as delivered by the Connect Journey
+ *      Custom-action) — the copy the journey author configured for this profile;
+ *   2. the event-level fallback captured in `eventMessage` (sourced from a
+ *      `Message`/`message` object or top-level `title`/`body`);
+ *   3. the {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY} constants.
+ *
+ * `eventMessage` is the batch-level {@link ParsedPushEvent.message} (defaults
+ * already applied), so title/body are always non-empty here; any `data` bag is
+ * carried through unchanged. Each field's origin is reported via
+ * `titleSource` / `bodySource` for per-profile observability.
+ */
+export const resolveProfileMessage = (
+  target: ProfileTarget,
+  eventMessage: PushMessage,
+): ResolvedProfileMessage => {
+  const cd = target.customerData;
+  const cdTitle = cd ? asString(cd[CUSTOMER_DATA_TITLE_KEY]) : undefined;
+  const cdBody = cd ? asString(cd[CUSTOMER_DATA_BODY_KEY]) : undefined;
+
+  const title = cdTitle ?? eventMessage.title;
+  const body = cdBody ?? eventMessage.body;
+
+  const titleSource: MessageSource = cdTitle
+    ? 'customerData'
+    : eventMessage.title === DEFAULT_PUSH_TITLE
+      ? 'default'
+      : 'event';
+  const bodySource: MessageSource = cdBody
+    ? 'customerData'
+    : eventMessage.body === DEFAULT_PUSH_BODY
+      ? 'default'
+      : 'event';
+
+  const message: PushMessage = eventMessage.data
+    ? { title, body, data: eventMessage.data }
+    : { title, body };
+
+  return { message, titleSource, bodySource };
 };
 
 /** Coerce an arbitrary data bag into a `Record<string, string>`. */

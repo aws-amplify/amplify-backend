@@ -7,6 +7,7 @@ import { PinpointClient } from '@aws-sdk/client-pinpoint';
 import { deliverToDevice } from './eum_client.js';
 import { maskToken } from './mask.js';
 import { deleteDevice, listDevices } from './push_device_lookup.js';
+import { resolveProfileMessage } from './push_event.js';
 import { normalizeChannelType } from './push_payload.js';
 import {
   DeviceDeliveryResult,
@@ -117,7 +118,9 @@ export const deliverToProfile = async (
 };
 
 /**
- * Deliver the parsed event's message to every targeted profile, aggregating a
+ * Deliver to every targeted profile, resolving each profile's message copy
+ * independently (per-profile `CustomerData.messageTitle` / `messageBody` take
+ * precedence over event-level copy, then defaults) and aggregating a
  * per-profile summary. Profiles are processed sequentially to keep the
  * per-profile Customer Profiles write ordering simple; batches are typically
  * small per Journey invocation.
@@ -128,7 +131,25 @@ export const deliverToTargets = async (
 ): Promise<PushDeliveryResponse> => {
   const results: ProfileDeliveryResult[] = [];
   for (const target of parsed.targets) {
-    results.push(await deliverToProfile(deps, target, parsed.message));
+    // Resolve the copy PER PROFILE so each profile gets the journey author's
+    // own CustomerData.messageTitle / messageBody (falling back to event-level
+    // copy, then defaults) — not a single batch-level message.
+    const resolved = resolveProfileMessage(target, parsed.message);
+    // NOTE (PII / not production-safe): title/body may echo journey-authored
+    // copy; logged here to confirm the resolved copy + its source per profile.
+    // Reduce/omit before production.
+    console.log(
+      '[push] resolveMessage',
+      JSON.stringify({
+        profileId: target.profileId,
+        title: resolved.message.title,
+        body: resolved.message.body,
+        titleSource: resolved.titleSource,
+        bodySource: resolved.bodySource,
+        hasData: Boolean(resolved.message.data),
+      }),
+    );
+    results.push(await deliverToProfile(deps, target, resolved.message));
   }
 
   return {

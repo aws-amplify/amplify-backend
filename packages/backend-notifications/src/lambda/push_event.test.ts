@@ -3,8 +3,9 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { parsePushEvent } from './push_event.js';
+import { parsePushEvent, resolveProfileMessage } from './push_event.js';
 import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../constants.js';
+import { PushMessage } from './push_types.js';
 
 void describe('parsePushEvent — targets', () => {
   void it('parses the documented Journey batch shape (Items[].CustomerProfiles[])', () => {
@@ -139,5 +140,108 @@ void describe('parsePushEvent — message', () => {
     });
     assert.strictEqual(message.title, 'Lower');
     assert.strictEqual(message.body, 'Case');
+  });
+});
+
+void describe('resolveProfileMessage — per-profile CustomerData copy', () => {
+  const DEFAULTS: PushMessage = {
+    title: DEFAULT_PUSH_TITLE,
+    body: DEFAULT_PUSH_BODY,
+  };
+
+  void it("uses the profile's CustomerData.messageTitle / messageBody when present", () => {
+    const resolved = resolveProfileMessage(
+      {
+        profileId: 'eb155c66aae14a10b775437c40a4e44d',
+        customerData: {
+          FirstName: 'Manual',
+          LastName: 'Tester',
+          Attributes: { cognitoSub: 'sub-123' },
+          messageTitle: 'Manual Journey Push',
+          messageBody:
+            'Sent via Connect Journey custom action (manual-test re-seed)',
+        },
+      },
+      DEFAULTS,
+    );
+    assert.strictEqual(resolved.message.title, 'Manual Journey Push');
+    assert.strictEqual(
+      resolved.message.body,
+      'Sent via Connect Journey custom action (manual-test re-seed)',
+    );
+    assert.strictEqual(resolved.titleSource, 'customerData');
+    assert.strictEqual(resolved.bodySource, 'customerData');
+  });
+
+  void it('CustomerData copy overrides an event-level message', () => {
+    const resolved = resolveProfileMessage(
+      {
+        profileId: 'p1',
+        customerData: { messageTitle: 'CD Title', messageBody: 'CD Body' },
+      },
+      { title: 'Event Title', body: 'Event Body' },
+    );
+    assert.strictEqual(resolved.message.title, 'CD Title');
+    assert.strictEqual(resolved.message.body, 'CD Body');
+    assert.strictEqual(resolved.titleSource, 'customerData');
+    assert.strictEqual(resolved.bodySource, 'customerData');
+  });
+
+  void it('falls back to the event-level message when CustomerData has no copy', () => {
+    const resolved = resolveProfileMessage(
+      { profileId: 'p1', customerData: { FirstName: 'Manual' } },
+      { title: 'Event Title', body: 'Event Body' },
+    );
+    assert.strictEqual(resolved.message.title, 'Event Title');
+    assert.strictEqual(resolved.message.body, 'Event Body');
+    assert.strictEqual(resolved.titleSource, 'event');
+    assert.strictEqual(resolved.bodySource, 'event');
+  });
+
+  void it('falls back to defaults when neither CustomerData nor event provide copy', () => {
+    const resolved = resolveProfileMessage({ profileId: 'p1' }, DEFAULTS);
+    assert.strictEqual(resolved.message.title, DEFAULT_PUSH_TITLE);
+    assert.strictEqual(resolved.message.body, DEFAULT_PUSH_BODY);
+    assert.strictEqual(resolved.titleSource, 'default');
+    assert.strictEqual(resolved.bodySource, 'default');
+  });
+
+  void it('resolves title and body independently (one from CustomerData, one from event)', () => {
+    const resolved = resolveProfileMessage(
+      { profileId: 'p1', customerData: { messageTitle: 'CD Title' } },
+      { title: 'Event Title', body: 'Event Body' },
+    );
+    assert.strictEqual(resolved.message.title, 'CD Title');
+    assert.strictEqual(resolved.message.body, 'Event Body');
+    assert.strictEqual(resolved.titleSource, 'customerData');
+    assert.strictEqual(resolved.bodySource, 'event');
+  });
+
+  void it('ignores empty-string CustomerData copy (falls through to event/default)', () => {
+    const resolved = resolveProfileMessage(
+      { profileId: 'p1', customerData: { messageTitle: '', messageBody: '' } },
+      DEFAULTS,
+    );
+    assert.strictEqual(resolved.message.title, DEFAULT_PUSH_TITLE);
+    assert.strictEqual(resolved.message.body, DEFAULT_PUSH_BODY);
+    assert.strictEqual(resolved.titleSource, 'default');
+    assert.strictEqual(resolved.bodySource, 'default');
+  });
+
+  void it('matches the CustomerData keys case-sensitively (MessageTitle is NOT messageTitle)', () => {
+    const resolved = resolveProfileMessage(
+      { profileId: 'p1', customerData: { MessageTitle: 'Wrong Case' } },
+      DEFAULTS,
+    );
+    assert.strictEqual(resolved.message.title, DEFAULT_PUSH_TITLE);
+    assert.strictEqual(resolved.titleSource, 'default');
+  });
+
+  void it('carries the event-level data bag through unchanged', () => {
+    const resolved = resolveProfileMessage(
+      { profileId: 'p1', customerData: { messageTitle: 'CD Title' } },
+      { title: 'Event', body: 'Body', data: { k: 'v' } },
+    );
+    assert.deepStrictEqual(resolved.message.data, { k: 'v' });
   });
 });

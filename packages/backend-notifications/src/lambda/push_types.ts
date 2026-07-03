@@ -32,6 +32,33 @@ export type PushMessage = {
 };
 
 /**
+ * Where a resolved push title / body value came from, for per-profile
+ * observability:
+ *
+ * - `customerData` — the profile's own `CustomerData.messageTitle` /
+ *   `CustomerData.messageBody` (the journey author's configured copy; highest
+ *   precedence).
+ * - `event`        — an event-level fallback (`Message`/`message` object or
+ *   top-level `title`/`body`).
+ * - `default`      — neither present; the {@link DEFAULT_PUSH_TITLE} /
+ *   {@link DEFAULT_PUSH_BODY} constant was used.
+ */
+export type MessageSource = 'customerData' | 'event' | 'default';
+
+/**
+ * A push message resolved FOR A SPECIFIC PROFILE, plus which source each field
+ * came from. Produced by {@link resolveProfileMessage}.
+ */
+export type ResolvedProfileMessage = {
+  /** The message to deliver to this profile's devices. */
+  message: PushMessage;
+  /** Where {@link message.title} came from. */
+  titleSource: MessageSource;
+  /** Where {@link message.body} came from. */
+  bodySource: MessageSource;
+};
+
+/**
  * A single profile the Journey targeted, as surfaced to this Lambda. Mirrors a
  * Connect Journey Custom-action `CustomerProfiles` entry: the resolved
  * `ProfileId` plus a bag of profile fields / attributes (`CustomerData`).
@@ -40,9 +67,11 @@ export type ProfileTarget = {
   /** The Customer Profiles ProfileId to deliver to. */
   profileId: string;
   /**
-   * The profile's standard fields + Attributes as delivered by Connect. Used
-   * only as a fallback source for per-profile message overrides; device tokens
-   * are always resolved authoritatively via ListProfileObjects.
+   * The profile's standard fields + Attributes as delivered by Connect. The
+   * `messageTitle` / `messageBody` keys here are the journey author's
+   * per-profile push copy and take PRECEDENCE over event-level / default copy
+   * (see {@link resolveProfileMessage}); device tokens are always resolved
+   * authoritatively via ListProfileObjects, never from here.
    */
   customerData?: Record<string, unknown>;
 };

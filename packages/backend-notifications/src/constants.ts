@@ -39,6 +39,20 @@ export const DEFAULT_PUSH_TITLE = 'Notification';
 export const DEFAULT_PUSH_BODY = 'You have a new notification.';
 
 /**
+ * Per-profile `CustomerData` key (case-sensitive, as delivered by the Connect
+ * Journey Custom-action) carrying the push title the journey author configured.
+ * Takes precedence over any event-level / default title for that profile.
+ */
+export const CUSTOMER_DATA_TITLE_KEY = 'messageTitle';
+
+/**
+ * Per-profile `CustomerData` key (case-sensitive, as delivered by the Connect
+ * Journey Custom-action) carrying the push body the journey author configured.
+ * Takes precedence over any event-level / default body for that profile.
+ */
+export const CUSTOMER_DATA_BODY_KEY = 'messageBody';
+
+/**
  * Service principals allowed to invoke the push-delivery Lambda via a
  * resource-based policy. Amazon Connect Journey Custom-actions invoke Lambda
  * under `connect.amazonaws.com`; Outbound Campaigns v2 uses

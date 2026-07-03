@@ -230,3 +230,136 @@ void describe('deliverToTargets', () => {
     assert.strictEqual(summary.totalCleaned, 1);
   });
 });
+
+/**
+ * Fake Pinpoint that records the title/body it was asked to send per token, so
+ * tests can assert the copy that actually reached the `SendMessages` payload.
+ */
+const recordingPinpoint = (): {
+  client: PinpointClient;
+  sent: { token: string; title?: string; body?: string }[];
+} => {
+  const sent: { token: string; title?: string; body?: string }[] = [];
+  const client = {
+    send: (command: { input: unknown }): Promise<unknown> => {
+      const input = command.input as SendMessagesCommandInput;
+      const token = Object.keys(input.MessageRequest?.Addresses ?? {})[0];
+      const cfg = input.MessageRequest?.MessageConfiguration;
+      const platform = cfg?.APNSMessage ?? cfg?.GCMMessage;
+      sent.push({ token, title: platform?.Title, body: platform?.Body });
+      return Promise.resolve({
+        MessageResponse: {
+          Result: {
+            [token]: { DeliveryStatus: 'SUCCESSFUL', StatusCode: 200 },
+          },
+        },
+      });
+    },
+  } as unknown as PinpointClient;
+  return { client, sent };
+};
+
+void describe('deliverToTargets — per-profile message wiring', () => {
+  const BATCH_DEFAULT: PushMessage = { title: 'Notification', body: 'default' };
+
+  void it("(a) sends each profile's CustomerData.messageTitle / messageBody in the SendMessages payload", async () => {
+    const { client: profiles } = profilesFor({
+      eb155c66aae14a10b775437c40a4e44d: [
+        { key: 'k1', token: 'apns-tok', channel: 'APNS' },
+        { key: 'k2', token: 'gcm-tok', channel: 'FCM' },
+      ],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    await deliverToTargets(deps(profiles, pinpoint), {
+      targets: [
+        {
+          profileId: 'eb155c66aae14a10b775437c40a4e44d',
+          customerData: {
+            FirstName: 'Manual',
+            LastName: 'Tester',
+            Attributes: { cognitoSub: 'sub' },
+            messageTitle: 'Manual Journey Push',
+            messageBody:
+              'Sent via Connect Journey custom action (manual-test re-seed)',
+          },
+        },
+      ],
+      // Batch/event-level message is the DEFAULT — the CustomerData copy must win.
+      message: BATCH_DEFAULT,
+      parsePath: 'batch',
+    });
+
+    assert.strictEqual(sent.length, 2);
+    for (const s of sent) {
+      assert.strictEqual(s.title, 'Manual Journey Push');
+      assert.strictEqual(
+        s.body,
+        'Sent via Connect Journey custom action (manual-test re-seed)',
+      );
+    }
+  });
+
+  void it('(b) falls back to defaults in the payload when no CustomerData copy is present', async () => {
+    const { client: profiles } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    await deliverToTargets(deps(profiles, pinpoint), {
+      targets: [{ profileId: 'p1', customerData: { FirstName: 'NoCopy' } }],
+      message: BATCH_DEFAULT,
+      parsePath: 'batch',
+    });
+
+    assert.strictEqual(sent.length, 1);
+    assert.strictEqual(sent[0].title, 'Notification');
+    assert.strictEqual(sent[0].body, 'default');
+  });
+
+  void it('(c) uses the event-level (top-level) fallback when CustomerData has no copy', async () => {
+    const { client: profiles } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    await deliverToTargets(deps(profiles, pinpoint), {
+      targets: [{ profileId: 'p1' }],
+      message: { title: 'Event Title', body: 'Event Body' },
+      parsePath: 'flat',
+    });
+
+    assert.strictEqual(sent.length, 1);
+    assert.strictEqual(sent[0].title, 'Event Title');
+    assert.strictEqual(sent[0].body, 'Event Body');
+  });
+
+  void it('resolves copy independently per profile in a multi-profile batch', async () => {
+    const { client: profiles } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+      p2: [{ key: 'k2', token: 't2', channel: 'APNS' }],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    await deliverToTargets(deps(profiles, pinpoint), {
+      targets: [
+        {
+          profileId: 'p1',
+          customerData: { messageTitle: 'For P1', messageBody: 'Body P1' },
+        },
+        {
+          profileId: 'p2',
+          customerData: { messageTitle: 'For P2', messageBody: 'Body P2' },
+        },
+      ],
+      message: BATCH_DEFAULT,
+      parsePath: 'batch',
+    });
+
+    const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
+    assert.strictEqual(byToken['t1'].title, 'For P1');
+    assert.strictEqual(byToken['t1'].body, 'Body P1');
+    assert.strictEqual(byToken['t2'].title, 'For P2');
+    assert.strictEqual(byToken['t2'].body, 'Body P2');
+  });
+});
