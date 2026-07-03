@@ -9,7 +9,7 @@ import type {
   SendMessagesCommandInput,
 } from '@aws-sdk/client-pinpoint';
 import { deliverToDevice, isInvalidTokenFailure } from './eum_client.js';
-import { PushMessage } from './push_types.js';
+import { PushMessage } from './types.js';
 
 const MESSAGE: PushMessage = { title: 'T', body: 'B' };
 

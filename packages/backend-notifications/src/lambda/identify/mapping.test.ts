@@ -8,7 +8,7 @@ import {
   targetingFlagsForChannel,
 } from './mapping.js';
 import { IdentifyUserRequest } from './types.js';
-import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../constants.js';
+import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
 
 const SUB = 'verified-cognito-sub-123';
 

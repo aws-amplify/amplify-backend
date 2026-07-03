@@ -84,14 +84,17 @@ export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
   'connect-campaigns.amazonaws.com',
 ];
 
-/** Default Customer Profiles domain name created when none is supplied. */
-export const DEFAULT_DOMAIN_NAME = 'AmplifyIdentifyUserPoc';
-
 /** Default profile / object-type expiration in days. */
 export const DEFAULT_EXPIRATION_DAYS = 366;
 
 /**
- * Default key under `custom` in `amplify_outputs.json` where the notifications
- * endpoint / region are surfaced to the client.
+ * Fixed key under `custom` in `amplify_outputs.json` where the notifications
+ * endpoint / region are surfaced to the client (`custom.CustomerProfiles`).
+ *
+ * This is intentionally NOT configurable: every first-party Amplify Gen2
+ * resource (`defineAuth` / `defineData` / `defineStorage` / `defineFunction`)
+ * writes its backend output to a fixed, well-known key rather than a
+ * caller-chosen one, so the client config contributors know where to read it.
+ * This resource follows the same convention with a single stable key.
  */
-export const DEFAULT_OUTPUT_KEY = 'CustomerProfiles';
+export const OUTPUT_KEY = 'CustomerProfiles';

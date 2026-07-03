@@ -2,13 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint';
-import { maskToken } from './mask.js';
-import { buildMessageConfiguration } from './push_payload.js';
-import {
-  DeviceDeliveryResult,
-  PushChannelType,
-  PushMessage,
-} from './push_types.js';
+import { maskToken } from '../shared/mask.js';
+import { buildMessageConfiguration } from './payload.js';
+import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
 
 /**
  * Case-insensitive substrings of a Pinpoint per-address `StatusMessage` that

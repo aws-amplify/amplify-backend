@@ -14,7 +14,7 @@ import { customOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyNotifications } from './construct.js';
 import { NotificationsFactoryProps } from './types.js';
-import { DEFAULT_OUTPUT_KEY } from './constants.js';
+import { OUTPUT_KEY } from './constants.js';
 
 /**
  * Generates the {@link AmplifyNotifications} construct in the resolved stack,
@@ -42,10 +42,7 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       jwtIssuer: `https://cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
       jwtAudience: [userPoolClient.userPoolClientId],
       domainName: this.props.domainName,
-      createDomain: this.props.createDomain,
       expirationDays: this.props.expirationDays,
-      push: this.props.push,
-      eumApplicationId: this.props.eumApplicationId,
     });
   };
 }
@@ -65,14 +62,14 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
   ): AmplifyNotifications => {
     const { constructContainer, outputStorageStrategy } = getInstanceProps;
 
-    // In the default attach mode the object types register into an EXISTING
-    // domain, so a domain name must be supplied — there is no sensible default.
-    if (!this.props.createDomain && !this.props.domainName) {
+    // This resource always ATTACHES to an existing Customer Profiles domain (a
+    // Connect instance owns its domain 1:1), so a domain name is required.
+    if (!this.props.domainName) {
       throw new AmplifyUserError('NotificationsMissingDomainNameError', {
         message:
-          'defineNotifications requires `domainName` when attaching to an existing Customer Profiles domain (the default mode).',
+          'defineNotifications requires `domainName` — the existing Customer Profiles domain to attach to.',
         resolution:
-          'Pass the name of the existing domain, e.g. `defineNotifications({ domainName: "amazon-connect-amplify" })` (the domain Amazon Connect created for your instance), or set `createDomain: true` to provision a new domain.',
+          'Pass the name of the existing domain, e.g. `defineNotifications({ domainName: "amazon-connect-amplify" })` (the domain Amazon Connect created for your instance).',
       });
     }
 
@@ -114,7 +111,6 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>,
     notifications: AmplifyNotifications,
   ): void => {
-    const outputKey = this.props.outputKey ?? DEFAULT_OUTPUT_KEY;
     outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
       version: '1',
       payload: {
@@ -122,7 +118,7 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
         // `amplify_outputs.json`, matching `backend.addOutput({ custom })`.
         customOutputs: JSON.stringify({
           custom: {
-            [outputKey]: {
+            [OUTPUT_KEY]: {
               endpoint: notifications.apiEndpoint,
               region: notifications.stack.region,
             },
@@ -136,15 +132,15 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
 /**
  * Include an Amazon Connect Customer Profiles-backed notifications resource in
  * your Amplify backend. It registers the AmplifyProfile / AmplifyDevice object
- * types, a least-privilege identify-user Lambda, and an HTTP API whose Cognito
- * JWT authorizer is wired to this app's user pool. The invoke endpoint / region
- * are surfaced under `custom` in `amplify_outputs.json`.
+ * types, a least-privilege identify-user Lambda + a JWT-authorized HTTP API, and
+ * the push-delivery Lambda (invoked by a Connect Journey Custom-action) with a
+ * minimal AWS End User Messaging application. The invoke endpoint / region are
+ * surfaced under `custom.CustomerProfiles` in `amplify_outputs.json`.
  *
- * By default it runs in ATTACH mode: it registers the object types INTO an
- * existing Customer Profiles domain (`domainName` — e.g. the domain Amazon
- * Connect auto-creates for your instance) without creating a domain or touching
- * its other integrations. Pass `createDomain: true` to provision a brand-new
- * domain (with Identity Resolution auto-merge) for a greenfield deployment.
+ * It ATTACHES to the EXISTING Customer Profiles domain named by `domainName` —
+ * e.g. the domain Amazon Connect auto-creates for your instance — registering
+ * the object types into it (additive), without creating a domain or touching
+ * its other integrations (CTR, Outbound Campaigns).
  * @example
  * import { defineBackend } from '@aws-amplify/backend';
  * import { defineNotifications } from '@aws-amplify/backend-notifications';
@@ -157,6 +153,6 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  * });
  */
 export const defineNotifications = (
-  props: NotificationsFactoryProps = {},
+  props: NotificationsFactoryProps,
 ): ConstructFactory<AmplifyNotifications> =>
   new AmplifyNotificationsFactory(props);

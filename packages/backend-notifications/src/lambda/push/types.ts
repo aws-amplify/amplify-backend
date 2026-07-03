@@ -76,8 +76,12 @@ export type ProfileTarget = {
   customerData?: Record<string, unknown>;
 };
 
-/** Which envelope shape {@link parsePushEvent} matched, for observability. */
-export type PushEventParsePath = 'batch' | 'flat' | 'single' | 'none';
+/**
+ * Which envelope shape {@link parsePushEvent} matched, for observability.
+ * `canonical` — the real Connect Outbound Campaigns v2 journey envelope
+ * (`Items.CustomerProfiles[]`); `none` — no targets were resolvable.
+ */
+export type PushEventParsePath = 'canonical' | 'none';
 
 /**
  * The Outbound Campaigns v2 journey context carried on the real invocation
@@ -104,9 +108,8 @@ export type ParsedPushEvent = {
   /** The message content resolved from the event (with defaults applied). */
   message: PushMessage;
   /**
-   * The envelope shape that produced the targets (`batch` / `flat` / `single`),
-   * or `none` when no targets were resolvable. Logged by the handler so the
-   * real Connect Journey Custom-action payload shape can be confirmed.
+   * The envelope shape that produced the targets (`canonical`), or `none` when
+   * no targets were resolvable. Logged by the handler for observability.
    */
   parsePath: PushEventParsePath;
   /**

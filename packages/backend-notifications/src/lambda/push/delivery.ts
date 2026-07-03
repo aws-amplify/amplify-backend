@@ -5,14 +5,14 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 
 import { deliverToDevice } from './eum_client.js';
-import { maskToken } from './mask.js';
-import { deleteDevice, listDevices } from './push_device_lookup.js';
-import { resolveProfileMessage } from './push_event.js';
-import { normalizeChannelType } from './push_payload.js';
+import { maskToken } from '../shared/mask.js';
+import { deleteDevice, listDevices } from './device_lookup.js';
+import { resolveProfileMessage } from './event.js';
+import { normalizeChannelType } from './payload.js';
 import {
   PushTemplateContext,
   renderProfileChannelMessages,
-} from './push_message_template.js';
+} from './message_template.js';
 import {
   DeviceDeliveryResult,
   ParsedPushEvent,
@@ -21,7 +21,7 @@ import {
   PushChannelType,
   PushDeliveryResponse,
   PushMessage,
-} from './push_types.js';
+} from './types.js';
 
 /** Injected clients + resolved config for the delivery routines. */
 export type DeliveryDeps = {

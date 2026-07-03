@@ -7,14 +7,14 @@ import { ConnectCampaignsV2Client } from '@aws-sdk/client-connectcampaignsv2';
 import { ConnectClient } from '@aws-sdk/client-connect';
 import { QConnectClient } from '@aws-sdk/client-qconnect';
 
-import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../constants.js';
-import { parsePushEvent } from './push_event.js';
-import { deliverToTargets } from './push_delivery.js';
+import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
+import { parsePushEvent } from './event.js';
+import { deliverToTargets } from './delivery.js';
 import {
   PushTemplateContext,
   resolvePushTemplateContext,
-} from './push_message_template.js';
-import { PushDeliveryResponse } from './push_types.js';
+} from './message_template.js';
+import { PushDeliveryResponse } from './types.js';
 
 /**
  * Module-level clients so warm invocations reuse the connection pool. Region is

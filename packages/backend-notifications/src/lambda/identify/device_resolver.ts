@@ -3,8 +3,8 @@ import {
   ListProfileObjectsCommand,
 } from '@aws-sdk/client-customer-profiles';
 
-import { OBJECT_TYPE_DEVICE } from '../constants.js';
-import { withTransientRetry } from './retry.js';
+import { OBJECT_TYPE_DEVICE } from '../../constants.js';
+import { withTransientRetry } from '../shared/retry.js';
 
 /**
  * Read back the IMMUTABLE `createdAt` of the existing AmplifyDevice object for

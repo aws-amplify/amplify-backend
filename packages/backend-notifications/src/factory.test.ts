@@ -111,7 +111,7 @@ void describe('defineNotifications', () => {
     assert.ok(first instanceof AmplifyNotifications);
   });
 
-  void it('attaches to an existing domain by default: no CfnDomain, object types on the existing domain, identify Lambda + JWT-authorized HTTP API', () => {
+  void it('attaches to an existing domain: no CfnDomain, object types on the existing domain, identify + push Lambdas, JWT-authorized HTTP API', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
     }).getInstance(getInstanceProps);
@@ -119,11 +119,12 @@ void describe('defineNotifications', () => {
 
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
     template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
-    template.resourceCountIs('AWS::Lambda::Function', 1);
+    // identify Lambda + push Lambda (push is always provisioned).
+    template.resourceCountIs('AWS::Lambda::Function', 2);
+    template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Route', 1);
 
-    assert.strictEqual(notifications.createdDomain, false);
     assert.strictEqual(notifications.domainName, EXISTING_DOMAIN);
 
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
@@ -140,31 +141,10 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('provisions a new domain when createDomain is set', () => {
-    const notifications = defineNotifications({
-      createDomain: true,
-      domainName: 'GreenfieldDomain',
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(notifications.stack);
-
-    template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
-    assert.strictEqual(notifications.createdDomain, true);
-  });
-
-  void it('defaults the domain name to DEFAULT_DOMAIN_NAME when createDomain is set without a name', () => {
-    const notifications = defineNotifications({
-      createDomain: true,
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(notifications.stack);
-
-    template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    assert.strictEqual(notifications.domainName, 'AmplifyIdentifyUserPoc');
-  });
-
-  void it('throws a helpful error when domainName is missing in attach mode', () => {
+  void it('throws a helpful error when domainName is missing', () => {
     assert.throws(
-      () => defineNotifications().getInstance(getInstanceProps),
+      () =>
+        defineNotifications({ domainName: '' }).getInstance(getInstanceProps),
       /requires `domainName`/,
     );
   });
@@ -218,32 +198,22 @@ void describe('defineNotifications', () => {
     assert.strictEqual(notifications.domainName, 'MyCustomDomain');
   });
 
-  void it('does not provision push resources by default', () => {
+  void it('always provisions the push Lambda + Pinpoint app', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(notifications.stack);
-    template.resourceCountIs('AWS::Pinpoint::App', 0);
-    template.resourceCountIs('AWS::Lambda::Function', 1);
-    assert.strictEqual(notifications.pushFunctionArn, undefined);
-  });
-
-  void it('provisions the push Lambda + Pinpoint app when push is enabled', () => {
-    const notifications = defineNotifications({
-      domainName: EXISTING_DOMAIN,
-      push: true,
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::Lambda::Function', 2);
     assert.strictEqual(typeof notifications.pushFunctionArn, 'string');
+    assert.strictEqual(typeof notifications.eumApplicationId, 'string');
     assert.ok(notifications.resources.pushFunction);
+    assert.ok(notifications.resources.pushApplication);
   });
 
-  void it('adds a lambda:InvokeFunction resource policy for the Connect service principals when push is enabled', () => {
+  void it('adds a lambda:InvokeFunction resource policy for the Connect service principals', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
-      push: true,
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
     template.hasResourceProperties('AWS::Lambda::Permission', {
@@ -254,17 +224,6 @@ void describe('defineNotifications', () => {
       Action: 'lambda:InvokeFunction',
       Principal: 'connect-campaigns.amazonaws.com',
     });
-  });
-
-  void it('reuses a supplied eumApplicationId (no Pinpoint app created)', () => {
-    const notifications = defineNotifications({
-      domainName: EXISTING_DOMAIN,
-      push: true,
-      eumApplicationId: 'byo-app-id',
-    }).getInstance(getInstanceProps);
-    const template = Template.fromStack(notifications.stack);
-    template.resourceCountIs('AWS::Pinpoint::App', 0);
-    assert.strictEqual(notifications.eumApplicationId, 'byo-app-id');
   });
 
   void it('surfaces the endpoint + region under a custom backend output', () => {
@@ -288,21 +247,6 @@ void describe('defineNotifications', () => {
       'string',
     );
     assert.strictEqual(typeof parsed.custom.CustomerProfiles.region, 'string');
-  });
-
-  void it('honors a custom output key', () => {
-    defineNotifications({
-      domainName: EXISTING_DOMAIN,
-      outputKey: 'Notifications',
-    }).getInstance(getInstanceProps);
-    const [, entry] = addBackendOutputEntryMock.mock.calls[0].arguments as [
-      string,
-      BackendOutputEntry,
-    ];
-    const parsed = JSON.parse(
-      (entry.payload as { customOutputs: string }).customOutputs,
-    );
-    assert.ok(parsed.custom.Notifications);
   });
 
   void it('writes the custom output only once across repeated getInstance calls', () => {

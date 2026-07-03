@@ -17,9 +17,9 @@ import {
   DeliveryDeps,
   deliverToProfile,
   deliverToTargets,
-} from './push_delivery.js';
-import { PushTemplateContext } from './push_message_template.js';
-import { PushMessage } from './push_types.js';
+} from './delivery.js';
+import { PushTemplateContext } from './message_template.js';
+import { PushMessage } from './types.js';
 
 const MESSAGE: PushMessage = { title: 'T', body: 'B' };
 
@@ -224,7 +224,7 @@ void describe('deliverToTargets', () => {
     const summary = await deliverToTargets(deps(client, pinpoint), {
       targets: [{ profileId: 'p1' }, { profileId: 'p2' }],
       message: MESSAGE,
-      parsePath: 'batch',
+      parsePath: 'canonical',
     });
     assert.strictEqual(summary.profilesProcessed, 2);
     assert.strictEqual(summary.totalDelivered, 2);
@@ -289,7 +289,7 @@ void describe('deliverToTargets — per-profile message wiring', () => {
       ],
       // Batch/event-level message is the DEFAULT — the CustomerData copy must win.
       message: BATCH_DEFAULT,
-      parsePath: 'batch',
+      parsePath: 'canonical',
     });
 
     assert.strictEqual(sent.length, 2);
@@ -311,7 +311,7 @@ void describe('deliverToTargets — per-profile message wiring', () => {
     await deliverToTargets(deps(profiles, pinpoint), {
       targets: [{ profileId: 'p1', customerData: { FirstName: 'NoCopy' } }],
       message: BATCH_DEFAULT,
-      parsePath: 'batch',
+      parsePath: 'canonical',
     });
 
     assert.strictEqual(sent.length, 1);
@@ -328,7 +328,7 @@ void describe('deliverToTargets — per-profile message wiring', () => {
     await deliverToTargets(deps(profiles, pinpoint), {
       targets: [{ profileId: 'p1' }],
       message: { title: 'Event Title', body: 'Event Body' },
-      parsePath: 'flat',
+      parsePath: 'canonical',
     });
 
     assert.strictEqual(sent.length, 1);
@@ -355,7 +355,7 @@ void describe('deliverToTargets — per-profile message wiring', () => {
         },
       ],
       message: BATCH_DEFAULT,
-      parsePath: 'batch',
+      parsePath: 'canonical',
     });
 
     const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
@@ -435,7 +435,7 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
           },
         ],
         message: { title: 'Notification', body: 'default' },
-        parsePath: 'batch',
+        parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );
@@ -478,7 +478,7 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
           },
         ],
         message: { title: 'Notification', body: 'default' },
-        parsePath: 'batch',
+        parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );

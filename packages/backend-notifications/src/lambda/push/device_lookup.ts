@@ -7,9 +7,9 @@ import {
   ListProfileObjectsCommand,
 } from '@aws-sdk/client-customer-profiles';
 
-import { OBJECT_TYPE_DEVICE } from '../constants.js';
-import { maskToken } from './mask.js';
-import { withTransientRetry } from './retry.js';
+import { OBJECT_TYPE_DEVICE } from '../../constants.js';
+import { maskToken } from '../shared/mask.js';
+import { withTransientRetry } from '../shared/retry.js';
 
 /** A registered device resolved from the profile's AmplifyDevice objects. */
 export type ResolvedDevice = {

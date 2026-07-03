@@ -20,8 +20,8 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "post:compile": "npm run bundle:identify-user-handler && npm run bundle:push-handler",
-    "bundle:identify-user-handler": "esbuild src/lambda/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/handler-asset/index.js --external:@aws-sdk/*",
-    "bundle:push-handler": "esbuild src/lambda/push_handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/push-handler-asset/index.js",
+    "bundle:identify-user-handler": "esbuild src/lambda/identify/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/handler-asset/index.js --external:@aws-sdk/*",
+    "bundle:push-handler": "esbuild src/lambda/push/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/push-handler-asset/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",

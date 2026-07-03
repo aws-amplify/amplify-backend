@@ -4,8 +4,8 @@ import {
   SearchProfilesCommand,
 } from '@aws-sdk/client-customer-profiles';
 
-import { COGNITO_USER_KEY, OBJECT_TYPE_PROFILE } from '../constants.js';
-import { withTransientRetry } from './retry.js';
+import { COGNITO_USER_KEY, OBJECT_TYPE_PROFILE } from '../../constants.js';
+import { withTransientRetry } from '../shared/retry.js';
 
 export type ResolvedProfile = {
   profileId: string;

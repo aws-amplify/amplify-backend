@@ -16,8 +16,8 @@ import {
 } from './mapping.js';
 import { resolveOrCreateProfile } from './profile_resolver.js';
 import { findExistingDeviceCreatedAt } from './device_resolver.js';
-import { withTransientRetry } from './retry.js';
-import { ENV_DOMAIN_NAME, OBJECT_TYPE_DEVICE } from '../constants.js';
+import { withTransientRetry } from '../shared/retry.js';
+import { ENV_DOMAIN_NAME, OBJECT_TYPE_DEVICE } from '../../constants.js';
 import { ErrorResponse, SuccessResponse } from './types.js';
 
 /**

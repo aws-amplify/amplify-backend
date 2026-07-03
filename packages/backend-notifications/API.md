@@ -6,7 +6,6 @@
 
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
-import { CfnDomain } from 'aws-cdk-lib/aws-customerprofiles';
 import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
@@ -31,11 +30,10 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[];
 export class AmplifyNotifications extends Construct implements ResourceProvider<NotificationsResources>, StackProvider {
     constructor(scope: Construct, id: string, props: AmplifyNotificationsProps);
     readonly apiEndpoint: string;
-    readonly createdDomain: boolean;
     readonly domainName: string;
-    readonly eumApplicationId?: string;
+    readonly eumApplicationId: string;
     readonly identifyUserPath = "/identify-user";
-    readonly pushFunctionArn?: string;
+    readonly pushFunctionArn: string;
     readonly resources: NotificationsResources;
     readonly stack: Stack;
 }
@@ -44,12 +42,9 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
 export type AmplifyNotificationsProps = {
     readonly jwtIssuer: string;
     readonly jwtAudience: string[];
-    readonly domainName?: string;
-    readonly createDomain?: boolean;
+    readonly domainName: string;
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
-    readonly push?: boolean;
-    readonly eumApplicationId?: string;
     readonly pushLambdaCodePath?: string;
 };
 
@@ -57,13 +52,7 @@ export type AmplifyNotificationsProps = {
 export const COGNITO_USER_KEY = "cognitoUserKey";
 
 // @public
-export const DEFAULT_DOMAIN_NAME = "AmplifyIdentifyUserPoc";
-
-// @public
-export const DEFAULT_OUTPUT_KEY = "CustomerProfiles";
-
-// @public
-export const defineNotifications: (props?: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
+export const defineNotifications: (props: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
 
 // @public (undocumented)
 export type FieldMap = CfnObjectType.FieldMapProperty;
@@ -73,23 +62,18 @@ export type KeyMap = CfnObjectType.KeyMapProperty;
 
 // @public
 export type NotificationsFactoryProps = {
-    domainName?: string;
-    createDomain?: boolean;
+    domainName: string;
     expirationDays?: number;
-    outputKey?: string;
-    push?: boolean;
-    eumApplicationId?: string;
 };
 
 // @public
 export type NotificationsResources = {
     identifyUserFunction: lambda.IFunction;
     httpApi: apigwv2.HttpApi;
-    domain?: CfnDomain;
     profileObjectType: CfnObjectType;
     deviceObjectType: CfnObjectType;
-    pushFunction?: lambda.IFunction;
-    pushApplication?: CfnApp;
+    pushFunction: lambda.IFunction;
+    pushApplication: CfnApp;
 };
 
 // @public
@@ -103,6 +87,9 @@ export const OBJECT_TYPE_NAMES: {
 
 // @public
 export const OBJECT_TYPE_PROFILE = "AmplifyProfile";
+
+// @public
+export const OUTPUT_KEY = "CustomerProfiles";
 
 // (No @packageDocumentation comment for this package)
 

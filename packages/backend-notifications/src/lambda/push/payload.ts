@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DirectMessageConfiguration } from '@aws-sdk/client-pinpoint';
-import { PushChannelType, PushMessage } from './push_types.js';
+import { PushChannelType, PushMessage } from './types.js';
 
 /**
  * Normalize a stored / event channel identifier to a Pinpoint push channel.

@@ -12,30 +12,24 @@ const EXISTING_DOMAIN = 'amazon-connect-amplify';
 const synth = (
   props: Partial<{
     domainName: string;
-    createDomain: boolean;
     expirationDays: number;
-    push: boolean;
-    eumApplicationId: string;
   }> = {},
 ): { construct: AmplifyNotifications; template: Template } => {
   const stack = new Stack(new App());
   const construct = new AmplifyNotifications(stack, 'notifications', {
     jwtIssuer: ISSUER,
     jwtAudience: AUDIENCE,
-    // Default the tests to attach mode against an existing domain.
     domainName: EXISTING_DOMAIN,
     ...props,
   });
   return { construct, template: Template.fromStack(stack) };
 };
 
-void describe('AmplifyNotifications construct — attach mode (default)', () => {
+void describe('AmplifyNotifications construct — domain attach', () => {
   void it('does NOT create a Customer Profiles domain (attaches to the existing one)', () => {
     const { construct, template } = synth();
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
-    assert.strictEqual(construct.createdDomain, false);
     assert.strictEqual(construct.domainName, EXISTING_DOMAIN);
-    assert.strictEqual(construct.resources.domain, undefined);
   });
 
   void it('registers the AmplifyProfile + AmplifyDevice object types INTO the existing domain', () => {
@@ -53,14 +47,23 @@ void describe('AmplifyNotifications construct — attach mode (default)', () => 
     });
   });
 
-  void it('requires a domainName in attach mode', () => {
+  void it('honors a custom expiration on the object types', () => {
+    const { template } = synth({ expirationDays: 90 });
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyProfile',
+      ExpirationDays: 90,
+    });
+  });
+
+  void it('requires a domainName', () => {
     assert.throws(
       () =>
         new AmplifyNotifications(new Stack(new App()), 'notifications', {
           jwtIssuer: ISSUER,
           jwtAudience: AUDIENCE,
+          domainName: '',
         }),
-      /`domainName` is required in the default attach mode/,
+      /`domainName` is required/,
     );
   });
 
@@ -100,65 +103,6 @@ void describe('AmplifyNotifications construct — attach mode (default)', () => 
   });
 });
 
-void describe('AmplifyNotifications construct — create mode (opt-in)', () => {
-  void it('provisions a Customer Profiles domain with identity-resolution auto-merge', () => {
-    const { construct, template } = synth({
-      createDomain: true,
-      domainName: 'GreenfieldDomain',
-    });
-    assert.strictEqual(construct.createdDomain, true);
-    assert.ok(construct.resources.domain);
-    template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    template.hasResourceProperties('AWS::CustomerProfiles::Domain', {
-      DomainName: 'GreenfieldDomain',
-      Matching: {
-        Enabled: true,
-        AutoMerging: {
-          Enabled: true,
-          ConflictResolution: { ConflictResolvingModel: 'RECENCY' },
-          Consolidation: {
-            MatchingAttributesList: [['Attributes.cognitoUserKey']],
-          },
-        },
-      },
-    });
-  });
-
-  void it('still declares the two object types on the created domain', () => {
-    const { template } = synth({
-      createDomain: true,
-      domainName: 'GreenfieldDomain',
-    });
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyProfile',
-      DomainName: 'GreenfieldDomain',
-    });
-  });
-
-  void it('defaults the domain name when createDomain is set without a name', () => {
-    const stack = new Stack(new App());
-    const construct = new AmplifyNotifications(stack, 'notifications', {
-      jwtIssuer: ISSUER,
-      jwtAudience: AUDIENCE,
-      createDomain: true,
-    });
-    assert.strictEqual(construct.domainName, 'AmplifyIdentifyUserPoc');
-  });
-
-  void it('honors a custom expiration', () => {
-    const { template } = synth({
-      createDomain: true,
-      domainName: 'CustomDomain',
-      expirationDays: 90,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::Domain', {
-      DomainName: 'CustomDomain',
-      DefaultExpirationDays: 90,
-    });
-  });
-});
-
 void describe('AmplifyNotifications construct — HTTP API', () => {
   void it('binds the JWT authorizer to the supplied issuer and audience', () => {
     const { template } = synth();
@@ -183,40 +127,28 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
   });
 });
 
-void describe('AmplifyNotifications construct — push path', () => {
-  void it('does NOT provision push resources by default (identify path unchanged)', () => {
+void describe('AmplifyNotifications construct — push path (always provisioned)', () => {
+  void it('always provisions a Pinpoint app + push Lambda', () => {
     const { construct, template } = synth();
-    template.resourceCountIs('AWS::Pinpoint::App', 0);
-    template.resourceCountIs('AWS::Lambda::Function', 1);
-    assert.strictEqual(construct.pushFunctionArn, undefined);
-    assert.strictEqual(construct.eumApplicationId, undefined);
-    assert.strictEqual(construct.resources.pushFunction, undefined);
-  });
-
-  void it('provisions a Pinpoint app + push Lambda when push is enabled', () => {
-    const { construct, template } = synth({ push: true });
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     // identify Lambda + push Lambda.
     template.resourceCountIs('AWS::Lambda::Function', 2);
     assert.ok(construct.resources.pushFunction);
     assert.ok(construct.resources.pushApplication);
     assert.strictEqual(typeof construct.pushFunctionArn, 'string');
+    assert.strictEqual(typeof construct.eumApplicationId, 'string');
     template.hasOutput('PushHandlerFunctionArn', {});
   });
 
-  void it('reuses a supplied eumApplicationId instead of creating a Pinpoint app', () => {
-    const { construct, template } = synth({
-      push: true,
-      eumApplicationId: 'existing-app-id',
+  void it('names the Pinpoint app after the domain', () => {
+    const { template } = synth();
+    template.hasResourceProperties('AWS::Pinpoint::App', {
+      Name: `${EXISTING_DOMAIN}-push`,
     });
-    template.resourceCountIs('AWS::Pinpoint::App', 0);
-    template.resourceCountIs('AWS::Lambda::Function', 2);
-    assert.strictEqual(construct.eumApplicationId, 'existing-app-id');
-    assert.strictEqual(construct.resources.pushApplication, undefined);
   });
 
   void it('grants the push Lambda least-privilege profile + SendMessages permissions scoped to the existing domain', () => {
-    const { template } = synth({ push: true });
+    const { template } = synth();
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: Match.objectLike({
         Statement: Match.arrayWith([
@@ -240,7 +172,7 @@ void describe('AmplifyNotifications construct — push path', () => {
   });
 
   void it('adds a lambda:InvokeFunction resource policy for the Connect service principals, scoped to this account', () => {
-    const { template } = synth({ push: true });
+    const { template } = synth();
     template.hasResourceProperties('AWS::Lambda::Permission', {
       Action: 'lambda:InvokeFunction',
       Principal: 'connect.amazonaws.com',
@@ -254,12 +186,12 @@ void describe('AmplifyNotifications construct — push path', () => {
   });
 
   void it('sets the domain + EUM app id env vars on the push Lambda', () => {
-    const { template } = synth({ push: true, eumApplicationId: 'app-xyz' });
+    const { template } = synth();
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: Match.objectLike({
           PROFILES_DOMAIN_NAME: EXISTING_DOMAIN,
-          EUM_APPLICATION_ID: 'app-xyz',
+          EUM_APPLICATION_ID: Match.anyValue(),
         }),
       },
     });

@@ -22,8 +22,8 @@ import {
   discoverKnowledgeBaseId,
   renderProfileChannelMessages,
   resolvePushTemplateContext,
-} from './push_message_template.js';
-import { CampaignContext, ProfileTarget } from './push_types.js';
+} from './message_template.js';
+import { CampaignContext, ProfileTarget } from './types.js';
 
 const KB_ARN = 'arn:aws:wisdom:us-east-1:996099992135:knowledge-base/kb-1234';
 const KB_ID = 'kb-1234';

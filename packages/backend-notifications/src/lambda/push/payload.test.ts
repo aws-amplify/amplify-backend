@@ -3,10 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import {
-  buildMessageConfiguration,
-  normalizeChannelType,
-} from './push_payload.js';
+import { buildMessageConfiguration, normalizeChannelType } from './payload.js';
 
 void describe('normalizeChannelType', () => {
   void it('normalizes FCM and GCM (any case) to GCM', () => {

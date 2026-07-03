@@ -20,13 +20,13 @@ import {
   ACTIVE_VERSION_QUALIFIER,
   PUSH_CHANNEL_SUBTYPE,
   Q_MESSAGE_TEMPLATES_INTEGRATION_TYPE,
-} from '../constants.js';
+} from '../../constants.js';
 import {
   CampaignContext,
   ProfileTarget,
   PushChannelType,
   PushMessage,
-} from './push_types.js';
+} from './types.js';
 
 /** Max length of a single Q Connect render attribute value. */
 const MAX_ATTRIBUTE_LENGTH = 32767;

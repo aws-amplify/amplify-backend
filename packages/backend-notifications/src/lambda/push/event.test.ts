@@ -3,113 +3,53 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { parsePushEvent, resolveProfileMessage } from './push_event.js';
-import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../constants.js';
-import { PushMessage } from './push_types.js';
+import { parsePushEvent, resolveProfileMessage } from './event.js';
+import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../../constants.js';
+import { PushMessage } from './types.js';
 import { REAL_JOURNEY_EVENT } from './fixtures/real_journey_event.js';
 
-void describe('parsePushEvent — targets', () => {
-  void it('parses the documented Journey batch shape (Items[].CustomerProfiles[])', () => {
-    const event = {
-      Items: [
-        {
-          CustomerProfiles: [
-            { ProfileId: 'p1', CustomerData: { plan: 'premium' } },
-            { ProfileId: 'p2' },
-          ],
-        },
-        {
-          CustomerProfiles: [{ ProfileId: 'p3' }],
-        },
-      ],
-    };
-    const { targets } = parsePushEvent(event);
-    assert.deepStrictEqual(
-      targets.map((t) => t.profileId),
-      ['p1', 'p2', 'p3'],
-    );
-    assert.deepStrictEqual(targets[0].customerData, { plan: 'premium' });
-    assert.strictEqual(targets[1].customerData, undefined);
-  });
-
-  void it('parses a flat CustomerProfiles array (no Items wrapper)', () => {
-    const { targets } = parsePushEvent({
-      CustomerProfiles: [{ ProfileId: 'p1' }, { ProfileId: 'p2' }],
+void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', () => {
+  void it('parses the canonical Items-as-object CustomerProfiles array', () => {
+    const { targets, parsePath } = parsePushEvent({
+      Items: {
+        CustomerProfiles: [
+          { ProfileId: 'p1', CustomerData: '{"plan":"premium"}' },
+          { ProfileId: 'p2' },
+        ],
+      },
     });
+    assert.strictEqual(parsePath, 'canonical');
     assert.deepStrictEqual(
       targets.map((t) => t.profileId),
       ['p1', 'p2'],
     );
-  });
-
-  void it('parses a single-profile / direct-invoke shape', () => {
-    const { targets } = parsePushEvent({
-      ProfileId: 'solo',
-      CustomerData: { a: 1 },
-    });
-    assert.strictEqual(targets.length, 1);
-    assert.strictEqual(targets[0].profileId, 'solo');
-  });
-
-  void it('matches keys case-insensitively (profileId / customerProfiles)', () => {
-    const { targets } = parsePushEvent({
-      items: [{ customerProfiles: [{ profileId: 'lc1' }] }],
-    });
-    assert.deepStrictEqual(
-      targets.map((t) => t.profileId),
-      ['lc1'],
-    );
+    assert.deepStrictEqual(targets[0].customerData, { plan: 'premium' });
+    assert.strictEqual(targets[1].customerData, undefined);
   });
 
   void it('skips entries with no ProfileId and ignores malformed input', () => {
     assert.deepStrictEqual(parsePushEvent(undefined).targets, []);
     assert.deepStrictEqual(parsePushEvent('nope').targets, []);
     const { targets } = parsePushEvent({
-      CustomerProfiles: [{ CustomerData: {} }, { ProfileId: '' }, 42],
+      Items: {
+        CustomerProfiles: [{ CustomerData: '{}' }, { ProfileId: '' }, 42],
+      },
     });
     assert.deepStrictEqual(targets, []);
   });
 
-  void it('does not double-count when both Items and top-level exist (batch takes precedence)', () => {
-    const { targets } = parsePushEvent({
-      Items: [{ CustomerProfiles: [{ ProfileId: 'batch' }] }],
-    });
-    // Single fallback only triggers when zero targets found from arrays.
-    assert.deepStrictEqual(
-      targets.map((t) => t.profileId),
-      ['batch'],
+  void it('reports canonical when targets resolve, none otherwise', () => {
+    assert.strictEqual(
+      parsePushEvent({ Items: { CustomerProfiles: [{ ProfileId: 'p1' }] } })
+        .parsePath,
+      'canonical',
     );
-  });
-});
-
-void describe('parsePushEvent — parsePath', () => {
-  void it('reports batch for the Items[].CustomerProfiles[] shape', () => {
+    assert.strictEqual(parsePushEvent({}).parsePath, 'none');
+    assert.strictEqual(parsePushEvent(undefined).parsePath, 'none');
+    // An array Items (a shape real Connect never sends) yields no targets.
     assert.strictEqual(
       parsePushEvent({ Items: [{ CustomerProfiles: [{ ProfileId: 'p1' }] }] })
         .parsePath,
-      'batch',
-    );
-  });
-
-  void it('reports flat for a top-level CustomerProfiles array', () => {
-    assert.strictEqual(
-      parsePushEvent({ CustomerProfiles: [{ ProfileId: 'p1' }] }).parsePath,
-      'flat',
-    );
-  });
-
-  void it('reports single for a bare ProfileId shape', () => {
-    assert.strictEqual(
-      parsePushEvent({ ProfileId: 'solo' }).parsePath,
-      'single',
-    );
-  });
-
-  void it('reports none when no targets are resolvable', () => {
-    assert.strictEqual(parsePushEvent({}).parsePath, 'none');
-    assert.strictEqual(parsePushEvent(undefined).parsePath, 'none');
-    assert.strictEqual(
-      parsePushEvent({ CustomerProfiles: [{ CustomerData: {} }] }).parsePath,
       'none',
     );
   });
@@ -117,11 +57,10 @@ void describe('parsePushEvent — parsePath', () => {
 
 void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey shape', () => {
   // Authoritative fixture: the verbatim rawEvent captured from a live journey
-  // run (see fixtures/real_journey_event.ts for the source log reference). The
-  // OLD parser resolved 0 targets (parsePath 'none') for this shape, silently
-  // dropping every real journey. Expected values are derived from the fixture
-  // (via bracket access, no re-typed identifiers) so the assertions prove the
-  // parser's transformations rather than restating literals.
+  // run (see fixtures/real_journey_event.ts for the source log reference).
+  // Expected values are derived from the fixture (via bracket access, no
+  // re-typed identifiers) so the assertions prove the parser's transformations
+  // rather than restating literals.
   const asRec = (v: unknown): Record<string, unknown> =>
     v as Record<string, unknown>;
   const root = asRec(REAL_JOURNEY_EVENT);
@@ -135,8 +74,7 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
       targets.map((t) => t.profileId),
       rawEntries.map((e) => asRec(e)['ProfileId'] as string),
     );
-    // Items-as-object flows through the batch path.
-    assert.strictEqual(parsePath, 'batch');
+    assert.strictEqual(parsePath, 'canonical');
   });
 
   void it('JSON.parses each serialized CustomerData string into the camelCase object', () => {
@@ -183,7 +121,6 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
       actionId: rawCtx['ActionId'],
       runId: rawCtx['RunId'],
     });
-    // CampaignId is a non-empty string, extracted from the real envelope.
     assert.strictEqual(typeof campaign?.campaignId, 'string');
     assert.ok((campaign?.campaignId?.length ?? 0) > 0);
     assert.strictEqual(campaign?.campaignName, 'journey-2');
@@ -194,16 +131,15 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
     assert.strictEqual(message.title, DEFAULT_PUSH_TITLE);
     assert.strictEqual(message.body, DEFAULT_PUSH_BODY);
 
-    // Each profile resolves to defaults (no messageTitle/messageBody present).
     const resolved = resolveProfileMessage(targets[1], message);
     assert.strictEqual(resolved.titleSource, 'default');
     assert.strictEqual(resolved.bodySource, 'default');
   });
 });
 
-void describe('parsePushEvent — serialized-string CustomerData + Items-as-object units', () => {
-  void it('JSON.parses a serialized-string CustomerData in an Items-as-object envelope', () => {
-    const { targets, parsePath } = parsePushEvent({
+void describe('parsePushEvent — CustomerData coercion (minimal defensive handling)', () => {
+  void it('JSON.parses a serialized-string CustomerData', () => {
+    const { targets } = parsePushEvent({
       Items: {
         CustomerProfiles: [
           {
@@ -214,30 +150,19 @@ void describe('parsePushEvent — serialized-string CustomerData + Items-as-obje
         ],
       },
     });
-    assert.strictEqual(parsePath, 'batch');
     assert.deepStrictEqual(targets[0].customerData, {
       firstName: 'Ada',
       attributes: { cognitoSub: 's1' },
     });
   });
 
-  void it('JSON.parses a serialized-string CustomerData in a single-profile shape', () => {
+  void it('tolerates a CustomerData already given as a parsed object (no double-parse)', () => {
     const { targets } = parsePushEvent({
-      ProfileId: 'solo',
-      CustomerData: '{"firstName":"Solo"}',
-    });
-    assert.deepStrictEqual(targets[0].customerData, { firstName: 'Solo' });
-  });
-
-  void it('keeps an object CustomerData as-is (backward compatibility, no double-parse)', () => {
-    const { targets } = parsePushEvent({
-      Items: [
-        {
-          CustomerProfiles: [
-            { ProfileId: 'p1', CustomerData: { plan: 'premium' } },
-          ],
-        },
-      ],
+      Items: {
+        CustomerProfiles: [
+          { ProfileId: 'p1', CustomerData: { plan: 'premium' } },
+        ],
+      },
     });
     assert.deepStrictEqual(targets[0].customerData, { plan: 'premium' });
   });
@@ -261,11 +186,7 @@ void describe('parsePushEvent — serialized-string CustomerData + Items-as-obje
 
   void it('leaves campaign undefined when no InvocationMetadata is present', () => {
     assert.strictEqual(
-      parsePushEvent({ ProfileId: 'solo' }).campaign,
-      undefined,
-    );
-    assert.strictEqual(
-      parsePushEvent({ Items: [{ CustomerProfiles: [{ ProfileId: 'p1' }] }] })
+      parsePushEvent({ Items: { CustomerProfiles: [{ ProfileId: 'p1' }] } })
         .campaign,
       undefined,
     );
@@ -273,31 +194,13 @@ void describe('parsePushEvent — serialized-string CustomerData + Items-as-obje
 });
 
 void describe('parsePushEvent — message', () => {
-  void it('defaults title/body when none provided', () => {
-    const { message } = parsePushEvent({ ProfileId: 'p1' });
+  void it('always defaults title/body (message copy is resolved per profile downstream)', () => {
+    const { message } = parsePushEvent({
+      Items: { CustomerProfiles: [{ ProfileId: 'p1' }] },
+    });
     assert.strictEqual(message.title, DEFAULT_PUSH_TITLE);
     assert.strictEqual(message.body, DEFAULT_PUSH_BODY);
     assert.strictEqual(message.data, undefined);
-  });
-
-  void it('sources title/body from an event-level Message object', () => {
-    const { message } = parsePushEvent({
-      ProfileId: 'p1',
-      Message: { Title: 'Hi', Body: 'There', Data: { k: 'v', n: 3 } },
-    });
-    assert.strictEqual(message.title, 'Hi');
-    assert.strictEqual(message.body, 'There');
-    assert.deepStrictEqual(message.data, { k: 'v', n: '3' });
-  });
-
-  void it('sources title/body from lowercase top-level fields', () => {
-    const { message } = parsePushEvent({
-      ProfileId: 'p1',
-      title: 'Lower',
-      body: 'Case',
-    });
-    assert.strictEqual(message.title, 'Lower');
-    assert.strictEqual(message.body, 'Case');
   });
 });
 

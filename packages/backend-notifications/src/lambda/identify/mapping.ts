@@ -1,5 +1,5 @@
 import { ChannelType, IdentifyUserRequest } from './types.js';
-import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../constants.js';
+import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
 
 /** A standard Customer Profiles address (subset used by this backend). */
 export type ProfileAddress = {

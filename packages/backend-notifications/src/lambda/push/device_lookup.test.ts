@@ -8,7 +8,7 @@ import type {
   DeleteProfileObjectCommandInput,
   ListProfileObjectsCommandOutput,
 } from '@aws-sdk/client-customer-profiles';
-import { deleteDevice, listDevices } from './push_device_lookup.js';
+import { deleteDevice, listDevices } from './device_lookup.js';
 
 type ListPage = Partial<ListProfileObjectsCommandOutput>;
 
