@@ -196,6 +196,16 @@ void describe('discoverKnowledgeBaseId', () => {
     const res = await discoverKnowledgeBaseId(c, 'no-integration-camp');
     assert.equal(res, undefined);
   });
+
+  void it('returns undefined when the integration ARN is not a knowledge-base ARN', async () => {
+    const spec: DiscoverSpec = {
+      instanceId: INSTANCE_ID,
+      integrationArn: 'arn:aws:connect:us-east-1:996099992135:instance/xyz',
+    };
+    const c = clients(campaignsFor(spec), connectFor(spec), qconnectFor({}));
+    const res = await discoverKnowledgeBaseId(c, 'bad-arn-camp');
+    assert.equal(res, undefined);
+  });
 });
 
 void describe('resolvePushTemplateContext', () => {
@@ -329,6 +339,34 @@ void describe('renderProfileChannelMessages', () => {
     const q = {
       send: (): Promise<unknown> => Promise.reject(new Error('render boom')),
     } as unknown as QConnectClient;
+    const ctx = {
+      qconnect: q,
+      knowledgeBaseId: KB_ID,
+      messageTemplateId: 'tmpl-push-1',
+      templateName: 'Push Notification',
+    };
+    const perChannel = await renderProfileChannelMessages(ctx, target());
+    assert.equal(perChannel, undefined);
+  });
+
+  void it('drops channels whose rendered copy still has an unresolved {{var}}', async () => {
+    // A profile with no firstName: Q Connect leaves the Handlebars var literal
+    // and lists it in attributesNotInterpolated. The raw placeholder must NOT
+    // reach a device, so that channel falls back to the caller's default copy.
+    const q = qconnectFor({
+      renderContent: {
+        push: {
+          apns: {
+            title: 'Hi {{Attributes.firstName}} (iOS)',
+            body: { content: 'Welcome {{Attributes.firstName}}!' },
+          },
+          fcm: {
+            title: 'Hi {{Attributes.firstName}} (Android)',
+            body: { content: 'Welcome {{Attributes.firstName}}!' },
+          },
+        },
+      },
+    });
     const ctx = {
       qconnect: q,
       knowledgeBaseId: KB_ID,

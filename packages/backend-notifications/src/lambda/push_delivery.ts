@@ -170,19 +170,39 @@ export const deliverToTargets = async (
     }
 
     // NOTE (PII / not production-safe): title/body may echo journey-authored
-    // copy; logged here to confirm the resolved copy + its source per profile.
-    // Reduce/omit before production.
+    // or template-rendered copy; logged here to confirm the EFFECTIVE per-channel
+    // copy that will actually be delivered. Reduce/omit before production.
+    //
+    // `effective` is what each channel actually sends: the rendered template copy
+    // where a template was applied, otherwise the fallback. `fallback*` is the
+    // non-template copy (CustomerData -> event -> default) — used only for
+    // channels the template did not cover, so a `default` fallbackSource next to
+    // `templateApplied:true` is expected and NOT what gets delivered.
+    const effective: Record<string, { title: string; body: string }> =
+      perChannel
+        ? Object.fromEntries(
+            Object.entries(perChannel).map(([channel, m]) => [
+              channel,
+              { title: m.title, body: m.body },
+            ]),
+          )
+        : {
+            all: {
+              title: resolved.message.title,
+              body: resolved.message.body,
+            },
+          };
     console.log(
       '[push] resolveMessage',
       JSON.stringify({
         profileId: target.profileId,
-        title: resolved.message.title,
-        body: resolved.message.body,
-        titleSource: resolved.titleSource,
-        bodySource: resolved.bodySource,
-        hasData: Boolean(resolved.message.data),
         templateApplied: Boolean(perChannel),
-        templateChannels: perChannel ? Object.keys(perChannel) : [],
+        effective,
+        fallbackTitle: resolved.message.title,
+        fallbackBody: resolved.message.body,
+        fallbackTitleSource: resolved.titleSource,
+        fallbackBodySource: resolved.bodySource,
+        hasData: Boolean(resolved.message.data),
       }),
     );
     results.push(

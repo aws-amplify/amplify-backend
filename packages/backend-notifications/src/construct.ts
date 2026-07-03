@@ -484,7 +484,6 @@ export class AmplifyNotifications
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: [
-            'wisdom:SearchMessageTemplates',
             'wisdom:ListMessageTemplates',
             'wisdom:GetMessageTemplate',
             'wisdom:RenderMessageTemplate',

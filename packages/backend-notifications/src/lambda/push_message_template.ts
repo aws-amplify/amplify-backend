@@ -58,6 +58,9 @@ export type PushTemplateContext = {
  * Per-container cache of `campaignId -> knowledgeBaseId`. KB discovery
  * (DescribeCampaign + ListIntegrationAssociations) is stable for a campaign's
  * lifetime, so warm Lambda invocations skip the two lookups.
+ *
+ * TODO(prod): unbounded (one entry per distinct campaignId per container) — cap
+ * or TTL this before GA if a single container fronts many campaigns.
  */
 const kbIdByCampaign = new Map<string, string>();
 
@@ -110,15 +113,29 @@ export const discoverKnowledgeBaseId = async (
       IntegrationType: Q_MESSAGE_TEMPLATES_INTEGRATION_TYPE,
     }),
   );
+  // A Connect instance has at most one Q_MESSAGE_TEMPLATES binding, so page 1
+  // always carries it and we don't paginate. Surface a NextToken if that ever
+  // stops holding so the edge case is observable rather than a silent miss.
+  if (assoc.NextToken) {
+    console.warn(
+      '[push] kb.discover.multiplePages',
+      JSON.stringify({ campaignId, instanceId }),
+    );
+  }
   const integrationArn = assoc.IntegrationAssociationSummaryList?.find(
     (a) => a.IntegrationArn,
   )?.IntegrationArn;
-  const kbId = integrationArn ? integrationArn.split('/').pop() : undefined;
+  // Only trust a well-formed Q in Connect knowledge-base ARN
+  // (arn:aws:wisdom:...:knowledge-base/<kbId>); anything else yields a garbage
+  // id that would fail three calls later at render time.
+  const kbId = integrationArn?.includes('knowledge-base/')
+    ? integrationArn.split('/').pop()
+    : undefined;
 
   if (!kbId) {
     console.warn(
       '[push] kb.discover.noKnowledgeBase',
-      JSON.stringify({ campaignId, instanceId }),
+      JSON.stringify({ campaignId, instanceId, integrationArn }),
     );
     return undefined;
   }
@@ -283,6 +300,8 @@ export const buildCustomAttributes = (
     typeof attributes === 'object' &&
     !Array.isArray(attributes)
   ) {
+    // attributes sub-keys overwrite top-level keys on collision (attributes is
+    // the authoritative custom-attribute store).
     for (const [key, value] of Object.entries(
       attributes as Record<string, unknown>,
     )) {
@@ -292,6 +311,16 @@ export const buildCustomAttributes = (
   return out;
 };
 
+/**
+ * Detects a Handlebars placeholder the renderer left unresolved, e.g. a
+ * `{{Attributes.firstName}}` var for a profile that has no `firstName`. Q Connect
+ * leaves such vars LITERAL in the output (and lists them in
+ * `attributesNotInterpolated`); shipping that raw text to a device is a bug, so
+ * copy that still contains one is rejected and the caller falls back to default.
+ */
+const hasUnresolvedPlaceholder = (value: string): boolean =>
+  /\{\{.*?\}\}/.test(value);
+
 const toMessage = (content?: PlatformContent): PushMessage | undefined => {
   const title = content?.title;
   const body = content?.body?.content;
@@ -299,7 +328,9 @@ const toMessage = (content?: PlatformContent): PushMessage | undefined => {
     typeof title === 'string' &&
     title.length > 0 &&
     typeof body === 'string' &&
-    body.length > 0
+    body.length > 0 &&
+    !hasUnresolvedPlaceholder(title) &&
+    !hasUnresolvedPlaceholder(body)
   ) {
     return { title, body };
   }
@@ -329,7 +360,10 @@ export const renderProfileChannelMessages = async (
     res = await ctx.qconnect.send(
       new RenderMessageTemplateCommand({
         knowledgeBaseId: ctx.knowledgeBaseId,
-        messageTemplateId: ctx.messageTemplateId,
+        // Render the PUBLISHED version explicitly (verified: RenderMessageTemplate
+        // accepts the `:$ACTIVE_VERSION` qualifier) so a later saved draft can't
+        // silently change production copy.
+        messageTemplateId: `${ctx.messageTemplateId}:${ACTIVE_VERSION_QUALIFIER}`,
         attributes: { customAttributes },
       }),
     );
@@ -364,6 +398,10 @@ export const renderProfileChannelMessages = async (
     perChannel.GCM = fcm;
   }
 
+  // NOTE (PII / not production-safe): `apns` / `gcm` contain the rendered,
+  // personalized copy (e.g. "Hi Manual, you have a new update") tied to a named
+  // profile — more sensitive than a raw id. Logged here to confirm per-profile
+  // interpolation; reduce/omit (and gate profileId) before production.
   console.log(
     '[push] template.render',
     JSON.stringify({
