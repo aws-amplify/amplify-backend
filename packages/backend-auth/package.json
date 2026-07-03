@@ -31,12 +31,12 @@
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.10",
     "@aws-amplify/platform-core": "^1.11.1",
-    "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
     "@aws-sdk/client-cognito-identity": "^3.936.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
     "@types/aws-lambda": "^8.10.119"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.234.1",
+    "aws-cdk-lib": "^2.260.0",
     "constructs": "^10.0.0"
   }
 }
