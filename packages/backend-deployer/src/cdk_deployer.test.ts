@@ -135,6 +135,28 @@ void describe('invokeCDKCommand', () => {
     } as AssemblySourceProps);
   });
 
+  void it('enables Express mode for sandbox deployments when requested', async () => {
+    await invoker.deploy(sandboxBackendId, {
+      ...sandboxDeployProps,
+      express: true,
+    });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+    assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
+      deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
+      stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+      express: true,
+    } as DeployOptions);
+  });
+
+  void it('does not enable Express mode for branch deployments', async () => {
+    await invoker.deploy(branchBackendId, { express: true });
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+    assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
+      deploymentMethod: { method: 'direct' },
+      stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+    } as DeployOptions);
+  });
+
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(sandboxBackendId);
     assert.strictEqual(fromAssemblyBuilderMock.mock.callCount(), 1);
