@@ -121,6 +121,7 @@ export { NextjsAdapterOptions }
 // @public
 export type PipelineProps<TConfig = Record<string, unknown>> = PipelineProps_2<TConfig> & {
     readonly stageFactory: (scope: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => void | Promise<void>;
+    readonly _sourceOverride?: CodePipelineSource;
     readonly _postStageHook?: (params: {
         source: IFileSetProducer;
         stage: cdk.Stage;

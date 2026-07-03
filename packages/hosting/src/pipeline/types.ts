@@ -9,6 +9,7 @@
 import type * as cdk from 'aws-cdk-lib';
 import type {
   CodeBuildStep,
+  CodePipelineSource,
   IFileSetProducer,
   ShellStep,
 } from 'aws-cdk-lib/pipelines';
@@ -132,6 +133,17 @@ export type PipelineProps<TConfig = Record<string, unknown>> =
       scope: cdk.Stage,
       stageConfig: PipelineStageConfig<TConfig>,
     ) => void | Promise<void>;
+
+    /**
+     * Internal escape hatch: override the GitHub source with a custom source.
+     *
+     * Used in tests to provide an S3 source instead of requiring a real GitHub
+     * connection. `@aws-blocks/pipeline` consumes this at runtime but (as of
+     * 0.1.1) omits it from its public `PipelineProps` type, so the shim
+     * re-declares it here to keep it type-visible. Not part of the public API.
+     * @internal
+     */
+    readonly _sourceOverride?: CodePipelineSource;
 
     /**
      * Internal hook called after each stage's stageFactory runs.
