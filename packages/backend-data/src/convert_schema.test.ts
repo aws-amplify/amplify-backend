@@ -80,11 +80,11 @@ void describe('convertSchemaToCDK', () => {
         echo(message: String!): String!
       }
     `;
-    const convertedDefinition = convertSchemaToCDK(
-      graphqlSchema,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: graphqlSchema,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -107,11 +107,11 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization((allow) => allow.publicApiKey());
-    const convertedDefinition = convertSchemaToCDK(
-      typedSchema,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: typedSchema,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema),
@@ -135,11 +135,11 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization((allow) => allow.publicApiKey());
-    const convertedDefinition = convertSchemaToCDK(
-      typedSchema,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: typedSchema,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
@@ -152,12 +152,12 @@ void describe('convertSchemaToCDK', () => {
     });
   });
 
-  void it('uses the only appropriate dbType and provisioningStrategy', () => {
-    const convertedDefinition = convertSchemaToCDK(
-      'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
-      secretResolver,
+  void it('uses the default dbType and provisioningStrategy', () => {
+    const convertedDefinition = convertSchemaToCDK({
+      schema: 'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
       1,
@@ -198,11 +198,11 @@ void describe('convertSchemaToCDK', () => {
         .authorization((allow) => allow.publicApiKey()),
     });
 
-    const convertedDefinition = convertSchemaToCDK(
-      modified,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: modified,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -253,11 +253,11 @@ void describe('convertSchemaToCDK', () => {
         .authorization((allow) => allow.publicApiKey()),
     });
 
-    const convertedDefinition = convertSchemaToCDK(
-      modified,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: modified,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -337,11 +337,11 @@ void describe('convertSchemaToCDK', () => {
         .authorization((allow) => allow.publicApiKey()),
     });
 
-    const convertedDefinition = convertSchemaToCDK(
-      modified,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: modified,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -420,11 +420,11 @@ void describe('convertSchemaToCDK', () => {
         .authorization((allow) => allow.publicApiKey()),
     });
 
-    const convertedDefinition = convertSchemaToCDK(
-      modified,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: modified,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -480,11 +480,11 @@ void describe('convertSchemaToCDK', () => {
         .authorization((allow) => allow.publicApiKey()),
     });
 
-    const convertedDefinition = convertSchemaToCDK(
-      modified,
-      secretResolver,
+    const convertedDefinition = convertSchemaToCDK({
+      schema: modified,
+      backendSecretResolver: secretResolver,
       stableBackendIdentifiers,
-    );
+    });
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -513,5 +513,34 @@ void describe('convertSchemaToCDK', () => {
         /* eslint-enable spellcheck/spell-checker */
       },
     );
+  });
+
+  void it('produces IMPORTED strategy for importedTableName', () => {
+    const result = convertSchemaToCDK({
+      schema: 'type Todo @model { id: ID! }',
+      backendSecretResolver: secretResolver,
+      stableBackendIdentifiers,
+      importedTableName: 'ExistingTable',
+    });
+    assert.deepEqual(Object.values(result.dataSourceStrategies)[0], {
+      dbType: 'DYNAMODB',
+      provisionStrategy: 'IMPORTED_AMPLIFY_TABLE',
+      tableName: 'ExistingTable',
+    });
+  });
+
+  void it('produces ADOPTED strategy for shouldAdoptExistingTable', () => {
+    const result = convertSchemaToCDK({
+      schema: 'type Todo @model { id: ID! }',
+      backendSecretResolver: secretResolver,
+      stableBackendIdentifiers,
+      importedTableName: 'AdoptedTable',
+      shouldAdoptExistingTable: true,
+    });
+    assert.deepEqual(Object.values(result.dataSourceStrategies)[0], {
+      dbType: 'DYNAMODB',
+      provisionStrategy: 'ADOPTED_AMPLIFY_TABLE',
+      tableName: 'AdoptedTable',
+    });
   });
 });
