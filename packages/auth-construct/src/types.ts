@@ -382,6 +382,14 @@ export type ExternalProviderOptions = {
 export type TriggerEvent = (typeof triggerEvents)[number];
 
 /**
+ * Supported versions for the preTokenGeneration trigger.
+ * - 'v1_0': Basic token customization (ID token only)
+ * - 'v2_0': Access token customization (Essentials/Plus tier)
+ * - 'v3_0': Access token customization with latest features (Essentials/Plus tier)
+ */
+export type PreTokenGenerationVersion = 'v1_0' | 'v2_0' | 'v3_0';
+
+/**
  * CustomAttributeBase is a type that represents the base properties for a custom attribute
  */
 export type CustomAttributeBase = {
