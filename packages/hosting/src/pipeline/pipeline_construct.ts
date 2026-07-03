@@ -135,7 +135,10 @@ const wrapProps = <TConfig>(
   // to steer callers to `Pipeline.create()`. It stays a plain function and
   // defers the await-after-factory case to `runHookAfter` (a real async
   // helper) so the sync path is preserved and no `.then()` is needed.
-  const runHook = (stage: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => {
+  const runHook = (
+    stage: cdk.Stage,
+    stageConfig: PipelineStageConfig<TConfig>,
+  ) => {
     const steps = _postStageHook({
       // The synth step's first input is the pipeline source file set — reuse
       // it as the hosting deploy step's input rather than creating a second
