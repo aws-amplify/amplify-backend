@@ -80,6 +80,39 @@ void describe('parsePushEvent — targets', () => {
   });
 });
 
+void describe('parsePushEvent — parsePath', () => {
+  void it('reports batch for the Items[].CustomerProfiles[] shape', () => {
+    assert.strictEqual(
+      parsePushEvent({ Items: [{ CustomerProfiles: [{ ProfileId: 'p1' }] }] })
+        .parsePath,
+      'batch',
+    );
+  });
+
+  void it('reports flat for a top-level CustomerProfiles array', () => {
+    assert.strictEqual(
+      parsePushEvent({ CustomerProfiles: [{ ProfileId: 'p1' }] }).parsePath,
+      'flat',
+    );
+  });
+
+  void it('reports single for a bare ProfileId shape', () => {
+    assert.strictEqual(
+      parsePushEvent({ ProfileId: 'solo' }).parsePath,
+      'single',
+    );
+  });
+
+  void it('reports none when no targets are resolvable', () => {
+    assert.strictEqual(parsePushEvent({}).parsePath, 'none');
+    assert.strictEqual(parsePushEvent(undefined).parsePath, 'none');
+    assert.strictEqual(
+      parsePushEvent({ CustomerProfiles: [{ CustomerData: {} }] }).parsePath,
+      'none',
+    );
+  });
+});
+
 void describe('parsePushEvent — message', () => {
   void it('defaults title/body when none provided', () => {
     const { message } = parsePushEvent({ ProfileId: 'p1' });

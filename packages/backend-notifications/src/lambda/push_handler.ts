@@ -33,6 +33,12 @@ export const handler = async (
 ): Promise<PushDeliveryResponse> => {
   // Top priority: capture the EXACT raw event so the real Connect Journey
   // Custom-action envelope shape can be inspected from CloudWatch.
+  //
+  // NOTE (PII / not production-safe): the raw event carries `CustomerData`
+  // (name / email / phone / attributes) and this logs it UNREDACTED. This is a
+  // deliberate diagnostic to discover the (undocumented) Journey payload shape.
+  // Before production this MUST be gated off / reduced to the structural
+  // envelope (top-level keys + item count) only.
   console.log('[push] rawEvent', JSON.stringify(event));
 
   const domainName = process.env[ENV_DOMAIN_NAME];
@@ -49,6 +55,8 @@ export const handler = async (
   }
 
   const parsed = parsePushEvent(event);
+  // NOTE (PII / not production-safe): `profileIds` are customer-identifiable.
+  // Kept here for PoC diagnosis; hash or omit before production.
   console.log(
     '[push] parsed',
     JSON.stringify({
