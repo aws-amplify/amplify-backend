@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { App, NestedStack, Stack } from 'aws-cdk-lib';
+import { App, NestedStack, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   CfnIdentityPool,
@@ -15,6 +15,7 @@ import {
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendSecret,
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
@@ -29,6 +30,20 @@ import { AmplifyNotifications } from './construct.js';
 
 /** An existing (e.g. Connect-managed) Customer Profiles domain to attach to. */
 const EXISTING_DOMAIN = 'amazon-connect-amplify';
+
+/**
+ * A test double for an Amplify `secret()` (BackendSecret) whose resolved value
+ * is a fixed plain text string, so a synth assertion can prove the resolved
+ * secret was wired into the channel resource. Mirrors how the real
+ * `backendSecretResolver` resolves a secret to a CFN token.
+ */
+const fakeSecret = (value: string): BackendSecret => ({
+  resolve: () => SecretValue.unsafePlainText(value),
+  resolvePath: () => ({
+    branchSecretPath: `/amplify/branch/${value}`,
+    sharedSecretPath: `/amplify/shared/${value}`,
+  }),
+});
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -291,5 +306,97 @@ void describe('defineNotifications', () => {
         }),
       /requires an auth resource/,
     );
+  });
+
+  void it('configures NO push channels when apns/fcm are omitted', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 0);
+    template.resourceCountIs('AWS::Pinpoint::APNSSandboxChannel', 0);
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 0);
+  });
+
+  void it('resolves the Amplify secret() and wires the APNs channel when apns is provided', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      apns: {
+        keySecret: fakeSecret('p8-key-material'),
+        keyId: 'ABC123DEFG',
+        teamId: 'DEF456GHIJ',
+        bundleId: 'com.example.app',
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 1);
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      // The resolved secret value flows into the token key.
+      TokenKey: 'p8-key-material',
+      TokenKeyId: 'ABC123DEFG',
+      TeamId: 'DEF456GHIJ',
+      BundleId: 'com.example.app',
+    });
+  });
+
+  void it('resolves the Amplify secret() and wires the FCM (HTTP v1) channel when fcm is provided', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      fcm: {
+        credentialsSecret: fakeSecret('{"type":"service_account"}'),
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 1);
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      ServiceJson: '{"type":"service_account"}',
+    });
+  });
+
+  void it('configures the APNs SANDBOX channel when apns.sandbox is true', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      apns: {
+        keySecret: fakeSecret('p8-key-material'),
+        keyId: 'ABC123DEFG',
+        teamId: 'DEF456GHIJ',
+        bundleId: 'com.example.app',
+        sandbox: true,
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+    template.resourceCountIs('AWS::Pinpoint::APNSSandboxChannel', 1);
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 0);
+  });
+
+  void it('resolves both secrets and wires APNs + FCM channels together', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      apns: {
+        keySecret: fakeSecret('p8-key-material'),
+        keyId: 'ABC123DEFG',
+        teamId: 'DEF456GHIJ',
+        bundleId: 'com.example.app',
+      },
+      fcm: {
+        credentialsSecret: fakeSecret('{"type":"service_account"}'),
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 1);
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 1);
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      TokenKey: 'p8-key-material',
+    });
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      ServiceJson: '{"type":"service_account"}',
+    });
   });
 });

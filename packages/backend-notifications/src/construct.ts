@@ -7,7 +7,12 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { CfnDomain, CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { CfnInstance } from 'aws-cdk-lib/aws-connect';
-import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
+import {
+  CfnAPNSChannel,
+  CfnAPNSSandboxChannel,
+  CfnApp,
+  CfnGCMChannel,
+} from 'aws-cdk-lib/aws-pinpoint';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -59,6 +64,18 @@ export type NotificationsResources = {
   pushFunction: lambda.IFunction;
   /** The AWS End User Messaging / Pinpoint application backing push delivery. */
   pushApplication: CfnApp;
+  /**
+   * The APNs channel enabled on the push application, when `apnsChannel` is
+   * configured. `undefined` when no APNs configuration was provided. Either the
+   * production (`CfnAPNSChannel`) or sandbox (`CfnAPNSSandboxChannel`) channel,
+   * depending on `apnsChannel.sandbox`.
+   */
+  apnsChannel?: CfnAPNSChannel | CfnAPNSSandboxChannel;
+  /**
+   * The GCM/FCM channel enabled on the push application, when `fcmChannel` is
+   * configured. `undefined` when no FCM configuration was provided.
+   */
+  gcmChannel?: CfnGCMChannel;
   /**
    * The Amazon Connect instance created in create-from-scratch mode (when
    * `domainName` is omitted). `undefined` in attach mode.
@@ -125,6 +142,42 @@ export type AmplifyNotificationsProps = {
    * package (`lib/push-handler-asset`, produced by `post:compile`).
    */
   readonly pushLambdaCodePath?: string;
+
+  /**
+   * OPTIONAL APNs channel configuration (token / `.p8` auth). When provided, the
+   * construct enables the APNs channel on the created End User Messaging
+   * (Pinpoint) application. All values are plain strings — the Amplify Gen2
+   * factory resolves the `.p8` key from an Amplify `secret()` before passing it
+   * here, keeping this construct framework-agnostic. When omitted, no APNs
+   * channel is configured.
+   */
+  readonly apnsChannel?: {
+    /** The APNs token signing key contents (the `AuthKey_<keyId>.p8` file). */
+    readonly tokenKey: string;
+    /** The 10-character key identifier assigned to the APNs signing key. */
+    readonly keyId: string;
+    /** The Apple Developer account team identifier. */
+    readonly teamId: string;
+    /** The iOS app bundle identifier. */
+    readonly bundleId: string;
+    /**
+     * Configure the APNs **sandbox** channel instead of the production channel.
+     * @default false
+     */
+    readonly sandbox?: boolean;
+  };
+
+  /**
+   * OPTIONAL FCM/GCM channel configuration (FCM HTTP v1 auth). When provided, the
+   * construct enables the GCM channel on the created End User Messaging
+   * (Pinpoint) application. The value is a plain string — the Amplify Gen2
+   * factory resolves the service-account JSON from an Amplify `secret()` before
+   * passing it here. When omitted, no GCM channel is configured.
+   */
+  readonly fcmChannel?: {
+    /** The FCM HTTP v1 service-account JSON credential contents. */
+    readonly serviceJson: string;
+  };
 };
 
 /**
@@ -384,14 +437,60 @@ export class AmplifyNotifications
     // Amazon Connect has no native mobile-push channel, so a Lambda bridges the
     // gap: Connect invokes it via a Journey Custom-action to deliver push
     // through AWS End User Messaging (Pinpoint SendMessages). A minimal Pinpoint
-    // application is always created so SendMessages has a valid ApplicationId;
-    // the customer enables the APNS / GCM channels on it with their own platform
-    // credentials (console / CLI) — see the package README.
+    // application is always created so SendMessages has a valid ApplicationId.
+    // The APNs / GCM channels on it are configured only when the caller supplies
+    // credentials (see `apnsChannel` / `fcmChannel`); otherwise the application
+    // is created with no channel enabled (delivery will 404 until configured).
     const pushApplication = new CfnApp(this, 'PushApp', {
       name: `${domainName}-push`,
     });
     const eumApplicationId = pushApplication.ref;
     this.eumApplicationId = eumApplicationId;
+
+    // ---- Optional push channels (secret-driven) ---------------------------
+    // The Amplify Gen2 factory resolves the APNs `.p8` key / FCM service-account
+    // JSON from Amplify `secret()`s to deploy-time CFN tokens and passes them as
+    // plain strings. Channel credentials flow through CloudFormation the same way
+    // Amplify's own external-auth-provider secrets do (defineAuth) — via the
+    // secret custom resource's token, never as literal template plain text. The
+    // channels attach to THIS construct's own EUM app, so they are provisioned
+    // after it and torn down with the stack. The `applicationId` prop resolves to
+    // a `Ref` on the EUM app, so CloudFormation infers the create/delete ordering
+    // — no explicit `addDependency` needed.
+    const { apnsChannel: apnsConfig, fcmChannel: fcmConfig } = props;
+
+    let apnsChannel: CfnAPNSChannel | CfnAPNSSandboxChannel | undefined;
+    if (apnsConfig) {
+      // Token (`.p8`) authentication: the CFN `DefaultAuthenticationMethod`
+      // property accepts `TOKEN` (signing-key auth) or `CERTIFICATE`; token auth
+      // uses the `.p8` signing key. Sandbox selects the development APNs endpoint
+      // used by development-signed builds.
+      const apnsProps = {
+        applicationId: eumApplicationId,
+        enabled: true,
+        defaultAuthenticationMethod: 'TOKEN',
+        tokenKey: apnsConfig.tokenKey,
+        tokenKeyId: apnsConfig.keyId,
+        teamId: apnsConfig.teamId,
+        bundleId: apnsConfig.bundleId,
+      };
+      apnsChannel = apnsConfig.sandbox
+        ? new CfnAPNSSandboxChannel(this, 'ApnsSandboxChannel', apnsProps)
+        : new CfnAPNSChannel(this, 'ApnsChannel', apnsProps);
+    }
+
+    let gcmChannel: CfnGCMChannel | undefined;
+    if (fcmConfig) {
+      // FCM HTTP v1: `TOKEN` auth with a service-account JSON credential. Google
+      // deprecated the legacy server-key (`ApiKey` / `KEY`) API, so only the v1
+      // `ServiceJson` (FCM v1) path is used.
+      gcmChannel = new CfnGCMChannel(this, 'GcmChannel', {
+        applicationId: eumApplicationId,
+        enabled: true,
+        defaultAuthenticationMethod: 'TOKEN',
+        serviceJson: fcmConfig.serviceJson,
+      });
+    }
 
     const pushCodePath = props.pushLambdaCodePath ?? defaultPushLambdaCodePath;
     const pushFn = new lambda.Function(this, 'PushHandlerFn', {
@@ -571,6 +670,8 @@ export class AmplifyNotifications
       deviceObjectType: deviceType,
       pushFunction: pushFn,
       pushApplication,
+      apnsChannel,
+      gcmChannel,
       connectInstance,
       profilesDomain,
     };

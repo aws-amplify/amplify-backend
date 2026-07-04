@@ -4,7 +4,11 @@ export {
   AmplifyNotificationsProps,
   NotificationsResources,
 } from './construct.js';
-export { NotificationsFactoryProps } from './types.js';
+export {
+  NotificationsFactoryProps,
+  ApnsChannelProps,
+  FcmChannelProps,
+} from './types.js';
 export {
   OBJECT_TYPE_PROFILE,
   OBJECT_TYPE_DEVICE,

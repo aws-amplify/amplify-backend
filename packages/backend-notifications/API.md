@@ -5,8 +5,12 @@
 ```ts
 
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
+import { BackendSecret } from '@aws-amplify/plugin-types';
+import { CfnAPNSChannel } from 'aws-cdk-lib/aws-pinpoint';
+import { CfnAPNSSandboxChannel } from 'aws-cdk-lib/aws-pinpoint';
 import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
 import { CfnDomain } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnGCMChannel } from 'aws-cdk-lib/aws-pinpoint';
 import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { Construct } from 'constructs';
@@ -52,6 +56,25 @@ export type AmplifyNotificationsProps = {
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
     readonly pushLambdaCodePath?: string;
+    readonly apnsChannel?: {
+        readonly tokenKey: string;
+        readonly keyId: string;
+        readonly teamId: string;
+        readonly bundleId: string;
+        readonly sandbox?: boolean;
+    };
+    readonly fcmChannel?: {
+        readonly serviceJson: string;
+    };
+};
+
+// @public
+export type ApnsChannelProps = {
+    keySecret: BackendSecret;
+    keyId: string;
+    teamId: string;
+    bundleId: string;
+    sandbox?: boolean;
 };
 
 // @public
@@ -59,6 +82,11 @@ export const COGNITO_USER_KEY = "cognitoUserKey";
 
 // @public
 export const defineNotifications: (props?: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
+
+// @public
+export type FcmChannelProps = {
+    credentialsSecret: BackendSecret;
+};
 
 // @public (undocumented)
 export type FieldMap = CfnObjectType.FieldMapProperty;
@@ -71,6 +99,8 @@ export type NotificationsFactoryProps = {
     domainName?: string;
     instanceAlias?: string;
     expirationDays?: number;
+    apns?: ApnsChannelProps;
+    fcm?: FcmChannelProps;
 };
 
 // @public
@@ -81,6 +111,8 @@ export type NotificationsResources = {
     deviceObjectType: CfnObjectType;
     pushFunction: lambda.IFunction;
     pushApplication: CfnApp;
+    apnsChannel?: CfnAPNSChannel | CfnAPNSSandboxChannel;
+    gcmChannel?: CfnGCMChannel;
     connectInstance?: CfnInstance;
     profilesDomain?: CfnDomain;
 };

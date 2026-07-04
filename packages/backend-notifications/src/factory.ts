@@ -32,6 +32,7 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
 
   generateContainerEntry = ({
     scope,
+    backendSecretResolver,
   }: GenerateContainerEntryProps): AmplifyNotifications => {
     const { userPool, userPoolClient } = this.authResources.resources;
     const region = Stack.of(scope).region;
@@ -45,6 +46,28 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       domainName: this.props.domainName,
       instanceAlias: this.props.instanceAlias,
       expirationDays: this.props.expirationDays,
+      // Resolve the optional push-channel secret material (Amplify `secret()`) to
+      // deploy-time CFN tokens here — the construct stays framework-agnostic and
+      // receives only plain strings. Mirrors how `defineAuth` resolves external
+      // provider secrets in `translate_auth_props`.
+      apnsChannel: this.props.apns
+        ? {
+            tokenKey: backendSecretResolver
+              .resolveSecret(this.props.apns.keySecret)
+              .unsafeUnwrap(),
+            keyId: this.props.apns.keyId,
+            teamId: this.props.apns.teamId,
+            bundleId: this.props.apns.bundleId,
+            sandbox: this.props.apns.sandbox,
+          }
+        : undefined,
+      fcmChannel: this.props.fcm
+        ? {
+            serviceJson: backendSecretResolver
+              .resolveSecret(this.props.fcm.credentialsSecret)
+              .unsafeUnwrap(),
+          }
+        : undefined,
     });
   };
 }
@@ -142,17 +165,34 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  * Provide `domainName` to ATTACH to an EXISTING Customer Profiles domain — e.g.
  * the domain Amazon Connect auto-creates for your instance — registering the
  * object types into it (additive), without creating an instance or a domain.
+ *
+ * Optionally provide `apns` and/or `fcm` to enable the corresponding push
+ * channel on the created End User Messaging (Pinpoint) application. The
+ * sensitive key material (APNs `.p8`, FCM service-account JSON) is supplied via
+ * Amplify `secret()` and resolved at deploy time; non-secret identifiers are
+ * plain props. Omit them to leave the channels not configured (unchanged
+ * behavior).
  * @example
  * import { defineBackend } from '@aws-amplify/backend';
  * import { defineNotifications } from '@aws-amplify/backend-notifications';
  * import { auth } from './auth/resource';
+ * import { secret } from '@aws-amplify/backend';
  *
  * defineBackend({
  *   auth,
  *   // Zero-config: creates a Connect instance + Customer Profiles domain:
  *   notifications: defineNotifications(),
- *   // ...or attach to an existing domain:
- *   // notifications: defineNotifications({ domainName: 'amazon-connect-amplify' }),
+ *   // ...or attach to an existing domain and enable push channels:
+ *   // notifications: defineNotifications({
+ *   //   domainName: 'amazon-connect-amplify',
+ *   //   apns: {
+ *   //     keySecret: secret('APNS_SIGNING_KEY'),
+ *   //     keyId: 'ABC123DEFG',
+ *   //     teamId: 'DEF456GHIJ',
+ *   //     bundleId: 'com.example.app',
+ *   //   },
+ *   //   fcm: { credentialsSecret: secret('FCM_SERVICE_ACCOUNT_JSON') },
+ *   // }),
  * });
  */
 export const defineNotifications = (

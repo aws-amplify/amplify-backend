@@ -44,14 +44,65 @@ The backend endpoint is surfaced under the fixed custom-output key
 
 ## Enabling push channels (APNS / GCM)
 
-This construct creates the End User Messaging (Pinpoint) **application only**.
-It does **not** configure the APNS (Apple) or GCM/FCM (Android) channels,
-because those require **platform credentials that are secrets** (an APNS signing
-key / certificate, or an FCM server key / service-account JSON). Baking those
-into CloudFormation would leak secrets into template state.
+The APNS (Apple) and GCM/FCM (Android) channels require **platform credentials
+that are secrets** (an APNS `.p8` token signing key, or an FCM service-account
+JSON). There are two ways to enable them.
 
-After deploying, enable the channels you need on the created application using
-**your own credentials**, via the console or CLI:
+### Option A — declarative, via Amplify `secret()` (recommended)
+
+Pass an optional `apns` and/or `fcm` config to `defineNotifications`. The secret
+key material is supplied with Amplify's `secret()` and resolved at deploy time —
+it is never written into the CloudFormation template as plain text (it flows
+through the same secret custom-resource token Amplify uses for external-auth
+provider secrets in `defineAuth`). Non-secret identifiers are plain props.
+
+First store the secrets:
+
+```bash
+npx ampx sandbox secret set APNS_SIGNING_KEY      # paste the AuthKey_XXXX.p8 contents
+npx ampx sandbox secret set FCM_SERVICE_ACCOUNT_JSON  # paste the service-account JSON
+```
+
+Then wire them into the resource:
+
+```ts
+import { defineBackend, secret } from '@aws-amplify/backend';
+import { defineNotifications } from '@aws-amplify/backend-notifications';
+import { auth } from './auth/resource';
+
+defineBackend({
+  auth,
+  notifications: defineNotifications({
+    domainName: 'amazon-connect-amplify',
+    // APNs token (.p8) auth. Set `sandbox: true` for development builds.
+    apns: {
+      keySecret: secret('APNS_SIGNING_KEY'),
+      keyId: 'ABC123DEFG',
+      teamId: 'DEF456GHIJ',
+      bundleId: 'com.example.app',
+    },
+    // FCM HTTP v1 (Google deprecated the legacy server key). The credential is
+    // the service-account JSON; the construct sets DefaultAuthenticationMethod=TOKEN.
+    fcm: {
+      credentialsSecret: secret('FCM_SERVICE_ACCOUNT_JSON'),
+    },
+  }),
+});
+```
+
+When `apns`/`fcm` are omitted the channels are left unset (the End User
+Messaging application is still created, but no channel is enabled) — unchanged
+behavior.
+
+> Note: `SendMessages` will only deliver once a channel is enabled **and** the
+> credentials are valid for a real Apple/Google project. A placeholder/dummy
+> secret enables the channel-configuration path but will not deliver to a device.
+
+### Option B — enable the channels yourself after deploy
+
+If you prefer to keep credentials entirely out of the backend definition, omit
+`apns`/`fcm` and enable the channels on the created application with **your own
+credentials**, via the console or CLI:
 
 - **Console:** AWS End User Messaging → your application → **Push notifications**
   → enable APNS and/or FCM and upload your credentials.

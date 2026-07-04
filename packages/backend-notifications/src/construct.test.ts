@@ -2,7 +2,10 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { AmplifyNotifications } from './construct.js';
+import {
+  AmplifyNotifications,
+  AmplifyNotificationsProps,
+} from './construct.js';
 
 const ISSUER = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_EXAMPLE';
 const AUDIENCE = ['example-client-id'];
@@ -11,11 +14,16 @@ const EXISTING_DOMAIN = 'amazon-connect-amplify';
 
 /** Attach-mode synth: registers object types INTO an existing domain. */
 const synth = (
-  props: Partial<{
-    domainName: string;
-    expirationDays: number;
-    instanceAlias: string;
-  }> = {},
+  props: Partial<
+    Pick<
+      AmplifyNotificationsProps,
+      | 'domainName'
+      | 'expirationDays'
+      | 'instanceAlias'
+      | 'apnsChannel'
+      | 'fcmChannel'
+    >
+  > = {},
 ): { construct: AmplifyNotifications; template: Template } => {
   const stack = new Stack(new App());
   const construct = new AmplifyNotifications(stack, 'notifications', {
@@ -214,6 +222,101 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
         }),
       },
     });
+  });
+});
+
+void describe('AmplifyNotifications construct — optional push channels', () => {
+  const APNS = {
+    tokenKey: 'FAKE_P8_KEY_CONTENT_FOR_TESTING',
+    keyId: 'ABC123DEFG',
+    teamId: 'DEF456GHIJ',
+    bundleId: 'com.example.app',
+  };
+  const FCM_JSON = '{"type":"service_account","project_id":"example"}';
+
+  void it('configures NO channel when neither apns nor fcm is provided', () => {
+    const { construct, template } = synth();
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 0);
+    template.resourceCountIs('AWS::Pinpoint::APNSSandboxChannel', 0);
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 0);
+    assert.strictEqual(construct.resources.apnsChannel, undefined);
+    assert.strictEqual(construct.resources.gcmChannel, undefined);
+  });
+
+  void it('enables the APNs (production) channel with token auth when apnsChannel is provided', () => {
+    const { construct, template } = synth({ apnsChannel: APNS });
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 1);
+    template.resourceCountIs('AWS::Pinpoint::APNSSandboxChannel', 0);
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      TokenKey: APNS.tokenKey,
+      TokenKeyId: APNS.keyId,
+      TeamId: APNS.teamId,
+      BundleId: APNS.bundleId,
+      ApplicationId: Match.anyValue(),
+    });
+    assert.ok(construct.resources.apnsChannel);
+  });
+
+  void it('enables the APNs SANDBOX channel when apnsChannel.sandbox is true', () => {
+    const { template } = synth({
+      apnsChannel: { ...APNS, sandbox: true },
+    });
+    template.resourceCountIs('AWS::Pinpoint::APNSSandboxChannel', 1);
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 0);
+    template.hasResourceProperties('AWS::Pinpoint::APNSSandboxChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      TokenKey: APNS.tokenKey,
+      TokenKeyId: APNS.keyId,
+      TeamId: APNS.teamId,
+      BundleId: APNS.bundleId,
+    });
+  });
+
+  void it('enables the GCM/FCM channel with FCM HTTP v1 (TOKEN + ServiceJson) when fcmChannel is provided', () => {
+    const { construct, template } = synth({
+      fcmChannel: { serviceJson: FCM_JSON },
+    });
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 1);
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      ServiceJson: FCM_JSON,
+      ApplicationId: Match.anyValue(),
+    });
+    assert.ok(construct.resources.gcmChannel);
+    // FCM v1 only: the legacy server-key path is not used.
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(!json.includes('ApiKey'));
+  });
+
+  void it('enables BOTH channels when apns and fcm are provided together', () => {
+    const { template } = synth({
+      apnsChannel: APNS,
+      fcmChannel: { serviceJson: FCM_JSON },
+    });
+    template.resourceCountIs('AWS::Pinpoint::APNSChannel', 1);
+    template.resourceCountIs('AWS::Pinpoint::GCMChannel', 1);
+  });
+
+  void it('points the channels at the construct-created EUM application', () => {
+    const { construct, template } = synth({
+      apnsChannel: APNS,
+      fcmChannel: { serviceJson: FCM_JSON },
+    });
+    // The channel ApplicationId is a Ref to the same Pinpoint app the push
+    // Lambda targets — the channels attach to our own EUM app (logical id
+    // derived from the `PushApp` construct id).
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      ApplicationId: { Ref: Match.stringLikeRegexp('PushApp') },
+    });
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      ApplicationId: { Ref: Match.stringLikeRegexp('PushApp') },
+    });
+    assert.ok(construct.resources.apnsChannel);
+    assert.ok(construct.resources.gcmChannel);
   });
 });
 
