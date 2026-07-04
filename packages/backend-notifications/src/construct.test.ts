@@ -61,11 +61,16 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     assert.strictEqual(construct.domainName, EXISTING_DOMAIN);
   });
 
-  void it('registers the AmplifyProfile + AmplifyDevice object types INTO the existing domain', () => {
+  void it('registers the AmplifyProfile + AmplifyGuestProfile + AmplifyDevice object types INTO the existing domain', () => {
     const { template } = synth();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
+      DomainName: EXISTING_DOMAIN,
+      AllowProfileCreation: true,
+    });
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyGuestProfile',
       DomainName: EXISTING_DOMAIN,
       AllowProfileCreation: true,
     });
@@ -128,6 +133,28 @@ void describe('AmplifyNotifications construct — domain attach', () => {
       'the policy must not use a domains/* wildcard',
     );
   });
+
+  void it('grants profile:MergeProfiles on the enforced (undocumented) merge resource ARN', () => {
+    const { template } = synth();
+    // MergeProfiles authorizes against an undocumented
+    // resource ARN of the shape .../domains/<domain>/profiles/objects/merge
+    // (NOT the SAR-documented `domains` ARN). It lives in its own statement.
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'profile:MergeProfiles',
+          }),
+        ]),
+      }),
+    });
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(
+      json.includes(`/domains/${EXISTING_DOMAIN}/profiles/objects/merge`),
+      'expected MergeProfiles to target the enforced merge resource ARN',
+    );
+  });
 });
 
 void describe('AmplifyNotifications construct — HTTP API', () => {
@@ -150,7 +177,30 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
     assert.ok(construct.resources.identifyUserFunction);
     assert.ok(construct.resources.httpApi);
     assert.ok(construct.resources.profileObjectType);
+    assert.ok(construct.resources.guestProfileObjectType);
     assert.ok(construct.resources.deviceObjectType);
+  });
+
+  void it('adds an IAM-authorized GUEST route to the same Lambda with payload format 1.0', () => {
+    const { construct, template } = synth();
+    assert.strictEqual(construct.guestIdentifyUserPath, '/identify-user-guest');
+    assert.strictEqual(typeof construct.guestRouteInvokeArn, 'string');
+    // The guest route is authorized with AWS_IAM (SigV4), not JWT.
+    template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+      RouteKey: 'POST /identify-user-guest',
+      AuthorizationType: 'AWS_IAM',
+    });
+    // The authed route stays JWT-authorized.
+    template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+      RouteKey: 'POST /identify-user',
+      AuthorizationType: 'JWT',
+    });
+    // The guest integration MUST use payload format 1.0 so the Lambda receives
+    // requestContext.identity.cognitoIdentityId (format 2.0 has no identity).
+    template.hasResourceProperties('AWS::ApiGatewayV2::Integration', {
+      PayloadFormatVersion: '1.0',
+    });
+    template.hasOutput('GuestIdentifyRouteInvokeArn', {});
   });
 });
 
@@ -359,16 +409,20 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
 
   void it('registers the object types INTO the created domain with an explicit dependency on it', () => {
     const { construct, template } = synthCreate();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: construct.domainName,
     });
 
-    // Both object types must DependsOn the created domain (in-construct ordering
+    // All object types must DependsOn the created domain (in-construct ordering
     // — no cross-stack hack): the domain provisions first and is torn down last.
     // The created domain's logical id is derived from its construct id.
-    for (const objectTypeName of ['AmplifyProfile', 'AmplifyDevice']) {
+    for (const objectTypeName of [
+      'AmplifyProfile',
+      'AmplifyGuestProfile',
+      'AmplifyDevice',
+    ]) {
       template.hasResource('AWS::CustomerProfiles::ObjectType', {
         Properties: Match.objectLike({ ObjectTypeName: objectTypeName }),
         DependsOn: Match.arrayWith([Match.stringLikeRegexp('ProfilesDomain')]),

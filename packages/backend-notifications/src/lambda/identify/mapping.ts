@@ -1,5 +1,6 @@
 import { ChannelType, IdentifyUserRequest } from './types.js';
-import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
+import { MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
+import { Principal } from './principal.js';
 
 /** A standard Customer Profiles address (subset used by this backend). */
 export type ProfileAddress = {
@@ -112,13 +113,15 @@ export const hasDeviceData = (req: IdentifyUserRequest): boolean =>
 
 /**
  * Build the UpdateProfile payload (standard fields + Attributes map) for the
- * profile identified by the verified `sub`.
+ * profile identified by the verified {@link Principal} (authed `sub` or guest
+ * `cognitoIdentityId`).
  *
- * SECURITY: `sub` comes from the verified JWT claims. The client-supplied
- * `userId` is stored only as the `appUserId` attribute — never the identity.
+ * SECURITY: `principal.value` comes from an authorizer-verified source (JWT
+ * claims or the IAM/Cognito identity). The client-supplied `userId` is stored
+ * only as the `appUserId` attribute — never the identity.
  */
 export const buildProfileUpdate = (
-  sub: string,
+  principal: Principal,
   req: IdentifyUserRequest,
 ): ProfileUpdate => {
   const profile = req.userProfile ?? {};
@@ -129,7 +132,7 @@ export const buildProfileUpdate = (
 
   const attributes = compact({
     // Identity trail (searchable key is separate; this is for reference only).
-    [COGNITO_USER_KEY]: sub,
+    [principal.keyName]: principal.value,
     appUserId: req.userId,
 
     // Targeting / custom attributes for Connect segmentation.
@@ -177,9 +180,10 @@ export const buildProfileUpdate = (
  * Build the `_source.*` payload for the AmplifyDevice object type.
  *
  * Keyed UNIQUELY by the stable `deviceId`; `deviceToken` (options.address) is a
- * mutable field so token refreshes upsert the same object in place. Carries
- * `cognitoSub` (the verified JWT sub) as the PROFILE-resolution key so the
- * device merges into the profile bound to that sub.
+ * mutable field so token refreshes upsert the same object in place. Carries the
+ * verified identity field (`cognitoSub` for authed, `cognitoIdentityId` for
+ * guest) as the PROFILE-resolution key so the device merges into the profile
+ * bound to that {@link Principal}.
  *
  * `platform` / `appVersion` come from the options, falling back to the
  * `userProfile.demographic` equivalents. `updatedAt` is server-set on every
@@ -188,7 +192,7 @@ export const buildProfileUpdate = (
  * preserved across PutProfileObject replacements, otherwise it defaults to now.
  */
 export const buildDeviceObject = (
-  sub: string,
+  principal: Principal,
   req: IdentifyUserRequest,
   existingCreatedAt?: string,
 ): Record<string, string> => {
@@ -199,7 +203,7 @@ export const buildDeviceObject = (
   const now = new Date().toISOString();
 
   return compact({
-    cognitoSub: sub,
+    [principal.objectField]: principal.value,
     deviceId: options.deviceId,
     deviceToken: options.address,
     channelType: options.channelType,

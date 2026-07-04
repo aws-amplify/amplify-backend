@@ -8,9 +8,17 @@ import {
   targetingFlagsForChannel,
 } from './mapping.js';
 import { IdentifyUserRequest } from './types.js';
-import { COGNITO_USER_KEY, MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
+import { authedPrincipal, guestPrincipal } from './principal.js';
+import {
+  COGNITO_IDENTITY_KEY,
+  COGNITO_USER_KEY,
+  MAX_ATTRIBUTE_LENGTH,
+} from '../../constants.js';
 
 const SUB = 'verified-cognito-sub-123';
+const IDENTITY_ID = 'us-east-1:guest-uuid-abc';
+const P = authedPrincipal(SUB);
+const GUEST = guestPrincipal(IDENTITY_ID);
 
 void describe('flatten', () => {
   void it('returns empty string for no values', () => {
@@ -75,7 +83,7 @@ void describe('buildProfileUpdate', () => {
         plan: 'premium',
       },
     };
-    const u = buildProfileUpdate(SUB, req);
+    const u = buildProfileUpdate(P, req);
     assert.strictEqual(u.emailAddress, 'ada@example.com');
     assert.strictEqual(u.firstName, 'Ada');
     assert.strictEqual(u.lastName, 'Lovelace');
@@ -97,7 +105,7 @@ void describe('buildProfileUpdate', () => {
         },
       },
     };
-    const u = buildProfileUpdate(SUB, req);
+    const u = buildProfileUpdate(P, req);
     assert.deepStrictEqual(u.address, {
       city: 'Seattle',
       country: 'US',
@@ -116,7 +124,7 @@ void describe('buildProfileUpdate', () => {
       },
       options: { userAttributes: { roles: ['admin', 'beta'] } },
     };
-    const u = buildProfileUpdate(SUB, req);
+    const u = buildProfileUpdate(P, req);
     assert.deepStrictEqual(JSON.parse(u.attributes.customProperties), {
       hobbies: JSON.stringify(['chess', 'go']),
       newsletter: 'true',
@@ -129,14 +137,14 @@ void describe('buildProfileUpdate', () => {
 
   void it('promotes hasGCM / hasAPNS from the channel type', () => {
     assert.strictEqual(
-      buildProfileUpdate(SUB, {
+      buildProfileUpdate(P, {
         userProfile: {},
         options: { channelType: 'GCM' },
       }).attributes.hasGCM,
       'true',
     );
     assert.strictEqual(
-      buildProfileUpdate(SUB, {
+      buildProfileUpdate(P, {
         userProfile: {},
         options: { channelType: 'APNS_SANDBOX' },
       }).attributes.hasAPNS,
@@ -145,7 +153,7 @@ void describe('buildProfileUpdate', () => {
   });
 
   void it('omits empty address and undefined fields', () => {
-    const u = buildProfileUpdate(SUB, { userProfile: {} });
+    const u = buildProfileUpdate(P, { userProfile: {} });
     assert.strictEqual(u.address, undefined);
     assert.strictEqual(u.emailAddress, undefined);
     assert.deepStrictEqual(u.attributes, { [COGNITO_USER_KEY]: SUB });
@@ -167,7 +175,7 @@ void describe('buildDeviceObject', () => {
         optOut: 'NONE',
       },
     };
-    const obj = buildDeviceObject(SUB, req);
+    const obj = buildDeviceObject(P, req);
     assert.strictEqual(obj.cognitoSub, SUB);
     assert.strictEqual(obj.deviceId, 'device-1');
     assert.strictEqual(obj.deviceToken, 'push-token-abc');
@@ -186,7 +194,7 @@ void describe('buildDeviceObject', () => {
       },
       options: { deviceId: 'd', platform: 'iOS', appVersion: '2.5.0' },
     };
-    const obj = buildDeviceObject(SUB, req);
+    const obj = buildDeviceObject(P, req);
     assert.strictEqual(obj.platform, 'iOS');
     assert.strictEqual(obj.appVersion, '2.5.0');
   });
@@ -194,7 +202,7 @@ void describe('buildDeviceObject', () => {
   void it('createdAt is preserved from the existing object; updatedAt is always now', () => {
     const existingCreatedAt = '2020-01-01T00:00:00.000Z';
     const obj = buildDeviceObject(
-      SUB,
+      P,
       { userProfile: {}, options: { deviceId: 'device-1', address: 'tok' } },
       existingCreatedAt,
     );
@@ -204,7 +212,7 @@ void describe('buildDeviceObject', () => {
   });
 
   void it('defaults createdAt to now when there is no existing object', () => {
-    const obj = buildDeviceObject(SUB, {
+    const obj = buildDeviceObject(P, {
       userProfile: {},
       options: { deviceId: 'device-1' },
     });
@@ -217,16 +225,45 @@ void describe('buildDeviceObject', () => {
       userProfile: {},
       options: { deviceId: 'device-1', channelType: 'APNS' as const },
     };
-    const first = buildDeviceObject(SUB, {
+    const first = buildDeviceObject(P, {
       ...base,
       options: { ...base.options, address: 'token-v1' },
     });
-    const second = buildDeviceObject(SUB, {
+    const second = buildDeviceObject(P, {
       ...base,
       options: { ...base.options, address: 'token-v2' },
     });
     assert.strictEqual(first.deviceId, second.deviceId);
     assert.strictEqual(first.deviceToken, 'token-v1');
     assert.strictEqual(second.deviceToken, 'token-v2');
+  });
+});
+
+void describe('guest principal', () => {
+  void it('buildProfileUpdate keys the identity trail on cognitoIdentityKey, not cognitoUserKey', () => {
+    const u = buildProfileUpdate(GUEST, {
+      userId: 'client-supplied',
+      userProfile: { plan: 'free' },
+    });
+    assert.strictEqual(u.attributes[COGNITO_IDENTITY_KEY], IDENTITY_ID);
+    assert.strictEqual(u.attributes[COGNITO_USER_KEY], undefined);
+    assert.strictEqual(u.attributes.appUserId, 'client-supplied');
+    assert.strictEqual(u.attributes.plan, 'free');
+  });
+
+  void it('buildDeviceObject carries cognitoIdentityId (not cognitoSub) as the resolution field', () => {
+    const obj = buildDeviceObject(GUEST, {
+      userProfile: {},
+      options: {
+        deviceId: 'guest-device-1',
+        address: 'pre-login-token',
+        channelType: 'APNS',
+      },
+    });
+    assert.strictEqual(obj.cognitoIdentityId, IDENTITY_ID);
+    assert.strictEqual(obj.cognitoSub, undefined);
+    assert.strictEqual(obj.deviceId, 'guest-device-1');
+    assert.strictEqual(obj.deviceToken, 'pre-login-token');
+    assert.strictEqual(obj.channelType, 'APNS');
   });
 });

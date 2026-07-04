@@ -14,7 +14,10 @@ import {
   CfnGCMChannel,
 } from 'aws-cdk-lib/aws-pinpoint';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
-import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import {
+  HttpIamAuthorizer,
+  HttpJwtAuthorizer,
+} from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 
@@ -27,6 +30,8 @@ import {
 import {
   AMPLIFY_DEVICE_FIELDS,
   AMPLIFY_DEVICE_KEYS,
+  AMPLIFY_GUEST_PROFILE_FIELDS,
+  AMPLIFY_GUEST_PROFILE_KEYS,
   AMPLIFY_PROFILE_FIELDS,
   AMPLIFY_PROFILE_KEYS,
   OBJECT_TYPE_NAMES,
@@ -55,6 +60,8 @@ export type NotificationsResources = {
   httpApi: apigwv2.HttpApi;
   /** The AmplifyProfile object type registered on the domain. */
   profileObjectType: CfnObjectType;
+  /** The AmplifyGuestProfile object type registered on the domain. */
+  guestProfileObjectType: CfnObjectType;
   /** The AmplifyDevice object type registered on the domain. */
   deviceObjectType: CfnObjectType;
   /**
@@ -230,6 +237,19 @@ export class AmplifyNotifications
   public readonly apiEndpoint: string;
   /** The route path appended to {@link apiEndpoint}. */
   public readonly identifyUserPath = '/identify-user';
+  /**
+   * The GUEST route path appended to {@link apiEndpoint}.
+   * IAM/SigV4-authorized; unauthenticated Identity Pool callers sign requests to
+   * `POST {apiEndpoint}/identify-user-guest`.
+   */
+  public readonly guestIdentifyUserPath = '/identify-user-guest';
+  /**
+   * The `execute-api:Invoke` ARN of the GUEST route, to
+   * grant to the app's Cognito Identity Pool UNAUTHENTICATED role so guests can
+   * call the route. Scoped to POST on the guest path of this API's default
+   * stage.
+   */
+  public readonly guestRouteInvokeArn!: string;
   /** The Customer Profiles domain name the object types are registered into. */
   public readonly domainName: string;
   /**
@@ -346,9 +366,30 @@ export class AmplifyNotifications
       expirationDays,
     });
 
+    // A distinct object type for GUEST profiles. Customer
+    // Profiles permits exactly one UNIQUE key per object type and PutProfileObject
+    // requires the ingested object to carry it; the authed AmplifyProfile reserves
+    // its UNIQUE key for cognitoSub, so guest profiles (keyed on the Identity Pool
+    // cognitoIdentityId) get their own type with cognitoIdentityKey as UNIQUE.
+    const guestProfileType = new CfnObjectType(
+      this,
+      'AmplifyGuestProfileType',
+      {
+        domainName,
+        objectTypeName: OBJECT_TYPE_NAMES.guestProfile,
+        description:
+          'Amplify identifyUser GUEST person profile (find-or-create by verified Cognito Identity Pool identityId)',
+        allowProfileCreation: true,
+        fields: AMPLIFY_GUEST_PROFILE_FIELDS,
+        keys: AMPLIFY_GUEST_PROFILE_KEYS,
+        expirationDays,
+      },
+    );
+
     if (profilesDomain) {
       profileType.addDependency(profilesDomain);
       deviceType.addDependency(profilesDomain);
+      guestProfileType.addDependency(profilesDomain);
     }
 
     // ---- Lambda handler ----------------------------------------------------
@@ -403,6 +444,24 @@ export class AmplifyNotifications
       }),
     );
 
+    // Merge-on-sign-in folds a prior guest profile
+    // (+ its device objects) into the authed profile via MergeProfiles.
+    // NOTE: the Service Authorization Reference lists MergeProfiles under the
+    // `domains` resource type, but the service ACTUALLY authorizes it against
+    // an undocumented, differently-shaped resource ARN (note the leading slash
+    // and the /profiles/objects/merge suffix):
+    //   arn:<partition>:profile:<region>:<account>:/domains/<domain>/profiles/objects/merge
+    // Granting the documented domain ARN is NOT sufficient. This dedicated
+    // statement targets the enforced resource.
+    const mergeProfilesArn = `arn:${stack.partition}:profile:${stack.region}:${stack.account}:/domains/${domainName}/profiles/objects/merge`;
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['profile:MergeProfiles'],
+        resources: [mergeProfilesArn],
+      }),
+    );
+
     // ---- HTTP API + JWT authorizer ----------------------------------------
     const authorizer = new HttpJwtAuthorizer('JwtAuthorizer', props.jwtIssuer, {
       jwtAudience: props.jwtAudience,
@@ -421,6 +480,43 @@ export class AmplifyNotifications
       authorizer,
     });
 
+    // ---- Guest (unauthenticated) route ------------------------------------
+    // A second route to the SAME identify Lambda, but
+    // authorized with IAM/SigV4 instead of a JWT — so an UNAUTHENTICATED Cognito
+    // Identity Pool caller (guest credentials) can register a device / seed a
+    // profile BEFORE login (the pre-login push-token case).
+    //
+    // The integration MUST use payload format 1.0: HTTP API payload format 2.0
+    // has NO `requestContext.identity` block, so the verified Cognito
+    // `cognitoIdentityId` (+ `cognitoAuthenticationType`) the Lambda keys the
+    // guest profile on is only present under format 1.0. The Lambda derives the
+    // guest identity SOLELY from that authorizer-verified field.
+    const iamAuthorizer = new HttpIamAuthorizer();
+    httpApi.addRoutes({
+      path: this.guestIdentifyUserPath,
+      methods: [apigwv2.HttpMethod.POST],
+      integration: new HttpLambdaIntegration('GuestIdentifyIntegration', fn, {
+        payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
+      }),
+      authorizer: iamAuthorizer,
+    });
+
+    // `execute-api:Invoke` ARN for the guest route — the app grants this to its
+    // Identity Pool UNAUTHENTICATED role so guests can call the route. Scoped as
+    // tightly as execute-api allows: the resource path `<stage>/POST/identify-
+    // user-guest` pins the grant to the POST method on the guest path alone (the
+    // `*` matches only the API's single default stage), so the unauth role can
+    // invoke NEITHER other methods NOR the authed `/identify-user` route.
+    this.guestRouteInvokeArn = Arn.format(
+      {
+        service: 'execute-api',
+        resource: httpApi.apiId,
+        resourceName: `*/POST${this.guestIdentifyUserPath}`,
+        arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+      },
+      stack,
+    );
+
     this.apiEndpoint = httpApi.apiEndpoint;
 
     // Scoped to the stack (not `this`) so the output keeps a stable, readable
@@ -431,6 +527,14 @@ export class AmplifyNotifications
     new CfnOutput(stack, 'IdentifyUserApiEndpoint', {
       value: httpApi.apiEndpoint,
       description: 'POST {value}/identify-user',
+    });
+
+    // Surface the guest route's invoke ARN so a human /
+    // the app can grant it to the Identity Pool unauthenticated role.
+    new CfnOutput(stack, 'GuestIdentifyRouteInvokeArn', {
+      value: this.guestRouteInvokeArn,
+      description:
+        'Grant execute-api:Invoke on this ARN to the Cognito Identity Pool unauthenticated role',
     });
 
     // ---- Push-delivery path -----------------------------------------------
@@ -667,6 +771,7 @@ export class AmplifyNotifications
       identifyUserFunction: fn,
       httpApi,
       profileObjectType: profileType,
+      guestProfileObjectType: guestProfileType,
       deviceObjectType: deviceType,
       pushFunction: pushFn,
       pushApplication,

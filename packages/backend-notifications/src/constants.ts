@@ -8,6 +8,19 @@
 /** Profile object type. Declares the searchable identity key + attr schema. */
 export const OBJECT_TYPE_PROFILE = 'AmplifyProfile';
 
+/**
+ * Guest profile object type. A distinct object type is
+ * required because Customer Profiles permits EXACTLY ONE `UNIQUE` key per object
+ * type AND `PutProfileObject` requires the ingested object to carry that UNIQUE
+ * key. The authed `AmplifyProfile` reserves its single UNIQUE key for
+ * `cognitoSub`, so guest profiles — keyed on the Identity Pool `identityId` —
+ * get their own object type whose UNIQUE key is `cognitoIdentityKey`. Both
+ * object types create ordinary profiles in the SAME domain; the device object
+ * type carries both identity keys as PROFILE keys so a device resolves to
+ * whichever profile it belongs to.
+ */
+export const OBJECT_TYPE_GUEST_PROFILE = 'AmplifyGuestProfile';
+
 /** Device object type. One object per stable deviceId; token is a field. */
 export const OBJECT_TYPE_DEVICE = 'AmplifyDevice';
 
@@ -18,6 +31,23 @@ export const OBJECT_TYPE_DEVICE = 'AmplifyDevice';
  * object type so device objects merge into the correct profile.
  */
 export const COGNITO_USER_KEY = 'cognitoUserKey';
+
+/**
+ * Searchable profile key that binds a profile to an
+ * UNAUTHENTICATED Cognito Identity Pool identity (the `cognitoIdentityId`, e.g.
+ * `us-east-1:<uuid>`). A guest has no JWT `sub`, so its profile is keyed by this
+ * key instead of {@link COGNITO_USER_KEY}. Also the PROFILE-resolution key on the
+ * device object type so a guest's device objects merge into the guest profile.
+ * On sign-in the guest profile is folded into the authed (sub-keyed) profile via
+ * MergeProfiles (see merge_resolver).
+ */
+export const COGNITO_IDENTITY_KEY = 'cognitoIdentityKey';
+
+/** Object field carrying the guest identity value (sourced into the key). */
+export const COGNITO_IDENTITY_FIELD = 'cognitoIdentityId';
+
+/** Object field carrying the authed identity value (sourced into the key). */
+export const COGNITO_SUB_FIELD = 'cognitoSub';
 
 /** Max length of a Customer Profiles attribute value (single string). */
 export const MAX_ATTRIBUTE_LENGTH = 255;

@@ -21,6 +21,7 @@
   "argv",
   "arn",
   "arns",
+  "authed",
   "authn",
   "authorizer",
   "aws",

@@ -1,7 +1,4 @@
-import type {
-  APIGatewayProxyEventV2WithJWTAuthorizer,
-  APIGatewayProxyStructuredResultV2,
-} from 'aws-lambda';
+import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 import {
   CustomerProfilesClient,
   PutProfileObjectCommand,
@@ -16,6 +13,8 @@ import {
 } from './mapping.js';
 import { resolveOrCreateProfile } from './profile_resolver.js';
 import { findExistingDeviceCreatedAt } from './device_resolver.js';
+import { mergeGuestIntoAuthed } from './merge_resolver.js';
+import { IdentifyEvent, resolvePrincipal } from './principal.js';
 import { withTransientRetry } from '../shared/retry.js';
 import { ENV_DOMAIN_NAME, OBJECT_TYPE_DEVICE } from '../../constants.js';
 import { ErrorResponse, SuccessResponse } from './types.js';
@@ -36,29 +35,20 @@ const response = (
 });
 
 /**
- * Extract the verified subject claim from the API Gateway JWT authorizer.
+ * HTTP API handler for the identify-user routes. Serves BOTH:
+ *   - `POST /identify-user`        — authed (Cognito user-pool JWT authorizer,
+ *     payload format 2.0). Identity = verified `sub`.
+ *   - `POST /identify-user-guest`  — guest (IAM/SigV4 authorization, payload
+ *     format 1.0). Identity = verified Cognito Identity Pool `cognitoIdentityId`
+ *     of an UNAUTHENTICATED identity.
  *
- * SECURITY: this is the ONLY source of identity. API Gateway populates it after
- * cryptographically verifying the Cognito token; the request body cannot
- * influence it.
- */
-const verifiedSub = (
-  event: APIGatewayProxyEventV2WithJWTAuthorizer,
-): string | undefined => {
-  const claims = event.requestContext?.authorizer?.jwt?.claims as
-    | Record<string, unknown>
-    | undefined;
-  const sub = claims?.sub;
-  return typeof sub === 'string' && sub.length > 0 ? sub : undefined;
-};
-
-/**
- * HTTP API handler for `POST /identify-user`. Derives the caller identity from
- * the verified Cognito JWT `sub` claim, then find-or-creates the caller's
- * Customer Profiles profile and upserts their device object.
+ * The verified {@link Principal} abstracts the two modes; the profile
+ * find-or-create + device upsert + attribute write are identity-agnostic. On an
+ * authed call carrying `options.previousGuestIdentityId`, the prior guest
+ * profile (and its devices) is folded into the authed profile via MergeProfiles.
  */
 export const handler = async (
-  event: APIGatewayProxyEventV2WithJWTAuthorizer,
+  event: IdentifyEvent,
 ): Promise<APIGatewayProxyStructuredResultV2> => {
   const domainName = process.env[ENV_DOMAIN_NAME];
   if (!domainName) {
@@ -66,10 +56,10 @@ export const handler = async (
     return response(500, { error: 'Server misconfiguration' });
   }
 
-  const sub = verifiedSub(event);
-  if (!sub) {
+  const principal = resolvePrincipal(event);
+  if (!principal) {
     return response(401, {
-      error: 'Unauthorized: missing or invalid verified subject claim',
+      error: 'Unauthorized: missing or invalid verified caller identity',
     });
   }
 
@@ -87,13 +77,13 @@ export const handler = async (
   const request = validation.value;
 
   try {
-    // 1) Resolve (or create + key) the profile bound to the verified sub.
+    // 1) Resolve (or create + key) the profile bound to the verified caller.
     //    Isolated behind resolveOrCreateProfile so the identity-resolution
-    //    strategy can be swapped without touching this orchestration.
+    //    strategy (authed sub vs guest identityId) is a single seam.
     const { profileId } = await resolveOrCreateProfile(
       profiles,
       domainName,
-      sub,
+      principal,
     );
 
     // 2) Register / update the device object (keyed by stable deviceId) only
@@ -108,7 +98,11 @@ export const handler = async (
         profileId,
         deviceId,
       );
-      const deviceObject = buildDeviceObject(sub, request, existingCreatedAt);
+      const deviceObject = buildDeviceObject(
+        principal,
+        request,
+        existingCreatedAt,
+      );
       await withTransientRetry(() =>
         profiles.send(
           new PutProfileObjectCommand({
@@ -122,7 +116,7 @@ export const handler = async (
 
     // 3) Set user-level / targeting attributes (incl. promoted hasGCM/hasAPNS)
     //    on the resolved profile.
-    const update = buildProfileUpdate(sub, request);
+    const update = buildProfileUpdate(principal, request);
     await withTransientRetry(() =>
       profiles.send(
         new UpdateProfileCommand({
@@ -143,6 +137,30 @@ export const handler = async (
         }),
       ),
     );
+
+    // 4) Merge-on-sign-in: an AUTHENTICATED caller that carries its prior guest
+    //    identityId folds the guest profile (+ its devices) into this authed
+    //    profile via MergeProfiles. Guests never trigger a merge. Best-effort:
+    //    a merge failure is logged but does not fail the identify result, which
+    //    already succeeded above.
+    const guestIdentityId = request.options?.previousGuestIdentityId;
+    if (principal.kind === 'authed' && guestIdentityId) {
+      try {
+        const outcome = await mergeGuestIntoAuthed(
+          profiles,
+          domainName,
+          guestIdentityId,
+          profileId,
+        );
+        console.log(
+          '[identify] guestMerge',
+          JSON.stringify({ merged: outcome.merged }),
+        );
+      } catch (mergeErr) {
+        const name = mergeErr instanceof Error ? mergeErr.name : 'UnknownError';
+        console.error('[identify] guestMergeError', JSON.stringify({ name }));
+      }
+    }
 
     return response(200, { status: 'ok' });
   } catch (err) {

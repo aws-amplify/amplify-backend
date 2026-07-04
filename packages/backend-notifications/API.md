@@ -41,6 +41,8 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
     readonly createsResources: boolean;
     readonly domainName: string;
     readonly eumApplicationId: string;
+    readonly guestIdentifyUserPath = "/identify-user-guest";
+    readonly guestRouteInvokeArn: string;
     readonly identifyUserPath = "/identify-user";
     readonly pushFunctionArn: string;
     readonly resources: NotificationsResources;
@@ -108,6 +110,7 @@ export type NotificationsResources = {
     identifyUserFunction: lambda.IFunction;
     httpApi: apigwv2.HttpApi;
     profileObjectType: CfnObjectType;
+    guestProfileObjectType: CfnObjectType;
     deviceObjectType: CfnObjectType;
     pushFunction: lambda.IFunction;
     pushApplication: CfnApp;
@@ -123,6 +126,7 @@ export const OBJECT_TYPE_DEVICE = "AmplifyDevice";
 // @public (undocumented)
 export const OBJECT_TYPE_NAMES: {
     profile: string;
+    guestProfile: string;
     device: string;
 };
 

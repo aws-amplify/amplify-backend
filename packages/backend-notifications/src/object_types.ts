@@ -1,7 +1,10 @@
 import type { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import {
+  COGNITO_IDENTITY_FIELD,
+  COGNITO_IDENTITY_KEY,
   COGNITO_USER_KEY,
   OBJECT_TYPE_DEVICE,
+  OBJECT_TYPE_GUEST_PROFILE,
   OBJECT_TYPE_PROFILE,
 } from './constants.js';
 
@@ -18,18 +21,17 @@ const field = (name: string, source: string, target: string): FieldMap => ({
 });
 
 /**
- * AmplifyProfile — the person profile object type.
+ * AmplifyProfile — the AUTHENTICATED person profile object type.
  *
- * Its ONLY role is to DECLARE the searchable identity key `cognitoUserKey`
- * (PROFILE + UNIQUE, sourced from the verified Cognito sub). The Lambda ingests
- * a minimal `{ cognitoSub }` object via PutProfileObject purely for the atomic
- * find-or-create by that key; person / targeting attributes are written
- * separately by UpdateProfile. So the object type maps only the single field
- * the resolution key needs — no redundant attribute mappings.
+ * Single searchable identity key `cognitoUserKey` (PROFILE + UNIQUE) sourced
+ * from `cognitoSub`. The Lambda ingests a minimal `{cognitoSub}` object via
+ * PutProfileObject purely for the atomic find-or-create by that UNIQUE key;
+ * person / targeting attributes are written separately by UpdateProfile.
  *
- * `allowProfileCreation` stays true so the PutProfileObject find-or-create
- * works: ingesting an object with a new `cognitoUserKey` value creates the
- * profile, and re-ingesting an existing one resolves to it in place.
+ * `allowProfileCreation` stays true so ingesting an object with a new
+ * `cognitoSub` creates the profile, and re-ingesting an existing one resolves
+ * to it in place. (Customer Profiles requires the ingested object to carry the
+ * object type's UNIQUE key — the reason guest profiles need their own type.)
  */
 export const AMPLIFY_PROFILE_FIELDS: FieldMap[] = [
   field('cognitoSub', 'cognitoSub', '_profile.Attributes.cognitoSub'),
@@ -37,12 +39,49 @@ export const AMPLIFY_PROFILE_FIELDS: FieldMap[] = [
 
 export const AMPLIFY_PROFILE_KEYS: KeyMap[] = [
   {
-    // Searchable identity key: SearchProfiles(KeyName='cognitoUserKey', ...).
+    // Searchable AUTHENTICATED identity key: SearchProfiles(cognitoUserKey,...).
     name: COGNITO_USER_KEY,
     objectTypeKeyList: [
       {
         standardIdentifiers: ['PROFILE', 'UNIQUE'],
         fieldNames: ['cognitoSub'],
+      },
+    ],
+  },
+];
+
+/**
+ * AmplifyGuestProfile — the GUEST person profile object type.
+ *
+ * A distinct object type is required: Customer Profiles allows EXACTLY ONE
+ * `UNIQUE` key per object type and `PutProfileObject` rejects an object that
+ * does not carry that UNIQUE key. The authed `AmplifyProfile` reserves its
+ * UNIQUE key for `cognitoSub`, so guest profiles get their own type whose
+ * single UNIQUE key is `cognitoIdentityKey`, sourced from the Identity Pool
+ * `cognitoIdentityId` (e.g. `us-east-1:<uuid>`).
+ *
+ * Guest profiles are created in the SAME domain, so a SearchProfiles by
+ * `cognitoIdentityKey` and a later MergeProfiles into the authed profile work
+ * uniformly. On sign-in the guest profile is folded into the authed
+ * (sub-keyed) profile via MergeProfiles (see merge_resolver).
+ */
+export const AMPLIFY_GUEST_PROFILE_FIELDS: FieldMap[] = [
+  field(
+    COGNITO_IDENTITY_FIELD,
+    COGNITO_IDENTITY_FIELD,
+    '_profile.Attributes.cognitoIdentityId',
+  ),
+];
+
+export const AMPLIFY_GUEST_PROFILE_KEYS: KeyMap[] = [
+  {
+    // Searchable GUEST identity key: SearchProfiles(cognitoIdentityKey,...).
+    // The single UNIQUE key on the guest object type.
+    name: COGNITO_IDENTITY_KEY,
+    objectTypeKeyList: [
+      {
+        standardIdentifiers: ['PROFILE', 'UNIQUE'],
+        fieldNames: [COGNITO_IDENTITY_FIELD],
       },
     ],
   },
@@ -60,23 +99,42 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[] = [
  * ingested object verbatim and returns it from ListProfileObjects, so they
  * survive refreshes without a field mapping. Only the key fields need targets,
  * and CP requires targets under a reserved namespace (there is no `_object.*`
- * namespace), so both keys map into `_profile.Attributes.*`. The
- * profile-resolution key = `cognitoUserKey` (from `cognitoSub`, the verified
- * JWT sub) merges the device into the profile bound to that sub.
+ * namespace), so the keys map into `_profile.Attributes.*`.
+ *
+ * TWO profile-resolution keys (both PROFILE, not UNIQUE) let a device merge into
+ * EITHER the authed profile (via `cognitoUserKey` from `cognitoSub`) or the
+ * GUEST profile (via `cognitoIdentityKey` from `cognitoIdentityId`), depending
+ * on which identity field the ingested object carries. The object always
+ * carries the UNIQUE `deviceId`, so ingestion is valid for both.
  */
 export const AMPLIFY_DEVICE_FIELDS: FieldMap[] = [
   field('cognitoSub', 'cognitoSub', '_profile.Attributes.cognitoSub'),
+  field(
+    COGNITO_IDENTITY_FIELD,
+    COGNITO_IDENTITY_FIELD,
+    '_profile.Attributes.cognitoIdentityId',
+  ),
   field('deviceId', 'deviceId', '_profile.Attributes.deviceId'),
 ];
 
 export const AMPLIFY_DEVICE_KEYS: KeyMap[] = [
   {
-    // Profile-resolution key: merges the device into the sub's profile.
+    // Profile-resolution key (authed): merges the device into the sub's profile.
     name: COGNITO_USER_KEY,
     objectTypeKeyList: [
       {
         standardIdentifiers: ['PROFILE'],
         fieldNames: ['cognitoSub'],
+      },
+    ],
+  },
+  {
+    // Profile-resolution key (guest): merges the device into the guest profile.
+    name: COGNITO_IDENTITY_KEY,
+    objectTypeKeyList: [
+      {
+        standardIdentifiers: ['PROFILE'],
+        fieldNames: [COGNITO_IDENTITY_FIELD],
       },
     ],
   },
@@ -94,5 +152,6 @@ export const AMPLIFY_DEVICE_KEYS: KeyMap[] = [
 
 export const OBJECT_TYPE_NAMES = {
   profile: OBJECT_TYPE_PROFILE,
+  guestProfile: OBJECT_TYPE_GUEST_PROFILE,
   device: OBJECT_TYPE_DEVICE,
 };

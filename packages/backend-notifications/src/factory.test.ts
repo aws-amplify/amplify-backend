@@ -133,12 +133,13 @@ void describe('defineNotifications', () => {
     const template = Template.fromStack(notifications.stack);
 
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
     // identify Lambda + push Lambda (push is always provisioned).
     template.resourceCountIs('AWS::Lambda::Function', 2);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
-    template.resourceCountIs('AWS::ApiGatewayV2::Route', 1);
+    // Authed (JWT) /identify-user route + guest (IAM) /identify-user-guest route.
+    template.resourceCountIs('AWS::ApiGatewayV2::Route', 2);
 
     assert.strictEqual(notifications.domainName, EXISTING_DOMAIN);
 
@@ -162,7 +163,7 @@ void describe('defineNotifications', () => {
 
     template.resourceCountIs('AWS::Connect::Instance', 1);
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
     // identify + push Lambdas still provisioned.
     template.resourceCountIs('AWS::Lambda::Function', 2);
 
@@ -206,6 +207,18 @@ void describe('defineNotifications', () => {
               'profile:ListProfileObjects',
               'profile:UpdateProfile',
             ],
+          }),
+        ]),
+      }),
+    });
+    // MergeProfiles is granted in its own statement
+    // against the enforced (undocumented) merge resource ARN.
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'profile:MergeProfiles',
           }),
         ]),
       }),
