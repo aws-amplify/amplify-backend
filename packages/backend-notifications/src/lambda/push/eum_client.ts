@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint';
-import { debugLoggingEnabled } from '../shared/debug.js';
 import { buildMessageConfiguration } from './payload.js';
 import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
 
@@ -68,8 +67,7 @@ export const isInvalidTokenFailure = (
  * the request channel and the per-address response (DeliveryStatus /
  * StatusCode / StatusMessage) plus the keep-vs-delete decision, so a failed
  * send can be diagnosed as channel-not-enabled vs invalid-token from the logs.
- * These carry NO device token or profile id; the rendered copy is logged only
- * under debug logging (default-off).
+ * These carry NO device token, profile id, or message copy.
  */
 export const deliverToDevice = async (
   pinpoint: PinpointClient,
@@ -83,23 +81,6 @@ export const deliverToDevice = async (
       channelType,
       message,
     );
-    // The built Title/Body echo the rendered, personalized copy, so they are
-    // logged ONLY under debug logging (default-off). This is the send-site proof
-    // of the exact copy handed to SendMessages when diagnosing rendered-vs-
-    // default; the default path never logs the copy or the device token.
-    if (debugLoggingEnabled()) {
-      const sentPayload =
-        messageConfiguration.GCMMessage ?? messageConfiguration.APNSMessage;
-      console.log(
-        '[push][debug] send.request',
-        JSON.stringify({
-          channelType,
-          title: sentPayload?.Title,
-          body: sentPayload?.Body,
-          hasData: Boolean(sentPayload?.Data),
-        }),
-      );
-    }
 
     const res = await pinpoint.send(
       new SendMessagesCommand({

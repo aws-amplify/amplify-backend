@@ -8,7 +8,6 @@ import { ConnectClient } from '@aws-sdk/client-connect';
 import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
-import { debugLoggingEnabled } from '../shared/debug.js';
 import { parsePushEvent } from './event.js';
 import { deliverToTargets } from './delivery.js';
 import {
@@ -46,14 +45,6 @@ const qconnect = new QConnectClient({});
 export const handler = async (
   event: unknown,
 ): Promise<PushDeliveryResponse> => {
-  // The raw event carries `CustomerData` (name / email / attributes) — full PII.
-  // It is logged ONLY when debug logging is explicitly enabled (default-off), to
-  // inspect the (undocumented) Journey Custom-action envelope shape during
-  // debugging. The default path logs nothing personal here.
-  if (debugLoggingEnabled()) {
-    console.log('[push][debug] rawEvent', JSON.stringify(event));
-  }
-
   const domainName = process.env[ENV_DOMAIN_NAME];
   const applicationId = process.env[ENV_EUM_APPLICATION_ID];
   if (!domainName || !applicationId) {

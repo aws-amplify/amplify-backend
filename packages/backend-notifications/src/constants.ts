@@ -33,15 +33,6 @@ export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
 export const ENV_EUM_APPLICATION_ID = 'EUM_APPLICATION_ID';
 
 /**
- * Environment variable gating verbose, PII-bearing diagnostic logs (the raw
- * invocation event and the rendered per-profile message copy). DEFAULT-OFF: the
- * default log path emits only PII-free operational signals. Set to `'true'` (or
- * `'1'`) ONLY for temporary debugging in a non-production account — never in
- * production, as the gated logs echo customer content.
- */
-export const ENV_DEBUG_LOG = 'NOTIFICATIONS_DEBUG_LOG';
-
-/**
  * Amazon Connect integration type that binds a Q in Connect (Wisdom) knowledge
  * base — the store for message templates — to a Connect instance. Used by the
  * push Lambda's runtime knowledge-base discovery

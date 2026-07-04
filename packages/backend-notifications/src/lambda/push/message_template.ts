@@ -21,7 +21,6 @@ import {
   PUSH_CHANNEL_SUBTYPE,
   Q_MESSAGE_TEMPLATES_INTEGRATION_TYPE,
 } from '../../constants.js';
-import { debugLoggingEnabled } from '../shared/debug.js';
 import {
   CampaignContext,
   ProfileTarget,
@@ -399,31 +398,18 @@ export const renderProfileChannelMessages = async (
   }
 
   // Operational signal only: which channels the template rendered usable copy
-  // for, the (non-personal) attribute KEY names supplied, and any keys the
-  // renderer left un-interpolated. The rendered title/body echo personalized
-  // customer copy, so they are logged ONLY under debug logging (default-off),
-  // alongside the profile id, to inspect per-profile interpolation.
+  // for, plus any template variables the renderer left un-interpolated (these
+  // are template-author-defined variable names, e.g. `Attributes.firstName`,
+  // not customer values). The rendered title/body are never logged.
   console.log(
     '[push] template.render',
     JSON.stringify({
       templateName: ctx.templateName,
-      customAttributeKeys: Object.keys(customAttributes),
       apnsRendered: Boolean(apns),
       gcmRendered: Boolean(fcm),
       attributesNotInterpolated: res.attributesNotInterpolated ?? [],
     }),
   );
-  if (debugLoggingEnabled()) {
-    console.log(
-      '[push][debug] template.render.copy',
-      JSON.stringify({
-        profileId: target.profileId,
-        templateName: ctx.templateName,
-        apns: apns ?? null,
-        gcm: fcm ?? null,
-      }),
-    );
-  }
 
   return Object.keys(perChannel).length > 0 ? perChannel : undefined;
 };
