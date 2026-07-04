@@ -94,11 +94,13 @@ export const validateBody = (body: unknown): ValidationResult => {
     }
     if (
       options.previousGuestIdentityId !== undefined &&
-      typeof options.previousGuestIdentityId !== 'string'
+      (typeof options.previousGuestIdentityId !== 'string' ||
+        options.previousGuestIdentityId.trim().length === 0 ||
+        options.previousGuestIdentityId.length > 128)
     ) {
       return {
         ok: false,
-        error: 'options.previousGuestIdentityId must be a string',
+        error: 'options.previousGuestIdentityId must be a non-empty string',
       };
     }
     if (

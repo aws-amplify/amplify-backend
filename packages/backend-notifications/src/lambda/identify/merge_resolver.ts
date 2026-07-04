@@ -10,8 +10,6 @@ import { guestPrincipal } from './principal.js';
 export type MergeOutcome = {
   /** `true` when a distinct guest profile was found and merged. */
   merged: boolean;
-  /** The guest profileId that was merged (and deleted), when `merged`. */
-  guestProfileId?: string;
 };
 
 /**
@@ -59,5 +57,5 @@ export const mergeGuestIntoAuthed = async (
     ),
   );
 
-  return { merged: true, guestProfileId };
+  return { merged: true };
 };

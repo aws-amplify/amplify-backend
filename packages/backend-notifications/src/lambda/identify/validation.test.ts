@@ -77,6 +77,40 @@ void describe('validateBody', () => {
     );
   });
 
+  void it('rejects a non-string / empty / oversized previousGuestIdentityId', () => {
+    assert.strictEqual(
+      validateBody({ userProfile: {}, options: { previousGuestIdentityId: 7 } })
+        .ok,
+      false,
+    );
+    assert.strictEqual(
+      validateBody({
+        userProfile: {},
+        options: { previousGuestIdentityId: '   ' },
+      }).ok,
+      false,
+    );
+    assert.strictEqual(
+      validateBody({
+        userProfile: {},
+        options: { previousGuestIdentityId: 'x'.repeat(129) },
+      }).ok,
+      false,
+    );
+  });
+
+  void it('accepts a valid previousGuestIdentityId', () => {
+    const res = validateBody({
+      userProfile: {},
+      options: { previousGuestIdentityId: 'us-east-1:guest-uuid' },
+    });
+    assert.strictEqual(res.ok, true);
+    assert.strictEqual(
+      res.value?.options?.previousGuestIdentityId,
+      'us-east-1:guest-uuid',
+    );
+  });
+
   void it('accepts a fully-populated valid request', () => {
     const res = validateBody({
       userId: 'u1',

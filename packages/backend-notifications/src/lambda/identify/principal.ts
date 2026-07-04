@@ -71,7 +71,6 @@ export type IdentifyEvent = {
     identity?: {
       cognitoIdentityId?: string | null;
       cognitoAuthenticationType?: string | null;
-      cognitoIdentityPoolId?: string | null;
     };
   };
 };
@@ -91,6 +90,11 @@ export const resolvePrincipal = (
 ): Principal | undefined => {
   const claims = event.requestContext?.authorizer?.jwt?.claims;
   const sub = claims?.sub;
+  // SECURITY: the authed (JWT) principal takes unconditional precedence. In
+  // practice the two blocks are mutually exclusive by route/payload format (JWT
+  // claims on format 2.0, identity on format 1.0), so this ordering is a
+  // defense-in-depth guard against any future misconfiguration that surfaced
+  // both — a verified user is never downgraded to a guest.
   if (typeof sub === 'string' && sub.length > 0) {
     return authedPrincipal(sub);
   }

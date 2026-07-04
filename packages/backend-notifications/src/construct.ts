@@ -503,15 +503,16 @@ export class AmplifyNotifications
 
     // `execute-api:Invoke` ARN for the guest route — the app grants this to its
     // Identity Pool UNAUTHENTICATED role so guests can call the route. Scoped as
-    // tightly as execute-api allows: the resource path `<stage>/POST/identify-
-    // user-guest` pins the grant to the POST method on the guest path alone (the
-    // `*` matches only the API's single default stage), so the unauth role can
-    // invoke NEITHER other methods NOR the authed `/identify-user` route.
+    // tightly as execute-api allows: `$default/POST/identify-user-guest` pins the
+    // grant to the POST method on the guest path of the API's single default
+    // stage, so the unauth role can invoke NEITHER other methods, NOR other
+    // stages, NOR the authed `/identify-user` route. (HTTP APIs auto-create the
+    // `$default` stage; this construct never adds another.)
     this.guestRouteInvokeArn = Arn.format(
       {
         service: 'execute-api',
         resource: httpApi.apiId,
-        resourceName: `*/POST${this.guestIdentifyUserPath}`,
+        resourceName: `$default/POST${this.guestIdentifyUserPath}`,
         arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
       },
       stack,
