@@ -19,9 +19,10 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "post:compile": "npm run bundle:identify-user-handler && npm run bundle:push-handler",
+    "post:compile": "npm run bundle:identify-user-handler && npm run bundle:push-handler && npm run bundle:campaign-association-handler",
     "bundle:identify-user-handler": "esbuild src/lambda/identify/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/handler-asset/index.js --external:@aws-sdk/*",
     "bundle:push-handler": "esbuild src/lambda/push/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/push-handler-asset/index.js",
+    "bundle:campaign-association-handler": "esbuild src/lambda/campaign-association/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/campaign-association-asset/index.js",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
@@ -36,6 +37,7 @@
     "@aws-sdk/client-connect": "^3.1079.0",
     "@aws-sdk/client-connectcampaignsv2": "^3.1079.0",
     "@aws-sdk/client-customer-profiles": "^3.936.0",
+    "@aws-sdk/client-iam": "^3.936.0",
     "@aws-sdk/client-pinpoint": "^3.936.0",
     "@aws-sdk/client-qconnect": "^3.1079.0",
     "@types/aws-lambda": "^8.10.137"

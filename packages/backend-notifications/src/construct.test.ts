@@ -447,9 +447,77 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
 
   void it('still provisions identify + push Lambdas, HTTP API and Pinpoint app in create mode', () => {
     const { template } = synthCreate();
-    template.resourceCountIs('AWS::Lambda::Function', 2);
+    // identify + push + campaign-association handler + the custom-resource
+    // Provider framework Lambda.
+    template.resourceCountIs('AWS::Lambda::Function', 4);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
+  });
+
+  void it('adds the Outbound Campaigns domain-association custom resource wired to a Provider', () => {
+    const { template } = synthCreate();
+    template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 1);
+    // The custom resource carries the instance id / domain / account / region the
+    // handler needs, and depends on the created instance + domain.
+    template.hasResourceProperties(
+      'Custom::OutboundCampaignsDomainAssociation',
+      Match.objectLike({ DomainName: Match.anyValue() }),
+    );
+    template.hasResource(
+      'Custom::OutboundCampaignsDomainAssociation',
+      Match.objectLike({
+        DependsOn: Match.arrayWith([
+          Match.stringLikeRegexp('ConnectInstance'),
+          Match.stringLikeRegexp('ProfilesDomain'),
+        ]),
+      }),
+    );
+  });
+
+  void it('grants the association Lambda least-privilege campaigns + profile + iam permissions', () => {
+    const { template } = synthCreate();
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: [
+              'connect-campaigns:StartInstanceOnboardingJob',
+              'connect-campaigns:GetInstanceOnboardingJobStatus',
+              'connect-campaigns:DeleteInstanceOnboardingJob',
+              'connect-campaigns:PutConnectInstanceIntegration',
+              'connect-campaigns:DeleteConnectInstanceIntegration',
+            ],
+          }),
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'connect:DescribeInstance',
+          }),
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: [
+              'profile:PutIntegration',
+              'profile:DeleteIntegration',
+              'profile:GetDomain',
+            ],
+          }),
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'iam:CreateServiceLinkedRole',
+            Condition: {
+              StringEquals: {
+                'iam:AWSServiceName': 'connect-campaigns.amazonaws.com',
+              },
+            },
+          }),
+        ]),
+      }),
+    });
+  });
+
+  void it('does NOT add the campaign-association custom resource in attach mode', () => {
+    const { template } = synth();
+    template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 0);
   });
 
   void it('does NOT create any segment / campaign / journey resources (out of scope)', () => {
@@ -460,8 +528,11 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     };
     const types = Object.values(resources).map((r) => String(r['Type']));
     for (const t of types) {
+      // Match CFN campaign/segment/journey resource types (e.g.
+      // AWS::Pinpoint::Campaign) — but NOT the `Custom::OutboundCampaigns...`
+      // association custom resource, which creates no such CFN resource.
       assert.ok(
-        !/Campaign|Segment|Journey/i.test(t),
+        !/::(Campaign|Segment|Journey)/i.test(t),
         `unexpected campaign/segment/journey resource: ${t}`,
       );
     }

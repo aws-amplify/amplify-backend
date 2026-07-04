@@ -58,6 +58,7 @@ export type AmplifyNotificationsProps = {
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
     readonly pushLambdaCodePath?: string;
+    readonly campaignAssociationLambdaCodePath?: string;
     readonly apnsChannel?: {
         readonly tokenKey: string;
         readonly keyId: string;

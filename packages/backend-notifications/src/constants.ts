@@ -104,6 +104,37 @@ export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
 export const DEFAULT_EXPIRATION_DAYS = 366;
 
 /**
+ * Outbound Campaigns v2 <-> Customer Profiles object-type routing map. This
+ * label map binds a campaign channel to the BUILT-IN Customer Profiles object
+ * template of the same name; it is a routing/label map, NOT a set of object
+ * types that must be pre-created via PutProfileObjectType. The same map is
+ * supplied to BOTH `connectcampaignsv2:PutConnectInstanceIntegration` (as
+ * `integrationConfig.customerProfiles.objectTypeNames`) and
+ * `customer-profiles:PutIntegration` (as `ObjectTypeNames`) so Connect Journeys
+ * can target the domain's profiles.
+ */
+export const CAMPAIGN_OBJECT_TYPE_NAMES = {
+  'Campaign-Email': 'Campaign-Email',
+  'Campaign-SMS': 'Campaign-SMS',
+  'Campaign-Telephony': 'Campaign-Telephony',
+  'Campaign-Orchestration': 'Campaign-Orchestration',
+} as const;
+
+/**
+ * Environment variable carrying the Amazon Connect instance id the campaign
+ * -association custom resource onboards to Outbound Campaigns v2 and associates
+ * the created Customer Profiles domain with.
+ */
+export const ENV_CONNECT_INSTANCE_ID = 'CONNECT_INSTANCE_ID';
+
+/** AWS service principal that owns the Outbound Campaigns service-linked role. */
+export const CONNECT_CAMPAIGNS_SERVICE_NAME = 'connect-campaigns.amazonaws.com';
+
+/** IAM path prefix under which the Outbound Campaigns service-linked role lives. */
+export const CONNECT_CAMPAIGNS_SLR_PATH_PREFIX =
+  '/aws-service-role/connect-campaigns.amazonaws.com/';
+
+/**
  * Fixed key under `custom` in `amplify_outputs.json` where the notifications
  * endpoint / region are surfaced to the client (`custom.CustomerProfiles`).
  *

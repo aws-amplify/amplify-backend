@@ -1,10 +1,18 @@
 import * as path from 'path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { Arn, ArnFormat, CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import {
+  Arn,
+  ArnFormat,
+  CfnOutput,
+  CustomResource,
+  Duration,
+  Stack,
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { Provider } from 'aws-cdk-lib/custom-resources';
 import { CfnDomain, CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import {
@@ -22,6 +30,7 @@ import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 
 import {
+  CONNECT_CAMPAIGNS_SERVICE_NAME,
   CONNECT_INVOKE_SERVICE_PRINCIPALS,
   DEFAULT_EXPIRATION_DAYS,
   ENV_DOMAIN_NAME,
@@ -50,6 +59,11 @@ const defaultPushLambdaCodePath = path.join(
   packageRoot,
   'lib',
   'push-handler-asset',
+);
+const defaultCampaignAssociationLambdaCodePath = path.join(
+  packageRoot,
+  'lib',
+  'campaign-association-asset',
 );
 
 /** CDK resources exposed by {@link AmplifyNotifications}. */
@@ -151,6 +165,14 @@ export type AmplifyNotificationsProps = {
   readonly pushLambdaCodePath?: string;
 
   /**
+   * Override the directory containing the pre-bundled campaign-association
+   * custom-resource Lambda asset (an `index.js` exporting `handler`). Defaults to
+   * the handler bundled inside this package (`lib/campaign-association-asset`,
+   * produced by `post:compile`). Only used in create-from-scratch mode.
+   */
+  readonly campaignAssociationLambdaCodePath?: string;
+
+  /**
    * OPTIONAL APNs channel configuration (token / `.p8` auth). When provided, the
    * construct enables the APNs channel on the created End User Messaging
    * (Pinpoint) application. All values are plain strings — the Amplify Gen2
@@ -215,10 +237,12 @@ export type AmplifyNotificationsProps = {
  *     the domain's other integrations (CTR, Outbound Campaigns) or its Identity
  *     Resolution setting.
  *
- * In either mode, associating the (new or existing) domain with an instance's
- * Outbound Campaigns so journeys can target these profiles is a separate,
- * deliberate step performed outside this construct (see the package README /
- * design doc): identify works against the domain standalone regardless.
+ * In either mode, identify works against the domain standalone. Outbound
+ * Campaigns association — so journeys can target these profiles — is AUTOMATIC
+ * in create-from-scratch mode (a Lambda-backed custom resource associates the
+ * new domain with the new instance's Outbound Campaigns v2 at deploy time). In
+ * attach mode, associating the pre-existing domain is the user's responsibility
+ * and is left untouched.
  *
  * This construct is framework-agnostic (aws-cdk-lib + constructs only). The
  * `defineNotifications` factory wraps it for Amplify Gen2 backends, wiring the
@@ -390,6 +414,22 @@ export class AmplifyNotifications
       profileType.addDependency(profilesDomain);
       deviceType.addDependency(profilesDomain);
       guestProfileType.addDependency(profilesDomain);
+    }
+
+    // ---- Outbound Campaigns association (create-from-scratch ONLY) ----------
+    // When this construct created the instance + domain, a Lambda-backed custom
+    // resource associates the new domain with the instance's Outbound Campaigns
+    // v2 at deploy time — so Connect Journeys can target the domain's profiles
+    // with NO manual console step. In attach mode the existing domain's
+    // association is the user's responsibility, so this resource is NOT added.
+    if (createFromScratch && connectInstance && profilesDomain) {
+      this.addCampaignAssociation(
+        connectInstance,
+        profilesDomain,
+        domainName,
+        props.campaignAssociationLambdaCodePath ??
+          defaultCampaignAssociationLambdaCodePath,
+      );
     }
 
     // ---- Lambda handler ----------------------------------------------------
@@ -749,8 +789,8 @@ export class AmplifyNotifications
 
     // ---- Create-mode outputs ----------------------------------------------
     // Surface the resources this construct provisioned from scratch so a human
-    // can find the new instance / domain in the console and (as a documented
-    // follow-up) associate the domain with the instance's Outbound Campaigns.
+    // can find the new instance / domain in the console. Their Outbound
+    // Campaigns association is handled automatically by the custom resource above.
     if (connectInstance) {
       new CfnOutput(stack, 'ConnectInstanceId', {
         value: connectInstance.attrId,
@@ -781,6 +821,226 @@ export class AmplifyNotifications
       connectInstance,
       profilesDomain,
     };
+  }
+
+  /**
+   * Create-from-scratch ONLY: a Lambda-backed CDK custom resource that
+   * associates the created Customer Profiles domain with the created Amazon
+   * Connect instance's Outbound Campaigns v2 at deploy time, so Connect Journeys
+   * can target the domain's profiles with no manual console step.
+   *
+   * A `custom-resources.Provider` fronts the handler because onboarding is
+   * asynchronous: the handler starts the instance-onboarding job, then POLLS
+   * GetInstanceOnboardingJobStatus until SUCCEEDED (an `AwsCustomResource` can't
+   * poll). onCreate/onUpdate are idempotent; onDelete best-effort reverses the
+   * integrations + offboards, never failing teardown. The resource depends on
+   * both the instance and the domain so it runs after they exist and is torn
+   * down before them.
+   */
+  private addCampaignAssociation(
+    connectInstance: CfnInstance,
+    profilesDomain: CfnDomain,
+    domainName: string,
+    codePath: string,
+  ): void {
+    const stack = this.stack;
+
+    const associationFn = new lambda.Function(this, 'CampaignAssociationFn', {
+      code: lambda.Code.fromAsset(codePath),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      // Onboarding polls GetInstanceOnboardingJobStatus until SUCCEEDED (~20s,
+      // capped ~2min); allow generous headroom for onboarding + both integrations.
+      timeout: Duration.minutes(10),
+      memorySize: 256,
+    });
+
+    // These instance-onboarding / instance-integration actions operate on the
+    // Connect instance's Outbound Campaigns configuration, not on a campaign
+    // resource. connect-campaigns does NOT support resource-level permissions
+    // for them (IAM evaluates them against `campaign/*` and denies an
+    // `instance/*`-scoped grant), so they must be granted on `*`.
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'connect-campaigns:StartInstanceOnboardingJob',
+          'connect-campaigns:GetInstanceOnboardingJobStatus',
+          'connect-campaigns:DeleteInstanceOnboardingJob',
+          'connect-campaigns:PutConnectInstanceIntegration',
+          'connect-campaigns:DeleteConnectInstanceIntegration',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    // connect-campaigns onboarding + PutConnectInstanceIntegration validate the
+    // target Connect instance on the caller's behalf, so the handler role also
+    // needs connect:DescribeInstance on the (construct-owned) instance.
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['connect:DescribeInstance'],
+        resources: [connectInstance.attrArn],
+      }),
+    );
+
+    // Reciprocal Customer Profiles integration on THIS domain only (IAM prefix
+    // for Customer Profiles is `profile`). GetDomain is read-only and required
+    // because PutConnectInstanceIntegration validates the Customer Profiles
+    // domain before wiring the integration.
+    const domainArn = Arn.format(
+      {
+        service: 'profile',
+        resource: 'domains',
+        resourceName: domainName,
+        arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+      },
+      stack,
+    );
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'profile:PutIntegration',
+          'profile:DeleteIntegration',
+          'profile:GetDomain',
+        ],
+        resources: [
+          domainArn,
+          Arn.format(
+            {
+              service: 'profile',
+              resource: 'domains',
+              resourceName: `${domainName}/integrations/*`,
+              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+            },
+            stack,
+          ),
+        ],
+      }),
+    );
+    // PutConnectInstanceIntegration validates the four built-in campaign
+    // object-type TEMPLATES referenced by objectTypeNames (Campaign-Email,
+    // Campaign-SMS, Campaign-Telephony, Campaign-Orchestration) via
+    // profile:GetProfileObjectTypeTemplate, using the CALLER's credentials.
+    // Templates are account/region-level resources whose ARN carries a leading
+    // slash (`:/templates/<name>`), distinct from the domain, so they need their
+    // own grant.
+    const profileTemplatesArn = `arn:${stack.partition}:profile:${stack.region}:${stack.account}:/templates/*`;
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'profile:GetProfileObjectTypeTemplate',
+          'profile:ListProfileObjectTypeTemplates',
+        ],
+        resources: [profileTemplatesArn],
+      }),
+    );
+    // Onboarding auto-creates the Outbound Campaigns service-linked role; the
+    // handler then lists roles to resolve its ARN. iam:ListRoles has no
+    // resource-level scoping, so it must target `*`.
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['iam:ListRoles'],
+        resources: ['*'],
+      }),
+    );
+    // Each StartInstanceOnboardingJob for a NEW Connect instance creates its own
+    // connect-campaigns service-linked role (the role name carries a
+    // service-generated random suffix), so the grant must use `*` for the
+    // resource and is instead scoped safely by the iam:AWSServiceName condition
+    // to ONLY the connect-campaigns SLR. A path-scoped resource ARN is denied by
+    // IAM here (surfaced as the onboarding job's IAM_ACCESS_DENIED failureCode).
+    const campaignsSlrArn = `arn:${stack.partition}:iam::${stack.account}:role/aws-service-role/${CONNECT_CAMPAIGNS_SERVICE_NAME}/*`;
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['iam:CreateServiceLinkedRole'],
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'iam:AWSServiceName': CONNECT_CAMPAIGNS_SERVICE_NAME,
+          },
+        },
+      }),
+    );
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['iam:PassRole'],
+        resources: [campaignsSlrArn],
+      }),
+    );
+    // During onboarding, connect-campaigns customizes its service-linked role
+    // with instance-specific inline permissions (the "additional permissions
+    // added for the service-linked role to access the resources", incl. the
+    // Customer Profiles integration access) via iam:PutRolePolicy /
+    // iam:AttachRolePolicy, performed with the CALLER's credentials. Without
+    // these the onboarding job fails with failureCode IAM_ACCESS_DENIED. The
+    // reverse (Delete/Detach) mirrors this so the best-effort teardown can
+    // remove those inline permissions when disassociating. Scoped to ONLY the
+    // connect-campaigns service-linked role.
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'iam:PutRolePolicy',
+          'iam:AttachRolePolicy',
+          'iam:DeleteRolePolicy',
+          'iam:DetachRolePolicy',
+        ],
+        resources: [campaignsSlrArn],
+      }),
+    );
+    // Onboarding also provisions a managed EventBridge rule (named
+    // `ConnectCampaignsRule*`) that drives campaign event delivery, created with
+    // the CALLER's credentials. Without these the onboarding job fails with
+    // failureCode EVENT_BRIDGE_ACCESS_DENIED. ListRules has no resource-level
+    // scoping; the mutating actions are scoped to the ConnectCampaignsRule* name.
+    const connectCampaignsRuleArn = `arn:${stack.partition}:events:${stack.region}:${stack.account}:rule/ConnectCampaignsRule*`;
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['events:ListRules'],
+        resources: ['*'],
+      }),
+    );
+    associationFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'events:PutRule',
+          'events:PutTargets',
+          'events:DeleteRule',
+          'events:RemoveTargets',
+          'events:ListTargetsByRule',
+          'events:DescribeRule',
+        ],
+        resources: [connectCampaignsRuleArn],
+      }),
+    );
+
+    const provider = new Provider(this, 'CampaignAssociationProvider', {
+      onEventHandler: associationFn,
+    });
+
+    const association = new CustomResource(this, 'CampaignAssociation', {
+      serviceToken: provider.serviceToken,
+      resourceType: 'Custom::OutboundCampaignsDomainAssociation',
+      properties: {
+        ConnectInstanceId: connectInstance.attrId,
+        DomainName: domainName,
+        Account: stack.account,
+        Region: stack.region,
+      },
+    });
+
+    // Provision after — and tear down before — the instance + domain it links.
+    association.node.addDependency(connectInstance);
+    association.node.addDependency(profilesDomain);
   }
 
   /**

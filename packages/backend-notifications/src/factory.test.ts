@@ -164,8 +164,10 @@ void describe('defineNotifications', () => {
     template.resourceCountIs('AWS::Connect::Instance', 1);
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
     template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
-    // identify + push Lambdas still provisioned.
-    template.resourceCountIs('AWS::Lambda::Function', 2);
+    // identify + push Lambdas + campaign-association handler + custom-resource
+    // Provider framework Lambda.
+    template.resourceCountIs('AWS::Lambda::Function', 4);
+    template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 1);
 
     assert.strictEqual(notifications.createsResources, true);
     assert.match(notifications.domainName, /^amplify-notifications-[0-9a-f]+$/);
