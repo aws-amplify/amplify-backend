@@ -1,20 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  CUSTOMER_DATA_BODY_KEY,
-  CUSTOMER_DATA_TITLE_KEY,
-  DEFAULT_PUSH_BODY,
-  DEFAULT_PUSH_TITLE,
-} from '../../constants.js';
+import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../../constants.js';
 import {
   CampaignContext,
-  MessageSource,
   ParsedPushEvent,
   ProfileTarget,
   PushEventParsePath,
-  PushMessage,
-  ResolvedProfileMessage,
 } from './types.js';
 
 /**
@@ -40,9 +32,11 @@ import {
  *
  * Minimal, documented defensive handling only: a `CustomerData` already given as
  * a parsed object is tolerated (see {@link coerceCustomerData}); missing /
- * malformed fields are skipped rather than aborting the batch. Message copy is
- * resolved per profile from `CustomerData.messageTitle` / `messageBody`, falling
- * back to the {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY} constants.
+ * malformed fields are skipped rather than aborting the batch. The real journey
+ * carries NO message copy, so {@link ParsedPushEvent.message} is always the safe
+ * {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY}; personalized copy comes
+ * from the Q Connect PUSH template rendered per profile downstream, and this
+ * default is used only as the per-channel fallback.
  */
 export const parsePushEvent = (event: unknown): ParsedPushEvent => {
   const root = isRecord(event) ? event : {};
@@ -146,49 +140,4 @@ const extractCampaign = (
   return Object.values(campaign).some((v) => v !== undefined)
     ? campaign
     : undefined;
-};
-
-/**
- * Resolve the push title/body to deliver to ONE profile, honoring the journey
- * author's per-profile copy.
- *
- * Precedence (highest first):
- *   1. the profile's own `CustomerData.messageTitle` / `CustomerData.messageBody`
- *      (case-sensitive, exactly as delivered by the Connect Journey
- *      Custom-action) — the copy the journey author configured for this profile;
- *   2. the `eventMessage` fallback passed by the caller (e.g. copy rendered from
- *      a Q in Connect message template at runtime, or the batch defaults);
- *   3. the {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY} constants.
- *
- * `eventMessage` always has defaults applied, so title/body are non-empty here;
- * any `data` bag is carried through unchanged. Each field's origin is reported
- * via `titleSource` / `bodySource` for per-profile observability.
- */
-export const resolveProfileMessage = (
-  target: ProfileTarget,
-  eventMessage: PushMessage,
-): ResolvedProfileMessage => {
-  const cd = target.customerData;
-  const cdTitle = cd ? asString(cd[CUSTOMER_DATA_TITLE_KEY]) : undefined;
-  const cdBody = cd ? asString(cd[CUSTOMER_DATA_BODY_KEY]) : undefined;
-
-  const title = cdTitle ?? eventMessage.title;
-  const body = cdBody ?? eventMessage.body;
-
-  const titleSource: MessageSource = cdTitle
-    ? 'customerData'
-    : eventMessage.title === DEFAULT_PUSH_TITLE
-      ? 'default'
-      : 'event';
-  const bodySource: MessageSource = cdBody
-    ? 'customerData'
-    : eventMessage.body === DEFAULT_PUSH_BODY
-      ? 'default'
-      : 'event';
-
-  const message: PushMessage = eventMessage.data
-    ? { title, body, data: eventMessage.data }
-    : { title, body };
-
-  return { message, titleSource, bodySource };
 };

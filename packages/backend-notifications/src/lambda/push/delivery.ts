@@ -7,7 +7,6 @@ import { PinpointClient } from '@aws-sdk/client-pinpoint';
 import { deliverToDevice } from './eum_client.js';
 import { maskToken } from '../shared/mask.js';
 import { deleteDevice, listDevices } from './device_lookup.js';
-import { resolveProfileMessage } from './event.js';
 import { normalizeChannelType } from './payload.js';
 import {
   PushTemplateContext,
@@ -139,12 +138,13 @@ export const deliverToProfile = async (
 };
 
 /**
- * Deliver to every targeted profile, resolving each profile's message copy
- * independently (per-profile `CustomerData.messageTitle` / `messageBody` take
- * precedence over event-level copy, then defaults) and aggregating a
- * per-profile summary. Profiles are processed sequentially to keep the
- * per-profile Customer Profiles write ordering simple; batches are typically
- * small per Journey invocation.
+ * Deliver to every targeted profile, aggregating a per-profile summary. Each
+ * profile's copy is resolved as: the rendered Q Connect PUSH template (per
+ * platform), falling back to the safe DEFAULT copy (`DEFAULT_PUSH_TITLE` /
+ * `DEFAULT_PUSH_BODY`) for any channel the template did not resolve for
+ * (no template, render miss, or the unresolved-placeholder guard rejected it).
+ * Profiles are processed sequentially to keep the per-profile Customer Profiles
+ * write ordering simple; batches are typically small per Journey invocation.
  */
 export const deliverToTargets = async (
   deps: DeliveryDeps,
@@ -152,15 +152,16 @@ export const deliverToTargets = async (
 ): Promise<PushDeliveryResponse> => {
   const results: ProfileDeliveryResult[] = [];
   for (const target of parsed.targets) {
-    // Resolve the copy PER PROFILE so each profile gets the journey author's
-    // own CustomerData.messageTitle / messageBody (falling back to event-level
-    // copy, then defaults) — not a single batch-level message.
-    const resolved = resolveProfileMessage(target, parsed.message);
+    // The safe DEFAULT copy is the ONLY fallback: real journeys carry no
+    // per-profile or event-level message copy, so personalized copy comes
+    // solely from the rendered template below.
+    const fallback = parsed.message;
 
     // When a Q Connect PUSH template was resolved for this journey run, render
     // it per profile to get personalized, per-platform (APNS / GCM) copy that
-    // takes precedence over the fallback above. A render miss/failure leaves
-    // `perChannel` undefined so delivery uses the fallback copy.
+    // takes precedence over the default fallback. A render miss/failure (or a
+    // placeholder-guard rejection) leaves `perChannel` undefined so delivery
+    // uses the default copy.
     let perChannel: Partial<Record<PushChannelType, PushMessage>> | undefined;
     if (deps.templateContext) {
       perChannel = await renderProfileChannelMessages(
@@ -169,28 +170,27 @@ export const deliverToTargets = async (
       );
     }
 
-    // NOTE (PII / not production-safe): title/body may echo journey-authored
-    // or template-rendered copy; logged here to confirm the EFFECTIVE per-channel
-    // copy that will actually be delivered. Reduce/omit before production.
+    // NOTE (PII / not production-safe): title/body may echo template-rendered
+    // copy; logged here to confirm the EFFECTIVE per-channel copy that will
+    // actually be delivered. Reduce/omit before production.
     //
-    // `effective` is what each channel actually sends: the rendered template copy
-    // where a template was applied, otherwise the fallback. `fallback*` is the
-    // non-template copy (CustomerData -> event -> default) — used only for
-    // channels the template did not cover, so a `default` fallbackSource next to
-    // `templateApplied:true` is expected and NOT what gets delivered.
+    // `effective` is exactly what each channel sends: the rendered template copy
+    // for every channel the template resolved, and the DEFAULT for any channel
+    // it did not (shown as the `default` entry). When no template applied at
+    // all, every channel gets the default.
     const effective: Record<string, { title: string; body: string }> =
       perChannel
-        ? Object.fromEntries(
-            Object.entries(perChannel).map(([channel, m]) => [
-              channel,
-              { title: m.title, body: m.body },
-            ]),
-          )
+        ? {
+            ...Object.fromEntries(
+              Object.entries(perChannel).map(([channel, m]) => [
+                channel,
+                { title: m.title, body: m.body },
+              ]),
+            ),
+            default: { title: fallback.title, body: fallback.body },
+          }
         : {
-            all: {
-              title: resolved.message.title,
-              body: resolved.message.body,
-            },
+            all: { title: fallback.title, body: fallback.body },
           };
     console.log(
       '[push] resolveMessage',
@@ -198,16 +198,12 @@ export const deliverToTargets = async (
         profileId: target.profileId,
         templateApplied: Boolean(perChannel),
         effective,
-        fallbackTitle: resolved.message.title,
-        fallbackBody: resolved.message.body,
-        fallbackTitleSource: resolved.titleSource,
-        fallbackBodySource: resolved.bodySource,
-        hasData: Boolean(resolved.message.data),
+        defaultTitle: fallback.title,
+        defaultBody: fallback.body,
+        hasData: Boolean(fallback.data),
       }),
     );
-    results.push(
-      await deliverToProfile(deps, target, resolved.message, perChannel),
-    );
+    results.push(await deliverToProfile(deps, target, fallback, perChannel));
   }
 
   return {

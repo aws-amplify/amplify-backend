@@ -261,10 +261,13 @@ const recordingPinpoint = (): {
   return { client, sent };
 };
 
-void describe('deliverToTargets — per-profile message wiring', () => {
-  const BATCH_DEFAULT: PushMessage = { title: 'Notification', body: 'default' };
+void describe('deliverToTargets — fallback copy when no template applies', () => {
+  const BATCH_DEFAULT: PushMessage = {
+    title: 'Notification',
+    body: 'You have a new notification.',
+  };
 
-  void it("(a) sends each profile's CustomerData.messageTitle / messageBody in the SendMessages payload", async () => {
+  void it('(default) sends the safe DEFAULT copy in the SendMessages payload for every device', async () => {
     const { client: profiles } = profilesFor({
       eb155c66aae14a10b775437c40a4e44d: [
         { key: 'k1', token: 'apns-tok', channel: 'APNS' },
@@ -273,70 +276,32 @@ void describe('deliverToTargets — per-profile message wiring', () => {
     });
     const { client: pinpoint, sent } = recordingPinpoint();
 
+    // No templateContext on deps -> no rendered copy -> DEFAULT fallback. The
+    // real journey carries no per-profile / event copy, so CustomerData here is
+    // only personalized attributes, never message copy.
     await deliverToTargets(deps(profiles, pinpoint), {
       targets: [
         {
           profileId: 'eb155c66aae14a10b775437c40a4e44d',
           customerData: {
-            FirstName: 'Manual',
-            LastName: 'Tester',
-            Attributes: { cognitoSub: 'sub' },
-            messageTitle: 'Manual Journey Push',
-            messageBody:
-              'Sent via Connect Journey custom action (manual-test re-seed)',
+            firstName: 'Manual',
+            lastName: 'Tester',
+            attributes: { cognitoSub: 'sub' },
           },
         },
       ],
-      // Batch/event-level message is the DEFAULT — the CustomerData copy must win.
       message: BATCH_DEFAULT,
       parsePath: 'canonical',
     });
 
     assert.strictEqual(sent.length, 2);
     for (const s of sent) {
-      assert.strictEqual(s.title, 'Manual Journey Push');
-      assert.strictEqual(
-        s.body,
-        'Sent via Connect Journey custom action (manual-test re-seed)',
-      );
+      assert.strictEqual(s.title, 'Notification');
+      assert.strictEqual(s.body, 'You have a new notification.');
     }
   });
 
-  void it('(b) falls back to defaults in the payload when no CustomerData copy is present', async () => {
-    const { client: profiles } = profilesFor({
-      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
-    });
-    const { client: pinpoint, sent } = recordingPinpoint();
-
-    await deliverToTargets(deps(profiles, pinpoint), {
-      targets: [{ profileId: 'p1', customerData: { FirstName: 'NoCopy' } }],
-      message: BATCH_DEFAULT,
-      parsePath: 'canonical',
-    });
-
-    assert.strictEqual(sent.length, 1);
-    assert.strictEqual(sent[0].title, 'Notification');
-    assert.strictEqual(sent[0].body, 'default');
-  });
-
-  void it('(c) uses the event-level (top-level) fallback when CustomerData has no copy', async () => {
-    const { client: profiles } = profilesFor({
-      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
-    });
-    const { client: pinpoint, sent } = recordingPinpoint();
-
-    await deliverToTargets(deps(profiles, pinpoint), {
-      targets: [{ profileId: 'p1' }],
-      message: { title: 'Event Title', body: 'Event Body' },
-      parsePath: 'canonical',
-    });
-
-    assert.strictEqual(sent.length, 1);
-    assert.strictEqual(sent[0].title, 'Event Title');
-    assert.strictEqual(sent[0].body, 'Event Body');
-  });
-
-  void it('resolves copy independently per profile in a multi-profile batch', async () => {
+  void it('(default) sends the DEFAULT independently to every profile in a batch', async () => {
     const { client: profiles } = profilesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
       p2: [{ key: 'k2', token: 't2', channel: 'APNS' }],
@@ -345,32 +310,26 @@ void describe('deliverToTargets — per-profile message wiring', () => {
 
     await deliverToTargets(deps(profiles, pinpoint), {
       targets: [
-        {
-          profileId: 'p1',
-          customerData: { messageTitle: 'For P1', messageBody: 'Body P1' },
-        },
-        {
-          profileId: 'p2',
-          customerData: { messageTitle: 'For P2', messageBody: 'Body P2' },
-        },
+        { profileId: 'p1', customerData: { firstName: 'Ada' } },
+        { profileId: 'p2', customerData: { firstName: 'Grace' } },
       ],
       message: BATCH_DEFAULT,
       parsePath: 'canonical',
     });
 
     const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
-    assert.strictEqual(byToken['t1'].title, 'For P1');
-    assert.strictEqual(byToken['t1'].body, 'Body P1');
-    assert.strictEqual(byToken['t2'].title, 'For P2');
-    assert.strictEqual(byToken['t2'].body, 'Body P2');
+    for (const tok of ['t1', 't2']) {
+      assert.strictEqual(byToken[tok].title, 'Notification');
+      assert.strictEqual(byToken[tok].body, 'You have a new notification.');
+    }
   });
 });
 
 /**
  * Fake QConnect that renders a fixed per-platform template, substituting the
  * profile's `firstName` custom attribute into the title/body so the test can
- * prove the RENDERED, personalized copy (not the CustomerData / default copy)
- * reaches the SendMessages payload — and that APNS vs GCM get platform copy.
+ * prove the RENDERED, personalized copy (not the default copy) reaches the
+ * SendMessages payload — and that APNS vs GCM get platform-specific copy.
  */
 const templateQConnect = (): QConnectClient =>
   ({
@@ -380,22 +339,25 @@ const templateQConnect = (): QConnectClient =>
     }): Promise<unknown> => {
       const name = command.constructor.name;
       if (name === 'RenderMessageTemplateCommand') {
-        const first =
-          command.input.attributes?.customAttributes?.firstName ?? '';
+        const first = command.input.attributes?.customAttributes?.firstName;
+        // Mirror Q Connect: an unmatched {{Attributes.firstName}} is left
+        // LITERAL in the output (reported in attributesNotInterpolated), never
+        // substituted with empty string.
+        const rendered = first ?? '{{Attributes.firstName}}';
         return Promise.resolve({
           content: {
             push: {
               apns: {
-                title: `iOS ${first}`,
-                body: { content: `Hello ${first} on iOS` },
+                title: `Hi ${rendered} (iOS)`,
+                body: { content: `Hello ${rendered} on iOS` },
               },
               fcm: {
-                title: `Android ${first}`,
-                body: { content: `Hello ${first} on Android` },
+                title: `Hi ${rendered} (Android)`,
+                body: { content: `Hello ${rendered} on Android` },
               },
             },
           },
-          attributesNotInterpolated: [],
+          attributesNotInterpolated: first ? [] : ['Attributes.firstName'],
         });
       }
       return Promise.reject(new Error(`unexpected ${name}`));
@@ -403,7 +365,7 @@ const templateQConnect = (): QConnectClient =>
   }) as unknown as QConnectClient;
 
 void describe('deliverToTargets — Q Connect template copy wins and is per-platform', () => {
-  void it('renders the template per profile and routes APNS/GCM copy into the payload', async () => {
+  void it('routes the RENDERED per-profile APNS/GCM copy into the SendMessages payload', async () => {
     const { client: profiles } = profilesFor({
       p1: [
         { key: 'k1', token: 'apns-tok', channel: 'APNS' },
@@ -424,30 +386,29 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
       {
         targets: [
           {
+            // firstName feeds {{Attributes.firstName}}; the rendered template
+            // is what MUST land in SendMessages, not the default.
             profileId: 'p1',
-            // CustomerData copy would normally win, but the resolved template
-            // takes precedence; firstName feeds {{Attributes.firstName}}.
-            customerData: {
-              firstName: 'Manual',
-              messageTitle: 'ShouldNotWin',
-              messageBody: 'ShouldNotWin',
-            },
+            customerData: { firstName: 'Ada' },
           },
         ],
-        message: { title: 'Notification', body: 'default' },
+        message: {
+          title: 'Notification',
+          body: 'You have a new notification.',
+        },
         parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );
 
     const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
-    assert.strictEqual(byToken['apns-tok'].title, 'iOS Manual');
-    assert.strictEqual(byToken['apns-tok'].body, 'Hello Manual on iOS');
-    assert.strictEqual(byToken['gcm-tok'].title, 'Android Manual');
-    assert.strictEqual(byToken['gcm-tok'].body, 'Hello Manual on Android');
+    assert.strictEqual(byToken['apns-tok'].title, 'Hi Ada (iOS)');
+    assert.strictEqual(byToken['apns-tok'].body, 'Hello Ada on iOS');
+    assert.strictEqual(byToken['gcm-tok'].title, 'Hi Ada (Android)');
+    assert.strictEqual(byToken['gcm-tok'].body, 'Hello Ada on Android');
   });
 
-  void it('falls back to CustomerData/default copy when the template render yields no push content', async () => {
+  void it('sends the DEFAULT copy when the template render yields no push content', async () => {
     const { client: profiles } = profilesFor({
       p1: [{ key: 'k1', token: 'apns-tok', channel: 'APNS' }],
     });
@@ -468,23 +429,56 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
         },
       },
       {
-        targets: [
-          {
-            profileId: 'p1',
-            customerData: {
-              messageTitle: 'CustomerData Wins',
-              messageBody: 'CustomerData Body',
-            },
-          },
-        ],
-        message: { title: 'Notification', body: 'default' },
+        targets: [{ profileId: 'p1', customerData: { firstName: 'Ada' } }],
+        message: {
+          title: 'Notification',
+          body: 'You have a new notification.',
+        },
         parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );
 
     assert.strictEqual(sent.length, 1);
-    assert.strictEqual(sent[0].title, 'CustomerData Wins');
-    assert.strictEqual(sent[0].body, 'CustomerData Body');
+    assert.strictEqual(sent[0].title, 'Notification');
+    assert.strictEqual(sent[0].body, 'You have a new notification.');
+  });
+
+  void it('sends the DEFAULT (never a leaked placeholder) when render leaves an unresolved {{...}}', async () => {
+    const { client: profiles } = profilesFor({
+      // Profile with NO firstName -> template leaves {{Attributes.firstName}}
+      // literal -> placeholder guard rejects -> DEFAULT.
+      noFirstName: [{ key: 'k1', token: 'apns-tok', channel: 'APNS' }],
+    });
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    await deliverToTargets(
+      {
+        ...deps(profiles, pinpoint),
+        templateContext: {
+          qconnect: templateQConnect(),
+          knowledgeBaseId: 'kb-1234',
+          messageTemplateId: 'tmpl-push-1',
+          templateName: 'Push Notification',
+        },
+      },
+      {
+        targets: [
+          { profileId: 'noFirstName', customerData: { lastName: 'Only' } },
+        ],
+        message: {
+          title: 'Notification',
+          body: 'You have a new notification.',
+        },
+        parsePath: 'canonical',
+        campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
+      },
+    );
+
+    assert.strictEqual(sent.length, 1);
+    assert.strictEqual(sent[0].title, 'Notification');
+    assert.strictEqual(sent[0].body, 'You have a new notification.');
+    assert.ok(!/\{\{.*\}\}/.test(sent[0].title ?? ''));
+    assert.ok(!/\{\{.*\}\}/.test(sent[0].body ?? ''));
   });
 });

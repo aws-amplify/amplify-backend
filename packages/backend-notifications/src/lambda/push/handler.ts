@@ -101,8 +101,8 @@ export const handler = async (
   // discovery + template lookup are per-journey, not per-profile). When the
   // event carries campaign metadata, the template whose name == the
   // Custom-action ActionId is used to render personalized per-platform copy;
-  // otherwise (or on any miss/failure) delivery falls back to the CustomerData /
-  // event / default copy.
+  // otherwise (or on any miss/failure) delivery falls back to the safe DEFAULT
+  // copy.
   let templateContext: PushTemplateContext | undefined;
   if (parsed.campaign) {
     templateContext = await resolvePushTemplateContext(

@@ -78,6 +78,30 @@ export const deliverToDevice = async (
 ): Promise<DeviceDeliveryResult> => {
   const masked = maskToken(deviceToken);
   try {
+    // Build the platform MessageConfiguration ONCE and log the EXACT Title/Body
+    // it carries — this is the actual copy handed to SendMessages, so a rendered
+    // template vs default fallback is provable from CloudWatch at the send site
+    // itself (not just from the upstream resolveMessage log).
+    //
+    // NOTE (PII / not production-safe): `title` / `body` may echo rendered,
+    // personalized copy tied to a named profile; reduce/omit before production.
+    const messageConfiguration = buildMessageConfiguration(
+      channelType,
+      message,
+    );
+    const sentPayload =
+      messageConfiguration.GCMMessage ?? messageConfiguration.APNSMessage;
+    console.log(
+      '[push] send.request',
+      JSON.stringify({
+        channelType,
+        deviceToken: masked,
+        title: sentPayload?.Title,
+        body: sentPayload?.Body,
+        hasData: Boolean(sentPayload?.Data),
+      }),
+    );
+
     const res = await pinpoint.send(
       new SendMessagesCommand({
         ApplicationId: applicationId,
@@ -85,7 +109,7 @@ export const deliverToDevice = async (
           Addresses: {
             [deviceToken]: { ChannelType: channelType },
           },
-          MessageConfiguration: buildMessageConfiguration(channelType, message),
+          MessageConfiguration: messageConfiguration,
         },
       }),
     );
