@@ -1,10 +1,12 @@
 import * as path from 'path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { Arn, ArnFormat, CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnDomain, CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpJwtAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
@@ -57,6 +59,17 @@ export type NotificationsResources = {
   pushFunction: lambda.IFunction;
   /** The AWS End User Messaging / Pinpoint application backing push delivery. */
   pushApplication: CfnApp;
+  /**
+   * The Amazon Connect instance created in create-from-scratch mode (when
+   * `domainName` is omitted). `undefined` in attach mode.
+   */
+  connectInstance?: CfnInstance;
+  /**
+   * The Customer Profiles domain created in create-from-scratch mode (when
+   * `domainName` is omitted). `undefined` in attach mode, where the object types
+   * are registered into a pre-existing domain the construct does not own.
+   */
+  profilesDomain?: CfnDomain;
 };
 
 export type AmplifyNotificationsProps = {
@@ -73,13 +86,28 @@ export type AmplifyNotificationsProps = {
   readonly jwtAudience: string[];
 
   /**
-   * Name of the EXISTING Customer Profiles domain the AmplifyProfile /
-   * AmplifyDevice object types are registered INTO — e.g. the domain Amazon
-   * Connect auto-creates when Customer Profiles is enabled on an instance. The
-   * construct never creates or modifies the domain itself; a Connect instance
-   * owns its domain 1:1, so this always attaches to that existing domain.
+   * Name of an EXISTING Customer Profiles domain to attach to — e.g. the domain
+   * Amazon Connect auto-creates when Customer Profiles is enabled on an
+   * instance. When provided, the construct runs in ATTACH mode: it registers the
+   * AmplifyProfile / AmplifyDevice object types INTO this domain and never
+   * creates an instance or a domain.
+   *
+   * OMIT this to run in the default CREATE-FROM-SCRATCH mode: the construct
+   * provisions a brand-new Amazon Connect instance AND a brand-new Customer
+   * Profiles domain (with generated, stable names) and wires everything into
+   * that new domain — so a caller needs zero pre-existing Connect setup.
    */
-  readonly domainName: string;
+  readonly domainName?: string;
+
+  /**
+   * CREATE mode only: override the auto-generated Amazon Connect instance alias.
+   * Ignored in attach mode. When omitted, a deterministic-yet-unique alias is
+   * derived from the construct's scope so it is stable across deploy/delete and
+   * unique per app. Lowercase alphanumeric characters + hyphens; must not start
+   * with
+   * `d-`.
+   */
+  readonly instanceAlias?: string;
 
   /**
    * Override the directory containing the pre-bundled Lambda asset (an
@@ -111,12 +139,26 @@ export type AmplifyNotificationsProps = {
  *   - push-delivery Lambda (Connect Journey Custom-action target) + a minimal
  *     AWS End User Messaging (Pinpoint) application for `SendMessages`.
  *
- * The construct ATTACHES to an EXISTING Customer Profiles domain (named by
- * `domainName`) — such as the domain Amazon Connect auto-creates and binds 1:1
- * when Customer Profiles is enabled on an instance. It registers the two object
- * types INTO that domain (additive), without creating an
- * `AWS::CustomerProfiles::Domain` and without touching the domain's other
- * integrations (CTR, Outbound Campaigns) or its Identity Resolution setting.
+ * It operates in one of two modes, chosen by whether `domainName` is provided:
+ *
+ *   - CREATE-FROM-SCRATCH (default, `domainName` omitted): the construct also
+ *     provisions a brand-new Amazon Connect instance (`AWS::Connect::Instance`,
+ *     CONNECT_MANAGED, inbound/outbound enabled) AND a brand-new Customer
+ *     Profiles domain (`AWS::CustomerProfiles::Domain`) with generated, stable
+ *     names, then registers the object types INTO that new domain. The object
+ *     types depend on the created domain so they provision after it and are torn
+ *     down before it. A caller needs zero pre-existing Connect setup.
+ *   - ATTACH (`domainName` provided): the construct registers the two object
+ *     types INTO the existing `domainName` (additive) — such as the domain
+ *     Amazon Connect auto-creates when Customer Profiles is enabled on an
+ *     instance — WITHOUT creating an instance or a domain, and without touching
+ *     the domain's other integrations (CTR, Outbound Campaigns) or its Identity
+ *     Resolution setting.
+ *
+ * In either mode, associating the (new or existing) domain with an instance's
+ * Outbound Campaigns so journeys can target these profiles is a separate,
+ * deliberate step performed outside this construct (see the package README /
+ * design doc): identify works against the domain standalone regardless.
  *
  * This construct is framework-agnostic (aws-cdk-lib + constructs only). The
  * `defineNotifications` factory wraps it for Amplify Gen2 backends, wiring the
@@ -138,6 +180,22 @@ export class AmplifyNotifications
   /** The Customer Profiles domain name the object types are registered into. */
   public readonly domainName: string;
   /**
+   * `true` when this construct created the Customer Profiles domain + Connect
+   * instance (create-from-scratch mode); `false` when it attached to an existing
+   * domain named by `domainName`.
+   */
+  public readonly createsResources: boolean;
+  /**
+   * Id of the Amazon Connect instance created in create-from-scratch mode.
+   * `undefined` in attach mode.
+   */
+  public readonly connectInstanceId?: string;
+  /**
+   * ARN of the Amazon Connect instance created in create-from-scratch mode.
+   * `undefined` in attach mode.
+   */
+  public readonly connectInstanceArn?: string;
+  /**
    * ARN of the push-delivery Lambda, to wire as a Connect Journey Custom-action
    * (Invoke Lambda) target.
    */
@@ -149,8 +207,9 @@ export class AmplifyNotifications
   public readonly eumApplicationId: string;
 
   /**
-   * Registers the AmplifyProfile / AmplifyDevice object types into the existing
-   * Customer Profiles domain, the identify-user Lambda + JWT-authorized HTTP
+   * Registers the AmplifyProfile / AmplifyDevice object types into the Customer
+   * Profiles domain (created here in create-from-scratch mode, or the existing
+   * `domainName` in attach mode), the identify-user Lambda + JWT-authorized HTTP
    * API, and the push-delivery Lambda + AWS End User Messaging application for
    * this notifications backend.
    */
@@ -159,21 +218,59 @@ export class AmplifyNotifications
 
     const stack = Stack.of(this);
     this.stack = stack;
-    const domainName = props.domainName;
-    if (!domainName) {
-      throw new Error(
-        'AmplifyNotifications: `domainName` is required — provide the name of ' +
-          'the existing Customer Profiles domain to register the object types ' +
-          'into (e.g. the domain Amazon Connect created for your instance).',
-      );
-    }
     const expirationDays = props.expirationDays ?? DEFAULT_EXPIRATION_DAYS;
+
+    // ---- Mode selection: create-from-scratch (default) vs attach -----------
+    // If a `domainName` is supplied, ATTACH the object types to that existing
+    // domain (create nothing). Otherwise (the zero-config default) CREATE a
+    // brand-new Connect instance + Customer Profiles domain with generated,
+    // stable names and register the object types into the new domain.
+    const createFromScratch = !props.domainName;
+    this.createsResources = createFromScratch;
+
+    let domainName: string;
+    let profilesDomain: CfnDomain | undefined;
+    let connectInstance: CfnInstance | undefined;
+
+    if (createFromScratch) {
+      // Deterministic-yet-unique base name derived from the construct's scope so
+      // it is STABLE across deploy/delete (same tree → same name) and unique per
+      // app / environment (the root stack name embeds the Amplify app + branch).
+      const baseName = this.generateResourceName();
+      domainName = baseName;
+
+      connectInstance = new CfnInstance(this, 'ConnectInstance', {
+        // Minimal telephony surface: Connect requires at least one of
+        // inbound/outbound; enable both so the instance is usable for outbound
+        // journeys later. Directory is Connect-managed (no external identity).
+        attributes: {
+          inboundCalls: true,
+          outboundCalls: true,
+        },
+        identityManagementType: 'CONNECT_MANAGED',
+        instanceAlias: this.sanitizeInstanceAlias(
+          props.instanceAlias ?? baseName,
+        ),
+      });
+
+      profilesDomain = new CfnDomain(this, 'ProfilesDomain', {
+        domainName,
+        defaultExpirationDays: expirationDays,
+      });
+
+      this.connectInstanceId = connectInstance.attrId;
+      this.connectInstanceArn = connectInstance.attrArn;
+    } else {
+      domainName = props.domainName as string;
+    }
     this.domainName = domainName;
 
     // ---- Object types ------------------------------------------------------
-    // Registered by name INTO the existing `domainName` (attach mode) — purely
-    // additive, so Connect's own object types (CTR / Outbound Campaigns) on the
-    // same domain are untouched. The construct never creates the domain itself.
+    // Registered INTO `domainName`. In attach mode this is purely additive to a
+    // pre-existing (e.g. Connect-managed) domain. In create mode the object
+    // types depend on the domain created above, so CFN provisions the domain
+    // first and — on teardown — removes the object types before the domain (a
+    // clean, in-construct dependency; no cross-stack ordering hack needed).
     const profileType = new CfnObjectType(this, 'AmplifyProfileType', {
       domainName,
       objectTypeName: OBJECT_TYPE_NAMES.profile,
@@ -195,6 +292,11 @@ export class AmplifyNotifications
       keys: AMPLIFY_DEVICE_KEYS,
       expirationDays,
     });
+
+    if (profilesDomain) {
+      profileType.addDependency(profilesDomain);
+      deviceType.addDependency(profilesDomain);
+    }
 
     // ---- Lambda handler ----------------------------------------------------
     // Pre-bundled at build time (esbuild) into a self-contained asset, so the
@@ -441,6 +543,27 @@ export class AmplifyNotifications
         'Wire as a Connect Journey Custom-action (Invoke Lambda) target',
     });
 
+    // ---- Create-mode outputs ----------------------------------------------
+    // Surface the resources this construct provisioned from scratch so a human
+    // can find the new instance / domain in the console and (as a documented
+    // follow-up) associate the domain with the instance's Outbound Campaigns.
+    if (connectInstance) {
+      new CfnOutput(stack, 'ConnectInstanceId', {
+        value: connectInstance.attrId,
+        description: 'Amazon Connect instance created for notifications',
+      });
+      new CfnOutput(stack, 'ConnectInstanceArn', {
+        value: connectInstance.attrArn,
+        description: 'Amazon Connect instance ARN',
+      });
+    }
+    if (profilesDomain) {
+      new CfnOutput(stack, 'ProfilesDomainName', {
+        value: domainName,
+        description: 'Customer Profiles domain created for notifications',
+      });
+    }
+
     this.resources = {
       identifyUserFunction: fn,
       httpApi,
@@ -448,6 +571,51 @@ export class AmplifyNotifications
       deviceObjectType: deviceType,
       pushFunction: pushFn,
       pushApplication,
+      connectInstance,
+      profilesDomain,
     };
+  }
+
+  /**
+   * Deterministic, stable, per-app base name for the created Connect instance
+   * and Customer Profiles domain (create-from-scratch mode).
+   *
+   * The name must be STABLE across deploy and delete (so CFN resolves the same
+   * resource on teardown) and UNIQUE per app / environment (so two apps in the
+   * same account don't collide on the globally-unique Connect alias). It is
+   * derived from a short hash of the root stack name (which, in Amplify Gen2,
+   * embeds the app namespace + branch) plus this construct's path — both stable
+   * inputs. The `amplify-notifications-` prefix keeps it human-recognisable,
+   * lowercase, and clear of the reserved `d-` Connect-alias prefix.
+   */
+  private generateResourceName(): string {
+    let root: Stack = this.stack;
+    while (root.nestedStackParent) {
+      root = root.nestedStackParent;
+    }
+    const seed = `${root.stackName}::${this.node.path}`;
+    const suffix = createHash('sha256').update(seed).digest('hex').slice(0, 12);
+    return `amplify-notifications-${suffix}`;
+  }
+
+  /**
+   * Coerce an arbitrary string into a valid Amazon Connect instance alias:
+   * lowercase alphanumeric characters + single hyphens, no leading/trailing hyphen, not
+   * starting with the reserved `d-` prefix, and within Connect's 1–62 char
+   * bound.
+   */
+  private sanitizeInstanceAlias(raw: string): string {
+    let alias = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (alias.startsWith('d-')) {
+      alias = `a${alias}`;
+    }
+    if (alias.length === 0) {
+      alias = 'amplify-notifications';
+    }
+    return alias.slice(0, 62).replace(/-+$/g, '');
   }
 }

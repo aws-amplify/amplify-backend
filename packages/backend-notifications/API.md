@@ -6,6 +6,8 @@
 
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { CfnApp } from 'aws-cdk-lib/aws-pinpoint';
+import { CfnDomain } from 'aws-cdk-lib/aws-customerprofiles';
+import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
@@ -30,6 +32,9 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[];
 export class AmplifyNotifications extends Construct implements ResourceProvider<NotificationsResources>, StackProvider {
     constructor(scope: Construct, id: string, props: AmplifyNotificationsProps);
     readonly apiEndpoint: string;
+    readonly connectInstanceArn?: string;
+    readonly connectInstanceId?: string;
+    readonly createsResources: boolean;
     readonly domainName: string;
     readonly eumApplicationId: string;
     readonly identifyUserPath = "/identify-user";
@@ -42,7 +47,8 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
 export type AmplifyNotificationsProps = {
     readonly jwtIssuer: string;
     readonly jwtAudience: string[];
-    readonly domainName: string;
+    readonly domainName?: string;
+    readonly instanceAlias?: string;
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
     readonly pushLambdaCodePath?: string;
@@ -52,7 +58,7 @@ export type AmplifyNotificationsProps = {
 export const COGNITO_USER_KEY = "cognitoUserKey";
 
 // @public
-export const defineNotifications: (props: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
+export const defineNotifications: (props?: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
 
 // @public (undocumented)
 export type FieldMap = CfnObjectType.FieldMapProperty;
@@ -62,7 +68,8 @@ export type KeyMap = CfnObjectType.KeyMapProperty;
 
 // @public
 export type NotificationsFactoryProps = {
-    domainName: string;
+    domainName?: string;
+    instanceAlias?: string;
     expirationDays?: number;
 };
 
@@ -74,6 +81,8 @@ export type NotificationsResources = {
     deviceObjectType: CfnObjectType;
     pushFunction: lambda.IFunction;
     pushApplication: CfnApp;
+    connectInstance?: CfnInstance;
+    profilesDomain?: CfnDomain;
 };
 
 // @public

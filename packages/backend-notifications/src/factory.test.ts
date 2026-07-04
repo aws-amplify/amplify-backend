@@ -141,12 +141,24 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('throws a helpful error when domainName is missing', () => {
-    assert.throws(
-      () =>
-        defineNotifications({ domainName: '' }).getInstance(getInstanceProps),
-      /requires `domainName`/,
-    );
+  void it('creates a Connect instance + Customer Profiles domain by default (no domainName)', () => {
+    const notifications = defineNotifications().getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.resourceCountIs('AWS::Connect::Instance', 1);
+    template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    // identify + push Lambdas still provisioned.
+    template.resourceCountIs('AWS::Lambda::Function', 2);
+
+    assert.strictEqual(notifications.createsResources, true);
+    assert.match(notifications.domainName, /^amplify-notifications-[0-9a-f]+$/);
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyProfile',
+      DomainName: notifications.domainName,
+    });
+    template.hasOutput('ConnectInstanceId', {});
+    template.hasOutput('ProfilesDomainName', {});
   });
 
   void it('creates a Cognito JWT authorizer wired to the app user pool', () => {
@@ -247,6 +259,10 @@ void describe('defineNotifications', () => {
       'string',
     );
     assert.strictEqual(typeof parsed.custom.CustomerProfiles.region, 'string');
+    assert.strictEqual(
+      parsed.custom.CustomerProfiles.domainName,
+      EXISTING_DOMAIN,
+    );
   });
 
   void it('writes the custom output only once across repeated getInstance calls', () => {
