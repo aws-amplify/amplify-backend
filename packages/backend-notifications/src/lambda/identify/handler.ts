@@ -147,7 +147,15 @@ export const handler = async (
     return response(200, { status: 'ok' });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error';
-    console.error('Customer Profiles error', { err });
+    // Log only the error name (and HTTP status when present) — never the full
+    // error object, whose stack / request input can carry customer content.
+    const name = err instanceof Error ? err.name : 'UnknownError';
+    const statusCode = (err as { $metadata?: { httpStatusCode?: number } })
+      ?.$metadata?.httpStatusCode;
+    console.error(
+      '[identify] customerProfilesError',
+      JSON.stringify({ name, statusCode }),
+    );
     return response(500, { error: `Customer Profiles error: ${message}` });
   }
 };

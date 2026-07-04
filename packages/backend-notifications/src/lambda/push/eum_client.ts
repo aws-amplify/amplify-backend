@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint';
-import { maskToken } from '../shared/mask.js';
+import { debugLoggingEnabled } from '../shared/debug.js';
 import { buildMessageConfiguration } from './payload.js';
 import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
 
@@ -64,10 +64,12 @@ export const isInvalidTokenFailure = (
  * configured on the EUM app) is caught and reported as `status: 'ERROR'`
  * (failed, NOT stale — the token itself may be fine).
  *
- * Emits greppable `[push] send.*` / `[push] classify` log lines carrying the
- * request channel and the FULL per-address response (DeliveryStatus /
+ * Emits greppable `[push] send.response` / `[push] classify` log lines carrying
+ * the request channel and the per-address response (DeliveryStatus /
  * StatusCode / StatusMessage) plus the keep-vs-delete decision, so a failed
  * send can be diagnosed as channel-not-enabled vs invalid-token from the logs.
+ * These carry NO device token or profile id; the rendered copy is logged only
+ * under debug logging (default-off).
  */
 export const deliverToDevice = async (
   pinpoint: PinpointClient,
@@ -76,31 +78,28 @@ export const deliverToDevice = async (
   channelType: PushChannelType,
   message: PushMessage,
 ): Promise<DeviceDeliveryResult> => {
-  const masked = maskToken(deviceToken);
   try {
-    // Build the platform MessageConfiguration ONCE and log the EXACT Title/Body
-    // it carries — this is the actual copy handed to SendMessages, so a rendered
-    // template vs default fallback is provable from CloudWatch at the send site
-    // itself (not just from the upstream resolveMessage log).
-    //
-    // NOTE (PII / not production-safe): `title` / `body` may echo rendered,
-    // personalized copy tied to a named profile; reduce/omit before production.
     const messageConfiguration = buildMessageConfiguration(
       channelType,
       message,
     );
-    const sentPayload =
-      messageConfiguration.GCMMessage ?? messageConfiguration.APNSMessage;
-    console.log(
-      '[push] send.request',
-      JSON.stringify({
-        channelType,
-        deviceToken: masked,
-        title: sentPayload?.Title,
-        body: sentPayload?.Body,
-        hasData: Boolean(sentPayload?.Data),
-      }),
-    );
+    // The built Title/Body echo the rendered, personalized copy, so they are
+    // logged ONLY under debug logging (default-off). This is the send-site proof
+    // of the exact copy handed to SendMessages when diagnosing rendered-vs-
+    // default; the default path never logs the copy or the device token.
+    if (debugLoggingEnabled()) {
+      const sentPayload =
+        messageConfiguration.GCMMessage ?? messageConfiguration.APNSMessage;
+      console.log(
+        '[push][debug] send.request',
+        JSON.stringify({
+          channelType,
+          title: sentPayload?.Title,
+          body: sentPayload?.Body,
+          hasData: Boolean(sentPayload?.Data),
+        }),
+      );
+    }
 
     const res = await pinpoint.send(
       new SendMessagesCommand({
@@ -124,7 +123,6 @@ export const deliverToDevice = async (
       '[push] send.response',
       JSON.stringify({
         channelType,
-        deviceToken: masked,
         deliveryStatus: status,
         statusCode,
         statusMessage,
@@ -133,7 +131,6 @@ export const deliverToDevice = async (
     console.log(
       '[push] classify',
       JSON.stringify({
-        deviceToken: masked,
         channelType,
         deliveryStatus: status,
         decision: stale ? 'STALE_DELETE' : 'KEEP',
@@ -159,7 +156,6 @@ export const deliverToDevice = async (
       '[push] send.error',
       JSON.stringify({
         channelType,
-        deviceToken: masked,
         deliveryStatus: 'ERROR',
         decision: 'KEEP',
         reason: 'SendMessages threw (e.g. channel not configured) — token kept',

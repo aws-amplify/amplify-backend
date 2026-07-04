@@ -8,7 +8,6 @@ import {
 } from '@aws-sdk/client-customer-profiles';
 
 import { OBJECT_TYPE_DEVICE } from '../../constants.js';
-import { maskToken } from '../shared/mask.js';
 import { withTransientRetry } from '../shared/retry.js';
 
 /** A registered device resolved from the profile's AmplifyDevice objects. */
@@ -85,16 +84,13 @@ export const listDevices = async (
     nextToken = res.NextToken;
   } while (nextToken);
 
+  // Operational signal only: how many devices resolved and their channel types
+  // (non-personal). Profile id, device ids and tokens are NOT logged.
   console.log(
     '[push] devices.resolved',
     JSON.stringify({
-      profileId,
       count: devices.length,
-      devices: devices.map((d) => ({
-        deviceId: d.deviceId,
-        channelType: d.channelType,
-        deviceToken: maskToken(d.deviceToken),
-      })),
+      channelTypes: devices.map((d) => d.channelType ?? '(none)'),
     }),
   );
 
@@ -128,11 +124,15 @@ export const deleteDevice = async (
     );
     return true;
   } catch (err) {
-    console.error('Stale device cleanup (DeleteProfileObject) failed', {
-      profileId,
-      objectUniqueKey,
-      err,
-    });
+    // Log the failure name / object key only — no profile id and no raw error
+    // object (which can carry request content).
+    console.error(
+      '[push] cleanup.deleteFailed',
+      JSON.stringify({
+        objectUniqueKey,
+        error: err instanceof Error ? err.name : 'unknown',
+      }),
+    );
     return false;
   }
 };

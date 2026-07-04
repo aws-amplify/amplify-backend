@@ -5,7 +5,6 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 
 import { deliverToDevice } from './eum_client.js';
-import { maskToken } from '../shared/mask.js';
 import { deleteDevice, listDevices } from './device_lookup.js';
 import { normalizeChannelType } from './payload.js';
 import {
@@ -34,8 +33,8 @@ export type DeliveryDeps = {
    * The resolved Q in Connect PUSH message template for this journey run, when
    * one was found (see {@link resolvePushTemplateContext}). When present, each
    * profile's copy is rendered from the template (per-platform) and takes
-   * precedence over the CustomerData / event / default copy; when absent,
-   * delivery uses the non-templated per-profile copy exactly as before.
+   * precedence over the safe DEFAULT copy; when absent, delivery uses the
+   * DEFAULT copy for every channel.
    */
   templateContext?: PushTemplateContext;
 };
@@ -106,12 +105,12 @@ export const deliverToProfile = async (
     }
 
     if (outcome.stale) {
+      // Cleanup decision only — no profile id or device token. `objectUniqueKey`
+      // is an opaque service-generated key needed to correlate the delete.
       console.log(
         '[push] cleanup.delete',
         JSON.stringify({
-          profileId: target.profileId,
           objectUniqueKey: device.objectUniqueKey,
-          deviceToken: maskToken(device.deviceToken),
           channelType,
           reason: outcome.statusMessage ?? outcome.status,
         }),
@@ -170,37 +169,15 @@ export const deliverToTargets = async (
       );
     }
 
-    // NOTE (PII / not production-safe): title/body may echo template-rendered
-    // copy; logged here to confirm the EFFECTIVE per-channel copy that will
-    // actually be delivered. Reduce/omit before production.
-    //
-    // `effective` is exactly what each channel sends: the rendered template copy
-    // for every channel the template resolved, and the DEFAULT for any channel
-    // it did not (shown as the `default` entry). When no template applied at
-    // all, every channel gets the default.
-    const effective: Record<string, { title: string; body: string }> =
-      perChannel
-        ? {
-            ...Object.fromEntries(
-              Object.entries(perChannel).map(([channel, m]) => [
-                channel,
-                { title: m.title, body: m.body },
-              ]),
-            ),
-            default: { title: fallback.title, body: fallback.body },
-          }
-        : {
-            all: { title: fallback.title, body: fallback.body },
-          };
+    // Operational signal only: whether a template applied and which channels it
+    // resolved copy for. The rendered / default title and body are NOT logged
+    // (they echo personalized customer copy); enable debug logging on the
+    // template renderer if the actual copy must be inspected.
     console.log(
       '[push] resolveMessage',
       JSON.stringify({
-        profileId: target.profileId,
         templateApplied: Boolean(perChannel),
-        effective,
-        defaultTitle: fallback.title,
-        defaultBody: fallback.body,
-        hasData: Boolean(fallback.data),
+        channelsResolved: perChannel ? Object.keys(perChannel) : [],
       }),
     );
     results.push(await deliverToProfile(deps, target, fallback, perChannel));

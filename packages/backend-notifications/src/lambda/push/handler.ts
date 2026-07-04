@@ -8,6 +8,7 @@ import { ConnectClient } from '@aws-sdk/client-connect';
 import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
+import { debugLoggingEnabled } from '../shared/debug.js';
 import { parsePushEvent } from './event.js';
 import { deliverToTargets } from './delivery.js';
 import {
@@ -45,15 +46,13 @@ const qconnect = new QConnectClient({});
 export const handler = async (
   event: unknown,
 ): Promise<PushDeliveryResponse> => {
-  // Top priority: capture the EXACT raw event so the real Connect Journey
-  // Custom-action envelope shape can be inspected from CloudWatch.
-  //
-  // NOTE (PII / not production-safe): the raw event carries `CustomerData`
-  // (name / email / phone / attributes) and this logs it UNREDACTED. This is a
-  // deliberate diagnostic to discover the (undocumented) Journey payload shape.
-  // Before production this MUST be gated off / reduced to the structural
-  // envelope (top-level keys + item count) only.
-  console.log('[push] rawEvent', JSON.stringify(event));
+  // The raw event carries `CustomerData` (name / email / attributes) — full PII.
+  // It is logged ONLY when debug logging is explicitly enabled (default-off), to
+  // inspect the (undocumented) Journey Custom-action envelope shape during
+  // debugging. The default path logs nothing personal here.
+  if (debugLoggingEnabled()) {
+    console.log('[push][debug] rawEvent', JSON.stringify(event));
+  }
 
   const domainName = process.env[ENV_DOMAIN_NAME];
   const applicationId = process.env[ENV_EUM_APPLICATION_ID];
@@ -69,20 +68,15 @@ export const handler = async (
   }
 
   const parsed = parsePushEvent(event);
-  // NOTE (PII / not production-safe): `profileIds` are customer-identifiable.
-  // Kept here for PoC diagnosis; hash or omit before production.
+  // Operational signals only: how the event was parsed, how many profiles it
+  // targeted, and the (non-personal) campaign / action identifiers. Profile ids
+  // and message copy are deliberately NOT logged.
   console.log(
     '[push] parsed',
     JSON.stringify({
       parsePath: parsed.parsePath,
       profileCount: parsed.targets.length,
-      profileIds: parsed.targets.map((t) => t.profileId),
       campaign: parsed.campaign ?? null,
-      message: {
-        title: parsed.message.title,
-        body: parsed.message.body,
-        hasData: Boolean(parsed.message.data),
-      },
     }),
   );
 

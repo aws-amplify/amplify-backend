@@ -21,6 +21,7 @@ import {
   PUSH_CHANNEL_SUBTYPE,
   Q_MESSAGE_TEMPLATES_INTEGRATION_TYPE,
 } from '../../constants.js';
+import { debugLoggingEnabled } from '../shared/debug.js';
 import {
   CampaignContext,
   ProfileTarget,
@@ -371,7 +372,6 @@ export const renderProfileChannelMessages = async (
     console.warn(
       '[push] template.renderError',
       JSON.stringify({
-        profileId: target.profileId,
         templateName: ctx.templateName,
         error: err instanceof Error ? err.message : 'unknown',
       }),
@@ -398,21 +398,32 @@ export const renderProfileChannelMessages = async (
     perChannel.GCM = fcm;
   }
 
-  // NOTE (PII / not production-safe): `apns` / `gcm` contain the rendered,
-  // personalized copy (e.g. "Hi Manual, you have a new update") tied to a named
-  // profile — more sensitive than a raw id. Logged here to confirm per-profile
-  // interpolation; reduce/omit (and gate profileId) before production.
+  // Operational signal only: which channels the template rendered usable copy
+  // for, the (non-personal) attribute KEY names supplied, and any keys the
+  // renderer left un-interpolated. The rendered title/body echo personalized
+  // customer copy, so they are logged ONLY under debug logging (default-off),
+  // alongside the profile id, to inspect per-profile interpolation.
   console.log(
     '[push] template.render',
     JSON.stringify({
-      profileId: target.profileId,
       templateName: ctx.templateName,
       customAttributeKeys: Object.keys(customAttributes),
-      apns: apns ?? null,
-      gcm: fcm ?? null,
+      apnsRendered: Boolean(apns),
+      gcmRendered: Boolean(fcm),
       attributesNotInterpolated: res.attributesNotInterpolated ?? [],
     }),
   );
+  if (debugLoggingEnabled()) {
+    console.log(
+      '[push][debug] template.render.copy',
+      JSON.stringify({
+        profileId: target.profileId,
+        templateName: ctx.templateName,
+        apns: apns ?? null,
+        gcm: fcm ?? null,
+      }),
+    );
+  }
 
   return Object.keys(perChannel).length > 0 ? perChannel : undefined;
 };
