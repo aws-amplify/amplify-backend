@@ -18,7 +18,11 @@ import {
   CfnIntegration,
   CfnObjectType,
 } from 'aws-cdk-lib/aws-customerprofiles';
-import { CfnInstance } from 'aws-cdk-lib/aws-connect';
+import {
+  CfnInstance,
+  CfnIntegrationAssociation,
+} from 'aws-cdk-lib/aws-connect';
+import { CfnKnowledgeBase } from 'aws-cdk-lib/aws-wisdom';
 import {
   CfnAPNSChannel,
   CfnAPNSSandboxChannel,
@@ -392,6 +396,34 @@ export class AmplifyNotifications
       );
       ctrIntegration.addDependency(connectInstance);
       ctrIntegration.addDependency(profilesDomain);
+
+      // Message-templates knowledge base + its instance association. Both the
+      // Connect console's message-template authoring UI and the push-delivery
+      // Lambda's runtime discovery (ListIntegrationAssociations filtered to
+      // Q_MESSAGE_TEMPLATES → the KB it renders templates from) require a
+      // MESSAGE_TEMPLATES knowledge base linked to the instance. We provision
+      // the empty KB + the Q_MESSAGE_TEMPLATES association only; the templates
+      // themselves are the marketer's job (a template's name must match the
+      // journey Custom-action id, e.g. "Push Notification"). A MESSAGE_TEMPLATES
+      // KB needs no Q assistant. The name is derived from the same deterministic
+      // base as the instance/domain so redeploys stay stable and avoid the
+      // CreateKnowledgeBase ConflictException on duplicate names.
+      const templatesKb = new CfnKnowledgeBase(this, 'MessageTemplatesKb', {
+        name: `${baseName}-message-templates`,
+        knowledgeBaseType: 'MESSAGE_TEMPLATES',
+      });
+
+      const templatesAssociation = new CfnIntegrationAssociation(
+        this,
+        'MessageTemplatesAssociation',
+        {
+          instanceId: connectInstance.attrArn,
+          integrationType: 'Q_MESSAGE_TEMPLATES',
+          integrationArn: templatesKb.attrKnowledgeBaseArn,
+        },
+      );
+      templatesAssociation.addDependency(connectInstance);
+      templatesAssociation.addDependency(templatesKb);
     } else {
       domainName = props.domainName as string;
     }

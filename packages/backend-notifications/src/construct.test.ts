@@ -566,6 +566,48 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     template.resourceCountIs('AWS::CustomerProfiles::Integration', 0);
   });
 
+  void it('provisions a MESSAGE_TEMPLATES knowledge base + Q_MESSAGE_TEMPLATES association (create mode)', () => {
+    const { template } = synthCreate();
+    // Native CFN (no custom resource): the empty message-templates KB the
+    // console authoring UI + push Lambda discovery need. Templates themselves
+    // stay the marketer's job.
+    template.resourceCountIs('AWS::Wisdom::KnowledgeBase', 1);
+    template.hasResourceProperties('AWS::Wisdom::KnowledgeBase', {
+      KnowledgeBaseType: 'MESSAGE_TEMPLATES',
+      // Deterministic name derived from the same base as instance/domain.
+      Name: Match.stringLikeRegexp(
+        'amazon-connect-notifications-[0-9a-f]+-message-templates',
+      ),
+    });
+    template.resourceCountIs('AWS::Connect::IntegrationAssociation', 1);
+    template.hasResourceProperties('AWS::Connect::IntegrationAssociation', {
+      IntegrationType: 'Q_MESSAGE_TEMPLATES',
+      // Associates the created instance to the created KB (both Fn::GetAtt).
+      InstanceId: Match.objectLike({
+        'Fn::GetAtt': Match.arrayWith([
+          Match.stringLikeRegexp('ConnectInstance'),
+        ]),
+      }),
+      IntegrationArn: Match.objectLike({
+        'Fn::GetAtt': Match.arrayWith([
+          Match.stringLikeRegexp('MessageTemplatesKb'),
+        ]),
+      }),
+    });
+    template.hasResource('AWS::Connect::IntegrationAssociation', {
+      DependsOn: Match.arrayWith([
+        Match.stringLikeRegexp('ConnectInstance'),
+        Match.stringLikeRegexp('MessageTemplatesKb'),
+      ]),
+    });
+  });
+
+  void it('does NOT provision a knowledge base or Q_MESSAGE_TEMPLATES association in attach mode', () => {
+    const { template } = synth();
+    template.resourceCountIs('AWS::Wisdom::KnowledgeBase', 0);
+    template.resourceCountIs('AWS::Connect::IntegrationAssociation', 0);
+  });
+
   void it('does NOT create any segment / campaign / journey resources (out of scope)', () => {
     const { template } = synthCreate();
     const json = template.toJSON() as { [key: string]: unknown };
