@@ -390,7 +390,9 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
         InboundCalls: true,
         OutboundCalls: true,
       },
-      InstanceAlias: Match.stringLikeRegexp('amplify-notifications-[0-9a-f]+'),
+      InstanceAlias: Match.stringLikeRegexp(
+        'amazon-connect-notifications-[0-9a-f]+',
+      ),
     });
     // The generated name is deterministic (stable across synths of the same
     // tree) so deploy and delete resolve the identical instance / domain.
@@ -398,13 +400,24 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     assert.strictEqual(construct.domainName, again.domainName);
   });
 
-  void it('names the created domain with the same generated stable name and honors expiration', () => {
+  void it('names the created domain with the same generated stable name (amazon-connect-* prefixed for Connect SLR access) and honors expiration', () => {
     const { construct, template } = synthCreate({ expirationDays: 90 });
     template.hasResourceProperties('AWS::CustomerProfiles::Domain', {
       DomainName: construct.domainName,
       DefaultExpirationDays: 90,
     });
-    assert.match(construct.domainName, /^amplify-notifications-[0-9a-f]+$/);
+    // The `amazon-connect-` prefix is REQUIRED: the Connect instance's
+    // AWS-managed service-linked-role policy only grants profile:* on
+    // domains/amazon-connect-*, so a differently-named domain is unreachable by
+    // the instance (breaks the console CP feature + Journey segment builder).
+    assert.match(
+      construct.domainName,
+      /^amazon-connect-notifications-[0-9a-f]+$/,
+    );
+    assert.ok(
+      construct.domainName.startsWith('amazon-connect-'),
+      'the created domain must be prefixed amazon-connect- for the Connect SLR to access it',
+    );
   });
 
   void it('registers the object types INTO the created domain with an explicit dependency on it', () => {
@@ -518,6 +531,35 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
   void it('does NOT add the campaign-association custom resource in attach mode', () => {
     const { template } = synth();
     template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 0);
+  });
+
+  void it('binds the created domain to the instance as a CTR Customer Profiles integration (create mode)', () => {
+    const { template } = synthCreate();
+    // Native CFN resource (NOT the association custom resource): the
+    // instance-level "Customer Profiles enabled" feature binding the Connect
+    // console + Journey segment builder require.
+    template.resourceCountIs('AWS::CustomerProfiles::Integration', 1);
+    template.hasResourceProperties('AWS::CustomerProfiles::Integration', {
+      ObjectTypeName: 'CTR',
+      // Uri is the created Connect instance ARN (Fn::GetAtt on the instance).
+      Uri: Match.objectLike({
+        'Fn::GetAtt': Match.arrayWith([
+          Match.stringLikeRegexp('ConnectInstance'),
+        ]),
+      }),
+    });
+    // Provisions after — and tears down before — the instance + domain.
+    template.hasResource('AWS::CustomerProfiles::Integration', {
+      DependsOn: Match.arrayWith([
+        Match.stringLikeRegexp('ConnectInstance'),
+        Match.stringLikeRegexp('ProfilesDomain'),
+      ]),
+    });
+  });
+
+  void it('does NOT add the CTR Customer Profiles integration in attach mode', () => {
+    const { template } = synth();
+    template.resourceCountIs('AWS::CustomerProfiles::Integration', 0);
   });
 
   void it('does NOT create any segment / campaign / journey resources (out of scope)', () => {

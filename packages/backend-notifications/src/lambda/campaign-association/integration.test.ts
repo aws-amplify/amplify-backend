@@ -27,7 +27,7 @@ import {
 const ACCOUNT = '996099992135';
 const REGION = 'us-east-1';
 const INSTANCE_ID = '11111111-2222-3333-4444-555555555555';
-const DOMAIN = 'amplify-notifications-00000000';
+const DOMAIN = 'amazon-connect-notifications-00000000';
 const SLR_ARN = `arn:aws:iam::${ACCOUNT}:role/aws-service-role/connect-campaigns.amazonaws.com/AWSServiceRoleForConnectCampaigns_ABC`;
 
 type Sent = { name: string; input: unknown };

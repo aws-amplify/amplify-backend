@@ -13,7 +13,11 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { CfnDomain, CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
+import {
+  CfnDomain,
+  CfnIntegration,
+  CfnObjectType,
+} from 'aws-cdk-lib/aws-customerprofiles';
 import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import {
   CfnAPNSChannel,
@@ -357,6 +361,26 @@ export class AmplifyNotifications
 
       this.connectInstanceId = connectInstance.attrId;
       this.connectInstanceArn = connectInstance.attrArn;
+
+      // Instance-level Customer Profiles feature binding: registers the created
+      // domain as the instance's CTR (contact-record) profiles store — the
+      // "Customer Profiles enabled" integration the Connect console and Journey
+      // segment builder require, distinct from the Outbound Campaigns
+      // integration the association custom resource wires below. PutIntegration
+      // auto-resolves the Connect service-linked role for a connect-instance
+      // URI; that SLR can only reach the domain because it is named
+      // `amazon-connect-*` (see generateResourceName).
+      const ctrIntegration = new CfnIntegration(
+        this,
+        'ConnectProfilesIntegration',
+        {
+          domainName,
+          uri: connectInstance.attrArn,
+          objectTypeName: 'CTR',
+        },
+      );
+      ctrIntegration.addDependency(connectInstance);
+      ctrIntegration.addDependency(profilesDomain);
     } else {
       domainName = props.domainName as string;
     }
@@ -1052,8 +1076,16 @@ export class AmplifyNotifications
    * same account don't collide on the globally-unique Connect alias). It is
    * derived from a short hash of the root stack name (which, in Amplify Gen2,
    * embeds the app namespace + branch) plus this construct's path — both stable
-   * inputs. The `amplify-notifications-` prefix keeps it human-recognisable,
-   * lowercase, and clear of the reserved `d-` Connect-alias prefix.
+   * inputs.
+   *
+   * The `amazon-connect-` prefix is REQUIRED, not cosmetic: Amazon Connect's
+   * AWS-managed service-linked-role policy (`AmazonConnectServiceLinkedRolePolicy`,
+   * statement `AllowCustomerProfilesForConnectDomain`) grants the instance's
+   * role `profile:*` ONLY on `arn:aws:profile:*:*:domains/amazon-connect-*`. A
+   * domain named otherwise is unreachable by the instance — the Connect console
+   * and Journey segment builder then report "does not have permissions to access
+   * Customer Profiles". The SLR is AWS-protected (no inline policy can be added)
+   * and the managed policy is not editable, so the domain name is the only lever.
    */
   private generateResourceName(): string {
     let root: Stack = this.stack;
@@ -1062,7 +1094,7 @@ export class AmplifyNotifications
     }
     const seed = `${root.stackName}::${this.node.path}`;
     const suffix = createHash('sha256').update(seed).digest('hex').slice(0, 12);
-    return `amplify-notifications-${suffix}`;
+    return `amazon-connect-notifications-${suffix}`;
   }
 
   /**

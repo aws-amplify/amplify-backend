@@ -168,9 +168,14 @@ void describe('defineNotifications', () => {
     // Provider framework Lambda.
     template.resourceCountIs('AWS::Lambda::Function', 4);
     template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 1);
+    // CTR feature binding: the created domain is registered to the instance.
+    template.resourceCountIs('AWS::CustomerProfiles::Integration', 1);
 
     assert.strictEqual(notifications.createsResources, true);
-    assert.match(notifications.domainName, /^amplify-notifications-[0-9a-f]+$/);
+    assert.match(
+      notifications.domainName,
+      /^amazon-connect-notifications-[0-9a-f]+$/,
+    );
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: notifications.domainName,
