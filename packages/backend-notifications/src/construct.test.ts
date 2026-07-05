@@ -382,13 +382,17 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     assert.strictEqual(typeof construct.connectInstanceArn, 'string');
   });
 
-  void it('creates a CONNECT_MANAGED instance with inbound + outbound calls and a valid generated alias', () => {
+  void it('creates a CONNECT_MANAGED instance with inbound + outbound calls, high-volume outbound enabled, and a valid generated alias', () => {
     const { construct, template } = synthCreate();
     template.hasResourceProperties('AWS::Connect::Instance', {
       IdentityManagementType: 'CONNECT_MANAGED',
       Attributes: {
         InboundCalls: true,
         OutboundCalls: true,
+        // Enables Outbound Campaigns on the instance, which makes Connect attach
+        // the HighVolumeOutboundCommunicationAccess campaigns policy to the
+        // instance service-linked role the console's Journey builder relies on.
+        HighVolumeOutBound: true,
       },
       InstanceAlias: Match.stringLikeRegexp(
         'amazon-connect-notifications-[0-9a-f]+',

@@ -344,9 +344,20 @@ export class AmplifyNotifications
         // Minimal telephony surface: Connect requires at least one of
         // inbound/outbound; enable both so the instance is usable for outbound
         // journeys later. Directory is Connect-managed (no external identity).
+        //
+        // highVolumeOutBound enables the instance's Outbound Campaigns feature.
+        // This is what makes Amazon Connect attach the
+        // `HighVolumeOutboundCommunicationAccess` inline policy to the instance's
+        // OWN service-linked role — the policy granting the `connect-campaigns:*`
+        // (CreateCampaign / ListCampaigns / ...) actions the Connect console
+        // drives Journey + campaign authoring through. Onboarding to Outbound
+        // Campaigns v2 (the campaign-association custom resource) does NOT set
+        // it, so without this the console's Journey / segment builder fails with
+        // connect-campaigns AccessDenied on the instance SLR.
         attributes: {
           inboundCalls: true,
           outboundCalls: true,
+          highVolumeOutBound: true,
         },
         identityManagementType: 'CONNECT_MANAGED',
         instanceAlias: this.sanitizeInstanceAlias(
