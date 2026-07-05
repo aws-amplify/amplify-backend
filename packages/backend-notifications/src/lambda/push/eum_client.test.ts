@@ -89,6 +89,31 @@ void describe('deliverToDevice', () => {
     assert.strictEqual(res.statusCode, 410);
   });
 
+  void it('flags a real FCM HTTP v1 invalid-token failure (INVALID_ARGUMENT) as stale', async () => {
+    // Verbatim-shaped Pinpoint StatusMessage for an FCM v1 rejection of an
+    // invalid registration token (captured from a live journey run).
+    const fcmV1InvalidToken =
+      '{"errorMessage":"Invalid notification","channelType":"GCM","pushProviderStatusCode":"400","pushProviderError":"The registration token is not a valid FCM registration token","pushProviderResponse":"{\\"status\\":\\"INVALID_ARGUMENT\\"}"}';
+    const { client } = fakePinpoint({
+      status: 'PERMANENT_FAILURE',
+      statusCode: 400,
+      statusMessage: fcmV1InvalidToken,
+    });
+    const res = await deliverToDevice(
+      client,
+      'app',
+      'bad-fcm-token',
+      'GCM',
+      MESSAGE,
+    );
+    assert.strictEqual(res.delivered, false);
+    assert.strictEqual(
+      res.stale,
+      true,
+      'FCM v1 invalid-token must trigger cleanup',
+    );
+  });
+
   void it('treats a channel-misconfig PERMANENT_FAILURE as failed but NOT stale (conservative cleanup)', async () => {
     const { client } = fakePinpoint({
       status: 'PERMANENT_FAILURE',
@@ -167,6 +192,36 @@ void describe('isInvalidTokenFailure', () => {
         msg,
       );
     }
+  });
+
+  void it('flags FCM HTTP v1 token-invalidity signals as stale (INVALID_ARGUMENT phrase / SENDER_ID_MISMATCH / UNREGISTERED)', () => {
+    for (const msg of [
+      // v1 malformed / non-FCM token — INVALID_ARGUMENT on the message.token field
+      'The registration token is not a valid FCM registration token',
+      '{"pushProviderError":"The registration token is not a valid FCM registration token","pushProviderResponse":"{\\"status\\":\\"INVALID_ARGUMENT\\"}"}',
+      // v1 token registered to a different Firebase sender
+      'SENDER_ID_MISMATCH',
+      // v1 unregistered token (also matched by the APNs `Unregistered` entry)
+      'UNREGISTERED',
+    ]) {
+      assert.strictEqual(
+        isInvalidTokenFailure('PERMANENT_FAILURE', msg),
+        true,
+        msg,
+      );
+    }
+  });
+
+  void it('does NOT flag a non-token FCM v1 INVALID_ARGUMENT (payload error) as stale', () => {
+    // A generic INVALID_ARGUMENT that is NOT about the token (e.g. a malformed
+    // notification field) must KEEP the device — only the token-specific phrase
+    // deletes, so a payload bug never wipes valid registrations.
+    const payloadError =
+      '{"pushProviderError":"Invalid value at message.notification.title","pushProviderResponse":"{\\"status\\":\\"INVALID_ARGUMENT\\"}"}';
+    assert.strictEqual(
+      isInvalidTokenFailure('PERMANENT_FAILURE', payloadError),
+      false,
+    );
   });
 
   void it('returns false for channel/app/transient/unknown failures (keep the token)', () => {

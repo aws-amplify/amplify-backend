@@ -12,7 +12,12 @@ import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
  * cleanup).
  *
  * - APNs: `BadDeviceToken`, `Unregistered`, `DeviceTokenNotForTopic`
- * - FCM / GCM: `NotRegistered`, `InvalidRegistration`, `MismatchSenderId`
+ * - FCM / GCM legacy HTTP API: `NotRegistered`, `InvalidRegistration`,
+ *   `MismatchSenderId`
+ * - FCM HTTP v1 (current API): `UNREGISTERED` (matched by the APNs
+ *   `Unregistered` entry), `SENDER_ID_MISMATCH`, and a malformed token's
+ *   `INVALID_ARGUMENT` whose per-field message is "...not a valid FCM
+ *   registration token"
  *
  * Everything else that yields a non-delivery — a channel that is not enabled on
  * the EUM/Pinpoint application, missing channel credentials, `OPT_OUT`,
@@ -22,12 +27,24 @@ import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
  * device registrations (e.g. when the app simply has no APNS/GCM channel yet).
  */
 const INVALID_TOKEN_INDICATORS = [
+  // APNs
   'BadDeviceToken',
   'Unregistered',
   'DeviceTokenNotForTopic',
+  // FCM / GCM legacy HTTP API
   'NotRegistered',
   'InvalidRegistration',
   'MismatchSenderId',
+  // FCM HTTP v1 (current API). v1 reports token invalidity with different
+  // strings than the legacy API: `UNREGISTERED` (already matched
+  // case-insensitively by the APNs `Unregistered` entry), `SENDER_ID_MISMATCH`,
+  // and a malformed / non-FCM token as `INVALID_ARGUMENT` carrying the specific
+  // per-field message matched below. Match that exact token phrase rather than
+  // bare `INVALID_ARGUMENT` — the latter also covers non-token payload errors,
+  // so matching it broadly could wrongly delete a valid device on a
+  // malformed-message bug.
+  'SENDER_ID_MISMATCH',
+  'not a valid FCM registration token',
 ];
 
 /**
