@@ -129,4 +129,60 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
     assert.ok(pipeline.codePipelines.get('main'));
     Template.fromStack(stack).resourceCountIs('AWS::CodePipeline::Pipeline', 1);
   });
+
+  // Guards the id-prefix coupling to @aws-blocks/pipeline's construct naming
+  // (see resolveSource). For every stage across MULTIPLE branches, the hook
+  // must receive a real source file set from that stage's OWN branch pipeline.
+  // If upstream renames its stage / branch-pipeline constructs, this resolution
+  // fails loud (resolveSource throws) so CI catches it instead of silently
+  // dropping the hosting deploy step.
+  void it('resolves each stage source from its own branch pipeline (multi-branch)', () => {
+    const stack = makeStack();
+    const seen = new Map<string, boolean>();
+
+    new AmplifyPipelineConstruct(stack, 'Pipeline', {
+      ...baseProps(stack),
+      branches: [
+        { branch: 'main', stages: [{ name: 'beta' }, { name: 'prod' }] },
+        { branch: 'staging', stages: [{ name: 'gamma' }] },
+      ],
+      _postStageHook: ({ source, stageConfig }) => {
+        // A real, resolved source (not an undefined cast) is required here —
+        // the step below feeds it straight into CodeBuildStep.input.
+        assert.ok(
+          source,
+          `expected a resolved source for stage "${stageConfig.name}"`,
+        );
+        seen.set(stageConfig.name, true);
+        return [
+          new ShellStep(`DeployHosting-${stageConfig.name}`, {
+            input: source,
+            commands: ['echo deploy-hosting'],
+          }),
+        ];
+      },
+    });
+
+    // The hook ran for every stage across both branches with a valid source.
+    assert.deepStrictEqual(
+      [...seen.keys()].sort(),
+      ['beta', 'gamma', 'prod'],
+      'hook should run once per stage across all branches',
+    );
+
+    // Each branch pipeline gets its injected DeployHosting CodeBuild action.
+    const template = Template.fromStack(stack);
+    const projects = template.findResources('AWS::CodeBuild::Project');
+    const buildSpecs = Object.values(projects).map((p: any) =>
+      JSON.stringify(p.Properties?.Source?.BuildSpec ?? ''),
+    );
+    const deployHostingActions = buildSpecs.filter((b) =>
+      b.includes('echo deploy-hosting'),
+    );
+    assert.strictEqual(
+      deployHostingActions.length,
+      3,
+      'expected one injected DeployHosting step per stage (beta, prod, gamma)',
+    );
+  });
 });

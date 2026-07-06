@@ -201,14 +201,19 @@ const wrapProps = <TConfig>(
  * step's `input` — specifically the source checkout of the SAME branch pipeline
  * the stage belongs to (each branch has its own source action).
  *
- * aws-blocks names the branch CodePipeline `${id}-${safeBranch}` and the stage
- * `${id}-${safeBranch}-Stage-${name}`, so the stage's construct id begins with
- * the owning pipeline's id followed by `-Stage-`. We match on that to pick the
- * correct branch pipeline, then read its synth ShellStep's primary input (the
- * source file set).
+ * This resolution is coupled to `@aws-blocks/pipeline`'s internal construct
+ * naming (there is no public stage → owning-pipeline API upstream). aws-blocks
+ * names each branch CodePipeline `${id}-${safeBranch}` and the stage
+ * `${id}-${safeBranch}-Stage-${name}`, so a stage's construct id is exactly its
+ * owning pipeline's id followed by `-Stage-${name}`. We match on that prefix to
+ * pick the correct branch pipeline, then read its synth ShellStep's primary
+ * input (the source file set).
  *
- * Falls back to `undefined` (the hook tolerates a missing source by producing
- * no steps) if the source cannot be resolved.
+ * If no owning pipeline can be resolved we throw rather than return an empty
+ * source: the downstream hook feeds this straight into `CodeBuildStep.input`,
+ * so a silent miss would either drop the hosting deploy step or synthesize a
+ * broken one with NO CI signal. Throwing means a future upstream construct
+ * rename trips loudly here (and in the `resolveSource` unit test) instead.
  */
 const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
   const parent = stage.node.scope as Construct | undefined;
@@ -216,6 +221,8 @@ const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
     for (const child of parent.node.children) {
       if (
         child instanceof CodePipeline &&
+        // Assumes `child.node.id === ${id}-${safeBranch}` (the branch pipeline
+        // id), so the stage id begins with `${child.node.id}-Stage-`.
         stage.node.id.startsWith(`${child.node.id}-Stage-`)
       ) {
         const synth = child.synth;
@@ -226,8 +233,13 @@ const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
       }
     }
   }
-  // Should not happen in practice; the hook returns [] when source is falsy.
-  return undefined as unknown as IFileSetProducer;
+  throw new Error(
+    `AmplifyPipelineConstruct: could not resolve the source file set for stage ` +
+      `"${stage.node.id}". This usually means @aws-blocks/pipeline changed its ` +
+      `branch-pipeline / stage construct naming (expected the owning CodePipeline ` +
+      `id followed by "-Stage-"). The hosting deploy step cannot be attached ` +
+      `without a source input.`,
+  );
 };
 
 /**
