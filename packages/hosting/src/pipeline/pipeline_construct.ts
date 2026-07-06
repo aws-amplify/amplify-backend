@@ -249,6 +249,14 @@ const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
  * which internally creates a Wave named after the stage) inside its
  * constructor. The pipeline remains mutable until `buildPipeline()`, so we can
  * still attach post steps here via `StageDeployment.addPost()`.
+ *
+ * This relies on aws-blocks NOT calling `buildPipeline()` inside its
+ * constructor — once built, `addPost()` is silently ignored, which would drop
+ * the hosting deploy step with no error. We defend against that (and against a
+ * stage-name keying mismatch after an upstream rename) by tracking which
+ * `postSteps` entries were consumed and throwing if any stage's steps found no
+ * matching built `StageDeployment`. Fail loud rather than synthesize a pipeline
+ * that is silently missing its hosting deploy.
  */
 const applyPostStageHook = (
   codePipelines: ReadonlyMap<string, CodePipeline>,
@@ -257,14 +265,28 @@ const applyPostStageHook = (
   if (postSteps.size === 0) {
     return;
   }
+  const applied = new Set<string>();
   for (const codePipeline of codePipelines.values()) {
     for (const wave of codePipeline.waves) {
       for (const stageDeployment of wave.stages) {
         const steps = postSteps.get(stageDeployment.stageName);
         if (steps) {
           stageDeployment.addPost(...steps);
+          applied.add(stageDeployment.stageName);
         }
       }
     }
+  }
+  const unattached = [...postSteps.keys()].filter(
+    (stageName) => !applied.has(stageName),
+  );
+  if (unattached.length > 0) {
+    throw new Error(
+      `AmplifyPipelineConstruct: _postStageHook produced steps for stage(s) ` +
+        `[${unattached.join(', ')}] but no matching built StageDeployment was ` +
+        `found to attach them to. This usually means @aws-blocks/pipeline ` +
+        `changed its stage naming or eagerly called buildPipeline() in its ` +
+        `constructor — the hosting deploy step would be silently dropped.`,
+    );
   }
 };

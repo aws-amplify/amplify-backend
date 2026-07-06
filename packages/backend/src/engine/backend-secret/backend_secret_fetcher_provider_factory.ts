@@ -18,12 +18,16 @@ const backendSecretLambdaFilePath = path.join(
   'backend_secret_fetcher.js',
 );
 
+// The `@aws-amplify/backend` package root, three levels up from this file's
+// dir (engine/backend-secret/ -> engine/ -> src|lib/ -> package root).
+const packageRoot = path.join(dirname, '..', '..', '..');
+
 // Anchor bundling to the handler's own project so the entry AND lock file stay
 // contained even when synth runs from a consumer/test project with a different
 // cwd (avoids CDK's `PathNotUnderRoot`). See resolveNodejsFunctionBundlingRoot.
 const secretLambdaBundlingRoot = resolveNodejsFunctionBundlingRoot(
   resourcesRoot,
-  path.join(dirname, '..', '..', '..'),
+  packageRoot,
 );
 
 /**

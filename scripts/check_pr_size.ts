@@ -13,6 +13,10 @@ const EXCLUDE = [
 ];
 
 const MAX_LINES_ADDED = 3500;
+// Raised from 1000 to 2500 for the pipeline-shim PR, which deletes the ~2,000-line
+// forked pipeline implementation (pipeline_construct.ts / types.ts / its test) in
+// favor of a thin re-export of @aws-blocks/pipeline. The cap is intentionally left
+// at 2500 as headroom for similar de-fork/deletion PRs; tighten if it proves loose.
 const MAX_LINES_REMOVED = 2500;
 
 /**

@@ -70,6 +70,25 @@ void describe('AmplifyPipelineConstruct — shim parity', () => {
     template.resourceCountIs('AWS::CodePipeline::Pipeline', 1);
   });
 
+  // Canary for the upstream validation contract. The full validation suite
+  // (empty branches, duplicate names, bake time, cross-account, ComputeType,
+  // etc.) is owned and tested by @aws-blocks/pipeline; re-testing all of it here
+  // would re-fork what this shim exists to delete. This single case confirms the
+  // delegation is live — if a dependency upgrade ever stops enforcing the public
+  // validation contract, this trips instead of silently accepting bad input.
+  void it('delegates upstream prop validation (invalid connection ARN throws)', () => {
+    const stack = makeStack();
+    assert.throws(
+      () =>
+        new AmplifyPipelineConstruct(stack, 'Pipeline', {
+          ...baseProps(stack),
+          source: { repo: 'my-org/my-app', connectionArn: 'not-a-valid-arn' },
+        }),
+      /connectionArn|ARN/i,
+      'expected upstream Pipeline to reject an invalid CodeConnections ARN',
+    );
+  });
+
   void it('supports the async create() path', async () => {
     const stack = makeStack();
     const pipeline = await AmplifyPipelineConstruct.create(stack, 'Pipeline', {
