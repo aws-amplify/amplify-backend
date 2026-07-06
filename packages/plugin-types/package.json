@@ -16,7 +16,7 @@
   "license": "Apache-2.0",
   "peerDependencies": {
     "aws-cdk-lib": "^2.257.0",
-    "constructs": "^10.6.0",
+    "constructs": "^10.0.0",
     "@aws-sdk/types": "^3.734.0"
   },
   "dependencies": {
