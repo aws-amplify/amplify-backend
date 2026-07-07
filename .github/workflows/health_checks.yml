@@ -354,7 +354,13 @@ jobs:
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 (was 120): this job runs TWO full create-amplify installs + two live
+    # deploys per attempt and retries up to 5x. The create-amplify install is
+    # currently ~26-30 min in CI (heavy upstream-bundled data/graphql
+    # constructs), so a passing attempt lands at ~1h53m — just past the 120-min
+    # cap. Give headroom so the winning attempt can finish and report. Also
+    # failing on main (pre-existing flake), tracked separately from this PR.
+    timeout-minutes: 180
     needs:
       - do_include_e2e
       - build
@@ -387,7 +393,11 @@ jobs:
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 (was 120): same rationale as e2e_iam_access_drift — two full
+    # create-amplify installs + two deploys per attempt, ~26-30 min install in
+    # CI, so a passing attempt exceeds the 120-min cap. Give it headroom.
+    # Also failing on main (pre-existing flake), independent of this PR.
+    timeout-minutes: 180
     needs:
       - do_include_e2e
       - build
