@@ -139,10 +139,6 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
               // generated name in create mode, or the attached name. Surfaced so
               // clients / verification can address the exact domain in use.
               domainName: notifications.domainName,
-              // The IAM/SigV4-authorized guest route path.
-              // The client SigV4-signs to `{endpoint}{guestPath}` with guest
-              // Identity Pool credentials when no user-pool token is available.
-              guestPath: notifications.guestIdentifyUserPath,
             },
           },
         }),
