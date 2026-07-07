@@ -109,6 +109,68 @@ runs:
           SHELL_CMD="bash"
         fi
 
+        # Re-assume the e2e roles using a fresh GitHub OIDC token.
+        #
+        # configure-aws-credentials runs ONCE before this step, and the e2e
+        # roles cap MaxSessionDuration at 1h, so on long multi-attempt runs the
+        # session expires mid-retry and every subsequent attempt fails with
+        # ExpiredToken/ExpiredTokenException. Since each attempt is bounded by
+        # attempt_timeout_minutes (<= the 1h cap), re-assuming both roles at the
+        # start of every attempt guarantees each attempt runs on a fresh ~1h
+        # credential. This is exactly what configure-aws-credentials does
+        # internally (assume-role-with-web-identity), just repeated per attempt.
+        #
+        # Defensive: any failure here leaves the pre-existing credentials in
+        # place and returns 0, so this is never worse than the current behavior.
+        refresh_credentials() {
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "OIDC request env not present; keeping existing credentials"
+            return 0
+          fi
+          local oidc_token
+          oidc_token=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            | jq -r '.value')
+          if [ -z "$oidc_token" ] || [ "$oidc_token" = "null" ]; then
+            echo "WARN: could not fetch OIDC token; keeping existing credentials"
+            return 0
+          fi
+
+          # Execution role -> default credential env (used by cdk/ampx deploy).
+          local exec_creds
+          if exec_creds=$(aws sts assume-role-with-web-identity \
+            --role-arn "$E2E_EXECUTION_ROLE_ARN" \
+            --role-session-name "gha-e2e-exec-${ATTEMPT}" \
+            --web-identity-token "$oidc_token" \
+            --duration-seconds 3600 \
+            --query 'Credentials' --output json 2>/dev/null); then
+            export AWS_ACCESS_KEY_ID=$(echo "$exec_creds" | jq -r '.AccessKeyId')
+            export AWS_SECRET_ACCESS_KEY=$(echo "$exec_creds" | jq -r '.SecretAccessKey')
+            export AWS_SESSION_TOKEN=$(echo "$exec_creds" | jq -r '.SessionToken')
+            echo "Refreshed execution-role credentials for attempt ${ATTEMPT}"
+          else
+            echo "WARN: execution-role re-assume failed; keeping existing credentials"
+          fi
+
+          # Tooling role -> e2e-tooling profile (used by the test's AWS clients).
+          local tool_creds
+          if tool_creds=$(aws sts assume-role-with-web-identity \
+            --role-arn "$E2E_TOOLING_ROLE_ARN" \
+            --role-session-name "gha-e2e-tooling-${ATTEMPT}" \
+            --web-identity-token "$oidc_token" \
+            --duration-seconds 3600 \
+            --query 'Credentials' --output json 2>/dev/null); then
+            aws configure set aws_access_key_id "$(echo "$tool_creds" | jq -r '.AccessKeyId')" --profile e2e-tooling
+            aws configure set aws_secret_access_key "$(echo "$tool_creds" | jq -r '.SecretAccessKey')" --profile e2e-tooling
+            aws configure set aws_session_token "$(echo "$tool_creds" | jq -r '.SessionToken')" --profile e2e-tooling
+            echo "Refreshed tooling-role credentials for attempt ${ATTEMPT}"
+          else
+            echo "WARN: tooling-role re-assume failed; keeping existing credentials"
+          fi
+          return 0
+        }
+
         # Retry logic
         RETRY_ATTEMPTS=${{ inputs.retry_attempts }}
         RETRY_DELAY=${{ inputs.retry_delay }}
@@ -171,7 +233,11 @@ runs:
 
         while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
           echo "Attempt $ATTEMPT of $RETRY_ATTEMPTS"
-          
+
+          # Start each attempt with fresh ~1h credentials so a retry never runs
+          # on an expired session (the roles cap MaxSessionDuration at 1h).
+          refresh_credentials
+
           if run_with_timeout '${{ inputs.run }}' "$SHELL_CMD"; then
             echo "Script succeeded on attempt $ATTEMPT"
             exit 0
@@ -204,3 +270,6 @@ runs:
       env:
         AWS_REGION: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
         AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
+        # Consumed by refresh_credentials() to re-assume both roles per attempt.
+        E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
+        E2E_TOOLING_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
