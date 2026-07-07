@@ -135,10 +135,6 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
             [OUTPUT_KEY]: {
               endpoint: notifications.apiEndpoint,
               region: notifications.stack.region,
-              // The Customer Profiles domain the object types live in — the
-              // generated name in create mode, or the attached name. Surfaced so
-              // clients / verification can address the exact domain in use.
-              domainName: notifications.domainName,
             },
           },
         }),

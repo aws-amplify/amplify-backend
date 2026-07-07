@@ -294,10 +294,6 @@ void describe('defineNotifications', () => {
       'string',
     );
     assert.strictEqual(typeof parsed.custom.CustomerProfiles.region, 'string');
-    assert.strictEqual(
-      parsed.custom.CustomerProfiles.domainName,
-      EXISTING_DOMAIN,
-    );
   });
 
   void it('writes the custom output only once across repeated getInstance calls', () => {
