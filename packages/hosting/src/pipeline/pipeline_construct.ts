@@ -214,8 +214,11 @@ const wrapProps = <TConfig>(
  * so a silent miss would either drop the hosting deploy step or synthesize a
  * broken one with NO CI signal. Throwing means a future upstream construct
  * rename trips loudly here (and in the `resolveSource` unit test) instead.
+ *
+ * Exported only for unit testing the fail-loud path.
+ * @internal
  */
-const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
+export const resolveSource = (stage: cdk.Stage): IFileSetProducer => {
   const parent = stage.node.scope as Construct | undefined;
   if (parent) {
     for (const child of parent.node.children) {

@@ -6,7 +6,10 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { CodePipelineSource, ShellStep } from 'aws-cdk-lib/pipelines';
 import { Pipeline as BlocksPipeline } from '@aws-blocks/pipeline';
-import { AmplifyPipelineConstruct } from './pipeline_construct.js';
+import {
+  AmplifyPipelineConstruct,
+  resolveSource,
+} from './pipeline_construct.js';
 import type { PipelineProps } from './types.js';
 
 /**
@@ -202,6 +205,69 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
       deployHostingActions.length,
       3,
       'expected one injected DeployHosting step per stage (beta, prod, gamma)',
+    );
+  });
+
+  // The async create() path builds its own postSteps map, drives the wrapped
+  // stageFactory, and drains it via applyPostStageHook() AFTER the
+  // Object.setPrototypeOf re-tag. The sync path is covered above; this asserts
+  // the fragile async+prototype-swap interaction also lands the hook steps on
+  // the right StageDeployment.
+  void it('injects _postStageHook steps via the async create() path', async () => {
+    const stack = makeStack();
+    let hookStageName: string | undefined;
+
+    const pipeline = await AmplifyPipelineConstruct.create(stack, 'Pipeline', {
+      ...baseProps(stack),
+      stageFactory: async (scope) => {
+        await Promise.resolve();
+        new Stack(scope, 'AppStack');
+      },
+      _postStageHook: ({ source, stage, stageConfig }) => {
+        hookStageName = stageConfig.name;
+        assert.ok(source, 'hook should receive a resolved source producer');
+        assert.ok(stage instanceof Stage, 'hook should receive the Stage');
+        return [
+          new ShellStep(`DeployHosting-${stageConfig.name}`, {
+            input: source,
+            commands: ['echo deploy-hosting-async'],
+          }),
+        ];
+      },
+    });
+
+    assert.ok(pipeline instanceof AmplifyPipelineConstruct);
+    assert.strictEqual(hookStageName, 'beta', 'hook should run for the stage');
+
+    const template = Template.fromStack(stack);
+    const projects = template.findResources('AWS::CodeBuild::Project');
+    const buildSpecs = Object.values(projects).map((p: any) =>
+      JSON.stringify(p.Properties?.Source?.BuildSpec ?? ''),
+    );
+    assert.ok(
+      buildSpecs.some((b) => b.includes('echo deploy-hosting-async')),
+      'expected the async-injected DeployHosting step as a CodeBuild action',
+    );
+  });
+});
+
+void describe('resolveSource — fail-loud on upstream naming break', () => {
+  // resolveSource() couples to @aws-blocks/pipeline's stage/branch-pipeline id
+  // naming (`${id}-${safeBranch}-Stage-${name}`). If a future upstream release
+  // renames those constructs, no owning CodePipeline matches the `-Stage-`
+  // prefix. This asserts we THROW a descriptive error (rather than the old
+  // silent `undefined` cast that fed a broken CodeBuildStep.input) — so such a
+  // rename trips CI here instead of silently dropping the hosting deploy step.
+  void it('throws a descriptive error when no owning branch pipeline matches', () => {
+    const stack = makeStack();
+    // A Stage whose scope contains NO matching CodePipeline (simulates the
+    // post-rename world where the id-prefix convention no longer holds).
+    const stage = new Stage(stack, 'Unmatched-Stage-beta');
+
+    assert.throws(
+      () => resolveSource(stage),
+      /could not resolve the source file set|construct naming|-Stage-/,
+      'expected resolveSource to throw a descriptive fail-loud error',
     );
   });
 });
