@@ -10,6 +10,18 @@ inputs:
   aws-region:
     description: 'The region that will be configured for the profile'
     required: true
+  role-duration-seconds:
+    description: >-
+      Lifetime of the assumed-role session, in seconds. Defaults to 4h (14400)
+      so long-running e2e tests that retry (e.g. iam_access_drift and
+      amplify_outputs_backwards_compatibility run two full create-amplify
+      installs + two deploys per attempt, and retry up to 5x) do not outlive
+      their credentials. The default 1h session otherwise expires mid-run and
+      surfaces as ExpiredToken/ExpiredTokenException, especially when the
+      install-from-verdaccio is slow. NOTE: the target role's
+      MaxSessionDuration must be >= this value.
+    required: false
+    default: '14400'
 runs:
   using: composite
   steps:
@@ -19,6 +31,7 @@ runs:
       with:
         role-to-assume: ${{ inputs.role-to-assume }}
         aws-region: ${{ inputs.aws-region }}
+        role-duration-seconds: ${{ inputs.role-duration-seconds }}
         # Credentials with special characters are not handled correctly on Windows
         # when put into profile files. This forces action to retry until credentials without special characters
         # are retrieved
