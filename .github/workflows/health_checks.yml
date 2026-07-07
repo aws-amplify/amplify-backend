@@ -381,7 +381,13 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
+          # 40 (was 25): this test runs TWO full create-amplify installs + two
+          # live deploys per attempt. On a cold npm/verdaccio cache (e.g. when the
+          # GHA cache restore misses) attempt 1's install alone can approach 25 min,
+          # tripping the timeout; retries then outlive the 1h OIDC session token and
+          # fail with ExpiredTokenException. A longer attempt lets it finish in one
+          # pass within the credential window.
+          attempt_timeout_minutes: 40
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -415,7 +421,12 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
+          # 40 (was 25): same rationale as e2e_iam_access_drift — two full
+          # create-amplify installs + two live deploys per attempt. A cold-cache
+          # attempt 1 can hit the 25-min wall, and retries then outlive the 1h OIDC
+          # session token (ExpiredTokenException). A longer attempt avoids the retry
+          # cascade into credential expiry.
+          attempt_timeout_minutes: 40
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
