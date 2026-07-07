@@ -120,7 +120,9 @@ export const loadNpmTokenFromEnvVar = () => {
 
 const npmrcLocalTemplate = `
 # this is a test config file used to publish locally
-//localhost:4873/:_authToken=garbage
+# host matches the 127.0.0.1 registry (not localhost) so the auth-token scope
+# applies and to avoid IPv6 ::1 ECONNREFUSED against the IPv4-only proxy
+//127.0.0.1:4873/:_authToken=garbage
 
 # this prevents the script-shell setting set by setup:local from being overwritten when copying the localhost config
 script-shell=bash

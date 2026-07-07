@@ -75,7 +75,10 @@ export const runPublish = async (props?: PublishOptions, cwd?: string) => {
   const execaPublishOptions: Options = {
     ...execaOptions,
     ...(options.useLocalRegistry
-      ? { env: { npm_config_registry: 'http://localhost:4873/' } }
+      ? // 127.0.0.1 (not `localhost`) so `changeset publish` can't hit
+        // `ECONNREFUSED ::1:4873` on dual-stack runners where localhost resolves
+        // to IPv6 but verdaccio listens on IPv4.
+        { env: { npm_config_registry: 'http://127.0.0.1:4873/' } }
       : {}),
   };
   await execa('npx', changesetArgs, execaPublishOptions);

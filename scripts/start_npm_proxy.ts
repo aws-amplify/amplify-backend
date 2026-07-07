@@ -2,7 +2,11 @@ import { execa, execaCommand } from 'execa';
 import { existsSync } from 'fs';
 import { readFile, unlink } from 'fs/promises';
 
-const EXPECTED_URL = 'http://localhost:4873';
+// Use 127.0.0.1 rather than `localhost`: on dual-stack CI runners `localhost`
+// can resolve to IPv6 `::1`, but verdaccio listens on IPv4, so npm intermittently
+// fails with `ECONNREFUSED ::1:4873`. Pinning IPv4 avoids that flake (which, in a
+// retrying vend, previously left a dirty tree that poisoned later attempts).
+const EXPECTED_URL = 'http://127.0.0.1:4873';
 const LOG_FILE = 'verdaccio-logs.txt';
 const STARTUP_TIMEOUT_MS = 10000;
 

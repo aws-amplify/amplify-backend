@@ -238,6 +238,19 @@ runs:
           # on an expired session (the roles cap MaxSessionDuration at 1h).
           refresh_credentials
 
+          # Reset the working tree before each attempt. Baseline-diff tests
+          # (iam_access_drift / amplify_outputs_backwards_compatibility) re-run
+          # `npm run vend` per attempt, which calls `changeset version` and edits
+          # package.json/CHANGELOG files. If a prior attempt's vend died mid-flight
+          # (e.g. transient ECONNREFUSED to the proxy) those edits linger, and the
+          # next vend aborts on `ensureWorkingTreeIsClean()` — poisoning every
+          # remaining retry. A hard reset keeps attempts independent. (No-op when
+          # the tree is already clean; guarded so a non-git cwd can't fail the run.)
+          if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git reset --hard >/dev/null 2>&1 || true
+            git clean -f -- 'packages/**/CHANGELOG.md' >/dev/null 2>&1 || true
+          fi
+
           if run_with_timeout '${{ inputs.run }}' "$SHELL_CMD"; then
             echo "Script succeeded on attempt $ATTEMPT"
             exit 0
