@@ -43,7 +43,7 @@ export class ApiChangesValidator {
   }
 
   validate = async (): Promise<void> => {
-    await fsp.rm(this.testProjectPath, { recursive: true, force: true });
+    await this.removeDirWithRetry(this.testProjectPath);
     await fsp.mkdir(this.testProjectPath, { recursive: true });
     const latestPackageJson = await readPackageJson(this.latestPackagePath);
     if (latestPackageJson.private) {
@@ -134,5 +134,38 @@ export class ApiChangesValidator {
       'false',
     ];
     await execa('npx', tscArgs, { cwd: this.testProjectPath });
+  };
+
+  /**
+   * Recursively remove a directory, retrying on transient errors.
+   *
+   * Node's recursive `fs.rm` can throw `ENOTEMPTY` (and occasionally `EBUSY`)
+   * when several large `node_modules` trees are removed concurrently — each
+   * package is validated in parallel (`Promise.allSettled`), so the deletes
+   * race with each other and with lingering FS handles. `force: true`
+   * suppresses "not found" but NOT `ENOTEMPTY`, so a bare `fs.rm` intermittently
+   * fails the whole check during teardown even though every API validation
+   * itself succeeded. Retry a few times, pausing between tries, before failing.
+   */
+  private removeDirWithRetry = async (
+    dir: string,
+    attempts = 5,
+  ): Promise<void> => {
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        await fsp.rm(dir, { recursive: true, force: true });
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (
+          attempt === attempts ||
+          (code !== 'ENOTEMPTY' && code !== 'EBUSY' && code !== 'EPERM')
+        ) {
+          throw error;
+        }
+        // brief pause to let concurrent deletes / lingering handles settle
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
   };
 }
