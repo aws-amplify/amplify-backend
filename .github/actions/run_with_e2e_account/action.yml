@@ -30,7 +30,14 @@ inputs:
   attempt_timeout_minutes:
     description: Timeout for each attempt in minutes
     required: false
-    default: '25'
+    # 40 (was 25): the heavier construct dependency graph on this feature line
+    # (@aws-blocks/* + newer aws-cdk-lib constructs) makes the create-amplify
+    # install from the local verdaccio proxy legitimately slower. On a cold
+    # cache attempt 1 could exceed the 25-min cap and time out; retries then
+    # outlive the 1h OIDC session token (ExpiredTokenException). A 40-min
+    # attempt lets a cold install finish in one pass within the credential
+    # window. Matches the team's ci-timeouts-heavy-construct-install fix.
+    default: '40'
   retry_attempts:
     description: Number of retry attempts for the main script
     required: false
