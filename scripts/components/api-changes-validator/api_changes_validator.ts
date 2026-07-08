@@ -110,12 +110,28 @@ export class ApiChangesValidator {
     await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
     // check_api_changes installs one throwaway project PER workspace package
     // (~27) in parallel, each pulling the full amplify dependency graph from the
-    // local proxy. The audit/funding round-trips and metadata re-resolution add
-    // no value here (we only need the types to compile) but cost real time and
-    // make the job flaky against the 20-min/attempt + runner limits. Skip them.
+    // local proxy. Two problems this addresses:
+    //  - `--no-audit --no-fund --prefer-offline`: the audit/funding round-trips
+    //    and metadata re-resolution add no value here (we only need the types to
+    //    compile) but cost time.
+    //  - `--fetch-retries` / `--fetch-timeout`: with ~27 installs hammering the
+    //    proxy in parallel, a single transient `ECONNRESET`/aborted fetch on ANY
+    //    one package rejects its Promise, which fails the whole aggregate job and
+    //    forces a full 27-package retry. npm's built-in fetch retry (with
+    //    backoff) absorbs those blips at the package level instead.
     await execa(
       'npm',
-      ['install', '--no-audit', '--no-fund', '--prefer-offline'],
+      [
+        'install',
+        '--no-audit',
+        '--no-fund',
+        '--prefer-offline',
+        '--fetch-retries=5',
+        '--fetch-retry-factor=2',
+        '--fetch-retry-mintimeout=2000',
+        '--fetch-retry-maxtimeout=60000',
+        '--fetch-timeout=300000',
+      ],
       { cwd: this.testProjectPath },
     );
     if (this.latestPackageDependencyDeclarationStrategy === 'npmLocalLink') {
