@@ -38,6 +38,7 @@ export class AmplifySandboxExecutor {
   deploy = async (
     backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean,
+    express?: boolean,
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
@@ -49,6 +50,7 @@ export class AmplifySandboxExecutor {
       return this.backendDeployer.deploy(backendId, {
         secretLastUpdated,
         validateAppSources,
+        ...(express !== undefined ? { express } : {}),
       });
     });
   };

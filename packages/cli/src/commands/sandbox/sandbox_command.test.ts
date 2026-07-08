@@ -124,6 +124,21 @@ void describe('sandbox command', () => {
     );
   });
 
+  void it('starts sandbox with express mode when --express is provided', async () => {
+    await commandRunner.runCommand('sandbox --express');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].express,
+      true,
+    );
+  });
+
+  void it('does not enable express mode by default', async () => {
+    await commandRunner.runCommand('sandbox');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].express);
+  });
+
   void it('throws AmplifyUserError if invalid identifier is provided', async () => {
     const invalidIdentifier = 'invalid@';
     await assert.rejects(
@@ -150,6 +165,7 @@ void describe('sandbox command', () => {
     assert.match(output, /--outputs-format/);
     assert.match(output, /--outputs-out-dir/);
     assert.match(output, /--once/);
+    assert.match(output, /--express/);
     assert.match(output, /--stream-function-logs/);
     assert.match(output, /--logs-filter/);
     assert.match(output, /--logs-out-file/);

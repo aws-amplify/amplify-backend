@@ -37,6 +37,7 @@ export type DeploymentTimes = {
 export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
+    express?: boolean;
 };
 
 // @public (undocumented)

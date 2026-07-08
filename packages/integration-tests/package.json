@@ -21,7 +21,7 @@
     "@aws-sdk/client-accessanalyzer": "^3.936.0",
     "@aws-sdk/client-amplify": "^3.936.0",
     "@aws-sdk/client-bedrock-runtime": "3.936.0",
-    "@aws-sdk/client-cloudformation": "^3.936.0",
+    "@aws-sdk/client-cloudformation": "^3.1078.0",
     "@aws-sdk/client-cloudtrail": "^3.937.0",
     "@aws-sdk/client-codepipeline": "^3.1058.0",
     "@aws-sdk/client-cognito-identity": "^3.936.0",
