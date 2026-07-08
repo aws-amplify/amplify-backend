@@ -19,6 +19,15 @@ runs:
       with:
         role-to-assume: ${{ inputs.role-to-assume }}
         aws-region: ${{ inputs.aws-region }}
+        # NOTE: session lifetime is capped at the e2e roles' MaxSessionDuration
+        # (currently 1h). We intentionally do NOT set role-duration-seconds
+        # higher here — STS rejects it with "requested DurationSeconds exceeds
+        # the MaxSessionDuration set for this role". The durable fix for
+        # long-running retrying e2e jobs (iam_access_drift /
+        # amplify_outputs_backwards_compatibility) is either (a) raising those
+        # roles' MaxSessionDuration in the e2e account, or (b) re-assuming the
+        # role inside the retry loop — both account/infra-owned, tracked
+        # separately.
         # Credentials with special characters are not handled correctly on Windows
         # when put into profile files. This forces action to retry until credentials without special characters
         # are retrieved

@@ -242,7 +242,9 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 120: accommodates the raised per-attempt timeout below plus one retry
+    # (see the nick-fields/retry step).
+    timeout-minutes: 120
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -267,8 +269,17 @@ jobs:
       - name: Check API changes with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_minutes: 20
-          max_attempts: 3
+          # 50 (was 20): the validator spins up one throwaway project PER
+          # workspace package (~27), each doing a real `npm install` of the full
+          # amplify dependency graph from the local proxy. All validations PASS,
+          # but the aggregate install time lands right at the old 20-min
+          # per-attempt cap, so nick-fields/retry killed a run that had actually
+          # finished validating every package (and each retry restarts all ~27
+          # installs from scratch, so retries can't make incremental progress).
+          # 50 min gives a passing attempt comfortable headroom; max_attempts 2
+          # keeps the worst case within the 120-min job cap.
+          timeout_minutes: 50
+          max_attempts: 2
           retry_wait_seconds: 30
           command: |
             mkdir -p api-validation-projects
@@ -354,7 +365,13 @@ jobs:
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 (was 120): this job runs TWO full create-amplify installs + two live
+    # deploys per attempt and retries up to 5x. The create-amplify install is
+    # currently ~26-30 min in CI (heavy upstream-bundled data/graphql
+    # constructs), so a passing attempt lands at ~1h53m — just past the 120-min
+    # cap. Give headroom so the winning attempt can finish and report. Also
+    # failing on main (pre-existing flake), tracked separately from this PR.
+    timeout-minutes: 180
     needs:
       - do_include_e2e
       - build
@@ -381,14 +398,17 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 (was 120): same rationale as e2e_iam_access_drift — two full
+    # create-amplify installs + two deploys per attempt, ~26-30 min install in
+    # CI, so a passing attempt exceeds the 120-min cap. Give it headroom.
+    # Also failing on main (pre-existing flake), independent of this PR.
+    timeout-minutes: 180
     needs:
       - do_include_e2e
       - build
@@ -415,7 +435,6 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}

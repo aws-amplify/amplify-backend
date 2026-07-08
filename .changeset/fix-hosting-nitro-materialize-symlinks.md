@@ -1,5 +1,0 @@
----
-'@aws-amplify/hosting': patch
----
-
-fix(hosting): materialize Nitro pnpm-style symlinked deps before removing `.nitro/` store; previously the store was deleted outright on the assumption that "Nitro inlines every import at build time," but that's false for the `aws-lambda` preset — Nitro emits real CommonJS files (e.g. `@aws-crypto/util/build/main/convertToBuffer.js`) that `require()` transitive deps (`@smithy/util-utf8`, `@smithy/util-buffer-from`, `@smithy/is-array-buffer`) through `node_modules/<pkg> -> ../.nitro/<pkg>@<ver>` symlinks at runtime. Deleting `.nitro/` left those symlinks dangling, CDK packaged the broken zip, and the Lambda crashed on init with `Cannot find module '@smithy/util-utf8'` — surfaced loudest when SWR/ISR route rules pulled the cache plugin's `@aws-sdk/client-s3` import path. New behavior walks the server output's node_modules, dereferences every symlink whose target lives in `.nitro/`, then removes the store; the asset hasher still sees a cycle-free tree, the Lambda gets every transitive dep. Fixes Nuxt SSR 502s in CI e2e.
