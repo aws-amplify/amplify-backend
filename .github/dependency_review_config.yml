@@ -52,3 +52,28 @@ allow-ghsas:
   - 'GHSA-gv7w-rqvm-qjhr' # esbuild dev-server enables any website to read responses (HIGH)
   - 'GHSA-qx2v-qp2m-jg93' # postcss XSS via unescaped </style> in CSS stringify output (MODERATE)
   - 'GHSA-q8mj-m7cp-5q26' # qs DoS: qs.stringify crashes on null/undefined comma-format entries (MODERATE)
+  # Vulnerabilities in the frontend frameworks pinned by the hosting e2e test-fixture apps
+  # (packages/integration-tests/src/test-projects/standalone-hosting-* and test-cdk-projects/vanilla-cdk-ssr).
+  # These are throwaway demo apps built and deployed only during hosting e2e runs; they are never
+  # published or shipped to customers, and the advisories are not reachable from any Amplify product code.
+  # Tracked upstream (next/astro); the fixtures follow whatever the framework's latest release ships.
+  # next (used by vanilla-cdk-ssr, standalone-hosting-ssr, standalone-hosting-ssr-monorepo):
+  - 'GHSA-8h8q-6873-q5fj' # next DoS with Server Components (LOW)
+  - 'GHSA-36qx-fr4f-26g5' # next Middleware/Proxy bypass in Pages Router w/ i18n (HIGH)
+  - 'GHSA-267c-6grr-h53f' # next Middleware/Proxy bypass via segment-prefetch routes (HIGH)
+  - 'GHSA-492v-c6pp-mqqv' # next Middleware/Proxy bypass via dynamic route param injection (HIGH)
+  - 'GHSA-c4j6-fc7j-m34r' # next SSRF via WebSocket upgrades (HIGH)
+  - 'GHSA-mg66-mrh9-m8jx' # next DoS via connection exhaustion w/ Cache Components (HIGH)
+  - 'GHSA-26hh-7cqf-hhc6' # next Middleware/Proxy bypass via segment-prefetch routes - follow-up (HIGH)
+  - 'GHSA-wfc6-r584-vfw7' # next cache poisoning in RSC responses (MODERATE)
+  - 'GHSA-h64f-5h5j-jqjh' # next DoS in Image Optimization API (MODERATE)
+  - 'GHSA-gx5p-jg67-6x7h' # next XSS in beforeInteractive scripts with untrusted input (MODERATE)
+  - 'GHSA-ffhc-5mcf-pf4q' # next XSS in App Router w/ CSP nonces (MODERATE)
+  - 'GHSA-vfv6-92ff-j949' # next cache poisoning via RSC cache-busting collisions (LOW)
+  - 'GHSA-3g8h-86w9-wvmq' # next Middleware/Proxy redirect cache poisoning (LOW)
+  # astro (used by standalone-hosting-astro, standalone-hosting-astro-basepath):
+  - 'GHSA-8hv8-536x-4wqp' # astro Reflected XSS via unescaped slot name (HIGH)
+  - 'GHSA-2pvr-wf23-7pc7' # astro Host header SSRF in prerendered error page fetch (HIGH)
+  - 'GHSA-j687-52p2-xcff' # astro XSS in define:vars via incomplete </script> sanitization (MODERATE)
+  - 'GHSA-jrpj-wcv7-9fh9' # astro XSS via unescaped attribute names in spread props (MODERATE)
+  - 'GHSA-xr5h-phrj-8vxv' # astro server island encrypted params vulnerable to cross-component replay (LOW)
