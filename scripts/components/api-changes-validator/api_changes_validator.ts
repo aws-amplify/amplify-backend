@@ -108,7 +108,16 @@ export class ApiChangesValidator {
       this.excludedTypes,
     ).generate();
     await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
-    await execa('npm', ['install'], { cwd: this.testProjectPath });
+    // check_api_changes installs one throwaway project PER workspace package
+    // (~27) in parallel, each pulling the full amplify dependency graph from the
+    // local proxy. The audit/funding round-trips and metadata re-resolution add
+    // no value here (we only need the types to compile) but cost real time and
+    // make the job flaky against the 20-min/attempt + runner limits. Skip them.
+    await execa(
+      'npm',
+      ['install', '--no-audit', '--no-fund', '--prefer-offline'],
+      { cwd: this.testProjectPath },
+    );
     if (this.latestPackageDependencyDeclarationStrategy === 'npmLocalLink') {
       await execa('npm', ['link', this.latestPackagePath], {
         cwd: this.testProjectPath,
