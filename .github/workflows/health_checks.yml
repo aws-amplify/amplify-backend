@@ -242,9 +242,9 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    # 90 (was 60): accommodates the raised per-attempt timeout below plus one
-    # retry (see the nick-fields/retry step).
-    timeout-minutes: 90
+    # 120: accommodates the raised per-attempt timeout below plus one retry
+    # (see the nick-fields/retry step).
+    timeout-minutes: 120
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -269,15 +269,16 @@ jobs:
       - name: Check API changes with retry
         uses: nick-fields/retry@v3
         with:
-          # 40 (was 20): the validator spins up one throwaway project PER
+          # 50 (was 20): the validator spins up one throwaway project PER
           # workspace package (~27), each doing a real `npm install` of the full
-          # amplify dependency graph from the local proxy. All validations now
-          # PASS, but the aggregate install time exceeds the old 20-min
+          # amplify dependency graph from the local proxy. All validations PASS,
+          # but the aggregate install time lands right at the old 20-min
           # per-attempt cap, so nick-fields/retry killed a run that had actually
-          # finished validating every package. 40 min lets a passing attempt
-          # complete. max_attempts reduced 3->2 so total stays within the 90-min
-          # job cap.
-          timeout_minutes: 40
+          # finished validating every package (and each retry restarts all ~27
+          # installs from scratch, so retries can't make incremental progress).
+          # 50 min gives a passing attempt comfortable headroom; max_attempts 2
+          # keeps the worst case within the 120-min job cap.
+          timeout_minutes: 50
           max_attempts: 2
           retry_wait_seconds: 30
           command: |
