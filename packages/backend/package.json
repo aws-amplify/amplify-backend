@@ -48,8 +48,8 @@
     "@aws-sdk/client-amplify": "^3.936.0"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.234.1",
-    "constructs": "^10.0.0"
+    "aws-cdk-lib": "^2.257.0",
+    "constructs": "^10.6.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",

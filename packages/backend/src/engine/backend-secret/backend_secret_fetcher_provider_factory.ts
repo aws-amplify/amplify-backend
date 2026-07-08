@@ -8,6 +8,7 @@ import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'node:url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
+import { resolveNodejsFunctionBundlingRoot } from '../nodejs_function_project_root.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -15,6 +16,18 @@ const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const backendSecretLambdaFilePath = path.join(
   resourcesRoot,
   'backend_secret_fetcher.js',
+);
+
+// The `@aws-amplify/backend` package root, three levels up from this file's
+// dir (engine/backend-secret/ -> engine/ -> src|lib/ -> package root).
+const packageRoot = path.join(dirname, '..', '..', '..');
+
+// Anchor bundling to the handler's own project so the entry AND lock file stay
+// contained even when synth runs from a consumer/test project with a different
+// cwd (avoids CDK's `PathNotUnderRoot`). See resolveNodejsFunctionBundlingRoot.
+const secretLambdaBundlingRoot = resolveNodejsFunctionBundlingRoot(
+  resourcesRoot,
+  packageRoot,
 );
 
 /**
@@ -39,6 +52,8 @@ export class BackendSecretFetcherProviderFactory {
       runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: backendSecretLambdaFilePath,
+      projectRoot: secretLambdaBundlingRoot.projectRoot,
+      depsLockFilePath: secretLambdaBundlingRoot.depsLockFilePath,
       handler: 'handler',
     });
 

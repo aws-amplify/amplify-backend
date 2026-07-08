@@ -3,10 +3,21 @@ import { GitClient } from './components/git_client.js';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
-const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
+// `.changeset/` is release metadata (like package-lock/API reports), not source
+// churn — consolidating/squashing changesets should not count against PR size.
+const EXCLUDE = [
+  'package-lock.json',
+  'API.md',
+  'expected-cdk-out',
+  '.changeset/',
+];
 
 const MAX_LINES_ADDED = 3500;
-const MAX_LINES_REMOVED = 1000;
+// Raised from 1000 to 2500 for the pipeline-shim PR, which deletes the ~2,000-line
+// forked pipeline implementation (pipeline_construct.ts / types.ts / its test) in
+// favor of a thin re-export of @aws-blocks/pipeline. The cap is intentionally left
+// at 2500 as headroom for similar de-fork/deletion PRs; tighten if it proves loose.
+const MAX_LINES_REMOVED = 2500;
 
 /**
  * Checks that the diff between HEAD and the specified base ref is within the allowed number of changed lines

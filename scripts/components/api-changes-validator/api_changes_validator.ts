@@ -43,7 +43,7 @@ export class ApiChangesValidator {
   }
 
   validate = async (): Promise<void> => {
-    await fsp.rm(this.testProjectPath, { recursive: true, force: true });
+    await this.removeDirWithRetry(this.testProjectPath);
     await fsp.mkdir(this.testProjectPath, { recursive: true });
     const latestPackageJson = await readPackageJson(this.latestPackagePath);
     if (latestPackageJson.private) {
@@ -108,7 +108,32 @@ export class ApiChangesValidator {
       this.excludedTypes,
     ).generate();
     await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
-    await execa('npm', ['install'], { cwd: this.testProjectPath });
+    // check_api_changes installs one throwaway project PER workspace package
+    // (~27) in parallel, each pulling the full amplify dependency graph from the
+    // local proxy. Two problems this addresses:
+    //  - `--no-audit --no-fund --prefer-offline`: the audit/funding round-trips
+    //    and metadata re-resolution add no value here (we only need the types to
+    //    compile) but cost time.
+    //  - `--fetch-retries` / `--fetch-timeout`: with ~27 installs hammering the
+    //    proxy in parallel, a single transient `ECONNRESET`/aborted fetch on ANY
+    //    one package rejects its Promise, which fails the whole aggregate job and
+    //    forces a full 27-package retry. npm's built-in fetch retry (with
+    //    backoff) absorbs those blips at the package level instead.
+    await execa(
+      'npm',
+      [
+        'install',
+        '--no-audit',
+        '--no-fund',
+        '--prefer-offline',
+        '--fetch-retries=5',
+        '--fetch-retry-factor=2',
+        '--fetch-retry-mintimeout=2000',
+        '--fetch-retry-maxtimeout=60000',
+        '--fetch-timeout=300000',
+      ],
+      { cwd: this.testProjectPath },
+    );
     if (this.latestPackageDependencyDeclarationStrategy === 'npmLocalLink') {
       await execa('npm', ['link', this.latestPackagePath], {
         cwd: this.testProjectPath,
@@ -134,5 +159,38 @@ export class ApiChangesValidator {
       'false',
     ];
     await execa('npx', tscArgs, { cwd: this.testProjectPath });
+  };
+
+  /**
+   * Recursively remove a directory, retrying on transient errors.
+   *
+   * Node's recursive `fs.rm` can throw `ENOTEMPTY` (and occasionally `EBUSY`)
+   * when several large `node_modules` trees are removed concurrently — each
+   * package is validated in parallel (`Promise.allSettled`), so the deletes
+   * race with each other and with lingering FS handles. `force: true`
+   * suppresses "not found" but NOT `ENOTEMPTY`, so a bare `fs.rm` intermittently
+   * fails the whole check during teardown even though every API validation
+   * itself succeeded. Retry a few times, pausing between tries, before failing.
+   */
+  private removeDirWithRetry = async (
+    dir: string,
+    attempts = 5,
+  ): Promise<void> => {
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        await fsp.rm(dir, { recursive: true, force: true });
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (
+          attempt === attempts ||
+          (code !== 'ENOTEMPTY' && code !== 'EBUSY' && code !== 'EPERM')
+        ) {
+          throw error;
+        }
+        // brief pause to let concurrent deletes / lingering handles settle
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
   };
 }
