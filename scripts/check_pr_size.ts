@@ -41,7 +41,10 @@ if (baseRef === undefined) {
 const gitClient = new GitClient();
 const diffFileList = await gitClient.getChangedFiles(baseRef);
 const filteredList = diffFileList.filter(
-  (file) => !EXCLUDE.find((e) => file.includes(e)),
+  // Drop empty entries: an empty diff makes getChangedFiles return `['']`
+  // (splitting '' on EOL), which would otherwise survive the EXCLUDE filter
+  // and make `git diff ... -- ''` fail on an empty (no-op) PR.
+  (file) => file.length > 0 && !EXCLUDE.find((e) => file.includes(e)),
 );
 
 if (filteredList.length === 0) {
