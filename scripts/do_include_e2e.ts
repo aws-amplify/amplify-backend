@@ -8,7 +8,7 @@ const gitHubClient = new GithubClient();
 
 // Branches whose PRs always run e2e — long-lived integration branches where
 // e2e regressions must surface before merge, without requiring a label.
-// `main` is included so that the snapshot/iac-hosting -> main productionization PR
+// `main` is included so that the snapshot/iac-hosting -> main release PR
 // (and any PR landing on mainline) exercises e2e before merge.
 const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['snapshot/iac-hosting', 'main']);
 

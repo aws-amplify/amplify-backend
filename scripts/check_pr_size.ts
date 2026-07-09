@@ -12,7 +12,7 @@ const EXCLUDE = [
   '.changeset/',
 ];
 
-// Raised from 3500 to 17000 for the snapshot/iac-hosting -> main productionization
+// Raised from 3500 to 17000 for the snapshot/iac-hosting -> main release
 // PR (#3174), which lands the entire IaC hosting feature on mainline in one merge:
 // the defineHosting/definePipeline constructs, framework adapters, and their e2e
 // test fixtures (~16.3k insertions vs main, excluding lockfile/API.md/changesets).
