@@ -398,6 +398,14 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          # This test does two create-amplify installs + two live deploys per
+          # attempt; a single PASSING attempt currently measures ~47 min (heavy
+          # upstream-bundled data/graphql install is ~18 min each). The 40-min
+          # default per-attempt timeout guillotines even the winning attempt, so
+          # the job never reports success. Raise to 55 min: enough headroom for
+          # the ~47-min run, still safely under the 60-min MaxSessionDuration cap
+          # on the re-assumed per-attempt credentials.
+          attempt_timeout_minutes: 55
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -435,6 +443,11 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          # Same rationale as e2e_iam_access_drift: two create-amplify installs +
+          # two deploys per attempt exceed the 40-min default per-attempt cap, so
+          # even a passing attempt is killed. Raise to 55 min, under the 60-min
+          # MaxSessionDuration cap on the re-assumed per-attempt credentials.
+          attempt_timeout_minutes: 55
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
