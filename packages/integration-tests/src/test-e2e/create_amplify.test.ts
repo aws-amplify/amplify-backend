@@ -90,6 +90,11 @@ void describe(
               {
                 cwd: tempDir,
                 stdio: 'inherit',
+                // Propagates into the nested `npm install` create-amplify runs
+                // so cached third-party deps aren't re-fetched — the full
+                // install is the dominant time sink on slow (esp. Windows)
+                // runners and was overrunning the attempt budget.
+                env: { npm_config_prefer_offline: 'true' },
               },
             );
           }, RetryPredicates.createAmplifyRetryPredicate);

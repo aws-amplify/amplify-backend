@@ -91,7 +91,16 @@ void describe('client config backwards compatibility', () => {
     });
     await fsp.unlink(path.join(tempDir, 'package-lock.json'));
 
-    await execa('npm', ['install'], {
+    // --prefer-offline reuses the runner's npm cache for third-party
+    // transitive deps (aws-sdk, cdk-lib, etc.) that install #1 already
+    // downloaded, so the repeat installs stop re-fetching them over the
+    // network. The packages under test come from the local verdaccio proxy
+    // and are published fresh per run (never cached), so they are always
+    // fetched from the proxy — resolution is unchanged, only redundant
+    // downloads are skipped. This keeps a single attempt comfortably inside
+    // the 1h credential window (the ~20-min repeat installs were pushing the
+    // trailing AWS calls past the MaxSessionDuration cap -> ExpiredToken).
+    await execa('npm', ['install', '--prefer-offline'], {
       cwd: tempDir,
       stdio: 'inherit',
     });
@@ -179,9 +188,13 @@ void describe('client config backwards compatibility', () => {
   void it('outputs generation should be backwards and forward compatible', async () => {
     // build an app using previous (baseline) version
     await baselineNpmProxyController.setUp();
+    // npm_config_prefer_offline propagates into the nested `npm install`
+    // that create-amplify runs, so cached third-party deps aren't re-fetched.
+    // (A flag on the outer `npm create` wouldn't reach the nested install.)
     await execa('npm', ['create', amplifyAtTag, '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
+      env: { npm_config_prefer_offline: 'true' },
     });
 
     // Replace backend.ts to add custom outputs without version as well.
