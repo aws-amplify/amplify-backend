@@ -443,13 +443,15 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          # Two create-amplify installs + two deploys per attempt exceed the
-          # 40-min default per-attempt cap. Credentials are re-assumed at the
-          # start of every attempt (see run_with_e2e_account), so each attempt
-          # begins with a fresh ~1h session; the `--prefer-offline` repeat
-          # installs in the test keep a single attempt inside that window. Raise to
-          # 60 min to give the (now faster) attempt headroom without a retry.
-          attempt_timeout_minutes: 60
+          # A single attempt runs two create-amplify installs + two deploys and
+          # legitimately exceeds the e2e roles' 1h MaxSessionDuration, so static
+          # session credentials would expire mid-attempt (ExpiredToken on the
+          # trailing `ampx generate outputs`). self_refreshing_credentials wires
+          # both roles through a credential_process the SDK re-assumes on demand,
+          # so credentials stay valid for the whole attempt regardless of install
+          # time. 90-min per-attempt cap gives the full flow headroom.
+          attempt_timeout_minutes: 90
+          self_refreshing_credentials: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}

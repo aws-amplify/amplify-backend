@@ -46,6 +46,17 @@ inputs:
     description: Delay between retry attempts in seconds
     required: false
     default: '300'
+  self_refreshing_credentials:
+    description: >-
+      When 'true', wire the execution + tooling roles through a
+      credential_process that re-assumes on demand, instead of exporting
+      static (1h) session credentials. Use for tests whose single attempt can
+      exceed the roles' 1h MaxSessionDuration (e.g. backwards-compat, which
+      runs two full installs + two deploys), where static creds would expire
+      mid-attempt (ExpiredToken). Default 'false' keeps the existing
+      per-attempt static-credential behavior for all other jobs.
+    required: false
+    default: 'false'
 runs:
   using: composite
   steps:
@@ -171,6 +182,67 @@ runs:
           return 0
         }
 
+        # Self-refreshing credentials (opt-in via self_refreshing_credentials).
+        #
+        # Per-attempt refresh_credentials() only mints a fresh 1h session at the
+        # START of each attempt. That is insufficient for a single attempt whose
+        # wall-clock exceeds ~1h (backwards-compat: two ~20-min installs + two
+        # deploys), because the trailing AWS calls (e.g. `ampx generate outputs`)
+        # then run on a session that expired mid-attempt -> ExpiredToken.
+        #
+        # Instead, point both roles at an AWS credential_process helper. The SDK
+        # (and every `ampx` subprocess, via fromNodeProviderChain) invokes the
+        # helper on demand and RE-INVOKES it whenever the cached credentials near
+        # expiry, so credentials stay valid for the whole attempt no matter how
+        # long the preceding installs take. Each invocation fetches a FRESH GitHub
+        # OIDC token (the request token is job-scoped but mints a new JWT per call)
+        # and assume-role-with-web-identity's the target role.
+        setup_self_refreshing_credentials() {
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "OIDC request env not present; leaving static credentials in place"
+            return 0
+          fi
+
+          # Write the helper WITHOUT a shebang and invoke it via `bash <file>`:
+          # the heredoc body is indented (YAML), so a `#!` shebang wouldn't land
+          # in column 0. bash ignores leading whitespace on command lines, so an
+          # indented body run via `bash <file>` is fine.
+          local helper="${RUNNER_TEMP:-/tmp}/e2e_credential_process.sh"
+          cat > "$helper" <<'HELPER'
+          # AWS credential_process helper: emit fresh web-identity credentials as
+          # JSON on stdout. $1 = role ARN. The SDK re-invokes this on each expiry,
+          # and each call fetches a FRESH GitHub OIDC token.
+          set -euo pipefail
+          role_arn="$1"
+          oidc_token=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            | jq -r '.value')
+          creds=$(aws sts assume-role-with-web-identity \
+            --role-arn "$role_arn" \
+            --role-session-name "gha-e2e-$(date +%s)" \
+            --web-identity-token "$oidc_token" \
+            --duration-seconds 3600 \
+            --query 'Credentials' --output json)
+          # Reshape STS output into the credential_process contract (Version 1).
+          echo "$creds" | jq '{Version: 1, AccessKeyId, SecretAccessKey, SessionToken, Expiration}'
+        HELPER
+
+          # Default profile -> execution role (used by cdk/ampx deploy + the
+          # test's default-chain SDK clients). Clear the static session env so the
+          # provider chain falls through to this profile's credential_process
+          # (env creds otherwise take precedence and never refresh).
+          unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+          aws configure set credential_process "bash $helper $E2E_EXECUTION_ROLE_ARN" --profile default
+          aws configure set region "$AWS_REGION" --profile default
+
+          # e2e-tooling profile -> tooling role (used by the test's tooling SDK
+          # clients via fromIni({profile:'e2e-tooling'})).
+          aws configure set credential_process "bash $helper $E2E_TOOLING_ROLE_ARN" --profile e2e-tooling
+          aws configure set region "$AWS_REGION" --profile e2e-tooling
+          echo "Configured self-refreshing credential_process for execution + tooling roles"
+        }
+
         # Retry logic
         RETRY_ATTEMPTS=${{ inputs.retry_attempts }}
         RETRY_DELAY=${{ inputs.retry_delay }}
@@ -231,12 +303,24 @@ runs:
           return 124  # Standard timeout exit code
         }
 
+        SELF_REFRESHING_CREDENTIALS="${{ inputs.self_refreshing_credentials }}"
+        # When self-refreshing is enabled, configure the credential_process
+        # profiles ONCE up front; the SDK re-assumes on demand thereafter, so no
+        # per-attempt refresh is needed (and per-attempt refresh would re-export
+        # static env creds that shadow the credential_process).
+        if [ "$SELF_REFRESHING_CREDENTIALS" = "true" ]; then
+          setup_self_refreshing_credentials
+        fi
+
         while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
           echo "Attempt $ATTEMPT of $RETRY_ATTEMPTS"
 
           # Start each attempt with fresh ~1h credentials so a retry never runs
           # on an expired session (the roles cap MaxSessionDuration at 1h).
-          refresh_credentials
+          # Skipped in self-refreshing mode (credential_process handles refresh).
+          if [ "$SELF_REFRESHING_CREDENTIALS" != "true" ]; then
+            refresh_credentials
+          fi
 
           if run_with_timeout '${{ inputs.run }}' "$SHELL_CMD"; then
             echo "Script succeeded on attempt $ATTEMPT"
