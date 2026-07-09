@@ -12,7 +12,13 @@ const EXCLUDE = [
   '.changeset/',
 ];
 
-const MAX_LINES_ADDED = 3500;
+// Raised from 3500 to 17000 for the snapshot/iac-hosting -> main productionization
+// PR (#3174), which lands the entire IaC hosting feature on mainline in one merge:
+// the defineHosting/definePipeline constructs, framework adapters, and their e2e
+// test fixtures (~16.3k insertions vs main, excluding lockfile/API.md/changesets).
+// This is an aggregate feature-branch merge, not typical PR churn. Tighten back
+// toward the usual ~3500 once the hosting branch is merged.
+const MAX_LINES_ADDED = 17000;
 // Raised from 1000 to 2500 for the pipeline-shim PR, which deletes the ~2,000-line
 // forked pipeline implementation (pipeline_construct.ts / types.ts / its test) in
 // favor of a thin re-export of @aws-blocks/pipeline. The cap is intentionally left
