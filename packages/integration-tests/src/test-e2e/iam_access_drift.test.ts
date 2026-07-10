@@ -62,8 +62,17 @@ void describe('iam access drift', () => {
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
     accessAnalyzerClient = new AccessAnalyzerClient(e2eToolingClientConfig);
     deployedResourcesFinder = new DeployedResourcesFinder(cfnClient);
-    baselineNpmProxyController = new NpmProxyController(baselineDir);
-    currentNpmProxyController = new NpmProxyController();
+    // preserveThirdPartyCache: this test sets up the proxy twice (baseline +
+    // current). Without it, each setUp re-proxies every third-party dependency
+    // from the registry (~20 min/install), pushing the single attempt past the
+    // 1h e2e credential window (the chronic timeout -> ExpiredToken failure).
+    // Sharing verdaccio's third-party cache keeps the repeat install fast.
+    baselineNpmProxyController = new NpmProxyController(baselineDir, {
+      preserveThirdPartyCache: true,
+    });
+    currentNpmProxyController = new NpmProxyController(process.cwd(), {
+      preserveThirdPartyCache: true,
+    });
     testBranch = await amplifyAppPool.createTestBranch();
     branchBackendIdentifier = {
       namespace: testBranch.appId,

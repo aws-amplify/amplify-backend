@@ -16,7 +16,14 @@ void describe(
   { concurrency: testConcurrencyLevel },
   () => {
     let baselineCdkLibVersion: string;
-    const npmProxyController = new NpmProxyController();
+    // preserveThirdPartyCache: use the shared verdaccio storage that the
+    // warm_verdaccio_cache CI step restores, so the create-amplify install is
+    // served from the warm cross-run cache instead of a cold re-proxy from the
+    // network. This is the dominant cost of this test (and the source of the
+    // windows-2025 per-job timeout).
+    const npmProxyController = new NpmProxyController(process.cwd(), {
+      preserveThirdPartyCache: true,
+    });
 
     before(async () => {
       await npmProxyController.setUp();

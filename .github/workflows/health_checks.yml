@@ -255,9 +255,26 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+      # Warm the shared verdaccio proxy cache so the ~27 per-package installs
+      # below are served from disk instead of each cold-proxying the full
+      # amplify dependency graph from the network.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Publish packages locally
-        timeout-minutes: 2
+        timeout-minutes: 5
+        env:
+          # Point verdaccio at the same shared storage the warm cache restores,
+          # so third-party deps are reused across runs. Must match the path in
+          # warm_verdaccio_cache and NpmProxyController (rooted at RUNNER_TEMP).
+          VERDACCIO_STORAGE_PATH: ${{ runner.temp }}/amplify-e2e-verdaccio-shared-storage
         run: |
+          # On a warm cross-run cache the workspace packages from a previous run
+          # already exist in storage; remove them so publish:local can re-publish
+          # the same versions without an EPUBLISHCONFLICT. Third-party packages
+          # (everything else) are kept warm.
+          npx tsx scripts/clean_workspace_packages_from_verdaccio_storage.ts "$VERDACCIO_STORAGE_PATH"
           npm run start:npm-proxy
           # keep git diff with version increment to make sure test projects resolve right version
           npm run publish:local -- --keepGitDiff
@@ -392,6 +409,13 @@ jobs:
           node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -437,6 +461,13 @@ jobs:
           node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -696,6 +727,14 @@ jobs:
       - run: cd packages/cli && npm link
       - name: Reset git tree after npm link
         run: git checkout .
+      # Warm the shared verdaccio proxy cache so the create-amplify install is
+      # served from disk instead of a cold re-proxy from the network. This is
+      # the dominant cost of this job, especially on the slower windows-2025
+      # runner where the cold install has hit the per-job timeout.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
