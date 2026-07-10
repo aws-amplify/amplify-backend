@@ -257,10 +257,23 @@ void describe('iam access drift', () => {
     });
     await fsp.unlink(path.join(tempDir, 'package-lock.json'));
 
-    await execa('npm', ['install'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
+    // prefer-offline reuses the runner's npm cache for third-party deps;
+    // --no-audit/--no-fund skip advisory registry round-trips; --prefer-dedupe
+    // writes fewer packages. None change which package versions resolve.
+    await execa(
+      'npm',
+      [
+        'install',
+        '--prefer-offline',
+        '--no-audit',
+        '--no-fund',
+        '--prefer-dedupe',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      },
+    );
   };
 
   const comparePolicy = async (
@@ -333,9 +346,19 @@ void describe('iam access drift', () => {
   void it('should not drift iam policies', async () => {
     await baselineNpmProxyController.setUp();
 
+    // These npm_config_* vars propagate into the nested `npm install` that
+    // create-amplify runs (flags on the outer `npm create` would not reach it):
+    // prefer_offline reuses cached third-party deps; audit/fund skip advisory
+    // round-trips; prefer_dedupe writes fewer packages. Resolution is unchanged.
     await execa('npm', ['create', amplifyAtTag, '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
+      env: {
+        npm_config_prefer_offline: 'true',
+        npm_config_audit: 'false',
+        npm_config_fund: 'false',
+        npm_config_prefer_dedupe: 'true',
+      },
     });
 
     await deploy();

@@ -97,11 +97,17 @@ void describe(
               {
                 cwd: tempDir,
                 stdio: 'inherit',
-                // Propagates into the nested `npm install` create-amplify runs
-                // so cached third-party deps aren't re-fetched — the full
-                // install is the dominant time sink on slow (esp. Windows)
-                // runners and was overrunning the attempt budget.
-                env: { npm_config_prefer_offline: 'true' },
+                // These npm_config_* vars propagate into the nested `npm install`
+                // create-amplify runs — the dominant time sink on slow (esp.
+                // Windows) runners. prefer_offline reuses cached third-party
+                // deps; audit/fund skip advisory round-trips; prefer_dedupe
+                // writes fewer packages. Resolution is unchanged.
+                env: {
+                  npm_config_prefer_offline: 'true',
+                  npm_config_audit: 'false',
+                  npm_config_fund: 'false',
+                  npm_config_prefer_dedupe: 'true',
+                },
               },
             );
           }, RetryPredicates.createAmplifyRetryPredicate);

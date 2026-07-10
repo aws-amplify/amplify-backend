@@ -125,6 +125,7 @@ export class ApiChangesValidator {
         'install',
         '--no-audit',
         '--no-fund',
+        '--prefer-dedupe',
         '--prefer-offline',
         '--fetch-retries=5',
         '--fetch-retry-factor=2',

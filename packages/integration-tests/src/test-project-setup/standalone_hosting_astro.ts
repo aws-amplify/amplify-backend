@@ -78,12 +78,15 @@ export class StandaloneHostingAstroTestProjectCreator implements TestProjectCrea
     process.stderr.write(
       `Installing Astro dependencies in ${projectRoot}...\n`,
     );
-    execSync('npm install --prefer-offline', {
-      cwd: projectRoot,
-      stdio: 'pipe',
-      env: { ...process.env, NODE_OPTIONS: '' },
-      timeout: 180000,
-    });
+    execSync(
+      'npm install --prefer-offline --no-audit --no-fund --prefer-dedupe',
+      {
+        cwd: projectRoot,
+        stdio: 'pipe',
+        env: { ...process.env, NODE_OPTIONS: '' },
+        timeout: 180000,
+      },
+    );
     process.stderr.write(`Dependencies installed successfully.\n`);
 
     return project;

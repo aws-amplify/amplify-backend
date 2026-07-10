@@ -109,10 +109,23 @@ void describe('client config backwards compatibility', () => {
     // downloads are skipped. This keeps a single attempt comfortably inside
     // the 1h credential window (the ~20-min repeat installs were pushing the
     // trailing AWS calls past the MaxSessionDuration cap -> ExpiredToken).
-    await execa('npm', ['install', '--prefer-offline'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
+    // --no-audit/--no-fund skip advisory registry round-trips; --prefer-dedupe
+    // favors reusing an already-installed version over adding a new one (fewer
+    // packages written). None change which package versions resolve.
+    await execa(
+      'npm',
+      [
+        'install',
+        '--prefer-offline',
+        '--no-audit',
+        '--no-fund',
+        '--prefer-dedupe',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      },
+    );
   };
 
   const assertGenerateClientConfigAPI = async (
@@ -197,13 +210,19 @@ void describe('client config backwards compatibility', () => {
   void it('outputs generation should be backwards and forward compatible', async () => {
     // build an app using previous (baseline) version
     await baselineNpmProxyController.setUp();
-    // npm_config_prefer_offline propagates into the nested `npm install`
-    // that create-amplify runs, so cached third-party deps aren't re-fetched.
-    // (A flag on the outer `npm create` wouldn't reach the nested install.)
+    // These npm_config_* vars propagate into the nested `npm install` that
+    // create-amplify runs (flags on the outer `npm create` would not reach it):
+    // prefer_offline reuses cached third-party deps; audit/fund skip advisory
+    // round-trips; prefer_dedupe writes fewer packages. Resolution is unchanged.
     await execa('npm', ['create', amplifyAtTag, '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
-      env: { npm_config_prefer_offline: 'true' },
+      env: {
+        npm_config_prefer_offline: 'true',
+        npm_config_audit: 'false',
+        npm_config_fund: 'false',
+        npm_config_prefer_dedupe: 'true',
+      },
     });
 
     // Replace backend.ts to add custom outputs without version as well.

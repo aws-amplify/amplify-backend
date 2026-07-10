@@ -96,12 +96,15 @@ export class StandaloneHostingSsrTestProjectCreator implements TestProjectCreato
     process.stderr.write(
       `Installing Next.js dependencies in ${projectRoot}...\n`,
     );
-    execSync('npm install --prefer-offline', {
-      cwd: projectRoot,
-      stdio: 'pipe',
-      env: { ...process.env, NODE_OPTIONS: '' },
-      timeout: 120000,
-    });
+    execSync(
+      'npm install --prefer-offline --no-audit --no-fund --prefer-dedupe',
+      {
+        cwd: projectRoot,
+        stdio: 'pipe',
+        env: { ...process.env, NODE_OPTIONS: '' },
+        timeout: 120000,
+      },
+    );
     process.stderr.write(`Dependencies installed successfully.\n`);
 
     return project;
