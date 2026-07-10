@@ -240,6 +240,16 @@ runs:
           # clients via fromIni({profile:'e2e-tooling'})).
           aws configure set credential_process "bash $helper $E2E_TOOLING_ROLE_ARN" --profile e2e-tooling
           aws configure set region "$AWS_REGION" --profile e2e-tooling
+
+          # Point the default provider chain at the `default` profile so the
+          # `ampx` subprocesses (cdk/pipeline-deploy, generate outputs) and the
+          # test's default-chain SDK clients actually resolve the
+          # credential_process above. Without AWS_PROFILE, clearing the static
+          # env creds leaves the chain with nothing and `ampx` exits immediately
+          # with a credentials error. Exported here so `run_with_timeout`'s
+          # child `bash -c` (which runs the test) inherits it.
+          export AWS_PROFILE=default
+          echo "AWS_PROFILE=default" >> "$GITHUB_ENV"
           echo "Configured self-refreshing credential_process for execution + tooling roles"
         }
 
