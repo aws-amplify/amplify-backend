@@ -555,6 +555,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows)
+      # so the hosting-fixture npm installs aren't throttled by per-file scans.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e deployment tests
         run: |
           # Setup node and restore cache
@@ -619,6 +622,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e sandbox tests with retry
         run: |
           # This step will be handled by the composite action below
@@ -721,6 +726,11 @@ jobs:
       - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender real-time scanning (no-op on
+      # Linux/macOS). The create-amplify install unpacks the ~225 MB bundled
+      # graphql-api-construct/data-construct packages; Defender's per-file-close
+      # scan is the main reason the windows-2025 install is ~2x slower.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node-version }}
@@ -765,6 +775,8 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e package manager tests with retry
         run: |
           # This step will be handled by the composite action below
