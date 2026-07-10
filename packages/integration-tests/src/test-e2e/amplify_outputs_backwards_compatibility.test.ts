@@ -79,6 +79,12 @@ void describe('client config backwards compatibility', () => {
         stdio: 'inherit',
         env: {
           CI: 'true',
+          // TEMP DIAGNOSTIC (remove once synth-phase death is classified):
+          // --trace-gc surfaces V8 GC activity so we can tell whether synth is
+          // thrashing/hitting the heap ceiling before the runner dies; the
+          // higher cap ensures a V8 heap OOM would throw a clear message
+          // ("JavaScript heap out of memory") instead of silently dying.
+          NODE_OPTIONS: '--trace-gc --max-old-space-size=8192',
         },
       },
     );

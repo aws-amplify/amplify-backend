@@ -437,6 +437,23 @@ jobs:
           node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # TEMP DIAGNOSTIC (remove once the synth-phase runner death is classified):
+      # sample memory every 10s so we can tell whether the job dies from a
+      # whole-box OOM (mem exhausted -> kernel reaps the runner agent -> GitHub
+      # reports "runner received a shutdown signal") vs a V8 heap OOM (which
+      # would instead throw "JavaScript heap out of memory") vs a true infra
+      # reclaim (mem healthy at death). Prints the live free -m stream to the
+      # job log, so the last lines before the runner dies show the mem state.
+      - name: Memory sampler (diagnostic)
+        shell: bash
+        run: |
+          echo "=== memory sampler started: total RAM ==="
+          free -m | sed -n '1,2p'
+          ( while true; do
+              echo "MEMSAMPLE $(date -u +%H:%M:%S) $(free -m | awk '/^Mem:/{print "used="$3"MB avail="$7"MB"}')"
+              sleep 10
+            done ) &
+          echo "sampler_pid=$!" >> "$GITHUB_ENV"
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
