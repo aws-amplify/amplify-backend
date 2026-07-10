@@ -39,8 +39,17 @@ void describe('client config backwards compatibility', () => {
     console.log(`Temp dir is ${tempDir}`);
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-    baselineNpmProxyController = new NpmProxyController(baselineDir);
-    currentNpmProxyController = new NpmProxyController();
+    // preserveThirdPartyCache: this test sets up the proxy 3 times (baseline ->
+    // current -> baseline). Without cache preservation each setUp re-proxies
+    // every third-party dependency from the registry (~20 min/install), pushing
+    // the single attempt past the 1h e2e credential window. Preserving
+    // verdaccio's third-party cache keeps the repeat installs fast.
+    baselineNpmProxyController = new NpmProxyController(baselineDir, {
+      preserveThirdPartyCache: true,
+    });
+    currentNpmProxyController = new NpmProxyController(process.cwd(), {
+      preserveThirdPartyCache: true,
+    });
     testBranch = await amplifyAppPool.createTestBranch();
     branchBackendIdentifier = {
       namespace: testBranch.appId,
