@@ -710,7 +710,11 @@ jobs:
           - os: windows-2025
             node-version: 22
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
+    # windows-2025: the create-amplify install is markedly slower on Windows
+    # (NTFS file-op + AV-scan overhead) and the cold install has hit the old
+    # 40-min cap. 60 min gives headroom until the warm verdaccio cache
+    # (warm_verdaccio_cache step) fully takes effect on cross-run cache hits.
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 60 || 25 }}
     needs:
       - do_include_e2e
       - build
