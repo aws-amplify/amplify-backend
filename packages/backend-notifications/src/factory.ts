@@ -1,5 +1,6 @@
 import {
   AuthResources,
+  AuthRoleName,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -7,9 +8,11 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
   ReferenceAuthResources,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { customOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyNotifications } from './construct.js';
@@ -79,6 +82,7 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
 class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotifications> {
   private generator: ConstructContainerEntryGenerator | undefined;
   private outputStored = false;
+  private guestInvokeGranted = false;
 
   constructor(private readonly props: NotificationsFactoryProps) {}
 
@@ -88,10 +92,14 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     const { constructContainer, outputStorageStrategy } = getInstanceProps;
 
     // Resolve THIS app's auth resource (Cognito user pool + client) so the JWT
-    // authorizer trusts only tokens issued by this backend.
+    // authorizer trusts only tokens issued by this backend. The same auth
+    // factory instance also exposes `getResourceAccessAcceptor` (implemented by
+    // both owned and referenced auth), which is used below to grant the guest
+    // route invoke permission without any app-level IAM wiring.
     const authResources = constructContainer
       .getConstructFactory<
-        ResourceProvider<AuthResources | ReferenceAuthResources>
+        ResourceProvider<AuthResources | ReferenceAuthResources> &
+          ResourceAccessAcceptorFactory<AuthRoleName>
       >('AuthResources')
       ?.getInstance(getInstanceProps);
 
@@ -111,6 +119,14 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
       this.generator,
     ) as AmplifyNotifications;
 
+    // Grant the Cognito Identity Pool UNAUTHENTICATED role permission to invoke
+    // the IAM/SigV4-authorized guest identify route, so guest identify "just
+    // works" with no app-level IAM grant and no new public prop.
+    if (!this.guestInvokeGranted) {
+      this.grantGuestRouteInvoke(authResources, notifications);
+      this.guestInvokeGranted = true;
+    }
+
     // Surface the endpoint / region to the client via a custom backend output
     // (written once, even though getInstance is a memoized singleton lookup).
     if (!this.outputStored) {
@@ -119,6 +135,42 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     }
 
     return notifications;
+  };
+
+  /**
+   * Grants the Identity Pool unauthenticated role `execute-api:Invoke` on the
+   * guest identify route.
+   *
+   * CRITICAL — dependency direction: the {@link Policy} is created in the
+   * NOTIFICATIONS construct scope (grantor stack) and attached to the unauth
+   * role via the auth `ResourceAccessAcceptor` (`policy.attachToRole`). This
+   * keeps the single nested-stack edge notifications -> auth (notifications
+   * already depends on auth for the JWT issuer). Using
+   * `unauthRole.addToPrincipalPolicy(...)` instead would create the policy in
+   * the AUTH stack referencing this API's ARN, adding an auth -> notifications
+   * edge and a circular nested-stack dependency. This mirrors how
+   * `defineStorage` grants the auth/unauth roles bucket access.
+   */
+  private grantGuestRouteInvoke = (
+    authResources: ResourceAccessAcceptorFactory<AuthRoleName>,
+    notifications: AmplifyNotifications,
+  ): void => {
+    const unauthAcceptor = authResources.getResourceAccessAcceptor(
+      'unauthenticatedUserIamRole',
+    );
+    const guestInvokePolicy = new Policy(
+      notifications,
+      'GuestIdentifyInvokePolicy',
+      {
+        statements: [
+          new PolicyStatement({
+            actions: ['execute-api:Invoke'],
+            resources: [notifications.guestRouteInvokeArn],
+          }),
+        ],
+      },
+    );
+    unauthAcceptor.acceptResourceAccess(guestInvokePolicy, []);
   };
 
   private storeOutput = (

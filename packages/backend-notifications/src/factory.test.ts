@@ -13,11 +13,13 @@ import {
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   AuthResources,
+  AuthRoleName,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   BackendSecret,
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -58,18 +60,25 @@ const registerAuth = (
   stack: Stack,
 ): void => {
   const sampleUserPool = new UserPool(stack, 'UserPool');
-  const authResources: ResourceProvider<AuthResources> = {
+  const unauthenticatedUserIamRole = new Role(stack, 'testUnauthRole', {
+    assumedBy: new ServicePrincipal('test.amazon.com'),
+  });
+  const authenticatedUserIamRole = new Role(stack, 'testAuthRole', {
+    assumedBy: new ServicePrincipal('test.amazon.com'),
+  });
+  const roles: Record<string, Role> = {
+    unauthenticatedUserIamRole,
+    authenticatedUserIamRole,
+  };
+  const authResources: ResourceProvider<AuthResources> &
+    ResourceAccessAcceptorFactory<AuthRoleName> = {
     resources: {
       userPool: sampleUserPool,
       userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
         userPool: sampleUserPool,
       }),
-      unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-        assumedBy: new ServicePrincipal('test.amazon.com'),
-      }),
-      authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-        assumedBy: new ServicePrincipal('test.amazon.com'),
-      }),
+      unauthenticatedUserIamRole,
+      authenticatedUserIamRole,
       cfnResources: {
         cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
         cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
@@ -87,10 +96,19 @@ const registerAuth = (
       groups: {},
       identityPoolId: 'identityPool',
     },
+    // Mirrors the real auth factory: attach the grantor-owned policy to the
+    // requested role (policy.attachToRole), never an inline policy on the role.
+    getResourceAccessAcceptor: (roleIdentifier: AuthRoleName) => ({
+      identifier: `${roleIdentifier}ResourceAccessAcceptor`,
+      acceptResourceAccess: (policy) => {
+        policy.attachToRole(roles[roleIdentifier]);
+      },
+    }),
   };
   constructContainer.registerConstructFactory('AuthResources', {
     provides: 'AuthResources',
-    getInstance: (): ResourceProvider<AuthResources> => authResources,
+    getInstance: (): ResourceProvider<AuthResources> &
+      ResourceAccessAcceptorFactory<AuthRoleName> => authResources,
   });
 };
 
@@ -230,6 +248,63 @@ void describe('defineNotifications', () => {
         ]),
       }),
     });
+  });
+
+  void it('grants the Identity Pool unauthenticated role execute-api:Invoke on the guest route (in the notifications stack)', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    // Exactly one execute-api:Invoke policy, created in the NOTIFICATIONS
+    // (grantor) stack and attached to a role — never an inline policy on the
+    // auth role's own stack (which would create a circular nested-stack dep).
+    const invokePolicies = template.findResources('AWS::IAM::Policy', {
+      Properties: {
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Effect: 'Allow',
+              Action: 'execute-api:Invoke',
+            }),
+          ]),
+        }),
+        Roles: Match.anyValue(),
+      },
+    });
+    assert.strictEqual(Object.keys(invokePolicies).length, 1);
+
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'execute-api:Invoke',
+            // The grant is scoped to the concrete guest route invoke ARN
+            // (`$default/POST/identify-user-guest`), never a wildcard.
+            Resource: Match.anyValue(),
+          }),
+        ]),
+      }),
+      Roles: Match.anyValue(),
+    });
+  });
+
+  void it('grants the guest invoke policy only once across repeated getInstance calls', () => {
+    const factory = defineNotifications({ domainName: EXISTING_DOMAIN });
+    const notifications = factory.getInstance(getInstanceProps);
+    factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+    const invokePolicies = template.findResources('AWS::IAM::Policy', {
+      Properties: {
+        PolicyDocument: Match.objectLike({
+          Statement: Match.arrayWith([
+            Match.objectLike({ Action: 'execute-api:Invoke' }),
+          ]),
+        }),
+      },
+    });
+    assert.strictEqual(Object.keys(invokePolicies).length, 1);
   });
 
   void it('respects a custom domainName (object types register into it)', () => {
