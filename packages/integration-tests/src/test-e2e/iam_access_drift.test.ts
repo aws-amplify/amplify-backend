@@ -251,28 +251,16 @@ void describe('iam access drift', () => {
   };
 
   const reinstallDependencies = async (): Promise<void> => {
-    // TARGETED reinstall to switch the installed Amplify version (baseline <->
-    // current) WITHOUT re-unpacking all of node_modules. Only the workspace
-    // `@aws-amplify/*` packages differ between the baseline and current
-    // proxies; every third-party dep — including the ~225 MB-each bundled,
-    // external `@aws-amplify/data-construct` / `@aws-amplify/graphql-api-construct`
-    // — is identical across proxies. Removing only the workspace packages
-    // (keeping the unchanged bundled deps on disk) and reinstalling avoids
-    // re-unpacking ~450 MB per reinstall while preserving the version swap.
-    const workspacePackageNames =
-      await currentNpmProxyController.getWorkspacePackageNames();
-    await Promise.all(
-      workspacePackageNames.map((name) =>
-        fsp.rm(path.join(tempDir, 'node_modules', name), {
-          recursive: true,
-          force: true,
-        }),
-      ),
-    );
-    // Drop the lockfile so npm re-resolves the removed workspace packages from
-    // the active proxy (the proxies can publish the same version number built
-    // from different code, so a pinned lockfile entry could serve the wrong
-    // build).
+    // Full clean reinstall to switch the installed Amplify version
+    // (baseline <-> current). A targeted "remove only the workspace packages"
+    // reinstall was tried and REVERTED: npm did a minimal diff against the
+    // mostly-intact tree ("added 20, removed 70") and left the wrong version
+    // installed, breaking this test's assertion. A full nuke + reinstall is the
+    // only reliable way to fully swap the resolved version.
+    await fsp.rm(path.join(tempDir, 'node_modules'), {
+      recursive: true,
+      force: true,
+    });
     await fsp.rm(path.join(tempDir, 'package-lock.json'), { force: true });
 
     // prefer-offline reuses the runner's npm cache for third-party deps;

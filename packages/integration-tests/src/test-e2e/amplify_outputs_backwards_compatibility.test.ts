@@ -94,38 +94,19 @@ void describe('client config backwards compatibility', () => {
   };
 
   const reinstallDependencies = async (): Promise<void> => {
-    // TARGETED reinstall to switch the installed Amplify version (baseline <->
-    // current) WITHOUT re-unpacking all of node_modules.
-    //
-    // Only the workspace `@aws-amplify/*` (+ create-amplify/ampx) packages
-    // differ between the baseline and current proxies. Every third-party dep —
-    // crucially the ~225 MB-each bundled `@aws-amplify/data-construct` and
-    // `@aws-amplify/graphql-api-construct` (external, version-pinned deps) — is
-    // identical across proxies. Nuking all of node_modules forced npm to
-    // re-unpack those ~450 MB of bundled packages on every reinstall (~16-20 min
-    // each on the runner disk), and the test does this 2-3x per attempt, blowing
-    // the 55-min credential window. So instead remove ONLY the workspace
-    // packages (keeping the unchanged bundled deps on disk) and reinstall — npm
-    // re-fetches just the missing workspace packages from the now-active proxy
-    // and reuses everything else. This preserves the exact version swap the test
-    // asserts on; it only avoids re-unpacking bytes that did not change.
-    const workspacePackageNames =
-      await currentNpmProxyController.getWorkspacePackageNames();
-    await Promise.all(
-      workspacePackageNames.map((name) =>
-        fsp.rm(path.join(tempDir, 'node_modules', name), {
-          recursive: true,
-          force: true,
-        }),
-      ),
-    );
-    // Drop the lockfile so npm re-resolves the removed workspace packages from
-    // the active proxy (the two proxies can publish the same version number
-    // built from different code, so a pinned lockfile entry could otherwise
-    // serve the wrong build).
+    // Full clean reinstall to switch the installed Amplify version
+    // (baseline <-> current). A targeted "remove only the workspace packages"
+    // reinstall was tried and REVERTED: npm did a minimal diff against the
+    // mostly-intact tree ("added 20, removed 70") and left the wrong version
+    // installed, breaking the test's assertion. A full nuke + reinstall is the
+    // only reliable way to fully swap the resolved version.
+    await fsp.rm(path.join(tempDir, 'node_modules'), {
+      recursive: true,
+      force: true,
+    });
     await fsp.rm(path.join(tempDir, 'package-lock.json'), { force: true });
 
-    // --prefer-offline reuses the runner/proxy cache for the unchanged deps;
+    // --prefer-offline reuses the runner/proxy cache for unchanged deps;
     // --no-audit/--no-fund skip advisory round-trips; --prefer-dedupe writes
     // fewer packages. None change which versions resolve.
     await execa(
