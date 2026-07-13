@@ -89,7 +89,7 @@ const validateSinglePackage = async (packagePath: string): Promise<void> => {
 // ~225 MB-each bundled data-construct/graphql-api-construct) plus a `tsc` build.
 // Running all ~27 in parallel on a 2-core / 7 GB ubuntu-latest runner exhausts
 // memory/disk and the runner is killed ("runner received a shutdown signal") —
-// reproducibly ~6 packages in. A small cap keeps peak resource use bounded
+// consistently ~6 packages in. A small cap keeps peak resource use bounded
 // while still validating every package. Coverage is unchanged; only scheduling.
 const VALIDATION_CONCURRENCY = 4;
 const validationResults: PromiseSettledResult<void>[] = [];
