@@ -94,24 +94,40 @@ void describe('client config backwards compatibility', () => {
   };
 
   const reinstallDependencies = async (): Promise<void> => {
-    await fsp.rm(path.join(tempDir, 'node_modules'), {
-      recursive: true,
-      force: true,
-    });
-    await fsp.unlink(path.join(tempDir, 'package-lock.json'));
+    // TARGETED reinstall to switch the installed Amplify version (baseline <->
+    // current) WITHOUT re-unpacking all of node_modules.
+    //
+    // Only the workspace `@aws-amplify/*` (+ create-amplify/ampx) packages
+    // differ between the baseline and current proxies. Every third-party dep —
+    // crucially the ~225 MB-each bundled `@aws-amplify/data-construct` and
+    // `@aws-amplify/graphql-api-construct` (external, version-pinned deps) — is
+    // identical across proxies. Nuking all of node_modules forced npm to
+    // re-unpack those ~450 MB of bundled packages on every reinstall (~16-20 min
+    // each on the runner disk), and the test does this 2-3x per attempt, blowing
+    // the 55-min credential window. So instead remove ONLY the workspace
+    // packages (keeping the unchanged bundled deps on disk) and reinstall — npm
+    // re-fetches just the missing workspace packages from the now-active proxy
+    // and reuses everything else. This preserves the exact version swap the test
+    // asserts on; it only avoids re-unpacking bytes that did not change.
+    const workspacePackageNames =
+      await currentNpmProxyController.getWorkspacePackageNames();
+    await Promise.all(
+      workspacePackageNames.map((name) =>
+        fsp.rm(path.join(tempDir, 'node_modules', name), {
+          recursive: true,
+          force: true,
+        }),
+      ),
+    );
+    // Drop the lockfile so npm re-resolves the removed workspace packages from
+    // the active proxy (the two proxies can publish the same version number
+    // built from different code, so a pinned lockfile entry could otherwise
+    // serve the wrong build).
+    await fsp.rm(path.join(tempDir, 'package-lock.json'), { force: true });
 
-    // --prefer-offline reuses the runner's npm cache for third-party
-    // transitive deps (aws-sdk, cdk-lib, etc.) that install #1 already
-    // downloaded, so the repeat installs stop re-fetching them over the
-    // network. The packages under test come from the local verdaccio proxy
-    // and are published fresh per run (never cached), so they are always
-    // fetched from the proxy — resolution is unchanged, only redundant
-    // downloads are skipped. This keeps a single attempt comfortably inside
-    // the 1h credential window (the ~20-min repeat installs were pushing the
-    // trailing AWS calls past the MaxSessionDuration cap -> ExpiredToken).
-    // --no-audit/--no-fund skip advisory registry round-trips; --prefer-dedupe
-    // favors reusing an already-installed version over adding a new one (fewer
-    // packages written). None change which package versions resolve.
+    // --prefer-offline reuses the runner/proxy cache for the unchanged deps;
+    // --no-audit/--no-fund skip advisory round-trips; --prefer-dedupe writes
+    // fewer packages. None change which versions resolve.
     await execa(
       'npm',
       [

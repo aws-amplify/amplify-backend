@@ -88,6 +88,38 @@ export class NpmProxyController {
   };
 
   /**
+   * The names of all non-private packages published from this workspace to the
+   * proxy (e.g. `@aws-amplify/backend`, `create-amplify`, `ampx`). These are the
+   * ONLY packages that differ between two versions published to two different
+   * proxies (baseline vs current) — every third-party dependency, including the
+   * large bundled external packages `@aws-amplify/data-construct` and
+   * `@aws-amplify/graphql-api-construct` (version-pinned deps, not workspace
+   * packages), is identical across proxies. Callers use this to reinstall only
+   * what actually changed instead of nuking and re-unpacking all node_modules.
+   */
+  getWorkspacePackageNames = async (): Promise<string[]> => {
+    const packageJsonPaths = await glob('packages/*/package.json', {
+      cwd: this.workspacePath,
+      absolute: true,
+    });
+    const workspacePackageNames = new Set<string>();
+    for (const packageJsonPath of packageJsonPaths) {
+      let parsed: { name?: string; private?: boolean } | undefined;
+      try {
+        parsed = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+      } catch {
+        // Skip unreadable/invalid package.json files.
+        parsed = undefined;
+      }
+      // Private packages are never published to the proxy.
+      if (parsed?.name && !parsed.private) {
+        workspacePackageNames.add(parsed.name);
+      }
+    }
+    return [...workspacePackageNames];
+  };
+
+  /**
    * setUp variant that points verdaccio at a process-wide shared storage dir
    * (so multiple instances/cwds reuse one cache) and preserves the proxied
    * third-party packages across calls. Only the workspace packages are cleared
@@ -140,27 +172,9 @@ export class NpmProxyController {
     if (!existsSync(storageDir)) {
       return;
     }
-    // Collect the names of packages published from this workspace.
-    const packageJsonPaths = await glob('packages/*/package.json', {
-      cwd: this.workspacePath,
-      absolute: true,
-    });
-    const workspacePackageNames = new Set<string>();
-    for (const packageJsonPath of packageJsonPaths) {
-      let parsed: { name?: string; private?: boolean } | undefined;
-      try {
-        parsed = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      } catch {
-        // Skip unreadable/invalid package.json files.
-        parsed = undefined;
-      }
-      // Private packages are never published to the proxy.
-      if (parsed?.name && !parsed.private) {
-        workspacePackageNames.add(parsed.name);
-      }
-    }
+    const workspacePackageNames = await this.getWorkspacePackageNames();
     await Promise.all(
-      [...workspacePackageNames].map(async (name) => {
+      workspacePackageNames.map(async (name) => {
         // verdaccio stores each package under storage/<name> (scope included).
         const pkgDir = path.join(storageDir, name);
         await fs.rm(pkgDir, { recursive: true, force: true });
