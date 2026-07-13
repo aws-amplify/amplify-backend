@@ -59,35 +59,46 @@ const excludedTypesByPackageName: Record<string, Array<string>> = {
   ],
 };
 
-const validationResults = await Promise.allSettled(
-  packagePaths.map(async (packagePath) => {
-    const packageName = path.basename(packagePath);
-    const baselinePackagePath = path.join(
-      baselineRepositoryPath,
-      'packages',
-      packageName,
+const validateSinglePackage = async (packagePath: string): Promise<void> => {
+  const packageName = path.basename(packagePath);
+  const baselinePackagePath = path.join(
+    baselineRepositoryPath,
+    'packages',
+    packageName,
+  );
+  const baselinePackageApiReportPath = path.join(baselinePackagePath, 'API.md');
+  if (!existsSync(baselinePackageApiReportPath)) {
+    console.log(
+      `Skipping ${packageName} as it does not have baseline API.md file`,
     );
-    const baselinePackageApiReportPath = path.join(
-      baselinePackagePath,
-      'API.md',
-    );
-    if (!existsSync(baselinePackageApiReportPath)) {
-      console.log(
-        `Skipping ${packageName} as it does not have baseline API.md file`,
-      );
-      return;
-    }
+    return;
+  }
 
-    console.log(`Validating API changes of ${packageName}`);
-    await new ApiChangesValidator(
-      packagePath,
-      baselinePackageApiReportPath,
-      workingDirectory,
-      excludedTypesByPackageName[packageName],
-    ).validate();
-    console.log(`Validation of ${packageName} completed successfully`);
-  }),
-);
+  console.log(`Validating API changes of ${packageName}`);
+  await new ApiChangesValidator(
+    packagePath,
+    baselinePackageApiReportPath,
+    workingDirectory,
+    excludedTypesByPackageName[packageName],
+  ).validate();
+  console.log(`Validation of ${packageName} completed successfully`);
+};
+
+// Validate in bounded-concurrency batches rather than all packages at once.
+// Each validation runs a full `npm install` of the Amplify graph (unpacking the
+// ~225 MB-each bundled data-construct/graphql-api-construct) plus a `tsc` build.
+// Running all ~27 in parallel on a 2-core / 7 GB ubuntu-latest runner exhausts
+// memory/disk and the runner is killed ("runner received a shutdown signal") —
+// reproducibly ~6 packages in. A small cap keeps peak resource use bounded
+// while still validating every package. Coverage is unchanged; only scheduling.
+const VALIDATION_CONCURRENCY = 4;
+const validationResults: PromiseSettledResult<void>[] = [];
+for (let i = 0; i < packagePaths.length; i += VALIDATION_CONCURRENCY) {
+  const batch = packagePaths.slice(i, i + VALIDATION_CONCURRENCY);
+  validationResults.push(
+    ...(await Promise.allSettled(batch.map(validateSinglePackage))),
+  );
+}
 
 const errors: Array<Error> = [];
 validationResults.forEach((result) => {
