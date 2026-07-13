@@ -46,6 +46,18 @@ inputs:
     description: Delay between retry attempts in seconds
     required: false
     default: '300'
+  credential_duration_seconds:
+    description: >-
+      Requested session duration (seconds) for the per-attempt role re-assume.
+      Default 3600 (1h) matches the e2e roles' default MaxSessionDuration. Jobs
+      whose single attempt legitimately runs longer than ~55 min (e.g.
+      backwards-compatibility, which does multiple full installs + deploys) can
+      raise this so credentials outlive the attempt instead of expiring
+      mid-run. NOTE: STS caps this at the ROLE's MaxSessionDuration, so raising
+      it above 3600 only takes effect once the e2e roles' MaxSessionDuration is
+      raised in the account; until then the re-assume falls back to 3600.
+    required: false
+    default: '3600'
 runs:
   using: composite
   steps:
@@ -137,14 +149,35 @@ runs:
             return 0
           fi
 
+          # Requested session duration. STS caps this at the role's
+          # MaxSessionDuration; if the requested value is rejected we retry at
+          # the safe 3600s default so a not-yet-raised MaxSessionDuration never
+          # breaks the re-assume.
+          local requested_duration="${CREDENTIAL_DURATION_SECONDS:-3600}"
+
+          # assume_with_fallback <role-arn> <session-name>: echoes the
+          # Credentials JSON, trying the requested duration then 3600.
+          assume_with_fallback() {
+            local role_arn="$1" session_name="$2" creds
+            for dur in "$requested_duration" 3600; do
+              if creds=$(aws sts assume-role-with-web-identity \
+                --role-arn "$role_arn" \
+                --role-session-name "$session_name" \
+                --web-identity-token "$oidc_token" \
+                --duration-seconds "$dur" \
+                --query 'Credentials' --output json 2>/dev/null); then
+                echo "$creds"
+                return 0
+              fi
+              [ "$dur" = "3600" ] && break
+              echo "WARN: re-assume at ${dur}s failed (MaxSessionDuration too low?); retrying at 3600s" >&2
+            done
+            return 1
+          }
+
           # Execution role -> default credential env (used by cdk/ampx deploy).
           local exec_creds
-          if exec_creds=$(aws sts assume-role-with-web-identity \
-            --role-arn "$E2E_EXECUTION_ROLE_ARN" \
-            --role-session-name "gha-e2e-exec-${ATTEMPT}" \
-            --web-identity-token "$oidc_token" \
-            --duration-seconds 3600 \
-            --query 'Credentials' --output json 2>/dev/null); then
+          if exec_creds=$(assume_with_fallback "$E2E_EXECUTION_ROLE_ARN" "gha-e2e-exec-${ATTEMPT}"); then
             export AWS_ACCESS_KEY_ID=$(echo "$exec_creds" | jq -r '.AccessKeyId')
             export AWS_SECRET_ACCESS_KEY=$(echo "$exec_creds" | jq -r '.SecretAccessKey')
             export AWS_SESSION_TOKEN=$(echo "$exec_creds" | jq -r '.SessionToken')
@@ -155,12 +188,7 @@ runs:
 
           # Tooling role -> e2e-tooling profile (used by the test's AWS clients).
           local tool_creds
-          if tool_creds=$(aws sts assume-role-with-web-identity \
-            --role-arn "$E2E_TOOLING_ROLE_ARN" \
-            --role-session-name "gha-e2e-tooling-${ATTEMPT}" \
-            --web-identity-token "$oidc_token" \
-            --duration-seconds 3600 \
-            --query 'Credentials' --output json 2>/dev/null); then
+          if tool_creds=$(assume_with_fallback "$E2E_TOOLING_ROLE_ARN" "gha-e2e-tooling-${ATTEMPT}"); then
             aws configure set aws_access_key_id "$(echo "$tool_creds" | jq -r '.AccessKeyId')" --profile e2e-tooling
             aws configure set aws_secret_access_key "$(echo "$tool_creds" | jq -r '.SecretAccessKey')" --profile e2e-tooling
             aws configure set aws_session_token "$(echo "$tool_creds" | jq -r '.SessionToken')" --profile e2e-tooling
@@ -273,3 +301,6 @@ runs:
         # Consumed by refresh_credentials() to re-assume both roles per attempt.
         E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
         E2E_TOOLING_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
+        # Requested per-attempt session duration; falls back to 3600 if the
+        # role's MaxSessionDuration is lower (see assume_with_fallback).
+        CREDENTIAL_DURATION_SECONDS: ${{ inputs.credential_duration_seconds }}

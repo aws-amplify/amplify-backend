@@ -436,11 +436,13 @@ jobs:
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    # 180 (was 120): same rationale as e2e_iam_access_drift — two full
-    # create-amplify installs + two deploys per attempt, ~26-30 min install in
-    # CI, so a passing attempt exceeds the 120-min cap. Give it headroom.
-    # Also failing on main (pre-existing flake), independent of this PR.
-    timeout-minutes: 180
+    # 240 (was 180): a single attempt's natural runtime was MEASURED at ~60-65
+    # min (3 full ~16-20 min installs of the ~450 MB bundled data/graphql
+    # constructs + 2 deploys + generate/assert), so attempt_timeout below is
+    # raised to 75 min. 240 keeps room for ~2 such attempts + retry delays.
+    # WORKAROUND until the upstream bundled-install cost is reduced
+    # (amplify-category-api#3514); the unpack is the irreducible cost here.
+    timeout-minutes: 240
     needs:
       - do_include_e2e
       - build
@@ -474,14 +476,19 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          # A single attempt runs two create-amplify installs + two deploys.
-          # The installs (from the local verdaccio proxy) are the time sink; the
-          # deploys/synth themselves are fast (~3s synth, ~100-200s deploy). Keep
-          # each attempt under the e2e roles' 1h MaxSessionDuration so its static
-          # per-attempt credentials (re-assumed at the start of every attempt by
-          # run_with_e2e_account) never expire mid-attempt. The install-speed
-          # work (offline npm cache) keeps a single attempt within this window.
-          attempt_timeout_minutes: 55
+          # MEASURED: one full attempt needs ~60-65 min (3 full installs that
+          # each re-unpack the ~450 MB bundled data/graphql constructs, + 2
+          # deploys + generate/assert). Give it 75 min of headroom.
+          # Because that exceeds the e2e roles' default 1h credential lifetime,
+          # request a longer 90-min (5400s) session so credentials outlive the
+          # attempt instead of expiring mid-run (ExpiredToken). NOTE: STS caps
+          # this at the ROLE's MaxSessionDuration — this only fully takes effect
+          # once the e2e roles' MaxSessionDuration is raised to >=5400 in the
+          # account; until then the re-assume falls back to 3600. WORKAROUND
+          # until the upstream bundled-install cost is reduced
+          # (amplify-category-api#3514).
+          attempt_timeout_minutes: 75
+          credential_duration_seconds: 5400
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
