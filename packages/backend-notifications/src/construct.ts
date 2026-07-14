@@ -1147,17 +1147,30 @@ export class AmplifyNotifications
    * bound.
    */
   private sanitizeInstanceAlias(raw: string): string {
+    // Collapse consecutive dashes AND strip leading/trailing dashes in one
+    // linear, backtracking-free pass. Splitting on the dash and dropping empty
+    // segments yields exactly the same result as the former collapse-then-trim
+    // regex chain, but without any repeated-quantifier / anchored-alternation
+    // regex applied to the uncontrolled `raw` input (ReDoS-safe).
     let alias = raw
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .split('-')
+      .filter(Boolean)
+      .join('-');
     if (alias.startsWith('d-')) {
       alias = `a${alias}`;
     }
     if (alias.length === 0) {
       alias = 'amplify-notifications';
     }
-    return alias.slice(0, 62).replace(/-+$/g, '');
+    // The 62-char cap can slice mid-token and leave a single trailing dash
+    // (segments are already single-dash separated). Trim it with a linear
+    // character loop rather than an anchored trailing-dash quantifier.
+    alias = alias.slice(0, 62);
+    while (alias.endsWith('-')) {
+      alias = alias.slice(0, -1);
+    }
+    return alias;
   }
 }

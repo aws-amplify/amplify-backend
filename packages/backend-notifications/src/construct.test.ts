@@ -455,6 +455,36 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     });
   });
 
+  void it('sanitizes adversarial instance aliases in linear time (ReDoS-safe) — long dash runs, mixed junk, d- prefix, length bound', () => {
+    // Reads the synthesized CFN InstanceAlias for a given raw alias input.
+    const aliasFor = (instanceAlias: string): string => {
+      const { template } = synthCreate({ instanceAlias });
+      const instances = template.findResources('AWS::Connect::Instance');
+      const [instance] = Object.values(instances);
+      return instance.Properties.InstanceAlias as string;
+    };
+
+    // Long runs of dashes (the polynomial-backtracking risk) collapse to a
+    // single interior dash with no leading/trailing dashes.
+    assert.strictEqual(aliasFor(`foo${'-'.repeat(5000)}bar`), 'foo-bar');
+    // Mixed junk / non-ASCII maps to dashes, then collapses + trims.
+    assert.strictEqual(aliasFor('  Hello World!! ☕  '), 'hello-world');
+    assert.strictEqual(aliasFor('a---b___c...d'), 'a-b-c-d');
+    // Pure leading/trailing dash runs are fully stripped; an all-junk input
+    // that sanitizes to empty falls back to the default alias.
+    assert.strictEqual(aliasFor('---abc---'), 'abc');
+    assert.strictEqual(aliasFor('-'.repeat(1000)), 'amplify-notifications');
+    assert.strictEqual(aliasFor('!!!'), 'amplify-notifications');
+    // Reserved `d-` prefix is guarded with a leading `a`.
+    assert.strictEqual(aliasFor('d-secret'), 'ad-secret');
+    assert.strictEqual(aliasFor('----d-domain----'), 'ad-domain');
+    // Length bound: capped at 62 chars with no trailing dash left by the slice.
+    const long = aliasFor(`${'a-'.repeat(50)}tail`);
+    assert.ok(long.length <= 62, `expected <= 62 chars, got ${long.length}`);
+    assert.ok(!long.endsWith('-'), 'sanitized alias must not end with a dash');
+    assert.match(long, /^[a-z0-9-]+$/);
+  });
+
   void it('exposes create-mode outputs (instance id/arn, domain name)', () => {
     const { template } = synthCreate();
     template.hasOutput('ConnectInstanceId', {});
