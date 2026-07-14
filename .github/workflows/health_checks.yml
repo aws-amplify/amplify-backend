@@ -255,9 +255,26 @@ jobs:
         with:
           node-version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+      # Warm the shared verdaccio proxy cache so the ~27 per-package installs
+      # below are served from disk instead of each cold-proxying the full
+      # amplify dependency graph from the network.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Publish packages locally
-        timeout-minutes: 2
+        timeout-minutes: 5
+        env:
+          # Point verdaccio at the same shared storage the warm cache restores,
+          # so third-party deps are reused across runs. Must match the path in
+          # warm_verdaccio_cache and NpmProxyController (rooted at RUNNER_TEMP).
+          VERDACCIO_STORAGE_PATH: ${{ runner.temp }}/amplify-e2e-verdaccio-shared-storage
         run: |
+          # On a warm cross-run cache the workspace packages from a previous run
+          # already exist in storage; remove them so publish:local can re-publish
+          # the same versions without an EPUBLISHCONFLICT. Third-party packages
+          # (everything else) are kept warm.
+          npx tsx scripts/clean_workspace_packages_from_verdaccio_storage.ts "$VERDACCIO_STORAGE_PATH"
           npm run start:npm-proxy
           # keep git diff with version increment to make sure test projects resolve right version
           npm run publish:local -- --keepGitDiff
@@ -392,6 +409,13 @@ jobs:
           node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -412,11 +436,13 @@ jobs:
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    # 180 (was 120): same rationale as e2e_iam_access_drift — two full
-    # create-amplify installs + two deploys per attempt, ~26-30 min install in
-    # CI, so a passing attempt exceeds the 120-min cap. Give it headroom.
-    # Also failing on main (pre-existing flake), independent of this PR.
-    timeout-minutes: 180
+    # 240 (was 180): a single attempt's natural runtime was MEASURED at ~60-65
+    # min (3 full ~16-20 min installs of the ~450 MB bundled data/graphql
+    # constructs + 2 deploys + generate/assert), so attempt_timeout below is
+    # raised to 75 min. 240 keeps room for ~2 such attempts + retry delays.
+    # WORKAROUND until the upstream bundled-install cost is reduced
+    # (amplify-category-api#3514); the unpack is the irreducible cost here.
+    timeout-minutes: 240
     needs:
       - do_include_e2e
       - build
@@ -437,17 +463,32 @@ jobs:
           node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 18
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          # Same rationale as e2e_iam_access_drift: two create-amplify installs +
-          # two deploys per attempt exceed the 40-min default per-attempt cap, so
-          # even a passing attempt is killed. Raise to 55 min, under the 60-min
-          # MaxSessionDuration cap on the re-assumed per-attempt credentials.
-          attempt_timeout_minutes: 55
+          # MEASURED: one full attempt needs ~60-65 min (3 full installs that
+          # each re-unpack the ~450 MB bundled data/graphql constructs, + 2
+          # deploys + generate/assert). Give it 75 min of headroom.
+          # Because that exceeds the e2e roles' default 1h credential lifetime,
+          # request a longer 90-min (5400s) session so credentials outlive the
+          # attempt instead of expiring mid-run (ExpiredToken). NOTE: STS caps
+          # this at the ROLE's MaxSessionDuration — this only fully takes effect
+          # once the e2e roles' MaxSessionDuration is raised to >=5400 in the
+          # account; until then the re-assume falls back to 3600. WORKAROUND
+          # until the upstream bundled-install cost is reduced
+          # (amplify-category-api#3514).
+          attempt_timeout_minutes: 75
+          credential_duration_seconds: 5400
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -521,6 +562,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows)
+      # so the hosting-fixture npm installs aren't throttled by per-file scans.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e deployment tests
         run: |
           # Setup node and restore cache
@@ -585,6 +629,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e sandbox tests with retry
         run: |
           # This step will be handled by the composite action below
@@ -676,13 +722,22 @@ jobs:
           - os: windows-2025
             node-version: 22
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
+    # windows-2025: the create-amplify install is markedly slower on Windows
+    # (NTFS file-op + AV-scan overhead) and the cold install has hit the old
+    # 40-min cap. 60 min gives headroom until the warm verdaccio cache
+    # (warm_verdaccio_cache step) fully takes effect on cross-run cache hits.
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 60 || 25 }}
     needs:
       - do_include_e2e
       - build
       - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender real-time scanning (no-op on
+      # Linux/macOS). The create-amplify install unpacks the ~225 MB bundled
+      # graphql-api-construct/data-construct packages; Defender's per-file-close
+      # scan is the main reason the windows-2025 install is ~2x slower.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node-version }}
@@ -693,6 +748,14 @@ jobs:
       - run: cd packages/cli && npm link
       - name: Reset git tree after npm link
         run: git checkout .
+      # Warm the shared verdaccio proxy cache so the create-amplify install is
+      # served from disk instead of a cold re-proxy from the network. This is
+      # the dominant cost of this job, especially on the slower windows-2025
+      # runner where the cold install has hit the per-job timeout.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
@@ -719,6 +782,8 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e package manager tests with retry
         run: |
           # This step will be handled by the composite action below

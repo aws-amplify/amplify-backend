@@ -1,0 +1,54 @@
+name: disable_windows_defender_for_installs
+description: >-
+  On windows-2025 runners, add Windows Defender real-time-scan exclusions for
+  the paths that `npm install` writes into. This is a no-op on Linux/macOS.
+
+  Rationale: the dominant cost of installing the Amplify backend graph on
+  Windows is NOT the network — it is the local filesystem write of the very
+  large bundledDependencies packages (@aws-amplify/graphql-api-construct and
+  @aws-amplify/data-construct are ~225 MB / ~480 nested files each). Windows
+  Defender runs a synchronous scan on every file close, so unpacking tens of
+  thousands of small files costs 1-10ms each, which is the ~2x Windows-vs-Linux
+  install-time gap that has been timing this job out.
+
+  Excluding the work dir, npm cache, verdaccio storage, and temp dir from
+  real-time scanning removes that per-file-close scan. This changes ONLY the
+  runner's antivirus configuration on an ephemeral CI VM — it does not change
+  which packages/versions install, whether install scripts run, or the
+  resulting node_modules, so it introduces no test-coverage blind spot.
+runs:
+  using: composite
+  steps:
+    - name: Add Windows Defender exclusions (windows only)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Best-effort: never fail the job if exclusions can't be set (e.g.
+        # Tamper Protection). A missing exclusion only means "as slow as before".
+        $paths = @(
+          "$env:GITHUB_WORKSPACE",
+          "$env:RUNNER_TEMP",
+          "$env:LOCALAPPDATA\npm-cache",
+          "$env:APPDATA\npm",
+          "$env:TEMP"
+        )
+        foreach ($p in $paths) {
+          if ($p) {
+            try {
+              Add-MpPreference -ExclusionPath $p -ErrorAction Stop
+              Write-Host "Added Defender exclusion: $p"
+            } catch {
+              Write-Host "WARN: could not add Defender exclusion for $p ($($_.Exception.Message))"
+            }
+          }
+        }
+        # Also exclude the node processes that do the extraction, so their
+        # child file operations aren't scanned. Best-effort as above.
+        foreach ($proc in @("node.exe", "npm.exe")) {
+          try {
+            Add-MpPreference -ExclusionProcess $proc -ErrorAction Stop
+            Write-Host "Added Defender process exclusion: $proc"
+          } catch {
+            Write-Host "WARN: could not add Defender process exclusion for $proc ($($_.Exception.Message))"
+          }
+        }
