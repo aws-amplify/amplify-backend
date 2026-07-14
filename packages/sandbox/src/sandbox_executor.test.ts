@@ -140,4 +140,26 @@ void describe('Sandbox executor', () => {
       );
     });
   });
+
+  void it('forwards express flag to the deployer', async () => {
+    await sandboxExecutor.deploy(
+      {
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      },
+      validateAppSourcesProvider,
+      true,
+    );
+
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      backendDeployerDeployMock.mock.calls[0].arguments[1],
+      {
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: true,
+        express: true,
+      },
+    );
+  });
 });

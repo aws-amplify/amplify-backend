@@ -301,6 +301,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           // It's important to pass this as callback so that debounce does
           // not reset tracker prematurely
           this.shouldValidateAppSources,
+          options.express,
         );
         const data: DeepPartial<TelemetryPayload> = {
           latency: {

@@ -107,18 +107,15 @@ const extendEnv = (
   const bucketName = `${dataName}${dataBucketNameContent}`;
   const keyName = `${dataName}${dataKeyNameContent}`;
   const endpointName = `${dataName}${dataEndpointNameContent}`;
-  if (
-    !(
-      bucketName in env &&
-      keyName in env &&
-      endpointName in env &&
-      typeof env[bucketName] === 'string' &&
-      typeof env[keyName] === 'string' &&
-      typeof env[endpointName] === 'string'
-    )
-  ) {
+  const requiredNames = [bucketName, keyName, endpointName];
+  const invalidNames = requiredNames.filter(
+    (name) => !(name in env) || typeof env[name] !== 'string',
+  );
+  if (invalidNames.length > 0) {
     throw new Error(
-      `The data environment variables are malformed. env=${JSON.stringify(env)}`,
+      `The data environment variables are malformed. Expected string values for: ${invalidNames.join(
+        ', ',
+      )}.`,
     );
   }
 
