@@ -127,8 +127,9 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
       this.guestInvokeGranted = true;
     }
 
-    // Surface the endpoint / region to the client via a custom backend output
-    // (written once, even though getInstance is a memoized singleton lookup).
+    // Surface the endpoint / region to the client under the canonical
+    // `notifications` section (written once, even though getInstance is a
+    // memoized singleton lookup).
     if (!this.outputStored) {
       this.storeOutput(outputStorageStrategy, notifications);
       this.outputStored = true;
@@ -180,13 +181,18 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
       version: '1',
       payload: {
-        // Serialized `Partial<ClientConfig>` — surfaced under `custom` in
-        // `amplify_outputs.json`, matching `backend.addOutput({ custom })`.
+        // Serialized `Partial<ClientConfig>` — surfaced under the canonical
+        // `notifications` section of `amplify_outputs.json` at
+        // `notifications.amazon_connect_customer_profiles`, the exact path
+        // amplify-js reads in `parseAmplifyOutputs`. The custom-output key is
+        // the generic conduit for contributing a typed `Partial<ClientConfig>`
+        // (see `CustomClientConfigContributor`), so the payload is NOT confined
+        // to the `custom` section.
         customOutputs: JSON.stringify({
-          custom: {
+          notifications: {
             [OUTPUT_KEY]: {
               endpoint: notifications.apiEndpoint,
-              region: notifications.stack.region,
+              aws_region: notifications.stack.region,
             },
           },
         }),
@@ -200,8 +206,8 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  * your Amplify backend. It registers the AmplifyProfile / AmplifyDevice object
  * types, a least-privilege identify-user Lambda + a JWT-authorized HTTP API, and
  * the push-delivery Lambda (invoked by a Connect Journey Custom-action) with a
- * minimal AWS End User Messaging application. The invoke endpoint / region /
- * domain name are surfaced under `custom.CustomerProfiles` in
+ * minimal AWS End User Messaging application. The invoke endpoint / region are
+ * surfaced under `notifications.amazon_connect_customer_profiles` in
  * `amplify_outputs.json`.
  *
  * By DEFAULT (no `domainName`) it CREATES FROM SCRATCH: a brand-new Amazon

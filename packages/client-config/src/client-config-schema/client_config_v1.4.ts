@@ -266,6 +266,10 @@ export interface AWSAmplifyBackendOutputs {
      * @minItems 1
      */
     channels: AmazonPinpointChannels[];
+    amazon_connect_customer_profiles?: {
+      aws_region: AwsRegion;
+      endpoint: string;
+    };
   };
   /**
    * Outputs generated from defineStorage

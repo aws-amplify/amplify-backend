@@ -133,15 +133,16 @@ Cognito Identity Pool **unauthenticated** role.
 
 ## Client configuration output
 
-The API invoke endpoint and region are surfaced under the fixed custom-output
-key `CustomerProfiles` in `amplify_outputs.json`:
+The API invoke endpoint and region are surfaced under the canonical
+`notifications` section of `amplify_outputs.json`, at the fixed key
+`amazon_connect_customer_profiles` (the path amplify-js reads):
 
 ```json
 {
-  "custom": {
-    "CustomerProfiles": {
+  "notifications": {
+    "amazon_connect_customer_profiles": {
       "endpoint": "https://<api-id>.execute-api.<region>.amazonaws.com",
-      "region": "<region>"
+      "aws_region": "<region>"
     }
   }
 }

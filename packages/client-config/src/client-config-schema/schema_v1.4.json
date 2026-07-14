@@ -368,6 +368,19 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "amazon_connect_customer_profiles": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aws_region": {
+              "$ref": "#/$defs/aws_region"
+            },
+            "endpoint": {
+              "type": "string"
+            }
+          },
+          "required": ["aws_region", "endpoint"]
         }
       },
       "required": ["aws_region", "amazon_pinpoint_app_id", "channels"]

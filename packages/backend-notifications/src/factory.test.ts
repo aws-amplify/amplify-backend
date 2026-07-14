@@ -348,7 +348,7 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('surfaces the endpoint + region under a custom backend output', () => {
+  void it('surfaces the endpoint + region under notifications.amazon_connect_customer_profiles', () => {
     defineNotifications({ domainName: EXISTING_DOMAIN }).getInstance(
       getInstanceProps,
     );
@@ -363,12 +363,12 @@ void describe('defineNotifications', () => {
     const parsed = JSON.parse(
       (entry.payload as { customOutputs: string }).customOutputs,
     );
-    assert.ok(parsed.custom.CustomerProfiles);
-    assert.strictEqual(
-      typeof parsed.custom.CustomerProfiles.endpoint,
-      'string',
-    );
-    assert.strictEqual(typeof parsed.custom.CustomerProfiles.region, 'string');
+    // Lands in the canonical `notifications` section, NOT under `custom`.
+    assert.strictEqual(parsed.custom, undefined);
+    const profiles = parsed.notifications?.amazon_connect_customer_profiles;
+    assert.ok(profiles);
+    assert.strictEqual(typeof profiles.endpoint, 'string');
+    assert.strictEqual(typeof profiles.aws_region, 'string');
   });
 
   void it('writes the custom output only once across repeated getInstance calls', () => {

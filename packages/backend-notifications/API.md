@@ -135,7 +135,7 @@ export const OBJECT_TYPE_NAMES: {
 export const OBJECT_TYPE_PROFILE = "AmplifyProfile";
 
 // @public
-export const OUTPUT_KEY = "CustomerProfiles";
+export const OUTPUT_KEY = "amazon_connect_customer_profiles";
 
 // (No @packageDocumentation comment for this package)
 

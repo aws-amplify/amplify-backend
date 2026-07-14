@@ -135,8 +135,10 @@ export const CONNECT_CAMPAIGNS_SLR_PATH_PREFIX =
   '/aws-service-role/connect-campaigns.amazonaws.com/';
 
 /**
- * Fixed key under `custom` in `amplify_outputs.json` where the notifications
- * endpoint / region are surfaced to the client (`custom.CustomerProfiles`).
+ * Fixed key under the canonical `notifications` section of
+ * `amplify_outputs.json` where the notifications endpoint / region are surfaced
+ * to the client (`notifications.amazon_connect_customer_profiles`). This is the
+ * exact path amplify-js reads in `parseAmplifyOutputs` (`parseNotifications`).
  *
  * This is intentionally NOT configurable: every first-party Amplify Gen2
  * resource (`defineAuth` / `defineData` / `defineStorage` / `defineFunction`)
@@ -144,4 +146,4 @@ export const CONNECT_CAMPAIGNS_SLR_PATH_PREFIX =
  * caller-chosen one, so the client config contributors know where to read it.
  * This resource follows the same convention with a single stable key.
  */
-export const OUTPUT_KEY = 'CustomerProfiles';
+export const OUTPUT_KEY = 'amazon_connect_customer_profiles';
