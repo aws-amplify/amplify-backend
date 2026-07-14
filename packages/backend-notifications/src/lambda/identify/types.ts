@@ -74,7 +74,7 @@ export type IdentifyUserOptions = {
    * guest calls. The value is only a merge HINT: it can only trigger merging a
    * guest profile into the caller's OWN verified authed profile.
    */
-  previousGuestIdentityId?: string;
+  guestIdentityId?: string;
 };
 
 export type IdentifyUserRequest = {

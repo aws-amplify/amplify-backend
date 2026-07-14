@@ -77,36 +77,35 @@ void describe('validateBody', () => {
     );
   });
 
-  void it('rejects a non-string / empty / oversized previousGuestIdentityId', () => {
+  void it('rejects a non-string / empty / oversized guestIdentityId', () => {
     assert.strictEqual(
-      validateBody({ userProfile: {}, options: { previousGuestIdentityId: 7 } })
-        .ok,
+      validateBody({ userProfile: {}, options: { guestIdentityId: 7 } }).ok,
       false,
     );
     assert.strictEqual(
       validateBody({
         userProfile: {},
-        options: { previousGuestIdentityId: '   ' },
+        options: { guestIdentityId: '   ' },
       }).ok,
       false,
     );
     assert.strictEqual(
       validateBody({
         userProfile: {},
-        options: { previousGuestIdentityId: 'x'.repeat(129) },
+        options: { guestIdentityId: 'x'.repeat(129) },
       }).ok,
       false,
     );
   });
 
-  void it('accepts a valid previousGuestIdentityId', () => {
+  void it('accepts a valid guestIdentityId', () => {
     const res = validateBody({
       userProfile: {},
-      options: { previousGuestIdentityId: 'us-east-1:guest-uuid' },
+      options: { guestIdentityId: 'us-east-1:guest-uuid' },
     });
     assert.strictEqual(res.ok, true);
     assert.strictEqual(
-      res.value?.options?.previousGuestIdentityId,
+      res.value?.options?.guestIdentityId,
       'us-east-1:guest-uuid',
     );
   });

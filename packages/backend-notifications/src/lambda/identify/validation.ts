@@ -93,14 +93,14 @@ export const validateBody = (body: unknown): ValidationResult => {
       return { ok: false, error: 'options.deviceId must be a string' };
     }
     if (
-      options.previousGuestIdentityId !== undefined &&
-      (typeof options.previousGuestIdentityId !== 'string' ||
-        options.previousGuestIdentityId.trim().length === 0 ||
-        options.previousGuestIdentityId.length > 128)
+      options.guestIdentityId !== undefined &&
+      (typeof options.guestIdentityId !== 'string' ||
+        options.guestIdentityId.trim().length === 0 ||
+        options.guestIdentityId.length > 128)
     ) {
       return {
         ok: false,
-        error: 'options.previousGuestIdentityId must be a non-empty string',
+        error: 'options.guestIdentityId must be a non-empty string',
       };
     }
     if (

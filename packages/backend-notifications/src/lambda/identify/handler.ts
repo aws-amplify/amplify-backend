@@ -44,7 +44,7 @@ const response = (
  *
  * The verified {@link Principal} abstracts the two modes; the profile
  * find-or-create + device upsert + attribute write are identity-agnostic. On an
- * authed call carrying `options.previousGuestIdentityId`, the prior guest
+ * authed call carrying `options.guestIdentityId`, the prior guest
  * profile (and its devices) is folded into the authed profile via MergeProfiles.
  */
 export const handler = async (
@@ -143,7 +143,7 @@ export const handler = async (
     //    profile via MergeProfiles. Guests never trigger a merge. Best-effort:
     //    a merge failure is logged but does not fail the identify result, which
     //    already succeeded above.
-    const guestIdentityId = request.options?.previousGuestIdentityId;
+    const guestIdentityId = request.options?.guestIdentityId;
     if (principal.kind === 'authed' && guestIdentityId) {
       try {
         const outcome = await mergeGuestIntoAuthed(
