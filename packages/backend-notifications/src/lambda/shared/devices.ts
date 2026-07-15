@@ -8,7 +8,7 @@ import {
 } from '@aws-sdk/client-customer-profiles';
 
 import { OBJECT_TYPE_DEVICE } from '../../constants.js';
-import { withTransientRetry } from '../shared/retry.js';
+import { withTransientRetry } from './retry.js';
 
 /** A registered device resolved from the profile's AmplifyDevice objects. */
 export type ResolvedDevice = {
@@ -16,11 +16,11 @@ export type ResolvedDevice = {
   deviceToken: string;
   /** The stored channel identifier (raw, pre-normalization). */
   channelType?: string;
-  /** The stable device id, if present (for logging / diagnostics). */
+  /** The stable device id, if present (for logging / diagnostics / eviction). */
   deviceId?: string;
   /**
    * The service-generated ProfileObjectUniqueKey — required to delete the
-   * object during stale-token cleanup.
+   * object during stale-token cleanup or cross-profile eviction.
    */
   objectUniqueKey: string;
 };
@@ -33,11 +33,15 @@ export type ResolvedDevice = {
  * Device objects missing a token are skipped. Malformed stored objects are
  * ignored rather than aborting the whole profile. Wrapped in
  * {@link withTransientRetry} so transient throttling is retried with backoff.
+ *
+ * `logContext` tags the operational log line so the two callers — push delivery
+ * and identify-time eviction — are distinguishable in CloudWatch.
  */
 export const listDevices = async (
   profiles: CustomerProfilesClient,
   domainName: string,
   profileId: string,
+  logContext = 'push',
 ): Promise<ResolvedDevice[]> => {
   const devices: ResolvedDevice[] = [];
   let nextToken: string | undefined;
@@ -87,7 +91,7 @@ export const listDevices = async (
   // Operational signal only: how many devices resolved and their channel types
   // (non-personal). Profile id, device ids and tokens are NOT logged.
   console.log(
-    '[push] devices.resolved',
+    `[${logContext}] devices.resolved`,
     JSON.stringify({
       count: devices.length,
       channelTypes: devices.map((d) => d.channelType ?? '(none)'),
@@ -98,10 +102,11 @@ export const listDevices = async (
 };
 
 /**
- * Delete a single AmplifyDevice object (stale-token cleanup) after its token
- * was permanently rejected. Best-effort: a failed delete is swallowed so it
- * never masks the delivery result — the object simply lingers until the next
- * cleanup or its TTL expiry.
+ * Delete a single AmplifyDevice object by its ProfileObjectUniqueKey. Used by
+ * push-time stale-token cleanup (after a token was permanently rejected) AND by
+ * identify-time cross-profile eviction. Best-effort: a failed delete is
+ * swallowed so it never masks the caller's result — the object simply lingers
+ * until the next cleanup or its TTL expiry.
  *
  * Returns `true` when the delete succeeded, `false` otherwise.
  */
@@ -127,7 +132,7 @@ export const deleteDevice = async (
     // Log the failure name / object key only — no profile id and no raw error
     // object (which can carry request content).
     console.error(
-      '[push] cleanup.deleteFailed',
+      '[devices] cleanup.deleteFailed',
       JSON.stringify({
         objectUniqueKey,
         error: err instanceof Error ? err.name : 'unknown',

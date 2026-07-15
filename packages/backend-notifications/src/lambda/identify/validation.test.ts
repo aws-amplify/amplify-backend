@@ -77,39 +77,6 @@ void describe('validateBody', () => {
     );
   });
 
-  void it('rejects a non-string / empty / oversized guestIdentityId', () => {
-    assert.strictEqual(
-      validateBody({ userProfile: {}, options: { guestIdentityId: 7 } }).ok,
-      false,
-    );
-    assert.strictEqual(
-      validateBody({
-        userProfile: {},
-        options: { guestIdentityId: '   ' },
-      }).ok,
-      false,
-    );
-    assert.strictEqual(
-      validateBody({
-        userProfile: {},
-        options: { guestIdentityId: 'x'.repeat(129) },
-      }).ok,
-      false,
-    );
-  });
-
-  void it('accepts a valid guestIdentityId', () => {
-    const res = validateBody({
-      userProfile: {},
-      options: { guestIdentityId: 'us-east-1:guest-uuid' },
-    });
-    assert.strictEqual(res.ok, true);
-    assert.strictEqual(
-      res.value?.options?.guestIdentityId,
-      'us-east-1:guest-uuid',
-    );
-  });
-
   void it('accepts a fully-populated valid request', () => {
     const res = validateBody({
       userId: 'u1',

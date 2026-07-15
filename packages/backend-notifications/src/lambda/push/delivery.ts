@@ -5,7 +5,7 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 
 import { deliverToDevice } from './eum_client.js';
-import { deleteDevice, listDevices } from './device_lookup.js';
+import { deleteDevice, listDevices } from '../shared/devices.js';
 import { normalizeChannelType } from './payload.js';
 import {
   PushTemplateContext,

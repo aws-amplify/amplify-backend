@@ -116,6 +116,15 @@ export type NotificationsFactoryProps = {
   expirationDays?: number;
 
   /**
+   * GUEST profile / object-type expiration in days. Guest profiles are reaped
+   * purely by this Customer Profiles TTL (no reaper Lambda needed); deliberately
+   * shorter than `expirationDays` because an unauthenticated identity is
+   * ephemeral.
+   * @default 90
+   */
+  guestExpirationDays?: number;
+
+  /**
    * OPTIONAL APNs (Apple) push-channel configuration. When provided, the APNs
    * channel is enabled on the created End User Messaging (Pinpoint) application
    * using token (`.p8`) authentication, with the key material sourced from an

@@ -43,6 +43,7 @@ import {
   DEFAULT_EXPIRATION_DAYS,
   ENV_DOMAIN_NAME,
   ENV_EUM_APPLICATION_ID,
+  GUEST_EXPIRATION_DAYS,
 } from './constants.js';
 import {
   AMPLIFY_DEVICE_FIELDS,
@@ -164,6 +165,14 @@ export type AmplifyNotificationsProps = {
 
   /** Profile / object-type expiration in days. Default: 366. */
   readonly expirationDays?: number;
+
+  /**
+   * GUEST profile / object-type expiration in days. Guest profiles are reaped
+   * purely by this Customer Profiles TTL (no reaper Lambda needed); deliberately
+   * shorter than `expirationDays` because an unauthenticated identity is
+   * ephemeral. Default: 90.
+   */
+  readonly guestExpirationDays?: number;
 
   /**
    * Override the directory containing the pre-bundled push Lambda asset (an
@@ -324,6 +333,8 @@ export class AmplifyNotifications
     const stack = Stack.of(this);
     this.stack = stack;
     const expirationDays = props.expirationDays ?? DEFAULT_EXPIRATION_DAYS;
+    const guestExpirationDays =
+      props.guestExpirationDays ?? GUEST_EXPIRATION_DAYS;
 
     // ---- Mode selection: create-from-scratch (default) vs attach -----------
     // If a `domainName` is supplied, ATTACH the object types to that existing
@@ -473,7 +484,9 @@ export class AmplifyNotifications
         allowProfileCreation: true,
         fields: AMPLIFY_GUEST_PROFILE_FIELDS,
         keys: AMPLIFY_GUEST_PROFILE_KEYS,
-        expirationDays,
+        // Guests get their OWN shorter TTL: Customer Profiles TTL applies to the
+        // whole profile, so this reaps stale guest profiles with no reaper.
+        expirationDays: guestExpirationDays,
       },
     );
 
@@ -542,30 +555,16 @@ export class AmplifyNotifications
           // PutProfileObject find-or-create (AmplifyProfile) + read-back.
           'profile:PutProfileObject',
           'profile:SearchProfiles',
-          // Read back the existing device object to preserve immutable createdAt.
+          // Read back the existing device object to preserve immutable createdAt,
+          // and (on the authed path) find the device across profiles to evict it.
           'profile:ListProfileObjects',
           // Set targeting / person attributes on the resolved profile.
           'profile:UpdateProfile',
+          // Cross-profile eviction: delete the device object off stale profiles
+          // when it re-registers on the authed profile at sign-in.
+          'profile:DeleteProfileObject',
         ],
         resources: [domainArn, objectTypesArn],
-      }),
-    );
-
-    // Merge-on-sign-in folds a prior guest profile
-    // (+ its device objects) into the authed profile via MergeProfiles.
-    // NOTE: the Service Authorization Reference lists MergeProfiles under the
-    // `domains` resource type, but the service ACTUALLY authorizes it against
-    // an undocumented, differently-shaped resource ARN (note the leading slash
-    // and the /profiles/objects/merge suffix):
-    //   arn:<partition>:profile:<region>:<account>:/domains/<domain>/profiles/objects/merge
-    // Granting the documented domain ARN is NOT sufficient. This dedicated
-    // statement targets the enforced resource.
-    const mergeProfilesArn = `arn:${stack.partition}:profile:${stack.region}:${stack.account}:/domains/${domainName}/profiles/objects/merge`;
-    fn.addToRolePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['profile:MergeProfiles'],
-        resources: [mergeProfilesArn],
       }),
     );
 

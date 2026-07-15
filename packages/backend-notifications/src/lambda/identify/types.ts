@@ -66,15 +66,6 @@ export type IdentifyUserOptions = {
    * has NO effect: it is not written to the device object nor the profile.
    */
   optOut?: OptOut;
-  /**
-   * The AUTHENTICATED caller's prior GUEST
-   * `cognitoIdentityId`. When present on an authed call, the handler folds the
-   * guest profile (keyed by `cognitoIdentityKey = this value`) — and its device
-   * objects — into the resolved authed profile via MergeProfiles. Ignored on
-   * guest calls. The value is only a merge HINT: it can only trigger merging a
-   * guest profile into the caller's OWN verified authed profile.
-   */
-  guestIdentityId?: string;
 };
 
 export type IdentifyUserRequest = {

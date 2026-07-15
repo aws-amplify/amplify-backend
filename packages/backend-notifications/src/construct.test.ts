@@ -19,6 +19,7 @@ const synth = (
       AmplifyNotificationsProps,
       | 'domainName'
       | 'expirationDays'
+      | 'guestExpirationDays'
       | 'instanceAlias'
       | 'apnsChannel'
       | 'fcmChannel'
@@ -89,6 +90,64 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     });
   });
 
+  void it('gives the guest profile object type its own 90-day TTL by default', () => {
+    const { template } = synth();
+    // Guests are reaped by a distinct, shorter TTL (Customer Profiles TTL
+    // applies to the whole profile, so no reaper Lambda is needed).
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyGuestProfile',
+      ExpirationDays: 90,
+    });
+    // The authenticated profile + device keep the longer default (366).
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyProfile',
+      ExpirationDays: 366,
+    });
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyDevice',
+      ExpirationDays: 366,
+    });
+  });
+
+  void it('allows overriding the guest expiration independently of the authed one', () => {
+    const { template } = synth({
+      guestExpirationDays: 30,
+      expirationDays: 400,
+    });
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyGuestProfile',
+      ExpirationDays: 30,
+    });
+    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
+      ObjectTypeName: 'AmplifyProfile',
+      ExpirationDays: 400,
+    });
+  });
+
+  void it('adds a SECONDARY deviceSearchKey on the AmplifyDevice object type', () => {
+    const { template } = synth();
+    const objectTypes = template.findResources(
+      'AWS::CustomerProfiles::ObjectType',
+    );
+    const device = Object.values(objectTypes).find(
+      (r) => r.Properties?.ObjectTypeName === 'AmplifyDevice',
+    );
+    assert.ok(device, 'AmplifyDevice object type exists');
+    // The deviceSearchKey (SECONDARY on deviceId) makes the device searchable
+    // across profiles for cross-profile eviction. SECONDARY (not LOOKUP_ONLY):
+    // its value is stored so SearchProfiles can resolve it, but it is only a
+    // fallback matcher so it never binds a device to the wrong profile.
+    const deviceJson = JSON.stringify(device);
+    assert.ok(
+      deviceJson.includes('deviceSearchKey'),
+      'expected a deviceSearchKey on AmplifyDevice',
+    );
+    assert.ok(
+      deviceJson.includes('SECONDARY'),
+      'expected the deviceSearchKey to be SECONDARY',
+    );
+  });
+
   void it('does not create a Connect instance in attach mode', () => {
     const { construct, template } = synth();
     template.resourceCountIs('AWS::Connect::Instance', 0);
@@ -111,6 +170,7 @@ void describe('AmplifyNotifications construct — domain attach', () => {
               'profile:SearchProfiles',
               'profile:ListProfileObjects',
               'profile:UpdateProfile',
+              'profile:DeleteProfileObject',
             ],
           }),
         ]),
@@ -134,25 +194,18 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     );
   });
 
-  void it('grants profile:MergeProfiles on the enforced (undocumented) merge resource ARN', () => {
+  void it('does NOT grant profile:MergeProfiles (merge attack vector removed)', () => {
     const { template } = synth();
-    // MergeProfiles authorizes against an undocumented
-    // resource ARN of the shape .../domains/<domain>/profiles/objects/merge
-    // (NOT the SAR-documented `domains` ARN). It lives in its own statement.
-    template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyDocument: Match.objectLike({
-        Statement: Match.arrayWith([
-          Match.objectLike({
-            Effect: 'Allow',
-            Action: 'profile:MergeProfiles',
-          }),
-        ]),
-      }),
-    });
+    // The guestIdentityId merge path is deleted entirely: no MergeProfiles
+    // action and no enforced merge resource ARN anywhere in the template.
     const json = JSON.stringify(template.toJSON());
     assert.ok(
-      json.includes(`/domains/${EXISTING_DOMAIN}/profiles/objects/merge`),
-      'expected MergeProfiles to target the enforced merge resource ARN',
+      !json.includes('profile:MergeProfiles'),
+      'MergeProfiles must be fully removed',
+    );
+    assert.ok(
+      !json.includes('/profiles/objects/merge'),
+      'the enforced merge resource ARN must be removed',
     );
   });
 });

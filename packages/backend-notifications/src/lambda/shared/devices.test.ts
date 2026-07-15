@@ -8,7 +8,7 @@ import type {
   DeleteProfileObjectCommandInput,
   ListProfileObjectsCommandOutput,
 } from '@aws-sdk/client-customer-profiles';
-import { deleteDevice, listDevices } from './device_lookup.js';
+import { deleteDevice, listDevices } from './devices.js';
 
 type ListPage = Partial<ListProfileObjectsCommandOutput>;
 
@@ -91,6 +91,26 @@ void describe('listDevices', () => {
         ['tok-1', 'APNS', 'k1'],
         ['tok-2', 'FCM', 'k2'],
       ],
+    );
+  });
+
+  void it('exposes the deviceId on each resolved device', async () => {
+    const { client } = fakeProfiles({
+      pages: [
+        {
+          Items: [
+            {
+              ProfileObjectUniqueKey: 'k1',
+              Object: deviceObject({ deviceId: 'd1', deviceToken: 'tok-1' }),
+            },
+          ],
+        },
+      ],
+    });
+    const devices = await listDevices(client, 'Domain', 'p1', 'identify');
+    assert.deepStrictEqual(
+      devices.map((d) => d.deviceId),
+      ['d1'],
     );
   });
 

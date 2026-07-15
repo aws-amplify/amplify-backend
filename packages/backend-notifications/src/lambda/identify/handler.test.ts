@@ -5,30 +5,41 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   CustomerProfilesClient,
+  DeleteProfileObjectCommand,
   ListProfileObjectsCommand,
   MergeProfilesCommand,
+  type Profile,
   PutProfileObjectCommand,
   SearchProfilesCommand,
   UpdateProfileCommand,
 } from '@aws-sdk/client-customer-profiles';
 
-import { ENV_DOMAIN_NAME } from '../../constants.js';
+import { DEVICE_SEARCH_KEY, ENV_DOMAIN_NAME } from '../../constants.js';
 import { handler } from './handler.js';
 import { IdentifyEvent } from './principal.js';
 
 const DOMAIN = 'amplify-notifications-domain';
 const AUTHED_PROFILE_ID = 'authed-profile-1';
 const GUEST_PROFILE_ID = 'guest-profile-1';
+const OTHER_PROFILE_ID = 'other-profile-2';
 
 /**
  * A minimal fake CustomerProfiles `send` that routes by command class name.
- * `SearchProfilesCommand` resolves a ProfileId per the searched KeyName so the
- * authed vs guest lookups can return distinct profiles (enabling the merge path).
+ *
+ * - `SearchProfilesCommand` resolves a ProfileId per the searched KeyName
+ *   (`searchByKey`) so authed vs guest identity lookups return distinct
+ *   profiles; `searchItemsByKey` lets a key (e.g. the `deviceSearchKey`
+ *   eviction lookup) return MULTIPLE profiles.
+ * - `ListProfileObjectsCommand` returns `listItemsByProfile[ProfileId]` when
+ *   present (per-profile device objects for eviction), else `listItems`.
+ * - `DeleteProfileObjectCommand` resolves; assert via `onCommand`.
  */
 const mockProfiles = (
   overrides: {
     searchByKey?: Record<string, string | undefined>;
+    searchItemsByKey?: Record<string, Profile[]>;
     listItems?: unknown[];
+    listItemsByProfile?: Record<string, unknown[]>;
     onCommand?: (name: string, input: Record<string, unknown>) => void;
     throwOn?: string;
   } = {},
@@ -55,16 +66,34 @@ const mockProfiles = (
       switch (name) {
         case SearchProfilesCommand.name: {
           const keyName = command.input.KeyName as string;
+          if (
+            overrides.searchItemsByKey &&
+            keyName in overrides.searchItemsByKey
+          ) {
+            return Promise.resolve({
+              Items: overrides.searchItemsByKey[keyName],
+            });
+          }
           const found = searchByKey[keyName];
           return Promise.resolve({
             Items: found ? [{ ProfileId: found }] : [],
           });
         }
-        case ListProfileObjectsCommand.name:
+        case ListProfileObjectsCommand.name: {
+          const profileId = command.input.ProfileId as string;
+          if (
+            overrides.listItemsByProfile &&
+            profileId in overrides.listItemsByProfile
+          ) {
+            return Promise.resolve({
+              Items: overrides.listItemsByProfile[profileId],
+            });
+          }
           return Promise.resolve({ Items: overrides.listItems ?? [] });
+        }
+        case DeleteProfileObjectCommand.name:
         case PutProfileObjectCommand.name:
         case UpdateProfileCommand.name:
-        case MergeProfilesCommand.name:
           return Promise.resolve({});
         default:
           return Promise.reject(new Error(`unexpected command ${name}`));
@@ -141,8 +170,9 @@ void describe('identify handler', () => {
     assert.ok(seen.includes(PutProfileObjectCommand.name));
     assert.ok(seen.includes(SearchProfilesCommand.name));
     assert.ok(seen.includes(UpdateProfileCommand.name));
-    // No device data -> no ListProfileObjects device read.
+    // No device data -> no ListProfileObjects device read and no eviction.
     assert.ok(!seen.includes(ListProfileObjectsCommand.name));
+    assert.ok(!seen.includes(DeleteProfileObjectCommand.name));
   });
 
   void it('registers a device (ListProfileObjects + device PutProfileObject) when deviceId is present', async () => {
@@ -188,35 +218,44 @@ void describe('identify handler', () => {
     assert.ok(devicePut, 'device object was written');
   });
 
-  void it('guest path: resolves via the guest key and never merges', async () => {
-    const seen: string[] = [];
+  void it('authed identify with a device evicts the same deviceId from OTHER profiles only', async () => {
+    const deletes: Record<string, unknown>[] = [];
     mockProfiles({
-      searchByKey: { cognitoIdentityKey: GUEST_PROFILE_ID },
-      onCommand: (name) => seen.push(name),
-    });
-
-    const res = await handler(
-      guestEvent({
-        userProfile: { name: 'Guest' },
-        options: { guestIdentityId: 'us-east-1:other' },
-      }),
-    );
-
-    assert.strictEqual(res.statusCode, 200);
-    // Guests never trigger a merge even when guestIdentityId is present.
-    assert.ok(!seen.includes(MergeProfilesCommand.name));
-  });
-
-  void it('merge-on-sign-in: authed caller with a prior guest folds it in', async () => {
-    let merged = false;
-    mockProfiles({
-      searchByKey: {
-        cognitoUserKey: AUTHED_PROFILE_ID,
-        cognitoIdentityKey: GUEST_PROFILE_ID,
+      searchByKey: { cognitoUserKey: AUTHED_PROFILE_ID },
+      // The deviceSearchKey lookup finds the device on BOTH the auth (keep)
+      // profile and a stale second profile it lingered on before sign-in.
+      searchItemsByKey: {
+        [DEVICE_SEARCH_KEY]: [
+          { ProfileId: AUTHED_PROFILE_ID },
+          { ProfileId: OTHER_PROFILE_ID },
+        ],
       },
-      onCommand: (name) => {
-        if (name === MergeProfilesCommand.name) {
-          merged = true;
+      listItemsByProfile: {
+        // Auth profile: the createdAt read-back for the just-registered device.
+        [AUTHED_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'keep-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'token-abc',
+              createdAt: '2020-01-01T00:00:00.000Z',
+            }),
+          },
+        ],
+        // Stale profile: still carries the same device (a live-ish token).
+        [OTHER_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'other-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'stale-token',
+            }),
+          },
+        ],
+      },
+      onCommand: (name, input) => {
+        if (name === DeleteProfileObjectCommand.name) {
+          deletes.push(input);
         }
       },
     });
@@ -224,31 +263,120 @@ void describe('identify handler', () => {
     const res = await handler(
       authedEvent({
         userProfile: { name: 'Ada' },
-        options: { guestIdentityId: 'us-east-1:guest' },
+        options: {
+          deviceId: 'dev-1',
+          address: 'token-abc',
+          channelType: 'APNS',
+        },
       }),
     );
 
     assert.strictEqual(res.statusCode, 200);
-    assert.ok(merged, 'guest profile merged into authed profile');
+    // Exactly one eviction: the OTHER profile's device object, by unique key.
+    assert.strictEqual(deletes.length, 1);
+    assert.strictEqual(deletes[0].ProfileId, OTHER_PROFILE_ID);
+    assert.strictEqual(deletes[0].ProfileObjectUniqueKey, 'other-key');
+    assert.strictEqual(deletes[0].ObjectTypeName, 'AmplifyDevice');
+    // The profile the device was just registered on is NEVER evicted.
+    assert.ok(
+      !deletes.some((d) => d.ProfileId === AUTHED_PROFILE_ID),
+      'must not evict the keep profile',
+    );
   });
 
-  void it('merge failure is swallowed and does not fail the identify result', async () => {
+  void it('device eviction failure does not fail the identify result', async () => {
+    // The cross-profile delete throws, but registration already succeeded.
     mockProfiles({
-      searchByKey: {
-        cognitoUserKey: AUTHED_PROFILE_ID,
-        cognitoIdentityKey: GUEST_PROFILE_ID,
+      searchByKey: { cognitoUserKey: AUTHED_PROFILE_ID },
+      searchItemsByKey: {
+        [DEVICE_SEARCH_KEY]: [{ ProfileId: OTHER_PROFILE_ID }],
       },
-      throwOn: MergeProfilesCommand.name,
+      listItemsByProfile: {
+        [OTHER_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'other-key',
+            Object: JSON.stringify({ deviceId: 'dev-1', deviceToken: 't' }),
+          },
+        ],
+      },
+      throwOn: DeleteProfileObjectCommand.name,
     });
 
     const res = await handler(
       authedEvent({
         userProfile: { name: 'Ada' },
-        options: { guestIdentityId: 'us-east-1:guest' },
+        options: {
+          deviceId: 'dev-1',
+          address: 'token-abc',
+          channelType: 'APNS',
+        },
       }),
     );
 
     assert.strictEqual(res.statusCode, 200);
+  });
+
+  void it('ignores a guestIdentityId in the body and never triggers a profile merge', async () => {
+    const seen: string[] = [];
+    mockProfiles({ onCommand: (name) => seen.push(name) });
+
+    const res = await handler(
+      authedEvent({
+        userProfile: { name: 'Ada' },
+        // A client-supplied guestIdentityId is now ignored entirely: the merge
+        // attack vector is removed. It must NEVER trigger MergeProfiles.
+        options: { guestIdentityId: 'us-east-1:attacker-guest' },
+      }),
+    );
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(!seen.includes(MergeProfilesCommand.name));
+  });
+
+  void it('guest identify with a device registers on the guest profile and never evicts', async () => {
+    const seen: string[] = [];
+    const searchKeys: string[] = [];
+    mockProfiles({
+      searchByKey: { cognitoIdentityKey: GUEST_PROFILE_ID },
+      listItems: [
+        {
+          Object: JSON.stringify({
+            deviceId: 'dev-1',
+            createdAt: '2020-01-01T00:00:00.000Z',
+          }),
+        },
+      ],
+      onCommand: (name, input) => {
+        seen.push(name);
+        if (name === SearchProfilesCommand.name) {
+          searchKeys.push(input.KeyName as string);
+        }
+      },
+    });
+
+    const res = await handler(
+      guestEvent({
+        userProfile: { name: 'Guest' },
+        options: {
+          deviceId: 'dev-1',
+          address: 'token-abc',
+          channelType: 'GCM',
+        },
+      }),
+    );
+
+    assert.strictEqual(res.statusCode, 200);
+    // The device is registered on the guest profile.
+    assert.ok(seen.includes(PutProfileObjectCommand.name));
+    // A guest NEVER evicts: no cross-profile deviceSearchKey lookup and no
+    // delete, so an unauthenticated caller can't strip a device off another
+    // profile.
+    assert.ok(
+      !searchKeys.includes(DEVICE_SEARCH_KEY),
+      'guest must not run a deviceSearchKey eviction search',
+    );
+    assert.ok(!seen.includes(DeleteProfileObjectCommand.name));
+    assert.ok(!seen.includes(MergeProfilesCommand.name));
   });
 
   void it('returns 500 when a Customer Profiles call fails', async () => {

@@ -93,17 +93,6 @@ export const validateBody = (body: unknown): ValidationResult => {
       return { ok: false, error: 'options.deviceId must be a string' };
     }
     if (
-      options.guestIdentityId !== undefined &&
-      (typeof options.guestIdentityId !== 'string' ||
-        options.guestIdentityId.trim().length === 0 ||
-        options.guestIdentityId.length > 128)
-    ) {
-      return {
-        ok: false,
-        error: 'options.guestIdentityId must be a non-empty string',
-      };
-    }
-    if (
       options.channelType !== undefined &&
       !CHANNEL_TYPES.includes(options.channelType as ChannelType)
     ) {

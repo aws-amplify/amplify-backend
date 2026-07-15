@@ -3,6 +3,7 @@ import {
   COGNITO_IDENTITY_FIELD,
   COGNITO_IDENTITY_KEY,
   COGNITO_USER_KEY,
+  DEVICE_SEARCH_KEY,
   OBJECT_TYPE_DEVICE,
   OBJECT_TYPE_GUEST_PROFILE,
   OBJECT_TYPE_PROFILE,
@@ -60,10 +61,11 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[] = [
  * single UNIQUE key is `cognitoIdentityKey`, sourced from the Identity Pool
  * `cognitoIdentityId` (e.g. `us-east-1:<uuid>`).
  *
- * Guest profiles are created in the SAME domain, so a SearchProfiles by
- * `cognitoIdentityKey` and a later MergeProfiles into the authed profile work
- * uniformly. On sign-in the guest profile is folded into the authed
- * (sub-keyed) profile via MergeProfiles (see merge_resolver).
+ * Guest profiles are created in the SAME domain but are kept COMPLETELY SEPARATE
+ * from authenticated profiles: there is NO profile merge. Push continuity across
+ * sign-in is preserved by re-registering the device on the authenticated profile
+ * and evicting the same deviceId from every other profile (see device_evictor);
+ * guest profiles are reaped by their own shorter TTL.
  */
 export const AMPLIFY_GUEST_PROFILE_FIELDS: FieldMap[] = [
   field(
@@ -106,6 +108,15 @@ export const AMPLIFY_GUEST_PROFILE_KEYS: KeyMap[] = [
  * GUEST profile (via `cognitoIdentityKey` from `cognitoIdentityId`), depending
  * on which identity field the ingested object carries. The object always
  * carries the UNIQUE `deviceId`, so ingestion is valid for both.
+ *
+ * A fourth key `deviceSearchKey` (SECONDARY, on `deviceId`) makes the same
+ * device searchable ACROSS profiles: `SearchProfiles(deviceSearchKey,
+ * [deviceId])` returns every profile carrying the device, which the
+ * authenticated identify path uses to evict the device from stale profiles at
+ * sign-in. SECONDARY keys are stored/searchable but only consulted as a fallback
+ * during ingestion matching, so — because the primary cognito PROFILE key always
+ * resolves the pre-created profile first — it never binds a device to the wrong
+ * profile. (A LOOKUP_ONLY key would NOT be searchable: its value is not stored.)
  */
 export const AMPLIFY_DEVICE_FIELDS: FieldMap[] = [
   field('cognitoSub', 'cognitoSub', '_profile.Attributes.cognitoSub'),
@@ -144,6 +155,20 @@ export const AMPLIFY_DEVICE_KEYS: KeyMap[] = [
     objectTypeKeyList: [
       {
         standardIdentifiers: ['UNIQUE'],
+        fieldNames: ['deviceId'],
+      },
+    ],
+  },
+  {
+    // Cross-profile search key (SECONDARY on deviceId): makes the device
+    // searchable across profiles via SearchProfiles(deviceSearchKey, [deviceId])
+    // so the authenticated identify path can evict it from stale profiles at
+    // sign-in. SECONDARY is stored/searchable but only a fallback matcher, so it
+    // never resolves/binds a device to a profile (the primary cognito key wins).
+    name: DEVICE_SEARCH_KEY,
+    objectTypeKeyList: [
+      {
+        standardIdentifiers: ['SECONDARY'],
         fieldNames: ['deviceId'],
       },
     ],

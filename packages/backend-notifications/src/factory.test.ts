@@ -231,19 +231,8 @@ void describe('defineNotifications', () => {
               'profile:SearchProfiles',
               'profile:ListProfileObjects',
               'profile:UpdateProfile',
+              'profile:DeleteProfileObject',
             ],
-          }),
-        ]),
-      }),
-    });
-    // MergeProfiles is granted in its own statement
-    // against the enforced (undocumented) merge resource ARN.
-    template.hasResourceProperties('AWS::IAM::Policy', {
-      PolicyDocument: Match.objectLike({
-        Statement: Match.arrayWith([
-          Match.objectLike({
-            Effect: 'Allow',
-            Action: 'profile:MergeProfiles',
           }),
         ]),
       }),

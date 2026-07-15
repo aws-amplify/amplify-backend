@@ -37,9 +37,13 @@ export const COGNITO_USER_KEY = 'cognitoUserKey';
  * UNAUTHENTICATED Cognito Identity Pool identity (the `cognitoIdentityId`, e.g.
  * `us-east-1:<uuid>`). A guest has no JWT `sub`, so its profile is keyed by this
  * key instead of {@link COGNITO_USER_KEY}. Also the PROFILE-resolution key on the
- * device object type so a guest's device objects merge into the guest profile.
- * On sign-in the guest profile is folded into the authed (sub-keyed) profile via
- * MergeProfiles (see merge_resolver).
+ * device object type so a guest's device objects resolve to the guest profile.
+ *
+ * Guest and authenticated profiles are kept COMPLETELY SEPARATE: there is NO
+ * profile merge. Push continuity across sign-in is preserved by re-registering
+ * the device on the authenticated profile and evicting the same `deviceId` from
+ * every other profile (see device_evictor); guest profiles are reaped by their
+ * own TTL (see {@link GUEST_EXPIRATION_DAYS}).
  */
 export const COGNITO_IDENTITY_KEY = 'cognitoIdentityKey';
 
@@ -48,6 +52,22 @@ export const COGNITO_IDENTITY_FIELD = 'cognitoIdentityId';
 
 /** Object field carrying the authed identity value (sourced into the key). */
 export const COGNITO_SUB_FIELD = 'cognitoSub';
+
+/**
+ * Searchable SECONDARY key on the device object type. Maps the stable
+ * `deviceId` so `SearchProfiles(KeyName=deviceSearchKey, Values=[deviceId])`
+ * returns EVERY profile currently carrying that device. Used at authenticated
+ * sign-in to evict the device from stale profiles (see device_evictor).
+ *
+ * SECONDARY (not PROFILE): the key value IS stored/associated with the profile
+ * so it is searchable, but it is only consulted as a FALLBACK during ingestion
+ * matching. Because a device object is always ingested with a verified identity
+ * field whose PROFILE key (cognitoUserKey / cognitoIdentityKey) resolves the
+ * pre-created profile first, the SECONDARY deviceId key never drives matching
+ * and so can never merge two identities' profiles. A plain LOOKUP_ONLY key is
+ * NOT searchable (its value is not stored), which is why SECONDARY is used.
+ */
+export const DEVICE_SEARCH_KEY = 'deviceSearchKey';
 
 /** Max length of a Customer Profiles attribute value (single string). */
 export const MAX_ATTRIBUTE_LENGTH = 255;
@@ -102,6 +122,15 @@ export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
 
 /** Default profile / object-type expiration in days. */
 export const DEFAULT_EXPIRATION_DAYS = 366;
+
+/**
+ * Guest profile / object-type expiration in days. Guests are reaped purely by
+ * this Customer Profiles TTL, which applies to the WHOLE profile, so no reaper
+ * Lambda is needed. Deliberately shorter than the authenticated
+ * {@link DEFAULT_EXPIRATION_DAYS} because an unauthenticated identity is
+ * ephemeral.
+ */
+export const GUEST_EXPIRATION_DAYS = 90;
 
 /**
  * Outbound Campaigns v2 <-> Customer Profiles object-type routing map. This

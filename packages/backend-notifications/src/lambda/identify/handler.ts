@@ -13,7 +13,7 @@ import {
 } from './mapping.js';
 import { resolveOrCreateProfile } from './profile_resolver.js';
 import { findExistingDeviceCreatedAt } from './device_resolver.js';
-import { mergeGuestIntoAuthed } from './merge_resolver.js';
+import { evictDeviceFromOtherProfiles } from './device_evictor.js';
 import { IdentifyEvent, resolvePrincipal } from './principal.js';
 import { withTransientRetry } from '../shared/retry.js';
 import { ENV_DOMAIN_NAME, OBJECT_TYPE_DEVICE } from '../../constants.js';
@@ -43,9 +43,11 @@ const response = (
  *     of an UNAUTHENTICATED identity.
  *
  * The verified {@link Principal} abstracts the two modes; the profile
- * find-or-create + device upsert + attribute write are identity-agnostic. On an
- * authed call carrying `options.guestIdentityId`, the prior guest
- * profile (and its devices) is folded into the authed profile via MergeProfiles.
+ * find-or-create + device upsert + attribute write are identity-agnostic. Guest
+ * and authenticated profiles are kept COMPLETELY SEPARATE (no profile merge). On
+ * an AUTHENTICATED identify that (re)registers a device, the same deviceId is
+ * evicted from every OTHER profile so a stale profile can no longer receive push
+ * for this device (see device_evictor).
  */
 export const handler = async (
   event: IdentifyEvent,
@@ -112,6 +114,21 @@ export const handler = async (
           }),
         ),
       );
+
+      // Cross-profile eviction: an AUTHENTICATED caller that (re)registers a
+      // device evicts the SAME deviceId from every OTHER profile, so a stale
+      // guest profile can no longer receive push for this device. Guests never
+      // evict — an unauthenticated caller must not be able to strip a device off
+      // another identity's profile. Best-effort: evictDeviceFromOtherProfiles
+      // never throws, so it cannot fail the registration that just succeeded.
+      if (principal.kind === 'authed') {
+        await evictDeviceFromOtherProfiles(
+          profiles,
+          domainName,
+          deviceId,
+          profileId,
+        );
+      }
     }
 
     // 3) Set user-level / targeting attributes (incl. promoted hasGCM/hasAPNS)
@@ -137,30 +154,6 @@ export const handler = async (
         }),
       ),
     );
-
-    // 4) Merge-on-sign-in: an AUTHENTICATED caller that carries its prior guest
-    //    identityId folds the guest profile (+ its devices) into this authed
-    //    profile via MergeProfiles. Guests never trigger a merge. Best-effort:
-    //    a merge failure is logged but does not fail the identify result, which
-    //    already succeeded above.
-    const guestIdentityId = request.options?.guestIdentityId;
-    if (principal.kind === 'authed' && guestIdentityId) {
-      try {
-        const outcome = await mergeGuestIntoAuthed(
-          profiles,
-          domainName,
-          guestIdentityId,
-          profileId,
-        );
-        console.log(
-          '[identify] guestMerge',
-          JSON.stringify({ merged: outcome.merged }),
-        );
-      } catch (mergeErr) {
-        const name = mergeErr instanceof Error ? mergeErr.name : 'UnknownError';
-        console.error('[identify] guestMergeError', JSON.stringify({ name }));
-      }
-    }
 
     return response(200, { status: 'ok' });
   } catch (err) {

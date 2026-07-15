@@ -49,6 +49,7 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       domainName: this.props.domainName,
       instanceAlias: this.props.instanceAlias,
       expirationDays: this.props.expirationDays,
+      guestExpirationDays: this.props.guestExpirationDays,
       // Resolve the optional push-channel secret material (Amplify `secret()`) to
       // deploy-time CFN tokens here — the construct stays framework-agnostic and
       // receives only plain strings. Mirrors how `defineAuth` resolves external

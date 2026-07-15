@@ -57,6 +57,7 @@ export type AmplifyNotificationsProps = {
     readonly instanceAlias?: string;
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
+    readonly guestExpirationDays?: number;
     readonly pushLambdaCodePath?: string;
     readonly campaignAssociationLambdaCodePath?: string;
     readonly apnsChannel?: {
@@ -102,6 +103,7 @@ export type NotificationsFactoryProps = {
     domainName?: string;
     instanceAlias?: string;
     expirationDays?: number;
+    guestExpirationDays?: number;
     apns?: ApnsChannelProps;
     fcm?: FcmChannelProps;
 };
