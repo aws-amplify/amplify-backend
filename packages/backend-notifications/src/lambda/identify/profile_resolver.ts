@@ -92,27 +92,3 @@ export const resolveOrCreateProfile = async (
   }
   return { profileId };
 };
-
-/**
- * Find the profileId bound to a principal WITHOUT creating one (single
- * SearchProfiles, no poll). Returns `undefined` when no profile exists yet.
- * Used by merge-on-sign-in to locate a prior guest profile.
- *
- * A single attempt (no retry poll, unlike {@link resolveOrCreateProfile}) is
- * correct here: the guest profile, if any, was created on a PRIOR invocation —
- * not in this request — so there is no just-written object to wait for eventual
- * consistency on. A miss means "no guest profile", not "not yet visible".
- */
-export const findProfileId = async (
-  profiles: CustomerProfilesClient,
-  domainName: string,
-  principal: Principal,
-): Promise<string | undefined> =>
-  searchProfileId(
-    profiles,
-    domainName,
-    principal.keyName,
-    principal.value,
-    1,
-    0,
-  );
