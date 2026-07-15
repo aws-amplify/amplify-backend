@@ -77,6 +77,18 @@ void describe('validateBody', () => {
     );
   });
 
+  void it('silently ignores a legacy options.guestIdentityId (accepts, not rejected)', () => {
+    // guestIdentityId was removed from the contract (the merge vector is gone),
+    // but a legacy client may still send it. Validation must NOT reject it - the
+    // handler simply ignores unknown option fields.
+    const res = validateBody({
+      userProfile: {},
+      options: { guestIdentityId: 'us-east-1:legacy-guest' },
+    });
+    assert.strictEqual(res.ok, true);
+    assert.ok(res.value);
+  });
+
   void it('accepts a fully-populated valid request', () => {
     const res = validateBody({
       userId: 'u1',

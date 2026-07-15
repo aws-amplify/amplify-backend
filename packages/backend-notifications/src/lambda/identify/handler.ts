@@ -44,10 +44,12 @@ const response = (
  *
  * The verified {@link Principal} abstracts the two modes; the profile
  * find-or-create + device upsert + attribute write are identity-agnostic. Guest
- * and authenticated profiles are kept COMPLETELY SEPARATE (no profile merge). On
- * an AUTHENTICATED identify that (re)registers a device, the same deviceId is
- * evicted from every OTHER profile so a stale profile can no longer receive push
- * for this device (see device_evictor).
+ * and authenticated profiles are kept COMPLETELY SEPARATE (no profile merge).
+ * When an identify (re)registers a device, that device is evicted from OTHER
+ * profiles whose stored token matches the token just presented, so a physical
+ * device ends up on exactly one profile (see device_evictor). This runs
+ * UNIFORMLY on both paths and is token-matched, so a caller that does not hold
+ * the device's live token cannot strip it off another profile.
  */
 export const handler = async (
   event: IdentifyEvent,
@@ -115,20 +117,21 @@ export const handler = async (
         ),
       );
 
-      // Cross-profile eviction: an AUTHENTICATED caller that (re)registers a
-      // device evicts the SAME deviceId from every OTHER profile, so a stale
-      // guest profile can no longer receive push for this device. Guests never
-      // evict — an unauthenticated caller must not be able to strip a device off
-      // another identity's profile. Best-effort: evictDeviceFromOtherProfiles
-      // never throws, so it cannot fail the registration that just succeeded.
-      if (principal.kind === 'authed') {
-        await evictDeviceFromOtherProfiles(
-          profiles,
-          domainName,
-          deviceId,
-          profileId,
-        );
-      }
+      // Cross-profile eviction so a physical device (deviceId) ends up on
+      // exactly one profile. On BOTH the authed and guest paths, evict the device
+      // from every OTHER profile whose stored token matches the token the caller
+      // just presented (options.address). The live token proves the caller is the
+      // physical device re-homing (logout / shared-device / guest<->auth), so a
+      // caller that does not hold the live token cannot strip the device off
+      // another profile. Best-effort: evictDeviceFromOtherProfiles never throws,
+      // so it cannot fail the registration that just succeeded.
+      await evictDeviceFromOtherProfiles(
+        profiles,
+        domainName,
+        deviceId,
+        profileId,
+        request.options?.address,
+      );
     }
 
     // 3) Set user-level / targeting attributes (incl. promoted hasGCM/hasAPNS)

@@ -218,12 +218,13 @@ void describe('identify handler', () => {
     assert.ok(devicePut, 'device object was written');
   });
 
-  void it('authed identify with a device evicts the same deviceId from OTHER profiles only', async () => {
+  void it('authed identify evicts the token-matched device from another profile (keep untouched)', async () => {
     const deletes: Record<string, unknown>[] = [];
     mockProfiles({
       searchByKey: { cognitoUserKey: AUTHED_PROFILE_ID },
       // The deviceSearchKey lookup finds the device on BOTH the auth (keep)
-      // profile and a stale second profile it lingered on before sign-in.
+      // profile and a second profile whose stored token matches (the same
+      // physical device re-homing).
       searchItemsByKey: {
         [DEVICE_SEARCH_KEY]: [
           { ProfileId: AUTHED_PROFILE_ID },
@@ -242,13 +243,13 @@ void describe('identify handler', () => {
             }),
           },
         ],
-        // Stale profile: still carries the same device (a live-ish token).
+        // Other profile: carries the SAME device with the SAME live token.
         [OTHER_PROFILE_ID]: [
           {
             ProfileObjectUniqueKey: 'other-key',
             Object: JSON.stringify({
               deviceId: 'dev-1',
-              deviceToken: 'stale-token',
+              deviceToken: 'token-abc',
             }),
           },
         ],
@@ -295,7 +296,10 @@ void describe('identify handler', () => {
         [OTHER_PROFILE_ID]: [
           {
             ProfileObjectUniqueKey: 'other-key',
-            Object: JSON.stringify({ deviceId: 'dev-1', deviceToken: 't' }),
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'token-abc',
+            }),
           },
         ],
       },
@@ -333,24 +337,40 @@ void describe('identify handler', () => {
     assert.ok(!seen.includes(MergeProfilesCommand.name));
   });
 
-  void it('guest identify with a device registers on the guest profile and never evicts', async () => {
-    const seen: string[] = [];
-    const searchKeys: string[] = [];
+  void it('guest identify ALSO evicts the token-matched device from another profile', async () => {
+    const deletes: Record<string, unknown>[] = [];
     mockProfiles({
       searchByKey: { cognitoIdentityKey: GUEST_PROFILE_ID },
-      listItems: [
-        {
-          Object: JSON.stringify({
-            deviceId: 'dev-1',
-            createdAt: '2020-01-01T00:00:00.000Z',
-          }),
-        },
-      ],
+      searchItemsByKey: {
+        [DEVICE_SEARCH_KEY]: [
+          { ProfileId: GUEST_PROFILE_ID },
+          { ProfileId: OTHER_PROFILE_ID },
+        ],
+      },
+      listItemsByProfile: {
+        [GUEST_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'keep-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'token-abc',
+              createdAt: '2020-01-01T00:00:00.000Z',
+            }),
+          },
+        ],
+        // Another profile holds the same device with the same live token.
+        [OTHER_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'other-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'token-abc',
+            }),
+          },
+        ],
+      },
       onCommand: (name, input) => {
-        seen.push(name);
-        if (name === SearchProfilesCommand.name) {
-          searchKeys.push(input.KeyName as string);
-        }
+        if (name === DeleteProfileObjectCommand.name) deletes.push(input);
       },
     });
 
@@ -366,17 +386,65 @@ void describe('identify handler', () => {
     );
 
     assert.strictEqual(res.statusCode, 200);
-    // The device is registered on the guest profile.
-    assert.ok(seen.includes(PutProfileObjectCommand.name));
-    // A guest NEVER evicts: no cross-profile deviceSearchKey lookup and no
-    // delete, so an unauthenticated caller can't strip a device off another
-    // profile.
-    assert.ok(
-      !searchKeys.includes(DEVICE_SEARCH_KEY),
-      'guest must not run a deviceSearchKey eviction search',
+    // The guest path evicts too (uniform, token-matched): the OTHER profile's
+    // matching device object is deleted, the keep (guest) profile is not.
+    assert.strictEqual(deletes.length, 1);
+    assert.strictEqual(deletes[0].ProfileId, OTHER_PROFILE_ID);
+    assert.strictEqual(deletes[0].ProfileObjectUniqueKey, 'other-key');
+  });
+
+  void it('does NOT evict a device whose stored token differs from the incoming token', async () => {
+    const deletes: Record<string, unknown>[] = [];
+    mockProfiles({
+      searchByKey: { cognitoUserKey: AUTHED_PROFILE_ID },
+      searchItemsByKey: {
+        [DEVICE_SEARCH_KEY]: [
+          { ProfileId: AUTHED_PROFILE_ID },
+          { ProfileId: OTHER_PROFILE_ID },
+        ],
+      },
+      listItemsByProfile: {
+        [AUTHED_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'keep-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'incoming-token',
+              createdAt: '2020-01-01T00:00:00.000Z',
+            }),
+          },
+        ],
+        // Same deviceId on another profile, but a DIFFERENT stored token: the
+        // caller has not proven it holds this physical device, so no eviction.
+        [OTHER_PROFILE_ID]: [
+          {
+            ProfileObjectUniqueKey: 'other-key',
+            Object: JSON.stringify({
+              deviceId: 'dev-1',
+              deviceToken: 'a-different-token',
+            }),
+          },
+        ],
+      },
+      onCommand: (name, input) => {
+        if (name === DeleteProfileObjectCommand.name) deletes.push(input);
+      },
+    });
+
+    const res = await handler(
+      authedEvent({
+        userProfile: { name: 'Ada' },
+        options: {
+          deviceId: 'dev-1',
+          address: 'incoming-token',
+          channelType: 'APNS',
+        },
+      }),
     );
-    assert.ok(!seen.includes(DeleteProfileObjectCommand.name));
-    assert.ok(!seen.includes(MergeProfilesCommand.name));
+
+    assert.strictEqual(res.statusCode, 200);
+    // Token mismatch on the other profile -> its device object is NOT evicted.
+    assert.strictEqual(deletes.length, 0);
   });
 
   void it('returns 500 when a Customer Profiles call fails', async () => {

@@ -130,7 +130,9 @@ export const deleteDevice = async (
     return true;
   } catch (err) {
     // Log the failure name / object key only — no profile id and no raw error
-    // object (which can carry request content).
+    // object (which can carry request content). objectUniqueKey is a
+    // service-generated opaque UUID (a ProfileObjectUniqueKey), not a user
+    // identifier, so it is safe to log.
     console.error(
       '[devices] cleanup.deleteFailed',
       JSON.stringify({
