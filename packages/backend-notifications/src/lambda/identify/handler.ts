@@ -81,19 +81,17 @@ export const handler = async (
   const request = validation.value;
 
   try {
-    // 1) Resolve (or create + key) the profile bound to the verified caller.
-    //    Isolated behind resolveOrCreateProfile so the identity-resolution
-    //    strategy (authed sub vs guest identityId) is a single seam.
+    // Isolated behind resolveOrCreateProfile so the identity-resolution strategy
+    // (authed sub vs guest identityId) is a single seam.
     const { profileId } = await resolveOrCreateProfile(
       profiles,
       domainName,
       principal,
     );
 
-    // 2) Register / update the device object (keyed by stable deviceId) only
-    //    when device data is present. Token refreshes upsert in place: because
-    //    PutProfileObject REPLACES the object for a deviceId, read back the
-    //    prior object first to preserve its immutable `createdAt`.
+    // Token refreshes upsert in place: because PutProfileObject REPLACES the
+    // object for a deviceId, read back the prior object first to preserve its
+    // immutable `createdAt`.
     if (hasDeviceData(request)) {
       const deviceId = request.options!.deviceId!;
       const existingCreatedAt = await findExistingDeviceCreatedAt(
@@ -134,8 +132,6 @@ export const handler = async (
       );
     }
 
-    // 3) Set user-level / targeting attributes (incl. promoted hasGCM/hasAPNS)
-    //    on the resolved profile.
     const update = buildProfileUpdate(principal, request);
     await withTransientRetry(() =>
       profiles.send(
