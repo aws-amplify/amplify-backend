@@ -145,4 +145,55 @@ void describe('types generator', () => {
     });
     assert.deepEqual(Object.keys(generatedTypes), ['API.ts']);
   });
+
+  void it('keeps a populated subscription document for a schema that mixes @model types with @function-backed operations (aws-amplify/amplify-backend#3280)', async () => {
+    // Deployed schema shape when a schema has BOTH a `@model` type (Todo, which
+    // yields a populated `type Subscription`) AND `@function`-backed custom
+    // operations (echo/runEcho). The empty-document filter must skip only truly
+    // empty documents - it must NOT drop the populated subscriptions document.
+    const schema = `
+      type Todo {
+        id: ID!
+        content: String
+        createdAt: AWSDateTime!
+        updatedAt: AWSDateTime!
+      }
+      input CreateTodoInput {
+        id: ID
+        content: String
+      }
+      type Query {
+        getTodo(id: ID!): Todo
+        echo(content: String): String
+      }
+      type Mutation {
+        createTodo(input: CreateTodoInput!): Todo
+        runEcho(content: String!): String
+      }
+      type Subscription {
+        onCreateTodo: Todo
+      }
+    `;
+
+    let capturedFileMap: Record<string, string> = {};
+    const generator = new AppSyncGraphqlTypesGenerator(
+      async () => schema,
+      (fileMap) => {
+        capturedFileMap = fileMap;
+        return {
+          writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
+          getResults: () => Promise.resolve(fileMap),
+        };
+      },
+    );
+
+    await assert.doesNotReject(() =>
+      generator.generateTypes({ target: 'typescript' }),
+    );
+    assert.deepEqual(Object.keys(capturedFileMap), ['API.ts']);
+    assert.ok(
+      capturedFileMap['API.ts'].includes('OnCreateTodo'),
+      'expected generated types to retain the OnCreateTodo subscription operation',
+    );
+  });
 });
