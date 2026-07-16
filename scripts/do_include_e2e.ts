@@ -6,35 +6,36 @@ const { GITHUB_EVENT_NAME: eventName, GITHUB_REF_NAME: refName } = process.env;
 
 const gitHubClient = new GithubClient();
 
-// Branches whose PRs always run e2e — long-lived integration branches where
-// e2e regressions must surface before merge, without requiring a label.
-// `main` is included so that the snapshot/iac-hosting -> main release PR
-// (and any PR landing on mainline) exercises e2e before merge.
-const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['snapshot/iac-hosting', 'main']);
+// Base branches whose (internal) PRs always run e2e without needing the
+// `run-e2e` label — long-lived branches where an e2e regression must surface
+// before merge. e2e needs AWS OIDC credentials that fork PRs cannot obtain, so
+// auto-run is gated on the PR originating from this repo (not a fork); fork PRs
+// still fall back to the label path and never trip the error below.
+const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['main']);
+const INTERNAL_REPO = 'aws-amplify/amplify-backend';
 
-const inspectPullRequest = async () => {
+const shouldPullRequestRunE2E = async () => {
   if (!ghContext.payload.pull_request) {
     return { runE2E: false } as const;
   }
   const prInfo = await gitHubClient.fetchPullRequest(
     ghContext.payload.pull_request.number,
   );
+  const isInternalPr = prInfo.head?.repo?.full_name === INTERNAL_REPO;
   const hasRunE2ELabel = prInfo.labels.some(
     (label) => label.name === 'run-e2e',
   );
-  const targetsAutoRunBase = E2E_AUTO_RUN_BASE_BRANCHES.has(prInfo.base.ref);
+  const targetsAutoRunBase =
+    isInternalPr && E2E_AUTO_RUN_BASE_BRANCHES.has(prInfo.base.ref);
   const runE2E = hasRunE2ELabel || targetsAutoRunBase;
 
-  if (
-    runE2E &&
-    prInfo.head?.repo?.full_name !== 'aws-amplify/amplify-backend'
-  ) {
+  if (runE2E && !isInternalPr) {
     throw new Error(
       'PR must be opened from a branch in aws-amplify/amplify-backend repository when running e2e tests.',
     );
   }
 
-  return { runE2E } as const;
+  return runE2E;
 };
 
 const isPushToBranchBesidesHotfix =
@@ -44,7 +45,7 @@ const isVersionPackagesPushToHotfix =
 
 const isWorkflowTriggeredManually = eventName === 'workflow_dispatch';
 const isWorkflowTriggeredBySchedule = eventName == 'schedule';
-const { runE2E: isPullRequestThatShouldRunE2E } = await inspectPullRequest();
+const isPullRequestThatShouldRunE2E = await shouldPullRequestRunE2E();
 
 const doIncludeE2e =
   isPushToBranchBesidesHotfix ||
