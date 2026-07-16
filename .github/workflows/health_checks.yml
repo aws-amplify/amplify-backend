@@ -43,7 +43,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["20", "22"]'
+        default: '["22", "24", "26"]'
   workflow_call:
     inputs:
       desired-cdk-lib-version:
@@ -74,7 +74,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["20", "22"]'
+        default: '["22", "24", "26"]'
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -118,7 +118,7 @@ jobs:
           echo "os=$os" >> "$GITHUB_OUTPUT"
           echo "os_for_e2e=$os_for_e2e" >> "$GITHUB_OUTPUT"
           if [ -z "${{ inputs.node }}" ]; then
-            echo 'node=["20", "22"]' >> "$GITHUB_OUTPUT"
+            echo 'node=["22", "24", "26"]' >> "$GITHUB_OUTPUT"
           else
             echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
           fi
@@ -136,10 +136,11 @@ jobs:
         # Changing between standard and custom workers requires full install cache invalidation
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
-        # Always include Node 18 and Ubuntu. Non-testing jobs depend on it.
+        # Always include Node 24 and Ubuntu. Non-testing jobs depend on it
+        # (they restore the Node-24-keyed install/build cache produced here).
         include:
           - os: ubuntu-latest
-            node: 18
+            node: 24
     runs-on: ${{ matrix.os }}
     needs:
       - resolve_inputs
@@ -157,9 +158,10 @@ jobs:
     strategy:
       matrix:
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
-        # Always include Node 18. Non-testing jobs depend on it.
+        # Always include Node 24. Non-testing jobs depend on it
+        # (they restore the Node-24-keyed build cache produced here).
         include:
-          - node: 18
+          - node: 24
     runs-on: ubuntu-latest
     needs:
       - install
@@ -202,10 +204,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: |
           npm run set-script-shell
@@ -219,10 +221,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
@@ -249,10 +251,10 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       # Warm the shared verdaccio proxy cache so the ~27 per-package installs
       # below are served from disk instead of each cold-proxying the full
@@ -260,7 +262,7 @@ jobs:
       - name: Warm verdaccio cache
         uses: ./.github/actions/warm_verdaccio_cache
         with:
-          node-version: 18
+          node-version: 24
       - name: Publish packages locally
         timeout-minutes: 5
         env:
@@ -316,10 +318,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Handle Dependabot version update pull request
         run: |
@@ -349,10 +351,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Check if any E2E tests should run
         id: check
@@ -405,7 +407,7 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: 18
+          node_version: 24
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       # Warm the shared verdaccio proxy cache so the first create-amplify install
@@ -414,12 +416,12 @@ jobs:
       - name: Warm verdaccio cache
         uses: ./.github/actions/warm_verdaccio_cache
         with:
-          node-version: 18
+          node-version: 24
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           # This test does two create-amplify installs + two live deploys per
           # attempt; a single PASSING attempt currently measures ~47 min (heavy
@@ -459,7 +461,7 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: 18
+          node_version: 24
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       # Warm the shared verdaccio proxy cache so the first create-amplify install
@@ -468,12 +470,12 @@ jobs:
       - name: Warm verdaccio cache
         uses: ./.github/actions/warm_verdaccio_cache
         with:
-          node-version: 18
+          node-version: 24
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           # MEASURED: one full attempt needs ~60-65 min (3 full installs that
           # each re-unpack the ~450 MB bundled data/graphql constructs, + 2
@@ -509,7 +511,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           attempt_timeout_minutes: 120
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
@@ -530,7 +532,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - name: Generate matrix with retry
@@ -597,7 +599,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - name: Generate matrix with retry
@@ -666,10 +668,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 20
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 20
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
@@ -697,7 +699,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
           attempt_timeout_minutes: 25
@@ -713,9 +715,9 @@ jobs:
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
-            node-version: 20
+            node-version: 26
           - os: windows-2025
-            node-version: 18
+            node-version: 24
           - os: macos-14
             node-version: 22
           - os: windows-2025
@@ -807,10 +809,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run lint
         env:
@@ -826,10 +828,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       # - run: npm run check:dependencies
   check_tsconfig_refs:
@@ -841,10 +843,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
@@ -856,10 +858,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:api
         env:
@@ -876,10 +878,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:create-amplify-deps
   docs_build_and_publish:
@@ -894,10 +896,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run docs
       - uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
@@ -915,10 +917,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
@@ -937,10 +939,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Validate that PR has changeset
         run: npx --package @changesets/cli -- changeset status --since origin/"$BASE_REF"
@@ -966,10 +968,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npx --verbose --package @changesets/cli -- changeset version
       - run: npm run check:package-versions
@@ -988,10 +990,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
@@ -1027,10 +1029,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 24
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 24
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
