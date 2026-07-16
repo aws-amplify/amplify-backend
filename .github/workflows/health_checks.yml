@@ -748,6 +748,11 @@ jobs:
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Reset git tree after npm link
+        # `npm link` rewrites package.json/package-lock.json (and can touch other
+        # workspace manifests). Reset the whole tree to a pristine checkout so the
+        # verdaccio warm-cache + local publish steps below see no diff — those
+        # steps are sensitive to any working-tree change, so a full reset is
+        # intentional here rather than scoping to specific paths.
         run: git checkout .
       # Warm the shared verdaccio proxy cache so the create-amplify install is
       # served from disk instead of a cold re-proxy from the network. This is
