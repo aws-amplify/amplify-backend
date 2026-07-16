@@ -43,7 +43,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["18", "20", "22"]'
+        default: '["22", "24", "26"]'
   workflow_call:
     inputs:
       desired-cdk-lib-version:
@@ -74,7 +74,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["18", "20", "22"]'
+        default: '["22", "24", "26"]'
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -118,7 +118,7 @@ jobs:
           echo "os=$os" >> "$GITHUB_OUTPUT"
           echo "os_for_e2e=$os_for_e2e" >> "$GITHUB_OUTPUT"
           if [ -z "${{ inputs.node }}" ]; then
-            echo 'node=["18", "20", "22"]' >> "$GITHUB_OUTPUT"
+            echo 'node=["22", "24", "26"]' >> "$GITHUB_OUTPUT"
           else
             echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
           fi
@@ -136,10 +136,11 @@ jobs:
         # Changing between standard and custom workers requires full install cache invalidation
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
-        # Always include Node 18 and Ubuntu. Non-testing jobs depend on it.
+        # Always include Node 22 and Ubuntu. Non-testing jobs depend on it
+        # (they restore the Node-22-keyed install/build cache produced here).
         include:
           - os: ubuntu-latest
-            node: 18
+            node: 22
     runs-on: ${{ matrix.os }}
     needs:
       - resolve_inputs
@@ -157,9 +158,10 @@ jobs:
     strategy:
       matrix:
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
-        # Always include Node 18. Non-testing jobs depend on it.
+        # Always include Node 22. Non-testing jobs depend on it
+        # (they restore the Node-22-keyed build cache produced here).
         include:
-          - node: 18
+          - node: 22
     runs-on: ubuntu-latest
     needs:
       - install
@@ -202,10 +204,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: |
           npm run set-script-shell
@@ -219,10 +221,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
@@ -241,20 +243,39 @@ jobs:
       - build
       - resolve_inputs
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 120: accommodates the raised per-attempt timeout below plus one retry
+    # (see the nick-fields/retry step).
+    timeout-minutes: 120
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+      # Warm the shared verdaccio proxy cache so the ~27 per-package installs
+      # below are served from disk instead of each cold-proxying the full
+      # amplify dependency graph from the network.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 22
       - name: Publish packages locally
-        timeout-minutes: 2
+        timeout-minutes: 5
+        env:
+          # Point verdaccio at the same shared storage the warm cache restores,
+          # so third-party deps are reused across runs. Must match the path in
+          # warm_verdaccio_cache and NpmProxyController (rooted at RUNNER_TEMP).
+          VERDACCIO_STORAGE_PATH: ${{ runner.temp }}/amplify-e2e-verdaccio-shared-storage
         run: |
+          # On a warm cross-run cache the workspace packages from a previous run
+          # already exist in storage; remove them so publish:local can re-publish
+          # the same versions without an EPUBLISHCONFLICT. Third-party packages
+          # (everything else) are kept warm.
+          npx tsx scripts/clean_workspace_packages_from_verdaccio_storage.ts "$VERDACCIO_STORAGE_PATH"
           npm run start:npm-proxy
           # keep git diff with version increment to make sure test projects resolve right version
           npm run publish:local -- --keepGitDiff
@@ -266,8 +287,17 @@ jobs:
       - name: Check API changes with retry
         uses: nick-fields/retry@v3
         with:
-          timeout_minutes: 20
-          max_attempts: 3
+          # 50 (was 20): the validator spins up one throwaway project PER
+          # workspace package (~27), each doing a real `npm install` of the full
+          # amplify dependency graph from the local proxy. All validations PASS,
+          # but the aggregate install time lands right at the old 20-min
+          # per-attempt cap, so nick-fields/retry killed a run that had actually
+          # finished validating every package (and each retry restarts all ~27
+          # installs from scratch, so retries can't make incremental progress).
+          # 50 min gives a passing attempt comfortable headroom; max_attempts 2
+          # keeps the worst case within the 120-min job cap.
+          timeout_minutes: 50
+          max_attempts: 2
           retry_wait_seconds: 30
           command: |
             mkdir -p api-validation-projects
@@ -288,10 +318,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Handle Dependabot version update pull request
         run: |
@@ -321,10 +351,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Check if any E2E tests should run
         id: check
@@ -353,7 +383,13 @@ jobs:
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 (was 120): this job runs TWO full create-amplify installs + two live
+    # deploys per attempt and retries up to 5x. The create-amplify install is
+    # currently ~26-30 min in CI (heavy upstream-bundled data/graphql
+    # constructs), so a passing attempt lands at ~1h53m — just past the 120-min
+    # cap. Give headroom so the winning attempt can finish and report. Also
+    # failing on main (pre-existing flake), tracked separately from this PR.
+    timeout-minutes: 180
     needs:
       - do_include_e2e
       - build
@@ -371,23 +407,43 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: 18
+          node_version: 22
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 22
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
+          # This test does two create-amplify installs + two live deploys per
+          # attempt; a single PASSING attempt currently measures ~47 min (heavy
+          # upstream-bundled data/graphql install is ~18 min each). The 40-min
+          # default per-attempt timeout guillotines even the winning attempt, so
+          # the job never reports success. Raise to 55 min: enough headroom for
+          # the ~47-min run, still safely under the 60-min MaxSessionDuration cap
+          # on the re-assumed per-attempt credentials.
+          attempt_timeout_minutes: 55
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 240 (was 180): a single attempt's natural runtime was MEASURED at ~60-65
+    # min (3 full ~16-20 min installs of the ~450 MB bundled data/graphql
+    # constructs + 2 deploys + generate/assert), so attempt_timeout below is
+    # raised to 75 min. 240 keeps room for ~2 such attempts + retry delays.
+    # WORKAROUND until the upstream bundled-install cost is reduced
+    # (amplify-category-api#3514); the unpack is the irreducible cost here.
+    timeout-minutes: 240
     needs:
       - do_include_e2e
       - build
@@ -405,16 +461,35 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: 18
+          node_version: 22
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Warm the shared verdaccio proxy cache so the first create-amplify install
+      # is served from disk instead of a cold ~20-min re-proxy. This test opts
+      # into NpmProxyController's preserveThirdPartyCache.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: 22
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
-          attempt_timeout_minutes: 25
+          # MEASURED: one full attempt needs ~60-65 min (3 full installs that
+          # each re-unpack the ~450 MB bundled data/graphql constructs, + 2
+          # deploys + generate/assert). Give it 75 min of headroom.
+          # Because that exceeds the e2e roles' default 1h credential lifetime,
+          # request a longer 90-min (5400s) session so credentials outlive the
+          # attempt instead of expiring mid-run (ExpiredToken). NOTE: STS caps
+          # this at the ROLE's MaxSessionDuration — this only fully takes effect
+          # once the e2e roles' MaxSessionDuration is raised to >=5400 in the
+          # account; until then the re-assume falls back to 3600. WORKAROUND
+          # until the upstream bundled-install cost is reduced
+          # (amplify-category-api#3514).
+          attempt_timeout_minutes: 75
+          credential_duration_seconds: 5400
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -436,7 +511,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           attempt_timeout_minutes: 120
           run: npm run test:dir packages/integration-tests/lib/test-e2e/hosting.test.js
@@ -457,7 +532,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - name: Generate matrix with retry
@@ -488,6 +563,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows)
+      # so the e2e npm installs aren't throttled by per-file scans.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e deployment tests
         run: |
           # Setup node and restore cache
@@ -521,7 +599,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - name: Generate matrix with retry
@@ -552,6 +630,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e sandbox tests with retry
         run: |
           # This step will be handled by the composite action below
@@ -588,10 +668,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e notices tests
@@ -619,7 +699,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: 18
+          node_version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
           link_cli: true
           attempt_timeout_minutes: 25
@@ -635,21 +715,30 @@ jobs:
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
-            node-version: 20
+            node-version: 24
           - os: windows-2025
-            node-version: 18
+            node-version: 22
           - os: macos-14
-            node-version: 22
+            node-version: 26
           - os: windows-2025
-            node-version: 22
+            node-version: 26
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-2025' && 40 || 25 }}
+    # windows-2025: the create-amplify install is markedly slower on Windows
+    # (NTFS file-op + AV-scan overhead) and the cold install has hit the old
+    # 40-min cap. 60 min gives headroom until the warm verdaccio cache
+    # (warm_verdaccio_cache step) fully takes effect on cross-run cache hits.
+    timeout-minutes: ${{ matrix.os == 'windows-2025' && 60 || 25 }}
     needs:
       - do_include_e2e
       - build
       - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      # Exclude install paths from Windows Defender real-time scanning (no-op on
+      # Linux/macOS). The create-amplify install unpacks the ~225 MB bundled
+      # graphql-api-construct/data-construct packages; Defender's per-file-close
+      # scan is the main reason the windows-2025 install is ~2x slower.
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node-version }}
@@ -658,6 +747,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: cd packages/cli && npm link
+      - name: Reset git tree after npm link
+        # `npm link` rewrites package.json/package-lock.json (and can touch other
+        # workspace manifests). Reset the whole tree to a pristine checkout so the
+        # verdaccio warm-cache + local publish steps below see no diff — those
+        # steps are sensitive to any working-tree change, so a full reset is
+        # intentional here rather than scoping to specific paths.
+        run: git checkout .
+      # Warm the shared verdaccio proxy cache so the create-amplify install is
+      # served from disk instead of a cold re-proxy from the network. This is
+      # the dominant cost of this job, especially on the slower windows-2025
+      # runner where the cold install has hit the per-job timeout.
+      - name: Warm verdaccio cache
+        uses: ./.github/actions/warm_verdaccio_cache
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
@@ -684,6 +788,8 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      # Exclude install paths from Windows Defender scanning (no-op off Windows).
+      - uses: ./.github/actions/disable_windows_defender_for_installs
       - name: Run e2e package manager tests with retry
         run: |
           # This step will be handled by the composite action below
@@ -708,10 +814,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run lint
         env:
@@ -727,10 +833,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       # - run: npm run check:dependencies
   check_tsconfig_refs:
@@ -742,10 +848,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
@@ -757,10 +863,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:api
         env:
@@ -777,10 +883,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run check:create-amplify-deps
   docs_build_and_publish:
@@ -795,10 +901,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npm run docs
       - uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
@@ -816,10 +922,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
@@ -838,10 +944,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - name: Validate that PR has changeset
         run: npx --package @changesets/cli -- changeset status --since origin/"$BASE_REF"
@@ -867,10 +973,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - run: npx --verbose --package @changesets/cli -- changeset version
       - run: npm run check:package-versions
@@ -889,10 +995,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
@@ -928,10 +1034,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: 18
+          node-version: 22
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: 18
+          node-version: 22
           cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
