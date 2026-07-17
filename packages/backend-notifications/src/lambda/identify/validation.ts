@@ -101,6 +101,14 @@ export const validateBody = (body: unknown): ValidationResult => {
         error: `options.channelType must be one of ${CHANNEL_TYPES.join(', ')}`,
       };
     }
+    // IN_APP is a known ChannelType but push delivery cannot target it; reject
+    // it loudly rather than silently registering a device that receives no push.
+    if (options.channelType === 'IN_APP') {
+      return {
+        ok: false,
+        error: 'IN_APP is not supported for push delivery',
+      };
+    }
     if (
       options.optOut !== undefined &&
       !OPT_OUTS.includes(options.optOut as OptOut)

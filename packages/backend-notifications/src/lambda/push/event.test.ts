@@ -62,11 +62,11 @@ void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', (
 });
 
 void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey shape', () => {
-  // Authoritative fixture: the verbatim rawEvent captured from a live journey
-  // run (see fixtures/real_journey_event.ts for the source log reference).
-  // Expected values are derived from the fixture (via bracket access, no
-  // re-typed identifiers) so the assertions prove the parser's transformations
-  // rather than restating literals.
+  // Authoritative fixture: a real-shaped journey event with placeholder
+  // identifiers (see fixtures/real_journey_event.ts). The profile-id assertion
+  // below pins the EXPECTED ids as literals (an independent oracle, not
+  // re-derived from the input); the IdempotencyToken / CustomerData assertions
+  // read from the fixture to prove the parser's per-entry transformations.
   const asRec = (v: unknown): Record<string, unknown> =>
     v as Record<string, unknown>;
   const root = asRec(REAL_JOURNEY_EVENT);
@@ -78,7 +78,12 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
     assert.strictEqual(targets.length, 4);
     assert.deepStrictEqual(
       targets.map((t) => t.profileId),
-      rawEntries.map((e) => asRec(e)['ProfileId'] as string),
+      [
+        'b1a19259aff1472fa4e4332b4f2ba441',
+        'eb155c66aae14a10b775437c40a4e44d',
+        '980662c93bdd4527aeecbacc1aae296a',
+        '594a41c0a6d84f46a56df716a3f62e7d',
+      ],
     );
   });
 

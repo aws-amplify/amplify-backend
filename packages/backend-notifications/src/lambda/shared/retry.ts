@@ -12,15 +12,15 @@
 export const isTransientConcurrentUpdate = (err: unknown): boolean => {
   const name = (err as { name?: string })?.name ?? '';
   const msg = (err as { message?: string })?.message ?? '';
+  // Throttling is always transient. A BadRequestException is retryable ONLY
+  // when it is the Customer Profiles concurrent-write serialization error (the
+  // write is idempotent and safe to repeat); every other BadRequestException is
+  // a caller error that must NOT be retried.
+  if (name === 'ThrottlingException' || name === 'TooManyRequestsException') {
+    return true;
+  }
   return (
-    ((name === 'BadRequestException' ||
-      name === 'ThrottlingException' ||
-      name === 'TooManyRequestsException') &&
-      /concurrent update in-progress|too many requests|rate exceeded/i.test(
-        msg,
-      )) ||
-    name === 'ThrottlingException' ||
-    name === 'TooManyRequestsException'
+    name === 'BadRequestException' && /concurrent update in-progress/i.test(msg)
   );
 };
 

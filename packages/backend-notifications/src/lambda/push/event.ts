@@ -2,12 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../../constants.js';
-import {
-  CampaignContext,
-  ConnectBatchRequest,
-  ParsedPushEvent,
-  ProfileTarget,
-} from './types.js';
+import { CampaignContext, ParsedPushEvent, ProfileTarget } from './types.js';
 
 /**
  * Parse a raw Amazon Connect batch custom-action event into a flat list of
@@ -30,17 +25,15 @@ import {
  *   - each entry's `CustomerData` is a SERIALIZED JSON STRING with camelCase
  *     keys (`profileId`, `firstName`, `attributes.*`) that is `JSON.parse`d.
  *
- * The handler keeps the `event: unknown` boundary; this narrows it to a
- * {@link ConnectBatchRequest} via defensive guards. Missing / malformed fields
+ * The handler keeps the `event: unknown` boundary; this narrows it to the
+ * canonical Connect batch shape via defensive guards. Missing / malformed fields
  * are skipped rather than aborting the batch. The real journey carries NO
  * message copy, so {@link ParsedPushEvent.message} is always the safe
  * {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY}; personalized copy comes
  * from the Q Connect PUSH template rendered per profile downstream.
  */
 export const parsePushEvent = (event: unknown): ParsedPushEvent => {
-  const root: ConnectBatchRequest = isRecord(event)
-    ? (event as ConnectBatchRequest)
-    : {};
+  const root: Record<string, unknown> = isRecord(event) ? event : {};
   const targets = extractTargets(root);
   const campaign = extractCampaign(root);
   return {
@@ -61,7 +54,7 @@ const asString = (v: unknown): string | undefined =>
  * Each entry contributes its `ProfileId`, parsed `CustomerData`, and
  * `IdempotencyToken`; entries without a usable `ProfileId` are skipped.
  */
-const extractTargets = (root: ConnectBatchRequest): ProfileTarget[] => {
+const extractTargets = (root: Record<string, unknown>): ProfileTarget[] => {
   const targets: ProfileTarget[] = [];
 
   const items: unknown = root.Items;
@@ -122,7 +115,7 @@ const coerceCustomerData = (
  * direct-invoke test payloads) or when neither field resolves.
  */
 const extractCampaign = (
-  root: ConnectBatchRequest,
+  root: Record<string, unknown>,
 ): CampaignContext | undefined => {
   const meta: unknown = root.InvocationMetadata;
   if (!isRecord(meta)) {

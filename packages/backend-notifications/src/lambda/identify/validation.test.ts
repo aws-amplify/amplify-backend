@@ -60,6 +60,15 @@ void describe('validateBody', () => {
     assert.match(res.error ?? '', /channelType must be one of/);
   });
 
+  void it('rejects the IN_APP channelType (not supported for push delivery)', () => {
+    const res = validateBody({
+      userProfile: {},
+      options: { channelType: 'IN_APP' },
+    });
+    assert.strictEqual(res.ok, false);
+    assert.match(res.error ?? '', /IN_APP is not supported for push delivery/);
+  });
+
   void it('rejects an invalid optOut', () => {
     const res = validateBody({ userProfile: {}, options: { optOut: 'MAYBE' } });
     assert.strictEqual(res.ok, false);

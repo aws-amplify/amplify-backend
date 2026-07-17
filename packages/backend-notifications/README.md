@@ -121,11 +121,13 @@ provide it to attach to an existing domain. All properties of
 Guests register through the IAM/SigV4 `POST /identify-user-guest` route using
 unauthenticated Cognito Identity Pool credentials, creating an
 `AmplifyGuestProfile` (keyed by the Identity Pool `identityId`) plus their
-device. When the user later signs in and calls the authenticated
-`POST /identify-user` route with their prior guest `identityId`, the guest
-profile — and its devices — is folded into the authenticated profile via a
-Customer Profiles `MergeProfiles`, so a pre-login device keeps its registration
-through sign-in.
+device. Guest and authenticated profiles are kept **separate** — there is no
+Customer Profiles `MergeProfiles`. When the user later signs in and re-registers
+the same device on the authenticated `POST /identify-user` route, that device is
+re-homed onto the authenticated profile by a token-matched `DeleteProfileObject`
+eviction, so a physical device ends up on exactly one profile. The guest profile
+is not merged; it is reaped automatically by its shorter TTL
+(`guestExpirationDays`).
 
 The construct exposes the guest route's `execute-api:Invoke` ARN as
 `guestRouteInvokeArn` (and as a stack output) so the app can grant it to the
@@ -234,3 +236,13 @@ credentials**, via the console or CLI:
 The application id is exported by the construct as `eumApplicationId` (and via
 the `PushHandlerFunctionArn` / stack outputs for wiring the Journey
 Custom-action).
+
+## Known limitations
+
+- **At-least-once push delivery (no dedup yet).** The push-delivery Lambda
+  reports a per-profile `retryable` flag so Amazon Connect can retry a transient
+  failure. Those retries are **not** de-duplicated: the per-item
+  `IdempotencyToken` that Connect sends on each batch entry is captured (and
+  surfaced for logging) but is not yet used to suppress a duplicate send, so a
+  retried profile may receive the same push notification more than once.
+  Idempotent de-duplication is a planned follow-up.

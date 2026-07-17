@@ -56,11 +56,12 @@ export type PushTemplateContext = {
 /**
  * Per-container cache of `campaignId -> knowledgeBaseId`. KB discovery
  * (DescribeCampaign + ListIntegrationAssociations) is stable for a campaign's
- * lifetime, so warm Lambda invocations skip the two lookups.
- *
- * TODO(prod): unbounded (one entry per distinct campaignId per container) — cap
- * or TTL this before GA if a single container fronts many campaigns.
+ * lifetime, so warm Lambda invocations skip the two lookups. Bounded by a
+ * rudimentary size cap ({@link KB_CACHE_MAX_ENTRIES}): once it grows past the
+ * cap the whole cache is dropped, so a container fronting many distinct
+ * campaigns cannot grow it without limit.
  */
+const KB_CACHE_MAX_ENTRIES = 200;
 const kbIdByCampaign = new Map<string, string>();
 
 /** The shape we read out of a Q Connect PUSH template platform entry. */
@@ -143,6 +144,9 @@ export const discoverKnowledgeBaseId = async (
     '[push] kb.discover',
     JSON.stringify({ campaignId, instanceId, knowledgeBaseId: kbId }),
   );
+  if (kbIdByCampaign.size >= KB_CACHE_MAX_ENTRIES) {
+    kbIdByCampaign.clear();
+  }
   kbIdByCampaign.set(campaignId, kbId);
   return kbId;
 };

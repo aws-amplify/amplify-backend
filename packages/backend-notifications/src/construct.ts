@@ -347,6 +347,7 @@ export class AmplifyNotifications
     let domainName: string;
     let profilesDomain: CfnDomain | undefined;
     let connectInstance: CfnInstance | undefined;
+    let templatesKb: CfnKnowledgeBase | undefined;
 
     if (createFromScratch) {
       // Deterministic-yet-unique base name derived from the construct's scope so
@@ -419,7 +420,7 @@ export class AmplifyNotifications
       // KB needs no Q assistant. The name is derived from the same deterministic
       // base as the instance/domain so redeploys stay stable and avoid the
       // CreateKnowledgeBase ConflictException on duplicate names.
-      const templatesKb = new CfnKnowledgeBase(this, 'MessageTemplatesKb', {
+      templatesKb = new CfnKnowledgeBase(this, 'MessageTemplatesKb', {
         name: `${baseName}-message-templates`,
         knowledgeBaseType: 'MESSAGE_TEMPLATES',
       });
@@ -776,23 +777,68 @@ export class AmplifyNotifications
         ],
       }),
     );
+    // `connect:ListIntegrationAssociations` and the Q in Connect
+    // message-template actions are scoped to the SPECIFIC instance / knowledge
+    // base this construct provisioned when in create-from-scratch mode. In
+    // attach mode neither ARN is known at synth time (the instance / KB
+    // pre-exist and are not passed in), so those actions fall back to an
+    // account/region-scoped wildcard.
+    const instanceWildcardArn = Arn.format(
+      {
+        service: 'connect',
+        resource: 'instance',
+        resourceName: '*',
+        arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+      },
+      stack,
+    );
     pushFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['connect:ListIntegrationAssociations'],
-        resources: [
-          Arn.format(
-            {
-              service: 'connect',
-              resource: 'instance',
-              resourceName: '*',
-              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
-            },
-            stack,
-          ),
-        ],
+        resources:
+          createFromScratch && connectInstance
+            ? [connectInstance.attrArn]
+            : [instanceWildcardArn],
       }),
     );
+    const messageTemplateResources =
+      createFromScratch && templatesKb
+        ? [
+            // ListMessageTemplates acts on the knowledge base; Get/Render act on
+            // the templates UNDER it (message-template/<kbId>/<templateId>), so
+            // scope to the created KB and every template within it.
+            templatesKb.attrKnowledgeBaseArn,
+            Arn.format(
+              {
+                service: 'wisdom',
+                resource: 'message-template',
+                resourceName: `${templatesKb.attrKnowledgeBaseId}/*`,
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+          ]
+        : [
+            Arn.format(
+              {
+                service: 'wisdom',
+                resource: 'knowledge-base',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+            Arn.format(
+              {
+                service: 'wisdom',
+                resource: 'message-template',
+                resourceName: '*',
+                arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+              },
+              stack,
+            ),
+          ];
     pushFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -801,26 +847,7 @@ export class AmplifyNotifications
           'wisdom:GetMessageTemplate',
           'wisdom:RenderMessageTemplate',
         ],
-        resources: [
-          Arn.format(
-            {
-              service: 'wisdom',
-              resource: 'knowledge-base',
-              resourceName: '*',
-              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
-            },
-            stack,
-          ),
-          Arn.format(
-            {
-              service: 'wisdom',
-              resource: 'message-template',
-              resourceName: '*',
-              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
-            },
-            stack,
-          ),
-        ],
+        resources: messageTemplateResources,
       }),
     );
 

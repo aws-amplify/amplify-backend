@@ -301,6 +301,34 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
     assert.ok(!json.includes(':domains/*'));
   });
 
+  void it('scopes the push Lambda Connect + Q-in-Connect template permissions to wildcards in attach mode (ARNs unknown at synth)', () => {
+    const { template } = synth();
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'connect:ListIntegrationAssociations',
+          }),
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: [
+              'wisdom:ListMessageTemplates',
+              'wisdom:GetMessageTemplate',
+              'wisdom:RenderMessageTemplate',
+            ],
+          }),
+        ]),
+      }),
+    });
+    // Attach mode: the instance / knowledge-base ARNs are not known at synth
+    // time, so the actions fall back to account/region-scoped wildcards.
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(json.includes(':instance/*'));
+    assert.ok(json.includes(':knowledge-base/*'));
+    assert.ok(json.includes(':message-template/*'));
+  });
+
   void it('adds a lambda:InvokeFunction resource policy for the Connect service principals, scoped to this account', () => {
     const { template } = synth();
     template.hasResourceProperties('AWS::Lambda::Permission', {
@@ -689,6 +717,46 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     const { template } = synth();
     template.resourceCountIs('AWS::Wisdom::KnowledgeBase', 0);
     template.resourceCountIs('AWS::Connect::IntegrationAssociation', 0);
+  });
+
+  void it('scopes the push Lambda Connect + Q-in-Connect template permissions to the created instance + KB (create mode, least-privilege)', () => {
+    const { template } = synthCreate();
+    // ListIntegrationAssociations is scoped to the created Connect instance ARN.
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: 'connect:ListIntegrationAssociations',
+            Resource: Match.objectLike({
+              'Fn::GetAtt': Match.arrayWith([
+                Match.stringLikeRegexp('ConnectInstance'),
+              ]),
+            }),
+          }),
+          // The Q in Connect template actions are scoped to the created KB.
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: [
+              'wisdom:ListMessageTemplates',
+              'wisdom:GetMessageTemplate',
+              'wisdom:RenderMessageTemplate',
+            ],
+            Resource: Match.arrayWith([
+              Match.objectLike({
+                'Fn::GetAtt': Match.arrayWith([
+                  Match.stringLikeRegexp('MessageTemplatesKb'),
+                ]),
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    });
+    // In create mode NONE of the broad attach-mode wildcards are emitted.
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(!json.includes(':instance/*'));
+    assert.ok(!json.includes(':knowledge-base/*'));
   });
 
   void it('does NOT create any segment / campaign / journey resources (out of scope)', () => {

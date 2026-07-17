@@ -7,8 +7,6 @@ import {
   CustomerProfilesClient,
   DeleteProfileObjectCommand,
   ListProfileObjectsCommand,
-  MergeProfilesCommand,
-  type Profile,
   PutProfileObjectCommand,
   SearchProfilesCommand,
   UpdateProfileCommand,
@@ -37,7 +35,9 @@ const OTHER_PROFILE_ID = 'other-profile-2';
 const mockProfiles = (
   overrides: {
     searchByKey?: Record<string, string | undefined>;
-    searchItemsByKey?: Record<string, Profile[]>;
+    // ProfileId mirrors the SearchProfiles response item (PascalCase by SDK contract).
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    searchItemsByKey?: Record<string, Array<{ ProfileId: string }>>;
     listItems?: unknown[];
     listItemsByProfile?: Record<string, unknown[]>;
     onCommand?: (name: string, input: Record<string, unknown>) => void;
@@ -334,7 +334,7 @@ void describe('identify handler', () => {
     );
 
     assert.strictEqual(res.statusCode, 200);
-    assert.ok(!seen.includes(MergeProfilesCommand.name));
+    assert.ok(!seen.includes('MergeProfilesCommand'));
   });
 
   void it('guest identify ALSO evicts the token-matched device from another profile', async () => {
@@ -451,7 +451,9 @@ void describe('identify handler', () => {
     mockProfiles({ throwOn: UpdateProfileCommand.name });
     const res = await handler(authedEvent({ userProfile: { name: 'Ada' } }));
     assert.strictEqual(res.statusCode, 500);
-    assert.match(res.body ?? '', /Customer Profiles error/);
+    assert.match(res.body ?? '', /Internal error/);
+    // The raw SDK error message must NOT leak to the client.
+    assert.doesNotMatch(res.body ?? '', /Customer Profiles error|boom/);
   });
 
   void it('returns 500 when the profile cannot be resolved after create', async () => {

@@ -156,16 +156,17 @@ export const handler = async (
 
     return response(200, { status: 'ok' });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'unknown error';
-    // Log only the error name (and HTTP status when present) — never the full
-    // error object, whose stack / request input can carry customer content.
+    // Full detail (name, HTTP status, message) is logged SERVER-SIDE only; the
+    // client gets a generic 'Internal error' so a raw SDK message — which can
+    // carry request input / customer content — never leaks to the caller.
     const name = err instanceof Error ? err.name : 'UnknownError';
+    const message = err instanceof Error ? err.message : 'unknown error';
     const statusCode = (err as { $metadata?: { httpStatusCode?: number } })
       ?.$metadata?.httpStatusCode;
     console.error(
       '[identify] customerProfilesError',
-      JSON.stringify({ name, statusCode }),
+      JSON.stringify({ name, statusCode, message }),
     );
-    return response(500, { error: `Customer Profiles error: ${message}` });
+    return response(500, { error: 'Internal error' });
   }
 };

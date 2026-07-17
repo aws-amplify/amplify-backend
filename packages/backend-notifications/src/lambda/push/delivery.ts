@@ -260,12 +260,11 @@ export const deliverToTargets = async (
       // A single profile's delivery failing must NOT fail the batch. Record it
       // as a retryable failure so Connect can retry just this profile.
       const errorName = err instanceof Error ? err.name : undefined;
+      const statusCode = (err as { $metadata?: { httpStatusCode?: number } })
+        ?.$metadata?.httpStatusCode;
       console.error(
         '[push] profile.error',
-        JSON.stringify({
-          errorName,
-          error: err instanceof Error ? err.message : 'unknown error',
-        }),
+        JSON.stringify({ errorName, statusCode }),
       );
       outcomes.push({
         profileId: target.profileId,
