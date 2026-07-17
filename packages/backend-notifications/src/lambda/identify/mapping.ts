@@ -25,21 +25,21 @@ export type ProfileUpdate = {
  *
  * - Zero values -> empty string.
  * - Exactly one value -> that element verbatim.
- * - More than one value -> JSON.stringify of the array (preserves all values).
- * The result is truncated to {@link MAX_ATTRIBUTE_LENGTH} characters.
+ * - More than one value -> JSON.stringify of the array when it fits, else the
+ *   first value. Never slices a serialized JSON string (that would store
+ *   invalid JSON that cannot be deserialized).
  */
 export const flatten = (values: string[]): string => {
-  let out: string;
   if (!values || values.length === 0) {
-    out = '';
-  } else if (values.length === 1) {
-    out = values[0] ?? '';
-  } else {
-    out = JSON.stringify(values);
+    return '';
   }
-  return out.length > MAX_ATTRIBUTE_LENGTH
-    ? out.slice(0, MAX_ATTRIBUTE_LENGTH)
-    : out;
+  if (values.length === 1) {
+    return (values[0] ?? '').slice(0, MAX_ATTRIBUTE_LENGTH);
+  }
+  const candidate = JSON.stringify(values);
+  return candidate.length <= MAX_ATTRIBUTE_LENGTH
+    ? candidate
+    : (values[0] ?? '').slice(0, MAX_ATTRIBUTE_LENGTH);
 };
 
 /**
@@ -64,9 +64,7 @@ const serializeMultiValueMap = (
     flattened[key] = flatten(map[key]);
   }
   const out = JSON.stringify(flattened);
-  return out.length > MAX_ATTRIBUTE_LENGTH
-    ? out.slice(0, MAX_ATTRIBUTE_LENGTH)
-    : out;
+  return out.length <= MAX_ATTRIBUTE_LENGTH ? out : undefined;
 };
 
 const splitName = (name: string): { firstName: string; lastName?: string } => {

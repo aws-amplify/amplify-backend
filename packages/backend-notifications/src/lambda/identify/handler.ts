@@ -81,8 +81,6 @@ export const handler = async (
   const request = validation.value;
 
   try {
-    // Isolated behind resolveOrCreateProfile so the identity-resolution strategy
-    // (authed sub vs guest identityId) is a single seam.
     const { profileId } = await resolveOrCreateProfile(
       profiles,
       domainName,
@@ -115,14 +113,9 @@ export const handler = async (
         ),
       );
 
-      // Cross-profile eviction so a physical device (deviceId) ends up on
-      // exactly one profile. On BOTH the authed and guest paths, evict the device
-      // from every OTHER profile whose stored token matches the token the caller
-      // just presented (options.address). The live token proves the caller is the
-      // physical device re-homing (logout / shared-device / guest<->auth), so a
-      // caller that does not hold the live token cannot strip the device off
-      // another profile. Best-effort: evictDeviceFromOtherProfiles never throws,
-      // so it cannot fail the registration that just succeeded.
+      // Best-effort: never throws, so it cannot fail the registration that just
+      // succeeded. Token-matched so a caller without the live token cannot strip
+      // the device off another profile.
       await evictDeviceFromOtherProfiles(
         profiles,
         domainName,

@@ -1,6 +1,6 @@
 import { ChannelType, IdentifyUserRequest, OptOut } from './types.js';
 
-const CHANNEL_TYPES: ReadonlyArray<ChannelType> = [
+const KNOWN_CHANNEL_TYPES: ReadonlyArray<ChannelType> = [
   'GCM',
   'APNS',
   'APNS_SANDBOX',
@@ -94,11 +94,11 @@ export const validateBody = (body: unknown): ValidationResult => {
     }
     if (
       options.channelType !== undefined &&
-      !CHANNEL_TYPES.includes(options.channelType as ChannelType)
+      !KNOWN_CHANNEL_TYPES.includes(options.channelType as ChannelType)
     ) {
       return {
         ok: false,
-        error: `options.channelType must be one of ${CHANNEL_TYPES.join(', ')}`,
+        error: `options.channelType must be one of ${KNOWN_CHANNEL_TYPES.join(', ')}`,
       };
     }
     // IN_APP is a known ChannelType but push delivery cannot target it; reject

@@ -246,3 +246,8 @@ Custom-action).
   surfaced for logging) but is not yet used to suppress a duplicate send, so a
   retried profile may receive the same push notification more than once.
   Idempotent de-duplication is a planned follow-up.
+- **Create-from-scratch resources are destroyed on stack deletion.** In
+  create-from-scratch mode the Connect instance and Customer Profiles domain are
+  provisioned with the default `RemovalPolicy.DESTROY`, so deleting the stack
+  destroys them and **all stored profile data is lost**. Use attach mode with a
+  pre-existing domain if you need the data to outlive the stack.

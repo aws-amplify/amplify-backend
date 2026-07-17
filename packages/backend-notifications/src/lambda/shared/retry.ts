@@ -2,20 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Customer Profiles serializes writes to a single profile: concurrent
- * UpdateProfile / PutProfileObject calls against the same profile fail with a
- * `BadRequestException: Failed to update profile due to concurrent update
- * in-progress.` This is a TRANSIENT, idempotent condition (the write is safe to
- * repeat), so the correct handling is a short bounded retry with jittered
- * backoff rather than surfacing a 5xx to the caller.
+ * True for retriable Customer Profiles errors: throttling
+ * (ThrottlingException / TooManyRequestsException) and the idempotent
+ * concurrent-write serialization BadRequestException. All other errors are
+ * caller errors that must NOT be retried.
  */
-export const isTransientConcurrentUpdate = (err: unknown): boolean => {
+export const isRetriableError = (err: unknown): boolean => {
   const name = (err as { name?: string })?.name ?? '';
   const msg = (err as { message?: string })?.message ?? '';
-  // Throttling is always transient. A BadRequestException is retryable ONLY
-  // when it is the Customer Profiles concurrent-write serialization error (the
-  // write is idempotent and safe to repeat); every other BadRequestException is
-  // a caller error that must NOT be retried.
   if (name === 'ThrottlingException' || name === 'TooManyRequestsException') {
     return true;
   }
@@ -43,7 +37,7 @@ export const withTransientRetry = async <T>(
       return await fn();
     } catch (err) {
       lastErr = err;
-      if (!isTransientConcurrentUpdate(err) || i === attempts - 1) {
+      if (!isRetriableError(err) || i === attempts - 1) {
         throw err;
       }
       const ceiling = baseDelayMs * 2 ** i;

@@ -47,10 +47,8 @@ export const COGNITO_USER_KEY = 'cognitoUserKey';
  */
 export const COGNITO_IDENTITY_KEY = 'cognitoIdentityKey';
 
-/** Object field carrying the guest identity value (sourced into the key). */
 export const COGNITO_IDENTITY_FIELD = 'cognitoIdentityId';
 
-/** Object field carrying the authed identity value (sourced into the key). */
 export const COGNITO_SUB_FIELD = 'cognitoSub';
 
 /**
@@ -72,7 +70,6 @@ export const DEVICE_SEARCH_KEY = 'deviceSearchKey';
 /** Max length of a Customer Profiles attribute value (single string). */
 export const MAX_ATTRIBUTE_LENGTH = 255;
 
-/** Environment variable carrying the Customer Profiles domain name. */
 export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
 
 /**
@@ -102,10 +99,8 @@ export const PUSH_CHANNEL_SUBTYPE = 'PUSH';
  */
 export const ACTIVE_VERSION_QUALIFIER = '$ACTIVE_VERSION';
 
-/** Default push-notification title when the event carries none. */
 export const DEFAULT_PUSH_TITLE = 'Notification';
 
-/** Default push-notification body when the event carries none. */
 export const DEFAULT_PUSH_BODY = 'You have a new notification.';
 
 /**
@@ -123,13 +118,7 @@ export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
 /** Default profile / object-type expiration in days. */
 export const DEFAULT_EXPIRATION_DAYS = 366;
 
-/**
- * Guest profile / object-type expiration in days. Guests are reaped purely by
- * this Customer Profiles TTL, which applies to the WHOLE profile, so no reaper
- * Lambda is needed. Deliberately shorter than the authenticated
- * {@link DEFAULT_EXPIRATION_DAYS} because an unauthenticated identity is
- * ephemeral.
- */
+/** Guest TTL: whole-profile Customer Profiles expiry (no reaper Lambda); shorter than authed because guest identities are ephemeral. */
 export const GUEST_EXPIRATION_DAYS = 90;
 
 /**

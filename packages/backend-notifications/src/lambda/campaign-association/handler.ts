@@ -105,7 +105,7 @@ export const handler = async (
   });
   const roleArn = await resolveCampaignsServiceLinkedRoleArn(iam);
   await associateDomain(
-    { campaigns, profiles, iam },
+    { campaigns, profiles },
     {
       connectInstanceId: props.connectInstanceId,
       domainName: props.domainName,

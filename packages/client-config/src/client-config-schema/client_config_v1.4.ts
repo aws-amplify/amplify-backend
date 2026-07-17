@@ -260,12 +260,12 @@ export interface AWSAmplifyBackendOutputs {
    * Outputs manually specified by developers for use with frontend library
    */
   notifications?: {
-    aws_region: AwsRegion;
-    amazon_pinpoint_app_id: string;
+    aws_region?: AwsRegion;
+    amazon_pinpoint_app_id?: string;
     /**
      * @minItems 1
      */
-    channels: AmazonPinpointChannels[];
+    channels?: AmazonPinpointChannels[];
     amazon_connect_customer_profiles?: {
       aws_region: AwsRegion;
       endpoint: string;

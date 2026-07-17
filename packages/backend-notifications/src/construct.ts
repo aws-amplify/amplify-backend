@@ -336,11 +336,6 @@ export class AmplifyNotifications
     const guestExpirationDays =
       props.guestExpirationDays ?? GUEST_EXPIRATION_DAYS;
 
-    // ---- Mode selection: create-from-scratch (default) vs attach -----------
-    // If a `domainName` is supplied, ATTACH the object types to that existing
-    // domain (create nothing). Otherwise (the zero-config default) CREATE a
-    // brand-new Connect instance + Customer Profiles domain with generated,
-    // stable names and register the object types into the new domain.
     const createFromScratch = !props.domainName;
     this.createsResources = createFromScratch;
 

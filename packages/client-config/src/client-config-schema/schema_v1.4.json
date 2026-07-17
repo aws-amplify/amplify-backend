@@ -383,7 +383,14 @@
           "required": ["aws_region", "endpoint"]
         }
       },
-      "required": ["aws_region", "amazon_pinpoint_app_id", "channels"]
+      "anyOf": [
+        {
+          "required": ["aws_region", "amazon_pinpoint_app_id", "channels"]
+        },
+        {
+          "required": ["amazon_connect_customer_profiles"]
+        }
+      ]
     },
     "storage": {
       "type": "object",

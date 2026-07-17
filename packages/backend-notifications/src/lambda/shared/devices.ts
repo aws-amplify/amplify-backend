@@ -88,8 +88,6 @@ export const listDevices = async (
     nextToken = res.NextToken;
   } while (nextToken);
 
-  // Operational signal only: how many devices resolved and their channel types
-  // (non-personal). Profile id, device ids and tokens are NOT logged.
   console.log(
     `[${logContext}] devices.resolved`,
     JSON.stringify({

@@ -232,7 +232,12 @@ export class ClientConfigLegacyConverter {
     }
 
     // Notifications
-    if (clientConfig.notifications) {
+    if (
+      clientConfig.notifications &&
+      clientConfig.notifications.amazon_pinpoint_app_id &&
+      clientConfig.notifications.aws_region &&
+      clientConfig.notifications.channels
+    ) {
       const pinPointConfig = {
         AWSPinpoint: {
           appId: clientConfig.notifications.amazon_pinpoint_app_id,

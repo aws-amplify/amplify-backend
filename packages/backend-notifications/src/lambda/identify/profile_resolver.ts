@@ -14,6 +14,9 @@ export type ResolvedProfile = {
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+const PROFILE_SEARCH_MAX_ATTEMPTS = 8;
+const PROFILE_SEARCH_BASE_DELAY_MS = 150;
+
 /**
  * Look up the profile bound to `value` via the searchable `keyName`, polling
  * briefly to absorb SearchProfiles' eventual consistency.
@@ -82,8 +85,8 @@ export const resolveOrCreateProfile = async (
     domainName,
     principal.keyName,
     principal.value,
-    8,
-    150,
+    PROFILE_SEARCH_MAX_ATTEMPTS,
+    PROFILE_SEARCH_BASE_DELAY_MS,
   );
   if (!profileId) {
     throw new Error(

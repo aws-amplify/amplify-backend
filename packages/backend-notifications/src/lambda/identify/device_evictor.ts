@@ -111,7 +111,6 @@ export const evictDeviceFromOtherProfiles = async (
     console.error('[identify] deviceEvictionError', JSON.stringify({ name }));
   }
 
-  // Operational signal only: how many stale device objects were evicted.
   console.log('[identify] deviceEviction', JSON.stringify({ evicted }));
   return { evicted };
 };

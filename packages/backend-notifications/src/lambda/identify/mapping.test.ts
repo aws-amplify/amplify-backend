@@ -39,6 +39,22 @@ void describe('flatten', () => {
       MAX_ATTRIBUTE_LENGTH,
     );
   });
+  void it('never emits sliced (invalid) JSON for a large multi-value list; falls back to the first value', () => {
+    const values = Array.from({ length: 50 }, (_, i) => `value-${i}`);
+    const out = flatten(values);
+    assert.ok(out.length <= MAX_ATTRIBUTE_LENGTH);
+    if (out.startsWith('[')) {
+      assert.deepStrictEqual(JSON.parse(out), values);
+    } else {
+      assert.strictEqual(out, values[0]);
+    }
+  });
+  void it('falls back to the (truncated) first value when the JSON form overflows', () => {
+    const big = ['a'.repeat(1000), 'b'.repeat(1000)];
+    const out = flatten(big);
+    assert.strictEqual(out, 'a'.repeat(MAX_ATTRIBUTE_LENGTH));
+    assert.ok(out.length <= MAX_ATTRIBUTE_LENGTH);
+  });
 });
 
 void describe('targetingFlagsForChannel', () => {
@@ -133,6 +149,20 @@ void describe('buildProfileUpdate', () => {
       roles: JSON.stringify(['admin', 'beta']),
     });
     assert.deepStrictEqual(JSON.parse(u.attributes.metrics), { logins: 5 });
+  });
+
+  void it('keeps a large multi-value map valid or drops it (never stores sliced JSON)', () => {
+    const bigMap: Record<string, string[]> = {};
+    for (let i = 0; i < 40; i++) {
+      bigMap[`key${i}`] = [`v${i}a`, `v${i}b`, `v${i}c`];
+    }
+    const u = buildProfileUpdate(P, {
+      userProfile: { customProperties: bigMap },
+    });
+    if (u.attributes.customProperties !== undefined) {
+      assert.doesNotThrow(() => JSON.parse(u.attributes.customProperties));
+      assert.ok(u.attributes.customProperties.length <= MAX_ATTRIBUTE_LENGTH);
+    }
   });
 
   void it('promotes hasGCM / hasAPNS from the channel type', () => {

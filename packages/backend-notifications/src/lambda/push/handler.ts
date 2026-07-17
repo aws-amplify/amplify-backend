@@ -98,7 +98,6 @@ export const handler = async (
     parsed,
   );
 
-  // Operational signal only: per-status counts (no profile ids or copy).
   console.log(
     '[push] summary',
     JSON.stringify({

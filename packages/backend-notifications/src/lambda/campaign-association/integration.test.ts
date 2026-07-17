@@ -96,7 +96,6 @@ void describe('associateDomain', () => {
   void it('creates both the connect-instance and customer-profiles integrations', async () => {
     const campaignsRec = recorder();
     const profilesRec = recorder();
-    const iamRec = recorder();
 
     await associateDomain(
       {
@@ -106,7 +105,6 @@ void describe('associateDomain', () => {
         profiles: {
           send: profilesRec.send,
         } as unknown as CustomerProfilesClient,
-        iam: { send: iamRec.send } as unknown as IAMClient,
       },
       {
         connectInstanceId: INSTANCE_ID,

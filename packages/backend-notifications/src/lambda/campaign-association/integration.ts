@@ -72,7 +72,6 @@ export const associateDomain = async (
   clients: {
     campaigns: ConnectCampaignsV2Client;
     profiles: CustomerProfilesClient;
-    iam: IAMClient;
   },
   args: {
     connectInstanceId: string;

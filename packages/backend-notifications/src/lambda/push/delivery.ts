@@ -89,10 +89,6 @@ const isRetryableFailure = (r: DeviceDeliveryResult): boolean => {
   }
 };
 
-/**
- * The machine-readable failure code for a device delivery: the AWS SDK error
- * `name` when the send threw, else the Pinpoint per-address delivery status.
- */
 const failureErrorCode = (r: DeviceDeliveryResult): string =>
   r.errorName ?? r.status;
 
@@ -226,9 +222,6 @@ export const deliverToTargets = async (
 ): Promise<ProfileOutcome[]> => {
   const outcomes: ProfileOutcome[] = [];
   for (const target of parsed.targets) {
-    // The safe DEFAULT copy is the ONLY fallback: real journeys carry no
-    // per-profile or event-level message copy, so personalized copy comes
-    // solely from the rendered template below.
     const fallback = parsed.message;
 
     try {
@@ -245,9 +238,6 @@ export const deliverToTargets = async (
         );
       }
 
-      // Operational signal only: whether a template applied and which channels
-      // it resolved copy for. The rendered / default title and body are NOT
-      // logged (they echo personalized customer copy).
       console.log(
         '[push] resolveMessage',
         JSON.stringify({
