@@ -17,9 +17,10 @@ import {
   DeliveryDeps,
   deliverToProfile,
   deliverToTargets,
+  mapToConnectResponse,
 } from './delivery.js';
 import { PushTemplateContext } from './message_template.js';
-import { PushMessage } from './types.js';
+import { ProfileOutcome, PushMessage } from './types.js';
 
 const MESSAGE: PushMessage = { title: 'T', body: 'B' };
 
@@ -63,9 +64,14 @@ const profilesFor = (
 /**
  * Fake Pinpoint that maps each token to a DeliveryStatus (and optional
  * StatusMessage) via `statusByToken`. A bare string is shorthand for
- * `{ status }` with no StatusMessage.
+ * `{ status }` with no StatusMessage. A `throws` spec makes the SendMessages
+ * call reject with an error carrying the given `name` (exercises the SDK-error
+ * classification path).
  */
-type StatusSpec = string | { status: string; statusMessage?: string };
+type StatusSpec =
+  | string
+  | { status: string; statusMessage?: string; statusCode?: number }
+  | { throws: string };
 const pinpointFor = (
   statusByToken: Record<string, StatusSpec>,
 ): PinpointClient =>
@@ -74,15 +80,22 @@ const pinpointFor = (
       const input = command.input as SendMessagesCommandInput;
       const token = Object.keys(input.MessageRequest?.Addresses ?? {})[0];
       const spec = statusByToken[token] ?? 'SUCCESSFUL';
+      if (typeof spec === 'object' && 'throws' in spec) {
+        const err = new Error(spec.throws);
+        err.name = spec.throws;
+        return Promise.reject(err);
+      }
       const status = typeof spec === 'string' ? spec : spec.status;
       const statusMessage =
         typeof spec === 'string' ? undefined : spec.statusMessage;
+      const statusCode =
+        typeof spec === 'string' ? 200 : (spec.statusCode ?? 200);
       return Promise.resolve({
         MessageResponse: {
           Result: {
             [token]: {
               DeliveryStatus: status,
-              StatusCode: 200,
+              StatusCode: statusCode,
               StatusMessage: statusMessage,
             },
           },
@@ -101,27 +114,127 @@ const deps = (
   applicationId: 'app-123',
 });
 
-void describe('deliverToProfile', () => {
-  void it('delivers to every device and aggregates delivered/failed', async () => {
+void describe('deliverToProfile — status derivation', () => {
+  void it('delivered when >= 1 device is delivered to', async () => {
     const { client } = profilesFor({
       p1: [
         { key: 'k1', token: 't1', channel: 'APNS' },
         { key: 'k2', token: 't2', channel: 'FCM' },
       ],
     });
-    const pinpoint = pinpointFor({ t1: 'SUCCESSFUL', t2: 'SUCCESSFUL' });
+    const pinpoint = pinpointFor({
+      t1: 'SUCCESSFUL',
+      t2: { status: 'PERMANENT_FAILURE', statusMessage: 'nope' },
+    });
     const res = await deliverToProfile(
       deps(client, pinpoint),
       { profileId: 'p1' },
       MESSAGE,
     );
-    assert.strictEqual(res.delivered, 2);
-    assert.strictEqual(res.failed, 0);
-    assert.strictEqual(res.cleaned, 0);
-    assert.strictEqual(res.devices.length, 2);
+    assert.strictEqual(res.status, 'delivered');
+    assert.strictEqual(res.profileId, 'p1');
   });
 
-  void it('deletes the device object on an invalid-token PERMANENT_FAILURE (stale-token cleanup)', async () => {
+  void it('skipped with reason no_devices when the profile has no devices', async () => {
+    const { client } = profilesFor({ p1: [] });
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({})),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.deepStrictEqual(res, {
+      profileId: 'p1',
+      status: 'skipped',
+      reason: 'no_devices',
+    });
+  });
+
+  void it('failed when every delivery attempt errored', async () => {
+    const { client } = profilesFor({
+      p1: [
+        { key: 'k1', token: 't1', channel: 'APNS' },
+        { key: 'k2', token: 't2', channel: 'FCM' },
+      ],
+    });
+    const pinpoint = pinpointFor({
+      t1: { status: 'PERMANENT_FAILURE', statusMessage: 'bad' },
+      t2: { status: 'PERMANENT_FAILURE', statusMessage: 'bad' },
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpoint),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'failed');
+    assert.strictEqual(res.errorCode, 'PERMANENT_FAILURE');
+  });
+
+  void it('a device with an unsupported / missing channel is a failed attempt (no send)', async () => {
+    const { client, deletes } = profilesFor({
+      p1: [
+        { key: 'k1', token: 't1', channel: 'IN_APP' },
+        { key: 'k2', token: 't2' },
+      ],
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({})),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'failed');
+    assert.strictEqual(res.errorCode, 'SKIPPED');
+    assert.strictEqual(deletes.length, 0);
+  });
+});
+
+void describe('deliverToProfile — retryable classification', () => {
+  void it('classifies a THROTTLED delivery as retryable', async () => {
+    const { client } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({ t1: 'THROTTLED' })),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'failed');
+    assert.strictEqual(res.retryable, true);
+    assert.strictEqual(res.errorCode, 'THROTTLED');
+  });
+
+  void it('classifies a thrown ResourceNotFoundException as NOT retryable (errorCode passes through the SDK name)', async () => {
+    const { client } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+    });
+    const res = await deliverToProfile(
+      deps(
+        client,
+        pinpointFor({ t1: { throws: 'ResourceNotFoundException' } }),
+      ),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'failed');
+    assert.strictEqual(res.retryable, false);
+    assert.strictEqual(res.errorCode, 'ResourceNotFoundException');
+  });
+
+  void it('classifies a thrown ThrottlingException as retryable', async () => {
+    const { client } = profilesFor({
+      p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({ t1: { throws: 'ThrottlingException' } })),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.retryable, true);
+    assert.strictEqual(res.errorCode, 'ThrottlingException');
+  });
+});
+
+void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
+  void it('deletes the device object on an invalid-token PERMANENT_FAILURE', async () => {
     const { client, deletes } = profilesFor({
       p1: [
         { key: 'good', token: 't-good', channel: 'APNS' },
@@ -137,21 +250,15 @@ void describe('deliverToProfile', () => {
       { profileId: 'p1' },
       MESSAGE,
     );
-    assert.strictEqual(res.delivered, 1);
-    assert.strictEqual(res.failed, 1);
-    assert.strictEqual(res.cleaned, 1);
+    assert.strictEqual(res.status, 'delivered');
     assert.deepStrictEqual(deletes, ['dead']);
   });
 
   void it('does NOT delete on a channel-misconfig PERMANENT_FAILURE (conservative cleanup keeps the token)', async () => {
     const { client, deletes } = profilesFor({
-      p1: [
-        { key: 'good', token: 't-good', channel: 'APNS' },
-        { key: 'kept', token: 't-kept', channel: 'GCM' },
-      ],
+      p1: [{ key: 'kept', token: 't-kept', channel: 'GCM' }],
     });
     const pinpoint = pinpointFor({
-      't-good': 'SUCCESSFUL',
       't-kept': {
         status: 'PERMANENT_FAILURE',
         statusMessage: 'No channel of type GCM is enabled for the application',
@@ -162,74 +269,108 @@ void describe('deliverToProfile', () => {
       { profileId: 'p1' },
       MESSAGE,
     );
-    assert.strictEqual(res.delivered, 1);
-    assert.strictEqual(res.failed, 1);
-    assert.strictEqual(res.cleaned, 0);
+    assert.strictEqual(res.status, 'failed');
     assert.deepStrictEqual(deletes, []);
-  });
-
-  void it('skips a device with an unsupported / missing channel (failed, no send)', async () => {
-    const { client, deletes } = profilesFor({
-      p1: [
-        { key: 'k1', token: 't1', channel: 'IN_APP' },
-        { key: 'k2', token: 't2' },
-      ],
-    });
-    const pinpoint = pinpointFor({});
-    const res = await deliverToProfile(
-      deps(client, pinpoint),
-      { profileId: 'p1' },
-      MESSAGE,
-    );
-    assert.strictEqual(res.delivered, 0);
-    assert.strictEqual(res.failed, 2);
-    assert.strictEqual(res.cleaned, 0);
-    assert.strictEqual(deletes.length, 0);
-    assert.ok(res.devices.every((d) => d.status === 'SKIPPED'));
-  });
-
-  void it('returns a zeroed result when the profile has no devices', async () => {
-    const { client } = profilesFor({ p1: [] });
-    const res = await deliverToProfile(
-      deps(client, pinpointFor({})),
-      { profileId: 'p1' },
-      MESSAGE,
-    );
-    assert.deepStrictEqual(
-      {
-        d: res.delivered,
-        f: res.failed,
-        c: res.cleaned,
-        n: res.devices.length,
-      },
-      { d: 0, f: 0, c: 0, n: 0 },
-    );
   });
 });
 
 void describe('deliverToTargets', () => {
-  void it('aggregates across multiple profiles', async () => {
+  void it('returns one ProfileOutcome per target with independent statuses', async () => {
     const { client } = profilesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
-      p2: [
-        { key: 'k2', token: 't2', channel: 'FCM' },
-        { key: 'k3', token: 't3', channel: 'APNS' },
-      ],
+      p2: [{ key: 'k2', token: 't2', channel: 'FCM' }],
+      p3: [],
     });
     const pinpoint = pinpointFor({
       t1: 'SUCCESSFUL',
       t2: { status: 'PERMANENT_FAILURE', statusMessage: 'NotRegistered' },
-      t3: 'SUCCESSFUL',
     });
-    const summary = await deliverToTargets(deps(client, pinpoint), {
-      targets: [{ profileId: 'p1' }, { profileId: 'p2' }],
+    const outcomes = await deliverToTargets(deps(client, pinpoint), {
+      targets: [{ profileId: 'p1' }, { profileId: 'p2' }, { profileId: 'p3' }],
       message: MESSAGE,
-      parsePath: 'canonical',
     });
-    assert.strictEqual(summary.profilesProcessed, 2);
-    assert.strictEqual(summary.totalDelivered, 2);
-    assert.strictEqual(summary.totalFailed, 1);
-    assert.strictEqual(summary.totalCleaned, 1);
+    assert.deepStrictEqual(
+      outcomes.map((o) => [o.profileId, o.status]),
+      [
+        ['p1', 'delivered'],
+        ['p2', 'failed'],
+        ['p3', 'skipped'],
+      ],
+    );
+  });
+
+  void it('catches a per-profile error and records a retryable failure (batch never throws)', async () => {
+    const throwingProfiles = {
+      send: (command: {
+        constructor: { name: string };
+        input: ListProfileObjectsCommandInput;
+      }): Promise<unknown> => {
+        if (command.input.ProfileId === 'boom') {
+          return Promise.reject(new Error('kaboom'));
+        }
+        return Promise.resolve({ Items: [] });
+      },
+    } as unknown as CustomerProfilesClient;
+
+    const outcomes = await deliverToTargets(
+      deps(throwingProfiles, pinpointFor({})),
+      {
+        targets: [{ profileId: 'boom' }, { profileId: 'ok' }],
+        message: MESSAGE,
+      },
+    );
+    const boom = outcomes.find((o) => o.profileId === 'boom');
+    assert.strictEqual(boom?.status, 'failed');
+    assert.strictEqual(boom?.retryable, true);
+    assert.strictEqual(
+      outcomes.find((o) => o.profileId === 'ok')?.status,
+      'skipped',
+    );
+  });
+});
+
+void describe('mapToConnectResponse', () => {
+  void it('emits exactly one entry per requested ProfileId, keyed by Id, with ResultData (no profileId key)', () => {
+    const requested = [{ profileId: 'p1' }, { profileId: 'p2' }];
+    const outcomes: ProfileOutcome[] = [
+      { profileId: 'p1', status: 'delivered' },
+      {
+        profileId: 'p2',
+        status: 'failed',
+        retryable: true,
+        errorCode: 'THROTTLED',
+      },
+    ];
+    const res = mapToConnectResponse(requested, outcomes);
+    assert.deepStrictEqual(res, {
+      Items: {
+        CustomerProfiles: [
+          { Id: 'p1', ResultData: { status: 'delivered' } },
+          {
+            Id: 'p2',
+            ResultData: {
+              status: 'failed',
+              retryable: true,
+              errorCode: 'THROTTLED',
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  void it('defaults a requested profile missing from outcomes to a non-retryable INTERNAL failure', () => {
+    const res = mapToConnectResponse(
+      [{ profileId: 'present' }, { profileId: 'missing' }],
+      [{ profileId: 'present', status: 'delivered' }],
+    );
+    assert.strictEqual(res.Items.CustomerProfiles.length, 2);
+    const missing = res.Items.CustomerProfiles.find((e) => e.Id === 'missing');
+    assert.deepStrictEqual(missing?.ResultData, {
+      status: 'failed',
+      retryable: false,
+      errorCode: 'INTERNAL',
+    });
   });
 });
 
@@ -291,7 +432,6 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
         },
       ],
       message: BATCH_DEFAULT,
-      parsePath: 'canonical',
     });
 
     assert.strictEqual(sent.length, 2);
@@ -314,7 +454,6 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
         { profileId: 'p2', customerData: { firstName: 'Grace' } },
       ],
       message: BATCH_DEFAULT,
-      parsePath: 'canonical',
     });
 
     const byToken = Object.fromEntries(sent.map((s) => [s.token, s]));
@@ -396,7 +535,6 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
           title: 'Notification',
           body: 'You have a new notification.',
         },
-        parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );
@@ -434,7 +572,6 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
           title: 'Notification',
           body: 'You have a new notification.',
         },
-        parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );
@@ -470,7 +607,6 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
           title: 'Notification',
           body: 'You have a new notification.',
         },
-        parsePath: 'canonical',
         campaign: { campaignId: 'camp-1', actionId: 'Push Notification' },
       },
     );

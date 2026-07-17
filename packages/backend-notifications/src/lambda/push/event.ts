@@ -4,48 +4,48 @@
 import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../../constants.js';
 import {
   CampaignContext,
+  ConnectBatchRequest,
   ParsedPushEvent,
   ProfileTarget,
-  PushEventParsePath,
 } from './types.js';
 
 /**
- * Parse a raw Connect Journey Custom-action event into a flat list of profile
- * targets plus the message to deliver.
+ * Parse a raw Amazon Connect batch custom-action event into a flat list of
+ * profile targets plus the message to deliver.
  *
- * CANONICAL shape — the Amazon Connect Outbound Campaigns v2 journey
+ * CANONICAL shape — the Amazon Connect Outbound Campaigns v2 / Journey BATCH
  * invocation, confirmed verbatim from a live journey run (see
  * `fixtures/real_journey_event.ts` for the source-log reference). This is the
- * ONLY shape Connect sends, and the single primary parse path:
+ * ONLY shape Connect sends:
  *
  *   {
- *     InvocationMetadata: { CampaignContext: { CampaignId, RunId, ActionId, CampaignName } },
- *     Items: { CustomerProfiles: [ { ProfileId, CustomerData, ... }, ... ] }
+ *     InvocationMetadata: { CampaignContext: { CampaignId, ActionId, ... } },
+ *     Items: { CustomerProfiles: [ { ProfileId, CustomerData, IdempotencyToken }, ... ] }
  *   }
  *
  * Shape specifics (all PascalCase on the envelope):
  *   - `Items` is an OBJECT `{ CustomerProfiles: [...] }`;
- *   - each entry carries a top-level `ProfileId` (used for device lookup);
+ *   - each entry carries a top-level `ProfileId` (used for device lookup) and
+ *     an `IdempotencyToken`;
  *   - each entry's `CustomerData` is a SERIALIZED JSON STRING with camelCase
- *     keys (`profileId`, `firstName`, `messageTitle`, `messageBody`,
- *     `attributes.*`) that is `JSON.parse`d.
+ *     keys (`profileId`, `firstName`, `attributes.*`) that is `JSON.parse`d.
  *
- * Minimal, documented defensive handling only: a `CustomerData` already given as
- * a parsed object is tolerated (see {@link coerceCustomerData}); missing /
- * malformed fields are skipped rather than aborting the batch. The real journey
- * carries NO message copy, so {@link ParsedPushEvent.message} is always the safe
+ * The handler keeps the `event: unknown` boundary; this narrows it to a
+ * {@link ConnectBatchRequest} via defensive guards. Missing / malformed fields
+ * are skipped rather than aborting the batch. The real journey carries NO
+ * message copy, so {@link ParsedPushEvent.message} is always the safe
  * {@link DEFAULT_PUSH_TITLE} / {@link DEFAULT_PUSH_BODY}; personalized copy comes
- * from the Q Connect PUSH template rendered per profile downstream, and this
- * default is used only as the per-channel fallback.
+ * from the Q Connect PUSH template rendered per profile downstream.
  */
 export const parsePushEvent = (event: unknown): ParsedPushEvent => {
-  const root = isRecord(event) ? event : {};
-  const { targets, parsePath } = extractTargets(root);
+  const root: ConnectBatchRequest = isRecord(event)
+    ? (event as ConnectBatchRequest)
+    : {};
+  const targets = extractTargets(root);
   const campaign = extractCampaign(root);
   return {
     targets,
     message: { title: DEFAULT_PUSH_TITLE, body: DEFAULT_PUSH_BODY },
-    parsePath,
     ...(campaign ? { campaign } : {}),
   };
 };
@@ -58,15 +58,13 @@ const asString = (v: unknown): string | undefined =>
 
 /**
  * Extract profile targets from the canonical `Items.CustomerProfiles[]` array.
- * Each entry contributes its `ProfileId` + parsed `CustomerData`; entries
- * without a usable `ProfileId` are skipped.
+ * Each entry contributes its `ProfileId`, parsed `CustomerData`, and
+ * `IdempotencyToken`; entries without a usable `ProfileId` are skipped.
  */
-const extractTargets = (
-  root: Record<string, unknown>,
-): { targets: ProfileTarget[]; parsePath: PushEventParsePath } => {
+const extractTargets = (root: ConnectBatchRequest): ProfileTarget[] => {
   const targets: ProfileTarget[] = [];
 
-  const items = root.Items;
+  const items: unknown = root.Items;
   const customerProfiles = isRecord(items) ? items.CustomerProfiles : undefined;
   if (Array.isArray(customerProfiles)) {
     for (const entry of customerProfiles) {
@@ -77,14 +75,16 @@ const extractTargets = (
       if (!profileId) {
         continue;
       }
+      const idempotencyToken = asString(entry.IdempotencyToken);
       targets.push({
         profileId,
         customerData: coerceCustomerData(entry.CustomerData),
+        ...(idempotencyToken ? { idempotencyToken } : {}),
       });
     }
   }
 
-  return { targets, parsePath: targets.length > 0 ? 'canonical' : 'none' };
+  return targets;
 };
 
 /**
@@ -116,26 +116,25 @@ const coerceCustomerData = (
 
 /**
  * Extract the Outbound Campaigns v2 journey context from
- * `InvocationMetadata.CampaignContext`, when present. Returns `undefined` when
- * the envelope carries no campaign metadata (e.g. direct-invoke test payloads)
- * or when none of the expected fields resolve.
+ * `InvocationMetadata.CampaignContext`, when present. Only `campaignId` and
+ * `actionId` are retained (they drive Q Connect template resolution). Returns
+ * `undefined` when the envelope carries no campaign metadata (e.g.
+ * direct-invoke test payloads) or when neither field resolves.
  */
 const extractCampaign = (
-  root: Record<string, unknown>,
+  root: ConnectBatchRequest,
 ): CampaignContext | undefined => {
-  const meta = root.InvocationMetadata;
+  const meta: unknown = root.InvocationMetadata;
   if (!isRecord(meta)) {
     return undefined;
   }
-  const ctx = meta.CampaignContext;
+  const ctx: unknown = meta.CampaignContext;
   if (!isRecord(ctx)) {
     return undefined;
   }
   const campaign: CampaignContext = {
     campaignId: asString(ctx.CampaignId),
-    campaignName: asString(ctx.CampaignName),
     actionId: asString(ctx.ActionId),
-    runId: asString(ctx.RunId),
   };
   return Object.values(campaign).some((v) => v !== undefined)
     ? campaign

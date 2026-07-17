@@ -110,6 +110,7 @@
   "href",
   "iamv2",
   "identitypool",
+  "idempotency",
   "idps",
   "implementors",
   "inheritdoc",

@@ -19,6 +19,7 @@ import {
 
 import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
 import { handler } from './handler.js';
+import type { ConnectBatchResponse } from './types.js';
 
 const DOMAIN = 'amplify-notifications-domain';
 const APP_ID = 'eum-app-1';
@@ -53,8 +54,11 @@ const mockProfiles = (byProfile: Record<string, Device[]>): void => {
   );
 };
 
-/** Mock Pinpoint: every SendMessages is SUCCESSFUL. */
-const mockPinpoint = (onSend?: () => void): void => {
+/** Mock Pinpoint: every SendMessages is SUCCESSFUL (unless a status override is given). */
+const mockPinpoint = (
+  onSend?: () => void,
+  statusByToken: Record<string, string> = {},
+): void => {
   mock.method(
     PinpointClient.prototype,
     'send',
@@ -65,7 +69,10 @@ const mockPinpoint = (onSend?: () => void): void => {
       return Promise.resolve({
         MessageResponse: {
           Result: {
-            [token]: { DeliveryStatus: 'SUCCESSFUL', StatusCode: 200 },
+            [token]: {
+              DeliveryStatus: statusByToken[token] ?? 'SUCCESSFUL',
+              StatusCode: 200,
+            },
           },
         },
       });
@@ -86,6 +93,12 @@ const canonicalEvent = (
   },
 });
 
+/** Convenience: index a batch response's entries by their `Id`. */
+const byId = (
+  res: ConnectBatchResponse,
+): Record<string, ConnectBatchResponse['Items']['CustomerProfiles'][number]> =>
+  Object.fromEntries(res.Items.CustomerProfiles.map((e) => [e.Id, e]));
+
 beforeEach(() => {
   process.env[ENV_DOMAIN_NAME] = DOMAIN;
   process.env[ENV_EUM_APPLICATION_ID] = APP_ID;
@@ -98,7 +111,7 @@ afterEach(() => {
 });
 
 void describe('push handler', () => {
-  void it('throws when required env vars are missing', async () => {
+  void it('throws when required env vars are missing (systemic failure)', async () => {
     delete process.env[ENV_DOMAIN_NAME];
     delete process.env[ENV_EUM_APPLICATION_ID];
     await assert.rejects(
@@ -107,18 +120,12 @@ void describe('push handler', () => {
     );
   });
 
-  void it('returns a zeroed summary when the event has no resolvable targets', async () => {
+  void it('returns an empty CustomerProfiles list when the event has no resolvable targets', async () => {
     const res = await handler({ Items: {} });
-    assert.deepStrictEqual(res, {
-      profilesProcessed: 0,
-      totalDelivered: 0,
-      totalFailed: 0,
-      totalCleaned: 0,
-      results: [],
-    });
+    assert.deepStrictEqual(res, { Items: { CustomerProfiles: [] } });
   });
 
-  void it('happy path (no campaign): delivers to each profile device and aggregates', async () => {
+  void it('returns one entry per requested ProfileId, keyed by Id === ProfileId', async () => {
     mockProfiles({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
       p2: [
@@ -133,10 +140,68 @@ void describe('push handler', () => {
 
     const res = await handler(canonicalEvent(['p1', 'p2']));
 
-    assert.strictEqual(res.profilesProcessed, 2);
-    assert.strictEqual(res.totalDelivered, 3);
-    assert.strictEqual(res.totalFailed, 0);
+    assert.strictEqual(res.Items.CustomerProfiles.length, 2);
+    assert.deepStrictEqual(
+      res.Items.CustomerProfiles.map((e) => e.Id),
+      ['p1', 'p2'],
+    );
+    const map = byId(res);
+    assert.strictEqual(map.p1.ResultData?.status, 'delivered');
+    assert.strictEqual(map.p2.ResultData?.status, 'delivered');
     assert.strictEqual(sends, 3);
+  });
+
+  void it('a profile with no devices is skipped with reason no_devices', async () => {
+    mockProfiles({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }], p2: [] });
+    mockPinpoint();
+
+    const res = await handler(canonicalEvent(['p1', 'p2']));
+    const map = byId(res);
+    assert.strictEqual(map.p1.ResultData?.status, 'delivered');
+    assert.deepStrictEqual(map.p2.ResultData, {
+      status: 'skipped',
+      reason: 'no_devices',
+    });
+  });
+
+  void it('a single profile failure yields failed+retryable and does NOT fail the batch', async () => {
+    mockProfiles({
+      good: [{ key: 'k1', token: 'ok', channel: 'APNS' }],
+      bad: [{ key: 'k2', token: 'throttled', channel: 'APNS' }],
+    });
+    mockPinpoint(undefined, { throttled: 'THROTTLED' });
+
+    const res = await handler(canonicalEvent(['good', 'bad']));
+    const map = byId(res);
+    // The whole batch still returns both profiles.
+    assert.strictEqual(res.Items.CustomerProfiles.length, 2);
+    assert.strictEqual(map.good.ResultData?.status, 'delivered');
+    assert.strictEqual(map.bad.ResultData?.status, 'failed');
+    assert.strictEqual(map.bad.ResultData?.retryable, true);
+    assert.strictEqual(map.bad.ResultData?.errorCode, 'THROTTLED');
+  });
+
+  void it('a thrown per-profile device lookup is caught (batch never throws)', async () => {
+    mock.method(
+      CustomerProfilesClient.prototype,
+      'send',
+      (command: {
+        input: ListProfileObjectsCommandInput;
+      }): Promise<unknown> => {
+        if (command.input.ProfileId === 'boom') {
+          return Promise.reject(new Error('ListProfileObjects exploded'));
+        }
+        return Promise.resolve({ Items: [] });
+      },
+    );
+    mockPinpoint();
+
+    const res = await handler(canonicalEvent(['boom', 'fine']));
+    const map = byId(res);
+    assert.strictEqual(res.Items.CustomerProfiles.length, 2);
+    assert.strictEqual(map.boom.ResultData?.status, 'failed');
+    assert.strictEqual(map.boom.ResultData?.retryable, true);
+    assert.strictEqual(map.fine.ResultData?.status, 'skipped');
   });
 
   void it('campaign present: resolves template context then falls back to default copy on a KB miss', async () => {
@@ -163,7 +228,7 @@ void describe('push handler', () => {
       }),
     );
 
-    assert.strictEqual(res.profilesProcessed, 1);
-    assert.strictEqual(res.totalDelivered, 1);
+    const map = byId(res);
+    assert.strictEqual(map.p1.ResultData?.status, 'delivered');
   });
 });

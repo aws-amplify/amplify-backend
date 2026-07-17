@@ -9,12 +9,12 @@ import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
 import { parsePushEvent } from './event.js';
-import { deliverToTargets } from './delivery.js';
+import { deliverToTargets, mapToConnectResponse } from './delivery.js';
 import {
   PushTemplateContext,
   resolvePushTemplateContext,
 } from './message_template.js';
-import { PushDeliveryResponse } from './types.js';
+import { ConnectBatchResponse } from './types.js';
 
 /**
  * Module-level clients so warm invocations reuse the connection pool. Region is
@@ -40,11 +40,15 @@ const qconnect = new QConnectClient({});
  * GCM (Android/FCM) or APNS (iOS) payload. Tokens permanently rejected by the
  * push provider are cleaned up by deleting their AmplifyDevice object.
  *
- * Returns a per-profile delivered / failed / cleaned summary.
+ * Returns the Amazon Connect batch response contract: one `CustomerProfiles`
+ * entry per requested `ProfileId`, each carrying a per-profile delivered /
+ * skipped / failed `ResultData`. Per-profile errors are caught so the batch
+ * never throws (a thrown handler fails EVERY profile); only a truly systemic
+ * failure (e.g. missing configuration) throws.
  */
 export const handler = async (
   event: unknown,
-): Promise<PushDeliveryResponse> => {
+): Promise<ConnectBatchResponse> => {
   const domainName = process.env[ENV_DOMAIN_NAME];
   const applicationId = process.env[ENV_EUM_APPLICATION_ID];
   if (!domainName || !applicationId) {
@@ -59,13 +63,12 @@ export const handler = async (
   }
 
   const parsed = parsePushEvent(event);
-  // Operational signals only: how the event was parsed, how many profiles it
-  // targeted, and the (non-personal) campaign / action identifiers. Profile ids
-  // and message copy are deliberately NOT logged.
+  // Operational signals only: how many profiles the batch targeted and the
+  // (non-personal) campaign / action identifiers. Profile ids and message copy
+  // are deliberately NOT logged.
   console.log(
     '[push] parsed',
     JSON.stringify({
-      parsePath: parsed.parsePath,
       profileCount: parsed.targets.length,
       campaign: parsed.campaign ?? null,
     }),
@@ -73,13 +76,7 @@ export const handler = async (
 
   if (parsed.targets.length === 0) {
     console.warn('[push] no resolvable profile targets in event');
-    return {
-      profilesProcessed: 0,
-      totalDelivered: 0,
-      totalFailed: 0,
-      totalCleaned: 0,
-      results: [],
-    };
+    return { Items: { CustomerProfiles: [] } };
   }
 
   // Resolve the Q in Connect PUSH message template ONCE per invocation (KB
@@ -96,20 +93,21 @@ export const handler = async (
     );
   }
 
-  const summary = await deliverToTargets(
+  const outcomes = await deliverToTargets(
     { profiles, pinpoint, domainName, applicationId, templateContext },
     parsed,
   );
 
+  // Operational signal only: per-status counts (no profile ids or copy).
   console.log(
     '[push] summary',
     JSON.stringify({
-      profilesProcessed: summary.profilesProcessed,
-      totalDelivered: summary.totalDelivered,
-      totalFailed: summary.totalFailed,
-      totalCleaned: summary.totalCleaned,
+      profilesProcessed: outcomes.length,
+      delivered: outcomes.filter((o) => o.status === 'delivered').length,
+      skipped: outcomes.filter((o) => o.status === 'skipped').length,
+      failed: outcomes.filter((o) => o.status === 'failed').length,
     }),
   );
 
-  return summary;
+  return mapToConnectResponse(parsed.targets, outcomes);
 };

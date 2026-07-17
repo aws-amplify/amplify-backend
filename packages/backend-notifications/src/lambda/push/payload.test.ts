@@ -29,16 +29,15 @@ void describe('normalizeChannelType', () => {
 });
 
 void describe('buildMessageConfiguration', () => {
-  const message = { title: 'T', body: 'B', data: { k: 'v' } };
+  const message = { title: 'T', body: 'B' };
 
-  void it('builds a GCMMessage for GCM with high priority + data', () => {
+  void it('builds a GCMMessage for GCM with high priority', () => {
     const cfg = buildMessageConfiguration('GCM', message);
     assert.ok(cfg.GCMMessage);
     assert.strictEqual(cfg.APNSMessage, undefined);
     assert.strictEqual(cfg.GCMMessage?.Title, 'T');
     assert.strictEqual(cfg.GCMMessage?.Body, 'B');
     assert.strictEqual(cfg.GCMMessage?.Priority, 'high');
-    assert.deepStrictEqual(cfg.GCMMessage?.Data, { k: 'v' });
   });
 
   void it('builds an APNSMessage for APNS and APNS_SANDBOX', () => {
@@ -48,12 +47,6 @@ void describe('buildMessageConfiguration', () => {
       assert.strictEqual(cfg.GCMMessage, undefined);
       assert.strictEqual(cfg.APNSMessage?.Title, 'T');
       assert.strictEqual(cfg.APNSMessage?.Body, 'B');
-      assert.deepStrictEqual(cfg.APNSMessage?.Data, { k: 'v' });
     }
-  });
-
-  void it('omits Data when the message carries none', () => {
-    const cfg = buildMessageConfiguration('GCM', { title: 'T', body: 'B' });
-    assert.strictEqual(cfg.GCMMessage?.Data, undefined);
   });
 });

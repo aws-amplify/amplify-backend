@@ -88,8 +88,6 @@ type QSpec = {
   renderContent?: unknown;
   /** Records the attributes RenderMessageTemplate was called with. */
   renderCalls?: RenderMessageTemplateCommandInput[];
-  /** Throw from GetMessageTemplate to exercise the no-active-version path. */
-  getThrows?: boolean;
 };
 
 const qconnectFor = (spec: QSpec): QConnectClient =>
@@ -104,12 +102,6 @@ const qconnectFor = (spec: QSpec): QConnectClient =>
         return Promise.resolve({
           messageTemplateSummaries: spec.summaries ?? [],
         });
-      }
-      if (name === 'GetMessageTemplateCommand') {
-        if (spec.getThrows) {
-          return Promise.reject(new Error('no active version'));
-        }
-        return Promise.resolve({ messageTemplate: {} });
       }
       if (name === 'RenderMessageTemplateCommand') {
         spec.renderCalls?.push(

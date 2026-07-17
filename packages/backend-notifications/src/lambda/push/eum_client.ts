@@ -150,6 +150,7 @@ export const deliverToDevice = async (
     };
   } catch (err) {
     const statusMessage = err instanceof Error ? err.message : 'unknown error';
+    const errorName = err instanceof Error ? err.name : undefined;
     console.log(
       '[push] send.error',
       JSON.stringify({
@@ -157,6 +158,7 @@ export const deliverToDevice = async (
         deliveryStatus: 'ERROR',
         decision: 'KEEP',
         reason: 'SendMessages threw (e.g. channel not configured) — token kept',
+        errorName,
         statusMessage,
       }),
     );
@@ -167,6 +169,7 @@ export const deliverToDevice = async (
       delivered: false,
       stale: false,
       statusMessage,
+      ...(errorName ? { errorName } : {}),
     };
   }
 };

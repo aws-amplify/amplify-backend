@@ -10,7 +10,6 @@ import {
   ListIntegrationAssociationsCommand,
 } from '@aws-sdk/client-connect';
 import {
-  GetMessageTemplateCommand,
   ListMessageTemplatesCommand,
   QConnectClient,
   RenderMessageTemplateCommand,
@@ -181,10 +180,10 @@ const findPushTemplateId = async (
 
 /**
  * Resolve the PUSH message template for a journey run: discover the knowledge
- * base from the campaign, find the PUSH template whose name == the ActionId,
- * and confirm it has an ACTIVE version. Returns `undefined` (never throws) when
- * anything is missing — no campaign metadata, no KB integration, no matching
- * template — so the caller falls back to the non-templated per-profile copy.
+ * base from the campaign and find the PUSH template whose name == the ActionId.
+ * Returns `undefined` (never throws) when anything is missing — no campaign
+ * metadata, no KB integration, no matching template — so the caller falls back
+ * to the non-templated per-profile copy.
  */
 export const resolvePushTemplateContext = async (
   clients: TemplateClients,
@@ -221,26 +220,6 @@ export const resolvePushTemplateContext = async (
         JSON.stringify({ knowledgeBaseId, actionId }),
       );
       return undefined;
-    }
-
-    // Confirm an ACTIVE (published) version exists; if not, still render the
-    // latest content (GetMessageTemplate is diagnostic here, not a gate).
-    try {
-      await clients.qconnect.send(
-        new GetMessageTemplateCommand({
-          knowledgeBaseId,
-          messageTemplateId: `${messageTemplateId}:${ACTIVE_VERSION_QUALIFIER}`,
-        }),
-      );
-    } catch (err) {
-      console.warn(
-        '[push] template.noActiveVersion',
-        JSON.stringify({
-          knowledgeBaseId,
-          messageTemplateId,
-          error: err instanceof Error ? err.message : 'unknown',
-        }),
-      );
     }
 
     console.log(

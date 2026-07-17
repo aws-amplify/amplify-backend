@@ -22,3 +22,27 @@ export const REAL_JOURNEY_EVENT_RAW =
 
 /** The verbatim real journey event, parsed into a JS object. */
 export const REAL_JOURNEY_EVENT: unknown = JSON.parse(REAL_JOURNEY_EVENT_RAW);
+
+/**
+ * The Amazon Connect batch response the push Lambda MUST return for
+ * {@link REAL_JOURNEY_EVENT} when every one of the 4 profiles has no registered
+ * devices (the deterministic outcome when Customer Profiles is stubbed empty):
+ * exactly one `CustomerProfiles` entry per requested `ProfileId`, keyed by `Id`,
+ * each `skipped` with reason `no_devices`.
+ *
+ * This documents the CONTRACT shape ({ Items: { CustomerProfiles: [{ Id,
+ * ResultData }] } }) — one entry per requested ProfileId, `Id` === ProfileId.
+ */
+export const REAL_JOURNEY_EXPECTED_RESPONSE_NO_DEVICES = {
+  Items: {
+    CustomerProfiles: [
+      'b1a19259aff1472fa4e4332b4f2ba441',
+      'eb155c66aae14a10b775437c40a4e44d',
+      '980662c93bdd4527aeecbacc1aae296a',
+      '594a41c0a6d84f46a56df716a3f62e7d',
+    ].map((profileId) => ({
+      Id: profileId,
+      ResultData: { status: 'skipped', reason: 'no_devices' },
+    })),
+  },
+};

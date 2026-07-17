@@ -9,7 +9,7 @@ import { REAL_JOURNEY_EVENT } from './fixtures/real_journey_event.js';
 
 void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', () => {
   void it('parses the canonical Items-as-object CustomerProfiles array', () => {
-    const { targets, parsePath } = parsePushEvent({
+    const { targets } = parsePushEvent({
       Items: {
         CustomerProfiles: [
           { ProfileId: 'p1', CustomerData: '{"plan":"premium"}' },
@@ -17,13 +17,25 @@ void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', (
         ],
       },
     });
-    assert.strictEqual(parsePath, 'canonical');
     assert.deepStrictEqual(
       targets.map((t) => t.profileId),
       ['p1', 'p2'],
     );
     assert.deepStrictEqual(targets[0].customerData, { plan: 'premium' });
     assert.strictEqual(targets[1].customerData, undefined);
+  });
+
+  void it('captures the per-item IdempotencyToken onto the target', () => {
+    const { targets } = parsePushEvent({
+      Items: {
+        CustomerProfiles: [
+          { ProfileId: 'p1', IdempotencyToken: 'tok-123' },
+          { ProfileId: 'p2' },
+        ],
+      },
+    });
+    assert.strictEqual(targets[0].idempotencyToken, 'tok-123');
+    assert.strictEqual(targets[1].idempotencyToken, undefined);
   });
 
   void it('skips entries with no ProfileId and ignores malformed input', () => {
@@ -37,19 +49,14 @@ void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', (
     assert.deepStrictEqual(targets, []);
   });
 
-  void it('reports canonical when targets resolve, none otherwise', () => {
-    assert.strictEqual(
-      parsePushEvent({ Items: { CustomerProfiles: [{ ProfileId: 'p1' }] } })
-        .parsePath,
-      'canonical',
-    );
-    assert.strictEqual(parsePushEvent({}).parsePath, 'none');
-    assert.strictEqual(parsePushEvent(undefined).parsePath, 'none');
+  void it('resolves no targets for empty / malformed envelopes', () => {
+    assert.strictEqual(parsePushEvent({}).targets.length, 0);
+    assert.strictEqual(parsePushEvent(undefined).targets.length, 0);
     // An array Items (a shape real Connect never sends) yields no targets.
     assert.strictEqual(
       parsePushEvent({ Items: [{ CustomerProfiles: [{ ProfileId: 'p1' }] }] })
-        .parsePath,
-      'none',
+        .targets.length,
+      0,
     );
   });
 });
@@ -67,13 +74,20 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
   const rawCtx = asRec(asRec(root['InvocationMetadata'])['CampaignContext']);
 
   void it('resolves all 4 profiles with correct top-level ProfileIds (Items-as-object)', () => {
-    const { targets, parsePath } = parsePushEvent(REAL_JOURNEY_EVENT);
+    const { targets } = parsePushEvent(REAL_JOURNEY_EVENT);
     assert.strictEqual(targets.length, 4);
     assert.deepStrictEqual(
       targets.map((t) => t.profileId),
       rawEntries.map((e) => asRec(e)['ProfileId'] as string),
     );
-    assert.strictEqual(parsePath, 'canonical');
+  });
+
+  void it('captures each entry IdempotencyToken', () => {
+    const { targets } = parsePushEvent(REAL_JOURNEY_EVENT);
+    assert.deepStrictEqual(
+      targets.map((t) => t.idempotencyToken),
+      rawEntries.map((e) => asRec(e)['IdempotencyToken'] as string),
+    );
   });
 
   void it('JSON.parses each serialized CustomerData string into the camelCase object', () => {
@@ -112,17 +126,15 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
     });
   });
 
-  void it('extracts InvocationMetadata.CampaignContext (PascalCase -> camelCase)', () => {
+  void it('extracts InvocationMetadata.CampaignContext (only campaignId + actionId)', () => {
     const { campaign } = parsePushEvent(REAL_JOURNEY_EVENT);
     assert.deepStrictEqual(campaign, {
       campaignId: rawCtx['CampaignId'],
-      campaignName: rawCtx['CampaignName'],
       actionId: rawCtx['ActionId'],
-      runId: rawCtx['RunId'],
     });
     assert.strictEqual(typeof campaign?.campaignId, 'string');
     assert.ok((campaign?.campaignId?.length ?? 0) > 0);
-    assert.strictEqual(campaign?.campaignName, 'journey-2');
+    assert.strictEqual(campaign?.actionId, 'Push Notification');
   });
 
   void it('has no per-profile message copy — message falls back to defaults', () => {
@@ -195,6 +207,5 @@ void describe('parsePushEvent — message', () => {
     });
     assert.strictEqual(message.title, DEFAULT_PUSH_TITLE);
     assert.strictEqual(message.body, DEFAULT_PUSH_BODY);
-    assert.strictEqual(message.data, undefined);
   });
 });

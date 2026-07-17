@@ -40,9 +40,7 @@ export const normalizeChannelType = (
  * - `GCM` -> `GCMMessage` (Android / FCM)
  * - `APNS` / `APNS_SANDBOX` -> `APNSMessage` (iOS)
  *
- * `title` / `body` map to the platform message's `Title` / `Body`; optional
- * `data` maps to the platform `Data` map so the client receives the custom
- * payload alongside the notification.
+ * `title` / `body` map to the platform message's `Title` / `Body`.
  */
 export const buildMessageConfiguration = (
   channelType: PushChannelType,
@@ -51,7 +49,6 @@ export const buildMessageConfiguration = (
   const common = {
     Title: message.title,
     Body: message.body,
-    ...(message.data ? { Data: message.data } : {}),
   };
 
   if (channelType === 'GCM') {
