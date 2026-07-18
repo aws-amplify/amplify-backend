@@ -1,4 +1,5 @@
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { RemovalPolicy } from 'aws-cdk-lib';
 
 /**
  * APNs (Apple Push Notification service) channel configuration, using APNs
@@ -93,8 +94,10 @@ export type NotificationsFactoryProps = {
    *
    * OMIT this (the default) to CREATE FROM SCRATCH: the resource provisions a
    * brand-new Connect instance AND a brand-new Customer Profiles domain (with
-   * generated, stable names) and registers the AmplifyProfile / AmplifyDevice
-   * object types into that new domain — no pre-existing Connect setup required.
+   * generated, stable names) and registers the AmplifyProfile /
+   * AmplifyGuestProfile object types into that new domain — no pre-existing
+   * Connect setup required. (Device records live in a DynamoDB table, not in
+   * Customer Profiles.)
    *
    * When PROVIDED, the resource ATTACHES: it registers the object types INTO
    * this existing domain additively and never creates an instance or a domain.
@@ -123,6 +126,15 @@ export type NotificationsFactoryProps = {
    * @default 90
    */
   guestExpirationDays?: number;
+
+  /**
+   * Removal policy for the DynamoDB Devices table (the authoritative device
+   * store). Defaults to `RETAIN` so a stack teardown never silently drops live
+   * device registrations. Set to `RemovalPolicy.DESTROY` for ephemeral dev /
+   * E2E sandboxes that should be fully cleaned up on delete.
+   * @default RemovalPolicy.RETAIN
+   */
+  devicesTableRemovalPolicy?: RemovalPolicy;
 
   /**
    * OPTIONAL APNs (Apple) push-channel configuration. When provided, the APNs

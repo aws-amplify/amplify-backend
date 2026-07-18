@@ -202,7 +202,7 @@ void describe('getDeviceOwner', () => {
 });
 
 void describe('deleteDevice', () => {
-  void it('deletes by the deviceId PK and returns true', async () => {
+  void it('issues a CONDITIONAL delete on the deviceId PK gated on the stale token, and returns true', async () => {
     let captured: any;
     const ddb = {
       send: (command: CommandLike): Promise<unknown> => {
@@ -210,15 +210,41 @@ void describe('deleteDevice', () => {
         return Promise.resolve({});
       },
     } as unknown as DynamoDBClient;
-    const ok = await deleteDevice(ddb, 'Devices', 'd1');
+    const ok = await deleteDevice(ddb, 'Devices', 'd1', 'stale-tok');
     assert.strictEqual(ok, true);
     assert.deepStrictEqual(captured.Key, { deviceId: { S: 'd1' } });
+    assert.strictEqual(captured.ConditionExpression, '#token = :stale');
+    assert.deepStrictEqual(captured.ExpressionAttributeNames, {
+      '#token': 'token',
+    });
+    assert.deepStrictEqual(captured.ExpressionAttributeValues, {
+      ':stale': { S: 'stale-tok' },
+    });
   });
 
-  void it('swallows a failure and returns false (best-effort cleanup)', async () => {
+  void it('does NOT remove the record and is swallowed when the token changed (ConditionalCheckFailedException)', async () => {
+    let calls = 0;
+    const ddb = {
+      send: (): Promise<unknown> => {
+        calls += 1;
+        const err = new Error('condition failed');
+        err.name = 'ConditionalCheckFailedException';
+        return Promise.reject(err);
+      },
+    } as unknown as DynamoDBClient;
+    const ok = await deleteDevice(ddb, 'Devices', 'd1', 'stale-tok');
+    assert.strictEqual(ok, false);
+    // Not retried (ConditionalCheckFailed is not transient) and not re-thrown.
+    assert.strictEqual(calls, 1);
+  });
+
+  void it('swallows other failures and returns false (best-effort cleanup)', async () => {
     const ddb = {
       send: (): Promise<unknown> => Promise.reject(new Error('boom')),
     } as unknown as DynamoDBClient;
-    assert.strictEqual(await deleteDevice(ddb, 'Devices', 'd1'), false);
+    assert.strictEqual(
+      await deleteDevice(ddb, 'Devices', 'd1', 'stale-tok'),
+      false,
+    );
   });
 });

@@ -141,7 +141,7 @@ export type AmplifyNotificationsProps = {
    * Name of an EXISTING Customer Profiles domain to attach to — e.g. the domain
    * Amazon Connect auto-creates when Customer Profiles is enabled on an
    * instance. When provided, the construct runs in ATTACH mode: it registers the
-   * AmplifyProfile / AmplifyDevice object types INTO this domain and never
+   * AmplifyProfile / AmplifyGuestProfile object types INTO this domain and never
    * creates an instance or a domain.
    *
    * OMIT this to run in the default CREATE-FROM-SCRATCH mode: the construct
@@ -229,6 +229,15 @@ export type AmplifyNotificationsProps = {
     /** The FCM HTTP v1 service-account JSON credential contents. */
     readonly serviceJson: string;
   };
+
+  /**
+   * Removal policy for the DynamoDB Devices table (the authoritative device
+   * store). Defaults to `RETAIN` so tearing down the stack never silently drops
+   * live device registrations. Set to `DESTROY` for ephemeral dev / E2E
+   * sandboxes that should be fully cleaned up on delete.
+   * @default RemovalPolicy.RETAIN
+   */
+  readonly devicesTableRemovalPolicy?: RemovalPolicy;
 };
 
 /**
@@ -236,8 +245,8 @@ export type AmplifyNotificationsProps = {
  * packaged as an AWS CDK construct. Provisions:
  *   - AmplifyProfile object type: searchable `cognitoUserKey` (PROFILE + UNIQUE)
  *     identity key + person / targeting attribute schema.
- *   - AmplifyDevice object type: PROFILE-resolution key = `cognitoUserKey`,
- *     UNIQUE object key = stable `deviceId`; device fields stored raw.
+ *   - DynamoDB Devices table: authoritative device store (PK `deviceId`, GSI on
+ *     `profileId`, native TTL) with strongly-consistent single-owner semantics.
  *   - identify-user Lambda with least-privilege profile:* on this domain only.
  *   - HTTP API + JWT authorizer bound to the supplied issuer / audience.
  *   - push-delivery Lambda (Connect Journey Custom-action target) + a minimal
@@ -326,11 +335,11 @@ export class AmplifyNotifications
   public readonly eumApplicationId: string;
 
   /**
-   * Registers the AmplifyProfile / AmplifyDevice object types into the Customer
-   * Profiles domain (created here in create-from-scratch mode, or the existing
-   * `domainName` in attach mode), the identify-user Lambda + JWT-authorized HTTP
-   * API, and the push-delivery Lambda + AWS End User Messaging application for
-   * this notifications backend.
+   * Registers the AmplifyProfile / AmplifyGuestProfile object types into the
+   * Customer Profiles domain (created here in create-from-scratch mode, or the
+   * existing `domainName` in attach mode), the identify-user Lambda +
+   * JWT-authorized HTTP API, and the push-delivery Lambda + AWS End User
+   * Messaging application for this notifications backend.
    */
   constructor(scope: Construct, id: string, props: AmplifyNotificationsProps) {
     super(scope, id);
@@ -475,7 +484,10 @@ export class AmplifyNotifications
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: 'ttl',
       pointInTimeRecovery: true,
-      removalPolicy: RemovalPolicy.DESTROY,
+      // Authoritative device store: default RETAIN so a stack teardown never
+      // silently drops live device registrations. Dev / E2E can opt into
+      // DESTROY via `devicesTableRemovalPolicy`.
+      removalPolicy: props.devicesTableRemovalPolicy ?? RemovalPolicy.RETAIN,
     });
     devicesTable.addGlobalSecondaryIndex({
       indexName: DEVICES_TABLE_GSI_PROFILE_ID,
@@ -587,11 +599,7 @@ export class AmplifyNotifications
     fn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: [
-          'dynamodb:UpdateItem',
-          'dynamodb:GetItem',
-          'dynamodb:PutItem',
-        ],
+        actions: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
         resources: [devicesTable.tableArn],
       }),
     );

@@ -190,9 +190,9 @@ export type DeviceDeliveryResult = {
   /** Whether delivery succeeded. */
   delivered: boolean;
   /**
-   * Whether this represents a permanently-invalid TOKEN whose backing
-   * AmplifyDevice object should be deleted (stale-token cleanup). Set ONLY for
-   * a token-invalidity signal (see `isInvalidTokenFailure`); channel / app
+   * Whether this represents a permanently-invalid TOKEN whose backing device
+   * record should be deleted (stale-token cleanup). Set ONLY for a
+   * token-invalidity signal (see `isInvalidTokenFailure`); channel / app
    * misconfiguration and transient failures are `false` (token kept).
    */
   stale: boolean;

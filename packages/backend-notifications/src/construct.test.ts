@@ -174,6 +174,24 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     );
   });
 
+  void it('grants the identify Lambda least-privilege DynamoDB access (UpdateItem + GetItem, no PutItem)', () => {
+    const { template } = synth();
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
+          }),
+        ]),
+      }),
+    });
+    // The identify path only does UpdateItem (LWW claim) + GetItem — never
+    // PutItem, Query, or DeleteItem.
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(!json.includes('dynamodb:PutItem'));
+  });
+
   void it('does NOT grant profile:MergeProfiles (merge attack vector removed)', () => {
     const { template } = synth();
     // The guestIdentityId merge path is deleted entirely: no MergeProfiles

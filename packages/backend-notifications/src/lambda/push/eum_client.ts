@@ -8,8 +8,7 @@ import { DeviceDeliveryResult, PushChannelType, PushMessage } from './types.js';
 /**
  * Case-insensitive substrings of a Pinpoint per-address `StatusMessage` that
  * indicate the DEVICE TOKEN itself is permanently invalid — the ONLY condition
- * that justifies deleting the backing AmplifyDevice object (stale-token
- * cleanup).
+ * that justifies deleting the backing device record (stale-token cleanup).
  *
  * - APNs: `BadDeviceToken`, `Unregistered`, `DeviceTokenNotForTopic`
  * - FCM / GCM legacy HTTP API: `NotRegistered`, `InvalidRegistration`,
@@ -92,6 +91,7 @@ export const deliverToDevice = async (
   deviceToken: string,
   channelType: PushChannelType,
   message: PushMessage,
+  deviceId: string,
 ): Promise<DeviceDeliveryResult> => {
   try {
     const messageConfiguration = buildMessageConfiguration(
@@ -142,6 +142,7 @@ export const deliverToDevice = async (
     return {
       deviceToken,
       channelType,
+      deviceId,
       status,
       delivered: status === 'SUCCESSFUL',
       stale,
@@ -165,6 +166,7 @@ export const deliverToDevice = async (
     return {
       deviceToken,
       channelType,
+      deviceId,
       status: 'ERROR',
       delivered: false,
       stale: false,

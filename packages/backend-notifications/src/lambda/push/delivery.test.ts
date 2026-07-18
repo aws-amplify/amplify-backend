@@ -44,8 +44,13 @@ type CommandLike = { constructor: { name: string }; input: any };
 const devicesFor = (
   byProfile: Record<string, Device[]>,
   owners: Record<string, string> = {},
-): { client: DynamoDBClient; deletes: string[] } => {
+): {
+  client: DynamoDBClient;
+  deletes: string[];
+  deleteCommands: any[];
+} => {
   const deletes: string[] = [];
+  const deleteCommands: any[] = [];
   const recordById = new Map<
     string,
     { profileId: string; token: string; channel?: string }
@@ -90,13 +95,25 @@ const devicesFor = (
         return Promise.resolve({ Item: item });
       }
       if (name === 'DeleteItemCommand') {
-        deletes.push(command.input.Key.deviceId.S as string);
+        deleteCommands.push(command.input);
+        const deviceId = command.input.Key.deviceId.S as string;
+        // Honor the conditional delete: only remove when the stored token still
+        // equals the token the caller expected to be stale.
+        const stale = command.input.ExpressionAttributeValues?.[':stale']?.S;
+        const rec = recordById.get(deviceId);
+        if (stale !== undefined && rec && rec.token !== stale) {
+          const err = new Error('condition failed');
+          err.name = 'ConditionalCheckFailedException';
+          return Promise.reject(err);
+        }
+        deletes.push(deviceId);
+        recordById.delete(deviceId);
         return Promise.resolve({});
       }
       return Promise.reject(new Error(`unexpected ${name}`));
     },
   } as unknown as DynamoDBClient;
-  return { client, deletes };
+  return { client, deletes, deleteCommands };
 };
 
 /**
@@ -270,8 +287,8 @@ void describe('deliverToProfile — retryable classification', () => {
 });
 
 void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
-  void it('deletes the device object on an invalid-token PERMANENT_FAILURE', async () => {
-    const { client, deletes } = devicesFor({
+  void it('deletes the device object on an invalid-token PERMANENT_FAILURE, gated on the stale token', async () => {
+    const { client, deletes, deleteCommands } = devicesFor({
       p1: [
         { key: 'good', token: 't-good', channel: 'APNS' },
         { key: 'dead', token: 't-dead', channel: 'APNS' },
@@ -288,6 +305,70 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
     );
     assert.strictEqual(res.status, 'delivered');
     assert.deepStrictEqual(deletes, ['dead']);
+    // The delete is CONDITIONAL on the token that failed still being stored.
+    const cmd = deleteCommands.find((c) => c.Key.deviceId.S === 'dead');
+    assert.strictEqual(cmd.ConditionExpression, '#token = :stale');
+    assert.deepStrictEqual(cmd.ExpressionAttributeNames, { '#token': 'token' });
+    assert.strictEqual(cmd.ExpressionAttributeValues[':stale'].S, 't-dead');
+  });
+
+  void it('TOCTOU: a device re-registered with a new token since the failed send is NOT removed (ConditionalCheckFailed swallowed)', async () => {
+    // GetItem returns the record with token 't-dead' (used for the send + as the
+    // conditional guard), but the stored record has since been re-registered
+    // with 't-new'. The conditional delete must fail and leave the record.
+    const recordById = new Map([
+      ['d1', { profileId: 'p1', token: 't-new', channel: 'APNS' }],
+    ]);
+    let deleteAttempts = 0;
+    let removed = false;
+    const client = {
+      send: (command: CommandLike): Promise<unknown> => {
+        const name = command.constructor.name;
+        if (name === 'QueryCommand') {
+          return Promise.resolve({ Items: [{ deviceId: { S: 'd1' } }] });
+        }
+        if (name === 'GetItemCommand') {
+          // The ownership read the push used still reports the OLD token.
+          return Promise.resolve({
+            Item: {
+              deviceId: { S: 'd1' },
+              token: { S: 't-dead' },
+              profileId: { S: 'p1' },
+              channelType: { S: 'APNS' },
+            },
+          });
+        }
+        if (name === 'DeleteItemCommand') {
+          deleteAttempts += 1;
+          const stale = command.input.ExpressionAttributeValues[':stale'].S;
+          const rec = recordById.get('d1');
+          if (rec && rec.token !== stale) {
+            const err = new Error('condition failed');
+            err.name = 'ConditionalCheckFailedException';
+            return Promise.reject(err);
+          }
+          removed = true;
+          return Promise.resolve({});
+        }
+        return Promise.reject(new Error(`unexpected ${name}`));
+      },
+    } as unknown as DynamoDBClient;
+    const pinpoint = pinpointFor({
+      't-dead': { status: 'PERMANENT_FAILURE', statusMessage: 'Unregistered' },
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpoint),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    // Delivery still resolves (batch never throws); the record survived.
+    assert.strictEqual(res.status, 'failed');
+    assert.strictEqual(deleteAttempts, 1);
+    assert.strictEqual(
+      removed,
+      false,
+      're-registered record must not be deleted',
+    );
   });
 
   void it('does NOT delete on a channel-misconfig PERMANENT_FAILURE (conservative cleanup keeps the token)', async () => {

@@ -17,6 +17,7 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { RemovalPolicy } from 'aws-cdk-lib';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
@@ -65,6 +66,7 @@ export type AmplifyNotificationsProps = {
     readonly fcmChannel?: {
         readonly serviceJson: string;
     };
+    readonly devicesTableRemovalPolicy?: RemovalPolicy;
 };
 
 // @public
@@ -99,6 +101,7 @@ export type NotificationsFactoryProps = {
     instanceAlias?: string;
     expirationDays?: number;
     guestExpirationDays?: number;
+    devicesTableRemovalPolicy?: RemovalPolicy;
     apns?: ApnsChannelProps;
     fcm?: FcmChannelProps;
 };

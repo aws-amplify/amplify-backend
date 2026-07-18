@@ -46,8 +46,8 @@ export type IdentifyUserOptions = {
   address?: string;
   /**
    * Stable device identifier (e.g. the client-persisted endpointId). This is
-   * the UNIQUE key of the AmplifyDevice object, so a token refresh for the same
-   * device upserts in place instead of creating a new device object.
+   * the partition key of the DynamoDB Devices table, so a token refresh for the
+   * same device is a last-writer-wins upsert in place rather than a new record.
    */
   deviceId?: string;
   channelType?: ChannelType;

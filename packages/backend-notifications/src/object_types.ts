@@ -61,9 +61,9 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[] = [
  *
  * Guest profiles are created in the SAME domain but are kept COMPLETELY SEPARATE
  * from authenticated profiles: there is NO profile merge. Push continuity across
- * sign-in is preserved by re-registering the device on the authenticated profile
- * and evicting the same deviceId from every other profile (see device_evictor);
- * guest profiles are reaped by their own shorter TTL.
+ * sign-in is preserved by re-homing the device to the authenticated profile in
+ * the DynamoDB Devices table (a strongly-consistent last-writer-wins write on
+ * the `deviceId`); guest profiles are reaped by their own shorter TTL.
  */
 export const AMPLIFY_GUEST_PROFILE_FIELDS: FieldMap[] = [
   field(

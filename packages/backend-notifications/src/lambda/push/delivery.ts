@@ -209,8 +209,8 @@ export const deliverToProfile = async (
       owner.token,
       channelType,
       channelMessage,
+      deviceId,
     );
-    outcome.deviceId = deviceId;
     results.push(outcome);
 
     if (outcome.stale) {
@@ -224,7 +224,10 @@ export const deliverToProfile = async (
           reason: outcome.statusMessage ?? outcome.status,
         }),
       );
-      await deleteDevice(ddb, tableName, deviceId);
+      // CONDITIONAL delete: only remove the record if its token is still the
+      // one that failed, so a device re-registered (new token / new owner)
+      // since the failed send is never clobbered.
+      await deleteDevice(ddb, tableName, deviceId, owner.token);
     }
   }
 

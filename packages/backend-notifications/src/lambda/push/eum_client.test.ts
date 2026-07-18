@@ -56,10 +56,12 @@ void describe('deliverToDevice', () => {
       'token-abc',
       'GCM',
       MESSAGE,
+      'dev-1',
     );
     assert.strictEqual(res.delivered, true);
     assert.strictEqual(res.stale, false);
     assert.strictEqual(res.status, 'SUCCESSFUL');
+    assert.strictEqual(res.deviceId, 'dev-1');
 
     const input = lastInput() as SendMessagesCommandInput;
     assert.strictEqual(input.ApplicationId, 'app-123');
@@ -82,6 +84,7 @@ void describe('deliverToDevice', () => {
       'dead-token',
       'APNS',
       MESSAGE,
+      'dev-1',
     );
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(res.stale, true);
@@ -105,6 +108,7 @@ void describe('deliverToDevice', () => {
       'bad-fcm-token',
       'GCM',
       MESSAGE,
+      'dev-1',
     );
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(
@@ -127,6 +131,7 @@ void describe('deliverToDevice', () => {
       'good-token',
       'GCM',
       MESSAGE,
+      'dev-1',
     );
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(res.status, 'PERMANENT_FAILURE');
@@ -139,7 +144,14 @@ void describe('deliverToDevice', () => {
 
   void it('does not delete on a PERMANENT_FAILURE with no StatusMessage (unknown → keep)', async () => {
     const { client } = fakePinpoint({ status: 'PERMANENT_FAILURE' });
-    const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
+    const res = await deliverToDevice(
+      client,
+      'app',
+      'tok',
+      'GCM',
+      MESSAGE,
+      'dev-1',
+    );
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(res.stale, false);
   });
@@ -147,7 +159,14 @@ void describe('deliverToDevice', () => {
   void it('treats TEMPORARY_FAILURE / THROTTLED as failed but NOT stale', async () => {
     for (const status of ['TEMPORARY_FAILURE', 'THROTTLED', 'OPT_OUT']) {
       const { client } = fakePinpoint({ status });
-      const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
+      const res = await deliverToDevice(
+        client,
+        'app',
+        'tok',
+        'GCM',
+        MESSAGE,
+        'dev-1',
+      );
       assert.strictEqual(res.delivered, false, status);
       assert.strictEqual(res.stale, false, status);
     }
@@ -157,7 +176,14 @@ void describe('deliverToDevice', () => {
     const { client } = fakePinpoint({
       throws: new Error('channel not enabled'),
     });
-    const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
+    const res = await deliverToDevice(
+      client,
+      'app',
+      'tok',
+      'GCM',
+      MESSAGE,
+      'dev-1',
+    );
     assert.strictEqual(res.status, 'ERROR');
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(res.stale, false);
@@ -169,7 +195,14 @@ void describe('deliverToDevice', () => {
       send: (): Promise<unknown> =>
         Promise.resolve({ MessageResponse: { Result: {} } }),
     } as unknown as PinpointClient;
-    const res = await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE);
+    const res = await deliverToDevice(
+      client,
+      'app',
+      'tok',
+      'GCM',
+      MESSAGE,
+      'dev-1',
+    );
     assert.strictEqual(res.status, 'UNKNOWN_FAILURE');
     assert.strictEqual(res.delivered, false);
   });

@@ -20,6 +20,9 @@ export const normalizeChannelType = (
     return undefined;
   }
   switch (raw.trim().toUpperCase()) {
+    // `FCM` is accepted for forward-compatibility with stored device records:
+    // identify validation normalizes Android to `GCM`, but a record written
+    // with the newer `FCM` spelling still maps correctly here.
     case 'FCM':
     case 'GCM':
       return 'GCM';

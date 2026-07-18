@@ -16,6 +16,12 @@ import {
 import { DEVICE_TTL_DAYS } from '../../constants.js';
 import { withTransientRetry } from './retry.js';
 
+// All DynamoDB calls below reuse `withTransientRetry` (originally tuned for
+// Customer Profiles) purely for its `ThrottlingException` coverage — relevant
+// to DynamoDB too. The table is PAY_PER_REQUEST, so provisioned-throughput
+// errors don't apply, and the retry predicate deliberately does NOT retry
+// `ConditionalCheckFailedException` (see deleteDevice).
+
 /**
  * The authoritative device record stored in the DynamoDB Devices table.
  *
@@ -198,16 +204,30 @@ export const getDeviceOwner = async (
 };
 
 /**
- * Delete a device record by its PK (dead-token cleanup after a permanently
- * rejected send). Best-effort: a failed delete is swallowed so it never masks
- * the caller's delivery result — the record simply lingers until its TTL
- * expiry. `deviceId` is a high-entropy client identifier, not personal data,
- * so it is safe to log.
+ * Delete a device record by its PK as dead-token cleanup after a permanently
+ * rejected send — CONDITIONAL on the token still being the one that failed.
+ *
+ * The delete only fires when the stored `token` still equals `staleToken`, so
+ * a device that was re-registered (new token, possibly a new owner) between the
+ * failed send and this cleanup is NOT removed. A `ConditionalCheckFailedException`
+ * means exactly that "re-registered in the meantime" case: it is expected, not
+ * an error — logged and swallowed (returns `false`).
+ *
+ * Best-effort otherwise: any failure is swallowed so it never masks the
+ * caller's delivery result — the record simply lingers until its TTL expiry.
+ * `deviceId` is a high-entropy client identifier, not personal data, so it is
+ * safe to log.
+ *
+ * `withTransientRetry` (tuned for Customer Profiles) is reused here purely for
+ * its `ThrottlingException` coverage; the table is PAY_PER_REQUEST so
+ * provisioned-throughput errors don't apply, and it deliberately does NOT retry
+ * `ConditionalCheckFailedException`.
  */
 export const deleteDevice = async (
   ddb: DynamoDBClient,
   tableName: string,
   deviceId: string,
+  staleToken: string,
 ): Promise<boolean> => {
   try {
     await withTransientRetry(() =>
@@ -215,17 +235,27 @@ export const deleteDevice = async (
         new DeleteItemCommand({
           TableName: tableName,
           Key: { deviceId: { S: deviceId } },
+          ConditionExpression: '#token = :stale',
+          ExpressionAttributeNames: { '#token': 'token' },
+          ExpressionAttributeValues: { ':stale': { S: staleToken } },
         }),
       ),
     );
     return true;
   } catch (err) {
+    const name = err instanceof Error ? err.name : 'unknown';
+    if (name === 'ConditionalCheckFailedException') {
+      // The device was re-registered with a different token since the failed
+      // send — leave the current (live) record intact.
+      console.log(
+        '[devices] cleanup.skip',
+        JSON.stringify({ deviceId, reason: 'token_changed' }),
+      );
+      return false;
+    }
     console.error(
       '[devices] cleanup.deleteFailed',
-      JSON.stringify({
-        deviceId,
-        error: err instanceof Error ? err.name : 'unknown',
-      }),
+      JSON.stringify({ deviceId, error: name }),
     );
     return false;
   }

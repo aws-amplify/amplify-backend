@@ -50,6 +50,7 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       instanceAlias: this.props.instanceAlias,
       expirationDays: this.props.expirationDays,
       guestExpirationDays: this.props.guestExpirationDays,
+      devicesTableRemovalPolicy: this.props.devicesTableRemovalPolicy,
       // Resolve the optional push-channel secret material (Amplify `secret()`) to
       // deploy-time CFN tokens here — the construct stays framework-agnostic and
       // receives only plain strings. Mirrors how `defineAuth` resolves external
@@ -204,10 +205,11 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
 
 /**
  * Include an Amazon Connect Customer Profiles-backed notifications resource in
- * your Amplify backend. It registers the AmplifyProfile / AmplifyDevice object
- * types, a least-privilege identify-user Lambda + a JWT-authorized HTTP API, and
- * the push-delivery Lambda (invoked by a Connect Journey Custom-action) with a
- * minimal AWS End User Messaging application. The invoke endpoint / region are
+ * your Amplify backend. It registers the AmplifyProfile / AmplifyGuestProfile
+ * object types, a DynamoDB device store, a least-privilege identify-user Lambda
+ * + a JWT-authorized HTTP API, and the push-delivery Lambda (invoked by a
+ * Connect Journey Custom-action) with a minimal AWS End User Messaging
+ * application. The invoke endpoint / region are
  * surfaced under `notifications.amazon_connect_customer_profiles` in
  * `amplify_outputs.json`.
  *
