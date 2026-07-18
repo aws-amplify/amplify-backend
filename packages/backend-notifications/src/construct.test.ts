@@ -62,9 +62,9 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     assert.strictEqual(construct.domainName, EXISTING_DOMAIN);
   });
 
-  void it('registers the AmplifyProfile + AmplifyGuestProfile + AmplifyDevice object types INTO the existing domain', () => {
+  void it('registers the AmplifyProfile + AmplifyGuestProfile object types INTO the existing domain (devices live in DDB, not CP)', () => {
     const { template } = synth();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: EXISTING_DOMAIN,
@@ -72,11 +72,6 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     });
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyGuestProfile',
-      DomainName: EXISTING_DOMAIN,
-      AllowProfileCreation: true,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyDevice',
       DomainName: EXISTING_DOMAIN,
       AllowProfileCreation: true,
     });
@@ -98,13 +93,9 @@ void describe('AmplifyNotifications construct — domain attach', () => {
       ObjectTypeName: 'AmplifyGuestProfile',
       ExpirationDays: 90,
     });
-    // The authenticated profile + device keep the longer default (366).
+    // The authenticated profile keeps the longer default (366).
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
-      ExpirationDays: 366,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyDevice',
       ExpirationDays: 366,
     });
   });
@@ -124,28 +115,19 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     });
   });
 
-  void it('adds a SECONDARY deviceSearchKey on the AmplifyDevice object type', () => {
+  void it('creates the DynamoDB Devices table (PK deviceId, GSI on profileId, native TTL)', () => {
     const { template } = synth();
-    const objectTypes = template.findResources(
-      'AWS::CustomerProfiles::ObjectType',
-    );
-    const device = Object.values(objectTypes).find(
-      (r) => r.Properties?.ObjectTypeName === 'AmplifyDevice',
-    );
-    assert.ok(device, 'AmplifyDevice object type exists');
-    // The deviceSearchKey (SECONDARY on deviceId) makes the device searchable
-    // across profiles for cross-profile eviction. SECONDARY (not LOOKUP_ONLY):
-    // its value is stored so SearchProfiles can resolve it, but it is only a
-    // fallback matcher so it never binds a device to the wrong profile.
-    const deviceJson = JSON.stringify(device);
-    assert.ok(
-      deviceJson.includes('deviceSearchKey'),
-      'expected a deviceSearchKey on AmplifyDevice',
-    );
-    assert.ok(
-      deviceJson.includes('SECONDARY'),
-      'expected the deviceSearchKey to be SECONDARY',
-    );
+    template.resourceCountIs('AWS::DynamoDB::Table', 1);
+    template.hasResourceProperties('AWS::DynamoDB::Table', {
+      KeySchema: [{ AttributeName: 'deviceId', KeyType: 'HASH' }],
+      TimeToLiveSpecification: { AttributeName: 'ttl', Enabled: true },
+      GlobalSecondaryIndexes: Match.arrayWith([
+        Match.objectLike({
+          IndexName: 'profileId-index',
+          KeySchema: [{ AttributeName: 'profileId', KeyType: 'HASH' }],
+        }),
+      ]),
+    });
   });
 
   void it('does not create a Connect instance in attach mode', () => {
@@ -168,9 +150,7 @@ void describe('AmplifyNotifications construct — domain attach', () => {
             Action: [
               'profile:PutProfileObject',
               'profile:SearchProfiles',
-              'profile:ListProfileObjects',
               'profile:UpdateProfile',
-              'profile:DeleteProfileObject',
             ],
           }),
         ]),
@@ -231,7 +211,7 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
     assert.ok(construct.resources.httpApi);
     assert.ok(construct.resources.profileObjectType);
     assert.ok(construct.resources.guestProfileObjectType);
-    assert.ok(construct.resources.deviceObjectType);
+    assert.ok(construct.resources.devicesTable);
   });
 
   void it('adds an IAM-authorized GUEST route to the same Lambda with payload format 1.0', () => {
@@ -277,17 +257,18 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
     });
   });
 
-  void it('grants the push Lambda least-privilege profile + SendMessages permissions scoped to the existing domain', () => {
+  void it('grants the push Lambda least-privilege DDB device access + SendMessages', () => {
     const { template } = synth();
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
             Effect: 'Allow',
-            Action: [
-              'profile:ListProfileObjects',
-              'profile:DeleteProfileObject',
-            ],
+            Action: 'dynamodb:Query',
+          }),
+          Match.objectLike({
+            Effect: 'Allow',
+            Action: ['dynamodb:GetItem', 'dynamodb:DeleteItem'],
           }),
           Match.objectLike({
             Effect: 'Allow',
@@ -296,9 +277,10 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
         ]),
       }),
     });
+    // The push Lambda no longer reads/deletes devices via Customer Profiles.
     const json = JSON.stringify(template.toJSON());
-    assert.ok(json.includes(`:domains/${EXISTING_DOMAIN}/object-types/*`));
-    assert.ok(!json.includes(':domains/*'));
+    assert.ok(!json.includes('profile:ListProfileObjects'));
+    assert.ok(!json.includes('profile:DeleteProfileObject'));
   });
 
   void it('scopes the push Lambda Connect + Q-in-Connect template permissions to wildcards in attach mode (ARNs unknown at synth)', () => {
@@ -343,12 +325,12 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
     });
   });
 
-  void it('sets the domain + EUM app id env vars on the push Lambda', () => {
+  void it('sets the devices table + EUM app id env vars on the push Lambda', () => {
     const { template } = synth();
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: Match.objectLike({
-          PROFILES_DOMAIN_NAME: EXISTING_DOMAIN,
+          DEVICES_TABLE_NAME: Match.anyValue(),
           EUM_APPLICATION_ID: Match.anyValue(),
         }),
       },
@@ -507,7 +489,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
 
   void it('registers the object types INTO the created domain with an explicit dependency on it', () => {
     const { construct, template } = synthCreate();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: construct.domainName,
@@ -516,11 +498,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     // All object types must DependsOn the created domain (in-construct ordering
     // — no cross-stack hack): the domain provisions first and is torn down last.
     // The created domain's logical id is derived from its construct id.
-    for (const objectTypeName of [
-      'AmplifyProfile',
-      'AmplifyGuestProfile',
-      'AmplifyDevice',
-    ]) {
+    for (const objectTypeName of ['AmplifyProfile', 'AmplifyGuestProfile']) {
       template.hasResource('AWS::CustomerProfiles::ObjectType', {
         Properties: Match.objectLike({ ObjectTypeName: objectTypeName }),
         DependsOn: Match.arrayWith([Match.stringLikeRegexp('ProfilesDomain')]),

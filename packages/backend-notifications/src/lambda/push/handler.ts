@@ -1,13 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 import { ConnectCampaignsV2Client } from '@aws-sdk/client-connectcampaignsv2';
 import { ConnectClient } from '@aws-sdk/client-connect';
 import { QConnectClient } from '@aws-sdk/client-qconnect';
 
-import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
+import {
+  DEVICES_TABLE_GSI_PROFILE_ID,
+  ENV_DEVICES_TABLE_NAME,
+  ENV_EUM_APPLICATION_ID,
+} from '../../constants.js';
 import { parsePushEvent } from './event.js';
 import { deliverToTargets, mapToConnectResponse } from './delivery.js';
 import {
@@ -20,11 +24,13 @@ import { ConnectBatchResponse } from './types.js';
  * Module-level clients so warm invocations reuse the connection pool. Region is
  * resolved from the standard AWS_REGION Lambda environment variable.
  *
- * `campaigns` / `connect` / `qconnect` back runtime message-template resolution:
- * discovering the Q in Connect knowledge base from the journey's campaign and
- * rendering the PUSH template whose name matches the Custom-action ActionId.
+ * `ddb` resolves each targeted profile's devices from the authoritative
+ * DynamoDB Devices table. `campaigns` / `connect` / `qconnect` back runtime
+ * message-template resolution: discovering the Q in Connect knowledge base from
+ * the journey's campaign and rendering the PUSH template whose name matches the
+ * Custom-action ActionId.
  */
-const profiles = new CustomerProfilesClient({});
+const ddb = new DynamoDBClient({});
 const pinpoint = new PinpointClient({});
 const campaigns = new ConnectCampaignsV2Client({});
 const connect = new ConnectClient({});
@@ -33,12 +39,13 @@ const qconnect = new QConnectClient({});
 /**
  * Push-delivery Lambda invoked by an Amazon Connect Journey Custom-action
  * (Invoke Lambda) block. Amazon Connect has no native mobile-push channel, so
- * this Lambda bridges the gap: it resolves each targeted profile's registered
- * devices from Customer Profiles (ListProfileObjects on the AmplifyDevice
- * object type) and delivers the message to each device via AWS End User
- * Messaging (Pinpoint `SendMessages`), mapping the device's channel to a
- * GCM (Android/FCM) or APNS (iOS) payload. Tokens permanently rejected by the
- * push provider are cleaned up by deleting their AmplifyDevice object.
+ * this Lambda bridges the gap: it enumerates each targeted profile's registered
+ * devices from the authoritative DynamoDB Devices table (GSI(profileId) +
+ * strongly-consistent per-device ownership gate) and delivers the message to
+ * each device via AWS End User Messaging (Pinpoint `SendMessages`), mapping the
+ * device's channel to a GCM (Android/FCM) or APNS (iOS) payload. Tokens
+ * permanently rejected by the push provider are cleaned up by deleting their
+ * device record.
  *
  * Returns the Amazon Connect batch response contract: one `CustomerProfiles`
  * entry per requested `ProfileId`, each carrying a per-profile delivered /
@@ -49,12 +56,12 @@ const qconnect = new QConnectClient({});
 export const handler = async (
   event: unknown,
 ): Promise<ConnectBatchResponse> => {
-  const domainName = process.env[ENV_DOMAIN_NAME];
+  const tableName = process.env[ENV_DEVICES_TABLE_NAME];
   const applicationId = process.env[ENV_EUM_APPLICATION_ID];
-  if (!domainName || !applicationId) {
+  if (!tableName || !applicationId) {
     throw new Error(
       `Missing required env var(s): ${[
-        !domainName ? ENV_DOMAIN_NAME : undefined,
+        !tableName ? ENV_DEVICES_TABLE_NAME : undefined,
         !applicationId ? ENV_EUM_APPLICATION_ID : undefined,
       ]
         .filter(Boolean)
@@ -94,7 +101,14 @@ export const handler = async (
   }
 
   const outcomes = await deliverToTargets(
-    { profiles, pinpoint, domainName, applicationId, templateContext },
+    {
+      ddb,
+      pinpoint,
+      tableName,
+      indexName: DEVICES_TABLE_GSI_PROFILE_ID,
+      applicationId,
+      templateContext,
+    },
     parsed,
   );
 

@@ -15,16 +15,11 @@ import { CfnInstance } from 'aws-cdk-lib/aws-connect';
 import { CfnObjectType } from 'aws-cdk-lib/aws-customerprofiles';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
-
-// @public
-export const AMPLIFY_DEVICE_FIELDS: FieldMap[];
-
-// @public (undocumented)
-export const AMPLIFY_DEVICE_KEYS: KeyMap[];
 
 // @public
 export const AMPLIFY_PROFILE_FIELDS: FieldMap[];
@@ -114,7 +109,7 @@ export type NotificationsResources = {
     httpApi: apigwv2.HttpApi;
     profileObjectType: CfnObjectType;
     guestProfileObjectType: CfnObjectType;
-    deviceObjectType: CfnObjectType;
+    devicesTable: dynamodb.ITable;
     pushFunction: lambda.IFunction;
     pushApplication: CfnApp;
     apnsChannel?: CfnAPNSChannel | CfnAPNSSandboxChannel;
@@ -123,14 +118,10 @@ export type NotificationsResources = {
     profilesDomain?: CfnDomain;
 };
 
-// @public
-export const OBJECT_TYPE_DEVICE = "AmplifyDevice";
-
 // @public (undocumented)
 export const OBJECT_TYPE_NAMES: {
     profile: string;
     guestProfile: string;
-    device: string;
 };
 
 // @public

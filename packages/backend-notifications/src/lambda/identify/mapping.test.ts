@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
-  buildDeviceObject,
   buildProfileUpdate,
   flatten,
   hasDeviceData,
@@ -190,85 +189,6 @@ void describe('buildProfileUpdate', () => {
   });
 });
 
-void describe('buildDeviceObject', () => {
-  const isoRe = /^\d{4}-\d{2}-\d{2}T.*Z$/;
-
-  void it('keys by stable deviceId, keeps token mutable, and sets the device schema', () => {
-    const req: IdentifyUserRequest = {
-      userProfile: {
-        demographic: { platform: 'android', appVersion: '9.9.9' },
-      },
-      options: {
-        deviceId: 'device-1',
-        address: 'push-token-abc',
-        channelType: 'GCM',
-        optOut: 'NONE',
-      },
-    };
-    const obj = buildDeviceObject(P, req);
-    assert.strictEqual(obj.cognitoSub, SUB);
-    assert.strictEqual(obj.deviceId, 'device-1');
-    assert.strictEqual(obj.deviceToken, 'push-token-abc');
-    assert.strictEqual(obj.channelType, 'GCM');
-    assert.strictEqual(obj.platform, 'android');
-    assert.strictEqual(obj.appVersion, '9.9.9');
-    assert.strictEqual(obj.optOut, undefined);
-    assert.match(obj.createdAt, isoRe);
-    assert.match(obj.updatedAt, isoRe);
-  });
-
-  void it('prefers options.platform / options.appVersion over the demographic values', () => {
-    const req: IdentifyUserRequest = {
-      userProfile: {
-        demographic: { platform: 'android', appVersion: '1.0.0' },
-      },
-      options: { deviceId: 'd', platform: 'iOS', appVersion: '2.5.0' },
-    };
-    const obj = buildDeviceObject(P, req);
-    assert.strictEqual(obj.platform, 'iOS');
-    assert.strictEqual(obj.appVersion, '2.5.0');
-  });
-
-  void it('createdAt is preserved from the existing object; updatedAt is always now', () => {
-    const existingCreatedAt = '2020-01-01T00:00:00.000Z';
-    const obj = buildDeviceObject(
-      P,
-      { userProfile: {}, options: { deviceId: 'device-1', address: 'tok' } },
-      existingCreatedAt,
-    );
-    assert.strictEqual(obj.createdAt, existingCreatedAt);
-    assert.notStrictEqual(obj.updatedAt, existingCreatedAt);
-    assert.match(obj.updatedAt, isoRe);
-  });
-
-  void it('defaults createdAt to now when there is no existing object', () => {
-    const obj = buildDeviceObject(P, {
-      userProfile: {},
-      options: { deviceId: 'device-1' },
-    });
-    assert.match(obj.createdAt, isoRe);
-    assert.strictEqual(obj.createdAt, obj.updatedAt);
-  });
-
-  void it('token refresh: same deviceId, new deviceToken', () => {
-    const base = {
-      userProfile: {},
-      options: { deviceId: 'device-1', channelType: 'APNS' as const },
-    };
-    const first = buildDeviceObject(P, {
-      ...base,
-      options: { ...base.options, address: 'token-v1' },
-    });
-    const second = buildDeviceObject(P, {
-      ...base,
-      options: { ...base.options, address: 'token-v2' },
-    });
-    assert.strictEqual(first.deviceId, second.deviceId);
-    assert.strictEqual(first.deviceToken, 'token-v1');
-    assert.strictEqual(second.deviceToken, 'token-v2');
-  });
-});
-
 void describe('guest principal', () => {
   void it('buildProfileUpdate keys the identity trail on cognitoIdentityKey, not cognitoUserKey', () => {
     const u = buildProfileUpdate(GUEST, {
@@ -279,21 +199,5 @@ void describe('guest principal', () => {
     assert.strictEqual(u.attributes[COGNITO_USER_KEY], undefined);
     assert.strictEqual(u.attributes.appUserId, 'client-supplied');
     assert.strictEqual(u.attributes.plan, 'free');
-  });
-
-  void it('buildDeviceObject carries cognitoIdentityId (not cognitoSub) as the resolution field', () => {
-    const obj = buildDeviceObject(GUEST, {
-      userProfile: {},
-      options: {
-        deviceId: 'guest-device-1',
-        address: 'pre-login-token',
-        channelType: 'APNS',
-      },
-    });
-    assert.strictEqual(obj.cognitoIdentityId, IDENTITY_ID);
-    assert.strictEqual(obj.cognitoSub, undefined);
-    assert.strictEqual(obj.deviceId, 'guest-device-1');
-    assert.strictEqual(obj.deviceToken, 'pre-login-token');
-    assert.strictEqual(obj.channelType, 'APNS');
   });
 });

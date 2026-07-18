@@ -1,13 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/no-explicit-any,
+   @typescript-eslint/naming-convention -- test doubles capture
+   structurally-typed AWS SDK command inputs and DynamoDB AttributeValue
+   descriptors (`S`), which are single-character by the SDK wire contract. */
+
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import {
-  CustomerProfilesClient,
-  ListProfileObjectsCommand,
-  type ListProfileObjectsCommandInput,
-} from '@aws-sdk/client-customer-profiles';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   PinpointClient,
   type SendMessagesCommandInput,
@@ -17,37 +18,70 @@ import {
   DescribeCampaignCommand,
 } from '@aws-sdk/client-connectcampaignsv2';
 
-import { ENV_DOMAIN_NAME, ENV_EUM_APPLICATION_ID } from '../../constants.js';
+import {
+  ENV_DEVICES_TABLE_NAME,
+  ENV_EUM_APPLICATION_ID,
+} from '../../constants.js';
 import { handler } from './handler.js';
 import type { ConnectBatchResponse } from './types.js';
 
-const DOMAIN = 'amplify-notifications-domain';
+const DEVICES_TABLE = 'Devices-table';
 const APP_ID = 'eum-app-1';
 
 type Device = { key: string; token: string; channel?: string };
 
-/** Mock CustomerProfiles: ListProfileObjects returns the given devices per profile. */
-const mockProfiles = (byProfile: Record<string, Device[]>): void => {
+type CommandLike = { constructor: { name: string }; input: any };
+
+/**
+ * Mock the DynamoDB Devices table: Query(GSI) returns a profile's candidate
+ * deviceIds, and GetItem returns the authoritative owner record (the ownership
+ * gate). Every listed device is owned by the queried profile.
+ */
+const mockDevices = (byProfile: Record<string, Device[]>): void => {
+  const recordById = new Map<
+    string,
+    { profileId: string; token: string; channel?: string }
+  >();
+  const idsByProfile: Record<string, string[]> = {};
+  for (const [profileId, devices] of Object.entries(byProfile)) {
+    idsByProfile[profileId] = idsByProfile[profileId] ?? [];
+    for (const d of devices) {
+      recordById.set(d.key, {
+        profileId,
+        token: d.token,
+        channel: d.channel,
+      });
+      idsByProfile[profileId].push(d.key);
+    }
+  }
   mock.method(
-    CustomerProfilesClient.prototype,
+    DynamoDBClient.prototype,
     'send',
-    (command: {
-      constructor: { name: string };
-      input: ListProfileObjectsCommandInput;
-    }): Promise<unknown> => {
+    (command: CommandLike): Promise<unknown> => {
       const name = command.constructor.name;
-      if (name === ListProfileObjectsCommand.name) {
-        const devices = byProfile[command.input.ProfileId ?? ''] ?? [];
+      if (name === 'QueryCommand') {
+        const profileId = command.input.ExpressionAttributeValues[':profileId']
+          .S as string;
+        const ids = idsByProfile[profileId] ?? [];
         return Promise.resolve({
-          Items: devices.map((d) => ({
-            ProfileObjectUniqueKey: d.key,
-            Object: JSON.stringify({
-              deviceToken: d.token,
-              channelType: d.channel,
-              deviceId: d.key,
-            }),
-          })),
+          Items: ids.map((id) => ({ deviceId: { S: id } })),
         });
+      }
+      if (name === 'GetItemCommand') {
+        const deviceId = command.input.Key.deviceId.S as string;
+        const rec = recordById.get(deviceId);
+        if (!rec) {
+          return Promise.resolve({});
+        }
+        const item: Record<string, { S: string }> = {
+          deviceId: { S: deviceId },
+          token: { S: rec.token },
+          profileId: { S: rec.profileId },
+        };
+        if (rec.channel !== undefined) {
+          item.channelType = { S: rec.channel };
+        }
+        return Promise.resolve({ Item: item });
       }
       return Promise.reject(new Error(`unexpected command ${name}`));
     },
@@ -100,19 +134,19 @@ const byId = (
   Object.fromEntries(res.Items.CustomerProfiles.map((e) => [e.Id, e]));
 
 beforeEach(() => {
-  process.env[ENV_DOMAIN_NAME] = DOMAIN;
+  process.env[ENV_DEVICES_TABLE_NAME] = DEVICES_TABLE;
   process.env[ENV_EUM_APPLICATION_ID] = APP_ID;
 });
 
 afterEach(() => {
   mock.restoreAll();
-  delete process.env[ENV_DOMAIN_NAME];
+  delete process.env[ENV_DEVICES_TABLE_NAME];
   delete process.env[ENV_EUM_APPLICATION_ID];
 });
 
 void describe('push handler', () => {
   void it('throws when required env vars are missing (systemic failure)', async () => {
-    delete process.env[ENV_DOMAIN_NAME];
+    delete process.env[ENV_DEVICES_TABLE_NAME];
     delete process.env[ENV_EUM_APPLICATION_ID];
     await assert.rejects(
       handler(canonicalEvent(['p1'])),
@@ -126,7 +160,7 @@ void describe('push handler', () => {
   });
 
   void it('returns one entry per requested ProfileId, keyed by Id === ProfileId', async () => {
-    mockProfiles({
+    mockDevices({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
       p2: [
         { key: 'k2', token: 't2', channel: 'FCM' },
@@ -152,7 +186,7 @@ void describe('push handler', () => {
   });
 
   void it('a profile with no devices is skipped with reason no_devices', async () => {
-    mockProfiles({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }], p2: [] });
+    mockDevices({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }], p2: [] });
     mockPinpoint();
 
     const res = await handler(canonicalEvent(['p1', 'p2']));
@@ -165,7 +199,7 @@ void describe('push handler', () => {
   });
 
   void it('a single profile failure yields failed+retryable and does NOT fail the batch', async () => {
-    mockProfiles({
+    mockDevices({
       good: [{ key: 'k1', token: 'ok', channel: 'APNS' }],
       bad: [{ key: 'k2', token: 'throttled', channel: 'APNS' }],
     });
@@ -183,13 +217,14 @@ void describe('push handler', () => {
 
   void it('a thrown per-profile device lookup is caught (batch never throws)', async () => {
     mock.method(
-      CustomerProfilesClient.prototype,
+      DynamoDBClient.prototype,
       'send',
-      (command: {
-        input: ListProfileObjectsCommandInput;
-      }): Promise<unknown> => {
-        if (command.input.ProfileId === 'boom') {
-          return Promise.reject(new Error('ListProfileObjects exploded'));
+      (command: CommandLike): Promise<unknown> => {
+        if (
+          command.constructor.name === 'QueryCommand' &&
+          command.input.ExpressionAttributeValues[':profileId'].S === 'boom'
+        ) {
+          return Promise.reject(new Error('Query exploded'));
         }
         return Promise.resolve({ Items: [] });
       },
@@ -218,7 +253,7 @@ void describe('push handler', () => {
         return Promise.reject(new Error('unexpected'));
       },
     );
-    mockProfiles({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }] });
+    mockDevices({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }] });
     mockPinpoint();
 
     const res = await handler(

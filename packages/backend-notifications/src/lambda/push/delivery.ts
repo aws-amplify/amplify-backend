@@ -1,11 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { PinpointClient } from '@aws-sdk/client-pinpoint';
 
 import { deliverToDevice } from './eum_client.js';
-import { deleteDevice, listDevices } from '../shared/devices.js';
+import {
+  deleteDevice,
+  getDeviceOwner,
+  queryDeviceIdsByProfile,
+} from '../shared/device_store.js';
 import { normalizeChannelType } from './payload.js';
 import {
   PushTemplateContext,
@@ -24,10 +28,13 @@ import {
 
 /** Injected clients + resolved config for the delivery routines. */
 export type DeliveryDeps = {
-  profiles: CustomerProfilesClient;
+  /** DynamoDB client for the authoritative Devices table. */
+  ddb: DynamoDBClient;
   pinpoint: PinpointClient;
-  /** Customer Profiles domain to resolve devices from. */
-  domainName: string;
+  /** Name of the DynamoDB Devices table to resolve devices from. */
+  tableName: string;
+  /** Name of the GSI(profileId) used to enumerate a profile's devices. */
+  indexName: string;
   /** AWS End User Messaging / Pinpoint application id to send from. */
   applicationId: string;
   /**
@@ -126,15 +133,23 @@ const deriveProfileOutcome = (
 };
 
 /**
- * Resolve a single profile's registered devices and push the message to each
- * via AWS End User Messaging, then clean up any device whose token was
- * permanently rejected (stale-token cleanup), and derive the profile's
+ * Resolve a single profile's registered devices from the authoritative DDB
+ * Devices table, push the message to each, then clean up any device whose token
+ * was permanently rejected (dead-token cleanup), and derive the profile's
  * {@link ProfileOutcome}.
+ *
+ * OWNERSHIP GATE: candidates are enumerated via the eventually-consistent
+ * GSI(profileId), but each device is then re-read with a strongly-consistent
+ * point GetItem on its `deviceId` PK. Delivery proceeds ONLY IF the record's
+ * `profileId` still equals the profile being pushed. A device that has been
+ * re-homed to another profile (the immediate-switch race) reads back with a
+ * different owner and is SKIPPED — so a campaign to the old profile can never
+ * leak to the device now held by another user, regardless of GSI lag.
  *
  * A device with an unsupported / missing channel (post-normalization) is
  * recorded as a `SKIPPED` per-device failure rather than being sent. A device
- * whose delivery returns an invalid-token `PERMANENT_FAILURE` has its
- * AmplifyDevice object deleted.
+ * whose delivery returns an invalid-token `PERMANENT_FAILURE` has its DDB record
+ * deleted.
  *
  * `message` is the profile's fallback copy. When `perChannel` is supplied (from
  * a rendered Q Connect template), the message for a device's channel is taken
@@ -148,23 +163,40 @@ export const deliverToProfile = async (
   message: PushMessage,
   perChannel?: Partial<Record<PushChannelType, PushMessage>>,
 ): Promise<ProfileOutcome> => {
-  const { profiles, pinpoint, domainName, applicationId } = deps;
-  const devices = await listDevices(profiles, domainName, target.profileId);
+  const { ddb, pinpoint, tableName, indexName, applicationId } = deps;
+  const candidateIds = await queryDeviceIdsByProfile(
+    ddb,
+    tableName,
+    indexName,
+    target.profileId,
+  );
 
   const results: DeviceDeliveryResult[] = [];
 
-  for (const device of devices) {
-    const channelType = normalizeChannelType(device.channelType);
+  for (const deviceId of candidateIds) {
+    // Strongly-consistent ownership gate: the GSI is eventually consistent, so
+    // re-read the authoritative record on the PK. Skip if the device is gone or
+    // has been re-homed to a different profile (no leak).
+    const owner = await getDeviceOwner(ddb, tableName, deviceId);
+    if (!owner || owner.profileId !== target.profileId) {
+      console.log(
+        '[push] ownership.skip',
+        JSON.stringify({ present: Boolean(owner) }),
+      );
+      continue;
+    }
+
+    const channelType = normalizeChannelType(owner.channelType);
     if (!channelType) {
       results.push({
-        deviceToken: device.deviceToken,
+        deviceToken: owner.token,
         channelType: 'GCM',
-        objectUniqueKey: device.objectUniqueKey,
+        deviceId,
         status: 'SKIPPED',
         delivered: false,
         stale: false,
         statusMessage: `Unsupported or missing channelType: ${
-          device.channelType ?? '(none)'
+          owner.channelType ?? '(none)'
         }`,
       });
       continue;
@@ -174,30 +206,25 @@ export const deliverToProfile = async (
     const outcome = await deliverToDevice(
       pinpoint,
       applicationId,
-      device.deviceToken,
+      owner.token,
       channelType,
       channelMessage,
     );
-    outcome.objectUniqueKey = device.objectUniqueKey;
+    outcome.deviceId = deviceId;
     results.push(outcome);
 
     if (outcome.stale) {
-      // Cleanup decision only — no profile id or device token. `objectUniqueKey`
-      // is an opaque service-generated key needed to correlate the delete.
+      // Cleanup decision only — no profile id or device token. `deviceId` is a
+      // high-entropy client identifier, not personal data.
       console.log(
         '[push] cleanup.delete',
         JSON.stringify({
-          objectUniqueKey: device.objectUniqueKey,
+          deviceId,
           channelType,
           reason: outcome.statusMessage ?? outcome.status,
         }),
       );
-      await deleteDevice(
-        profiles,
-        domainName,
-        target.profileId,
-        device.objectUniqueKey,
-      );
+      await deleteDevice(ddb, tableName, deviceId);
     }
   }
 

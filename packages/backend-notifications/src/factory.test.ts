@@ -151,7 +151,7 @@ void describe('defineNotifications', () => {
     const template = Template.fromStack(notifications.stack);
 
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
     // identify Lambda + push Lambda (push is always provisioned).
     template.resourceCountIs('AWS::Lambda::Function', 2);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
@@ -166,9 +166,11 @@ void describe('defineNotifications', () => {
       DomainName: EXISTING_DOMAIN,
     });
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyDevice',
+      ObjectTypeName: 'AmplifyGuestProfile',
       DomainName: EXISTING_DOMAIN,
     });
+    // Devices now live in DynamoDB, not Customer Profiles.
+    template.resourceCountIs('AWS::DynamoDB::Table', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Runtime: 'nodejs20.x',
       Handler: 'index.handler',
@@ -181,7 +183,7 @@ void describe('defineNotifications', () => {
 
     template.resourceCountIs('AWS::Connect::Instance', 1);
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 3);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
     // identify + push Lambdas + campaign-association handler + custom-resource
     // Provider framework Lambda.
     template.resourceCountIs('AWS::Lambda::Function', 4);
@@ -229,9 +231,7 @@ void describe('defineNotifications', () => {
             Action: [
               'profile:PutProfileObject',
               'profile:SearchProfiles',
-              'profile:ListProfileObjects',
               'profile:UpdateProfile',
-              'profile:DeleteProfileObject',
             ],
           }),
         ]),

@@ -177,10 +177,10 @@ export type DeviceDeliveryResult = {
   /** The (normalized) channel the message was sent on. */
   channelType: PushChannelType;
   /**
-   * The Customer Profiles ProfileObjectUniqueKey of the AmplifyDevice object
-   * this token came from — carried so a stale token can be deleted.
+   * The stable `deviceId` (DynamoDB Devices table PK) this token came from —
+   * carried so a permanently-rejected token's device record can be deleted.
    */
-  objectUniqueKey?: string;
+  deviceId?: string;
   /**
    * Pinpoint `DeliveryStatus` (`SUCCESSFUL`, `PERMANENT_FAILURE`, ...), or
    * `ERROR` when the `SendMessages` call itself threw, or `SKIPPED` when the

@@ -1,13 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/no-explicit-any,
+   @typescript-eslint/naming-convention -- test doubles capture
+   structurally-typed AWS SDK command inputs and DynamoDB AttributeValue
+   descriptors (`S`), which are single-character by the SDK wire contract. */
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import type {
-  CustomerProfilesClient,
-  DeleteProfileObjectCommandInput,
-  ListProfileObjectsCommandInput,
-} from '@aws-sdk/client-customer-profiles';
+import type { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import type {
   PinpointClient,
   SendMessagesCommandInput,
@@ -26,38 +27,75 @@ const MESSAGE: PushMessage = { title: 'T', body: 'B' };
 
 type Device = { key: string; token: string; channel?: string };
 
-const profilesFor = (
+type CommandLike = { constructor: { name: string }; input: any };
+
+/**
+ * Fake DynamoDB Devices table. `byProfile` maps each profileId to its owned
+ * devices (`key` = the deviceId PK). It answers:
+ *   - QueryCommand(GSI profileId)  -> the profile's candidate deviceIds
+ *   - GetItemCommand(deviceId)     -> the authoritative record (token + owner +
+ *     channel) — the strongly-consistent ownership gate
+ *   - DeleteItemCommand(deviceId)  -> recorded in `deletes` (dead-token cleanup)
+ *
+ * `owners` optionally OVERRIDES the owning profileId returned by GetItem for a
+ * given deviceId, to simulate a device that the GSI still lists under the old
+ * profile but that has been re-homed (the immediate-switch race).
+ */
+const devicesFor = (
   byProfile: Record<string, Device[]>,
-): { client: CustomerProfilesClient; deletes: string[] } => {
+  owners: Record<string, string> = {},
+): { client: DynamoDBClient; deletes: string[] } => {
   const deletes: string[] = [];
+  const recordById = new Map<
+    string,
+    { profileId: string; token: string; channel?: string }
+  >();
+  const idsByProfile: Record<string, string[]> = {};
+  for (const [profileId, devices] of Object.entries(byProfile)) {
+    idsByProfile[profileId] = idsByProfile[profileId] ?? [];
+    for (const d of devices) {
+      recordById.set(d.key, {
+        profileId: owners[d.key] ?? profileId,
+        token: d.token,
+        channel: d.channel,
+      });
+      idsByProfile[profileId].push(d.key);
+    }
+  }
   const client = {
-    send: (command: {
-      constructor: { name: string };
-      input: unknown;
-    }): Promise<unknown> => {
+    send: (command: CommandLike): Promise<unknown> => {
       const name = command.constructor.name;
-      if (name === 'ListProfileObjectsCommand') {
-        const input = command.input as ListProfileObjectsCommandInput;
-        const devices = byProfile[input.ProfileId ?? ''] ?? [];
+      if (name === 'QueryCommand') {
+        const profileId = command.input.ExpressionAttributeValues[':profileId']
+          .S as string;
+        const ids = idsByProfile[profileId] ?? [];
         return Promise.resolve({
-          Items: devices.map((d) => ({
-            ProfileObjectUniqueKey: d.key,
-            Object: JSON.stringify({
-              deviceToken: d.token,
-              channelType: d.channel,
-              deviceId: d.key,
-            }),
-          })),
+          Items: ids.map((id) => ({ deviceId: { S: id } })),
         });
       }
-      if (name === 'DeleteProfileObjectCommand') {
-        const input = command.input as DeleteProfileObjectCommandInput;
-        deletes.push(input.ProfileObjectUniqueKey ?? '');
+      if (name === 'GetItemCommand') {
+        const deviceId = command.input.Key.deviceId.S as string;
+        const rec = recordById.get(deviceId);
+        if (!rec) {
+          return Promise.resolve({});
+        }
+        const item: Record<string, { S: string }> = {
+          deviceId: { S: deviceId },
+          token: { S: rec.token },
+          profileId: { S: rec.profileId },
+        };
+        if (rec.channel !== undefined) {
+          item.channelType = { S: rec.channel };
+        }
+        return Promise.resolve({ Item: item });
+      }
+      if (name === 'DeleteItemCommand') {
+        deletes.push(command.input.Key.deviceId.S as string);
         return Promise.resolve({});
       }
       return Promise.reject(new Error(`unexpected ${name}`));
     },
-  } as unknown as CustomerProfilesClient;
+  } as unknown as DynamoDBClient;
   return { client, deletes };
 };
 
@@ -104,19 +142,17 @@ const pinpointFor = (
     },
   }) as unknown as PinpointClient;
 
-const deps = (
-  profiles: CustomerProfilesClient,
-  pinpoint: PinpointClient,
-): DeliveryDeps => ({
-  profiles,
+const deps = (ddb: DynamoDBClient, pinpoint: PinpointClient): DeliveryDeps => ({
+  ddb,
   pinpoint,
-  domainName: 'Domain',
+  tableName: 'Devices',
+  indexName: 'profileId-index',
   applicationId: 'app-123',
 });
 
 void describe('deliverToProfile — status derivation', () => {
   void it('delivered when >= 1 device is delivered to', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [
         { key: 'k1', token: 't1', channel: 'APNS' },
         { key: 'k2', token: 't2', channel: 'FCM' },
@@ -136,7 +172,7 @@ void describe('deliverToProfile — status derivation', () => {
   });
 
   void it('skipped with reason no_devices when the profile has no devices', async () => {
-    const { client } = profilesFor({ p1: [] });
+    const { client } = devicesFor({ p1: [] });
     const res = await deliverToProfile(
       deps(client, pinpointFor({})),
       { profileId: 'p1' },
@@ -150,7 +186,7 @@ void describe('deliverToProfile — status derivation', () => {
   });
 
   void it('failed when every delivery attempt errored', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [
         { key: 'k1', token: 't1', channel: 'APNS' },
         { key: 'k2', token: 't2', channel: 'FCM' },
@@ -170,7 +206,7 @@ void describe('deliverToProfile — status derivation', () => {
   });
 
   void it('a device with an unsupported / missing channel is a failed attempt (no send)', async () => {
-    const { client, deletes } = profilesFor({
+    const { client, deletes } = devicesFor({
       p1: [
         { key: 'k1', token: 't1', channel: 'IN_APP' },
         { key: 'k2', token: 't2' },
@@ -189,7 +225,7 @@ void describe('deliverToProfile — status derivation', () => {
 
 void describe('deliverToProfile — retryable classification', () => {
   void it('classifies a THROTTLED delivery as retryable', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
     });
     const res = await deliverToProfile(
@@ -203,7 +239,7 @@ void describe('deliverToProfile — retryable classification', () => {
   });
 
   void it('classifies a thrown ResourceNotFoundException as NOT retryable (errorCode passes through the SDK name)', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
     });
     const res = await deliverToProfile(
@@ -220,7 +256,7 @@ void describe('deliverToProfile — retryable classification', () => {
   });
 
   void it('classifies a thrown ThrottlingException as retryable', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
     });
     const res = await deliverToProfile(
@@ -235,7 +271,7 @@ void describe('deliverToProfile — retryable classification', () => {
 
 void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
   void it('deletes the device object on an invalid-token PERMANENT_FAILURE', async () => {
-    const { client, deletes } = profilesFor({
+    const { client, deletes } = devicesFor({
       p1: [
         { key: 'good', token: 't-good', channel: 'APNS' },
         { key: 'dead', token: 't-dead', channel: 'APNS' },
@@ -255,7 +291,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
   });
 
   void it('does NOT delete on a channel-misconfig PERMANENT_FAILURE (conservative cleanup keeps the token)', async () => {
-    const { client, deletes } = profilesFor({
+    const { client, deletes } = devicesFor({
       p1: [{ key: 'kept', token: 't-kept', channel: 'GCM' }],
     });
     const pinpoint = pinpointFor({
@@ -274,9 +310,82 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
   });
 });
 
+void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
+  void it('SKIPS a device the GSI still lists under this profile but whose authoritative owner is another profile (immediate-switch race)', async () => {
+    // deviceId 'd' is listed under profile A by the (eventually-consistent) GSI,
+    // but the strongly-consistent point read says it is now owned by B.
+    const { client, deletes } = devicesFor(
+      { A: [{ key: 'd', token: 't-d', channel: 'APNS' }] },
+      { d: 'B' },
+    );
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({ 't-d': 'SUCCESSFUL' })),
+      { profileId: 'A' },
+      MESSAGE,
+    );
+    // No owned device delivered → skipped/no_devices, and NOTHING was sent to
+    // the device now held by B.
+    assert.strictEqual(res.status, 'skipped');
+    assert.strictEqual(res.reason, 'no_devices');
+    assert.deepStrictEqual(deletes, []);
+  });
+
+  void it('delivers to the NEW owner after a re-home', async () => {
+    const { client } = devicesFor({
+      B: [{ key: 'd', token: 't-d', channel: 'APNS' }],
+    });
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({ 't-d': 'SUCCESSFUL' })),
+      { profileId: 'B' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'delivered');
+  });
+
+  void it('SKIPS a device that no longer exists in the table (GetItem miss)', async () => {
+    // GSI lists 'ghost' under p1, but the point read returns no item.
+    const client = {
+      send: (command: CommandLike): Promise<unknown> => {
+        if (command.constructor.name === 'QueryCommand') {
+          return Promise.resolve({ Items: [{ deviceId: { S: 'ghost' } }] });
+        }
+        if (command.constructor.name === 'GetItemCommand') {
+          return Promise.resolve({});
+        }
+        return Promise.reject(new Error('unexpected'));
+      },
+    } as unknown as DynamoDBClient;
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({})),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'skipped');
+  });
+
+  void it('isolates other devices: only the re-homed deviceId is skipped, siblings still deliver', async () => {
+    const { client } = devicesFor(
+      {
+        A: [
+          { key: 'shared', token: 't-shared', channel: 'APNS' },
+          { key: 'onlyA', token: 't-onlyA', channel: 'APNS' },
+        ],
+      },
+      { shared: 'B' },
+    );
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({ 't-onlyA': 'SUCCESSFUL' })),
+      { profileId: 'A' },
+      MESSAGE,
+    );
+    // 'shared' was re-homed to B and skipped; 'onlyA' still delivers.
+    assert.strictEqual(res.status, 'delivered');
+  });
+});
+
 void describe('deliverToTargets', () => {
   void it('returns one ProfileOutcome per target with independent statuses', async () => {
-    const { client } = profilesFor({
+    const { client } = devicesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
       p2: [{ key: 'k2', token: 't2', channel: 'FCM' }],
       p3: [],
@@ -300,20 +409,20 @@ void describe('deliverToTargets', () => {
   });
 
   void it('catches a per-profile error and records a retryable failure (batch never throws)', async () => {
-    const throwingProfiles = {
-      send: (command: {
-        constructor: { name: string };
-        input: ListProfileObjectsCommandInput;
-      }): Promise<unknown> => {
-        if (command.input.ProfileId === 'boom') {
+    const throwingDdb = {
+      send: (command: CommandLike): Promise<unknown> => {
+        if (
+          command.constructor.name === 'QueryCommand' &&
+          command.input.ExpressionAttributeValues[':profileId'].S === 'boom'
+        ) {
           return Promise.reject(new Error('kaboom'));
         }
         return Promise.resolve({ Items: [] });
       },
-    } as unknown as CustomerProfilesClient;
+    } as unknown as DynamoDBClient;
 
     const outcomes = await deliverToTargets(
-      deps(throwingProfiles, pinpointFor({})),
+      deps(throwingDdb, pinpointFor({})),
       {
         targets: [{ profileId: 'boom' }, { profileId: 'ok' }],
         message: MESSAGE,
@@ -409,7 +518,7 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
   };
 
   void it('(default) sends the safe DEFAULT copy in the SendMessages payload for every device', async () => {
-    const { client: profiles } = profilesFor({
+    const { client: profiles } = devicesFor({
       eb155c66aae14a10b775437c40a4e44d: [
         { key: 'k1', token: 'apns-tok', channel: 'APNS' },
         { key: 'k2', token: 'gcm-tok', channel: 'FCM' },
@@ -442,7 +551,7 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
   });
 
   void it('(default) sends the DEFAULT independently to every profile in a batch', async () => {
-    const { client: profiles } = profilesFor({
+    const { client: profiles } = devicesFor({
       p1: [{ key: 'k1', token: 't1', channel: 'APNS' }],
       p2: [{ key: 'k2', token: 't2', channel: 'APNS' }],
     });
@@ -505,7 +614,7 @@ const templateQConnect = (): QConnectClient =>
 
 void describe('deliverToTargets — Q Connect template copy wins and is per-platform', () => {
   void it('routes the RENDERED per-profile APNS/GCM copy into the SendMessages payload', async () => {
-    const { client: profiles } = profilesFor({
+    const { client: profiles } = devicesFor({
       p1: [
         { key: 'k1', token: 'apns-tok', channel: 'APNS' },
         { key: 'k2', token: 'gcm-tok', channel: 'FCM' },
@@ -547,7 +656,7 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
   });
 
   void it('sends the DEFAULT copy when the template render yields no push content', async () => {
-    const { client: profiles } = profilesFor({
+    const { client: profiles } = devicesFor({
       p1: [{ key: 'k1', token: 'apns-tok', channel: 'APNS' }],
     });
     const { client: pinpoint, sent } = recordingPinpoint();
@@ -582,7 +691,7 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
   });
 
   void it('sends the DEFAULT (never a leaked placeholder) when render leaves an unresolved {{...}}', async () => {
-    const { client: profiles } = profilesFor({
+    const { client: profiles } = devicesFor({
       // Profile with NO firstName -> template leaves {{Attributes.firstName}}
       // literal -> placeholder guard rejects -> DEFAULT.
       noFirstName: [{ key: 'k1', token: 'apns-tok', channel: 'APNS' }],

@@ -37,6 +37,7 @@
     "@aws-sdk/client-connect": "^3.1079.0",
     "@aws-sdk/client-connectcampaignsv2": "^3.1079.0",
     "@aws-sdk/client-customer-profiles": "^3.936.0",
+    "@aws-sdk/client-dynamodb": "^3.936.0",
     "@aws-sdk/client-iam": "^3.936.0",
     "@aws-sdk/client-pinpoint": "^3.936.0",
     "@aws-sdk/client-qconnect": "^3.1079.0",

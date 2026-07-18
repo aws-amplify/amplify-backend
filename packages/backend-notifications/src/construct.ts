@@ -7,11 +7,13 @@ import {
   CfnOutput,
   CustomResource,
   Duration,
+  RemovalPolicy,
   Stack,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import {
   CfnDomain,
@@ -41,13 +43,13 @@ import {
   CONNECT_CAMPAIGNS_SERVICE_NAME,
   CONNECT_INVOKE_SERVICE_PRINCIPALS,
   DEFAULT_EXPIRATION_DAYS,
+  DEVICES_TABLE_GSI_PROFILE_ID,
+  ENV_DEVICES_TABLE_NAME,
   ENV_DOMAIN_NAME,
   ENV_EUM_APPLICATION_ID,
   GUEST_EXPIRATION_DAYS,
 } from './constants.js';
 import {
-  AMPLIFY_DEVICE_FIELDS,
-  AMPLIFY_DEVICE_KEYS,
   AMPLIFY_GUEST_PROFILE_FIELDS,
   AMPLIFY_GUEST_PROFILE_KEYS,
   AMPLIFY_PROFILE_FIELDS,
@@ -85,8 +87,11 @@ export type NotificationsResources = {
   profileObjectType: CfnObjectType;
   /** The AmplifyGuestProfile object type registered on the domain. */
   guestProfileObjectType: CfnObjectType;
-  /** The AmplifyDevice object type registered on the domain. */
-  deviceObjectType: CfnObjectType;
+  /**
+   * The DynamoDB Devices table — the authoritative, strongly-consistent device
+   * store (PK = deviceId, GSI on profileId, native TTL on `ttl`).
+   */
+  devicesTable: dynamodb.ITable;
   /**
    * The push-delivery Lambda function, wired as the target of a Connect Journey
    * Custom-action (Invoke Lambda).
@@ -453,15 +458,34 @@ export class AmplifyNotifications
       expirationDays,
     });
 
-    const deviceType = new CfnObjectType(this, 'AmplifyDeviceType', {
-      domainName,
-      objectTypeName: OBJECT_TYPE_NAMES.device,
-      description:
-        'Amplify identifyUser device (unique per stable deviceId; token is a mutable field; resolves to profile by cognitoUserKey)',
-      allowProfileCreation: true,
-      fields: AMPLIFY_DEVICE_FIELDS,
-      keys: AMPLIFY_DEVICE_KEYS,
-      expirationDays,
+    // ---- Devices table (authoritative device store) -----------------------
+    // DynamoDB is the SINGLE SOURCE OF TRUTH for device ownership: PK = the
+    // stable per-install deviceId, so a physical device lives on exactly one
+    // profile at any instant. Register/re-home is a strongly-consistent
+    // last-writer-wins UpdateItem on the PK (overwriting IS the eviction), and
+    // delivery gates on a strongly-consistent point read of the same PK — no
+    // eventual-consistency window in the correctness path. The GSI on profileId
+    // is enumeration-only (eventually consistent). Native TTL on `ttl` reaps
+    // stale device records without a reaper Lambda.
+    const devicesTable = new dynamodb.Table(this, 'DevicesTable', {
+      partitionKey: {
+        name: 'deviceId',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: 'ttl',
+      pointInTimeRecovery: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+    devicesTable.addGlobalSecondaryIndex({
+      indexName: DEVICES_TABLE_GSI_PROFILE_ID,
+      partitionKey: {
+        name: 'profileId',
+        type: dynamodb.AttributeType.STRING,
+      },
+      // Only the base-table key (deviceId) is needed from the GSI; the
+      // authoritative record is then point-read on the PK.
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
 
     // A distinct object type for GUEST profiles. Customer
@@ -488,7 +512,6 @@ export class AmplifyNotifications
 
     if (profilesDomain) {
       profileType.addDependency(profilesDomain);
-      deviceType.addDependency(profilesDomain);
       guestProfileType.addDependency(profilesDomain);
     }
 
@@ -522,6 +545,7 @@ export class AmplifyNotifications
       memorySize: 256,
       environment: {
         [ENV_DOMAIN_NAME]: domainName,
+        [ENV_DEVICES_TABLE_NAME]: devicesTable.tableName,
       },
     });
 
@@ -548,19 +572,27 @@ export class AmplifyNotifications
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
-          // PutProfileObject find-or-create (AmplifyProfile) + read-back.
+          // PutProfileObject find-or-create (AmplifyProfile).
           'profile:PutProfileObject',
           'profile:SearchProfiles',
-          // Read back the existing device object to preserve immutable createdAt,
-          // and (on the authed path) find the device across profiles to evict it.
-          'profile:ListProfileObjects',
-          // Set targeting / person attributes on the resolved profile.
+          // Set targeting / person attributes (incl. hasAPNS/hasGCM/platform)
+          // on the resolved profile.
           'profile:UpdateProfile',
-          // Cross-profile eviction: delete the device object off stale profiles
-          // when it re-registers on the authed profile at sign-in.
-          'profile:DeleteProfileObject',
         ],
         resources: [domainArn, objectTypesArn],
+      }),
+    );
+    // Device ownership is authoritative in DynamoDB: register/re-home is a
+    // strongly-consistent last-writer-wins UpdateItem on the deviceId PK.
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'dynamodb:UpdateItem',
+          'dynamodb:GetItem',
+          'dynamodb:PutItem',
+        ],
+        resources: [devicesTable.tableArn],
       }),
     );
 
@@ -707,23 +739,28 @@ export class AmplifyNotifications
       timeout: Duration.seconds(30),
       memorySize: 256,
       environment: {
-        [ENV_DOMAIN_NAME]: domainName,
+        [ENV_DEVICES_TABLE_NAME]: devicesTable.tableName,
         [ENV_EUM_APPLICATION_ID]: eumApplicationId,
       },
     });
 
-    // Least-privilege: read + delete device objects on THIS domain only, and
-    // SendMessages scoped to THIS EUM application.
+    // Least-privilege device access on the authoritative DynamoDB Devices
+    // table: enumerate a profile's devices via the GSI, gate ownership with a
+    // strongly-consistent point read on the PK, and delete a dead-token record.
     pushFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: [
-          // Resolve a profile's registered devices (tokens + channels).
-          'profile:ListProfileObjects',
-          // Stale-token cleanup: delete a device whose token is dead.
-          'profile:DeleteProfileObject',
+        actions: ['dynamodb:Query'],
+        resources: [
+          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PROFILE_ID}`,
         ],
-        resources: [domainArn, objectTypesArn],
+      }),
+    );
+    pushFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['dynamodb:GetItem', 'dynamodb:DeleteItem'],
+        resources: [devicesTable.tableArn],
       }),
     );
 
@@ -901,7 +938,7 @@ export class AmplifyNotifications
       httpApi,
       profileObjectType: profileType,
       guestProfileObjectType: guestProfileType,
-      deviceObjectType: deviceType,
+      devicesTable,
       pushFunction: pushFn,
       pushApplication,
       apnsChannel,

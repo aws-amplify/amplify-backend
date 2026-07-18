@@ -21,14 +21,10 @@ export const OBJECT_TYPE_PROFILE = 'AmplifyProfile';
  */
 export const OBJECT_TYPE_GUEST_PROFILE = 'AmplifyGuestProfile';
 
-/** Device object type. One object per stable deviceId; token is a field. */
-export const OBJECT_TYPE_DEVICE = 'AmplifyDevice';
-
 /**
  * Searchable profile key that binds a profile to a verified Cognito subject.
  * Profiles are looked up by THIS key (SearchProfiles), never by the Attributes
- * map. The same key name is used as the PROFILE-resolution key on the device
- * object type so device objects merge into the correct profile.
+ * map.
  */
 export const COGNITO_USER_KEY = 'cognitoUserKey';
 
@@ -40,10 +36,10 @@ export const COGNITO_USER_KEY = 'cognitoUserKey';
  * device object type so a guest's device objects resolve to the guest profile.
  *
  * Guest and authenticated profiles are kept COMPLETELY SEPARATE: there is NO
- * profile merge. Push continuity across sign-in is preserved by re-registering
- * the device on the authenticated profile and evicting the same `deviceId` from
- * every other profile (see device_evictor); guest profiles are reaped by their
- * own TTL (see {@link GUEST_EXPIRATION_DAYS}).
+ * profile merge. Push continuity across sign-in is preserved by re-homing the
+ * device to the authenticated profile in the DynamoDB Devices table (a
+ * strongly-consistent last-writer-wins UpdateItem on the stable `deviceId`);
+ * guest profiles are reaped by their own TTL (see {@link GUEST_EXPIRATION_DAYS}).
  */
 export const COGNITO_IDENTITY_KEY = 'cognitoIdentityKey';
 
@@ -51,26 +47,33 @@ export const COGNITO_IDENTITY_FIELD = 'cognitoIdentityId';
 
 export const COGNITO_SUB_FIELD = 'cognitoSub';
 
-/**
- * Searchable SECONDARY key on the device object type. Maps the stable
- * `deviceId` so `SearchProfiles(KeyName=deviceSearchKey, Values=[deviceId])`
- * returns EVERY profile currently carrying that device. Used at authenticated
- * sign-in to evict the device from stale profiles (see device_evictor).
- *
- * SECONDARY (not PROFILE): the key value IS stored/associated with the profile
- * so it is searchable, but it is only consulted as a FALLBACK during ingestion
- * matching. Because a device object is always ingested with a verified identity
- * field whose PROFILE key (cognitoUserKey / cognitoIdentityKey) resolves the
- * pre-created profile first, the SECONDARY deviceId key never drives matching
- * and so can never merge two identities' profiles. A plain LOOKUP_ONLY key is
- * NOT searchable (its value is not stored), which is why SECONDARY is used.
- */
-export const DEVICE_SEARCH_KEY = 'deviceSearchKey';
-
 /** Max length of a Customer Profiles attribute value (single string). */
 export const MAX_ATTRIBUTE_LENGTH = 255;
 
 export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
+
+/**
+ * Environment variable carrying the name of the DynamoDB Devices table — the
+ * AUTHORITATIVE, strongly-consistent device store. Threaded to BOTH the
+ * identify Lambda (last-writer-wins owner UpdateItem) and the push Lambda
+ * (GSI enumeration + point-read ownership gate + dead-token cleanup).
+ */
+export const ENV_DEVICES_TABLE_NAME = 'DEVICES_TABLE_NAME';
+
+/**
+ * Name of the global secondary index on the Devices table keyed by `profileId`,
+ * used by the push Lambda to ENUMERATE a profile's devices. The GSI is
+ * eventually consistent, so it is used only to list candidates — never as the
+ * ownership gate (that is a strongly-consistent GetItem on the `deviceId` PK).
+ */
+export const DEVICES_TABLE_GSI_PROFILE_ID = 'profileId-index';
+
+/**
+ * Device item TTL in days. A device record self-expires from the Devices table
+ * (native DynamoDB TTL on the `ttl` attribute) after this many days without a
+ * refresh, mirroring the guest-profile lifetime ({@link GUEST_EXPIRATION_DAYS}).
+ */
+export const DEVICE_TTL_DAYS = 90;
 
 /**
  * Environment variable carrying the AWS End User Messaging / Pinpoint
