@@ -1,23 +1,26 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory, defineData } from './factory.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyFunction,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendSecret,
   ConstructContainer,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
+  ResolvePathResult,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
+import { configure } from '@aws-amplify/data-schema/internals';
 import { Policy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
@@ -1494,6 +1497,76 @@ void describe('DataFactory stackMappings', () => {
     orderDefaultTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
       FieldName: 'deleteOrder',
       TypeName: 'Mutation',
+    });
+  });
+});
+
+class TestBackendSecret implements BackendSecret {
+  constructor(private readonly secretName: string) {}
+  resolve = (): SecretValue => SecretValue.unsafePlainText(this.secretName);
+  resolvePath = (): ResolvePathResult => ({
+    branchSecretPath: `/amplify/branch/${this.secretName}`,
+    sharedSecretPath: `/amplify/shared/${this.secretName}`,
+  });
+}
+
+void describe('DataFactory minimizeRdsVpcEndpoints', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
+
+  void it('synthesizes a single ssm VPC endpoint when minimizeRdsVpcEndpoints is true', () => {
+    const schema = configure({
+      database: {
+        engine: 'mysql',
+        connectionUri: new TestBackendSecret('MYSQL_CONNECTION_STRING'),
+        /* eslint-disable spellcheck/spell-checker */
+        vpcConfig: {
+          vpcId: 'vpc-a1aa11a1',
+          securityGroupIds: ['sg-11111a11'],
+          subnetAvailabilityZones: [
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1a',
+            },
+          ],
+        },
+        /* eslint-enable spellcheck/spell-checker */
+        minimizeRdsVpcEndpoints: true,
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    const sqlStack = Object.values(dataConstruct.resources.nestedStacks).find(
+      (nestedStack) => nestedStack.node.id.startsWith('SQLApiStack'),
+    );
+    assert(sqlStack, 'Expected a SQLApiStack nested stack to be created');
+
+    const template = Template.fromStack(sqlStack);
+    template.resourceCountIs('AWS::EC2::VPCEndpoint', 1);
+    template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
+      ServiceName: {
+        'Fn::Join': ['', Match.arrayWith(['.ssm'])],
+      },
     });
   });
 });
