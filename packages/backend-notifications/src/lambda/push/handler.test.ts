@@ -37,21 +37,21 @@ type CommandLike = { constructor: { name: string }; input: any };
  * deviceIds, and GetItem returns the authoritative owner record (the ownership
  * gate). Every listed device is owned by the queried profile.
  */
-const mockDevices = (byProfile: Record<string, Device[]>): void => {
+const mockDevices = (byPrincipal: Record<string, Device[]>): void => {
   const recordById = new Map<
     string,
-    { profileId: string; token: string; channel?: string }
+    { principalId: string; token: string; channel?: string }
   >();
-  const idsByProfile: Record<string, string[]> = {};
-  for (const [profileId, devices] of Object.entries(byProfile)) {
-    idsByProfile[profileId] = idsByProfile[profileId] ?? [];
+  const idsByPrincipal: Record<string, string[]> = {};
+  for (const [principalId, devices] of Object.entries(byPrincipal)) {
+    idsByPrincipal[principalId] = idsByPrincipal[principalId] ?? [];
     for (const d of devices) {
       recordById.set(d.key, {
-        profileId,
+        principalId,
         token: d.token,
         channel: d.channel,
       });
-      idsByProfile[profileId].push(d.key);
+      idsByPrincipal[principalId].push(d.key);
     }
   }
   mock.method(
@@ -60,9 +60,10 @@ const mockDevices = (byProfile: Record<string, Device[]>): void => {
     (command: CommandLike): Promise<unknown> => {
       const name = command.constructor.name;
       if (name === 'QueryCommand') {
-        const profileId = command.input.ExpressionAttributeValues[':profileId']
-          .S as string;
-        const ids = idsByProfile[profileId] ?? [];
+        const principalId = command.input.ExpressionAttributeValues[
+          ':principalId'
+        ].S as string;
+        const ids = idsByPrincipal[principalId] ?? [];
         return Promise.resolve({
           Items: ids.map((id) => ({ deviceId: { S: id } })),
         });
@@ -76,7 +77,7 @@ const mockDevices = (byProfile: Record<string, Device[]>): void => {
         const item: Record<string, { S: string }> = {
           deviceId: { S: deviceId },
           token: { S: rec.token },
-          profileId: { S: rec.profileId },
+          principalId: { S: rec.principalId },
         };
         if (rec.channel !== undefined) {
           item.channelType = { S: rec.channel };
@@ -122,7 +123,13 @@ const canonicalEvent = (
   Items: {
     CustomerProfiles: profileIds.map((id) => ({
       ProfileId: id,
-      CustomerData: JSON.stringify({ firstName: 'Ada' }),
+      // The identify Lambda mirrors principalId onto the profile, so the journey
+      // CustomerData carries attributes.principalId. Keyed here to the same id so
+      // device lookup (GSI principalId) resolves while the response echoes ProfileId.
+      CustomerData: JSON.stringify({
+        firstName: 'Ada',
+        attributes: { principalId: id },
+      }),
     })),
   },
 });
@@ -222,7 +229,7 @@ void describe('push handler', () => {
       (command: CommandLike): Promise<unknown> => {
         if (
           command.constructor.name === 'QueryCommand' &&
-          command.input.ExpressionAttributeValues[':profileId'].S === 'boom'
+          command.input.ExpressionAttributeValues[':principalId'].S === 'boom'
         ) {
           return Promise.reject(new Error('Query exploded'));
         }

@@ -7,6 +7,38 @@ import { parsePushEvent } from './event.js';
 import { DEFAULT_PUSH_BODY, DEFAULT_PUSH_TITLE } from '../../constants.js';
 import { REAL_JOURNEY_EVENT } from './fixtures/real_journey_event.js';
 
+void describe('parsePushEvent — principalId from CustomerData.attributes', () => {
+  void it('extracts principalId from CustomerData.attributes.principalId', () => {
+    const { targets } = parsePushEvent({
+      Items: {
+        CustomerProfiles: [
+          {
+            ProfileId: 'p1',
+            CustomerData: JSON.stringify({
+              firstName: 'Ada',
+              attributes: { principalId: 'us-east-1:abc-123', plan: 'premium' },
+            }),
+          },
+        ],
+      },
+    });
+    assert.strictEqual(targets[0].principalId, 'us-east-1:abc-123');
+  });
+
+  void it('leaves principalId undefined when the attribute is absent (profile skipped downstream)', () => {
+    const { targets } = parsePushEvent({
+      Items: {
+        CustomerProfiles: [
+          { ProfileId: 'p1', CustomerData: JSON.stringify({ attributes: {} }) },
+          { ProfileId: 'p2', CustomerData: '{"firstName":"NoAttrs"}' },
+        ],
+      },
+    });
+    assert.strictEqual(targets[0].principalId, undefined);
+    assert.strictEqual(targets[1].principalId, undefined);
+  });
+});
+
 void describe('parsePushEvent — canonical Items.CustomerProfiles[] targets', () => {
   void it('parses the canonical Items-as-object CustomerProfiles array', () => {
     const { targets } = parsePushEvent({

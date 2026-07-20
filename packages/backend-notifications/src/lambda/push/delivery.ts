@@ -8,7 +8,7 @@ import { deliverToDevice } from './eum_client.js';
 import {
   deleteDevice,
   getDeviceOwner,
-  queryDeviceIdsByProfile,
+  queryDeviceIdsByPrincipal,
 } from '../shared/device_store.js';
 import { normalizeChannelType } from './payload.js';
 import {
@@ -33,7 +33,7 @@ export type DeliveryDeps = {
   pinpoint: PinpointClient;
   /** Name of the DynamoDB Devices table to resolve devices from. */
   tableName: string;
-  /** Name of the GSI(profileId) used to enumerate a profile's devices. */
+  /** Name of the GSI(principalId) used to enumerate a principal's devices. */
   indexName: string;
   /** AWS End User Messaging / Pinpoint application id to send from. */
   applicationId: string;
@@ -139,12 +139,17 @@ const deriveProfileOutcome = (
  * {@link ProfileOutcome}.
  *
  * OWNERSHIP GATE: candidates are enumerated via the eventually-consistent
- * GSI(profileId), but each device is then re-read with a strongly-consistent
+ * GSI(principalId), but each device is then re-read with a strongly-consistent
  * point GetItem on its `deviceId` PK. Delivery proceeds ONLY IF the record's
- * `profileId` still equals the profile being pushed. A device that has been
- * re-homed to another profile (the immediate-switch race) reads back with a
- * different owner and is SKIPPED — so a campaign to the old profile can never
- * leak to the device now held by another user, regardless of GSI lag.
+ * `principalId` still equals the profile's owning principalId (from
+ * `CustomerData.attributes.principalId`). A device that has been re-homed to
+ * another principal (the immediate-switch race) reads back with a different
+ * owner and is SKIPPED — so a campaign to the old profile can never leak to the
+ * device now held by another user, regardless of GSI lag.
+ *
+ * If the target carries NO `principalId` (the event's CustomerData lacked the
+ * attribute), the profile is SKIPPED defensively — delivery never falls back to
+ * a broader lookup.
  *
  * A device with an unsupported / missing channel (post-normalization) is
  * recorded as a `SKIPPED` per-device failure rather than being sent. A device
@@ -164,11 +169,26 @@ export const deliverToProfile = async (
   perChannel?: Partial<Record<PushChannelType, PushMessage>>,
 ): Promise<ProfileOutcome> => {
   const { ddb, pinpoint, tableName, indexName, applicationId } = deps;
-  const candidateIds = await queryDeviceIdsByProfile(
+
+  // Defensive: without the owning principalId (from CustomerData.attributes
+  // .principalId) there is no key to enumerate devices on — skip, never widen.
+  if (!target.principalId) {
+    console.log(
+      '[push] principal.skip',
+      JSON.stringify({ reason: 'missing_principal_id' }),
+    );
+    return {
+      profileId: target.profileId,
+      status: 'skipped',
+      reason: 'missing_principal_id',
+    };
+  }
+
+  const candidateIds = await queryDeviceIdsByPrincipal(
     ddb,
     tableName,
     indexName,
-    target.profileId,
+    target.principalId,
   );
 
   const results: DeviceDeliveryResult[] = [];
@@ -176,9 +196,9 @@ export const deliverToProfile = async (
   for (const deviceId of candidateIds) {
     // Strongly-consistent ownership gate: the GSI is eventually consistent, so
     // re-read the authoritative record on the PK. Skip if the device is gone or
-    // has been re-homed to a different profile (no leak).
+    // has been re-homed to a different principal (no leak).
     const owner = await getDeviceOwner(ddb, tableName, deviceId);
-    if (!owner || owner.profileId !== target.profileId) {
+    if (!owner || owner.principalId !== target.principalId) {
       console.log(
         '[push] ownership.skip',
         JSON.stringify({ present: Boolean(owner) }),

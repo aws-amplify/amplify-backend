@@ -174,7 +174,7 @@ void describe('write handler', () => {
     assert.strictEqual(res.statusCode, 400);
   });
 
-  void it('register-device: resolves profileId then upserts device with profileId + principalId', async () => {
+  void it('register-device: pure DDB write (NO profile resolution) keyed on principalId', async () => {
     const res = await handler(
       makeEvent('/register-device', {
         device: {
@@ -187,11 +187,15 @@ void describe('write handler', () => {
       }),
     );
     assert.strictEqual(res.statusCode, 200);
+    // NO Customer Profiles calls at all — register-device is a pure DDB write.
     assert.strictEqual(
       named(profileCommands, 'PutProfileObjectCommand').length,
-      1,
+      0,
     );
-    // No UpdateProfile on register-device.
+    assert.strictEqual(
+      named(profileCommands, 'SearchProfilesCommand').length,
+      0,
+    );
     assert.strictEqual(
       named(profileCommands, 'UpdateProfileCommand').length,
       0,
@@ -200,12 +204,13 @@ void describe('write handler', () => {
     const upsert = named(ddbCommands, 'UpdateItemCommand')[0];
     assert.deepStrictEqual(upsert.input.Key, { deviceId: { S: 'dev-1' } });
     assert.strictEqual(
-      upsert.input.ExpressionAttributeValues[':profileId'].S,
-      'profile-123',
-    );
-    assert.strictEqual(
       upsert.input.ExpressionAttributeValues[':principalId'].S,
       PRINCIPAL,
+    );
+    // No profileId is written to the device record anymore.
+    assert.strictEqual(
+      upsert.input.ExpressionAttributeValues[':profileId'],
+      undefined,
     );
     assert.strictEqual(
       upsert.input.ExpressionAttributeValues[':token'].S,

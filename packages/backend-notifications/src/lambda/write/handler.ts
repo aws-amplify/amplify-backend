@@ -110,7 +110,6 @@ export const handler = async (
       case 'register-device':
         return await handleRegisterDevice(
           parsed,
-          domainName,
           devicesTableName,
           principalId,
         );
@@ -177,7 +176,6 @@ const handleIdentifyUser = async (
 
 const handleRegisterDevice = async (
   parsed: unknown,
-  domainName: string,
   devicesTableName: string,
   principalId: string,
 ): Promise<APIGatewayProxyResult> => {
@@ -187,21 +185,14 @@ const handleRegisterDevice = async (
   }
   const device = validation.value.device;
 
-  // Delivery owner = profileId (the journey event carries ProfileId, not
-  // principalId), so register must resolve principalId -> profileId.
-  const { profileId } = await resolveOrCreateProfile(
-    profiles,
-    domainName,
-    principalId,
-  );
-
-  // CRITICAL COMMIT: strongly-consistent last-writer-wins UpdateItem on the
-  // deviceId PK claims single ownership (overwriting IS the eviction). Throws
-  // on failure so the registration fails rather than leaving stale ownership.
+  // Pure DDB write: the device keys on the SigV4 principalId directly, so there
+  // is NO profile resolution and no forced profile creation. CRITICAL COMMIT:
+  // a strongly-consistent last-writer-wins UpdateItem on the deviceId PK claims
+  // single ownership (overwriting IS the eviction). Throws on failure so the
+  // registration fails rather than leaving stale ownership.
   await upsertDeviceOwner(ddb, devicesTableName, {
     deviceId: device.deviceId,
     token: device.token,
-    profileId,
     principalId,
     channelType: device.channelType,
     platform: device.platform,

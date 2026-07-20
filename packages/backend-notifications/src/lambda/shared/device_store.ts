@@ -26,7 +26,7 @@ import { withTransientRetry } from './retry.js';
  * The authoritative device record stored in the DynamoDB Devices table.
  *
  * The table is the SINGLE SOURCE OF TRUTH for device ownership: PK = the stable
- * per-install `deviceId`, so a device physically lives on exactly one profile
+ * per-install `deviceId`, so a device physically lives on exactly one principal
  * at any instant. Ownership changes are strongly-consistent last-writer-wins
  * UpdateItems on that PK (register/re-home), and delivery gates on a
  * strongly-consistent point read of the same PK — so there is no
@@ -37,14 +37,12 @@ export type DeviceRecord = {
   deviceId: string;
   /** The mutable push token / endpoint address. */
   token: string;
-  /** The profile that currently OWNS this device (delivery owner / GSI key). */
-  profileId: string;
   /**
-   * The verified caller `principalId` that currently owns this device. Stored
-   * so client-initiated ops (register / remove-device) can gate ownership
-   * directly without re-resolving a profile. Delivery still keys on profileId.
+   * The verified caller `principalId` that OWNS this device (delivery owner /
+   * GSI key). Client ops (register / remove-device) gate ownership directly on
+   * it, and delivery enumerates + gates on it — no profile resolution anywhere.
    */
-  principalId?: string;
+  principalId: string;
   /** The stored channel identifier (raw, pre-normalization). */
   channelType?: string;
 };
@@ -56,9 +54,10 @@ const ttlFromNow = (nowMs: number): number =>
   Math.floor(nowMs / 1000) + DEVICE_TTL_DAYS * SECONDS_PER_DAY;
 
 /**
- * Register (or RE-HOME) a device to `profileId` via a strongly-consistent,
+ * Register (or RE-HOME) a device to `principalId` via a strongly-consistent,
  * atomic last-writer-wins UpdateItem on the `deviceId` PK. Overwriting the item
- * IS the eviction — no cross-profile search, no read-before-write.
+ * IS the eviction — no cross-owner search, no read-before-write, and NO profile
+ * resolution (the device keys on the SigV4 `principalId` directly).
  *
  * `createdAt` is preserved across writes with `if_not_exists`; `updatedAt` and
  * `ttl` are refreshed on every write. Optional `platform` / `appVersion` are set
@@ -74,7 +73,6 @@ export const upsertDeviceOwner = async (
   record: {
     deviceId: string;
     token: string;
-    profileId: string;
     principalId: string;
     channelType?: string;
     platform?: string;
@@ -86,7 +84,6 @@ export const upsertDeviceOwner = async (
 
   const setClauses = [
     '#token = :token',
-    'profileId = :profileId',
     'principalId = :principalId',
     'updatedAt = :now',
     '#ttl = :ttl',
@@ -98,7 +95,6 @@ export const upsertDeviceOwner = async (
   };
   const values: Record<string, { S: string } | { N: string }> = {
     ':token': { S: record.token },
-    ':profileId': { S: record.profileId },
     ':principalId': { S: record.principalId },
     ':now': { S: nowIso },
     ':ttl': { N: String(ttlFromNow(now)) },
@@ -130,17 +126,17 @@ export const upsertDeviceOwner = async (
 };
 
 /**
- * Enumerate the CANDIDATE devices for a profile via the eventually-consistent
- * GSI(profileId). Returns only the `deviceId`s — the authoritative token /
+ * Enumerate the CANDIDATE devices for a principal via the eventually-consistent
+ * GSI(principalId). Returns only the `deviceId`s — the authoritative token /
  * owner / channel are read per-device by {@link getDeviceOwner} under the
  * strongly-consistent ownership gate, so a stale GSI entry can never cause a
  * wrong delivery.
  */
-export const queryDeviceIdsByProfile = async (
+export const queryDeviceIdsByPrincipal = async (
   ddb: DynamoDBClient,
   tableName: string,
   indexName: string,
-  profileId: string,
+  principalId: string,
 ): Promise<string[]> => {
   const deviceIds: string[] = [];
   let exclusiveStartKey: Record<string, { S: string }> | undefined;
@@ -151,8 +147,8 @@ export const queryDeviceIdsByProfile = async (
         new QueryCommand({
           TableName: tableName,
           IndexName: indexName,
-          KeyConditionExpression: 'profileId = :profileId',
-          ExpressionAttributeValues: { ':profileId': { S: profileId } },
+          KeyConditionExpression: 'principalId = :principalId',
+          ExpressionAttributeValues: { ':principalId': { S: principalId } },
           ProjectionExpression: 'deviceId',
           ExclusiveStartKey: exclusiveStartKey,
         }),
@@ -178,8 +174,9 @@ export const queryDeviceIdsByProfile = async (
 
 /**
  * Strongly-consistent point read of a device by its PK — the OWNERSHIP GATE.
- * Returns the authoritative current record (token + owning profileId + channel)
- * or `undefined` when the device no longer exists. Wrapped in transient retry.
+ * Returns the authoritative current record (token + owning principalId +
+ * channel) or `undefined` when the device no longer exists. Wrapped in transient
+ * retry.
  */
 export const getDeviceOwner = async (
   ddb: DynamoDBClient,
@@ -200,15 +197,14 @@ export const getDeviceOwner = async (
     return undefined;
   }
   const token = item.token?.S;
-  const profileId = item.profileId?.S;
-  if (!token || !profileId) {
+  const principalId = item.principalId?.S;
+  if (!token || !principalId) {
     return undefined;
   }
   return {
     deviceId,
     token,
-    profileId,
-    principalId: item.principalId?.S,
+    principalId,
     channelType: item.channelType?.S,
   };
 };

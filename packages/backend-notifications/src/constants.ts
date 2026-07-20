@@ -40,12 +40,12 @@ export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
 export const ENV_DEVICES_TABLE_NAME = 'DEVICES_TABLE_NAME';
 
 /**
- * Name of the global secondary index on the Devices table keyed by `profileId`,
- * used by the push Lambda to ENUMERATE a profile's devices. The GSI is
- * eventually consistent, so it is used only to list candidates — never as the
- * ownership gate (that is a strongly-consistent GetItem on the `deviceId` PK).
+ * Name of the global secondary index on the Devices table keyed by
+ * `principalId`, used by the push Lambda to ENUMERATE a principal's devices. The
+ * GSI is eventually consistent, so it is used only to list candidates — never as
+ * the ownership gate (that is a strongly-consistent GetItem on the `deviceId` PK).
  */
-export const DEVICES_TABLE_GSI_PROFILE_ID = 'profileId-index';
+export const DEVICES_TABLE_GSI_PRINCIPAL_ID = 'principalId-index';
 
 /**
  * Device item TTL in days. A device record self-expires from the Devices table

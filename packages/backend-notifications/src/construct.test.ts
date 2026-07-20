@@ -82,7 +82,7 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     });
   });
 
-  void it('creates the DynamoDB Devices table (PK deviceId, GSI on profileId, native TTL)', () => {
+  void it('creates the DynamoDB Devices table (PK deviceId, GSI on principalId, native TTL)', () => {
     const { template } = synth();
     template.resourceCountIs('AWS::DynamoDB::Table', 1);
     template.hasResourceProperties('AWS::DynamoDB::Table', {
@@ -90,8 +90,8 @@ void describe('AmplifyNotifications construct — domain attach', () => {
       TimeToLiveSpecification: { AttributeName: 'ttl', Enabled: true },
       GlobalSecondaryIndexes: Match.arrayWith([
         Match.objectLike({
-          IndexName: 'profileId-index',
-          KeySchema: [{ AttributeName: 'profileId', KeyType: 'HASH' }],
+          IndexName: 'principalId-index',
+          KeySchema: [{ AttributeName: 'principalId', KeyType: 'HASH' }],
         }),
       ]),
     });
@@ -161,8 +161,8 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     // Never PutItem (register/re-home is an UpdateItem LWW claim).
     const json = JSON.stringify(template.toJSON());
     assert.ok(!json.includes('dynamodb:PutItem'));
-    // Scoped to the devices table AND its profileId GSI (Query needs the index).
-    assert.ok(json.includes('index/profileId-index'));
+    // Scoped to the devices table AND its principalId GSI (Query needs the index).
+    assert.ok(json.includes('index/principalId-index'));
   });
 
   void it('does NOT grant profile:MergeProfiles (merge attack vector removed)', () => {

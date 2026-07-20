@@ -50,6 +50,26 @@ const asString = (v: unknown): string | undefined =>
   typeof v === 'string' && v.length > 0 ? v : undefined;
 
 /**
+ * Read the owning `principalId` from a parsed `CustomerData` bag at
+ * `attributes.principalId` — the profile key attribute the identify Lambda
+ * mirrors onto the Customer Profile (object-type field
+ * `_profile.Attributes.principalId`). This is what lets the delivery path
+ * resolve devices via the DDB GSI(principalId) with NO Customer Profiles call.
+ */
+const extractPrincipalId = (
+  customerData: Record<string, unknown> | undefined,
+): string | undefined => {
+  if (!customerData) {
+    return undefined;
+  }
+  const attributes = customerData.attributes;
+  if (!isRecord(attributes)) {
+    return undefined;
+  }
+  return asString(attributes.principalId);
+};
+
+/**
  * Extract profile targets from the canonical `Items.CustomerProfiles[]` array.
  * Each entry contributes its `ProfileId`, parsed `CustomerData`, and
  * `IdempotencyToken`; entries without a usable `ProfileId` are skipped.
@@ -69,9 +89,13 @@ const extractTargets = (root: Record<string, unknown>): ProfileTarget[] => {
         continue;
       }
       const idempotencyToken = asString(entry.IdempotencyToken);
+      const customerData = coerceCustomerData(entry.CustomerData);
       targets.push({
         profileId,
-        customerData: coerceCustomerData(entry.CustomerData),
+        ...(extractPrincipalId(customerData)
+          ? { principalId: extractPrincipalId(customerData) }
+          : {}),
+        customerData,
         ...(idempotencyToken ? { idempotencyToken } : {}),
       });
     }

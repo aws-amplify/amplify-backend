@@ -8,7 +8,7 @@ import { ConnectClient } from '@aws-sdk/client-connect';
 import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import {
-  DEVICES_TABLE_GSI_PROFILE_ID,
+  DEVICES_TABLE_GSI_PRINCIPAL_ID,
   ENV_DEVICES_TABLE_NAME,
   ENV_EUM_APPLICATION_ID,
 } from '../../constants.js';
@@ -105,7 +105,7 @@ export const handler = async (
       ddb,
       pinpoint,
       tableName,
-      indexName: DEVICES_TABLE_GSI_PROFILE_ID,
+      indexName: DEVICES_TABLE_GSI_PRINCIPAL_ID,
       applicationId,
       templateContext,
     },

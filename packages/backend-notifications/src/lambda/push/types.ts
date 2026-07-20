@@ -32,15 +32,23 @@ export type PushMessage = {
  * `ProfileId` plus a bag of profile fields / attributes (`CustomerData`).
  */
 export type ProfileTarget = {
-  /** The Customer Profiles ProfileId to deliver to. */
+  /** The Customer Profiles ProfileId to deliver to (echoed as the response Id). */
   profileId: string;
+  /**
+   * The verified `principalId` that owns this profile's devices, read from
+   * `CustomerData.attributes.principalId` (the mapped profile key attribute).
+   * Delivery enumerates the DDB device GSI(principalId) and gates on it, so the
+   * push path needs NO Customer Profiles call. `undefined` when the event's
+   * CustomerData lacks the attribute (that profile is then skipped defensively).
+   */
+  principalId?: string;
   /**
    * The profile's standard fields + Attributes as delivered by Connect
    * (camelCase: `firstName`, `attributes.*`, ...). Passed as flat
    * `customAttributes` to personalize the rendered Q Connect PUSH template (see
    * `renderProfileChannelMessages`); real journeys carry NO message copy here.
    * Device tokens are always resolved authoritatively via the DynamoDB device
-   * store (GSI enumeration + strongly-consistent point-read gate on profileId),
+   * store (GSI enumeration + strongly-consistent point-read gate on principalId),
    * never from here.
    */
   customerData?: Record<string, unknown>;

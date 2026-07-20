@@ -30,19 +30,19 @@ type Device = { key: string; token: string; channel?: string };
 type CommandLike = { constructor: { name: string }; input: any };
 
 /**
- * Fake DynamoDB Devices table. `byProfile` maps each profileId to its owned
+ * Fake DynamoDB Devices table. `byPrincipal` maps each principalId to its owned
  * devices (`key` = the deviceId PK). It answers:
- *   - QueryCommand(GSI profileId)  -> the profile's candidate deviceIds
- *   - GetItemCommand(deviceId)     -> the authoritative record (token + owner +
+ *   - QueryCommand(GSI principalId) -> the principal's candidate deviceIds
+ *   - GetItemCommand(deviceId)      -> the authoritative record (token + owner +
  *     channel) — the strongly-consistent ownership gate
- *   - DeleteItemCommand(deviceId)  -> recorded in `deletes` (dead-token cleanup)
+ *   - DeleteItemCommand(deviceId)   -> recorded in `deletes` (dead-token cleanup)
  *
- * `owners` optionally OVERRIDES the owning profileId returned by GetItem for a
+ * `owners` optionally OVERRIDES the owning principalId returned by GetItem for a
  * given deviceId, to simulate a device that the GSI still lists under the old
- * profile but that has been re-homed (the immediate-switch race).
+ * principal but that has been re-homed (the immediate-switch race).
  */
 const devicesFor = (
-  byProfile: Record<string, Device[]>,
+  byPrincipal: Record<string, Device[]>,
   owners: Record<string, string> = {},
 ): {
   client: DynamoDBClient;
@@ -53,27 +53,28 @@ const devicesFor = (
   const deleteCommands: any[] = [];
   const recordById = new Map<
     string,
-    { profileId: string; token: string; channel?: string }
+    { principalId: string; token: string; channel?: string }
   >();
-  const idsByProfile: Record<string, string[]> = {};
-  for (const [profileId, devices] of Object.entries(byProfile)) {
-    idsByProfile[profileId] = idsByProfile[profileId] ?? [];
+  const idsByPrincipal: Record<string, string[]> = {};
+  for (const [principalId, devices] of Object.entries(byPrincipal)) {
+    idsByPrincipal[principalId] = idsByPrincipal[principalId] ?? [];
     for (const d of devices) {
       recordById.set(d.key, {
-        profileId: owners[d.key] ?? profileId,
+        principalId: owners[d.key] ?? principalId,
         token: d.token,
         channel: d.channel,
       });
-      idsByProfile[profileId].push(d.key);
+      idsByPrincipal[principalId].push(d.key);
     }
   }
   const client = {
     send: (command: CommandLike): Promise<unknown> => {
       const name = command.constructor.name;
       if (name === 'QueryCommand') {
-        const profileId = command.input.ExpressionAttributeValues[':profileId']
-          .S as string;
-        const ids = idsByProfile[profileId] ?? [];
+        const principalId = command.input.ExpressionAttributeValues[
+          ':principalId'
+        ].S as string;
+        const ids = idsByPrincipal[principalId] ?? [];
         return Promise.resolve({
           Items: ids.map((id) => ({ deviceId: { S: id } })),
         });
@@ -87,7 +88,7 @@ const devicesFor = (
         const item: Record<string, { S: string }> = {
           deviceId: { S: deviceId },
           token: { S: rec.token },
-          profileId: { S: rec.profileId },
+          principalId: { S: rec.principalId },
         };
         if (rec.channel !== undefined) {
           item.channelType = { S: rec.channel };
@@ -163,7 +164,7 @@ const deps = (ddb: DynamoDBClient, pinpoint: PinpointClient): DeliveryDeps => ({
   ddb,
   pinpoint,
   tableName: 'Devices',
-  indexName: 'profileId-index',
+  indexName: 'principalId-index',
   applicationId: 'app-123',
 });
 
@@ -181,7 +182,7 @@ void describe('deliverToProfile — status derivation', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'delivered');
@@ -192,7 +193,7 @@ void describe('deliverToProfile — status derivation', () => {
     const { client } = devicesFor({ p1: [] });
     const res = await deliverToProfile(
       deps(client, pinpointFor({})),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.deepStrictEqual(res, {
@@ -215,7 +216,7 @@ void describe('deliverToProfile — status derivation', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'failed');
@@ -231,7 +232,7 @@ void describe('deliverToProfile — status derivation', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpointFor({})),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'failed');
@@ -247,7 +248,7 @@ void describe('deliverToProfile — retryable classification', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpointFor({ t1: 'THROTTLED' })),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'failed');
@@ -264,7 +265,7 @@ void describe('deliverToProfile — retryable classification', () => {
         client,
         pinpointFor({ t1: { throws: 'ResourceNotFoundException' } }),
       ),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'failed');
@@ -278,7 +279,7 @@ void describe('deliverToProfile — retryable classification', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpointFor({ t1: { throws: 'ThrottlingException' } })),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.retryable, true);
@@ -300,7 +301,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'delivered');
@@ -317,7 +318,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
     // conditional guard), but the stored record has since been re-registered
     // with 't-new'. The conditional delete must fail and leave the record.
     const recordById = new Map([
-      ['d1', { profileId: 'p1', token: 't-new', channel: 'APNS' }],
+      ['d1', { principalId: 'p1', token: 't-new', channel: 'APNS' }],
     ]);
     let deleteAttempts = 0;
     let removed = false;
@@ -333,7 +334,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
             Item: {
               deviceId: { S: 'd1' },
               token: { S: 't-dead' },
-              profileId: { S: 'p1' },
+              principalId: { S: 'p1' },
               channelType: { S: 'APNS' },
             },
           });
@@ -358,7 +359,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     // Delivery still resolves (batch never throws); the record survived.
@@ -383,7 +384,7 @@ void describe('deliverToProfile — stale-token cleanup (preserved)', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpoint),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'failed');
@@ -401,7 +402,7 @@ void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
     );
     const res = await deliverToProfile(
       deps(client, pinpointFor({ 't-d': 'SUCCESSFUL' })),
-      { profileId: 'A' },
+      { profileId: 'A', principalId: 'A' },
       MESSAGE,
     );
     // No owned device delivered → skipped/no_devices, and NOTHING was sent to
@@ -417,10 +418,34 @@ void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
     });
     const res = await deliverToProfile(
       deps(client, pinpointFor({ 't-d': 'SUCCESSFUL' })),
-      { profileId: 'B' },
+      { profileId: 'B', principalId: 'B' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'delivered');
+  });
+
+  void it('SKIPS defensively (no DDB query) when the target has NO principalId', async () => {
+    let queried = false;
+    const client = {
+      send: (command: CommandLike): Promise<unknown> => {
+        if (command.constructor.name === 'QueryCommand') {
+          queried = true;
+        }
+        return Promise.resolve({ Items: [] });
+      },
+    } as unknown as DynamoDBClient;
+    const res = await deliverToProfile(
+      deps(client, pinpointFor({})),
+      { profileId: 'p1' },
+      MESSAGE,
+    );
+    assert.strictEqual(res.status, 'skipped');
+    assert.strictEqual(res.reason, 'missing_principal_id');
+    assert.strictEqual(
+      queried,
+      false,
+      'must not query the GSI without a principalId',
+    );
   });
 
   void it('SKIPS a device that no longer exists in the table (GetItem miss)', async () => {
@@ -438,7 +463,7 @@ void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
     } as unknown as DynamoDBClient;
     const res = await deliverToProfile(
       deps(client, pinpointFor({})),
-      { profileId: 'p1' },
+      { profileId: 'p1', principalId: 'p1' },
       MESSAGE,
     );
     assert.strictEqual(res.status, 'skipped');
@@ -456,7 +481,7 @@ void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
     );
     const res = await deliverToProfile(
       deps(client, pinpointFor({ 't-onlyA': 'SUCCESSFUL' })),
-      { profileId: 'A' },
+      { profileId: 'A', principalId: 'A' },
       MESSAGE,
     );
     // 'shared' was re-homed to B and skipped; 'onlyA' still delivers.
@@ -476,7 +501,11 @@ void describe('deliverToTargets', () => {
       t2: { status: 'PERMANENT_FAILURE', statusMessage: 'NotRegistered' },
     });
     const outcomes = await deliverToTargets(deps(client, pinpoint), {
-      targets: [{ profileId: 'p1' }, { profileId: 'p2' }, { profileId: 'p3' }],
+      targets: [
+        { profileId: 'p1', principalId: 'p1' },
+        { profileId: 'p2', principalId: 'p2' },
+        { profileId: 'p3', principalId: 'p3' },
+      ],
       message: MESSAGE,
     });
     assert.deepStrictEqual(
@@ -494,7 +523,7 @@ void describe('deliverToTargets', () => {
       send: (command: CommandLike): Promise<unknown> => {
         if (
           command.constructor.name === 'QueryCommand' &&
-          command.input.ExpressionAttributeValues[':profileId'].S === 'boom'
+          command.input.ExpressionAttributeValues[':principalId'].S === 'boom'
         ) {
           return Promise.reject(new Error('kaboom'));
         }
@@ -505,7 +534,10 @@ void describe('deliverToTargets', () => {
     const outcomes = await deliverToTargets(
       deps(throwingDdb, pinpointFor({})),
       {
-        targets: [{ profileId: 'boom' }, { profileId: 'ok' }],
+        targets: [
+          { profileId: 'boom', principalId: 'boom' },
+          { profileId: 'ok', principalId: 'ok' },
+        ],
         message: MESSAGE,
       },
     );
@@ -614,6 +646,7 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
       targets: [
         {
           profileId: 'eb155c66aae14a10b775437c40a4e44d',
+          principalId: 'eb155c66aae14a10b775437c40a4e44d',
           customerData: {
             firstName: 'Manual',
             lastName: 'Tester',
@@ -640,8 +673,16 @@ void describe('deliverToTargets — fallback copy when no template applies', () 
 
     await deliverToTargets(deps(profiles, pinpoint), {
       targets: [
-        { profileId: 'p1', customerData: { firstName: 'Ada' } },
-        { profileId: 'p2', customerData: { firstName: 'Grace' } },
+        {
+          profileId: 'p1',
+          principalId: 'p1',
+          customerData: { firstName: 'Ada' },
+        },
+        {
+          profileId: 'p2',
+          principalId: 'p2',
+          customerData: { firstName: 'Grace' },
+        },
       ],
       message: BATCH_DEFAULT,
     });
@@ -718,6 +759,7 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
             // firstName feeds {{Attributes.firstName}}; the rendered template
             // is what MUST land in SendMessages, not the default.
             profileId: 'p1',
+            principalId: 'p1',
             customerData: { firstName: 'Ada' },
           },
         ],
@@ -757,7 +799,13 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
         },
       },
       {
-        targets: [{ profileId: 'p1', customerData: { firstName: 'Ada' } }],
+        targets: [
+          {
+            profileId: 'p1',
+            principalId: 'p1',
+            customerData: { firstName: 'Ada' },
+          },
+        ],
         message: {
           title: 'Notification',
           body: 'You have a new notification.',
@@ -791,7 +839,11 @@ void describe('deliverToTargets — Q Connect template copy wins and is per-plat
       },
       {
         targets: [
-          { profileId: 'noFirstName', customerData: { lastName: 'Only' } },
+          {
+            profileId: 'noFirstName',
+            principalId: 'noFirstName',
+            customerData: { lastName: 'Only' },
+          },
         ],
         message: {
           title: 'Notification',

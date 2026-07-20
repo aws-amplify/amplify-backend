@@ -11,7 +11,7 @@ import {
   deleteDevice,
   deleteDeviceByPrincipal,
   getDeviceOwner,
-  queryDeviceIdsByProfile,
+  queryDeviceIdsByPrincipal,
   upsertDeviceOwner,
 } from './device_store.js';
 
@@ -36,7 +36,6 @@ void describe('upsertDeviceOwner', () => {
       {
         deviceId: 'd1',
         token: 'tok-1',
-        profileId: 'p1',
         principalId: 'us-east-1:abc',
         channelType: 'APNS',
         platform: 'iOS',
@@ -51,13 +50,12 @@ void describe('upsertDeviceOwner', () => {
       captured.UpdateExpression,
       /createdAt = if_not_exists\(createdAt, :now\)/,
     );
-    assert.match(captured.UpdateExpression, /profileId = :profileId/);
     assert.match(captured.UpdateExpression, /principalId = :principalId/);
-    assert.strictEqual(captured.ExpressionAttributeValues[':token'].S, 'tok-1');
-    assert.strictEqual(
-      captured.ExpressionAttributeValues[':profileId'].S,
-      'p1',
+    assert.ok(
+      !/profileId/.test(captured.UpdateExpression),
+      'device record must NOT carry profileId',
     );
+    assert.strictEqual(captured.ExpressionAttributeValues[':token'].S, 'tok-1');
     assert.strictEqual(
       captured.ExpressionAttributeValues[':principalId'].S,
       'us-east-1:abc',
@@ -93,7 +91,7 @@ void describe('upsertDeviceOwner', () => {
     await upsertDeviceOwner(
       ddb,
       'Devices',
-      { deviceId: 'd1', token: 'tok-1', profileId: 'p1', principalId: 'pr1' },
+      { deviceId: 'd1', token: 'tok-1', principalId: 'pr1' },
       NOW,
     );
 
@@ -125,14 +123,14 @@ void describe('upsertDeviceOwner', () => {
       upsertDeviceOwner(
         ddb,
         'Devices',
-        { deviceId: 'd1', token: 'tok-1', profileId: 'p1', principalId: 'pr1' },
+        { deviceId: 'd1', token: 'tok-1', principalId: 'pr1' },
         NOW,
       ),
     );
   });
 });
 
-void describe('queryDeviceIdsByProfile', () => {
+void describe('queryDeviceIdsByPrincipal', () => {
   void it('queries the GSI and paginates, returning every deviceId', async () => {
     const pages = [
       {
@@ -150,15 +148,18 @@ void describe('queryDeviceIdsByProfile', () => {
       },
     } as unknown as DynamoDBClient;
 
-    const ids = await queryDeviceIdsByProfile(
+    const ids = await queryDeviceIdsByPrincipal(
       ddb,
       'Devices',
-      'profileId-index',
-      'p1',
+      'principalId-index',
+      'pr1',
     );
     assert.deepStrictEqual(ids, ['d1', 'd2', 'd3']);
-    assert.strictEqual(seen[0].IndexName, 'profileId-index');
-    assert.strictEqual(seen[0].ExpressionAttributeValues[':profileId'].S, 'p1');
+    assert.strictEqual(seen[0].IndexName, 'principalId-index');
+    assert.strictEqual(
+      seen[0].ExpressionAttributeValues[':principalId'].S,
+      'pr1',
+    );
     assert.deepStrictEqual(seen[1].ExclusiveStartKey, {
       deviceId: { S: 'd2' },
     });
@@ -175,7 +176,6 @@ void describe('getDeviceOwner', () => {
           Item: {
             deviceId: { S: 'd1' },
             token: { S: 'tok' },
-            profileId: { S: 'p1' },
             principalId: { S: 'pr1' },
             channelType: { S: 'GCM' },
           },
@@ -188,7 +188,6 @@ void describe('getDeviceOwner', () => {
     assert.deepStrictEqual(rec, {
       deviceId: 'd1',
       token: 'tok',
-      profileId: 'p1',
       principalId: 'pr1',
       channelType: 'GCM',
     });

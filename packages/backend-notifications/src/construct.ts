@@ -40,7 +40,7 @@ import {
   CONNECT_CAMPAIGNS_SERVICE_NAME,
   CONNECT_INVOKE_SERVICE_PRINCIPALS,
   DEFAULT_EXPIRATION_DAYS,
-  DEVICES_TABLE_GSI_PROFILE_ID,
+  DEVICES_TABLE_GSI_PRINCIPAL_ID,
   ENV_DEVICES_TABLE_NAME,
   ENV_DOMAIN_NAME,
   ENV_EUM_APPLICATION_ID,
@@ -458,9 +458,9 @@ export class AmplifyNotifications
       removalPolicy: props.devicesTableRemovalPolicy ?? RemovalPolicy.RETAIN,
     });
     devicesTable.addGlobalSecondaryIndex({
-      indexName: DEVICES_TABLE_GSI_PROFILE_ID,
+      indexName: DEVICES_TABLE_GSI_PRINCIPAL_ID,
       partitionKey: {
-        name: 'profileId',
+        name: 'principalId',
         type: dynamodb.AttributeType.STRING,
       },
       // Only the base-table key (deviceId) is needed from the GSI; the
@@ -554,7 +554,7 @@ export class AmplifyNotifications
         ],
         resources: [
           devicesTable.tableArn,
-          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PROFILE_ID}`,
+          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PRINCIPAL_ID}`,
         ],
       }),
     );
@@ -707,7 +707,7 @@ export class AmplifyNotifications
         effect: iam.Effect.ALLOW,
         actions: ['dynamodb:Query'],
         resources: [
-          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PROFILE_ID}`,
+          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PRINCIPAL_ID}`,
         ],
       }),
     );
