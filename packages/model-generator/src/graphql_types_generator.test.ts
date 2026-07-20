@@ -146,6 +146,30 @@ void describe('types generator', () => {
     assert.deepEqual(Object.keys(generatedTypes), ['API.ts']);
   });
 
+  void it('does not throw when every operation document is filtered out and `queries` is an empty list (aws-amplify/amplify-backend#3285)', async () => {
+    // Reviewer edge case (PR #3285): if the empty-document filter removes every
+    // generated statement, `generateTypes` is handed `queries: []`. Downstream
+    // `parseAndMergeQueryDocuments([])` maps over zero sources and returns an
+    // empty-but-valid document via `concatAST([])`, so validation and codegen
+    // succeed (emitting only the boilerplate `API.ts`) instead of throwing
+    // `Unexpected <EOF>`. This locks in the graceful all-empty behavior.
+    const schema = `
+      type Query {
+        getThing(id: ID!): String
+      }
+    `;
+
+    let generatedTypes: Record<string, string> = {};
+    await assert.doesNotReject(async () => {
+      generatedTypes = await generateTypes({
+        schema,
+        target: 'typescript',
+        queries: [],
+      });
+    });
+    assert.deepEqual(Object.keys(generatedTypes), ['API.ts']);
+  });
+
   void it('keeps a populated subscription document for a schema that mixes @model types with @function-backed operations (aws-amplify/amplify-backend#3280)', async () => {
     // Deployed schema shape when a schema has BOTH a `@model` type (Todo, which
     // yields a populated `type Subscription`) AND `@function`-backed custom
