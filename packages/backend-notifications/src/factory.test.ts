@@ -144,29 +144,25 @@ void describe('defineNotifications', () => {
     assert.ok(first instanceof AmplifyNotifications);
   });
 
-  void it('attaches to an existing domain: no CfnDomain, object types on the existing domain, identify + push Lambdas, JWT-authorized HTTP API', () => {
+  void it('attaches to an existing domain: no CfnDomain, single AmplifyProfile object type, write + push Lambdas, SigV4 HTTP API', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
 
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
-    // identify Lambda + push Lambda (push is always provisioned).
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 1);
+    // write Lambda + push Lambda (push is always provisioned).
     template.resourceCountIs('AWS::Lambda::Function', 2);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
-    // Authed (JWT) /identify-user route + guest (IAM) /identify-user-guest route.
-    template.resourceCountIs('AWS::ApiGatewayV2::Route', 2);
+    // Three SigV4 routes: /identify-user, /register-device, /remove-device.
+    template.resourceCountIs('AWS::ApiGatewayV2::Route', 3);
 
     assert.strictEqual(notifications.domainName, EXISTING_DOMAIN);
 
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
-      DomainName: EXISTING_DOMAIN,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyGuestProfile',
       DomainName: EXISTING_DOMAIN,
     });
     // Devices now live in DynamoDB, not Customer Profiles.
@@ -183,9 +179,7 @@ void describe('defineNotifications', () => {
 
     template.resourceCountIs('AWS::Connect::Instance', 1);
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 1);
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
-    // identify + push Lambdas + campaign-association handler + custom-resource
-    // Provider framework Lambda.
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 1);
     template.resourceCountIs('AWS::Lambda::Function', 4);
     template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 1);
     // CTR feature binding: the created domain is registered to the instance.
@@ -204,16 +198,16 @@ void describe('defineNotifications', () => {
     template.hasOutput('ProfilesDomainName', {});
   });
 
-  void it('creates a Cognito JWT authorizer wired to the app user pool', () => {
+  void it('authorizes the write routes with SigV4 (no JWT authorizer)', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
 
-    template.resourceCountIs('AWS::ApiGatewayV2::Authorizer', 1);
-    template.hasResourceProperties('AWS::ApiGatewayV2::Authorizer', {
-      AuthorizerType: 'JWT',
-      IdentitySource: ['$request.header.Authorization'],
+    template.resourceCountIs('AWS::ApiGatewayV2::Authorizer', 0);
+    template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+      RouteKey: 'POST /identify-user',
+      AuthorizationType: 'AWS_IAM',
     });
   });
 
@@ -239,15 +233,16 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('grants the Identity Pool unauthenticated role execute-api:Invoke on the guest route (in the notifications stack)', () => {
+  void it('grants the Identity Pool authenticated AND unauthenticated roles execute-api:Invoke on the write routes (in the notifications stack)', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
 
-    // Exactly one execute-api:Invoke policy, created in the NOTIFICATIONS
-    // (grantor) stack and attached to a role — never an inline policy on the
-    // auth role's own stack (which would create a circular nested-stack dep).
+    // Exactly two execute-api:Invoke policies (one per Identity Pool role),
+    // created in the NOTIFICATIONS (grantor) stack and attached to a role —
+    // never an inline policy on the auth role's own stack (which would create a
+    // circular nested-stack dep).
     const invokePolicies = template.findResources('AWS::IAM::Policy', {
       Properties: {
         PolicyDocument: Match.objectLike({
@@ -261,7 +256,7 @@ void describe('defineNotifications', () => {
         Roles: Match.anyValue(),
       },
     });
-    assert.strictEqual(Object.keys(invokePolicies).length, 1);
+    assert.strictEqual(Object.keys(invokePolicies).length, 2);
 
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: Match.objectLike({
@@ -269,8 +264,8 @@ void describe('defineNotifications', () => {
           Match.objectLike({
             Effect: 'Allow',
             Action: 'execute-api:Invoke',
-            // The grant is scoped to the concrete guest route invoke ARN
-            // (`$default/POST/identify-user-guest`), never a wildcard.
+            // The grant is scoped to the concrete write-route invoke ARNs
+            // (`$default/POST/<route>`), never a wildcard.
             Resource: Match.anyValue(),
           }),
         ]),
@@ -279,7 +274,7 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('grants the guest invoke policy only once across repeated getInstance calls', () => {
+  void it('grants the invoke policies only once across repeated getInstance calls', () => {
     const factory = defineNotifications({ domainName: EXISTING_DOMAIN });
     const notifications = factory.getInstance(getInstanceProps);
     factory.getInstance(getInstanceProps);
@@ -293,7 +288,7 @@ void describe('defineNotifications', () => {
         }),
       },
     });
-    assert.strictEqual(Object.keys(invokePolicies).length, 1);
+    assert.strictEqual(Object.keys(invokePolicies).length, 2);
   });
 
   void it('respects a custom domainName (object types register into it)', () => {

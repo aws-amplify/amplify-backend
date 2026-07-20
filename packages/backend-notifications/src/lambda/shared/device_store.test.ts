@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import type { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   deleteDevice,
+  deleteDeviceByPrincipal,
   getDeviceOwner,
   queryDeviceIdsByProfile,
   upsertDeviceOwner,
@@ -36,6 +37,7 @@ void describe('upsertDeviceOwner', () => {
         deviceId: 'd1',
         token: 'tok-1',
         profileId: 'p1',
+        principalId: 'us-east-1:abc',
         channelType: 'APNS',
         platform: 'iOS',
         appVersion: '1.2.3',
@@ -50,10 +52,15 @@ void describe('upsertDeviceOwner', () => {
       /createdAt = if_not_exists\(createdAt, :now\)/,
     );
     assert.match(captured.UpdateExpression, /profileId = :profileId/);
+    assert.match(captured.UpdateExpression, /principalId = :principalId/);
     assert.strictEqual(captured.ExpressionAttributeValues[':token'].S, 'tok-1');
     assert.strictEqual(
       captured.ExpressionAttributeValues[':profileId'].S,
       'p1',
+    );
+    assert.strictEqual(
+      captured.ExpressionAttributeValues[':principalId'].S,
+      'us-east-1:abc',
     );
     assert.strictEqual(
       captured.ExpressionAttributeValues[':channelType'].S,
@@ -86,7 +93,7 @@ void describe('upsertDeviceOwner', () => {
     await upsertDeviceOwner(
       ddb,
       'Devices',
-      { deviceId: 'd1', token: 'tok-1', profileId: 'p1' },
+      { deviceId: 'd1', token: 'tok-1', profileId: 'p1', principalId: 'pr1' },
       NOW,
     );
 
@@ -118,7 +125,7 @@ void describe('upsertDeviceOwner', () => {
       upsertDeviceOwner(
         ddb,
         'Devices',
-        { deviceId: 'd1', token: 'tok-1', profileId: 'p1' },
+        { deviceId: 'd1', token: 'tok-1', profileId: 'p1', principalId: 'pr1' },
         NOW,
       ),
     );
@@ -169,6 +176,7 @@ void describe('getDeviceOwner', () => {
             deviceId: { S: 'd1' },
             token: { S: 'tok' },
             profileId: { S: 'p1' },
+            principalId: { S: 'pr1' },
             channelType: { S: 'GCM' },
           },
         });
@@ -181,6 +189,7 @@ void describe('getDeviceOwner', () => {
       deviceId: 'd1',
       token: 'tok',
       profileId: 'p1',
+      principalId: 'pr1',
       channelType: 'GCM',
     });
   });
@@ -246,5 +255,46 @@ void describe('deleteDevice', () => {
       await deleteDevice(ddb, 'Devices', 'd1', 'stale-tok'),
       false,
     );
+  });
+});
+
+void describe('deleteDeviceByPrincipal', () => {
+  void it('issues a CONDITIONAL delete gated on the caller principalId and returns true', async () => {
+    let captured: any;
+    const ddb = {
+      send: (command: CommandLike): Promise<unknown> => {
+        captured = command.input;
+        return Promise.resolve({});
+      },
+    } as unknown as DynamoDBClient;
+    const ok = await deleteDeviceByPrincipal(ddb, 'Devices', 'd1', 'pr1');
+    assert.strictEqual(ok, true);
+    assert.deepStrictEqual(captured.Key, { deviceId: { S: 'd1' } });
+    assert.strictEqual(captured.ConditionExpression, 'principalId = :caller');
+    assert.deepStrictEqual(captured.ExpressionAttributeValues, {
+      ':caller': { S: 'pr1' },
+    });
+  });
+
+  void it('is an idempotent no-op (returns false, not thrown) when not owner / absent', async () => {
+    let calls = 0;
+    const ddb = {
+      send: (): Promise<unknown> => {
+        calls += 1;
+        const err = new Error('condition failed');
+        err.name = 'ConditionalCheckFailedException';
+        return Promise.reject(err);
+      },
+    } as unknown as DynamoDBClient;
+    const ok = await deleteDeviceByPrincipal(ddb, 'Devices', 'd1', 'pr1');
+    assert.strictEqual(ok, false);
+    assert.strictEqual(calls, 1);
+  });
+
+  void it('re-throws non-conditional failures so the caller can surface a 500', async () => {
+    const ddb = {
+      send: (): Promise<unknown> => Promise.reject(new Error('boom')),
+    } as unknown as DynamoDBClient;
+    await assert.rejects(deleteDeviceByPrincipal(ddb, 'Devices', 'd1', 'pr1'));
   });
 });

@@ -9,43 +9,22 @@
 export const OBJECT_TYPE_PROFILE = 'AmplifyProfile';
 
 /**
- * Guest profile object type. A distinct object type is
- * required because Customer Profiles permits EXACTLY ONE `UNIQUE` key per object
- * type AND `PutProfileObject` requires the ingested object to carry that UNIQUE
- * key. The authed `AmplifyProfile` reserves its single UNIQUE key for
- * `cognitoSub`, so guest profiles — keyed on the Identity Pool `identityId` —
- * get their own object type whose UNIQUE key is `cognitoIdentityKey`. Both
- * object types create ordinary profiles in the SAME domain; the device object
- * type carries both identity keys as PROFILE keys so a device resolves to
- * whichever profile it belongs to.
+ * Searchable profile key that binds a profile to its authoritative principal —
+ * the source-agnostic `principalId` (today the Cognito Identity Pool
+ * `cognitoIdentityId`, verified server-side by API Gateway and populated for
+ * BOTH authenticated and unauthenticated/guest callers; a verified JWT subject
+ * later). Profiles are
+ * looked up by THIS key (SearchProfiles), never by the Attributes map. It is the
+ * single UNIQUE (PROFILE) key on the sole {@link OBJECT_TYPE_PROFILE} object
+ * type — there is no separate guest object type or auth/guest branching.
  */
-export const OBJECT_TYPE_GUEST_PROFILE = 'AmplifyGuestProfile';
+export const PRINCIPAL_ID_KEY = 'principalIdKey';
 
 /**
- * Searchable profile key that binds a profile to a verified Cognito subject.
- * Profiles are looked up by THIS key (SearchProfiles), never by the Attributes
- * map.
+ * The object field ingested via PutProfileObject (sourced into
+ * {@link PRINCIPAL_ID_KEY}) and mirrored to `_profile.Attributes.principalId`.
  */
-export const COGNITO_USER_KEY = 'cognitoUserKey';
-
-/**
- * Searchable profile key that binds a profile to an
- * UNAUTHENTICATED Cognito Identity Pool identity (the `cognitoIdentityId`, e.g.
- * `us-east-1:<uuid>`). A guest has no JWT `sub`, so its profile is keyed by this
- * key instead of {@link COGNITO_USER_KEY}. Also the PROFILE-resolution key on the
- * device object type so a guest's device objects resolve to the guest profile.
- *
- * Guest and authenticated profiles are kept COMPLETELY SEPARATE: there is NO
- * profile merge. Push continuity across sign-in is preserved by re-homing the
- * device to the authenticated profile in the DynamoDB Devices table (a
- * strongly-consistent last-writer-wins UpdateItem on the stable `deviceId`);
- * guest profiles are reaped by their own TTL (see {@link GUEST_EXPIRATION_DAYS}).
- */
-export const COGNITO_IDENTITY_KEY = 'cognitoIdentityKey';
-
-export const COGNITO_IDENTITY_FIELD = 'cognitoIdentityId';
-
-export const COGNITO_SUB_FIELD = 'cognitoSub';
+export const PRINCIPAL_ID_FIELD = 'principalId';
 
 /** Max length of a Customer Profiles attribute value (single string). */
 export const MAX_ATTRIBUTE_LENGTH = 255;
@@ -71,7 +50,7 @@ export const DEVICES_TABLE_GSI_PROFILE_ID = 'profileId-index';
 /**
  * Device item TTL in days. A device record self-expires from the Devices table
  * (native DynamoDB TTL on the `ttl` attribute) after this many days without a
- * refresh, mirroring the guest-profile lifetime ({@link GUEST_EXPIRATION_DAYS}).
+ * refresh.
  */
 export const DEVICE_TTL_DAYS = 90;
 
@@ -120,9 +99,6 @@ export const CONNECT_INVOKE_SERVICE_PRINCIPALS = [
 
 /** Default profile / object-type expiration in days. */
 export const DEFAULT_EXPIRATION_DAYS = 366;
-
-/** Guest TTL: whole-profile Customer Profiles expiry (no reaper Lambda); shorter than authed because guest identities are ephemeral. */
-export const GUEST_EXPIRATION_DAYS = 90;
 
 /**
  * Outbound Campaigns v2 <-> Customer Profiles object-type routing map. This

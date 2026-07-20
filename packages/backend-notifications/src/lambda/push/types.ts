@@ -39,7 +39,8 @@ export type ProfileTarget = {
    * (camelCase: `firstName`, `attributes.*`, ...). Passed as flat
    * `customAttributes` to personalize the rendered Q Connect PUSH template (see
    * `renderProfileChannelMessages`); real journeys carry NO message copy here.
-   * Device tokens are always resolved authoritatively via ListProfileObjects,
+   * Device tokens are always resolved authoritatively via the DynamoDB device
+   * store (GSI enumeration + strongly-consistent point-read gate on profileId),
    * never from here.
    */
   customerData?: Record<string, unknown>;

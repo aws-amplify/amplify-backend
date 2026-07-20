@@ -32,10 +32,7 @@ import {
   CfnGCMChannel,
 } from 'aws-cdk-lib/aws-pinpoint';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
-import {
-  HttpIamAuthorizer,
-  HttpJwtAuthorizer,
-} from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { HttpIamAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
 
@@ -47,11 +44,8 @@ import {
   ENV_DEVICES_TABLE_NAME,
   ENV_DOMAIN_NAME,
   ENV_EUM_APPLICATION_ID,
-  GUEST_EXPIRATION_DAYS,
 } from './constants.js';
 import {
-  AMPLIFY_GUEST_PROFILE_FIELDS,
-  AMPLIFY_GUEST_PROFILE_KEYS,
   AMPLIFY_PROFILE_FIELDS,
   AMPLIFY_PROFILE_KEYS,
   OBJECT_TYPE_NAMES,
@@ -81,12 +75,10 @@ const defaultCampaignAssociationLambdaCodePath = path.join(
 export type NotificationsResources = {
   /** The identify-user Lambda function. */
   identifyUserFunction: lambda.IFunction;
-  /** The HTTP API fronting the identify-user route. */
+  /** The HTTP API fronting the three SigV4 write routes. */
   httpApi: apigwv2.HttpApi;
   /** The AmplifyProfile object type registered on the domain. */
   profileObjectType: CfnObjectType;
-  /** The AmplifyGuestProfile object type registered on the domain. */
-  guestProfileObjectType: CfnObjectType;
   /**
    * The DynamoDB Devices table — the authoritative, strongly-consistent device
    * store (PK = deviceId, GSI on profileId, native TTL on `ttl`).
@@ -126,18 +118,6 @@ export type NotificationsResources = {
 
 export type AmplifyNotificationsProps = {
   /**
-   * The JWT issuer URL the HTTP API authorizer trusts. For a Cognito user pool
-   * this is `https://cognito-idp.<region>.amazonaws.com/<userPoolId>`.
-   */
-  readonly jwtIssuer: string;
-
-  /**
-   * Allowed JWT audiences. For a Cognito user pool this is the app client id(s)
-   * (matched against `aud` for id tokens / `client_id` for access tokens).
-   */
-  readonly jwtAudience: string[];
-
-  /**
    * Name of an EXISTING Customer Profiles domain to attach to — e.g. the domain
    * Amazon Connect auto-creates when Customer Profiles is enabled on an
    * instance. When provided, the construct runs in ATTACH mode: it registers the
@@ -170,14 +150,6 @@ export type AmplifyNotificationsProps = {
 
   /** Profile / object-type expiration in days. Default: 366. */
   readonly expirationDays?: number;
-
-  /**
-   * GUEST profile / object-type expiration in days. Guest profiles are reaped
-   * purely by this Customer Profiles TTL (no reaper Lambda needed); deliberately
-   * shorter than `expirationDays` because an unauthenticated identity is
-   * ephemeral. Default: 90.
-   */
-  readonly guestExpirationDays?: number;
 
   /**
    * Override the directory containing the pre-bundled push Lambda asset (an
@@ -288,23 +260,21 @@ export class AmplifyNotifications
   public readonly resources: NotificationsResources;
   /** The stack this construct belongs to. */
   public readonly stack: Stack;
-  /** Base invoke URL. Clients call `POST {apiEndpoint}/identify-user`. */
+  /** Base invoke URL. Clients call `POST {apiEndpoint}/{route}`. */
   public readonly apiEndpoint: string;
-  /** The route path appended to {@link apiEndpoint}. */
+  /** The identify-user route path appended to {@link apiEndpoint}. */
   public readonly identifyUserPath = '/identify-user';
+  /** The register-device route path appended to {@link apiEndpoint}. */
+  public readonly registerDevicePath = '/register-device';
+  /** The remove-device route path appended to {@link apiEndpoint}. */
+  public readonly removeDevicePath = '/remove-device';
   /**
-   * The GUEST route path appended to {@link apiEndpoint}.
-   * IAM/SigV4-authorized; unauthenticated Identity Pool callers sign requests to
-   * `POST {apiEndpoint}/identify-user-guest`.
+   * The `execute-api:Invoke` ARNs of the three SigV4 write routes, to grant to
+   * the app's Cognito Identity Pool authenticated AND unauthenticated roles (a
+   * guest is an unauthenticated identityId on the same endpoints). Each is
+   * scoped to POST on that route path of this API's default stage.
    */
-  public readonly guestIdentifyUserPath = '/identify-user-guest';
-  /**
-   * The `execute-api:Invoke` ARN of the GUEST route, to
-   * grant to the app's Cognito Identity Pool UNAUTHENTICATED role so guests can
-   * call the route. Scoped to POST on the guest path of this API's default
-   * stage.
-   */
-  public readonly guestRouteInvokeArn!: string;
+  public readonly routeInvokeArns!: string[];
   /** The Customer Profiles domain name the object types are registered into. */
   public readonly domainName: string;
   /**
@@ -335,11 +305,11 @@ export class AmplifyNotifications
   public readonly eumApplicationId: string;
 
   /**
-   * Registers the AmplifyProfile / AmplifyGuestProfile object types into the
-   * Customer Profiles domain (created here in create-from-scratch mode, or the
-   * existing `domainName` in attach mode), the identify-user Lambda +
-   * JWT-authorized HTTP API, and the push-delivery Lambda + AWS End User
-   * Messaging application for this notifications backend.
+   * Registers the AmplifyProfile object type into the Customer Profiles domain
+   * (created here in create-from-scratch mode, or the existing `domainName` in
+   * attach mode), the write Lambda + SigV4-authorized HTTP API (identify-user /
+   * register-device / remove-device), and the push-delivery Lambda + AWS End
+   * User Messaging application for this notifications backend.
    */
   constructor(scope: Construct, id: string, props: AmplifyNotificationsProps) {
     super(scope, id);
@@ -347,8 +317,6 @@ export class AmplifyNotifications
     const stack = Stack.of(this);
     this.stack = stack;
     const expirationDays = props.expirationDays ?? DEFAULT_EXPIRATION_DAYS;
-    const guestExpirationDays =
-      props.guestExpirationDays ?? GUEST_EXPIRATION_DAYS;
 
     const createFromScratch = !props.domainName;
     this.createsResources = createFromScratch;
@@ -460,7 +428,7 @@ export class AmplifyNotifications
       domainName,
       objectTypeName: OBJECT_TYPE_NAMES.profile,
       description:
-        'Amplify identifyUser person profile (find-or-create by verified Cognito sub)',
+        'Amplify identifyUser person profile (find-or-create by verified principalId)',
       allowProfileCreation: true,
       fields: AMPLIFY_PROFILE_FIELDS,
       keys: AMPLIFY_PROFILE_KEYS,
@@ -500,31 +468,8 @@ export class AmplifyNotifications
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
 
-    // A distinct object type for GUEST profiles. Customer
-    // Profiles permits exactly one UNIQUE key per object type and PutProfileObject
-    // requires the ingested object to carry it; the authed AmplifyProfile reserves
-    // its UNIQUE key for cognitoSub, so guest profiles (keyed on the Identity Pool
-    // cognitoIdentityId) get their own type with cognitoIdentityKey as UNIQUE.
-    const guestProfileType = new CfnObjectType(
-      this,
-      'AmplifyGuestProfileType',
-      {
-        domainName,
-        objectTypeName: OBJECT_TYPE_NAMES.guestProfile,
-        description:
-          'Amplify identifyUser GUEST person profile (find-or-create by verified Cognito Identity Pool identityId)',
-        allowProfileCreation: true,
-        fields: AMPLIFY_GUEST_PROFILE_FIELDS,
-        keys: AMPLIFY_GUEST_PROFILE_KEYS,
-        // Guests get their OWN shorter TTL: Customer Profiles TTL applies to the
-        // whole profile, so this reaps stale guest profiles with no reaper.
-        expirationDays: guestExpirationDays,
-      },
-    );
-
     if (profilesDomain) {
       profileType.addDependency(profilesDomain);
-      guestProfileType.addDependency(profilesDomain);
     }
 
     // ---- Outbound Campaigns association (create-from-scratch ONLY) ----------
@@ -584,100 +529,102 @@ export class AmplifyNotifications
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
-          // PutProfileObject find-or-create (AmplifyProfile).
+          // PutProfileObject find-or-create + SearchProfiles read-back
+          // (identify-user AND register-device both resolve principalId ->
+          // profileId), and UpdateProfile to set person / targeting attributes.
           'profile:PutProfileObject',
           'profile:SearchProfiles',
-          // Set targeting / person attributes (incl. hasAPNS/hasGCM/platform)
-          // on the resolved profile.
           'profile:UpdateProfile',
         ],
         resources: [domainArn, objectTypesArn],
       }),
     );
-    // Device ownership is authoritative in DynamoDB: register/re-home is a
-    // strongly-consistent last-writer-wins UpdateItem on the deviceId PK.
+    // Device store is authoritative in DynamoDB: register/re-home is a
+    // strongly-consistent last-writer-wins UpdateItem on the deviceId PK,
+    // remove-device is an ownership-gated conditional DeleteItem, and the union
+    // Lambda also needs GetItem + Query (GSI) for shared reads.
     fn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
-        resources: [devicesTable.tableArn],
+        actions: [
+          'dynamodb:UpdateItem',
+          'dynamodb:GetItem',
+          'dynamodb:DeleteItem',
+          'dynamodb:Query',
+        ],
+        resources: [
+          devicesTable.tableArn,
+          `${devicesTable.tableArn}/index/${DEVICES_TABLE_GSI_PROFILE_ID}`,
+        ],
       }),
     );
 
-    // ---- HTTP API + JWT authorizer ----------------------------------------
-    const authorizer = new HttpJwtAuthorizer('JwtAuthorizer', props.jwtIssuer, {
-      jwtAudience: props.jwtAudience,
-      identitySource: ['$request.header.Authorization'],
+    // ---- HTTP API + SigV4 (IAM) authorization -----------------------------
+    // All three write routes use IAM/SigV4 authorization and payload format 1.0
+    // — the version that surfaces the SigV4-verified Cognito Identity Pool
+    // `cognitoIdentityId` at `requestContext.identity.cognitoIdentityId` (which
+    // the Lambda derives `principalId` from). Payload format 2.0 has no
+    // `identity` block, so it MUST NOT be used here. A guest is simply an
+    // unauthenticated Identity Pool caller signing the same endpoints.
+    const iamAuthorizer = new HttpIamAuthorizer();
+    const integration = new HttpLambdaIntegration('WriteIntegration', fn, {
+      payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
     });
 
     const httpApi = new apigwv2.HttpApi(this, 'IdentifyUserApi', {
-      apiName: 'identify-user-api',
+      apiName: 'notifications-write-api',
       createDefaultStage: true,
     });
 
-    httpApi.addRoutes({
-      path: this.identifyUserPath,
-      methods: [apigwv2.HttpMethod.POST],
-      integration: new HttpLambdaIntegration('IdentifyUserIntegration', fn),
-      authorizer,
-    });
+    const routePaths = [
+      this.identifyUserPath,
+      this.registerDevicePath,
+      this.removeDevicePath,
+    ];
+    for (const routePath of routePaths) {
+      httpApi.addRoutes({
+        path: routePath,
+        methods: [apigwv2.HttpMethod.POST],
+        integration,
+        authorizer: iamAuthorizer,
+      });
+    }
 
-    // ---- Guest (unauthenticated) route ------------------------------------
-    // A second route to the SAME identify Lambda, but
-    // authorized with IAM/SigV4 instead of a JWT — so an UNAUTHENTICATED Cognito
-    // Identity Pool caller (guest credentials) can register a device / seed a
-    // profile BEFORE login (the pre-login push-token case).
-    //
-    // The integration MUST use payload format 1.0: HTTP API payload format 2.0
-    // has NO `requestContext.identity` block, so the verified Cognito
-    // `cognitoIdentityId` (+ `cognitoAuthenticationType`) the Lambda keys the
-    // guest profile on is only present under format 1.0. The Lambda derives the
-    // guest identity SOLELY from that authorizer-verified field.
-    const iamAuthorizer = new HttpIamAuthorizer();
-    httpApi.addRoutes({
-      path: this.guestIdentifyUserPath,
-      methods: [apigwv2.HttpMethod.POST],
-      integration: new HttpLambdaIntegration('GuestIdentifyIntegration', fn, {
-        payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
-      }),
-      authorizer: iamAuthorizer,
-    });
-
-    // `execute-api:Invoke` ARN for the guest route — the app grants this to its
-    // Identity Pool UNAUTHENTICATED role so guests can call the route. Scoped as
-    // tightly as execute-api allows: `$default/POST/identify-user-guest` pins the
-    // grant to the POST method on the guest path of the API's single default
-    // stage, so the unauth role can invoke NEITHER other methods, NOR other
-    // stages, NOR the authed `/identify-user` route. (HTTP APIs auto-create the
+    // `execute-api:Invoke` ARNs for the three routes — the app grants these to
+    // its Identity Pool authenticated AND unauthenticated roles (guest = unauth
+    // identityId on the same SigV4 endpoints). Each is scoped as tightly as
+    // execute-api allows: `$default/POST/<route>` pins the grant to POST on that
+    // route path of the API's single default stage. (HTTP APIs auto-create the
     // `$default` stage; this construct never adds another.)
-    this.guestRouteInvokeArn = Arn.format(
-      {
-        service: 'execute-api',
-        resource: httpApi.apiId,
-        resourceName: `$default/POST${this.guestIdentifyUserPath}`,
-        arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
-      },
-      stack,
+    this.routeInvokeArns = routePaths.map((routePath) =>
+      Arn.format(
+        {
+          service: 'execute-api',
+          resource: httpApi.apiId,
+          resourceName: `$default/POST${routePath}`,
+          arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+        },
+        stack,
+      ),
     );
 
     this.apiEndpoint = httpApi.apiEndpoint;
 
     // Scoped to the stack (not `this`) so the output keeps a stable, readable
-    // logical id (`IdentifyUserApiEndpoint`) that a human can find in the
-    // CloudFormation console. The construct is provisioned once per stack (the
-    // Gen2 factory places it in a dedicated nested stack), so there is no
-    // collision risk from the verbatim id.
+    // logical id that a human can find in the CloudFormation console. The
+    // construct is provisioned once per stack (the Gen2 factory places it in a
+    // dedicated nested stack), so there is no collision risk.
     new CfnOutput(stack, 'IdentifyUserApiEndpoint', {
       value: httpApi.apiEndpoint,
-      description: 'POST {value}/identify-user',
+      description: 'POST {value}/{identify-user|register-device|remove-device}',
     });
 
-    // Surface the guest route's invoke ARN so a human /
-    // the app can grant it to the Identity Pool unauthenticated role.
-    new CfnOutput(stack, 'GuestIdentifyRouteInvokeArn', {
-      value: this.guestRouteInvokeArn,
+    // Surface the route invoke ARNs so a human / the app can grant them to the
+    // Identity Pool authenticated + unauthenticated roles.
+    new CfnOutput(stack, 'WriteRouteInvokeArns', {
+      value: this.routeInvokeArns.join(','),
       description:
-        'Grant execute-api:Invoke on this ARN to the Cognito Identity Pool unauthenticated role',
+        'Grant execute-api:Invoke on these ARNs to the Cognito Identity Pool authenticated AND unauthenticated roles',
     });
 
     // ---- Push-delivery path -----------------------------------------------
@@ -945,7 +892,6 @@ export class AmplifyNotifications
       identifyUserFunction: fn,
       httpApi,
       profileObjectType: profileType,
-      guestProfileObjectType: guestProfileType,
       devicesTable,
       pushFunction: pushFn,
       pushApplication,

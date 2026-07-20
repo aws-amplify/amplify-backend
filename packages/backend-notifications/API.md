@@ -37,23 +37,21 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
     readonly createsResources: boolean;
     readonly domainName: string;
     readonly eumApplicationId: string;
-    readonly guestIdentifyUserPath = "/identify-user-guest";
-    readonly guestRouteInvokeArn: string;
     readonly identifyUserPath = "/identify-user";
     readonly pushFunctionArn: string;
+    readonly registerDevicePath = "/register-device";
+    readonly removeDevicePath = "/remove-device";
     readonly resources: NotificationsResources;
+    readonly routeInvokeArns: string[];
     readonly stack: Stack;
 }
 
 // @public (undocumented)
 export type AmplifyNotificationsProps = {
-    readonly jwtIssuer: string;
-    readonly jwtAudience: string[];
     readonly domainName?: string;
     readonly instanceAlias?: string;
     readonly lambdaCodePath?: string;
     readonly expirationDays?: number;
-    readonly guestExpirationDays?: number;
     readonly pushLambdaCodePath?: string;
     readonly campaignAssociationLambdaCodePath?: string;
     readonly apnsChannel?: {
@@ -79,9 +77,6 @@ export type ApnsChannelProps = {
 };
 
 // @public
-export const COGNITO_USER_KEY = "cognitoUserKey";
-
-// @public
 export const defineNotifications: (props?: NotificationsFactoryProps) => ConstructFactory<AmplifyNotifications>;
 
 // @public
@@ -100,7 +95,6 @@ export type NotificationsFactoryProps = {
     domainName?: string;
     instanceAlias?: string;
     expirationDays?: number;
-    guestExpirationDays?: number;
     devicesTableRemovalPolicy?: RemovalPolicy;
     apns?: ApnsChannelProps;
     fcm?: FcmChannelProps;
@@ -111,7 +105,6 @@ export type NotificationsResources = {
     identifyUserFunction: lambda.IFunction;
     httpApi: apigwv2.HttpApi;
     profileObjectType: CfnObjectType;
-    guestProfileObjectType: CfnObjectType;
     devicesTable: dynamodb.ITable;
     pushFunction: lambda.IFunction;
     pushApplication: CfnApp;
@@ -124,7 +117,6 @@ export type NotificationsResources = {
 // @public (undocumented)
 export const OBJECT_TYPE_NAMES: {
     profile: string;
-    guestProfile: string;
 };
 
 // @public
@@ -132,6 +124,9 @@ export const OBJECT_TYPE_PROFILE = "AmplifyProfile";
 
 // @public
 export const OUTPUT_KEY = "amazon_connect_customer_profiles";
+
+// @public
+export const PRINCIPAL_ID_KEY = "principalIdKey";
 
 // (No @packageDocumentation comment for this package)
 

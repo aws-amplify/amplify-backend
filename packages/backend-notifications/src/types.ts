@@ -94,8 +94,8 @@ export type NotificationsFactoryProps = {
    *
    * OMIT this (the default) to CREATE FROM SCRATCH: the resource provisions a
    * brand-new Connect instance AND a brand-new Customer Profiles domain (with
-   * generated, stable names) and registers the AmplifyProfile /
-   * AmplifyGuestProfile object types into that new domain — no pre-existing
+   * generated, stable names) and registers the AmplifyProfile object type into
+   * that new domain — no pre-existing
    * Connect setup required. (Device records live in a DynamoDB table, not in
    * Customer Profiles.)
    *
@@ -117,15 +117,6 @@ export type NotificationsFactoryProps = {
    * @default 366
    */
   expirationDays?: number;
-
-  /**
-   * GUEST profile / object-type expiration in days. Guest profiles are reaped
-   * purely by this Customer Profiles TTL (no reaper Lambda needed); deliberately
-   * shorter than `expirationDays` because an unauthenticated identity is
-   * ephemeral.
-   * @default 90
-   */
-  guestExpirationDays?: number;
 
   /**
    * Removal policy for the DynamoDB Devices table (the authoritative device

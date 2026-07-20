@@ -11,7 +11,7 @@ export {
 } from './types.js';
 export {
   OBJECT_TYPE_PROFILE,
-  COGNITO_USER_KEY,
+  PRINCIPAL_ID_KEY,
   OUTPUT_KEY,
 } from './constants.js';
 export {

@@ -7,8 +7,6 @@ import {
   AmplifyNotificationsProps,
 } from './construct.js';
 
-const ISSUER = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_EXAMPLE';
-const AUDIENCE = ['example-client-id'];
 /** An existing (e.g. Connect-managed) Customer Profiles domain to attach to. */
 const EXISTING_DOMAIN = 'amazon-connect-amplify';
 
@@ -19,7 +17,6 @@ const synth = (
       AmplifyNotificationsProps,
       | 'domainName'
       | 'expirationDays'
-      | 'guestExpirationDays'
       | 'instanceAlias'
       | 'apnsChannel'
       | 'fcmChannel'
@@ -28,8 +25,6 @@ const synth = (
 ): { construct: AmplifyNotifications; template: Template } => {
   const stack = new Stack(new App());
   const construct = new AmplifyNotifications(stack, 'notifications', {
-    jwtIssuer: ISSUER,
-    jwtAudience: AUDIENCE,
     domainName: EXISTING_DOMAIN,
     ...props,
   });
@@ -48,8 +43,6 @@ const synthCreate = (
 ): { construct: AmplifyNotifications; template: Template } => {
   const stack = new Stack(new App());
   const construct = new AmplifyNotifications(stack, 'notifications', {
-    jwtIssuer: ISSUER,
-    jwtAudience: AUDIENCE,
     ...props,
   });
   return { construct, template: Template.fromStack(stack) };
@@ -62,56 +55,30 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     assert.strictEqual(construct.domainName, EXISTING_DOMAIN);
   });
 
-  void it('registers the AmplifyProfile + AmplifyGuestProfile object types INTO the existing domain (devices live in DDB, not CP)', () => {
+  void it('registers ONLY the AmplifyProfile object type INTO the existing domain (devices live in DDB, not CP)', () => {
     const { template } = synth();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 1);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: EXISTING_DOMAIN,
       AllowProfileCreation: true,
     });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyGuestProfile',
-      DomainName: EXISTING_DOMAIN,
-      AllowProfileCreation: true,
-    });
   });
 
-  void it('honors a custom expiration on the object types', () => {
+  void it('does NOT register a guest object type (single principalId-keyed profile)', () => {
+    const { template } = synth();
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(
+      !json.includes('AmplifyGuestProfile'),
+      'AmplifyGuestProfile must be fully removed',
+    );
+  });
+
+  void it('honors a custom expiration on the object type', () => {
     const { template } = synth({ expirationDays: 90 });
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       ExpirationDays: 90,
-    });
-  });
-
-  void it('gives the guest profile object type its own 90-day TTL by default', () => {
-    const { template } = synth();
-    // Guests are reaped by a distinct, shorter TTL (Customer Profiles TTL
-    // applies to the whole profile, so no reaper Lambda is needed).
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyGuestProfile',
-      ExpirationDays: 90,
-    });
-    // The authenticated profile keeps the longer default (366).
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyProfile',
-      ExpirationDays: 366,
-    });
-  });
-
-  void it('allows overriding the guest expiration independently of the authed one', () => {
-    const { template } = synth({
-      guestExpirationDays: 30,
-      expirationDays: 400,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyGuestProfile',
-      ExpirationDays: 30,
-    });
-    template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
-      ObjectTypeName: 'AmplifyProfile',
-      ExpirationDays: 400,
     });
   });
 
@@ -174,22 +141,28 @@ void describe('AmplifyNotifications construct — domain attach', () => {
     );
   });
 
-  void it('grants the identify Lambda least-privilege DynamoDB access (UpdateItem + GetItem, no PutItem)', () => {
+  void it('grants the write Lambda least-privilege DynamoDB access (UpdateItem, GetItem, DeleteItem, Query on table + GSI)', () => {
     const { template } = synth();
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
             Effect: 'Allow',
-            Action: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
+            Action: [
+              'dynamodb:UpdateItem',
+              'dynamodb:GetItem',
+              'dynamodb:DeleteItem',
+              'dynamodb:Query',
+            ],
           }),
         ]),
       }),
     });
-    // The identify path only does UpdateItem (LWW claim) + GetItem — never
-    // PutItem, Query, or DeleteItem.
+    // Never PutItem (register/re-home is an UpdateItem LWW claim).
     const json = JSON.stringify(template.toJSON());
     assert.ok(!json.includes('dynamodb:PutItem'));
+    // Scoped to the devices table AND its profileId GSI (Query needs the index).
+    assert.ok(json.includes('index/profileId-index'));
   });
 
   void it('does NOT grant profile:MergeProfiles (merge attack vector removed)', () => {
@@ -209,49 +182,53 @@ void describe('AmplifyNotifications construct — domain attach', () => {
 });
 
 void describe('AmplifyNotifications construct — HTTP API', () => {
-  void it('binds the JWT authorizer to the supplied issuer and audience', () => {
+  void it('authorizes all three write routes with SigV4 (AWS_IAM), no JWT authorizer', () => {
     const { template } = synth();
-    template.hasResourceProperties('AWS::ApiGatewayV2::Authorizer', {
-      AuthorizerType: 'JWT',
-      IdentitySource: ['$request.header.Authorization'],
-      JwtConfiguration: {
-        Audience: AUDIENCE,
-        Issuer: ISSUER,
-      },
-    });
+    template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
+    // No JWT authorizer anywhere.
+    template.resourceCountIs('AWS::ApiGatewayV2::Authorizer', 0);
+    for (const routeKey of [
+      'POST /identify-user',
+      'POST /register-device',
+      'POST /remove-device',
+    ]) {
+      template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+        RouteKey: routeKey,
+        AuthorizationType: 'AWS_IAM',
+      });
+    }
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(!json.includes('"JWT"'), 'JWT authorizer must be removed');
   });
 
-  void it('exposes the invoke endpoint and resource handles', () => {
-    const { construct } = synth();
-    assert.strictEqual(typeof construct.apiEndpoint, 'string');
-    assert.strictEqual(construct.identifyUserPath, '/identify-user');
-    assert.ok(construct.resources.identifyUserFunction);
-    assert.ok(construct.resources.httpApi);
-    assert.ok(construct.resources.profileObjectType);
-    assert.ok(construct.resources.guestProfileObjectType);
-    assert.ok(construct.resources.devicesTable);
-  });
-
-  void it('adds an IAM-authorized GUEST route to the same Lambda with payload format 1.0', () => {
-    const { construct, template } = synth();
-    assert.strictEqual(construct.guestIdentifyUserPath, '/identify-user-guest');
-    assert.strictEqual(typeof construct.guestRouteInvokeArn, 'string');
-    // The guest route is authorized with AWS_IAM (SigV4), not JWT.
-    template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
-      RouteKey: 'POST /identify-user-guest',
-      AuthorizationType: 'AWS_IAM',
-    });
-    // The authed route stays JWT-authorized.
-    template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
-      RouteKey: 'POST /identify-user',
-      AuthorizationType: 'JWT',
-    });
-    // The guest integration MUST use payload format 1.0 so the Lambda receives
-    // requestContext.identity.cognitoIdentityId (format 2.0 has no identity).
+  void it('integrates all routes with payload format 1.0 (surfaces cognitoIdentityId)', () => {
+    const { template } = synth();
+    // Single Lambda integration reused by all three routes, payload format 1.0.
+    template.resourceCountIs('AWS::ApiGatewayV2::Integration', 1);
     template.hasResourceProperties('AWS::ApiGatewayV2::Integration', {
       PayloadFormatVersion: '1.0',
     });
-    template.hasOutput('GuestIdentifyRouteInvokeArn', {});
+  });
+
+  void it('exposes the invoke endpoint, route paths, and per-route invoke ARNs', () => {
+    const { construct } = synth();
+    assert.strictEqual(typeof construct.apiEndpoint, 'string');
+    assert.strictEqual(construct.identifyUserPath, '/identify-user');
+    assert.strictEqual(construct.registerDevicePath, '/register-device');
+    assert.strictEqual(construct.removeDevicePath, '/remove-device');
+    assert.strictEqual(construct.routeInvokeArns.length, 3);
+    for (const arn of construct.routeInvokeArns) {
+      assert.strictEqual(typeof arn, 'string');
+    }
+    assert.ok(construct.resources.identifyUserFunction);
+    assert.ok(construct.resources.httpApi);
+    assert.ok(construct.resources.profileObjectType);
+    assert.ok(construct.resources.devicesTable);
+  });
+
+  void it('surfaces the write-route invoke ARNs as a CfnOutput', () => {
+    const { template } = synth();
+    template.hasOutput('WriteRouteInvokeArns', {});
   });
 });
 
@@ -505,23 +482,21 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     );
   });
 
-  void it('registers the object types INTO the created domain with an explicit dependency on it', () => {
+  void it('registers the object type INTO the created domain with an explicit dependency on it', () => {
     const { construct, template } = synthCreate();
-    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 2);
+    template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 1);
     template.hasResourceProperties('AWS::CustomerProfiles::ObjectType', {
       ObjectTypeName: 'AmplifyProfile',
       DomainName: construct.domainName,
     });
 
-    // All object types must DependsOn the created domain (in-construct ordering
+    // The object type must DependsOn the created domain (in-construct ordering
     // — no cross-stack hack): the domain provisions first and is torn down last.
     // The created domain's logical id is derived from its construct id.
-    for (const objectTypeName of ['AmplifyProfile', 'AmplifyGuestProfile']) {
-      template.hasResource('AWS::CustomerProfiles::ObjectType', {
-        Properties: Match.objectLike({ ObjectTypeName: objectTypeName }),
-        DependsOn: Match.arrayWith([Match.stringLikeRegexp('ProfilesDomain')]),
-      });
-    }
+    template.hasResource('AWS::CustomerProfiles::ObjectType', {
+      Properties: Match.objectLike({ ObjectTypeName: 'AmplifyProfile' }),
+      DependsOn: Match.arrayWith([Match.stringLikeRegexp('ProfilesDomain')]),
+    });
   });
 
   void it('allows overriding the instance alias', () => {

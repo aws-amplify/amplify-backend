@@ -37,8 +37,14 @@ export type DeviceRecord = {
   deviceId: string;
   /** The mutable push token / endpoint address. */
   token: string;
-  /** The profile that currently OWNS this device. */
+  /** The profile that currently OWNS this device (delivery owner / GSI key). */
   profileId: string;
+  /**
+   * The verified caller `principalId` that currently owns this device. Stored
+   * so client-initiated ops (register / remove-device) can gate ownership
+   * directly without re-resolving a profile. Delivery still keys on profileId.
+   */
+  principalId?: string;
   /** The stored channel identifier (raw, pre-normalization). */
   channelType?: string;
 };
@@ -69,6 +75,7 @@ export const upsertDeviceOwner = async (
     deviceId: string;
     token: string;
     profileId: string;
+    principalId: string;
     channelType?: string;
     platform?: string;
     appVersion?: string;
@@ -80,6 +87,7 @@ export const upsertDeviceOwner = async (
   const setClauses = [
     '#token = :token',
     'profileId = :profileId',
+    'principalId = :principalId',
     'updatedAt = :now',
     '#ttl = :ttl',
     'createdAt = if_not_exists(createdAt, :now)',
@@ -91,6 +99,7 @@ export const upsertDeviceOwner = async (
   const values: Record<string, { S: string } | { N: string }> = {
     ':token': { S: record.token },
     ':profileId': { S: record.profileId },
+    ':principalId': { S: record.principalId },
     ':now': { S: nowIso },
     ':ttl': { N: String(ttlFromNow(now)) },
   };
@@ -199,8 +208,59 @@ export const getDeviceOwner = async (
     deviceId,
     token,
     profileId,
+    principalId: item.principalId?.S,
     channelType: item.channelType?.S,
   };
+};
+
+/**
+ * Delete a device record by its PK, CONDITIONAL on the caller still being the
+ * owning `principalId`. This is the ownership-gated client de-registration
+ * (sign-out / explicit de-registration): the device carries its owning `principalId`
+ * attribute, so removal is gated directly with NO profile resolution.
+ *
+ * The delete only fires when the stored `principalId` still equals the caller's
+ * `principalId`. If the device was re-homed to a DIFFERENT principal since, the
+ * `ConditionExpression` fails with `ConditionalCheckFailedException` — that is
+ * the expected "not yours anymore" no-op case (returns `false`), NOT an error,
+ * so remove-device stays idempotent. A missing item likewise yields
+ * `ConditionalCheckFailedException` (no `principalId` to match) and is a no-op.
+ *
+ * `withTransientRetry` (tuned for Customer Profiles) is reused purely for its
+ * `ThrottlingException` coverage; it deliberately does NOT retry
+ * `ConditionalCheckFailedException`.
+ * @throws on any non-conditional failure so the caller can surface a 500.
+ */
+export const deleteDeviceByPrincipal = async (
+  ddb: DynamoDBClient,
+  tableName: string,
+  deviceId: string,
+  principalId: string,
+): Promise<boolean> => {
+  try {
+    await withTransientRetry(() =>
+      ddb.send(
+        new DeleteItemCommand({
+          TableName: tableName,
+          Key: { deviceId: { S: deviceId } },
+          ConditionExpression: 'principalId = :caller',
+          ExpressionAttributeValues: { ':caller': { S: principalId } },
+        }),
+      ),
+    );
+    return true;
+  } catch (err) {
+    const name = err instanceof Error ? err.name : 'unknown';
+    if (name === 'ConditionalCheckFailedException') {
+      // Not owned by the caller (re-homed) or already gone — idempotent no-op.
+      console.log(
+        '[devices] remove.skip',
+        JSON.stringify({ deviceId, reason: 'not_owner_or_absent' }),
+      );
+      return false;
+    }
+    throw err;
+  }
 };
 
 /**

@@ -11,7 +11,6 @@ import {
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { customOutputKey } from '@aws-amplify/backend-output-schemas';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -26,30 +25,17 @@ import { OUTPUT_KEY } from './constants.js';
 class NotificationsGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: string = 'notifications';
 
-  constructor(
-    private readonly props: NotificationsFactoryProps,
-    private readonly authResources: ResourceProvider<
-      AuthResources | ReferenceAuthResources
-    >,
-  ) {}
+  constructor(private readonly props: NotificationsFactoryProps) {}
 
   generateContainerEntry = ({
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps): AmplifyNotifications => {
-    const { userPool, userPoolClient } = this.authResources.resources;
-    const region = Stack.of(scope).region;
-
     return new AmplifyNotifications(scope, 'notifications', {
-      // Build the Cognito issuer / audience from THIS app's user pool so the
-      // HTTP API JWT authorizer only trusts tokens minted by this backend.
-      jwtIssuer: `https://cognito-idp.${region}.amazonaws.com/${userPool.userPoolId}`,
-      jwtAudience: [userPoolClient.userPoolClientId],
       // `domainName` omitted => create-from-scratch (default); provided => attach.
       domainName: this.props.domainName,
       instanceAlias: this.props.instanceAlias,
       expirationDays: this.props.expirationDays,
-      guestExpirationDays: this.props.guestExpirationDays,
       devicesTableRemovalPolicy: this.props.devicesTableRemovalPolicy,
       // Resolve the optional push-channel secret material (Amplify `secret()`) to
       // deploy-time CFN tokens here — the construct stays framework-agnostic and
@@ -115,17 +101,19 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
     }
 
     if (!this.generator) {
-      this.generator = new NotificationsGenerator(this.props, authResources);
+      this.generator = new NotificationsGenerator(this.props);
     }
     const notifications = constructContainer.getOrCompute(
       this.generator,
     ) as AmplifyNotifications;
 
-    // Grant the Cognito Identity Pool UNAUTHENTICATED role permission to invoke
-    // the IAM/SigV4-authorized guest identify route, so guest identify "just
-    // works" with no app-level IAM grant and no new public prop.
+    // Grant the Cognito Identity Pool authenticated AND unauthenticated roles
+    // permission to invoke the IAM/SigV4-authorized write routes, so identify /
+    // register / remove "just work" for both signed-in and guest callers with no
+    // app-level IAM grant. (A guest is simply an unauthenticated identityId on
+    // the same SigV4 endpoints.)
     if (!this.guestInvokeGranted) {
-      this.grantGuestRouteInvoke(authResources, notifications);
+      this.grantRouteInvoke(authResources, notifications);
       this.guestInvokeGranted = true;
     }
 
@@ -141,39 +129,42 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
   };
 
   /**
-   * Grants the Identity Pool unauthenticated role `execute-api:Invoke` on the
-   * guest identify route.
+   * Grants the Identity Pool authenticated AND unauthenticated roles
+   * `execute-api:Invoke` on the three SigV4 write routes.
    *
-   * CRITICAL — dependency direction: the {@link Policy} is created in the
-   * NOTIFICATIONS construct scope (grantor stack) and attached to the unauth
-   * role via the auth `ResourceAccessAcceptor` (`policy.attachToRole`). This
-   * keeps the single nested-stack edge notifications -> auth (notifications
-   * already depends on auth for the JWT issuer). Using
-   * `unauthRole.addToPrincipalPolicy(...)` instead would create the policy in
-   * the AUTH stack referencing this API's ARN, adding an auth -> notifications
-   * edge and a circular nested-stack dependency. This mirrors how
-   * `defineStorage` grants the auth/unauth roles bucket access.
+   * CRITICAL — dependency direction: the {@link Policy} objects are created in
+   * the NOTIFICATIONS construct scope (grantor stack) and attached to the roles
+   * via the auth `ResourceAccessAcceptor` (`policy.attachToRole`). This keeps
+   * the single nested-stack edge notifications -> auth. Using
+   * `role.addToPrincipalPolicy(...)` instead would create the policy in the AUTH
+   * stack referencing this API's ARN, adding an auth -> notifications edge and a
+   * circular nested-stack dependency. This mirrors how `defineStorage` grants
+   * the auth/unauth roles bucket access.
    */
-  private grantGuestRouteInvoke = (
+  private grantRouteInvoke = (
     authResources: ResourceAccessAcceptorFactory<AuthRoleName>,
     notifications: AmplifyNotifications,
   ): void => {
-    const unauthAcceptor = authResources.getResourceAccessAcceptor(
+    const roles: AuthRoleName[] = [
+      'authenticatedUserIamRole',
       'unauthenticatedUserIamRole',
-    );
-    const guestInvokePolicy = new Policy(
-      notifications,
-      'GuestIdentifyInvokePolicy',
-      {
-        statements: [
-          new PolicyStatement({
-            actions: ['execute-api:Invoke'],
-            resources: [notifications.guestRouteInvokeArn],
-          }),
-        ],
-      },
-    );
-    unauthAcceptor.acceptResourceAccess(guestInvokePolicy, []);
+    ];
+    for (const roleName of roles) {
+      const acceptor = authResources.getResourceAccessAcceptor(roleName);
+      const invokePolicy = new Policy(
+        notifications,
+        `WriteRouteInvokePolicy-${roleName}`,
+        {
+          statements: [
+            new PolicyStatement({
+              actions: ['execute-api:Invoke'],
+              resources: notifications.routeInvokeArns,
+            }),
+          ],
+        },
+      );
+      acceptor.acceptResourceAccess(invokePolicy, []);
+    }
   };
 
   private storeOutput = (
