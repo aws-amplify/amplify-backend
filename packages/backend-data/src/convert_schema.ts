@@ -225,6 +225,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     },
     vpcConfiguration,
     customSqlStatements,
+    minimizeRdsVpcEndpoints: configuration.minimizeRdsVpcEndpoints,
   };
 
   return strategy;
