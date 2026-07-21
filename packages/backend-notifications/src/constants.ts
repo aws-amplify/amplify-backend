@@ -134,7 +134,7 @@ export const CONNECT_CAMPAIGNS_SLR_PATH_PREFIX =
 /**
  * Fixed key under the canonical `notifications` section of
  * `amplify_outputs.json` where the notifications endpoint / region are surfaced
- * to the client (`notifications.amazon_connect_customer_profiles`). This is the
+ * to the client (`notifications.amazon_connect`). This is the
  * exact path amplify-js reads in `parseAmplifyOutputs` (`parseNotifications`).
  *
  * This is intentionally NOT configurable: every first-party Amplify Gen2
@@ -143,4 +143,4 @@ export const CONNECT_CAMPAIGNS_SLR_PATH_PREFIX =
  * caller-chosen one, so the client config contributors know where to read it.
  * This resource follows the same convention with a single stable key.
  */
-export const OUTPUT_KEY = 'amazon_connect_customer_profiles';
+export const OUTPUT_KEY = 'amazon_connect';

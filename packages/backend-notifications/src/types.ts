@@ -11,8 +11,8 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
  *
  * defineNotifications({
  *   apns: {
- *     keySecret: secret('APNS_SIGNING_KEY'), // contents of the AuthKey_XXXX.p8
- *     keyId: 'ABC123DEFG',
+ *     tokenKey: secret('APNS_SIGNING_KEY'), // contents of the AuthKey_XXXX.p8
+ *     tokenKeyId: 'ABC123DEFG',
  *     teamId: 'DEF456GHIJ',
  *     bundleId: 'com.example.app',
  *   },
@@ -21,14 +21,14 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
 export type ApnsChannelProps = {
   /**
    * Amplify `secret()` holding the APNs token signing key — the full contents
-   * of the `AuthKey_<keyId>.p8` file downloaded from the Apple Developer portal.
-   * Resolved at deploy time and written to the APNs channel's token key; never
-   * stored in the CloudFormation template as plain text.
+   * of the `AuthKey_<tokenKeyId>.p8` file downloaded from the Apple Developer
+   * portal. Resolved at deploy time and written to the APNs channel's
+   * `TokenKey`; never stored in the CloudFormation template as plain text.
    */
-  keySecret: BackendSecret;
+  tokenKey: BackendSecret;
 
-  /** The 10-character key identifier assigned to your APNs signing key. */
-  keyId: string;
+  /** The 10-character key identifier assigned to your APNs signing key (CFN `TokenKeyId`). */
+  tokenKeyId: string;
 
   /**
    * The 10-character identifier assigned to your Apple Developer account team.
@@ -62,7 +62,7 @@ export type ApnsChannelProps = {
  *
  * defineNotifications({
  *   fcm: {
- *     credentialsSecret: secret('FCM_SERVICE_ACCOUNT_JSON'),
+ *     serviceJson: secret('FCM_SERVICE_ACCOUNT_JSON'),
  *   },
  * });
  */
@@ -74,55 +74,18 @@ export type FcmChannelProps = {
    * `DefaultAuthenticationMethod = TOKEN`; never stored in the CloudFormation
    * template as plain text.
    */
-  credentialsSecret: BackendSecret;
+  serviceJson: BackendSecret;
 };
 
 /**
- * Properties accepted by {@link defineNotifications}.
- *
- * All properties are optional: calling `defineNotifications()` with no arguments
- * is the zero-config default that creates a new Amazon Connect instance +
- * Customer Profiles domain from scratch and wires the notifications resources
- * into it.
+ * Push-channel configuration shared by both factory prop shapes.
  */
-export type NotificationsFactoryProps = {
-  /**
-   * Name of an EXISTING Amazon Connect Customer Profiles domain to attach to —
-   * e.g. the domain Amazon Connect auto-creates (`amazon-connect-<instance>`)
-   * when Customer Profiles is enabled on your instance.
-   *
-   * OMIT this (the default) to CREATE FROM SCRATCH: the resource provisions a
-   * brand-new Connect instance AND a brand-new Customer Profiles domain (with
-   * generated, stable names) and registers the AmplifyProfile object type into
-   * that new domain — no pre-existing
-   * Connect setup required. (Device records live in a DynamoDB table, not in
-   * Customer Profiles.)
-   *
-   * When PROVIDED, the resource ATTACHES: it registers the object types INTO
-   * this existing domain additively and never creates an instance or a domain.
-   */
-  domainName?: string;
-
-  /**
-   * CREATE mode only: override the auto-generated Amazon Connect instance alias.
-   * Ignored when `domainName` is provided (attach mode). When omitted, a
-   * deterministic-yet-unique alias is derived from the app so it is stable
-   * across deploy/delete and unique per app.
-   */
-  instanceAlias?: string;
-
-  /**
-   * Profile / object-type expiration in days.
-   * @default 366
-   */
-  expirationDays?: number;
-
+type NotificationsChannelProps = {
   /**
    * OPTIONAL APNs (Apple) push-channel configuration. When provided, the APNs
    * channel is enabled on the created End User Messaging (Pinpoint) application
    * using token (`.p8`) authentication, with the key material sourced from an
-   * Amplify `secret()`. When omitted, the APNs channel is left unset
-   * (unchanged behavior) — the application is created but no channel is enabled.
+   * Amplify `secret()`. When omitted, the APNs channel is left unset.
    */
   apns?: ApnsChannelProps;
 
@@ -131,7 +94,45 @@ export type NotificationsFactoryProps = {
    * GCM channel is enabled on the created End User Messaging (Pinpoint)
    * application using FCM HTTP v1 authentication, with the service-account
    * credential sourced from an Amplify `secret()`. When omitted, the GCM channel
-   * is left unset (unchanged behavior).
+   * is left unset.
    */
   fcm?: FcmChannelProps;
 };
+
+/**
+ * Properties accepted by {@link defineNotifications}.
+ *
+ * A DISCRIMINATED UNION on `domainName`: `expirationDays` / `instanceAlias` are
+ * meaningful ONLY when creating a new domain, so they cannot be combined with an
+ * `domainName` (attach mode). Calling `defineNotifications()` with no arguments
+ * is the zero-config default (create-from-scratch).
+ */
+export type NotificationsFactoryProps =
+  | ({
+      /**
+       * Name of an EXISTING Amazon Connect Customer Profiles domain to attach to
+       * — e.g. the domain Amazon Connect auto-creates (`amazon-connect-<instance>`)
+       * when Customer Profiles is enabled on your instance. The resource ATTACHES:
+       * it registers the object type INTO this existing domain additively and
+       * never creates an instance or a domain. (Device records live in a DynamoDB
+       * table, not in Customer Profiles.)
+       */
+      domainName: string;
+    } & NotificationsChannelProps)
+  | ({
+      /** CREATE mode: `domainName` MUST be omitted. */
+      domainName?: undefined;
+
+      /**
+       * CREATE mode only: override the auto-generated Amazon Connect instance
+       * alias. When omitted, a deterministic-yet-unique alias is derived from the
+       * app so it is stable across deploy/delete and unique per app.
+       */
+      instanceAlias?: string;
+
+      /**
+       * CREATE mode only: profile / object-type expiration in days.
+       * @default 366
+       */
+      expirationDays?: number;
+    } & NotificationsChannelProps);

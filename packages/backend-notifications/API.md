@@ -48,7 +48,7 @@ export type AmplifyNotificationsProps = {
     readonly campaignAssociationLambdaCodePath?: string;
     readonly apnsChannel?: {
         readonly tokenKey: string;
-        readonly keyId: string;
+        readonly tokenKeyId: string;
         readonly teamId: string;
         readonly bundleId: string;
         readonly sandbox?: boolean;
@@ -60,8 +60,8 @@ export type AmplifyNotificationsProps = {
 
 // @public
 export type ApnsChannelProps = {
-    keySecret: BackendSecret;
-    keyId: string;
+    tokenKey: BackendSecret;
+    tokenKeyId: string;
     teamId: string;
     bundleId: string;
     sandbox?: boolean;
@@ -72,17 +72,19 @@ export const defineNotifications: (props?: NotificationsFactoryProps) => Constru
 
 // @public
 export type FcmChannelProps = {
-    credentialsSecret: BackendSecret;
+    serviceJson: BackendSecret;
 };
 
+// Warning: (ae-forgotten-export) The symbol "NotificationsChannelProps" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type NotificationsFactoryProps = {
-    domainName?: string;
+export type NotificationsFactoryProps = ({
+    domainName: string;
+} & NotificationsChannelProps) | ({
+    domainName?: undefined;
     instanceAlias?: string;
     expirationDays?: number;
-    apns?: ApnsChannelProps;
-    fcm?: FcmChannelProps;
-};
+} & NotificationsChannelProps);
 
 // @public
 export type NotificationsResources = {
@@ -99,7 +101,7 @@ export type NotificationsResources = {
 };
 
 // @public
-export const OUTPUT_KEY = "amazon_connect_customer_profiles";
+export const OUTPUT_KEY = "amazon_connect";
 
 // (No @packageDocumentation comment for this package)
 

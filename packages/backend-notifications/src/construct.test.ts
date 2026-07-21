@@ -370,7 +370,7 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
 void describe('AmplifyNotifications construct — optional push channels', () => {
   const APNS = {
     tokenKey: 'FAKE_P8_KEY_CONTENT_FOR_TESTING',
-    keyId: 'ABC123DEFG',
+    tokenKeyId: 'ABC123DEFG',
     teamId: 'DEF456GHIJ',
     bundleId: 'com.example.app',
   };
@@ -393,7 +393,7 @@ void describe('AmplifyNotifications construct — optional push channels', () =>
       Enabled: true,
       DefaultAuthenticationMethod: 'TOKEN',
       TokenKey: APNS.tokenKey,
-      TokenKeyId: APNS.keyId,
+      TokenKeyId: APNS.tokenKeyId,
       TeamId: APNS.teamId,
       BundleId: APNS.bundleId,
       ApplicationId: Match.anyValue(),
@@ -411,7 +411,7 @@ void describe('AmplifyNotifications construct — optional push channels', () =>
       Enabled: true,
       DefaultAuthenticationMethod: 'TOKEN',
       TokenKey: APNS.tokenKey,
-      TokenKeyId: APNS.keyId,
+      TokenKeyId: APNS.tokenKeyId,
       TeamId: APNS.teamId,
       BundleId: APNS.bundleId,
     });

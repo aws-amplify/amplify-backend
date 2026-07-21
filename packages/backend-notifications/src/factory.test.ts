@@ -331,7 +331,7 @@ void describe('defineNotifications', () => {
     });
   });
 
-  void it('surfaces the endpoint + region under notifications.amazon_connect_customer_profiles', () => {
+  void it('surfaces the endpoint + region under notifications.amazon_connect', () => {
     defineNotifications({ domainName: EXISTING_DOMAIN }).getInstance(
       getInstanceProps,
     );
@@ -348,7 +348,7 @@ void describe('defineNotifications', () => {
     );
     // Lands in the canonical `notifications` section, NOT under `custom`.
     assert.strictEqual(parsed.custom, undefined);
-    const profiles = parsed.notifications?.amazon_connect_customer_profiles;
+    const profiles = parsed.notifications?.amazon_connect;
     assert.ok(profiles);
     assert.strictEqual(typeof profiles.endpoint, 'string');
     assert.strictEqual(typeof profiles.aws_region, 'string');
@@ -396,8 +396,8 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        keySecret: fakeSecret('p8-key-material'),
-        keyId: 'ABC123DEFG',
+        tokenKey: fakeSecret('p8-key-material'),
+        tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
       },
@@ -420,7 +420,7 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       fcm: {
-        credentialsSecret: fakeSecret('{"type":"service_account"}'),
+        serviceJson: fakeSecret('{"type":"service_account"}'),
       },
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
@@ -437,8 +437,8 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        keySecret: fakeSecret('p8-key-material'),
-        keyId: 'ABC123DEFG',
+        tokenKey: fakeSecret('p8-key-material'),
+        tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
         sandbox: true,
@@ -453,13 +453,13 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        keySecret: fakeSecret('p8-key-material'),
-        keyId: 'ABC123DEFG',
+        tokenKey: fakeSecret('p8-key-material'),
+        tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
       },
       fcm: {
-        credentialsSecret: fakeSecret('{"type":"service_account"}'),
+        serviceJson: fakeSecret('{"type":"service_account"}'),
       },
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);

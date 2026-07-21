@@ -183,10 +183,10 @@ export type AmplifyNotificationsProps = {
    * channel is configured.
    */
   readonly apnsChannel?: {
-    /** The APNs token signing key contents (the `AuthKey_<keyId>.p8` file). */
+    /** The APNs token signing key contents (the `AuthKey_<tokenKeyId>.p8` file). */
     readonly tokenKey: string;
-    /** The 10-character key identifier assigned to the APNs signing key. */
-    readonly keyId: string;
+    /** The 10-character key identifier assigned to the APNs signing key (CFN `TokenKeyId`). */
+    readonly tokenKeyId: string;
     /** The Apple Developer account team identifier. */
     readonly teamId: string;
     /** The iOS app bundle identifier. */
@@ -665,7 +665,7 @@ export class AmplifyNotifications
         enabled: true,
         defaultAuthenticationMethod: 'TOKEN',
         tokenKey: apnsConfig.tokenKey,
-        tokenKeyId: apnsConfig.keyId,
+        tokenKeyId: apnsConfig.tokenKeyId,
         teamId: apnsConfig.teamId,
         bundleId: apnsConfig.bundleId,
       };

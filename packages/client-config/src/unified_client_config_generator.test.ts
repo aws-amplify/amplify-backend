@@ -160,6 +160,36 @@ void describe('UnifiedClientConfigGenerator', () => {
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 
+    void it('stamps version 1.5 when generating for V1.5', async () => {
+      const stubOutput: UnifiedBackendOutput = {
+        [platformOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: 'branch',
+            region: 'us-east-1',
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider,
+      );
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined,
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter,
+      ).getContributors('1.5');
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors,
+      );
+      const result = await clientConfigGenerator.generateClientConfig();
+      assert.strictEqual(result.version, '1.5');
+    });
+
     void it('transforms backend output into client config for V1.3', async () => {
       const groups = [
         {

@@ -31,30 +31,39 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps): AmplifyNotifications => {
+    const props = this.props;
+    // Create-only knobs (instanceAlias / expirationDays) exist only on the
+    // create-from-scratch branch of the discriminated union (domainName absent).
+    const createOnly =
+      props.domainName === undefined
+        ? {
+            instanceAlias: props.instanceAlias,
+            expirationDays: props.expirationDays,
+          }
+        : {};
     return new AmplifyNotifications(scope, 'notifications', {
       // `domainName` omitted => create-from-scratch (default); provided => attach.
-      domainName: this.props.domainName,
-      instanceAlias: this.props.instanceAlias,
-      expirationDays: this.props.expirationDays,
+      domainName: props.domainName,
+      ...createOnly,
       // Resolve the optional push-channel secret material (Amplify `secret()`) to
       // deploy-time CFN tokens here — the construct stays framework-agnostic and
       // receives only plain strings. Mirrors how `defineAuth` resolves external
       // provider secrets in `translate_auth_props`.
-      apnsChannel: this.props.apns
+      apnsChannel: props.apns
         ? {
             tokenKey: backendSecretResolver
-              .resolveSecret(this.props.apns.keySecret)
+              .resolveSecret(props.apns.tokenKey)
               .unsafeUnwrap(),
-            keyId: this.props.apns.keyId,
-            teamId: this.props.apns.teamId,
-            bundleId: this.props.apns.bundleId,
-            sandbox: this.props.apns.sandbox,
+            tokenKeyId: props.apns.tokenKeyId,
+            teamId: props.apns.teamId,
+            bundleId: props.apns.bundleId,
+            sandbox: props.apns.sandbox,
           }
         : undefined,
-      fcmChannel: this.props.fcm
+      fcmChannel: props.fcm
         ? {
             serviceJson: backendSecretResolver
-              .resolveSecret(this.props.fcm.credentialsSecret)
+              .resolveSecret(props.fcm.serviceJson)
               .unsafeUnwrap(),
           }
         : undefined,
@@ -174,7 +183,7 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
       payload: {
         // Serialized `Partial<ClientConfig>` — surfaced under the canonical
         // `notifications` section of `amplify_outputs.json` at
-        // `notifications.amazon_connect_customer_profiles`, the exact path
+        // `notifications.amazon_connect`, the exact path
         // amplify-js reads in `parseAmplifyOutputs`. The custom-output key is
         // the generic conduit for contributing a typed `Partial<ClientConfig>`
         // (see `CustomClientConfigContributor`), so the payload is NOT confined
@@ -199,7 +208,7 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  * API, and the push-delivery Lambda (invoked by a
  * Connect Journey Custom-action) with a minimal AWS End User Messaging
  * application. The invoke endpoint / region are
- * surfaced under `notifications.amazon_connect_customer_profiles` in
+ * surfaced under `notifications.amazon_connect` in
  * `amplify_outputs.json`.
  *
  * By DEFAULT (no `domainName`) it CREATES FROM SCRATCH: a brand-new Amazon
