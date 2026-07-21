@@ -312,7 +312,6 @@ void describe('defineNotifications', () => {
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::Lambda::Function', 2);
     assert.strictEqual(typeof notifications.pushFunctionArn, 'string');
-    assert.strictEqual(typeof notifications.eumApplicationId, 'string');
     assert.ok(notifications.resources.pushFunction);
     assert.ok(notifications.resources.pushApplication);
   });

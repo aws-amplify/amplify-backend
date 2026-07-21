@@ -20,7 +20,7 @@ import { OUTPUT_KEY } from './constants.js';
 
 /**
  * Generates the {@link AmplifyNotifications} construct in the resolved stack,
- * wiring the HTTP API's JWT authorizer to the app's Cognito user pool.
+ * granting the app's Cognito Identity Pool roles access to the SigV4 API routes.
  */
 class NotificationsGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: string = 'notifications';
@@ -36,7 +36,6 @@ class NotificationsGenerator implements ConstructContainerEntryGenerator {
       domainName: this.props.domainName,
       instanceAlias: this.props.instanceAlias,
       expirationDays: this.props.expirationDays,
-      devicesTableRemovalPolicy: this.props.devicesTableRemovalPolicy,
       // Resolve the optional push-channel secret material (Amplify `secret()`) to
       // deploy-time CFN tokens here — the construct stays framework-agnostic and
       // receives only plain strings. Mirrors how `defineAuth` resolves external
@@ -79,9 +78,8 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
   ): AmplifyNotifications => {
     const { constructContainer, outputStorageStrategy } = getInstanceProps;
 
-    // Resolve THIS app's auth resource (Cognito user pool + client) so the JWT
-    // authorizer trusts only tokens issued by this backend. The same auth
-    // factory instance also exposes `getResourceAccessAcceptor` (implemented by
+    // Resolve THIS app's auth resource (Cognito Identity Pool roles). The auth
+    // factory instance exposes `getResourceAccessAcceptor` (implemented by
     // both owned and referenced auth), which is used below to grant the guest
     // route invoke permission without any app-level IAM wiring.
     const authResources = constructContainer
@@ -196,9 +194,9 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
 
 /**
  * Include an Amazon Connect Customer Profiles-backed notifications resource in
- * your Amplify backend. It registers the AmplifyProfile / AmplifyGuestProfile
- * object types, a DynamoDB device store, a least-privilege identify-user Lambda
- * + a JWT-authorized HTTP API, and the push-delivery Lambda (invoked by a
+ * your Amplify backend. It registers the AmplifyProfile object type, a DynamoDB
+ * device store, a least-privilege write Lambda behind a SigV4-authorized HTTP
+ * API, and the push-delivery Lambda (invoked by a
  * Connect Journey Custom-action) with a minimal AWS End User Messaging
  * application. The invoke endpoint / region are
  * surfaced under `notifications.amazon_connect_customer_profiles` in

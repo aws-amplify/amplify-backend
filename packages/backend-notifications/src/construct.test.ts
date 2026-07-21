@@ -220,7 +220,7 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
     for (const arn of construct.routeInvokeArns) {
       assert.strictEqual(typeof arn, 'string');
     }
-    assert.ok(construct.resources.identifyUserFunction);
+    assert.ok(construct.resources.apiFunction);
     assert.ok(construct.resources.httpApi);
     assert.ok(construct.resources.profileObjectType);
     assert.ok(construct.resources.devicesTable);
@@ -229,6 +229,41 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
   void it('surfaces the write-route invoke ARNs as a CfnOutput', () => {
     const { template } = synth();
     template.hasOutput('WriteRouteInvokeArns', {});
+  });
+});
+
+void describe('AmplifyNotifications construct — Devices table removal policy', () => {
+  const synthWithDeploymentType = (
+    deploymentType: 'sandbox' | 'branch',
+  ): Template => {
+    const app = new App();
+    app.node.setContext('amplify-backend-type', deploymentType);
+    const stack = new Stack(app);
+    new AmplifyNotifications(stack, 'notifications', {
+      domainName: EXISTING_DOMAIN,
+    });
+    return Template.fromStack(stack);
+  };
+
+  void it('DESTROYs the Devices table under a sandbox deployment', () => {
+    synthWithDeploymentType('sandbox').hasResource('AWS::DynamoDB::Table', {
+      DeletionPolicy: 'Delete',
+      UpdateReplacePolicy: 'Delete',
+    });
+  });
+
+  void it('RETAINs the Devices table under a branch deployment', () => {
+    synthWithDeploymentType('branch').hasResource('AWS::DynamoDB::Table', {
+      DeletionPolicy: 'Retain',
+      UpdateReplacePolicy: 'Retain',
+    });
+  });
+
+  void it('RETAINs by default when no deployment type is set (non-sandbox)', () => {
+    const { template } = synth();
+    template.hasResource('AWS::DynamoDB::Table', {
+      DeletionPolicy: 'Retain',
+    });
   });
 });
 
@@ -241,7 +276,6 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
     assert.ok(construct.resources.pushFunction);
     assert.ok(construct.resources.pushApplication);
     assert.strictEqual(typeof construct.pushFunctionArn, 'string');
-    assert.strictEqual(typeof construct.eumApplicationId, 'string');
     template.hasOutput('PushHandlerFunctionArn', {});
   });
 

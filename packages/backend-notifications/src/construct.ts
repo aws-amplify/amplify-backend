@@ -34,7 +34,12 @@ import {
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpIamAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { ResourceProvider, StackProvider } from '@aws-amplify/plugin-types';
+import {
+  DeploymentType,
+  ResourceProvider,
+  StackProvider,
+} from '@aws-amplify/plugin-types';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 import {
   CONNECT_CAMPAIGNS_SERVICE_NAME,
@@ -73,8 +78,8 @@ const defaultCampaignAssociationLambdaCodePath = path.join(
 
 /** CDK resources exposed by {@link AmplifyNotifications}. */
 export type NotificationsResources = {
-  /** The identify-user Lambda function. */
-  identifyUserFunction: lambda.IFunction;
+  /** The write Lambda function backing the three SigV4 API routes. */
+  apiFunction: lambda.IFunction;
   /** The HTTP API fronting the three SigV4 write routes. */
   httpApi: apigwv2.HttpApi;
   /** The AmplifyProfile object type registered on the domain. */
@@ -145,6 +150,7 @@ export type AmplifyNotificationsProps = {
    * Override the directory containing the pre-bundled Lambda asset (an
    * `index.js` exporting `handler`). Defaults to the handler bundled inside this
    * package (`lib/handler-asset`, produced by `post:compile`).
+   * @internal
    */
   readonly lambdaCodePath?: string;
 
@@ -155,6 +161,7 @@ export type AmplifyNotificationsProps = {
    * Override the directory containing the pre-bundled push Lambda asset (an
    * `index.js` exporting `handler`). Defaults to the handler bundled inside this
    * package (`lib/push-handler-asset`, produced by `post:compile`).
+   * @internal
    */
   readonly pushLambdaCodePath?: string;
 
@@ -163,6 +170,7 @@ export type AmplifyNotificationsProps = {
    * custom-resource Lambda asset (an `index.js` exporting `handler`). Defaults to
    * the handler bundled inside this package (`lib/campaign-association-asset`,
    * produced by `post:compile`). Only used in create-from-scratch mode.
+   * @internal
    */
   readonly campaignAssociationLambdaCodePath?: string;
 
@@ -201,15 +209,6 @@ export type AmplifyNotificationsProps = {
     /** The FCM HTTP v1 service-account JSON credential contents. */
     readonly serviceJson: string;
   };
-
-  /**
-   * Removal policy for the DynamoDB Devices table (the authoritative device
-   * store). Defaults to `RETAIN` so tearing down the stack never silently drops
-   * live device registrations. Set to `DESTROY` for ephemeral dev / E2E
-   * sandboxes that should be fully cleaned up on delete.
-   * @default RemovalPolicy.RETAIN
-   */
-  readonly devicesTableRemovalPolicy?: RemovalPolicy;
 };
 
 /**
@@ -220,7 +219,7 @@ export type AmplifyNotificationsProps = {
  *   - DynamoDB Devices table: authoritative device store (PK `deviceId`, GSI on
  *     `profileId`, native TTL) with strongly-consistent single-owner semantics.
  *   - identify-user Lambda with least-privilege profile:* on this domain only.
- *   - HTTP API + JWT authorizer bound to the supplied issuer / audience.
+ *   - HTTP API with SigV4 (IAM / execute-api) authorization on all write routes.
  *   - push-delivery Lambda (Connect Journey Custom-action target) + a minimal
  *     AWS End User Messaging (Pinpoint) application for `SendMessages`.
  *
@@ -249,7 +248,7 @@ export type AmplifyNotificationsProps = {
  *
  * This construct is framework-agnostic (aws-cdk-lib + constructs only). The
  * `defineNotifications` factory wraps it for Amplify Gen2 backends, wiring the
- * JWT authorizer to the app's Cognito user pool and surfacing the endpoint via
+ * SigV4-authorized routes to the app's Identity Pool roles and surfacing the endpoint via
  * backend outputs.
  */
 export class AmplifyNotifications
@@ -298,11 +297,6 @@ export class AmplifyNotifications
    * (Invoke Lambda) target.
    */
   public readonly pushFunctionArn: string;
-  /**
-   * The AWS End User Messaging / Pinpoint application id this construct created
-   * and the push Lambda calls `SendMessages` against.
-   */
-  public readonly eumApplicationId: string;
 
   /**
    * Registers the AmplifyProfile object type into the Customer Profiles domain
@@ -316,6 +310,14 @@ export class AmplifyNotifications
 
     const stack = Stack.of(this);
     this.stack = stack;
+    // Auto-derive the Devices-table removal policy from the deployment type, the
+    // same mechanism defineData/defineStorage use: sandbox (`npx ampx sandbox`)
+    // -> DESTROY so ephemeral device data is cleaned up on delete; branch /
+    // pipeline -> RETAIN so a teardown never silently drops live registrations.
+    const isSandbox =
+      (stack.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) as
+        | DeploymentType
+        | undefined) === 'sandbox';
     const expirationDays = props.expirationDays ?? DEFAULT_EXPIRATION_DAYS;
 
     const createFromScratch = !props.domainName;
@@ -452,10 +454,10 @@ export class AmplifyNotifications
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: 'ttl',
       pointInTimeRecovery: true,
-      // Authoritative device store: default RETAIN so a stack teardown never
-      // silently drops live device registrations. Dev / E2E can opt into
-      // DESTROY via `devicesTableRemovalPolicy`.
-      removalPolicy: props.devicesTableRemovalPolicy ?? RemovalPolicy.RETAIN,
+      // Authoritative device store: branch/pipeline deploys RETAIN so a stack
+      // teardown never silently drops live device registrations; sandbox deploys
+      // DESTROY so ephemeral dev / E2E data is cleaned up on delete.
+      removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
     });
     devicesTable.addGlobalSecondaryIndex({
       indexName: DEVICES_TABLE_GSI_PRINCIPAL_ID,
@@ -494,7 +496,7 @@ export class AmplifyNotifications
     // NodejsFunction guardrail forbids an entry outside the app root).
     const codePath = props.lambdaCodePath ?? defaultLambdaCodePath;
 
-    const fn = new lambda.Function(this, 'IdentifyUserFn', {
+    const apiFn = new lambda.Function(this, 'ApiFn', {
       code: lambda.Code.fromAsset(codePath),
       handler: 'index.handler',
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -525,7 +527,7 @@ export class AmplifyNotifications
       },
       stack,
     );
-    fn.addToRolePolicy(
+    apiFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
@@ -543,7 +545,7 @@ export class AmplifyNotifications
     // strongly-consistent last-writer-wins UpdateItem on the deviceId PK,
     // remove-device is an ownership-gated conditional DeleteItem, and the union
     // Lambda also needs GetItem + Query (GSI) for shared reads.
-    fn.addToRolePolicy(
+    apiFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
@@ -567,7 +569,7 @@ export class AmplifyNotifications
     // `identity` block, so it MUST NOT be used here. A guest is simply an
     // unauthenticated Identity Pool caller signing the same endpoints.
     const iamAuthorizer = new HttpIamAuthorizer();
-    const integration = new HttpLambdaIntegration('WriteIntegration', fn, {
+    const integration = new HttpLambdaIntegration('WriteIntegration', apiFn, {
       payloadFormatVersion: apigwv2.PayloadFormatVersion.VERSION_1_0,
     });
 
@@ -639,7 +641,6 @@ export class AmplifyNotifications
       name: `${domainName}-push`,
     });
     const eumApplicationId = pushApplication.ref;
-    this.eumApplicationId = eumApplicationId;
 
     // ---- Optional push channels (secret-driven) ---------------------------
     // The Amplify Gen2 factory resolves the APNs `.p8` key / FCM service-account
@@ -889,7 +890,7 @@ export class AmplifyNotifications
     }
 
     this.resources = {
-      identifyUserFunction: fn,
+      apiFunction: apiFn,
       httpApi,
       profileObjectType: profileType,
       devicesTable,

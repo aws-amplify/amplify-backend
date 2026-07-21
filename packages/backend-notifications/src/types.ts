@@ -1,5 +1,4 @@
 import { BackendSecret } from '@aws-amplify/plugin-types';
-import { RemovalPolicy } from 'aws-cdk-lib';
 
 /**
  * APNs (Apple Push Notification service) channel configuration, using APNs
@@ -117,15 +116,6 @@ export type NotificationsFactoryProps = {
    * @default 366
    */
   expirationDays?: number;
-
-  /**
-   * Removal policy for the DynamoDB Devices table (the authoritative device
-   * store). Defaults to `RETAIN` so a stack teardown never silently drops live
-   * device registrations. Set to `RemovalPolicy.DESTROY` for ephemeral dev /
-   * E2E sandboxes that should be fully cleaned up on delete.
-   * @default RemovalPolicy.RETAIN
-   */
-  devicesTableRemovalPolicy?: RemovalPolicy;
 
   /**
    * OPTIONAL APNs (Apple) push-channel configuration. When provided, the APNs

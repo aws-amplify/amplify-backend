@@ -17,16 +17,9 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { RemovalPolicy } from 'aws-cdk-lib';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { StackProvider } from '@aws-amplify/plugin-types';
-
-// @public
-export const AMPLIFY_PROFILE_FIELDS: FieldMap[];
-
-// @public (undocumented)
-export const AMPLIFY_PROFILE_KEYS: KeyMap[];
 
 // @public
 export class AmplifyNotifications extends Construct implements ResourceProvider<NotificationsResources>, StackProvider {
@@ -36,7 +29,6 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
     readonly connectInstanceId?: string;
     readonly createsResources: boolean;
     readonly domainName: string;
-    readonly eumApplicationId: string;
     readonly identifyUserPath = "/identify-user";
     readonly pushFunctionArn: string;
     readonly registerDevicePath = "/register-device";
@@ -64,7 +56,6 @@ export type AmplifyNotificationsProps = {
     readonly fcmChannel?: {
         readonly serviceJson: string;
     };
-    readonly devicesTableRemovalPolicy?: RemovalPolicy;
 };
 
 // @public
@@ -84,25 +75,18 @@ export type FcmChannelProps = {
     credentialsSecret: BackendSecret;
 };
 
-// @public (undocumented)
-export type FieldMap = CfnObjectType.FieldMapProperty;
-
-// @public (undocumented)
-export type KeyMap = CfnObjectType.KeyMapProperty;
-
 // @public
 export type NotificationsFactoryProps = {
     domainName?: string;
     instanceAlias?: string;
     expirationDays?: number;
-    devicesTableRemovalPolicy?: RemovalPolicy;
     apns?: ApnsChannelProps;
     fcm?: FcmChannelProps;
 };
 
 // @public
 export type NotificationsResources = {
-    identifyUserFunction: lambda.IFunction;
+    apiFunction: lambda.IFunction;
     httpApi: apigwv2.HttpApi;
     profileObjectType: CfnObjectType;
     devicesTable: dynamodb.ITable;
@@ -114,19 +98,8 @@ export type NotificationsResources = {
     profilesDomain?: CfnDomain;
 };
 
-// @public (undocumented)
-export const OBJECT_TYPE_NAMES: {
-    profile: string;
-};
-
-// @public
-export const OBJECT_TYPE_PROFILE = "AmplifyProfile";
-
 // @public
 export const OUTPUT_KEY = "amazon_connect_customer_profiles";
-
-// @public
-export const PRINCIPAL_ID_KEY = "principalIdKey";
 
 // (No @packageDocumentation comment for this package)
 
