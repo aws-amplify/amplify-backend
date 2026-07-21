@@ -4,6 +4,7 @@ import {
   GenerationResult,
   GraphqlDocumentGenerator,
 } from './model_generator.js';
+import { isEmptyGraphqlDocument } from './empty_graphql_document.js';
 
 /**
  * Generates GraphQL documents for a given AppSync API
@@ -39,6 +40,12 @@ export class AppSyncGraphqlDocumentGenerator implements GraphqlDocumentGenerator
       relativeTypesPath,
     });
 
-    return this.resultBuilder(generatedStatements);
+    const nonEmptyStatements = Object.fromEntries(
+      Object.entries(generatedStatements).filter(
+        ([, contents]) => !isEmptyGraphqlDocument(contents),
+      ),
+    );
+
+    return this.resultBuilder(nonEmptyStatements);
   };
 }
