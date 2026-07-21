@@ -19,26 +19,38 @@ import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
-const projectRoot = await getProjectRoot();
-
-const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot,
-);
-
-const packageManagerController =
-  packageManagerControllerFactory.getPackageManagerController();
-
-const amplifyProjectCreator = new AmplifyProjectCreator(
-  projectRoot,
-  packageManagerController,
-  new ProjectRootValidator(projectRoot),
-  new GitIgnoreInitializer(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, packageManagerController),
-);
+/**
+ * Ctrl+C during a prompt rejects with an ExitPromptError from the prompt
+ * library. The intent to exit is explicit, so there is nothing to report.
+ * Matched on the message rather than the type so that this package does not
+ * take a direct dependency on the prompt library, the same way the CLI's
+ * error handler does it.
+ */
+const isUserForceClosePromptError = (err: unknown): boolean =>
+  err instanceof Error && err.message.includes('User force closed the prompt');
 
 try {
+  const projectRoot = await getProjectRoot();
+
+  const packageManagerControllerFactory = new PackageManagerControllerFactory(
+    projectRoot,
+  );
+
+  const packageManagerController =
+    packageManagerControllerFactory.getPackageManagerController();
+
+  const amplifyProjectCreator = new AmplifyProjectCreator(
+    projectRoot,
+    packageManagerController,
+    new ProjectRootValidator(projectRoot),
+    new GitIgnoreInitializer(projectRoot),
+    new InitialProjectFileGenerator(projectRoot, packageManagerController),
+  );
+
   await amplifyProjectCreator.create();
 } catch (err) {
-  printer.log(format.error(err), LogLevel.ERROR);
+  if (!isUserForceClosePromptError(err)) {
+    printer.log(format.error(err), LogLevel.ERROR);
+  }
   process.exitCode = 1;
 }
