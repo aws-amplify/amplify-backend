@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 1.24.0
+
+### Minor Changes
+
+- a50ec3b: Map `minimizeRdsVpcEndpoints` from `DataSourceConfiguration` onto the generated SQL `ModelDataSourceStrategy` so the customer setting is forwarded to the SQL strategy.
+
+### Patch Changes
+
+- 8b715d7: fix(backend-function): avoid serializing the full environment in the malformed data-env error
+
+  When the data environment variables are missing or malformed, `getAmplifyDataClientConfig` no longer serializes the entire runtime environment into the thrown error. The message now lists only the names of the missing/malformed variables, which keeps it debuggable without including unrelated environment values.
+
+- Updated dependencies [a50ec3b]
+- Updated dependencies [8b715d7]
+- Updated dependencies [4849fad]
+  - @aws-amplify/backend-data@1.8.0
+  - @aws-amplify/backend-function@1.18.2
+  - @aws-amplify/plugin-types@1.12.2
+
 ## 1.23.0
 
 ### Minor Changes
