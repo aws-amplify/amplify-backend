@@ -5,6 +5,10 @@ inputs:
   node-version:
     description: node version used to configure environment with
     required: true
+  registry-url:
+    description: npm registry URL (needed for trusted publishing)
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
@@ -22,6 +26,7 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
+        registry-url: ${{ inputs.registry-url }}
     - name: Hydrate npx cache
       # This step hydrates npx cache with packages that we use in builds and tests upfront.
       # Otherwise, concurrent attempt to use these tools with cache miss results in race conditions between
