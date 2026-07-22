@@ -426,6 +426,43 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authCreds,
       run,
     );
+
+    // API-behavior group (authZ, decoupling, idempotency, validation edges).
+    // Fresh authenticated identities that have NEVER called identify-user.
+    const registerFirstUser =
+      await authFactory.getNewAuthenticatedUserCredentials();
+    const emptyProfileUser =
+      await authFactory.getNewAuthenticatedUserCredentials();
+
+    await this.assertApiAuthZBoundary(endpoint, region, tableName, run);
+    await this.assertRegisterBeforeIdentify(
+      endpoint,
+      region,
+      domainName,
+      tableName,
+      registerFirstUser.iamCredentials,
+      registerFirstUser.identityId,
+      run,
+    );
+    await this.assertIdempotency(
+      endpoint,
+      region,
+      domainName,
+      tableName,
+      authCreds,
+      authId,
+      run,
+    );
+    await this.assertValidationEdges(
+      endpoint,
+      region,
+      domainName,
+      tableName,
+      authCreds,
+      emptyProfileUser.iamCredentials,
+      emptyProfileUser.identityId,
+      run,
+    );
   };
 
   /**
@@ -983,6 +1020,435 @@ class NotificationsProjectTestProject extends TestProjectBase {
   };
 
   /**
+   * B1. API authZ boundary: the routes use IAM/SigV4 (execute-api) auth, so an
+   *     UNSIGNED request and a request signed with BOGUS credentials are both
+   *     rejected with 403 by API Gateway before the Lambda runs. No profile or
+   *     device side effect occurs (verified via a namespaced register attempt).
+   */
+  private assertApiAuthZBoundary = async (
+    endpoint: string,
+    region: string,
+    tableName: string,
+    run: string,
+  ): Promise<void> => {
+    const paths = ['/identify-user', '/register-device', '/remove-device'];
+
+    // (a) Unsigned requests -> 403 on every route.
+    for (const path of paths) {
+      const res = await this.unsignedPost(endpoint, path, { deviceId: 'x' });
+      assert.strictEqual(
+        res.status,
+        403,
+        `unsigned ${path} expected 403, got ${res.status}: ${res.body}`,
+      );
+    }
+
+    // (b) Bogus-signature request (signed with garbage credentials) -> 403.
+    const bogusCreds: IamCredentials = {
+      accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+      secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEYgarbage',
+      sessionToken: 'bogus-session-token',
+    };
+    const bogusDeviceId = `notif-e2e-bogus-${run}`;
+    const bogusRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      bogusCreds,
+      {
+        device: {
+          token: `notif-e2e-bogus-token-${run}`,
+          deviceId: bogusDeviceId,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      bogusRes.status,
+      403,
+      `bogus-signature register-device expected 403, got ${bogusRes.status}: ${bogusRes.body}`,
+    );
+
+    // No side effect: the rejected register never wrote a device item.
+    const noDevice = await this.getDeviceItem(tableName, bogusDeviceId);
+    assert.strictEqual(
+      noDevice,
+      undefined,
+      `Expected NO device written for rejected (bogus-sig) register, got ${JSON.stringify(noDevice)}`,
+    );
+
+    console.log(
+      `[B1] authZ boundary: unsigned identify/register/remove -> 403 each; bogus-signature register -> 403 (no device written)`,
+    );
+  };
+
+  /**
+   * B2. Register-before-identify decoupling: an identity that has NEVER called
+   *     identify-user can register a device (200), keyed directly on its
+   *     server-derived principalId, with NO pre-existing Customer Profile.
+   */
+  private assertRegisterBeforeIdentify = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    tableName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    // Confirm there is no profile for this principal yet (single search — this
+    // identity has never identified).
+    const preProfile = await this.searchProfile(domainName, identityId);
+    assert.strictEqual(
+      preProfile,
+      undefined,
+      `Expected NO profile for never-identified principal ${identityId}`,
+    );
+
+    const deviceId = `notif-e2e-regfirst-${run}`;
+    const token = `notif-e2e-regfirst-token-${run}`;
+    const res = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      creds,
+      {
+        device: { token, deviceId, platform: 'ios', channelType: 'APNS' },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `register-before-identify expected 200, got ${res.status}: ${res.body}`,
+    );
+
+    const item = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(item, `No device item found for ${deviceId}`);
+    assert.strictEqual(
+      item.principalId?.S,
+      identityId,
+      `Expected device principalId === ${identityId}, got ${item.principalId?.S}`,
+    );
+    assert.strictEqual(
+      item.token?.S,
+      token,
+      `Expected device token === ${token}, got ${item.token?.S}`,
+    );
+    console.log(
+      `[B2] register-before-identify 200; no prior profile, DDB item principalId=${item.principalId?.S} (profile not required)`,
+    );
+  };
+
+  /**
+   * B3. Idempotency / upsert semantics:
+   *   (a) identify-user twice for the SAME principal -> exactly ONE profile,
+   *       attributes updated (not duplicated).
+   *   (b) register-device same deviceId + SAME principal twice (self
+   *       re-register, not a re-home) -> single item, createdAt preserved,
+   *       updatedAt advances, token updates.
+   *   (c) remove-device twice -> first deletes, second is a benign no-op.
+   */
+  private assertIdempotency = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    tableName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    // (a) Second identify-user for the SAME principal (the first was assertion
+    // 1). Update a custom attribute and assert a SINGLE profile remains.
+    const res = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      creds,
+      { userProfile: { customAttributes: { seg: 'y' } } },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `idempotent identify-user expected 200, got ${res.status}: ${res.body}`,
+    );
+    // Poll until the attribute update is visible, then assert single match.
+    let matches = await this.searchProfiles(domainName, identityId);
+    for (let i = 0; i < 10 && matches[0]?.Attributes?.seg !== 'y'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+      matches = await this.searchProfiles(domainName, identityId);
+    }
+    assert.strictEqual(
+      matches.length,
+      1,
+      `Expected exactly ONE profile for ${identityId}, found ${matches.length}`,
+    );
+    assert.strictEqual(
+      matches[0]?.Attributes?.seg,
+      'y',
+      `Expected Attributes.seg updated to 'y', got ${matches[0]?.Attributes?.seg}`,
+    );
+
+    // (b) Self re-register the SAME deviceId + SAME principal twice.
+    const deviceId = `notif-e2e-idem-${run}`;
+    const firstToken = `notif-e2e-idem-token-${run}-1`;
+    const firstRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      creds,
+      {
+        device: {
+          token: firstToken,
+          deviceId,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      firstRes.status,
+      200,
+      `first self-register expected 200, got ${firstRes.status}`,
+    );
+    const firstItem = await this.getDeviceItem(tableName, deviceId);
+    const createdAt0 = firstItem?.createdAt?.S;
+    const updatedAt0 = firstItem?.updatedAt?.S;
+
+    const secondToken = `notif-e2e-idem-token-${run}-2`;
+    const secondRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      creds,
+      {
+        device: {
+          token: secondToken,
+          deviceId,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      secondRes.status,
+      200,
+      `second self-register expected 200, got ${secondRes.status}`,
+    );
+    const secondItem = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(
+      secondItem,
+      `Expected device item for ${deviceId} after self re-register`,
+    );
+    assert.strictEqual(
+      secondItem.principalId?.S,
+      identityId,
+      `Expected owner unchanged (${identityId}), got ${secondItem.principalId?.S}`,
+    );
+    assert.strictEqual(
+      secondItem.createdAt?.S,
+      createdAt0,
+      `Expected createdAt preserved (${createdAt0}), got ${secondItem.createdAt?.S}`,
+    );
+    assert.ok(
+      secondItem.updatedAt?.S &&
+        updatedAt0 &&
+        secondItem.updatedAt.S > updatedAt0,
+      `Expected updatedAt to advance from ${updatedAt0}, got ${secondItem.updatedAt?.S}`,
+    );
+    assert.strictEqual(
+      secondItem.token?.S,
+      secondToken,
+      `Expected token updated to ${secondToken}, got ${secondItem.token?.S}`,
+    );
+
+    // (c) remove-device twice: first deletes, second benign no-op.
+    const rm1 = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      creds,
+      { deviceId },
+    );
+    assert.strictEqual(
+      rm1.status,
+      200,
+      `first remove expected 200, got ${rm1.status}`,
+    );
+    const goneAfterFirst = await this.getDeviceItem(tableName, deviceId);
+    assert.strictEqual(
+      goneAfterFirst,
+      undefined,
+      `Expected device deleted after first remove`,
+    );
+    const rm2 = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      creds,
+      { deviceId },
+    );
+    assert.strictEqual(
+      rm2.status,
+      200,
+      `second remove expected 200 no-op, got ${rm2.status}`,
+    );
+    const stillGone = await this.getDeviceItem(tableName, deviceId);
+    assert.strictEqual(
+      stillGone,
+      undefined,
+      `Expected device to stay absent after second remove`,
+    );
+
+    console.log(
+      `[B3] idempotency: identify x2 -> single profile (seg='y'); self re-register -> createdAt preserved=${secondItem.createdAt?.S === createdAt0}, updatedAt advanced=true, token updated; remove x2 -> delete then benign no-op`,
+    );
+  };
+
+  /**
+   * B4. Validation edges (aligned to validation.ts):
+   *   - register-device / remove-device with missing deviceId -> 400.
+   *   - identify-user with an EMPTY userProfile {} -> 200 (validator passes;
+   *     handler creates a profile with only the server-derived principalId).
+   *   - invalid channelType -> 400 (enum-checked); invalid platform -> 200
+   *     (NOT enum-validated — bounded string only, stored verbatim).
+   */
+  private assertValidationEdges = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    tableName: string,
+    authCreds: IamCredentials,
+    emptyProfileCreds: IamCredentials,
+    emptyProfileId: string,
+    run: string,
+  ): Promise<void> => {
+    // Missing deviceId on register-device -> 400.
+    const regMissing = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      authCreds,
+      {
+        device: {
+          token: `notif-e2e-nodev-${run}`,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      regMissing.status,
+      400,
+      `register-device missing deviceId expected 400, got ${regMissing.status}: ${regMissing.body}`,
+    );
+
+    // Missing deviceId on remove-device -> 400.
+    const rmMissing = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      authCreds,
+      {},
+    );
+    assert.strictEqual(
+      rmMissing.status,
+      400,
+      `remove-device missing deviceId expected 400, got ${rmMissing.status}: ${rmMissing.body}`,
+    );
+
+    // Empty userProfile {} -> 200, profile created with ONLY principalId.
+    const emptyRes = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      emptyProfileCreds,
+      {
+        userProfile: {},
+      },
+    );
+    assert.strictEqual(
+      emptyRes.status,
+      200,
+      `empty userProfile expected 200, got ${emptyRes.status}: ${emptyRes.body}`,
+    );
+    const emptyProfile = await this.pollProfile(domainName, emptyProfileId);
+    assert.ok(
+      emptyProfile,
+      `Expected a profile created for empty-userProfile principal ${emptyProfileId}`,
+    );
+    assert.strictEqual(
+      emptyProfile.Attributes?.principalId,
+      emptyProfileId,
+      `Expected Attributes.principalId === ${emptyProfileId}, got ${emptyProfile.Attributes?.principalId}`,
+    );
+    assert.strictEqual(
+      emptyProfile.EmailAddress,
+      undefined,
+      `Expected no EmailAddress on empty-userProfile profile, got ${emptyProfile.EmailAddress}`,
+    );
+
+    // Invalid channelType -> 400 (enum-checked in validation.ts).
+    const badChannel = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      authCreds,
+      {
+        device: {
+          token: `notif-e2e-badchan-token-${run}`,
+          deviceId: `notif-e2e-badchan-${run}`,
+          platform: 'ios',
+          channelType: 'SMS',
+        },
+      },
+    );
+    assert.strictEqual(
+      badChannel.status,
+      400,
+      `invalid channelType expected 400, got ${badChannel.status}: ${badChannel.body}`,
+    );
+    const badChannelMsg = this.parseMessage(badChannel.body);
+    assert.ok(
+      badChannelMsg.toLowerCase().includes('channeltype'),
+      `Expected a channelType validation message, got "${badChannelMsg}"`,
+    );
+
+    // Arbitrary platform -> ACCEPTED (200), stored verbatim (platform is not enum-validated).
+    const oddPlatformDeviceId = `notif-e2e-oddplat-${run}`;
+    const oddPlatform = 'sailfish-os';
+    const oddPlatformRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      authCreds,
+      {
+        device: {
+          token: `notif-e2e-oddplat-token-${run}`,
+          deviceId: oddPlatformDeviceId,
+          platform: oddPlatform,
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      oddPlatformRes.status,
+      200,
+      `arbitrary platform expected 200 (not enum-validated), got ${oddPlatformRes.status}: ${oddPlatformRes.body}`,
+    );
+    const oddItem = await this.getDeviceItem(tableName, oddPlatformDeviceId);
+    assert.strictEqual(
+      oddItem?.platform?.S,
+      oddPlatform,
+      `Expected platform stored verbatim as '${oddPlatform}', got ${oddItem?.platform?.S}`,
+    );
+
+    console.log(
+      `[B4] validation edges: register/remove missing deviceId -> 400; empty userProfile -> 200 (profile has only principalId=${emptyProfile.Attributes?.principalId}, no Email); invalid channelType 'SMS' -> 400 "${badChannelMsg}"; arbitrary platform '${oddPlatform}' -> 200 (stored verbatim)`,
+    );
+  };
+
+  /**
    * SigV4-sign a POST to `{endpoint}{path}` for `execute-api` with the given
    * Identity Pool IAM credentials and send it via fetch.
    */
@@ -1069,6 +1535,14 @@ class NotificationsProjectTestProject extends TestProjectBase {
     domainName: string,
     principalId: string,
   ): Promise<Profile | undefined> => {
+    const matches = await this.searchProfiles(domainName, principalId);
+    return matches.find((item) => !!item.ProfileId);
+  };
+
+  private searchProfiles = async (
+    domainName: string,
+    principalId: string,
+  ): Promise<Profile[]> => {
     const search = await this.customerProfilesClient.send(
       new SearchProfilesCommand({
         DomainName: domainName,
@@ -1076,7 +1550,21 @@ class NotificationsProjectTestProject extends TestProjectBase {
         Values: [principalId],
       }),
     );
-    return search.Items?.find((item) => !!item.ProfileId);
+    return (search.Items ?? []).filter((item) => !!item.ProfileId);
+  };
+
+  /** Send an UNSIGNED POST (no SigV4 headers) — used to prove the IAM gate. */
+  private unsignedPost = async (
+    endpoint: string,
+    path: string,
+    body: unknown,
+  ): Promise<SignedResponse> => {
+    const res = await fetch(`${endpoint}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return { status: res.status, body: await res.text() };
   };
 
   private getDeviceItem = async (
