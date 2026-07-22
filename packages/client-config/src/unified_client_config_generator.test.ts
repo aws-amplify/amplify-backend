@@ -208,7 +208,8 @@ void describe('UnifiedClientConfigGenerator', () => {
             customOutputs: JSON.stringify({
               notifications: {
                 amazon_connect: {
-                  endpoint: 'https://abc123.execute-api.us-east-1.amazonaws.com',
+                  endpoint:
+                    'https://abc123.execute-api.us-east-1.amazonaws.com',
                   aws_region: 'us-east-1',
                 },
               },

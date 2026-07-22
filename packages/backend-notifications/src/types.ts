@@ -86,7 +86,7 @@ export type FcmChannelProps = {
  * is the zero-config default (create-from-scratch).
  */
 export type NotificationsFactoryProps =
-  | ({
+  | {
       /**
        * Name of an EXISTING Amazon Connect Customer Profiles domain to attach to
        * — e.g. the domain Amazon Connect auto-creates (`amazon-connect-<instance>`)
@@ -114,8 +114,8 @@ export type NotificationsFactoryProps =
        * channel is left unset.
        */
       fcm?: FcmChannelProps;
-    })
-  | ({
+    }
+  | {
       /** CREATE mode: `domainName` MUST be omitted. */
       domainName?: undefined;
 
@@ -149,4 +149,4 @@ export type NotificationsFactoryProps =
        * channel is left unset.
        */
       fcm?: FcmChannelProps;
-    });
+    };
