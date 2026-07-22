@@ -32,12 +32,21 @@ let ddbCommands: any[];
 const installMocks = (opts?: {
   searchProfileId?: string | null;
   ddbSend?: (input: any, name: string) => unknown;
+  profileSend?: (input: any, name: string) => unknown;
 }): void => {
   profileCommands = [];
   ddbCommands = [];
   mock.method(CustomerProfilesClient.prototype, 'send', (command: any) => {
     const name = command.constructor.name;
     profileCommands.push({ name, input: command.input });
+    if (opts?.profileSend) {
+      // The hook may throw to simulate an SDK rejection, or return a value to
+      // override the default; returning undefined falls through to defaults.
+      const override = opts.profileSend(command.input, name);
+      if (override !== undefined) {
+        return Promise.resolve(override);
+      }
+    }
     if (name === 'SearchProfilesCommand') {
       const id =
         opts && 'searchProfileId' in opts
@@ -293,5 +302,65 @@ void describe('write handler', () => {
     );
     assert.strictEqual(res.statusCode, 500);
     assert.strictEqual(JSON.parse(res.body).message, 'Internal error');
+  });
+
+  void it('identify-user: 500 error log carries only correlation-safe fields, NEVER the raw SDK message (PII)', async () => {
+    // Customer Profiles BadRequestException echoes the rejected request input
+    // (here the caller-submitted email) verbatim in its .message. The handler
+    // MUST NOT log that message, or customer PII leaks into CloudWatch.
+    const SENTINEL = 'sentinel@example.com';
+    mock.restoreAll();
+    installMocks({
+      profileSend: (_input, name) => {
+        if (name === 'UpdateProfileCommand') {
+          const err: any = new Error(
+            `Invalid email address: ${SENTINEL} is not a valid value`,
+          );
+          err.name = 'BadRequestException';
+          err.$metadata = {
+            httpStatusCode: 400,
+            requestId: 'request-id-12345',
+          };
+          throw err;
+        }
+        // SearchProfiles / PutProfileObject fall through to defaults so the
+        // flow reaches UpdateProfile.
+        return undefined;
+      },
+    });
+    const errorLog = mock.method(console, 'error', () => {});
+
+    const res = await handler(
+      makeEvent('/identify-user', { userProfile: { email: SENTINEL } }),
+    );
+
+    // (a) The caller still receives a generic 500 — response is unchanged.
+    assert.strictEqual(res.statusCode, 500);
+    assert.strictEqual(JSON.parse(res.body).message, 'Internal error');
+
+    // (b) The catch logs the correlation-safe fields: name + statusCode +
+    // requestId (derived from $metadata), and nothing else.
+    const call = errorLog.mock.calls.find(
+      (c) =>
+        typeof c.arguments[0] === 'string' &&
+        c.arguments[0].includes('identify-user.error'),
+    );
+    assert.ok(call, 'expected a "[write] identify-user.error" log line');
+    const payload = JSON.parse(call.arguments[1] as string);
+    assert.strictEqual(payload.name, 'BadRequestException');
+    assert.strictEqual(payload.statusCode, 400);
+    assert.strictEqual(payload.requestId, 'request-id-12345');
+    // The message field is gone entirely (not just emptied).
+    assert.strictEqual(payload.message, undefined);
+
+    // (c) NOTHING logged to console.error may contain the caller PII sentinel.
+    const allLogged = errorLog.mock.calls
+      .flatMap((c) => c.arguments)
+      .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+      .join(' ');
+    assert.ok(
+      !allLogged.includes(SENTINEL),
+      'error log must never contain the caller-submitted email (PII)',
+    );
   });
 });

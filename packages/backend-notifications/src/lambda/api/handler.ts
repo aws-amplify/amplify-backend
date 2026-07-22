@@ -117,16 +117,26 @@ export const handler = async (
         return await handleRemoveDevice(parsed, devicesTableName, principalId);
     }
   } catch (err) {
-    // Full detail is logged SERVER-SIDE only; the caller gets a generic message
-    // so a raw SDK message — which can carry request input / customer content —
-    // never leaks. principalId (PII-adjacent) is never logged.
+    // The raw SDK error message is INTENTIONALLY DROPPED: Customer Profiles
+    // BadRequestException messages echo the rejected request input verbatim
+    // (e.g. the caller-submitted email/phone), so logging err.message would
+    // leak customer content (PII) into CloudWatch. We log ONLY
+    // correlation-safe fields — the error name and the $metadata HTTP status /
+    // requestId. principalId (PII-adjacent) is never logged, and the caller
+    // always receives a generic message. err.stack is likewise excluded: a
+    // Node.js stack string begins with "<name>: <message>", so logging it
+    // would reintroduce the same leak — use requestId for correlation.
     const name = err instanceof Error ? err.name : 'UnknownError';
-    const message = err instanceof Error ? err.message : 'unknown error';
-    const statusCode = (err as { $metadata?: { httpStatusCode?: number } })
-      ?.$metadata?.httpStatusCode;
+    const meta = (
+      err as { $metadata?: { httpStatusCode?: number; requestId?: string } }
+    )?.$metadata;
     console.error(
       `[write] ${route}.error`,
-      JSON.stringify({ name, statusCode, message }),
+      JSON.stringify({
+        name,
+        statusCode: meta?.httpStatusCode,
+        requestId: meta?.requestId,
+      }),
     );
     return response(500, { message: 'Internal error' });
   }
