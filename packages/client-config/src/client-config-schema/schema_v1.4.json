@@ -31,7 +31,10 @@
               "type": "string"
             }
           },
-          "required": ["aws_region", "app_id"]
+          "required": [
+            "aws_region",
+            "app_id"
+          ]
         }
       }
     },
@@ -138,7 +141,10 @@
             },
             "response_type": {
               "type": "string",
-              "enum": ["code", "token"]
+              "enum": [
+                "code",
+                "token"
+              ]
             }
           },
           "required": [
@@ -164,7 +170,11 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["email", "phone_number", "username"]
+            "enum": [
+              "email",
+              "phone_number",
+              "username"
+            ]
           },
           "minItems": 1,
           "uniqueItems": true
@@ -173,7 +183,10 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["email", "phone_number"]
+            "enum": [
+              "email",
+              "phone_number"
+            ]
           }
         },
         "unauthenticated_identities_enabled": {
@@ -182,12 +195,20 @@
         },
         "mfa_configuration": {
           "type": "string",
-          "enum": ["NONE", "OPTIONAL", "REQUIRED"]
+          "enum": [
+            "NONE",
+            "OPTIONAL",
+            "REQUIRED"
+          ]
         },
         "mfa_methods": {
           "type": "array",
           "items": {
-            "enum": ["SMS", "TOTP", "EMAIL"]
+            "enum": [
+              "SMS",
+              "TOTP",
+              "EMAIL"
+            ]
           }
         },
         "passwordless": {
@@ -209,14 +230,25 @@
                 },
                 "user_verification": {
                   "type": "string",
-                  "enum": ["required", "preferred"]
+                  "enum": [
+                    "required",
+                    "preferred"
+                  ]
                 }
               },
-              "required": ["relying_party_id", "user_verification"]
+              "required": [
+                "relying_party_id",
+                "user_verification"
+              ]
             },
             "preferred_challenge": {
               "type": "string",
-              "enum": ["EMAIL_OTP", "SMS_OTP", "PASSWORD", "WEB_AUTHN"]
+              "enum": [
+                "EMAIL_OTP",
+                "SMS_OTP",
+                "PASSWORD",
+                "WEB_AUTHN"
+              ]
             }
           }
         },
@@ -236,7 +268,11 @@
           }
         }
       },
-      "required": ["aws_region", "user_pool_id", "user_pool_client_id"]
+      "required": [
+        "aws_region",
+        "user_pool_id",
+        "user_pool_client_id"
+      ]
     },
     "data": {
       "description": "Outputs generated from defineData",
@@ -305,7 +341,10 @@
               "type": "string"
             }
           },
-          "required": ["items", "default"]
+          "required": [
+            "items",
+            "default"
+          ]
         },
         "search_indices": {
           "description": "Location search (search by places, addresses, coordinates)",
@@ -325,7 +364,10 @@
               "type": "string"
             }
           },
-          "required": ["items", "default"]
+          "required": [
+            "items",
+            "default"
+          ]
         },
         "geofence_collections": {
           "description": "Geofencing (visualize virtual perimeters)",
@@ -345,10 +387,15 @@
               "type": "string"
             }
           },
-          "required": ["items", "default"]
+          "required": [
+            "items",
+            "default"
+          ]
         }
       },
-      "required": ["aws_region"]
+      "required": [
+        "aws_region"
+      ]
     },
     "notifications": {
       "type": "object",
@@ -368,28 +415,12 @@
           },
           "minItems": 1,
           "uniqueItems": true
-        },
-        "amazon_connect_customer_profiles": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "aws_region": {
-              "$ref": "#/$defs/aws_region"
-            },
-            "endpoint": {
-              "type": "string"
-            }
-          },
-          "required": ["aws_region", "endpoint"]
         }
       },
-      "anyOf": [
-        {
-          "required": ["aws_region", "amazon_pinpoint_app_id", "channels"]
-        },
-        {
-          "required": ["amazon_connect_customer_profiles"]
-        }
+      "required": [
+        "aws_region",
+        "amazon_pinpoint_app_id",
+        "channels"
       ]
     },
     "storage": {
@@ -410,19 +441,30 @@
           }
         }
       },
-      "required": ["aws_region", "bucket_name"]
+      "required": [
+        "aws_region",
+        "bucket_name"
+      ]
     },
     "custom": {
       "description": "Outputs generated from backend.addOutput({ custom: <config> })",
       "type": "object"
     }
   },
-  "required": ["version"],
+  "required": [
+    "version"
+  ],
   "$defs": {
     "amplify_storage_access_actions": {
       "description": "run json-schema-to-typescript with --unreachableDefitions to ensure this type is generated",
       "type": "string",
-      "enum": ["read", "get", "list", "write", "delete"]
+      "enum": [
+        "read",
+        "get",
+        "list",
+        "write",
+        "delete"
+      ]
     },
     "amplify_storage_access_rule": {
       "tsType": "{ guest?: AmplifyStorageAccessActions[]; authenticated?: AmplifyStorageAccessActions[]; [groups: `group${string}`]: AmplifyStorageAccessActions[]; [entity: `entity${string}`]: AmplifyStorageAccessActions[]; resource?: AmplifyStorageAccessActions[]; }"
@@ -450,7 +492,11 @@
           }
         }
       },
-      "required": ["bucket_name", "aws_region", "name"]
+      "required": [
+        "bucket_name",
+        "aws_region",
+        "name"
+      ]
     },
     "aws_region": {
       "type": "string"
@@ -503,7 +549,13 @@
     "amazon_pinpoint_channels": {
       "description": "supported channels for Amazon Pinpoint",
       "type": "string",
-      "enum": ["IN_APP_MESSAGING", "FCM", "APNS", "EMAIL", "SMS"]
+      "enum": [
+        "IN_APP_MESSAGING",
+        "FCM",
+        "APNS",
+        "EMAIL",
+        "SMS"
+      ]
     },
     "amplify_user_group_config": {
       "type": "object",

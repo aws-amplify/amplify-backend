@@ -241,12 +241,12 @@ class AmplifyNotificationsFactory implements ConstructFactory<AmplifyNotificatio
  *   // notifications: defineNotifications({
  *   //   domainName: 'amazon-connect-amplify',
  *   //   apns: {
- *   //     keySecret: secret('APNS_SIGNING_KEY'),
- *   //     keyId: 'ABC123DEFG',
+ *   //     tokenKey: secret('APNS_SIGNING_KEY'),
+ *   //     tokenKeyId: 'ABC123DEFG',
  *   //     teamId: 'DEF456GHIJ',
  *   //     bundleId: 'com.example.app',
  *   //   },
- *   //   fcm: { credentialsSecret: secret('FCM_SERVICE_ACCOUNT_JSON') },
+ *   //   fcm: { serviceJson: secret('FCM_SERVICE_ACCOUNT_JSON') },
  *   // }),
  * });
  */

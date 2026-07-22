@@ -6,6 +6,7 @@
    wire contract, not app-chosen identifiers. */
 
 import {
+  AttributeValue,
   DeleteItemCommand,
   DynamoDBClient,
   GetItemCommand,
@@ -139,7 +140,7 @@ export const queryDeviceIdsByPrincipal = async (
   principalId: string,
 ): Promise<string[]> => {
   const deviceIds: string[] = [];
-  let exclusiveStartKey: Record<string, { S: string }> | undefined;
+  let exclusiveStartKey: Record<string, AttributeValue> | undefined;
 
   do {
     const res = await withTransientRetry(() =>
@@ -161,7 +162,7 @@ export const queryDeviceIdsByPrincipal = async (
       }
     }
     exclusiveStartKey = res.LastEvaluatedKey as
-      | Record<string, { S: string }>
+      | Record<string, AttributeValue>
       | undefined;
   } while (exclusiveStartKey);
 

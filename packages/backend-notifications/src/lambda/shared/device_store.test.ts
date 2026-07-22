@@ -200,7 +200,7 @@ void describe('getDeviceOwner', () => {
     assert.strictEqual(await getDeviceOwner(ddb, 'Devices', 'd1'), undefined);
   });
 
-  void it('returns undefined when the item lacks token or profileId', async () => {
+  void it('returns undefined when the item lacks token or principalId', async () => {
     const ddb = {
       send: (): Promise<unknown> =>
         Promise.resolve({ Item: { deviceId: { S: 'd1' } } }),

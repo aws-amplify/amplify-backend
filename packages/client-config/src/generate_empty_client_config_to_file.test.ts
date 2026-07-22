@@ -45,4 +45,16 @@ void describe('generate empty client config to file', () => {
       path.join(process.cwd(), 'userOutDir', 'amplify_outputs.json'),
     );
   });
+
+  void it('correctly generates an empty file for client config version 1.4 (version-aware)', async () => {
+    await generateEmptyClientConfigToFile(
+      ClientConfigVersionOption.V1_4,
+      'userOutDir',
+    );
+    assert.equal(writeFileMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[1],
+      `{\n  "version": "1.4"\n}`,
+    );
+  });
 });

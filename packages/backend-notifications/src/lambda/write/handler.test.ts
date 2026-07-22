@@ -218,6 +218,35 @@ void describe('write handler', () => {
     );
   });
 
+  void it('SECURITY: body-supplied principalId/userId/identityId are IGNORED; ownership uses only the SigV4 requestContext identity', async () => {
+    const res = await handler(
+      makeEvent('/register-device', {
+        // Attacker-controlled body fields that must NOT influence ownership.
+        principalId: 'us-east-1:ATTACKER',
+        userId: 'attacker-user',
+        identityId: 'us-east-1:ATTACKER',
+        device: {
+          token: 'tok-1',
+          deviceId: 'dev-1',
+          channelType: 'APNS',
+          // spoof attempts nested on the device entity too
+          principalId: 'us-east-1:ATTACKER',
+        },
+      }),
+    );
+    assert.strictEqual(res.statusCode, 200);
+    const upsert = named(ddbCommands, 'UpdateItemCommand')[0];
+    // Ownership is the SigV4-derived principal, never any body value.
+    assert.strictEqual(
+      upsert.input.ExpressionAttributeValues[':principalId'].S,
+      PRINCIPAL,
+    );
+    assert.notStrictEqual(
+      upsert.input.ExpressionAttributeValues[':principalId'].S,
+      'us-east-1:ATTACKER',
+    );
+  });
+
   void it('remove-device: conditional delete gated on principalId', async () => {
     const res = await handler(
       makeEvent('/remove-device', { deviceId: 'dev-1' }),

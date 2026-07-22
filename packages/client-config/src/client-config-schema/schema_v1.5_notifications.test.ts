@@ -6,21 +6,21 @@ import { sep } from 'node:path';
 import { Validator } from 'jsonschema';
 
 const schemaPath = fileURLToPath(
-  new URL('./schema_v1.4.json', import.meta.url),
+  new URL('./schema_v1.5.json', import.meta.url),
 ).replace(`${sep}lib${sep}`, `${sep}src${sep}`);
 
 const loadSchema = async (): Promise<object> =>
   JSON.parse(await readFile(schemaPath, 'utf-8'));
 
-void describe('schema_v1.4 notifications', () => {
-  void it('accepts a Customer Profiles-only notifications block (no Pinpoint fields)', async () => {
+void describe('schema_v1.5 notifications', () => {
+  void it('accepts an Amazon Connect-only notifications block (no Pinpoint fields)', async () => {
     const schema = await loadSchema();
     const outputs = {
-      version: '1.4',
+      version: '1.5',
       notifications: {
-        amazon_connect_customer_profiles: {
+        amazon_connect: {
           aws_region: 'us-east-1',
-          endpoint: 'https://profile.us-east-1.amazonaws.com',
+          endpoint: 'https://abc123.execute-api.us-east-1.amazonaws.com',
         },
       },
     };
@@ -31,7 +31,7 @@ void describe('schema_v1.4 notifications', () => {
   void it('accepts a Pinpoint notifications block', async () => {
     const schema = await loadSchema();
     const outputs = {
-      version: '1.4',
+      version: '1.5',
       notifications: {
         aws_region: 'us-east-1',
         amazon_pinpoint_app_id: 'app-id',
@@ -42,10 +42,10 @@ void describe('schema_v1.4 notifications', () => {
     assert.deepStrictEqual(result.errors, []);
   });
 
-  void it('rejects a Pinpoint block missing the required Pinpoint fields', async () => {
+  void it('rejects a notifications block with neither Pinpoint fields nor amazon_connect', async () => {
     const schema = await loadSchema();
     const outputs = {
-      version: '1.4',
+      version: '1.5',
       notifications: {
         aws_region: 'us-east-1',
       },

@@ -9,11 +9,11 @@ import {
   StorageClientConfigContributorV1_1 as Storage1_1,
   StorageClientConfigContributor as Storage1_2,
   VersionContributor as VersionContributor1_4,
-  VersionContributorV1_5,
   VersionContributorV1,
   VersionContributorV1_1,
   VersionContributorV1_2,
   VersionContributorV1_3,
+  VersionContributorV1_5,
 } from './client_config_contributor_v1.js';
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';

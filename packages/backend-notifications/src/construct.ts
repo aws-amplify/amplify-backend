@@ -1020,7 +1020,9 @@ export class AmplifyNotifications
     );
     // Onboarding auto-creates the Outbound Campaigns service-linked role; the
     // handler then lists roles to resolve its ARN. iam:ListRoles has no
-    // resource-level scoping, so it must target `*`.
+    // resource-level scoping in IAM, so it MUST target `*`; this is acceptable
+    // because it is a read-only enumeration action (no mutation, low blast
+    // radius) and the mutating iam:* grants below are SLR-scoped.
     associationFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -1078,8 +1080,10 @@ export class AmplifyNotifications
     // Onboarding also provisions a managed EventBridge rule (named
     // `ConnectCampaignsRule*`) that drives campaign event delivery, created with
     // the CALLER's credentials. Without these the onboarding job fails with
-    // failureCode EVENT_BRIDGE_ACCESS_DENIED. ListRules has no resource-level
-    // scoping; the mutating actions are scoped to the ConnectCampaignsRule* name.
+    // failureCode EVENT_BRIDGE_ACCESS_DENIED. events:ListRules has no
+    // resource-level scoping in IAM (read-only enumeration, low blast radius) so
+    // it must target `*`; the mutating events:* actions are scoped to the
+    // ConnectCampaignsRule* name.
     const connectCampaignsRuleArn = `arn:${stack.partition}:events:${stack.region}:${stack.account}:rule/ConnectCampaignsRule*`;
     associationFn.addToRolePolicy(
       new iam.PolicyStatement({
