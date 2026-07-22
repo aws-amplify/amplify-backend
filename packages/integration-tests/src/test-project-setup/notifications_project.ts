@@ -410,12 +410,31 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authId,
       run,
     );
+    await this.assertServerValidationRejections(
+      endpoint,
+      region,
+      domainName,
+      tableName,
+      authCreds,
+      authId,
+      run,
+    );
+    await this.assertBenignRemoveMissingDevice(
+      endpoint,
+      region,
+      tableName,
+      authCreds,
+      run,
+    );
   };
 
   /**
    * 1. identify-user (authenticated): signed POST -> 200, and the resulting
-   *    Customer Profile has Attributes.principalId === caller identityId and
-   *    Address.Province === 'WA' (region -> Province mapping).
+   *    Customer Profile reflects the FULL buildProfileUpdate (mapping.ts)
+   *    contract: email -> EmailAddress, name -> First/LastName (split on first
+   *    space), phone -> PhoneNumber, location.{city,country,postalCode,region}
+   *    -> Address.{City,Country,PostalCode,Province}, customAttributes ->
+   *    Attributes, and the server-derived Attributes.principalId === identityId.
    */
   private assertIdentifyUserAuth = async (
     endpoint: string,
@@ -425,6 +444,8 @@ class NotificationsProjectTestProject extends TestProjectBase {
     identityId: string,
     run: string,
   ): Promise<void> => {
+    const email = `notif-e2e-${run}@example.com`;
+    const phone = '+12065550100';
     const res = await this.signedPost(
       endpoint,
       '/identify-user',
@@ -432,8 +453,15 @@ class NotificationsProjectTestProject extends TestProjectBase {
       creds,
       {
         userProfile: {
-          email: `notif-e2e-${run}@example.com`,
-          location: { region: 'WA' },
+          email,
+          name: 'Ada Lovelace',
+          phone,
+          location: {
+            city: 'Seattle',
+            country: 'US',
+            postalCode: '98101',
+            region: 'WA',
+          },
           customAttributes: { seg: 'x' },
         },
       },
@@ -455,12 +483,52 @@ class NotificationsProjectTestProject extends TestProjectBase {
       `Expected Attributes.principalId === ${identityId}, got ${profile.Attributes?.principalId}`,
     );
     assert.strictEqual(
+      profile.EmailAddress,
+      email,
+      `Expected EmailAddress === ${email}, got ${profile.EmailAddress}`,
+    );
+    assert.strictEqual(
+      profile.FirstName,
+      'Ada',
+      `Expected FirstName === 'Ada', got ${profile.FirstName}`,
+    );
+    assert.strictEqual(
+      profile.LastName,
+      'Lovelace',
+      `Expected LastName === 'Lovelace', got ${profile.LastName}`,
+    );
+    assert.strictEqual(
+      profile.PhoneNumber,
+      phone,
+      `Expected PhoneNumber === ${phone}, got ${profile.PhoneNumber}`,
+    );
+    assert.strictEqual(
+      profile.Address?.City,
+      'Seattle',
+      `Expected Address.City === 'Seattle', got ${profile.Address?.City}`,
+    );
+    assert.strictEqual(
+      profile.Address?.Country,
+      'US',
+      `Expected Address.Country === 'US', got ${profile.Address?.Country}`,
+    );
+    assert.strictEqual(
+      profile.Address?.PostalCode,
+      '98101',
+      `Expected Address.PostalCode === '98101', got ${profile.Address?.PostalCode}`,
+    );
+    assert.strictEqual(
       profile.Address?.Province,
       'WA',
       `Expected Address.Province === 'WA', got ${profile.Address?.Province}`,
     );
+    assert.strictEqual(
+      profile.Attributes?.seg,
+      'x',
+      `Expected Attributes.seg === 'x', got ${profile.Attributes?.seg}`,
+    );
     console.log(
-      `[1] identify-user(auth) 200; profile Attributes.principalId=${profile.Attributes?.principalId}, Address.Province=${profile.Address?.Province}`,
+      `[1] identify-user(auth) 200; mapped Email=${profile.EmailAddress}, Name=${profile.FirstName}/${profile.LastName}, Phone=${profile.PhoneNumber}, Address={City=${profile.Address?.City},Country=${profile.Address?.Country},PostalCode=${profile.Address?.PostalCode},Province=${profile.Address?.Province}}, Attributes.principalId=${profile.Attributes?.principalId}, Attributes.seg=${profile.Attributes?.seg}`,
     );
   };
 
@@ -513,12 +581,22 @@ class NotificationsProjectTestProject extends TestProjectBase {
       `Expected device token === ${token}, got ${item.token?.S}`,
     );
     assert.strictEqual(
+      item.channelType?.S,
+      'APNS',
+      `Expected device channelType === 'APNS', got ${item.channelType?.S}`,
+    );
+    assert.strictEqual(
+      item.platform?.S,
+      'ios',
+      `Expected device platform === 'ios', got ${item.platform?.S}`,
+    );
+    assert.strictEqual(
       item.profileId,
       undefined,
       `Expected NO profileId attribute on device item, got ${JSON.stringify(item.profileId)}`,
     );
     console.log(
-      `[2] register-device(auth) 200; item principalId=${item.principalId?.S}, token=${item.token?.S}, profileId=${item.profileId === undefined ? 'absent' : 'present'}`,
+      `[2] register-device(auth) 200; item principalId=${item.principalId?.S}, token=${item.token?.S}, channelType=${item.channelType?.S}, platform=${item.platform?.S}, profileId=${item.profileId === undefined ? 'absent' : 'present'}`,
     );
   };
 
@@ -763,6 +841,148 @@ class NotificationsProjectTestProject extends TestProjectBase {
   };
 
   /**
+   * A2. Server-side validation is authoritative over the signed API: an
+   *     over-length customAttributes value, a register-device with an empty
+   *     token, and a malformed JSON body are each REJECTED with 400 and a
+   *     generic (PII-safe) message. No profile/device side effect occurs.
+   */
+  private assertServerValidationRejections = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    tableName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    // (i) over-length customAttributes value -> 400, no mutation of the profile.
+    const overLong = 'a'.repeat(256);
+    const overLongRes = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      creds,
+      { userProfile: { customAttributes: { big: overLong } } },
+    );
+    assert.strictEqual(
+      overLongRes.status,
+      400,
+      `over-length customAttributes expected 400, got ${overLongRes.status}: ${overLongRes.body}`,
+    );
+    const overLongMsg = this.parseMessage(overLongRes.body);
+    assert.ok(
+      overLongMsg.includes('customAttributes'),
+      `Expected a customAttributes validation message, got "${overLongMsg}"`,
+    );
+    assert.ok(
+      !overLongRes.body.includes(overLong),
+      'Validation message must not echo the submitted (PII-adjacent) value',
+    );
+    // No side effect: the profile from assertion 1 is unchanged (seg still 'x').
+    const profileAfter = await this.pollProfile(domainName, identityId);
+    assert.strictEqual(
+      profileAfter?.Attributes?.seg,
+      'x',
+      `Expected profile unchanged (Attributes.seg === 'x') after rejected call, got ${profileAfter?.Attributes?.seg}`,
+    );
+
+    // (ii) register-device with an empty token -> 400, no device written.
+    const emptyTokenDeviceId = `notif-e2e-badtoken-${run}`;
+    const emptyTokenRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      creds,
+      {
+        device: {
+          token: '',
+          deviceId: emptyTokenDeviceId,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      emptyTokenRes.status,
+      400,
+      `empty-token register-device expected 400, got ${emptyTokenRes.status}: ${emptyTokenRes.body}`,
+    );
+    const emptyTokenMsg = this.parseMessage(emptyTokenRes.body);
+    assert.ok(
+      emptyTokenMsg.toLowerCase().includes('token'),
+      `Expected a token validation message, got "${emptyTokenMsg}"`,
+    );
+    const noDevice = await this.getDeviceItem(tableName, emptyTokenDeviceId);
+    assert.strictEqual(
+      noDevice,
+      undefined,
+      `Expected NO device written for rejected empty-token register, got ${JSON.stringify(noDevice)}`,
+    );
+
+    // (iii) malformed JSON body -> 400.
+    const malformedRes = await this.signedPostRaw(
+      endpoint,
+      '/identify-user',
+      region,
+      creds,
+      '{ this is not json',
+    );
+    assert.strictEqual(
+      malformedRes.status,
+      400,
+      `malformed JSON body expected 400, got ${malformedRes.status}: ${malformedRes.body}`,
+    );
+
+    console.log(
+      `[A2] server validation rejections: over-length CA -> 400 "${overLongMsg}" (no mutation), empty token -> 400 "${emptyTokenMsg}" (no device), malformed JSON -> 400 "${this.parseMessage(malformedRes.body)}"`,
+    );
+  };
+
+  /**
+   * A3. remove-device for a deviceId that does not exist is a benign idempotent
+   *     no-op (200) with no unintended deletion.
+   */
+  private assertBenignRemoveMissingDevice = async (
+    endpoint: string,
+    region: string,
+    tableName: string,
+    creds: IamCredentials,
+    run: string,
+  ): Promise<void> => {
+    const missingDeviceId = `notif-e2e-missing-${run}`;
+    // Precondition: the device genuinely does not exist.
+    const before = await this.getDeviceItem(tableName, missingDeviceId);
+    assert.strictEqual(
+      before,
+      undefined,
+      `Precondition failed: device ${missingDeviceId} unexpectedly exists`,
+    );
+
+    const res = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      creds,
+      { deviceId: missingDeviceId },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `remove-device (missing) expected 200 no-op, got ${res.status}: ${res.body}`,
+    );
+
+    const after = await this.getDeviceItem(tableName, missingDeviceId);
+    assert.strictEqual(
+      after,
+      undefined,
+      `Expected device ${missingDeviceId} to remain absent after benign remove`,
+    );
+    console.log(
+      `[A3] remove-device(missing) 200 benign no-op; device stays absent`,
+    );
+  };
+
+  /**
    * SigV4-sign a POST to `{endpoint}{path}` for `execute-api` with the given
    * Identity Pool IAM credentials and send it via fetch.
    */
@@ -772,9 +992,27 @@ class NotificationsProjectTestProject extends TestProjectBase {
     region: string,
     credentials: IamCredentials,
     body: unknown,
+  ): Promise<SignedResponse> =>
+    this.signedPostRaw(
+      endpoint,
+      path,
+      region,
+      credentials,
+      JSON.stringify(body),
+    );
+
+  /**
+   * Like {@link signedPost} but sends a RAW string body (used to exercise the
+   * malformed-JSON rejection path). Signs the exact bytes that are sent.
+   */
+  private signedPostRaw = async (
+    endpoint: string,
+    path: string,
+    region: string,
+    credentials: IamCredentials,
+    payload: string,
   ): Promise<SignedResponse> => {
     const url = new URL(`${endpoint}${path}`);
-    const payload = JSON.stringify(body);
     const request = new HttpRequest({
       method: 'POST',
       protocol: url.protocol,
