@@ -1,4 +1,5 @@
 import { MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
+import { RESERVED_ATTRIBUTE_KEYS } from '../../object_types.js';
 import { UserProfile } from './types.js';
 
 /** A standard Customer Profiles address (subset used by this backend). */
@@ -68,6 +69,9 @@ export const buildProfileUpdate = (userProfile: UserProfile): ProfileUpdate => {
   const attributes: Record<string, string> = {};
   if (profile.customAttributes) {
     for (const [key, value] of Object.entries(profile.customAttributes)) {
+      if (RESERVED_ATTRIBUTE_KEYS.has(key)) {
+        continue;
+      }
       if (typeof value === 'string' && value.length > 0) {
         attributes[key] = value.slice(0, MAX_ATTRIBUTE_LENGTH);
       }

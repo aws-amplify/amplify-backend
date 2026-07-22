@@ -79,6 +79,16 @@ void describe('buildProfileUpdate', () => {
     assert.strictEqual(u.attributes.big.length, 255);
   });
 
+  void it('strips reserved keys (principalId) from Attributes, retaining other customAttributes', () => {
+    const u = buildProfileUpdate({
+      customAttributes: { principalId: 'victim', tier: 'gold' },
+    });
+    const attrs = u.attributes as Record<string, string | undefined>;
+    assert.strictEqual(attrs['principalId'], undefined);
+    assert.strictEqual(attrs['tier'], 'gold');
+    assert.deepStrictEqual(u.attributes, { tier: 'gold' });
+  });
+
   void it('drops empty-string / non-string custom attribute values', () => {
     const u = buildProfileUpdate({
       customAttributes: {

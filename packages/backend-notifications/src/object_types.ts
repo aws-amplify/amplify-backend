@@ -57,3 +57,32 @@ export const AMPLIFY_PROFILE_KEYS: KeyMap[] = [
 export const OBJECT_TYPE_NAMES = {
   profile: OBJECT_TYPE_PROFILE,
 };
+
+/**
+ * Attribute keys that map to authoritative, server-controlled profile fields
+ * (derived from {@link AMPLIFY_PROFILE_FIELDS}, currently `{ principalId }`).
+ *
+ * These are the identity/routing slots the push path resolves and gates on, so
+ * a caller MUST NOT be able to set them via `userProfile.customAttributes` — a
+ * spoofed `principalId` would otherwise land in `Attributes.principalId` and
+ * redirect campaign pushes to a victim's devices. `validateIdentifyUser`
+ * rejects requests carrying these keys; `buildProfileUpdate` also strips them
+ * as a belt-and-suspenders safeguard. Derived from the mapping table so it
+ * auto-tracks any future reserved fields.
+ *
+ * Matching is exact-case, which is sufficient: Customer Profiles attribute keys
+ * are case-sensitive, so a differently-cased submission (e.g. `PrincipalId`)
+ * lands in a distinct slot the push path never reads.
+ * @internal
+ */
+export const RESERVED_ATTRIBUTE_KEYS: ReadonlySet<string> = (() => {
+  const names = AMPLIFY_PROFILE_FIELDS.map((f) => f.name);
+  if (names.some((name) => name === undefined)) {
+    // Fail loudly at module load rather than silently shrink the guard set if a
+    // future field is added without a `name`.
+    throw new Error(
+      'AMPLIFY_PROFILE_FIELDS: every entry must have a `name` to derive RESERVED_ATTRIBUTE_KEYS',
+    );
+  }
+  return new Set(names as string[]);
+})();

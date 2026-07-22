@@ -1,4 +1,5 @@
 import { MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
+import { RESERVED_ATTRIBUTE_KEYS } from '../../object_types.js';
 import {
   ChannelType,
   DeviceRegistration,
@@ -80,6 +81,12 @@ export const validateIdentifyUser = (
       };
     }
     for (const [key, value] of Object.entries(userProfile.customAttributes)) {
+      if (RESERVED_ATTRIBUTE_KEYS.has(key)) {
+        return {
+          ok: false,
+          error: `userProfile.customAttributes may not contain reserved key "${key}"`,
+        };
+      }
       if (key.length > MAX_ATTRIBUTE_LENGTH || !isBoundedString(value)) {
         return {
           ok: false,

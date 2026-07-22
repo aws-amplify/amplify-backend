@@ -20,6 +20,7 @@ import {
   deliverToTargets,
   mapToConnectResponse,
 } from './delivery.js';
+import { parsePushEvent } from './event.js';
 import { PushTemplateContext } from './message_template.js';
 import { ProfileOutcome, PushMessage } from './types.js';
 
@@ -486,6 +487,51 @@ void describe('deliverToProfile — DDB ownership gate (the leak fix)', () => {
     );
     // 'shared' was re-homed to B and skipped; 'onlyA' still delivers.
     assert.strictEqual(res.status, 'delivered');
+  });
+
+  void it("SECURITY: a parsed event whose CustomerData.attributes.principalId is injected (differs from the device owner) does NOT target that principal's devices", async () => {
+    // Attacker crafts a profile whose Attributes.principalId was set to a value
+    // ('injectedB') they do not authoritatively own; Connect mirrors it into
+    // CustomerData.attributes.principalId. The delivery path keys on that
+    // principalId, but the strongly-consistent ownership gate re-reads each
+    // candidate device and only sends when the device's authoritative owner
+    // matches — so an injected principalId cannot redirect pushes.
+    const parsed = parsePushEvent({
+      Items: {
+        CustomerProfiles: [
+          {
+            ProfileId: 'attacker-profile',
+            IdempotencyToken: 'idem-1',
+            CustomerData: JSON.stringify({
+              profileId: 'attacker-profile',
+              attributes: { principalId: 'injectedB' },
+            }),
+          },
+        ],
+      },
+    });
+    // The routing key comes from CustomerData.attributes.principalId, never the
+    // ProfileId — this is exactly the slot the identify path now guards.
+    assert.strictEqual(parsed.targets[0].principalId, 'injectedB');
+
+    // The GSI lists device 'victimDevice' under 'injectedB' (stale/spoofed),
+    // but its authoritative owner is the real victim 'victimV'.
+    const { client, deletes } = devicesFor(
+      {
+        injectedB: [
+          { key: 'victimDevice', token: 't-victim', channel: 'APNS' },
+        ],
+      },
+      { victimDevice: 'victimV' },
+    );
+    const { client: pinpoint, sent } = recordingPinpoint();
+
+    const outcomes = await deliverToTargets(deps(client, pinpoint), parsed);
+
+    // Nothing was sent to the victim's device, and it was left untouched.
+    assert.strictEqual(sent.length, 0);
+    assert.deepStrictEqual(deletes, []);
+    assert.strictEqual(outcomes[0].status, 'skipped');
   });
 });
 

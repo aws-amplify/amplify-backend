@@ -176,6 +176,34 @@ void describe('write handler', () => {
     assert.strictEqual(ddbCommands.length, 0);
   });
 
+  void it('SECURITY: identify-user with caller A + customAttributes.principalId=B never lets B reach the profile', async () => {
+    const CALLER_A = PRINCIPAL;
+    const VICTIM_B = 'us-east-1:VICTIM';
+    const res = await handler(
+      makeEvent(
+        '/identify-user',
+        {
+          userProfile: {
+            email: 'ada@example.com',
+            customAttributes: { principalId: VICTIM_B, tier: 'gold' },
+          },
+        },
+        CALLER_A,
+      ),
+    );
+
+    // The reserved-key guard rejects the request outright (400).
+    assert.strictEqual(res.statusCode, 400);
+
+    // No UpdateProfile is issued, so the attacker value B never lands in a
+    // profile — the injected principalId cannot reach the routing slot.
+    assert.strictEqual(
+      named(profileCommands, 'UpdateProfileCommand').length,
+      0,
+      'a rejected identify-user must not issue any UpdateProfileCommand',
+    );
+  });
+
   void it('register-device: 400 on invalid device', async () => {
     const res = await handler(
       makeEvent('/register-device', { device: { token: 'x' } }),

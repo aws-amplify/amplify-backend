@@ -40,6 +40,16 @@ void describe('validateIdentifyUser', () => {
     assert.strictEqual(r.ok, false);
   });
 
+  void it('rejects a reserved customAttributes key (principalId injection)', () => {
+    const r = validateIdentifyUser({
+      userProfile: { customAttributes: { principalId: 'victim' } },
+    });
+    assert.strictEqual(r.ok, false);
+    if (!r.ok) {
+      assert.match(r.error, /reserved key "principalId"/);
+    }
+  });
+
   void it('rejects a non-object location', () => {
     const r = validateIdentifyUser({ userProfile: { location: 'nope' } });
     assert.strictEqual(r.ok, false);
