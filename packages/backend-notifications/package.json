@@ -19,8 +19,8 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "post:compile": "npm run bundle:write-handler && npm run bundle:push-handler && npm run bundle:campaign-association-handler",
-    "bundle:write-handler": "esbuild src/lambda/write/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/handler-asset/index.js --external:@aws-sdk/*",
+    "post:compile": "npm run bundle:api-handler && npm run bundle:push-handler && npm run bundle:campaign-association-handler",
+    "bundle:api-handler": "esbuild src/lambda/api/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/handler-asset/index.js --external:@aws-sdk/*",
     "bundle:push-handler": "esbuild src/lambda/push/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/push-handler-asset/index.js --external:@aws-sdk/*",
     "bundle:campaign-association-handler": "esbuild src/lambda/campaign-association/handler.ts --bundle --platform=node --target=node20 --format=cjs --outfile=lib/campaign-association-asset/index.js --external:@aws-sdk/*",
     "update:api": "api-extractor run --local"
