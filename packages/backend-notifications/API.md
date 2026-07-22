@@ -75,16 +75,18 @@ export type FcmChannelProps = {
     serviceJson: BackendSecret;
 };
 
-// Warning: (ae-forgotten-export) The symbol "NotificationsChannelProps" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type NotificationsFactoryProps = ({
     domainName: string;
-} & NotificationsChannelProps) | ({
+    apns?: ApnsChannelProps;
+    fcm?: FcmChannelProps;
+}) | ({
     domainName?: undefined;
     instanceAlias?: string;
     expirationDays?: number;
-} & NotificationsChannelProps);
+    apns?: ApnsChannelProps;
+    fcm?: FcmChannelProps;
+});
 
 // @public
 export type NotificationsResources = {

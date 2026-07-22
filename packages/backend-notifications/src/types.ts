@@ -78,28 +78,6 @@ export type FcmChannelProps = {
 };
 
 /**
- * Push-channel configuration shared by both factory prop shapes.
- */
-type NotificationsChannelProps = {
-  /**
-   * OPTIONAL APNs (Apple) push-channel configuration. When provided, the APNs
-   * channel is enabled on the created End User Messaging (Pinpoint) application
-   * using token (`.p8`) authentication, with the key material sourced from an
-   * Amplify `secret()`. When omitted, the APNs channel is left unset.
-   */
-  apns?: ApnsChannelProps;
-
-  /**
-   * OPTIONAL FCM/GCM (Android) push-channel configuration. When provided, the
-   * GCM channel is enabled on the created End User Messaging (Pinpoint)
-   * application using FCM HTTP v1 authentication, with the service-account
-   * credential sourced from an Amplify `secret()`. When omitted, the GCM channel
-   * is left unset.
-   */
-  fcm?: FcmChannelProps;
-};
-
-/**
  * Properties accepted by {@link defineNotifications}.
  *
  * A DISCRIMINATED UNION on `domainName`: `expirationDays` / `instanceAlias` are
@@ -118,7 +96,25 @@ export type NotificationsFactoryProps =
        * table, not in Customer Profiles.)
        */
       domainName: string;
-    } & NotificationsChannelProps)
+
+      /**
+       * OPTIONAL APNs (Apple) push-channel configuration. When provided, the
+       * APNs channel is enabled on the created End User Messaging (Pinpoint)
+       * application using token (`.p8`) authentication, with the key material
+       * sourced from an Amplify `secret()`. When omitted, the APNs channel is
+       * left unset.
+       */
+      apns?: ApnsChannelProps;
+
+      /**
+       * OPTIONAL FCM/GCM (Android) push-channel configuration. When provided,
+       * the GCM channel is enabled on the created End User Messaging (Pinpoint)
+       * application using FCM HTTP v1 authentication, with the service-account
+       * credential sourced from an Amplify `secret()`. When omitted, the GCM
+       * channel is left unset.
+       */
+      fcm?: FcmChannelProps;
+    })
   | ({
       /** CREATE mode: `domainName` MUST be omitted. */
       domainName?: undefined;
@@ -135,4 +131,22 @@ export type NotificationsFactoryProps =
        * @default 366
        */
       expirationDays?: number;
-    } & NotificationsChannelProps);
+
+      /**
+       * OPTIONAL APNs (Apple) push-channel configuration. When provided, the
+       * APNs channel is enabled on the created End User Messaging (Pinpoint)
+       * application using token (`.p8`) authentication, with the key material
+       * sourced from an Amplify `secret()`. When omitted, the APNs channel is
+       * left unset.
+       */
+      apns?: ApnsChannelProps;
+
+      /**
+       * OPTIONAL FCM/GCM (Android) push-channel configuration. When provided,
+       * the GCM channel is enabled on the created End User Messaging (Pinpoint)
+       * application using FCM HTTP v1 authentication, with the service-account
+       * credential sourced from an Amplify `secret()`. When omitted, the GCM
+       * channel is left unset.
+       */
+      fcm?: FcmChannelProps;
+    });
