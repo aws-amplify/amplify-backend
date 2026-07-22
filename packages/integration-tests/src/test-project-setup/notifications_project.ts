@@ -10,14 +10,28 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import {
+  AttributeValue,
   DescribeTableCommand,
   DescribeTimeToLiveCommand,
   DynamoDBClient,
+  GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import {
+  CustomerProfilesClient,
+  Profile,
+  SearchProfilesCommand,
+} from '@aws-sdk/client-customer-profiles';
+import { SignatureV4 } from '@smithy/signature-v4';
+import { HttpRequest } from '@smithy/protocol-http';
+import { Sha256 } from '@aws-crypto/sha256-js';
+import { generateClientConfig } from '@aws-amplify/client-config';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { shortUuid } from '../short_uuid.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
+import { IamCredentials } from '../types.js';
 
 /**
  * Placeholder token in the fixture `backend.ts` replaced at project-creation
@@ -26,13 +40,30 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 const INSTANCE_ALIAS_PLACEHOLDER = '$INSTANCE_ALIAS';
 
 /**
+ * Searchable Customer Profiles identity key the backend binds a profile to its
+ * `principalId` on (frozen contract — see backend-notifications `PRINCIPAL_ID_KEY`).
+ */
+const PRINCIPAL_ID_KEY = 'principalIdKey';
+
+/** Small HTTP result of a signed write-route call. */
+type SignedResponse = {
+  status: number;
+  body: string;
+};
+
+/**
  * Creates the create-from-scratch notifications test project.
  *
  * `defineNotifications({ instanceAlias })` with no `domainName` provisions a
  * brand-new Amazon Connect instance + Customer Profiles domain, a DynamoDB
- * device store, a SigV4 HTTP API and the supporting Lambdas. This Phase-0
- * project only makes STRUCTURAL assertions (client-config outputs, Devices
- * table shape, HTTP API routes) — it never invokes Connect or sends a push.
+ * device store, a SigV4 HTTP API and the supporting Lambdas.
+ *
+ * Assertions run in two phases:
+ *   - Phase 0 (structural): client-config outputs, Devices table shape, routes.
+ *   - Phase 1 (functional): SigV4-signed calls to the three write routes with
+ *     real authenticated + guest Identity Pool credentials, verified against
+ *     Customer Profiles + DynamoDB, plus the principalId-injection security
+ *     regression. No push campaigns / no Connect invocation.
  */
 export class NotificationsProjectTestProjectCreator implements TestProjectCreator {
   readonly name = 'notifications';
@@ -48,6 +79,12 @@ export class NotificationsProjectTestProjectCreator implements TestProjectCreato
       e2eToolingClientConfig,
     ),
     private readonly dynamoDBClient: DynamoDBClient = new DynamoDBClient(
+      e2eToolingClientConfig,
+    ),
+    private readonly customerProfilesClient: CustomerProfilesClient = new CustomerProfilesClient(
+      e2eToolingClientConfig,
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
       e2eToolingClientConfig,
     ),
     private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(
@@ -66,6 +103,8 @@ export class NotificationsProjectTestProjectCreator implements TestProjectCreato
       this.cfnClient,
       this.amplifyClient,
       this.dynamoDBClient,
+      this.customerProfilesClient,
+      this.cognitoIdentityProviderClient,
       this.resourceFinder,
     );
     await fs.cp(
@@ -119,6 +158,8 @@ class NotificationsProjectTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
     private readonly dynamoDBClient: DynamoDBClient,
+    private readonly customerProfilesClient: CustomerProfilesClient,
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(
@@ -137,9 +178,13 @@ class NotificationsProjectTestProject extends TestProjectBase {
     // versioned client-config JSON schema (schema_v<version>.json).
     await super.assertPostDeployment(backendId);
 
-    await this.assertAmazonConnectClientConfig();
-    await this.assertDevicesTable(backendId);
+    // Phase 0 — structural.
+    const amazonConnect = await this.assertAmazonConnectClientConfig();
+    const tableName = await this.assertDevicesTable(backendId);
     await this.assertHttpApiRoutes(backendId);
+
+    // Phase 1 — functional SigV4 routes + security regression.
+    await this.assertFunctionalRoutes(backendId, amazonConnect, tableName);
   }
 
   /**
@@ -147,7 +192,10 @@ class NotificationsProjectTestProject extends TestProjectBase {
    * `notifications.amazon_connect` section with a non-empty `endpoint` and
    * `aws_region`.
    */
-  private assertAmazonConnectClientConfig = async (): Promise<void> => {
+  private assertAmazonConnectClientConfig = async (): Promise<{
+    endpoint: string;
+    region: string;
+  }> => {
     const outputsPath = path.join(this.projectDirPath, 'amplify_outputs.json');
     const outputs = JSON.parse(await fs.readFile(outputsPath, 'utf-8'));
 
@@ -169,15 +217,20 @@ class NotificationsProjectTestProject extends TestProjectBase {
     console.log(
       `notifications.amazon_connect = ${JSON.stringify(amazonConnect)}`,
     );
+    return {
+      endpoint: amazonConnect.endpoint,
+      region: amazonConnect.aws_region,
+    };
   };
 
   /**
    * (b) The Devices DynamoDB table exists with PK = deviceId, a GSI on
    * principalId (KEYS_ONLY), and native TTL enabled on the `ttl` attribute.
+   * Returns the physical table name for the functional assertions.
    */
   private assertDevicesTable = async (
     backendId: BackendIdentifier,
-  ): Promise<void> => {
+  ): Promise<string> => {
     const tableNames = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::DynamoDB::Table',
@@ -221,6 +274,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     console.log(
       `Devices table '${tableName}': PK=deviceId, GSI on principalId (${principalGsi.IndexName}), TTL on 'ttl' enabled`,
     );
+    return tableName;
   };
 
   private assertTtlEnabled = async (tableName: string): Promise<void> => {
@@ -257,5 +311,555 @@ class NotificationsProjectTestProject extends TestProjectBase {
       `Expected 3 HTTP API routes, found ${routes.length}: ${JSON.stringify(routes)}`,
     );
     console.log(`HTTP API routes deployed: ${routes.length}`);
+  };
+
+  /**
+   * Phase 1 — functional SigV4 route tests + the principalId-injection security
+   * regression, executed against the freshly deployed infrastructure.
+   */
+  private assertFunctionalRoutes = async (
+    backendId: BackendIdentifier,
+    amazonConnect: { endpoint: string; region: string },
+    tableName: string,
+  ): Promise<void> => {
+    const { endpoint, region } = amazonConnect;
+
+    // Resolve the created Customer Profiles domain name for profile lookups.
+    const domainNames = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::CustomerProfiles::Domain',
+    );
+    assert.strictEqual(
+      domainNames.length,
+      1,
+      `Expected exactly one Customer Profiles domain, found: ${JSON.stringify(domainNames)}`,
+    );
+    const domainName = domainNames[0];
+    console.log(`Customer Profiles domain: ${domainName}`);
+
+    // Real Identity Pool credentials + their derived principalIds (identityId).
+    const clientConfig = await generateClientConfig(backendId, '1.4');
+    assert.ok(clientConfig.auth, 'Client config is missing auth section');
+    const authFactory = new AmplifyAuthCredentialsFactory(
+      this.cognitoIdentityProviderClient,
+      clientConfig.auth,
+    );
+    const authUser = await authFactory.getNewAuthenticatedUserCredentials();
+    const guest = await authFactory.getGuestAccessCredentialsWithIdentityId();
+    const authCreds = authUser.iamCredentials;
+    const authId = authUser.identityId;
+    const guestCreds = guest.iamCredentials;
+    const guestId = guest.identityId;
+    assert.notStrictEqual(
+      authId,
+      guestId,
+      'Authenticated and guest identityIds must differ',
+    );
+    console.log(
+      `principals: auth=${authId} guest=${guestId} (region=${region})`,
+    );
+
+    const run = shortUuid();
+
+    await this.assertIdentifyUserAuth(
+      endpoint,
+      region,
+      domainName,
+      authCreds,
+      authId,
+      run,
+    );
+    await this.assertRegisterDeviceAuth(
+      endpoint,
+      region,
+      tableName,
+      authCreds,
+      authId,
+      run,
+    );
+    await this.assertReHomeLastWriterWins(
+      endpoint,
+      region,
+      tableName,
+      guestCreds,
+      guestId,
+      run,
+    );
+    await this.assertRemoveDeviceOwnershipGate(
+      endpoint,
+      region,
+      tableName,
+      authCreds,
+      guestCreds,
+      guestId,
+      run,
+    );
+    await this.assertGuestIdentifyUser(
+      endpoint,
+      region,
+      domainName,
+      guestCreds,
+      guestId,
+      run,
+    );
+    await this.assertPrincipalIdInjectionRejected(
+      endpoint,
+      region,
+      domainName,
+      authCreds,
+      authId,
+      run,
+    );
+  };
+
+  /**
+   * 1. identify-user (authenticated): signed POST -> 200, and the resulting
+   *    Customer Profile has Attributes.principalId === caller identityId and
+   *    Address.Province === 'WA' (region -> Province mapping).
+   */
+  private assertIdentifyUserAuth = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    const res = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      creds,
+      {
+        userProfile: {
+          email: `notif-e2e-${run}@example.com`,
+          location: { region: 'WA' },
+          customAttributes: { seg: 'x' },
+        },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `identify-user (auth) expected 200, got ${res.status}: ${res.body}`,
+    );
+
+    const profile = await this.pollProfile(domainName, identityId);
+    assert.ok(
+      profile,
+      `No Customer Profile found for principalId ${identityId}`,
+    );
+    assert.strictEqual(
+      profile.Attributes?.principalId,
+      identityId,
+      `Expected Attributes.principalId === ${identityId}, got ${profile.Attributes?.principalId}`,
+    );
+    assert.strictEqual(
+      profile.Address?.Province,
+      'WA',
+      `Expected Address.Province === 'WA', got ${profile.Address?.Province}`,
+    );
+    console.log(
+      `[1] identify-user(auth) 200; profile Attributes.principalId=${profile.Attributes?.principalId}, Address.Province=${profile.Address?.Province}`,
+    );
+  };
+
+  /**
+   * 2. register-device (authenticated): signed POST -> 200, and the DynamoDB
+   *    item is owned by the caller identityId, carries the token, and has NO
+   *    profileId attribute.
+   */
+  private assertRegisterDeviceAuth = async (
+    endpoint: string,
+    region: string,
+    tableName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    const deviceId = `notif-e2e-device-${run}`;
+    const token = `notif-e2e-token-${run}-a`;
+    const res = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      creds,
+      {
+        device: {
+          token,
+          deviceId,
+          platform: 'ios',
+          appVersion: '',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `register-device (auth) expected 200, got ${res.status}: ${res.body}`,
+    );
+
+    const item = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(item, `No device item found for ${deviceId}`);
+    assert.strictEqual(
+      item.principalId?.S,
+      identityId,
+      `Expected device principalId === ${identityId}, got ${item.principalId?.S}`,
+    );
+    assert.strictEqual(
+      item.token?.S,
+      token,
+      `Expected device token === ${token}, got ${item.token?.S}`,
+    );
+    assert.strictEqual(
+      item.profileId,
+      undefined,
+      `Expected NO profileId attribute on device item, got ${JSON.stringify(item.profileId)}`,
+    );
+    console.log(
+      `[2] register-device(auth) 200; item principalId=${item.principalId?.S}, token=${item.token?.S}, profileId=${item.profileId === undefined ? 'absent' : 'present'}`,
+    );
+  };
+
+  /**
+   * 3. Single-owner re-home (last-writer-wins): register the SAME deviceId as a
+   *    SECOND principal (the guest); owner flips to the new principal, createdAt
+   *    is preserved while updatedAt advances.
+   */
+  private assertReHomeLastWriterWins = async (
+    endpoint: string,
+    region: string,
+    tableName: string,
+    guestCreds: IamCredentials,
+    guestId: string,
+    run: string,
+  ): Promise<void> => {
+    const deviceId = `notif-e2e-device-${run}`;
+    const before = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(
+      before,
+      `Expected existing device item for ${deviceId} before re-home`,
+    );
+    const createdAtBefore = before.createdAt?.S;
+    const updatedAtBefore = before.updatedAt?.S;
+
+    const token2 = `notif-e2e-token-${run}-b`;
+    const res = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      guestCreds,
+      {
+        device: {
+          token: token2,
+          deviceId,
+          platform: 'android',
+          appVersion: '',
+          channelType: 'GCM',
+        },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `re-home register-device (guest) expected 200, got ${res.status}: ${res.body}`,
+    );
+
+    const after = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(after, `Expected device item for ${deviceId} after re-home`);
+    assert.strictEqual(
+      after.principalId?.S,
+      guestId,
+      `Expected owner to flip to guest ${guestId}, got ${after.principalId?.S}`,
+    );
+    assert.strictEqual(
+      after.token?.S,
+      token2,
+      `Expected token to update to ${token2}, got ${after.token?.S}`,
+    );
+    assert.strictEqual(
+      after.createdAt?.S,
+      createdAtBefore,
+      `Expected createdAt preserved (${createdAtBefore}), got ${after.createdAt?.S}`,
+    );
+    assert.ok(
+      after.updatedAt?.S &&
+        updatedAtBefore &&
+        after.updatedAt.S > updatedAtBefore,
+      `Expected updatedAt to advance from ${updatedAtBefore}, got ${after.updatedAt?.S}`,
+    );
+    console.log(
+      `[3] re-home LWW 200; owner ${guestId}, createdAt preserved=${after.createdAt?.S === createdAtBefore}, updatedAt advanced=${!!(after.updatedAt?.S && updatedAtBefore && after.updatedAt.S > updatedAtBefore)}`,
+    );
+  };
+
+  /**
+   * 4. remove-device ownership gate: a signed remove-device from the WRONG
+   *    principal is a no-op (device still present); from the OWNER it deletes.
+   *    (After assertion 3 the device is owned by the guest.)
+   */
+  private assertRemoveDeviceOwnershipGate = async (
+    endpoint: string,
+    region: string,
+    tableName: string,
+    wrongCreds: IamCredentials,
+    ownerCreds: IamCredentials,
+    ownerId: string,
+    run: string,
+  ): Promise<void> => {
+    const deviceId = `notif-e2e-device-${run}`;
+
+    const wrongRes = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      wrongCreds,
+      {
+        deviceId,
+      },
+    );
+    assert.strictEqual(
+      wrongRes.status,
+      200,
+      `remove-device (wrong principal) expected 200 no-op, got ${wrongRes.status}: ${wrongRes.body}`,
+    );
+    const stillThere = await this.getDeviceItem(tableName, deviceId);
+    assert.ok(
+      stillThere,
+      `Expected device ${deviceId} to remain after wrong-principal remove`,
+    );
+    assert.strictEqual(
+      stillThere.principalId?.S,
+      ownerId,
+      `Expected device still owned by ${ownerId} after wrong-principal remove`,
+    );
+
+    const ownerRes = await this.signedPost(
+      endpoint,
+      '/remove-device',
+      region,
+      ownerCreds,
+      {
+        deviceId,
+      },
+    );
+    assert.strictEqual(
+      ownerRes.status,
+      200,
+      `remove-device (owner) expected 200, got ${ownerRes.status}: ${ownerRes.body}`,
+    );
+    const gone = await this.getDeviceItem(tableName, deviceId);
+    assert.strictEqual(
+      gone,
+      undefined,
+      `Expected device ${deviceId} deleted by owner, but item still present: ${JSON.stringify(gone)}`,
+    );
+    console.log(
+      `[4] remove-device gate: wrong-principal no-op (device retained), owner delete removed the item`,
+    );
+  };
+
+  /**
+   * 5. Guest path: sign identify-user with GUEST credentials -> 200; the same
+   *    routes work for an unauthenticated identityId.
+   */
+  private assertGuestIdentifyUser = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    guestCreds: IamCredentials,
+    guestId: string,
+    run: string,
+  ): Promise<void> => {
+    const res = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      guestCreds,
+      {
+        userProfile: {
+          location: { region: 'OR' },
+          customAttributes: { seg: `g-${run}` },
+        },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      200,
+      `identify-user (guest) expected 200, got ${res.status}: ${res.body}`,
+    );
+
+    const profile = await this.pollProfile(domainName, guestId);
+    assert.ok(
+      profile,
+      `No Customer Profile found for guest principalId ${guestId}`,
+    );
+    assert.strictEqual(
+      profile.Attributes?.principalId,
+      guestId,
+      `Expected guest Attributes.principalId === ${guestId}, got ${profile.Attributes?.principalId}`,
+    );
+    console.log(
+      `[5] identify-user(guest) 200; profile Attributes.principalId=${profile.Attributes?.principalId}`,
+    );
+  };
+
+  /**
+   * 6. SECURITY REGRESSION: signed identify-user carrying a reserved
+   *    `customAttributes.principalId` is REJECTED with 400, and the caller's
+   *    profile Attributes.principalId is UNCHANGED (never the injected value) —
+   *    proving the reserved-key reject+strip fix holds end-to-end.
+   */
+  private assertPrincipalIdInjectionRejected = async (
+    endpoint: string,
+    region: string,
+    domainName: string,
+    creds: IamCredentials,
+    identityId: string,
+    run: string,
+  ): Promise<void> => {
+    const injected = `victim-${run}-${shortUuid()}`;
+    const res = await this.signedPost(
+      endpoint,
+      '/identify-user',
+      region,
+      creds,
+      {
+        userProfile: {
+          customAttributes: { principalId: injected },
+        },
+      },
+    );
+    assert.strictEqual(
+      res.status,
+      400,
+      `principalId-injection identify-user expected 400 rejection, got ${res.status}: ${res.body}`,
+    );
+
+    // Belt-and-suspenders: the caller's profile still maps to its own identityId
+    // (set in assertion 1), never the injected value.
+    const profile = await this.pollProfile(domainName, identityId);
+    assert.ok(
+      profile,
+      `No Customer Profile found for principalId ${identityId}`,
+    );
+    assert.strictEqual(
+      profile.Attributes?.principalId,
+      identityId,
+      `Expected Attributes.principalId still ${identityId}, got ${profile.Attributes?.principalId}`,
+    );
+
+    // And no profile was ever created for the injected value.
+    const injectedProfile = await this.searchProfile(domainName, injected);
+    assert.strictEqual(
+      injectedProfile,
+      undefined,
+      `Expected NO profile for injected principalId ${injected}, but one was found`,
+    );
+    console.log(
+      `[6] principalId-injection REJECTED with 400 "${this.parseMessage(res.body)}"; Attributes.principalId unchanged (${profile.Attributes?.principalId}); no profile for injected value`,
+    );
+  };
+
+  /**
+   * SigV4-sign a POST to `{endpoint}{path}` for `execute-api` with the given
+   * Identity Pool IAM credentials and send it via fetch.
+   */
+  private signedPost = async (
+    endpoint: string,
+    path: string,
+    region: string,
+    credentials: IamCredentials,
+    body: unknown,
+  ): Promise<SignedResponse> => {
+    const url = new URL(`${endpoint}${path}`);
+    const payload = JSON.stringify(body);
+    const request = new HttpRequest({
+      method: 'POST',
+      protocol: url.protocol,
+      hostname: url.hostname,
+      path: url.pathname,
+      headers: {
+        host: url.hostname,
+        'content-type': 'application/json',
+      },
+      body: payload,
+    });
+
+    const signer = new SignatureV4({
+      service: 'execute-api',
+      region,
+      credentials,
+      sha256: Sha256,
+    });
+    const signed = await signer.sign(request);
+
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: signed.headers,
+      body: payload,
+    });
+    return { status: res.status, body: await res.text() };
+  };
+
+  /**
+   * Poll SearchProfiles for the profile bound to `principalId`, absorbing the
+   * service's eventual consistency with a bounded backoff.
+   */
+  private pollProfile = async (
+    domainName: string,
+    principalId: string,
+    attempts: number = 10,
+    baseDelayMs: number = 500,
+  ): Promise<Profile | undefined> => {
+    for (let i = 0; i < attempts; i++) {
+      const found = await this.searchProfile(domainName, principalId);
+      if (found) {
+        return found;
+      }
+      if (i < attempts - 1) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, baseDelayMs * (i + 1)),
+        );
+      }
+    }
+    return undefined;
+  };
+
+  private searchProfile = async (
+    domainName: string,
+    principalId: string,
+  ): Promise<Profile | undefined> => {
+    const search = await this.customerProfilesClient.send(
+      new SearchProfilesCommand({
+        DomainName: domainName,
+        KeyName: PRINCIPAL_ID_KEY,
+        Values: [principalId],
+      }),
+    );
+    return search.Items?.find((item) => !!item.ProfileId);
+  };
+
+  private getDeviceItem = async (
+    tableName: string,
+    deviceId: string,
+  ): Promise<Record<string, AttributeValue> | undefined> => {
+    const res = await this.dynamoDBClient.send(
+      new GetItemCommand({
+        TableName: tableName,
+        Key: { deviceId: { S: deviceId } },
+        ConsistentRead: true,
+      }),
+    );
+    return res.Item;
+  };
+
+  private parseMessage = (body: string): string => {
+    try {
+      return (JSON.parse(body) as { message?: string }).message ?? body;
+    } catch {
+      return body;
+    }
   };
 }
