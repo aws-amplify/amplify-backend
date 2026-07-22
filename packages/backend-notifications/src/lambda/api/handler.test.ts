@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- test doubles capture
    structurally-typed AWS SDK command inputs. */
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';

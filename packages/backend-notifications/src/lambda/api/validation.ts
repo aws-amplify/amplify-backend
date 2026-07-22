@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 import { MAX_ATTRIBUTE_LENGTH } from '../../constants.js';
 import { RESERVED_ATTRIBUTE_KEYS } from '../../object_types.js';
 import {
