@@ -522,7 +522,7 @@ export class AmplifyNotifications
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(15),
       memorySize: 256,
-      // Explicit CloudWatch log group with a fixed ONE_MONTH retention instead
+      // Explicit CloudWatch log group with a fixed 90-day retention instead
       // of Lambda's default never-expire group. An explicit LogGroup is used
       // rather than the deprecated `logRetention` prop so NO extra
       // log-retention custom-resource Lambda is provisioned. Removal policy
@@ -531,7 +531,7 @@ export class AmplifyNotifications
       // response. Log-group KMS (encryptionKey) is intentionally DEFERRED for
       // preview.
       logGroup: new logs.LogGroup(this, 'ApiFnLogGroup', {
-        retention: logs.RetentionDays.ONE_MONTH,
+        retention: logs.RetentionDays.THREE_MONTHS,
         removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
       environment: {
@@ -752,11 +752,11 @@ export class AmplifyNotifications
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(30),
       memorySize: 256,
-      // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
+      // Fixed 90-day log retention via an explicit LogGroup (see ApiFn); no
       // extra log-retention Lambda. Removal policy mirrors the Devices table
       // (sandbox DESTROY, else RETAIN). Log-group KMS is DEFERRED for preview.
       logGroup: new logs.LogGroup(this, 'PushHandlerFnLogGroup', {
-        retention: logs.RetentionDays.ONE_MONTH,
+        retention: logs.RetentionDays.THREE_MONTHS,
         removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
       environment: {
@@ -1005,11 +1005,11 @@ export class AmplifyNotifications
       // capped ~2min); allow generous headroom for onboarding + both integrations.
       timeout: Duration.minutes(10),
       memorySize: 256,
-      // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
+      // Fixed 90-day log retention via an explicit LogGroup (see ApiFn); no
       // extra log-retention Lambda. Removal policy mirrors the Devices table
       // (sandbox DESTROY, else RETAIN). Log-group KMS is DEFERRED for preview.
       logGroup: new logs.LogGroup(this, 'CampaignAssociationFnLogGroup', {
-        retention: logs.RetentionDays.ONE_MONTH,
+        retention: logs.RetentionDays.THREE_MONTHS,
         removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
     });

@@ -294,15 +294,15 @@ void describe('AmplifyNotifications construct — Devices table removal policy',
 });
 
 void describe('AmplifyNotifications construct — Lambda log retention', () => {
-  void it('sets a fixed ONE_MONTH CloudWatch log retention on the identify + push Lambdas (attach mode; KMS deferred)', () => {
+  void it('sets a fixed 90-day CloudWatch log retention on the identify + push Lambdas (attach mode; KMS deferred)', () => {
     const { template } = synth();
-    // Two explicit log groups (identify + push Lambdas), each retained one
-    // month. Explicit LogGroups (not the deprecated logRetention prop) means NO
+    // Two explicit log groups (identify + push Lambdas), each retained 90
+    // days. Explicit LogGroups (not the deprecated logRetention prop) means NO
     // extra log-retention custom-resource Lambda is added.
     template.resourceCountIs('AWS::Logs::LogGroup', 2);
     template.resourcePropertiesCountIs(
       'AWS::Logs::LogGroup',
-      { RetentionInDays: 30 },
+      { RetentionInDays: 90 },
       2,
     );
     // Non-sandbox default RETAINs the log groups (mirrors the Devices table) so
@@ -335,7 +335,7 @@ void describe('AmplifyNotifications construct — Lambda log retention', () => {
     }
   });
 
-  void it('sets ONE_MONTH log retention on all three Lambdas in create mode', () => {
+  void it('sets 90-day log retention on all three Lambdas in create mode', () => {
     const { template } = synthCreate();
     // identify + push + campaign-association handler each get an explicit
     // retained log group (the custom-resource Provider framework Lambda keeps
@@ -343,7 +343,7 @@ void describe('AmplifyNotifications construct — Lambda log retention', () => {
     template.resourceCountIs('AWS::Logs::LogGroup', 3);
     template.resourcePropertiesCountIs(
       'AWS::Logs::LogGroup',
-      { RetentionInDays: 30 },
+      { RetentionInDays: 90 },
       3,
     );
   });
