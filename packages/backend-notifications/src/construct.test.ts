@@ -233,6 +233,20 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
     const { template } = synth();
     template.hasOutput('WriteRouteInvokeArns', {});
   });
+
+  void it('throttles the HTTP API default stage (guest-writable PII endpoint abuse/cost guard)', () => {
+    const { template } = synth();
+    // The auto-created `$default` stage carries hardcoded default-route
+    // throttling (burst 50 / 100 rps) — a fixed cap on the guest-writable
+    // SigV4 endpoints. No public prop configures it.
+    template.hasResourceProperties('AWS::ApiGatewayV2::Stage', {
+      StageName: '$default',
+      DefaultRouteSettings: {
+        ThrottlingBurstLimit: 50,
+        ThrottlingRateLimit: 100,
+      },
+    });
+  });
 });
 
 void describe('AmplifyNotifications construct — Devices table removal policy', () => {
@@ -267,6 +281,40 @@ void describe('AmplifyNotifications construct — Devices table removal policy',
     template.hasResource('AWS::DynamoDB::Table', {
       DeletionPolicy: 'Retain',
     });
+  });
+});
+
+void describe('AmplifyNotifications construct — Lambda log retention', () => {
+  void it('sets a fixed ONE_MONTH CloudWatch log retention on the identify + push Lambdas (attach mode; KMS deferred)', () => {
+    const { template } = synth();
+    // Two explicit log groups (identify + push Lambdas), each retained one
+    // month. Explicit LogGroups (not the deprecated logRetention prop) means NO
+    // extra log-retention custom-resource Lambda is added.
+    template.resourceCountIs('AWS::Logs::LogGroup', 2);
+    template.resourcePropertiesCountIs(
+      'AWS::Logs::LogGroup',
+      { RetentionInDays: 30 },
+      2,
+    );
+    // KMS deferred for preview: no customer-managed key on the log groups.
+    const json = JSON.stringify(template.toJSON());
+    assert.ok(
+      !json.includes('KmsKeyId'),
+      'log-group KMS (KmsKeyId) is deferred for preview',
+    );
+  });
+
+  void it('sets ONE_MONTH log retention on all three Lambdas in create mode', () => {
+    const { template } = synthCreate();
+    // identify + push + campaign-association handler each get an explicit
+    // retained log group (the custom-resource Provider framework Lambda keeps
+    // its default group and is not counted here).
+    template.resourceCountIs('AWS::Logs::LogGroup', 3);
+    template.resourcePropertiesCountIs(
+      'AWS::Logs::LogGroup',
+      { RetentionInDays: 30 },
+      3,
+    );
   });
 });
 
@@ -409,6 +457,27 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
       { Principal: '*' },
       0,
     );
+  });
+
+  void it('does NOT set SourceArn on the push-Lambda invoke permission in attach mode (instance ARN unknown at synth)', () => {
+    const { template } = synth();
+    const pushPermissions = Object.values(
+      template.findResources('AWS::Lambda::Permission'),
+    ).filter((res) => {
+      const getAtt = res.Properties?.FunctionName?.['Fn::GetAtt'];
+      return (
+        Array.isArray(getAtt) &&
+        typeof getAtt[0] === 'string' &&
+        getAtt[0].includes('PushHandlerFn')
+      );
+    });
+    assert.strictEqual(pushPermissions.length, 2);
+    for (const res of pushPermissions) {
+      // Account-scoped only; the instance ARN is not known at synth in attach
+      // mode so SourceArn is omitted.
+      assert.ok(res.Properties?.SourceAccount !== undefined);
+      assert.strictEqual(res.Properties?.SourceArn, undefined);
+    }
   });
 
   void it('sets the devices table + EUM app id env vars on the push Lambda', () => {
@@ -598,7 +667,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     });
   });
 
-  void it('sanitizes adversarial instance aliases in linear time (ReDoS-safe) — long dash runs, mixed junk, d- prefix, length bound', () => {
+  void it('sanitizes adversarial instance aliases in linear time (ReDoS-safe) — bounded input, long dash runs, mixed junk, d- prefix, length bound', () => {
     // Reads the synthesized CFN InstanceAlias for a given raw alias input.
     const aliasFor = (instanceAlias: string): string => {
       const { template } = synthCreate({ instanceAlias });
@@ -609,7 +678,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
 
     // Long runs of dashes (the polynomial-backtracking risk) collapse to a
     // single interior dash with no leading/trailing dashes.
-    assert.strictEqual(aliasFor(`foo${'-'.repeat(5000)}bar`), 'foo-bar');
+    assert.strictEqual(aliasFor(`foo${'-'.repeat(120)}bar`), 'foo-bar');
     // Mixed junk / non-ASCII maps to dashes, then collapses + trims.
     assert.strictEqual(aliasFor('  Hello World!! ☕  '), 'hello-world');
     assert.strictEqual(aliasFor('a---b___c...d'), 'a-b-c-d');
@@ -621,6 +690,10 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     // Reserved `d-` prefix is guarded with a leading `a`.
     assert.strictEqual(aliasFor('d-secret'), 'ad-secret');
     assert.strictEqual(aliasFor('----d-domain----'), 'ad-domain');
+    // Input is length-bounded BEFORE sanitizing (ReDoS / CPU-abuse guard): a
+    // pathologically long input is truncated to a safe max, so a token past the
+    // cap is dropped and the call still returns instantly.
+    assert.strictEqual(aliasFor(`a${'-'.repeat(100000)}b`), 'a');
     // Length bound: capped at 62 chars with no trailing dash left by the slice.
     const long = aliasFor(`${'a-'.repeat(50)}tail`);
     assert.ok(long.length <= 62, `expected <= 62 chars, got ${long.length}`);
@@ -642,6 +715,33 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     template.resourceCountIs('AWS::Lambda::Function', 4);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
+  });
+
+  void it('pins the push-Lambda invoke permission to the created Connect instance ARN in create mode (sourceArn confused-deputy guard)', () => {
+    const { template } = synthCreate();
+    const pushPermissions = Object.values(
+      template.findResources('AWS::Lambda::Permission'),
+    ).filter((res) => {
+      const getAtt = res.Properties?.FunctionName?.['Fn::GetAtt'];
+      return (
+        Array.isArray(getAtt) &&
+        typeof getAtt[0] === 'string' &&
+        getAtt[0].includes('PushHandlerFn')
+      );
+    });
+    // Both Connect principals' invoke permissions keep SourceAccount AND pin
+    // SourceArn to the created instance (Fn::GetAtt on the ConnectInstance).
+    assert.strictEqual(pushPermissions.length, 2);
+    for (const res of pushPermissions) {
+      assert.ok(res.Properties?.SourceAccount !== undefined);
+      const getAtt = res.Properties?.SourceArn?.['Fn::GetAtt'];
+      assert.ok(
+        Array.isArray(getAtt) &&
+          typeof getAtt[0] === 'string' &&
+          getAtt[0].includes('ConnectInstance'),
+        'create mode must pin SourceArn to the created Connect instance ARN',
+      );
+    }
   });
 
   void it('adds the Outbound Campaigns domain-association custom resource wired to a Provider', () => {

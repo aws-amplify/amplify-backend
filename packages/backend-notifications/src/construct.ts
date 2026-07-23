@@ -17,6 +17,7 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import {
   CfnDomain,
@@ -79,6 +80,15 @@ const defaultCampaignAssociationLambdaCodePath = path.join(
   'campaign-association-asset',
 );
 
+/**
+ * Upper bound on the raw instance-alias input {@link
+ * AmplifyNotifications.sanitizeInstanceAlias} will process. A Connect instance
+ * alias is at most 62 characters, so this cap is ample for any legitimate value
+ * while bounding an adversarial one BEFORE any regex runs (defense in depth
+ * against ReDoS / CPU abuse on caller-influenced input).
+ */
+const MAX_INSTANCE_ALIAS_INPUT = 256;
+
 /** CDK resources exposed by {@link AmplifyNotifications}. */
 export type NotificationsResources = {
   /** The write Lambda function backing the three SigV4 API routes. */
@@ -89,7 +99,7 @@ export type NotificationsResources = {
   profileObjectType: CfnObjectType;
   /**
    * The DynamoDB Devices table — the authoritative, strongly-consistent device
-   * store (PK = deviceId, GSI on profileId, native TTL on `ttl`).
+   * store (PK = deviceId, GSI on principalId, native TTL on `ttl`).
    */
   devicesTable: dynamodb.ITable;
   /**
@@ -129,8 +139,8 @@ export type AmplifyNotificationsProps = {
    * Name of an EXISTING Customer Profiles domain to attach to — e.g. the domain
    * Amazon Connect auto-creates when Customer Profiles is enabled on an
    * instance. When provided, the construct runs in ATTACH mode: it registers the
-   * AmplifyProfile / AmplifyGuestProfile object types INTO this domain and never
-   * creates an instance or a domain.
+   * AmplifyProfile object type INTO this domain and never creates an instance
+   * or a domain.
    *
    * OMIT this to run in the default CREATE-FROM-SCRATCH mode: the construct
    * provisions a brand-new Amazon Connect instance AND a brand-new Customer
@@ -217,10 +227,10 @@ export type AmplifyNotificationsProps = {
 /**
  * Amazon Connect Customer Profiles backend for the identifyUser contract,
  * packaged as an AWS CDK construct. Provisions:
- *   - AmplifyProfile object type: searchable `cognitoUserKey` (PROFILE + UNIQUE)
+ *   - AmplifyProfile object type: searchable `principalId` (PROFILE + UNIQUE)
  *     identity key + person / targeting attribute schema.
  *   - DynamoDB Devices table: authoritative device store (PK `deviceId`, GSI on
- *     `profileId`, native TTL) with strongly-consistent single-owner semantics.
+ *     `principalId`, native TTL) with strongly-consistent single-owner semantics.
  *   - identify-user Lambda with least-privilege profile:* on this domain only.
  *   - HTTP API with SigV4 (IAM / execute-api) authorization on all write routes.
  *   - push-delivery Lambda (Connect Journey Custom-action target) + a minimal
@@ -232,11 +242,11 @@ export type AmplifyNotificationsProps = {
  *     provisions a brand-new Amazon Connect instance (`AWS::Connect::Instance`,
  *     CONNECT_MANAGED, inbound/outbound enabled) AND a brand-new Customer
  *     Profiles domain (`AWS::CustomerProfiles::Domain`) with generated, stable
- *     names, then registers the object types INTO that new domain. The object
- *     types depend on the created domain so they provision after it and are torn
- *     down before it. A caller needs zero pre-existing Connect setup.
- *   - ATTACH (`domainName` provided): the construct registers the two object
- *     types INTO the existing `domainName` (additive) — such as the domain
+ *     names, then registers the AmplifyProfile object type INTO that new domain.
+ *     The object type depends on the created domain so it provisions after it
+ *     and is torn down before it. A caller needs zero pre-existing Connect setup.
+ *   - ATTACH (`domainName` provided): the construct registers the AmplifyProfile
+ *     object type INTO the existing `domainName` (additive) — such as the domain
  *     Amazon Connect auto-creates when Customer Profiles is enabled on an
  *     instance — WITHOUT creating an instance or a domain, and without touching
  *     the domain's other integrations (CTR, Outbound Campaigns) or its Identity
@@ -363,6 +373,9 @@ export class AmplifyNotifications
         ),
       });
 
+      // TODO(post-preview): optional customer-managed KMS key
+      // (CfnDomain.defaultEncryptionKey) for regulated customers — deferred for
+      // preview.
       profilesDomain = new CfnDomain(this, 'ProfilesDomain', {
         domainName,
         defaultExpirationDays: expirationDays,
@@ -446,9 +459,12 @@ export class AmplifyNotifications
     // profile at any instant. Register/re-home is a strongly-consistent
     // last-writer-wins UpdateItem on the PK (overwriting IS the eviction), and
     // delivery gates on a strongly-consistent point read of the same PK — no
-    // eventual-consistency window in the correctness path. The GSI on profileId
+    // eventual-consistency window in the correctness path. The GSI on principalId
     // is enumeration-only (eventually consistent). Native TTL on `ttl` reaps
     // stale device records without a reaper Lambda.
+    // TODO(post-preview): optional customer-managed KMS key (Table.encryptionKey
+    // with TableEncryption.CUSTOMER_MANAGED) for regulated customers — deferred
+    // for preview.
     const devicesTable = new dynamodb.Table(this, 'DevicesTable', {
       partitionKey: {
         name: 'deviceId',
@@ -505,6 +521,15 @@ export class AmplifyNotifications
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(15),
       memorySize: 256,
+      // Explicit CloudWatch log group with a fixed ONE_MONTH retention instead
+      // of Lambda's default never-expire group. An explicit LogGroup is used
+      // rather than the deprecated `logRetention` prop so NO extra
+      // log-retention custom-resource Lambda is provisioned. Log-group KMS
+      // (encryptionKey) is intentionally DEFERRED for preview.
+      logGroup: new logs.LogGroup(this, 'ApiFnLogGroup', {
+        retention: logs.RetentionDays.ONE_MONTH,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
       environment: {
         [ENV_DOMAIN_NAME]: domainName,
         [ENV_DEVICES_TABLE_NAME]: devicesTable.tableName,
@@ -580,6 +605,25 @@ export class AmplifyNotifications
       apiName: 'notifications-write-api',
       createDefaultStage: true,
     });
+
+    // Throttle the auto-created `$default` stage. These write routes are
+    // guest-writable (an unauthenticated Identity Pool caller SigV4-signs the
+    // SAME endpoints) and persist PII into Customer Profiles, so a fixed
+    // per-stage throttle caps abuse / runaway cost from a leaked or abused guest
+    // credential. Conservative hardcoded defaults (no public prop): 100 rps
+    // steady-state with a 50-request burst — ample for a mobile identify /
+    // register-device path while bounding a flood. HTTP APIs expose throttling
+    // only via the stage's DefaultRouteSettings (the L2 HttpApi has no throttle
+    // prop), so set it on the default stage's underlying CfnStage.
+    const defaultStage = httpApi.defaultStage?.node.defaultChild as
+      | apigwv2.CfnStage
+      | undefined;
+    if (defaultStage) {
+      defaultStage.defaultRouteSettings = {
+        throttlingBurstLimit: 50,
+        throttlingRateLimit: 100,
+      };
+    }
 
     const routePaths = [
       this.identifyUserPath,
@@ -697,6 +741,12 @@ export class AmplifyNotifications
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(30),
       memorySize: 256,
+      // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
+      // extra log-retention Lambda. Log-group KMS is DEFERRED for preview.
+      logGroup: new logs.LogGroup(this, 'PushHandlerFnLogGroup', {
+        retention: logs.RetentionDays.ONE_MONTH,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
       environment: {
         [ENV_DEVICES_TABLE_NAME]: devicesTable.tableName,
         [ENV_EUM_APPLICATION_ID]: eumApplicationId,
@@ -846,9 +896,12 @@ export class AmplifyNotifications
     // A Connect Journey Custom-action (and Outbound Campaigns v2) invokes this
     // Lambda through the connect / connect-campaigns service principal. Grant
     // lambda:InvokeFunction to both, scoped to THIS account (`sourceAccount`) so
-    // only Connect instances in the deploying account — not any Connect instance
-    // anywhere — can invoke it (confused-deputy guard). The Connect instance ARN
-    // isn't known at synth time, so account scoping is the tightest guard here.
+    // only Connect resources in the deploying account — not any Connect instance
+    // anywhere — can invoke it (confused-deputy guard). In create-from-scratch
+    // mode the created instance ARN is additionally pinned via `sourceArn` (the
+    // tightest guard: only THIS instance can invoke); in attach mode the
+    // instance ARN is unknown at synth, so account scoping is the tightest guard
+    // available.
     for (const servicePrincipal of CONNECT_INVOKE_SERVICE_PRINCIPALS) {
       pushFn.addPermission(
         `Invoke-${servicePrincipal.replace(/[^a-zA-Z0-9]/g, '-')}`,
@@ -856,6 +909,9 @@ export class AmplifyNotifications
           principal: new iam.ServicePrincipal(servicePrincipal),
           action: 'lambda:InvokeFunction',
           sourceAccount: stack.account,
+          ...(createFromScratch && connectInstance
+            ? { sourceArn: connectInstance.attrArn }
+            : {}),
         },
       );
     }
@@ -936,6 +992,12 @@ export class AmplifyNotifications
       // capped ~2min); allow generous headroom for onboarding + both integrations.
       timeout: Duration.minutes(10),
       memorySize: 256,
+      // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
+      // extra log-retention Lambda. Log-group KMS is DEFERRED for preview.
+      logGroup: new logs.LogGroup(this, 'CampaignAssociationFnLogGroup', {
+        retention: logs.RetentionDays.ONE_MONTH,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
     });
 
     // These instance-onboarding / instance-integration actions operate on the
@@ -1168,12 +1230,17 @@ export class AmplifyNotifications
    * bound.
    */
   private sanitizeInstanceAlias(raw: string): string {
+    // Bound the raw (potentially caller-influenced) input to a fixed maximum
+    // BEFORE any per-character regex runs, so sanitization cost is constant in
+    // the size of an untrusted alias regardless of input length (defense in
+    // depth against ReDoS / CPU abuse; clears CodeQL js/polynomial-redos).
+    const bounded = raw.slice(0, MAX_INSTANCE_ALIAS_INPUT);
     // Collapse consecutive dashes AND strip leading/trailing dashes in one
     // linear, backtracking-free pass. Splitting on the dash and dropping empty
     // segments yields exactly the same result as the former collapse-then-trim
     // regex chain, but without any repeated-quantifier / anchored-alternation
-    // regex applied to the uncontrolled `raw` input (ReDoS-safe).
-    let alias = raw
+    // regex applied to the `raw` input (ReDoS-safe).
+    let alias = bounded
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '-')
       .split('-')
