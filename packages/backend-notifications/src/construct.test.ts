@@ -621,6 +621,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
               'connect-campaigns:StartInstanceOnboardingJob',
               'connect-campaigns:GetInstanceOnboardingJobStatus',
               'connect-campaigns:DeleteInstanceOnboardingJob',
+              'connect-campaigns:DeleteConnectInstanceConfig',
               'connect-campaigns:PutConnectInstanceIntegration',
               'connect-campaigns:DeleteConnectInstanceIntegration',
             ],

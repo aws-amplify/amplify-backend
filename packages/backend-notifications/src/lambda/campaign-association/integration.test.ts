@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import { IAMClient, ListRolesCommand } from '@aws-sdk/client-iam';
 import {
   ConnectCampaignsV2Client,
+  DeleteConnectInstanceConfigCommand,
   DeleteConnectInstanceIntegrationCommand,
   DeleteInstanceOnboardingJobCommand,
   PutConnectInstanceIntegrationCommand,
@@ -160,7 +161,7 @@ void describe('associateDomain', () => {
 });
 
 void describe('disassociateDomain', () => {
-  void it('reverses both integrations AND offboards the instance', async () => {
+  void it('reverses both integrations, deletes the onboarding job, AND offboards the instance config', async () => {
     const campaignsRec = recorder();
     const profilesRec = recorder();
 
@@ -185,10 +186,61 @@ void describe('disassociateDomain', () => {
     assert.deepStrictEqual(campaignsNames, [
       DeleteConnectInstanceIntegrationCommand.name,
       DeleteInstanceOnboardingJobCommand.name,
+      DeleteConnectInstanceConfigCommand.name,
     ]);
     assert.deepStrictEqual(
       profilesRec.sent.map((s) => s.name),
       [DeleteIntegrationCommand.name],
+    );
+
+    // The config delete is the true offboard: it must target the instance with
+    // DELETE_ALL so the ARN is pruned from the account-shared managed rule.
+    const configInput = campaignsRec.sent[2].input as {
+      connectInstanceId: string;
+      campaignDeletionPolicy: string;
+    };
+    assert.strictEqual(configInput.connectInstanceId, INSTANCE_ID);
+    assert.strictEqual(configInput.campaignDeletionPolicy, 'DELETE_ALL');
+  });
+
+  void it('swallows a ResourceNotFoundException from the config delete (best-effort offboard)', async () => {
+    const campaignsRec = recorder((command) => {
+      if (
+        (command as { constructor: { name: string } }).constructor.name ===
+        DeleteConnectInstanceConfigCommand.name
+      ) {
+        const err = new Error('instance config already removed');
+        err.name = 'ResourceNotFoundException';
+        throw err;
+      }
+      return {};
+    });
+    const profilesRec = recorder();
+
+    await assert.doesNotReject(
+      disassociateDomain(
+        {
+          campaigns: {
+            send: campaignsRec.send,
+          } as unknown as ConnectCampaignsV2Client,
+          profiles: {
+            send: profilesRec.send,
+          } as unknown as CustomerProfilesClient,
+        },
+        {
+          connectInstanceId: INSTANCE_ID,
+          domainName: DOMAIN,
+          account: ACCOUNT,
+          region: REGION,
+        },
+      ),
+    );
+
+    // The config delete was still attempted (and its error swallowed).
+    assert.ok(
+      campaignsRec.sent
+        .map((s) => s.name)
+        .includes(DeleteConnectInstanceConfigCommand.name),
     );
   });
 
@@ -215,7 +267,7 @@ void describe('disassociateDomain', () => {
         },
       ),
     );
-    // All three deletes were attempted despite each throwing.
-    assert.strictEqual(failing.sent.length, 3);
+    // All four deletes were attempted despite each throwing.
+    assert.strictEqual(failing.sent.length, 4);
   });
 });

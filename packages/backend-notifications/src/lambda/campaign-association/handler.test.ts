@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import type { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import {
   ConnectCampaignsV2Client,
+  DeleteConnectInstanceConfigCommand,
   GetInstanceOnboardingJobStatusCommand,
   PutConnectInstanceIntegrationCommand,
   StartInstanceOnboardingJobCommand,
@@ -149,8 +150,12 @@ void describe('campaign-association handler', () => {
     assert.ok(cpDelete, 'customer-profiles DeleteIntegration attempted');
     assert.strictEqual(
       campaignsSent.length,
-      2,
-      'delete integration + offboard',
+      3,
+      'delete integration + delete onboarding job + delete instance config',
+    );
+    assert.ok(
+      campaignsSent.includes(DeleteConnectInstanceConfigCommand.name),
+      'connect instance config delete (true offboard) attempted',
     );
     assert.strictEqual(
       result.PhysicalResourceId,

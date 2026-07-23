@@ -4,6 +4,7 @@
 import { IAMClient, ListRolesCommand } from '@aws-sdk/client-iam';
 import {
   ConnectCampaignsV2Client,
+  DeleteConnectInstanceConfigCommand,
   DeleteConnectInstanceIntegrationCommand,
   DeleteInstanceOnboardingJobCommand,
   PutConnectInstanceIntegrationCommand,
@@ -119,7 +120,12 @@ export const associateDomain = async (
  * FIRST — NEVER fails teardown. Reverses everything onCreate did:
  *   1. connectcampaignsv2:DeleteConnectInstanceIntegration (campaigns -> domain)
  *   2. customer-profiles:DeleteIntegration (domain -> campaigns)
- *   3. connectcampaignsv2:DeleteInstanceOnboardingJob (offboard from Campaigns v2)
+ *   3. connectcampaignsv2:DeleteInstanceOnboardingJob (delete the onboarding
+ *      job record — harmless bookkeeping cleanup, does NOT offboard)
+ *   4. connectcampaignsv2:DeleteConnectInstanceConfig (the TRUE offboard: prunes
+ *      the instance ARN from the account-shared managed EventBridge rule).
+ *      Without this the ARN leaks on every teardown and eventually trips
+ *      EVENT_BRIDGE_MANAGED_RULE_LIMIT_EXCEEDED on the next create-mode deploy.
  *
  * The `AWSServiceRoleForConnectCampaigns_*` service-linked role is deliberately
  * NOT deleted: it is account-wide, shared across ALL Connect instances /
@@ -163,9 +169,24 @@ export const disassociateDomain = async (
     ),
   );
 
-  await bestEffort('instance offboarding', () =>
+  await bestEffort('instance onboarding job delete', () =>
     campaigns.send(
       new DeleteInstanceOnboardingJobCommand({ connectInstanceId }),
+    ),
+  );
+
+  // The onboarding-job delete above only removes the job *record*; it does NOT
+  // offboard the instance. DeleteConnectInstanceConfig is the true inverse of
+  // StartInstanceOnboardingJob — it prunes the Connect instance ARN from the
+  // account-shared managed EventBridge rule. Best-effort + idempotent: a missing
+  // config (ResourceNotFoundException) or in-flight state (InvalidStateException)
+  // is swallowed so teardown never fails.
+  await bestEffort('connect instance config delete', () =>
+    campaigns.send(
+      new DeleteConnectInstanceConfigCommand({
+        connectInstanceId,
+        campaignDeletionPolicy: 'DELETE_ALL',
+      }),
     ),
   );
 };
