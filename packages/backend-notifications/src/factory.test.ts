@@ -3,7 +3,13 @@
 
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { App, NestedStack, SecretValue, Stack } from 'aws-cdk-lib';
+import {
+  App,
+  CustomResource,
+  NestedStack,
+  SecretValue,
+  Stack,
+} from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   CfnIdentityPool,
@@ -37,16 +43,52 @@ import { AmplifyNotifications } from './construct.js';
 const EXISTING_DOMAIN = 'amazon-connect-amplify';
 
 /**
- * A test double for an Amplify `secret()` (BackendSecret) whose resolved value
- * is a fixed plain text string, so a synth assertion can prove the resolved
- * secret was wired into the channel resource. Mirrors how the real
- * `backendSecretResolver` resolves a secret to a CFN token.
+ * Sensitive push-channel credential material used by the `fakeSecret`
+ * (test-double) cases. Named so the dynamic-reference tests can assert this
+ * exact material never appears in the synthesized CloudFormation template.
+ */
+const APNS_TOKEN_KEY_LITERAL = 'p8-key-material';
+const FCM_SERVICE_JSON_LITERAL = '{"type":"service_account"}';
+
+/**
+ * A test double for an Amplify `secret()` (BackendSecret) that FORCES its
+ * resolved value to a fixed literal via `SecretValue.unsafePlainText`. This is a
+ * TEST-ONLY convenience that bakes the literal into the synthesized template so
+ * a synth assertion can prove the value is wired onto the channel resource. It
+ * is NOT how production renders: the shipped `secret()` (`CfnTokenBackendSecret`)
+ * resolves to a deploy-time CFN token, so the value appears in the template as a
+ * dynamic reference, never as plain text. See {@link dynamicReferenceSecret} and
+ * the "renders ... as a CFN dynamic reference" tests for the ST-005 / M-007
+ * guard.
  */
 const fakeSecret = (value: string): BackendSecret => ({
   resolve: () => SecretValue.unsafePlainText(value),
   resolvePath: () => ({
     branchSecretPath: `/amplify/branch/${value}`,
     sharedSecretPath: `/amplify/shared/${value}`,
+  }),
+});
+
+/**
+ * A production-faithful test double for an Amplify `secret()`. It mirrors the
+ * real `CfnTokenBackendSecret`: resolving the secret creates a deploy-time
+ * secret-fetching CFN custom resource and references one of its output
+ * attributes, so `unsafeUnwrap()` yields a CDK token that synthesizes to an
+ * `Fn::GetAtt` dynamic reference. The secret VALUE is fetched at deploy time and
+ * never appears in the CloudFormation template — exactly how the shipped
+ * `secret()` behaves (contrast {@link fakeSecret}, which forces a literal).
+ */
+const dynamicReferenceSecret = (secretName: string): BackendSecret => ({
+  resolve: (scope) => {
+    const fetcher = new CustomResource(scope, `SecretFetcher-${secretName}`, {
+      serviceToken: 'stub-secret-fetcher-service-token',
+      resourceType: 'Custom::AmplifySecretFetcherResource',
+    });
+    return SecretValue.unsafePlainText(fetcher.getAttString(secretName));
+  },
+  resolvePath: () => ({
+    branchSecretPath: `/amplify/branch/${secretName}`,
+    sharedSecretPath: `/amplify/shared/${secretName}`,
   }),
 });
 
@@ -399,7 +441,7 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        tokenKey: fakeSecret('p8-key-material'),
+        tokenKey: fakeSecret(APNS_TOKEN_KEY_LITERAL),
         tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
@@ -412,7 +454,7 @@ void describe('defineNotifications', () => {
       Enabled: true,
       DefaultAuthenticationMethod: 'TOKEN',
       // The resolved secret value flows into the token key.
-      TokenKey: 'p8-key-material',
+      TokenKey: APNS_TOKEN_KEY_LITERAL,
       TokenKeyId: 'ABC123DEFG',
       TeamId: 'DEF456GHIJ',
       BundleId: 'com.example.app',
@@ -423,7 +465,7 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       fcm: {
-        serviceJson: fakeSecret('{"type":"service_account"}'),
+        serviceJson: fakeSecret(FCM_SERVICE_JSON_LITERAL),
       },
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
@@ -432,7 +474,7 @@ void describe('defineNotifications', () => {
     template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
       Enabled: true,
       DefaultAuthenticationMethod: 'TOKEN',
-      ServiceJson: '{"type":"service_account"}',
+      ServiceJson: FCM_SERVICE_JSON_LITERAL,
     });
   });
 
@@ -440,7 +482,7 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        tokenKey: fakeSecret('p8-key-material'),
+        tokenKey: fakeSecret(APNS_TOKEN_KEY_LITERAL),
         tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
@@ -456,13 +498,13 @@ void describe('defineNotifications', () => {
     const notifications = defineNotifications({
       domainName: EXISTING_DOMAIN,
       apns: {
-        tokenKey: fakeSecret('p8-key-material'),
+        tokenKey: fakeSecret(APNS_TOKEN_KEY_LITERAL),
         tokenKeyId: 'ABC123DEFG',
         teamId: 'DEF456GHIJ',
         bundleId: 'com.example.app',
       },
       fcm: {
-        serviceJson: fakeSecret('{"type":"service_account"}'),
+        serviceJson: fakeSecret(FCM_SERVICE_JSON_LITERAL),
       },
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
@@ -470,10 +512,86 @@ void describe('defineNotifications', () => {
     template.resourceCountIs('AWS::Pinpoint::APNSChannel', 1);
     template.resourceCountIs('AWS::Pinpoint::GCMChannel', 1);
     template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
-      TokenKey: 'p8-key-material',
+      TokenKey: APNS_TOKEN_KEY_LITERAL,
     });
     template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
-      ServiceJson: '{"type":"service_account"}',
+      ServiceJson: FCM_SERVICE_JSON_LITERAL,
     });
+  });
+
+  void it('renders the APNs TokenKey as a CFN dynamic reference (Fn::GetAtt), never inline plain text, when the secret resolves the production way (ST-005/M-007)', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      apns: {
+        tokenKey: dynamicReferenceSecret('APNS_SIGNING_KEY'),
+        tokenKeyId: 'ABC123DEFG',
+        teamId: 'DEF456GHIJ',
+        bundleId: 'com.example.app',
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    // The token key resolves to a deploy-time dynamic reference (a Fn::GetAtt to
+    // the secret-fetching custom resource) exactly as the shipped Amplify
+    // secret() renders. The objectLike Fn::GetAtt matcher also fails if TokenKey
+    // were ever an inline plain-text string — the M-007 guard.
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      TokenKey: Match.objectLike({ 'Fn::GetAtt': Match.anyValue() }),
+    });
+
+    // Defense in depth: the dynamic-reference marker is present and the plain
+    // credential material never appears anywhere in the synthesized template.
+    const templateJson = JSON.stringify(template.toJSON());
+    assert.ok(templateJson.includes('Fn::GetAtt'));
+    assert.ok(!templateJson.includes(APNS_TOKEN_KEY_LITERAL));
+  });
+
+  void it('renders the FCM ServiceJson as a CFN dynamic reference (Fn::GetAtt), never inline plain text, when the secret resolves the production way (ST-005/M-007)', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      fcm: {
+        serviceJson: dynamicReferenceSecret('FCM_SERVICE_ACCOUNT_JSON'),
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      Enabled: true,
+      DefaultAuthenticationMethod: 'TOKEN',
+      ServiceJson: Match.objectLike({ 'Fn::GetAtt': Match.anyValue() }),
+    });
+
+    const templateJson = JSON.stringify(template.toJSON());
+    assert.ok(templateJson.includes('Fn::GetAtt'));
+    assert.ok(!templateJson.includes(FCM_SERVICE_JSON_LITERAL));
+  });
+
+  void it('renders BOTH APNs and FCM secrets as CFN dynamic references, with no plain credential material in the template (ST-005/M-007)', () => {
+    const notifications = defineNotifications({
+      domainName: EXISTING_DOMAIN,
+      apns: {
+        tokenKey: dynamicReferenceSecret('APNS_SIGNING_KEY'),
+        tokenKeyId: 'ABC123DEFG',
+        teamId: 'DEF456GHIJ',
+        bundleId: 'com.example.app',
+      },
+      fcm: {
+        serviceJson: dynamicReferenceSecret('FCM_SERVICE_ACCOUNT_JSON'),
+      },
+    }).getInstance(getInstanceProps);
+    const template = Template.fromStack(notifications.stack);
+
+    template.hasResourceProperties('AWS::Pinpoint::APNSChannel', {
+      TokenKey: Match.objectLike({ 'Fn::GetAtt': Match.anyValue() }),
+    });
+    template.hasResourceProperties('AWS::Pinpoint::GCMChannel', {
+      ServiceJson: Match.objectLike({ 'Fn::GetAtt': Match.anyValue() }),
+    });
+
+    const templateJson = JSON.stringify(template.toJSON());
+    assert.ok(!templateJson.includes(APNS_TOKEN_KEY_LITERAL));
+    assert.ok(!templateJson.includes(FCM_SERVICE_JSON_LITERAL));
   });
 });
