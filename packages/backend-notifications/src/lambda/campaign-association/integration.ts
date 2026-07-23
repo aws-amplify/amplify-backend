@@ -17,12 +17,20 @@ import {
 
 import {
   CAMPAIGN_OBJECT_TYPE_NAMES,
+  CONNECT_CAMPAIGNS_SERVICE_NAME,
   CONNECT_CAMPAIGNS_SLR_PATH_PREFIX,
 } from '../../constants.js';
 
 /** Object-type routing map supplied to both integration calls. */
 const objectTypeNames = { ...CAMPAIGN_OBJECT_TYPE_NAMES };
 
+/**
+ * ARN builders hardcode the `aws` partition: Amazon Connect, Customer Profiles,
+ * and Outbound Campaigns v2 are all commercial-partition-only today (not
+ * available in `aws-cn` / `aws-us-gov`), so a partition parameter would be dead
+ * configuration. Partition-awareness is deferred until this backend is
+ * supported in another partition.
+ */
 /** Customer Profiles domain ARN for a domain name in the deploy account/region. */
 export const domainArnOf = (
   account: string,
@@ -40,10 +48,17 @@ export const campaignsInstanceArnOf = (
 
 /**
  * Resolve the Outbound Campaigns service-linked role ARN
- * (`AWSServiceRoleForConnectCampaigns_*`), which StartInstanceOnboardingJob
- * auto-creates under `/aws-service-role/connect-campaigns.amazonaws.com/`. The
- * newest role (last in the returned list) is used, matching the empirically
- * verified recipe.
+ * (`AWSServiceRoleForConnectCampaigns*`), which StartInstanceOnboardingJob
+ * auto-creates under `/aws-service-role/connect-campaigns.amazonaws.com/`.
+ *
+ * The role is selected by MATCHING its well-known name / path rather than by
+ * list position: `ListRoles` does not contractually guarantee ordering, so
+ * `roles[roles.length - 1]` could pick the wrong role if the account happens to
+ * hold more than one role under the (already path-filtered) prefix. We prefer a
+ * role whose `RoleName` starts with `AWSServiceRoleForConnectCampaigns` or whose
+ * `Path` contains the `connect-campaigns.amazonaws.com` service name, and fall
+ * back to the last entry only when nothing matches, so a future SLR naming
+ * change degrades safely instead of throwing.
  */
 export const resolveCampaignsServiceLinkedRoleArn = async (
   iam: IAMClient,
@@ -51,7 +66,14 @@ export const resolveCampaignsServiceLinkedRoleArn = async (
   const { Roles: roles } = await iam.send(
     new ListRolesCommand({ PathPrefix: CONNECT_CAMPAIGNS_SLR_PATH_PREFIX }),
   );
-  const arn = roles?.[roles.length - 1]?.Arn;
+  const candidates = roles ?? [];
+  const match =
+    candidates.find(
+      (role) =>
+        role.RoleName?.startsWith('AWSServiceRoleForConnectCampaigns') ===
+          true || role.Path?.includes(CONNECT_CAMPAIGNS_SERVICE_NAME) === true,
+    ) ?? candidates[candidates.length - 1];
+  const arn = match?.Arn;
   if (!arn) {
     throw new Error(
       'Outbound Campaigns service-linked role not found after onboarding',

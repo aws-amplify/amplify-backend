@@ -66,13 +66,22 @@ void describe('domainArnOf / campaignsInstanceArnOf', () => {
 });
 
 void describe('resolveCampaignsServiceLinkedRoleArn', () => {
-  void it('returns the last (newest) role ARN under the campaigns SLR path', async () => {
+  void it('selects the connect-campaigns SLR by name/path even when it is NOT last in the list', async () => {
+    // The matching SLR is FIRST; a decoy role is last. Ordering-based selection
+    // (roles[length - 1]) would wrongly pick the decoy — matching by name/path
+    // must pick the real SLR regardless of position.
     const rec = recorder(() => ({
       Roles: [
         {
-          Arn: 'arn:aws:iam::x:role/aws-service-role/connect-campaigns.amazonaws.com/Old',
+          RoleName: 'AWSServiceRoleForConnectCampaigns_ABC',
+          Path: '/aws-service-role/connect-campaigns.amazonaws.com/',
+          Arn: SLR_ARN,
         },
-        { Arn: SLR_ARN },
+        {
+          RoleName: 'SomeOtherRole',
+          Path: '/aws-service-role/connect-campaigns.amazonaws.com/',
+          Arn: 'arn:aws:iam::x:role/aws-service-role/connect-campaigns.amazonaws.com/Decoy',
+        },
       ],
     }));
     const iam = { send: rec.send } as unknown as IAMClient;
@@ -81,6 +90,40 @@ void describe('resolveCampaignsServiceLinkedRoleArn', () => {
 
     assert.strictEqual(arn, SLR_ARN);
     assert.strictEqual(rec.sent[0].name, ListRolesCommand.name);
+  });
+
+  void it('matches on Path when the RoleName is absent', async () => {
+    const rec = recorder(() => ({
+      Roles: [
+        {
+          Path: '/aws-service-role/connect-campaigns.amazonaws.com/',
+          Arn: SLR_ARN,
+        },
+      ],
+    }));
+    const iam = { send: rec.send } as unknown as IAMClient;
+    assert.strictEqual(
+      await resolveCampaignsServiceLinkedRoleArn(iam),
+      SLR_ARN,
+    );
+  });
+
+  void it('falls back to the last role when none match the expected name/path (degrades safely)', async () => {
+    const fallbackArn =
+      'arn:aws:iam::x:role/aws-service-role/connect-campaigns.amazonaws.com/Unknown';
+    const rec = recorder(() => ({
+      Roles: [
+        {
+          Arn: 'arn:aws:iam::x:role/aws-service-role/connect-campaigns.amazonaws.com/First',
+        },
+        { Arn: fallbackArn },
+      ],
+    }));
+    const iam = { send: rec.send } as unknown as IAMClient;
+    assert.strictEqual(
+      await resolveCampaignsServiceLinkedRoleArn(iam),
+      fallbackArn,
+    );
   });
 
   void it('throws when no service-linked role is found', async () => {
