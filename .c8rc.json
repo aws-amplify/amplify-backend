@@ -9,6 +9,7 @@
     "**/*.test.ts",
     "packages/ai-constructs/lib/conversation/runtime/default_handler_bundled",
     "packages/form-generator/lib/bundled",
+    "packages/backend-notifications/lib/*-asset",
     "packages/plugin-types",
     "packages/integration-tests"
   ],
