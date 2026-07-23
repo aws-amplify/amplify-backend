@@ -4,8 +4,9 @@
 > resources may change in a future release.
 
 An Amplify Gen2 backend factory (`defineNotifications`) that adds an
-Amazon Connect Customer Profiles–backed **identify-user** API (for both
-authenticated and guest users) and a **push-delivery** Lambda to your app. It
+Amazon Connect Customer Profiles–backed **write API** (identify-user,
+register-device, remove-device — for both authenticated and guest users, all
+authorized with IAM/SigV4) and a **push-delivery** Lambda to your app. It
 replaces the deprecated Pinpoint `identifyUser` / `UpdateEndpoint` flow with
 per-user Customer Profiles storage plus device registration.
 
@@ -24,25 +25,33 @@ It has peer dependencies on `aws-cdk-lib` (`^2.234.1`) and `constructs`
 - An Amplify Gen2 backend defined with `defineBackend`.
 - An **`auth` resource** (Cognito) in that backend. `defineNotifications`
   throws a `NotificationsMissingAuthError` if no auth resource is present — the
-  HTTP API's JWT authorizer is bound to your app's Cognito user pool.
+  write routes are authorized with IAM/SigV4, so callers sign requests with
+  their Cognito Identity Pool credentials.
 - For **guest** (unauthenticated) identification, your auth resource must allow
   unauthenticated (guest) access on its Cognito Identity Pool (see
   [guest support](#guest-unauthenticated-support) below).
 
 ## What it provisions
 
-- Three Customer Profiles object types:
-  - `AmplifyProfile` — an authenticated person profile, keyed by the verified
-    Cognito `sub`.
-  - `AmplifyGuestProfile` — a guest profile, keyed by the unauthenticated
-    Cognito Identity Pool `identityId`.
-  - `AmplifyDevice` — a device object (keyed by a stable `deviceId`).
-- An HTTP API + `identify-user` Lambda that find-or-creates the caller's profile
-  and registers their device, exposing two routes:
-  - `POST /identify-user` — authenticated, authorized by a **Cognito user-pool
-    JWT** authorizer.
-  - `POST /identify-user-guest` — guest, authorized by **IAM/SigV4** (callable
-    with unauthenticated Cognito Identity Pool credentials).
+- A single `AmplifyProfile` Customer Profiles object type, keyed on the
+  server-derived `principalId` (the Cognito Identity Pool `cognitoIdentityId`,
+  populated for **both** authenticated and guest callers). There is no separate
+  guest object type and no `MergeProfiles` — one principal maps to one profile.
+- A dedicated **DynamoDB Devices table** as the authoritative device store (PK
+  `deviceId`, GSI on `principalId`, native TTL). Devices live here, **not** in
+  Customer Profiles.
+- An HTTP API + write Lambda that find-or-creates the caller's profile and
+  manages their devices, exposing three routes — all authorized with
+  **IAM/SigV4** (`AWS_IAM`), no JWT authorizer:
+  - `POST /identify-user` — find-or-create the caller's profile.
+  - `POST /register-device` — register / re-home a device to the caller.
+  - `POST /remove-device` — remove a device the caller owns.
+
+  All three are callable with authenticated **or** unauthenticated (guest)
+  Cognito Identity Pool credentials; the SigV4-verified `cognitoIdentityId`
+  identifies the caller, so a guest is just an unauthenticated caller on the
+  same routes.
+
 - A push-delivery Lambda (a Connect **Journey Custom-action** target) plus a
   minimal **AWS End User Messaging (Pinpoint)** application, so Connect can
   deliver mobile push through `SendMessages`.
@@ -118,31 +127,34 @@ provide it to attach to an existing domain. All properties of
 
 ### Guest (unauthenticated) support
 
-Guests register through the IAM/SigV4 `POST /identify-user-guest` route using
-unauthenticated Cognito Identity Pool credentials, creating an
-`AmplifyGuestProfile` (keyed by the Identity Pool `identityId`) plus their
-device. Guest and authenticated profiles are kept **separate** — there is no
-Customer Profiles `MergeProfiles`. When the user later signs in and re-registers
-the same device on the authenticated `POST /identify-user` route, that device is
-re-homed onto the authenticated profile by a token-matched `DeleteProfileObject`
-eviction, so a physical device ends up on exactly one profile. The guest profile
-is not merged; it is reaped automatically by its shorter TTL
-(`guestExpirationDays`).
+Guests use the **same** IAM/SigV4 routes as authenticated users — there is no
+separate guest route. An unauthenticated caller SigV4-signs `POST
+/identify-user` (and `/register-device` / `/remove-device`) with its
+unauthenticated Cognito Identity Pool credentials; API Gateway verifies the
+signature and surfaces the `cognitoIdentityId`, which the Lambda uses as the
+`principalId`. A guest therefore gets an ordinary `AmplifyProfile` keyed by that
+principal — the same object type an authenticated caller gets.
 
-The construct exposes the guest route's `execute-api:Invoke` ARN as
-`guestRouteInvokeArn` (and as a stack output) so the app can grant it to the
-Cognito Identity Pool **unauthenticated** role.
+Device ownership is authoritative in the DynamoDB Devices table: registering a
+device is a last-writer-wins `UpdateItem` on the `deviceId`, so when the same
+physical device is later registered under a different principal (e.g. after
+sign-in) it is re-homed atomically and a campaign can never leak to a device now
+owned by another principal.
+
+The construct exposes the three routes' `execute-api:Invoke` ARNs as
+`routeInvokeArns` (and as a stack output) so the app can grant them to the
+Cognito Identity Pool **authenticated and unauthenticated** roles.
 
 ## Client configuration output
 
 The API invoke endpoint and region are surfaced under the canonical
 `notifications` section of `amplify_outputs.json`, at the fixed key
-`amazon_connect_customer_profiles` (the path amplify-js reads):
+`amazon_connect` (the path amplify-js reads):
 
 ```json
 {
   "notifications": {
-    "amazon_connect_customer_profiles": {
+    "amazon_connect": {
       "endpoint": "https://<api-id>.execute-api.<region>.amazonaws.com",
       "aws_region": "<region>"
     }
@@ -150,8 +162,9 @@ The API invoke endpoint and region are surfaced under the canonical
 }
 ```
 
-Clients reach the routes by convention — `POST {endpoint}/identify-user`
-(authenticated) and `POST {endpoint}/identify-user-guest` (guest).
+Clients reach the routes by convention — `POST {endpoint}/identify-user`,
+`POST {endpoint}/register-device`, and `POST {endpoint}/remove-device` — signing
+each request with SigV4 (authenticated or guest Identity Pool credentials).
 
 ## Enabling push channels (APNS / GCM)
 
