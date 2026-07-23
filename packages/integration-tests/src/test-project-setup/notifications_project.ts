@@ -218,9 +218,41 @@ class NotificationsProjectTestProject extends TestProjectBase {
       `notifications.amazon_connect = ${JSON.stringify(amazonConnect)}`,
     );
     return {
-      endpoint: amazonConnect.endpoint,
+      endpoint: this.validateEndpoint(amazonConnect.endpoint),
       region: amazonConnect.aws_region,
     };
+  };
+
+  /**
+   * Validate the file-derived Amazon Connect `endpoint` before it is ever used
+   * in an outbound HTTP request. Asserts an `https:` scheme and an API Gateway
+   * `execute-api` host, throwing otherwise. Returns the normalized origin
+   * (scheme + host, no trailing slash) so callers append `path` deterministically.
+   *
+   * This also acts as a sanitizer that breaks the CodeQL
+   * `js/file-access-to-http` taint flow (file data -> outbound request): the
+   * returned value is a validated URL origin, not raw file data.
+   */
+  private validateEndpoint = (endpoint: string): string => {
+    let url: URL;
+    try {
+      url = new URL(endpoint);
+    } catch (err) {
+      throw new Error(
+        `notifications.amazon_connect.endpoint is not a valid URL: ${endpoint}`,
+        { cause: err },
+      );
+    }
+    assert.strictEqual(
+      url.protocol,
+      'https:',
+      `Expected notifications.amazon_connect.endpoint to use https, got ${url.protocol}`,
+    );
+    assert.ok(
+      /\.execute-api\.[a-z0-9-]+\.amazonaws\.com$/.test(url.hostname),
+      `Expected notifications.amazon_connect.endpoint to be an execute-api host, got ${url.hostname}`,
+    );
+    return `${url.protocol}//${url.host}${url.pathname}`.replace(/\/$/, '');
   };
 
   /**
