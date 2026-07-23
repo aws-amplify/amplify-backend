@@ -183,8 +183,12 @@ export type ConnectBatchResponse = {
 export type DeviceDeliveryResult = {
   /** The push token the message was addressed to. */
   deviceToken: string;
-  /** The (normalized) channel the message was sent on. */
-  channelType: PushChannelType;
+  /**
+   * The (normalized) channel the message was sent on. `undefined` for a device
+   * that was NOT sent to (e.g. an unsupported / missing channel that was
+   * SKIPPED), where no real channel applies.
+   */
+  channelType?: PushChannelType;
   /**
    * The stable `deviceId` (DynamoDB Devices table PK) this token came from —
    * carried so a permanently-rejected token's device record can be deleted.

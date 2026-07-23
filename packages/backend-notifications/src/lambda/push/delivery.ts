@@ -208,9 +208,11 @@ export const deliverToProfile = async (
 
     const channelType = normalizeChannelType(owner.channelType);
     if (!channelType) {
+      // Unsupported / missing channel: record a SKIPPED (not-delivered) result.
+      // `channelType` is intentionally omitted (left undefined) rather than a
+      // misleading placeholder, since nothing was sent on any channel.
       results.push({
         deviceToken: owner.token,
-        channelType: 'GCM',
         deviceId,
         status: 'SKIPPED',
         delivered: false,
