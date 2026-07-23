@@ -357,6 +357,60 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
     });
   });
 
+  // ST-007 (M-012): the push-delivery Lambda's invoke permission MUST be scoped
+  // to ONLY the two Connect service principals, each account-scoped, with no
+  // wildcard/other principal. This is the negative/exhaustiveness counterpart to
+  // the positive test above: it enumerates EVERY AWS::Lambda::Permission that
+  // targets the push function and proves the set is exactly what we expect.
+  void it('grants push-Lambda invoke ONLY to the two account-scoped Connect principals (no wildcard/other principal)', () => {
+    const { template } = synth();
+
+    const allPermissions = template.findResources('AWS::Lambda::Permission');
+
+    // A permission targets the push fn iff its FunctionName resolves via a
+    // Fn::GetAtt whose logical id references the PushHandlerFn construct.
+    const pushPermissions = Object.values(allPermissions).filter((res) => {
+      const fnName = res.Properties?.FunctionName;
+      const getAtt = fnName?.['Fn::GetAtt'];
+      return (
+        Array.isArray(getAtt) &&
+        typeof getAtt[0] === 'string' &&
+        getAtt[0].includes('PushHandlerFn')
+      );
+    });
+
+    // Exactly two invoke permissions on the push fn — one per Connect principal.
+    assert.strictEqual(pushPermissions.length, 2);
+
+    const pushPrincipals = pushPermissions
+      .map((res) => res.Properties?.Principal)
+      .sort();
+    assert.deepStrictEqual(pushPrincipals, [
+      'connect-campaigns.amazonaws.com',
+      'connect.amazonaws.com',
+    ]);
+
+    // Every push-fn permission is lambda:InvokeFunction, account-scoped via
+    // SourceAccount, and grants NO wildcard principal.
+    for (const res of pushPermissions) {
+      const props = res.Properties ?? {};
+      assert.strictEqual(props.Action, 'lambda:InvokeFunction');
+      assert.notStrictEqual(props.Principal, '*');
+      assert.ok(
+        props.SourceAccount !== undefined,
+        'push-fn invoke permission must set SourceAccount (this-account scoping)',
+      );
+    }
+
+    // Belt-and-suspenders: NO Lambda::Permission anywhere in the template grants
+    // a wildcard principal.
+    template.resourcePropertiesCountIs(
+      'AWS::Lambda::Permission',
+      { Principal: '*' },
+      0,
+    );
+  });
+
   void it('sets the devices table + EUM app id env vars on the push Lambda', () => {
     const { template } = synth();
     template.hasResourceProperties('AWS::Lambda::Function', {

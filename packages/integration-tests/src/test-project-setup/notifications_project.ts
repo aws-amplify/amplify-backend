@@ -417,7 +417,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
       guestId,
       run,
     );
-    await this.assertRemoveDeviceOwnershipGate(
+    const wrongPrincipalRemoveRes = await this.assertRemoveDeviceOwnershipGate(
       endpoint,
       region,
       tableName,
@@ -451,12 +451,34 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authId,
       run,
     );
-    await this.assertBenignRemoveMissingDevice(
+    const missingDeviceRemoveRes = await this.assertBenignRemoveMissingDevice(
       endpoint,
       region,
       tableName,
       authCreds,
       run,
+    );
+
+    // ST-012 (M-020): remove-device MUST return an IDENTICAL response for a
+    // device owned by ANOTHER principal (wrong-principal, above) and for a
+    // NON-EXISTENT device — same status AND same body — so a caller cannot
+    // distinguish "not yours" from "doesn't exist" (no information leak).
+    assert.deepStrictEqual(
+      {
+        status: wrongPrincipalRemoveRes.status,
+        body: this.safeParseBody(wrongPrincipalRemoveRes.body),
+      },
+      {
+        status: missingDeviceRemoveRes.status,
+        body: this.safeParseBody(missingDeviceRemoveRes.body),
+      },
+      `remove-device responses must be identical for wrong-principal vs non-existent device ` +
+        `(wrong: ${wrongPrincipalRemoveRes.status} ${wrongPrincipalRemoveRes.body}; ` +
+        `missing: ${missingDeviceRemoveRes.status} ${missingDeviceRemoveRes.body})`,
+    );
+    console.log(
+      `[ST-012] remove-device uniform response: wrong-principal === non-existent ` +
+        `(status ${wrongPrincipalRemoveRes.status}, body ${wrongPrincipalRemoveRes.body})`,
     );
 
     // API-behavior group (authZ, decoupling, idempotency, validation edges).
@@ -754,7 +776,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     ownerCreds: IamCredentials,
     ownerId: string,
     run: string,
-  ): Promise<void> => {
+  ): Promise<SignedResponse> => {
     const deviceId = `notif-e2e-device-${run}`;
 
     const wrongRes = await this.signedPost(
@@ -805,6 +827,9 @@ class NotificationsProjectTestProject extends TestProjectBase {
     console.log(
       `[4] remove-device gate: wrong-principal no-op (device retained), owner delete removed the item`,
     );
+    // Return the wrong-principal response so the caller can prove it is IDENTICAL
+    // to the non-existent-device response (ST-012/M-020 no-information-leak).
+    return wrongRes;
   };
 
   /**
@@ -1017,7 +1042,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     tableName: string,
     creds: IamCredentials,
     run: string,
-  ): Promise<void> => {
+  ): Promise<SignedResponse> => {
     const missingDeviceId = `notif-e2e-missing-${run}`;
     // Precondition: the device genuinely does not exist.
     const before = await this.getDeviceItem(tableName, missingDeviceId);
@@ -1049,6 +1074,9 @@ class NotificationsProjectTestProject extends TestProjectBase {
     console.log(
       `[A3] remove-device(missing) 200 benign no-op; device stays absent`,
     );
+    // Return the response so the caller can prove it is IDENTICAL to the
+    // wrong-principal response (ST-012/M-020 no-information-leak).
+    return res;
   };
 
   /**
@@ -1076,6 +1104,12 @@ class NotificationsProjectTestProject extends TestProjectBase {
     }
 
     // (b) Bogus-signature request (signed with garbage credentials) -> 403.
+    // ST-002 (M-002): execute-api IAM auth rejects EXPIRED temporary
+    // credentials IDENTICALLY to an invalid signature — both fail SigV4
+    // verification at API Gateway and return HTTP 403 before the Lambda runs.
+    // So this bogus-signature case is representative of the expired-credential
+    // threat; a separate runtime test is not feasible without waiting for real
+    // STS credential expiry (minimum ~15 min), which is impractical in e2e.
     const bogusCreds: IamCredentials = {
       accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
       // eslint-disable-next-line spellcheck/spell-checker
@@ -1617,6 +1651,18 @@ class NotificationsProjectTestProject extends TestProjectBase {
   private parseMessage = (body: string): string => {
     try {
       return (JSON.parse(body) as { message?: string }).message ?? body;
+    } catch {
+      return body;
+    }
+  };
+
+  /**
+   * Parse a response body to a normalized value for deep-equality comparison,
+   * falling back to the raw string when it is not JSON.
+   */
+  private safeParseBody = (body: string): unknown => {
+    try {
+      return JSON.parse(body);
     } catch {
       return body;
     }
