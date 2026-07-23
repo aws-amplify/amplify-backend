@@ -506,6 +506,7 @@ export class AmplifyNotifications
         domainName,
         props.campaignAssociationLambdaCodePath ??
           defaultCampaignAssociationLambdaCodePath,
+        isSandbox,
       );
     }
 
@@ -524,11 +525,14 @@ export class AmplifyNotifications
       // Explicit CloudWatch log group with a fixed ONE_MONTH retention instead
       // of Lambda's default never-expire group. An explicit LogGroup is used
       // rather than the deprecated `logRetention` prop so NO extra
-      // log-retention custom-resource Lambda is provisioned. Log-group KMS
-      // (encryptionKey) is intentionally DEFERRED for preview.
+      // log-retention custom-resource Lambda is provisioned. Removal policy
+      // mirrors the Devices table: sandbox -> DESTROY (ephemeral), branch /
+      // pipeline -> RETAIN so a teardown never drops logs needed for incident
+      // response. Log-group KMS (encryptionKey) is intentionally DEFERRED for
+      // preview.
       logGroup: new logs.LogGroup(this, 'ApiFnLogGroup', {
         retention: logs.RetentionDays.ONE_MONTH,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
       environment: {
         [ENV_DOMAIN_NAME]: domainName,
@@ -618,12 +622,19 @@ export class AmplifyNotifications
     const defaultStage = httpApi.defaultStage?.node.defaultChild as
       | apigwv2.CfnStage
       | undefined;
-    if (defaultStage) {
-      defaultStage.defaultRouteSettings = {
-        throttlingBurstLimit: 50,
-        throttlingRateLimit: 100,
-      };
+    // Throttling is a security control on a guest-writable endpoint, so fail
+    // LOUDLY at synth if the default stage can't be reached (e.g. a future CDK
+    // change to `HttpApi.defaultStage`) rather than silently shipping an
+    // unthrottled API.
+    if (!defaultStage) {
+      throw new Error(
+        'AmplifyNotifications: could not resolve the HTTP API default stage to apply throttling',
+      );
     }
+    defaultStage.defaultRouteSettings = {
+      throttlingBurstLimit: 50,
+      throttlingRateLimit: 100,
+    };
 
     const routePaths = [
       this.identifyUserPath,
@@ -742,10 +753,11 @@ export class AmplifyNotifications
       timeout: Duration.seconds(30),
       memorySize: 256,
       // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
-      // extra log-retention Lambda. Log-group KMS is DEFERRED for preview.
+      // extra log-retention Lambda. Removal policy mirrors the Devices table
+      // (sandbox DESTROY, else RETAIN). Log-group KMS is DEFERRED for preview.
       logGroup: new logs.LogGroup(this, 'PushHandlerFnLogGroup', {
         retention: logs.RetentionDays.ONE_MONTH,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
       environment: {
         [ENV_DEVICES_TABLE_NAME]: devicesTable.tableName,
@@ -981,6 +993,7 @@ export class AmplifyNotifications
     profilesDomain: CfnDomain,
     domainName: string,
     codePath: string,
+    isSandbox: boolean,
   ): void {
     const stack = this.stack;
 
@@ -993,10 +1006,11 @@ export class AmplifyNotifications
       timeout: Duration.minutes(10),
       memorySize: 256,
       // Fixed ONE_MONTH log retention via an explicit LogGroup (see ApiFn); no
-      // extra log-retention Lambda. Log-group KMS is DEFERRED for preview.
+      // extra log-retention Lambda. Removal policy mirrors the Devices table
+      // (sandbox DESTROY, else RETAIN). Log-group KMS is DEFERRED for preview.
       logGroup: new logs.LogGroup(this, 'CampaignAssociationFnLogGroup', {
         retention: logs.RetentionDays.ONE_MONTH,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       }),
     });
 

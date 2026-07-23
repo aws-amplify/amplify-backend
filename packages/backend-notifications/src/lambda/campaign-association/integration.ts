@@ -17,20 +17,18 @@ import {
 
 import {
   CAMPAIGN_OBJECT_TYPE_NAMES,
-  CONNECT_CAMPAIGNS_SERVICE_NAME,
   CONNECT_CAMPAIGNS_SLR_PATH_PREFIX,
 } from '../../constants.js';
 
 /** Object-type routing map supplied to both integration calls. */
 const objectTypeNames = { ...CAMPAIGN_OBJECT_TYPE_NAMES };
 
-/**
- * ARN builders hardcode the `aws` partition: Amazon Connect, Customer Profiles,
- * and Outbound Campaigns v2 are all commercial-partition-only today (not
- * available in `aws-cn` / `aws-us-gov`), so a partition parameter would be dead
- * configuration. Partition-awareness is deferred until this backend is
- * supported in another partition.
- */
+// ARN builders hardcode the `aws` partition: Amazon Connect, Customer Profiles,
+// and Outbound Campaigns v2 are all commercial-partition-only today (not
+// available in `aws-cn` / `aws-us-gov`), so a partition parameter would be dead
+// configuration. Partition-awareness is deferred until this backend is
+// supported in another partition.
+
 /** Customer Profiles domain ARN for a domain name in the deploy account/region. */
 export const domainArnOf = (
   account: string,
@@ -51,14 +49,15 @@ export const campaignsInstanceArnOf = (
  * (`AWSServiceRoleForConnectCampaigns*`), which StartInstanceOnboardingJob
  * auto-creates under `/aws-service-role/connect-campaigns.amazonaws.com/`.
  *
- * The role is selected by MATCHING its well-known name / path rather than by
- * list position: `ListRoles` does not contractually guarantee ordering, so
+ * The role is selected by MATCHING its well-known `RoleName` rather than by list
+ * position: `ListRoles` does not contractually guarantee ordering, so
  * `roles[roles.length - 1]` could pick the wrong role if the account happens to
  * hold more than one role under the (already path-filtered) prefix. We prefer a
- * role whose `RoleName` starts with `AWSServiceRoleForConnectCampaigns` or whose
- * `Path` contains the `connect-campaigns.amazonaws.com` service name, and fall
+ * role whose `RoleName` starts with `AWSServiceRoleForConnectCampaigns` and fall
  * back to the last entry only when nothing matches, so a future SLR naming
- * change degrades safely instead of throwing.
+ * change degrades safely instead of throwing. (Matching on `Path` would be
+ * redundant — every returned role already sits under the connect-campaigns SLR
+ * PathPrefix passed to `ListRoles`, so `Path` never discriminates.)
  */
 export const resolveCampaignsServiceLinkedRoleArn = async (
   iam: IAMClient,
@@ -70,8 +69,7 @@ export const resolveCampaignsServiceLinkedRoleArn = async (
   const match =
     candidates.find(
       (role) =>
-        role.RoleName?.startsWith('AWSServiceRoleForConnectCampaigns') ===
-          true || role.Path?.includes(CONNECT_CAMPAIGNS_SERVICE_NAME) === true,
+        role.RoleName?.startsWith('AWSServiceRoleForConnectCampaigns') === true,
     ) ?? candidates[candidates.length - 1];
   const arn = match?.Arn;
   if (!arn) {

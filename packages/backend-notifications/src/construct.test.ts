@@ -246,6 +246,15 @@ void describe('AmplifyNotifications construct — HTTP API', () => {
         ThrottlingRateLimit: 100,
       },
     });
+    // The throttle is applied unconditionally (both modes) — verify create mode
+    // too so a future refactor can't accidentally gate it on createFromScratch.
+    synthCreate().template.hasResourceProperties('AWS::ApiGatewayV2::Stage', {
+      StageName: '$default',
+      DefaultRouteSettings: {
+        ThrottlingBurstLimit: 50,
+        ThrottlingRateLimit: 100,
+      },
+    });
   });
 });
 
@@ -296,12 +305,34 @@ void describe('AmplifyNotifications construct — Lambda log retention', () => {
       { RetentionInDays: 30 },
       2,
     );
+    // Non-sandbox default RETAINs the log groups (mirrors the Devices table) so
+    // a teardown never drops logs needed for incident response.
+    for (const group of Object.values(
+      template.findResources('AWS::Logs::LogGroup'),
+    )) {
+      assert.strictEqual(group.DeletionPolicy, 'Retain');
+    }
     // KMS deferred for preview: no customer-managed key on the log groups.
     const json = JSON.stringify(template.toJSON());
     assert.ok(
       !json.includes('KmsKeyId'),
       'log-group KMS (KmsKeyId) is deferred for preview',
     );
+  });
+
+  void it('DESTROYs the Lambda log groups under a sandbox deployment', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-type', 'sandbox');
+    const stack = new Stack(app);
+    new AmplifyNotifications(stack, 'notifications', {
+      domainName: EXISTING_DOMAIN,
+    });
+    const template = Template.fromStack(stack);
+    const groups = Object.values(template.findResources('AWS::Logs::LogGroup'));
+    assert.strictEqual(groups.length, 2);
+    for (const group of groups) {
+      assert.strictEqual(group.DeletionPolicy, 'Delete');
+    }
   });
 
   void it('sets ONE_MONTH log retention on all three Lambdas in create mode', () => {
