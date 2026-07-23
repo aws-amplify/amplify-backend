@@ -956,7 +956,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     );
 
     // (ii) register-device with an empty token -> 400, no device written.
-    const emptyTokenDeviceId = `notif-e2e-badtoken-${run}`;
+    const emptyTokenDeviceId = `notif-e2e-empty-token-${run}`;
     const emptyTokenRes = await this.signedPost(
       endpoint,
       '/register-device',
@@ -1078,6 +1078,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     // (b) Bogus-signature request (signed with garbage credentials) -> 403.
     const bogusCreds: IamCredentials = {
       accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+      // eslint-disable-next-line spellcheck/spell-checker
       secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEYgarbage',
       sessionToken: 'bogus-session-token',
     };
@@ -1138,8 +1139,8 @@ class NotificationsProjectTestProject extends TestProjectBase {
       `Expected NO profile for never-identified principal ${identityId}`,
     );
 
-    const deviceId = `notif-e2e-regfirst-${run}`;
-    const token = `notif-e2e-regfirst-token-${run}`;
+    const deviceId = `notif-e2e-register-first-${run}`;
+    const token = `notif-e2e-register-first-token-${run}`;
     const res = await this.signedPost(
       endpoint,
       '/register-device',
@@ -1363,7 +1364,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authCreds,
       {
         device: {
-          token: `notif-e2e-nodev-${run}`,
+          token: `notif-e2e-no-device-${run}`,
           platform: 'ios',
           channelType: 'APNS',
         },
@@ -1428,8 +1429,8 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authCreds,
       {
         device: {
-          token: `notif-e2e-badchan-token-${run}`,
-          deviceId: `notif-e2e-badchan-${run}`,
+          token: `notif-e2e-bad-channel-token-${run}`,
+          deviceId: `notif-e2e-bad-channel-${run}`,
           platform: 'ios',
           channelType: 'SMS',
         },
@@ -1447,7 +1448,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     );
 
     // Arbitrary platform -> ACCEPTED (200), stored verbatim (platform is not enum-validated).
-    const oddPlatformDeviceId = `notif-e2e-oddplat-${run}`;
+    const oddPlatformDeviceId = `notif-e2e-odd-platform-${run}`;
     const oddPlatform = 'sailfish-os';
     const oddPlatformRes = await this.signedPost(
       endpoint,
@@ -1456,7 +1457,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
       authCreds,
       {
         device: {
-          token: `notif-e2e-oddplat-token-${run}`,
+          token: `notif-e2e-odd-platform-token-${run}`,
           deviceId: oddPlatformDeviceId,
           platform: oddPlatform,
           channelType: 'APNS',
