@@ -1,0 +1,461 @@
+import { App, NestedStack, Stack, Stage, Tags } from 'aws-cdk-lib';
+import {
+  AmplifyUserError,
+  BackendIdentifierConversions,
+  CDKContextKey,
+  TagName,
+} from '@aws-amplify/platform-core';
+import {
+  AttributionMetadataStorage,
+  StackMetadataBackendOutputStorageStrategy,
+} from '@aws-amplify/backend-output-storage';
+import {
+  BackendIdentifier,
+  DeploymentType,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
+import { HostingProps, HostingResources } from './types.js';
+import {
+  AmplifyHostingConstruct,
+  AmplifyHostingConstructProps,
+} from './constructs/hosting_construct.js';
+import { detectFramework, getAdapter } from './adapters/index.js';
+import { runBuild } from './build/runner.js';
+import * as path from 'path';
+import * as fs from 'fs';
+import { fileURLToPath } from 'node:url';
+import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
+
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+
+export type BackendHosting = ResourceProvider<HostingResources>;
+
+// Lock file in project directory — avoids insecure temp dir
+const getLockFilePath = (projectDir: string): string =>
+  path.join(projectDir, '.amplify-hosting-deploy.lock');
+
+// 4-hour stale-lock window. First-time deploys with custom domain +
+// ACM validation can run >1h on cold accounts (DnsValidatedCertificate
+// + CloudFront propagation). A shorter window let a second `ampx
+// deploy` treat the in-progress first as "stale" and try to take over,
+// potentially racing CDK staging writes. Bumping to 4h keeps legitimate
+// fresh-account deploys from getting stomped while still recovering
+// from genuinely-orphaned locks (process killed, machine rebooted)
+// within the same workday.
+const LOCK_TIMEOUT_MS = 4 * 60 * 60 * 1000;
+
+/**
+ * Acquire a file-based deploy lock to prevent concurrent deployments.
+ * Uses exclusive-create (wx) flag for atomic lock acquisition — no TOCTOU race.
+ */
+const acquireLock = (projectDir: string): void => {
+  const lockFile = getLockFilePath(projectDir);
+  try {
+    fs.writeFileSync(
+      lockFile,
+      JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+      { flag: 'wx', mode: 0o600 },
+    );
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+      // Lock file exists — check if stale
+      try {
+        const lockData = JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+        if (Date.now() - lockData.timestamp < LOCK_TIMEOUT_MS) {
+          throw new AmplifyUserError('DeploymentInProgressError', {
+            message: `Another deployment appears to be in progress (started ${Math.round((Date.now() - lockData.timestamp) / 1000)}s ago).`,
+            resolution: `Wait for the other deployment to complete. If no deployment is running, delete ${lockFile}`,
+          });
+        }
+      } catch (e) {
+        if ((e as Error).name === 'DeploymentInProgressError') throw e;
+      }
+      // Stale or corrupted lock — take over atomically via rename
+      const tempLockFile = `${lockFile}.${process.pid}.tmp`;
+      fs.writeFileSync(
+        tempLockFile,
+        JSON.stringify({ pid: process.pid, timestamp: Date.now() }),
+        { mode: 0o600 },
+      );
+      try {
+        fs.renameSync(tempLockFile, lockFile);
+      } catch (renameErr) {
+        try {
+          fs.unlinkSync(tempLockFile);
+          // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+        } catch {
+          /* ignore */
+        }
+        throw new AmplifyUserError(
+          'DeploymentInProgressError',
+          {
+            message:
+              'Another deployment acquired the lock while cleaning stale lock.',
+            resolution: `Wait for the other deployment to complete, or delete ${lockFile}`,
+          },
+          renameErr as Error,
+        );
+      }
+      return;
+    }
+    throw err;
+  }
+};
+
+/**
+ * Release the deploy lock.
+ */
+const releaseLock = (projectDir: string): void => {
+  try {
+    fs.unlinkSync(getLockFilePath(projectDir));
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+  } catch {
+    // Lock file may already be deleted by another process; safe to ignore
+  }
+};
+
+const rootStackTypeIdentifier = 'hosting';
+
+/**
+ * Read backend identifier from CDK context.
+ */
+const getBackendIdentifier = (scope: App): BackendIdentifier => {
+  const backendNamespace = scope.node.getContext(
+    CDKContextKey.BACKEND_NAMESPACE,
+  );
+  if (typeof backendNamespace !== 'string') {
+    throw new Error(
+      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`,
+    );
+  }
+  const backendName = scope.node.getContext(CDKContextKey.BACKEND_NAME);
+  if (typeof backendName !== 'string') {
+    throw new Error(
+      `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`,
+    );
+  }
+  const deploymentType: DeploymentType = scope.node.getContext(
+    CDKContextKey.DEPLOYMENT_TYPE,
+  );
+  const expectedDeploymentTypeValues = ['sandbox', 'branch', 'standalone'];
+  if (!expectedDeploymentTypeValues.includes(deploymentType)) {
+    throw new Error(
+      `${CDKContextKey.DEPLOYMENT_TYPE} CDK context value is not in (${expectedDeploymentTypeValues.join(', ')})`,
+    );
+  }
+  return {
+    type: deploymentType,
+    namespace: backendNamespace,
+    name: backendName,
+  };
+};
+
+/**
+ * The return type of `defineHosting()`.
+ */
+export type HostingResult = {
+  /**
+   * The CDK resources created by hosting.
+   */
+  resources: HostingResources;
+  /**
+   * The root hosting stack.
+   */
+  stack: Stack;
+  /**
+   * Create an additional CDK stack for custom resources.
+   */
+  createStack: (name: string) => Stack;
+};
+
+/**
+ * Create the hosting infrastructure as a standalone CDK entry point.
+ *
+ * **⚠️ Important:** This must be called in a SEPARATE file (`amplify/hosting.ts`),
+ * NOT inside `amplify/backend.ts`. Hosting deploys as an independent CloudFormation
+ * stack so it can be deployed separately from the backend.
+ * @param props - Hosting configuration (framework, build command, domain, etc.). All optional.
+ * @returns Hosting result containing CDK resources, root stack, and a `createStack` helper.
+ */
+export const defineHosting = (props: HostingProps = {}): HostingResult => {
+  // Check for pipeline ambient scope — when running inside definePipeline's
+  // stageFactory, attach constructs to the pipeline stage instead of creating
+  // a standalone App.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pipelineScope = (globalThis as any)['__AMPLIFY_PIPELINE_SCOPE__'] as
+    | Stage
+    | undefined;
+
+  if (pipelineScope) {
+    const hostingStack = new Stack(pipelineScope, 'HostingStack');
+    const hostingNestedStack = new NestedStack(hostingStack, 'hosting');
+    const resources = buildHostingConstruct(props, hostingNestedStack);
+
+    return {
+      resources,
+      stack: hostingStack,
+      createStack: (name: string) => new NestedStack(hostingStack, name),
+    };
+  }
+
+  // Normal standalone path — create own App and register IPC listeners
+  const app = new App();
+  const backendId = getBackendIdentifier(app);
+
+  // Resolve a concrete env from the process. Necessary even without a
+  // custom domain because:
+  //   - WAFv2 + ACM cert lookups need a known region.
+  //   - `experimental.EdgeFunction` (used for OpenNext edge routes and
+  //     middleware) requires the parent stack to have an explicitly-set
+  //     region; agnostic stacks fail synth with
+  //     "StacksWithEdgeFunctionsMustHaveExplicitRegion".
+  const stackEnv = {
+    account:
+      process.env.CDK_DEFAULT_ACCOUNT ??
+      process.env.AWS_ACCOUNT_ID ??
+      undefined,
+    region:
+      process.env.CDK_DEFAULT_REGION ?? process.env.AWS_REGION ?? undefined,
+  };
+
+  const rootStack = new Stack(
+    app,
+    BackendIdentifierConversions.toStackName(backendId),
+    { env: stackEnv },
+  );
+
+  new AttributionMetadataStorage().storeAttributionMetadata(
+    rootStack,
+    rootStackTypeIdentifier,
+    path.resolve(moduleDir, '..', 'package.json'),
+  );
+
+  const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+    rootStack,
+  );
+
+  outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
+    version: '1',
+    payload: {
+      deploymentType: backendId.type,
+      region: rootStack.region,
+    },
+  });
+
+  Tags.of(rootStack).add('created-by', 'amplify');
+  if (backendId.type === 'standalone') {
+    Tags.of(rootStack).add('amplify:branch-name', backendId.name);
+    Tags.of(rootStack).add('amplify:deployment-type', 'standalone');
+  }
+
+  // Listen for synth signal from CDK Toolkit
+  process.once('message', (message) => {
+    if (message === 'amplifySynth') {
+      app.synth({ errorOnDuplicateSynth: false });
+    }
+  });
+
+  // Build the hosting construct inside a nested stack
+  const hostingNestedStack = new NestedStack(rootStack, 'hosting');
+  const resources = buildHostingConstruct(props, hostingNestedStack);
+
+  // Track custom stacks to prevent duplicates
+  const customStacks: Record<string, Stack> = {};
+
+  const createStack = (name: string): Stack => {
+    if (customStacks[name]) {
+      throw new Error(`Custom stack named ${name} has already been created`);
+    }
+    const stack = new NestedStack(rootStack, name);
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      stack,
+      'custom',
+      path.resolve(moduleDir, '..', 'package.json'),
+    );
+    customStacks[name] = stack;
+    return stack;
+  };
+
+  return {
+    resources,
+    stack: rootStack,
+    createStack,
+  };
+};
+
+/**
+ * Locate the project root by walking up from `process.cwd()` until we
+ * find a `package.json`. CI systems and rare dev-loop cases run
+ * `ampx deploy` from a subdirectory of the project — `process.cwd()`
+ * would then resolve to e.g. `<repo>/packages/web/`, the adapter
+ * wouldn't find `amplify/`, and the deploy would fail deep inside the
+ * adapter (`OpenNextOutputNotFoundError`) with no indication that
+ * cwd was the root cause.
+ *
+ * Walking up to the nearest `package.json` is the same heuristic
+ * `local-pkg` and most build tools use. We stop at the filesystem
+ * root and throw a clear error pointing at the misconfiguration.
+ *
+ * Override: `AMPLIFY_HOSTING_PROJECT_DIR` (absolute path) for callers
+ * that want explicit control (e.g. tests, monorepo scripts).
+ */
+const resolveProjectDir = (): string => {
+  const override = process.env.AMPLIFY_HOSTING_PROJECT_DIR;
+  if (override) {
+    if (!path.isAbsolute(override)) {
+      throw new AmplifyUserError('InvalidProjectDirError', {
+        message: `AMPLIFY_HOSTING_PROJECT_DIR must be an absolute path; got "${override}".`,
+        resolution: 'Pass an absolute path or unset the variable.',
+      });
+    }
+    if (!fs.existsSync(path.join(override, 'package.json'))) {
+      throw new AmplifyUserError('InvalidProjectDirError', {
+        message: `AMPLIFY_HOSTING_PROJECT_DIR is set to "${override}" but no package.json exists there.`,
+        resolution:
+          'Point AMPLIFY_HOSTING_PROJECT_DIR at the directory containing your package.json.',
+      });
+    }
+    return override;
+  }
+  let dir = process.cwd();
+  for (;;) {
+    if (fs.existsSync(path.join(dir, 'package.json'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      // Reached the filesystem root without finding package.json.
+      throw new AmplifyUserError('ProjectRootNotFoundError', {
+        message: `Could not find a package.json walking up from ${process.cwd()}.`,
+        resolution:
+          'Run `ampx deploy` from your project directory (the one containing package.json + amplify/), ' +
+          'or set AMPLIFY_HOSTING_PROJECT_DIR to an absolute path.',
+      });
+    }
+    dir = parent;
+  }
+};
+
+/**
+ * Build the hosting construct from props.
+ */
+const buildHostingConstruct = (
+  props: HostingProps,
+  scope: Stack,
+): HostingResources => {
+  const projectDir = resolveProjectDir();
+  acquireLock(projectDir);
+  try {
+    return doBuildHostingConstruct(props, scope, projectDir);
+  } finally {
+    releaseLock(projectDir);
+  }
+};
+
+/**
+ * Copy `amplify_outputs.json` from the project root into every compute
+ * resource's bundle directory so the SSR runtime can read backend
+ * configuration (Cognito, AppSync, S3) at request time.
+ *
+ * `ampx deploy --backend` writes `amplify_outputs.json` to the project root,
+ * but the framework adapters (provided by `@aws-blocks/hosting`) are
+ * Amplify-agnostic and do not know about that file — so the deployed Lambda
+ * bundle would otherwise ship without it and `Amplify.configure(...)` /
+ * direct config reads would find nothing. This Amplify-specific glue restores
+ * the behavior the in-repo adapters previously performed inline.
+ *
+ * Best-effort: silently does nothing when the file is absent (backend-less
+ * hosting) and never overwrites a copy an adapter already placed.
+ */
+const copyAmplifyOutputsToComputeBundles = (
+  manifest: { compute?: Record<string, { bundle?: string }> },
+  projectDir: string,
+): void => {
+  const src = path.join(projectDir, 'amplify_outputs.json');
+  if (!fs.existsSync(src)) return;
+
+  const bundleDirs = new Set<string>();
+  for (const compute of Object.values(manifest.compute ?? {})) {
+    // `bundle` may point at a file or a directory depending on the adapter;
+    // normalize to the directory that becomes the Lambda task root.
+    if (!compute.bundle) continue;
+    const resolved = path.isAbsolute(compute.bundle)
+      ? compute.bundle
+      : path.join(projectDir, compute.bundle);
+    const dir =
+      fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()
+        ? resolved
+        : path.dirname(resolved);
+    bundleDirs.add(dir);
+  }
+
+  for (const dir of bundleDirs) {
+    const dest = path.join(dir, 'amplify_outputs.json');
+    if (fs.existsSync(dest)) continue;
+    try {
+      fs.copyFileSync(src, dest);
+      process.stderr.write(
+        `Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
+      );
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
+    } catch {
+      // Best-effort: a missing/locked bundle dir must not fail the deploy.
+    }
+  }
+};
+
+const doBuildHostingConstruct = (
+  props: HostingProps,
+  scope: Stack,
+  projectDir: string,
+): HostingResources => {
+  // Auto-detect or use explicit framework
+  const framework = props.framework ?? detectFramework(projectDir);
+
+  if (!props.framework) {
+    process.stderr.write(
+      `Detected framework: ${framework} (from package.json)\n`,
+    );
+  }
+
+  // Run the build command if provided
+  if (props.buildCommand) {
+    runBuild({
+      command: props.buildCommand,
+      cwd: projectDir,
+    });
+  }
+
+  // Get the adapter (custom or registry) and run it to produce a manifest
+  const adapter =
+    props.customAdapter ?? getAdapter(framework, props.buildOutputDir);
+  const manifest = adapter(projectDir);
+
+  // Amplify-specific: ship amplify_outputs.json inside each compute bundle so
+  // the SSR runtime can read backend config. The upstream adapters don't do
+  // this (they're Amplify-agnostic).
+  copyAmplifyOutputsToComputeBundles(manifest, projectDir);
+
+  const constructProps: AmplifyHostingConstructProps = {
+    manifest,
+    domain: props.domain,
+    waf: props.waf,
+    compute: props.compute,
+    cdn: props.cdn,
+    storage: props.storage,
+    logging: props.logging,
+    monitoring: props.monitoring,
+    environment: props.environment,
+    errorPages: props.errorPages,
+    buildCache: props.buildCache,
+    skewProtection: props.skewProtection,
+  };
+
+  const hostingConstruct = new AmplifyHostingConstruct(
+    scope,
+    'amplifyHosting',
+    constructProps,
+  );
+
+  Tags.of(hostingConstruct).add(TagName.FRIENDLY_NAME, 'amplifyHosting');
+
+  return hostingConstruct.getResources();
+};

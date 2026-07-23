@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "ESnext"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "allowJs": true
+  },
+  "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../backend-output-storage" },
+    { "path": "../platform-core" },
+    { "path": "../plugin-types" }
+  ]
+}

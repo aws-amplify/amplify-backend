@@ -9,11 +9,24 @@ import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_t
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { resolveNodejsFunctionBundlingRoot } from '../nodejs_function_project_root.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const linkerLambdaFilePath = path.join(resourcesRoot, 'branch_linker.js');
+
+// The `@aws-amplify/backend` package root, three levels up from this file's
+// dir (engine/branch-linker/ -> engine/ -> src|lib/ -> package root).
+const packageRoot = path.join(dirname, '..', '..', '..');
+
+// Anchor bundling to the handler's own project so the entry AND lock file stay
+// contained even when synth runs from a consumer/test project with a different
+// cwd (avoids CDK's `PathNotUnderRoot`). See resolveNodejsFunctionBundlingRoot.
+const linkerBundlingRoot = resolveNodejsFunctionBundlingRoot(
+  resourcesRoot,
+  packageRoot,
+);
 
 /**
  * Type of the backend custom CFN resource.
@@ -43,6 +56,8 @@ export class AmplifyBranchLinkerConstruct extends Construct {
       runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
+      projectRoot: linkerBundlingRoot.projectRoot,
+      depsLockFilePath: linkerBundlingRoot.depsLockFilePath,
       handler: 'handler',
       environment,
       bundling: {

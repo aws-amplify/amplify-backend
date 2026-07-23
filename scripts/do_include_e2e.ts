@@ -16,8 +16,7 @@ const INTERNAL_REPO = 'aws-amplify/amplify-backend';
 
 const shouldPullRequestRunE2E = async () => {
   if (!ghContext.payload.pull_request) {
-    // event is not a pull request
-    return false;
+    return { runE2E: false } as const;
   }
   const prInfo = await gitHubClient.fetchPullRequest(
     ghContext.payload.pull_request.number,

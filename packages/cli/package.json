@@ -46,6 +46,7 @@
     "@aws-sdk/client-amplify": "^3.936.0",
     "@aws-sdk/client-cloudformation": "^3.1078.0",
     "@aws-sdk/client-s3": "^3.936.0",
+    "@aws-sdk/client-ssm": "^3.936.0",
     "@aws-sdk/client-sts": "^3.936.0",
     "@aws-sdk/credential-provider-ini": "^3.936.0",
     "@aws-sdk/credential-providers": "^3.936.0",
@@ -65,7 +66,7 @@
   },
   "peerDependencies": {
     "@aws-sdk/types": "^3.734.0",
-    "aws-cdk-lib": "^2.234.1"
+    "aws-cdk-lib": "^2.257.0"
   },
   "devDependencies": {
     "@types/envinfo": "^7.8.3",
