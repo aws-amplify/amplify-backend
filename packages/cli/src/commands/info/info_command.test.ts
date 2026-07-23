@@ -54,6 +54,7 @@ void describe('info command run', () => {
       npm: 0.0.0 - /fake/path
       pnpm: 0.0.0 - /fake/path
       Yarn: 0.0.0 - /fake/path
+      Bun: 0.0.0 - /fake/path
     NPM Packages:
       fake: 0.0.0
       `;

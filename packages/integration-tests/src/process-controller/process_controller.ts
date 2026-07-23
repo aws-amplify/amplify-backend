@@ -196,6 +196,10 @@ export const runWithPackageManager = (
       packageManagerBinary = 'yarn';
       break;
 
+    case 'bun':
+      packageManagerBinary = 'bunx';
+      break;
+
     default:
       throw new Error(`Unknown package manager: ${packageManager as string}`);
   }
