@@ -3,7 +3,11 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { IAMClient, ListRolesCommand } from '@aws-sdk/client-iam';
+import {
+  IAMClient,
+  ListRolesCommand,
+  ListRolesCommandInput,
+} from '@aws-sdk/client-iam';
 import {
   ConnectCampaignsV2Client,
   DeleteConnectInstanceConfigCommand,
@@ -121,6 +125,47 @@ void describe('resolveCampaignsServiceLinkedRoleArn', () => {
     await assert.rejects(
       resolveCampaignsServiceLinkedRoleArn(iam),
       /service-linked role not found/,
+    );
+  });
+
+  void it('paginates via Marker and finds the matching SLR on page 2 (IsTruncated)', async () => {
+    const rec = recorder((command) => {
+      const marker = (command as { input: ListRolesCommandInput }).input.Marker;
+      if (marker === undefined) {
+        // Page 1: only decoys, truncated with a Marker pointing to page 2.
+        return {
+          Roles: [
+            {
+              RoleName: 'DecoyPageOne',
+              Arn: 'arn:aws:iam::x:role/aws-service-role/connect-campaigns.amazonaws.com/DecoyPageOne',
+            },
+          ],
+          IsTruncated: true,
+          Marker: 'PAGE-2',
+        };
+      }
+      // Page 2: the real SLR.
+      return {
+        Roles: [
+          {
+            RoleName: 'AWSServiceRoleForConnectCampaigns_ABC',
+            Arn: SLR_ARN,
+          },
+        ],
+        IsTruncated: false,
+      };
+    });
+    const iam = { send: rec.send } as unknown as IAMClient;
+
+    const arn = await resolveCampaignsServiceLinkedRoleArn(iam);
+
+    assert.strictEqual(arn, SLR_ARN);
+    // Two ListRoles calls: page 1 then page 2 (Marker threaded through).
+    assert.strictEqual(rec.sent.length, 2);
+    assert.strictEqual(rec.sent[0].name, ListRolesCommand.name);
+    assert.strictEqual(
+      (rec.sent[1].input as ListRolesCommandInput).Marker,
+      'PAGE-2',
     );
   });
 });

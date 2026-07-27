@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { IAMClient, ListRolesCommand } from '@aws-sdk/client-iam';
+import { IAMClient, ListRolesCommand, Role } from '@aws-sdk/client-iam';
 import {
   ConnectCampaignsV2Client,
   DeleteConnectInstanceConfigCommand,
@@ -58,20 +58,39 @@ export const campaignsInstanceArnOf = (
  * change degrades safely instead of throwing. (Matching on `Path` would be
  * redundant — every returned role already sits under the connect-campaigns SLR
  * PathPrefix passed to `ListRoles`, so `Path` never discriminates.)
+ *
+ * `ListRoles` is PAGINATED: it returns at most 100 roles per call and signals
+ * more with `IsTruncated` + a `Marker`. We page through until the match is found
+ * (returning early) or the pages are exhausted, then apply the safe fallback to
+ * the accumulated roles — so a match that lands on a later page is not missed.
  */
 export const resolveCampaignsServiceLinkedRoleArn = async (
   iam: IAMClient,
 ): Promise<string> => {
-  const { Roles: roles } = await iam.send(
-    new ListRolesCommand({ PathPrefix: CONNECT_CAMPAIGNS_SLR_PATH_PREFIX }),
-  );
-  const candidates = roles ?? [];
-  const match =
-    candidates.find(
-      (role) =>
-        role.RoleName?.startsWith('AWSServiceRoleForConnectCampaigns') === true,
-    ) ?? candidates[candidates.length - 1];
-  const arn = match?.Arn;
+  const candidates: Role[] = [];
+  let marker: string | undefined;
+  do {
+    const page = await iam.send(
+      new ListRolesCommand({
+        PathPrefix: CONNECT_CAMPAIGNS_SLR_PATH_PREFIX,
+        Marker: marker,
+      }),
+    );
+    for (const role of page.Roles ?? []) {
+      if (role.RoleName?.startsWith('AWSServiceRoleForConnectCampaigns')) {
+        const arn = role.Arn;
+        if (arn) {
+          return arn;
+        }
+      }
+      candidates.push(role);
+    }
+    marker = page.IsTruncated ? page.Marker : undefined;
+  } while (marker);
+
+  // No role matched the well-known name on any page: degrade safely to the last
+  // role under the (already path-filtered) connect-campaigns SLR prefix.
+  const arn = candidates[candidates.length - 1]?.Arn;
   if (!arn) {
     throw new Error(
       'Outbound Campaigns service-linked role not found after onboarding',
