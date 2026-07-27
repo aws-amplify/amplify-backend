@@ -272,6 +272,9 @@ void describe('deliverToProfile — retryable classification', () => {
     assert.strictEqual(res.status, 'failed');
     assert.strictEqual(res.retryable, false);
     assert.strictEqual(res.errorCode, 'ResourceNotFoundException');
+    // The raw thrown message must NOT surface as the response `error` field
+    // (eum_client omits statusMessage on the ERROR path).
+    assert.strictEqual(res.error, undefined);
   });
 
   void it('classifies a thrown ThrottlingException as retryable', async () => {
@@ -571,7 +574,9 @@ void describe('deliverToTargets', () => {
           command.constructor.name === 'QueryCommand' &&
           command.input.ExpressionAttributeValues[':principalId'].S === 'boom'
         ) {
-          return Promise.reject(new Error('kaboom'));
+          const err = new Error('kaboom: raw@sensitive.example detail');
+          err.name = 'ProvisionedThroughputExceededException';
+          return Promise.reject(err);
         }
         return Promise.resolve({ Items: [] });
       },
@@ -590,6 +595,8 @@ void describe('deliverToTargets', () => {
     const boom = outcomes.find((o) => o.profileId === 'boom');
     assert.strictEqual(boom?.status, 'failed');
     assert.strictEqual(boom?.retryable, true);
+    // The response `error` carries the error NAME, never the raw message.
+    assert.strictEqual(boom?.error, 'ProvisionedThroughputExceededException');
     assert.strictEqual(
       outcomes.find((o) => o.profileId === 'ok')?.status,
       'skipped',

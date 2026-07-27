@@ -150,8 +150,11 @@ export const deliverToDevice = async (
       statusMessage,
     };
   } catch (err) {
-    const statusMessage = err instanceof Error ? err.message : 'unknown error';
     const errorName = err instanceof Error ? err.name : undefined;
+    // Log only the error NAME (a fixed, non-sensitive SDK error type such as
+    // `NotFoundException`). The raw error message can echo the rejected request
+    // input verbatim (e.g. a caller-submitted value), so it is NEVER logged —
+    // that would leak PII into CloudWatch.
     console.log(
       '[push] send.error',
       JSON.stringify({
@@ -160,7 +163,6 @@ export const deliverToDevice = async (
         decision: 'KEEP',
         reason: 'SendMessages threw (e.g. channel not configured) — token kept',
         errorName,
-        statusMessage,
       }),
     );
     return {
@@ -170,7 +172,9 @@ export const deliverToDevice = async (
       status: 'ERROR',
       delivered: false,
       stale: false,
-      statusMessage,
+      // `statusMessage` is intentionally omitted: it would carry the raw
+      // err.message, which `deriveProfileOutcome` would then surface as the
+      // Connect response `error` field. Only the fixed `errorName` is exposed.
       ...(errorName ? { errorName } : {}),
     };
   }

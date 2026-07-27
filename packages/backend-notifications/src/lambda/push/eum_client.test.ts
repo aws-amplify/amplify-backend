@@ -172,7 +172,7 @@ void describe('deliverToDevice', () => {
     }
   });
 
-  void it('catches a thrown SendMessages call as ERROR (failed, not stale)', async () => {
+  void it('catches a thrown SendMessages call as ERROR (failed, not stale) and does NOT surface the raw message', async () => {
     const { client } = fakePinpoint({
       throws: new Error('channel not enabled'),
     });
@@ -187,7 +187,45 @@ void describe('deliverToDevice', () => {
     assert.strictEqual(res.status, 'ERROR');
     assert.strictEqual(res.delivered, false);
     assert.strictEqual(res.stale, false);
-    assert.match(res.statusMessage ?? '', /channel not enabled/);
+    // The raw err.message must NOT be carried on the result (it would otherwise
+    // flow into the Connect response `error` field via deriveProfileOutcome).
+    assert.strictEqual(res.statusMessage, undefined);
+    assert.strictEqual(res.errorName, 'Error');
+  });
+
+  void it('send.error log carries only the error name, NEVER the raw thrown message (PII)', async () => {
+    // A Pinpoint/SDK error message can echo caller-influenced input verbatim, so
+    // the send.error log line MUST NOT contain it — only the fixed error name.
+    const SENTINEL = 'sentinel@example.com';
+    const err = new Error(`Invalid value: ${SENTINEL} is not allowed`);
+    err.name = 'BadRequestException';
+    const { client } = fakePinpoint({ throws: err });
+
+    const logged: string[] = [];
+    const original = console.log;
+    console.log = (...args: unknown[]): void => {
+      logged.push(
+        args
+          .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+          .join(' '),
+      );
+    };
+    try {
+      await deliverToDevice(client, 'app', 'tok', 'GCM', MESSAGE, 'dev-1');
+    } finally {
+      console.log = original;
+    }
+
+    const sendError = logged.filter((l) => l.includes('[push] send.error'));
+    assert.strictEqual(sendError.length, 1, 'expected one send.error log line');
+    assert.ok(
+      sendError[0].includes('BadRequestException'),
+      'send.error log must carry the error name',
+    );
+    assert.ok(
+      !logged.join(' ').includes(SENTINEL),
+      'send.error log must never contain the raw thrown message (PII)',
+    );
   });
 
   void it('defaults to UNKNOWN_FAILURE when the address is missing from the result', async () => {

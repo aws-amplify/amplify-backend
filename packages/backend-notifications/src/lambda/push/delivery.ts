@@ -313,7 +313,7 @@ export const deliverToTargets = async (
         status: 'failed',
         retryable: true,
         errorCode: errorName ?? 'INTERNAL',
-        ...(err instanceof Error ? { error: err.message } : {}),
+        ...(err instanceof Error ? { error: err.name } : {}),
       });
     }
   }
