@@ -17,6 +17,7 @@ import {
   GetItemCommand,
 } from '@aws-sdk/client-dynamodb';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import {
   CustomerProfilesClient,
   Profile,
@@ -50,6 +51,35 @@ type SignedResponse = {
   status: number;
   body: string;
 };
+
+/**
+ * The push Lambda's per-profile `ResultData` (a structural subset of the
+ * backend-notifications `ProfileResultData` contract — kept local to avoid a
+ * cross-package type import in the e2e harness).
+ */
+type PushResultData = {
+  status?: 'delivered' | 'skipped' | 'failed';
+  reason?: string;
+  retryable?: boolean;
+  errorCode?: string;
+  error?: string;
+};
+
+/**
+ * The Amazon Connect batch response the push Lambda returns: one
+ * `CustomerProfiles` entry per requested `ProfileId`, `Id` === ProfileId.
+ */
+/* eslint-disable @typescript-eslint/naming-convention -- Amazon Connect batch
+   response contract is PascalCase by contract. */
+type PushBatchResponse = {
+  Items: {
+    CustomerProfiles: Array<{
+      Id: string;
+      ResultData?: PushResultData;
+    }>;
+  };
+};
+/* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Creates the create-from-scratch notifications test project.
@@ -87,6 +117,9 @@ export class NotificationsProjectTestProjectCreator implements TestProjectCreato
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
       e2eToolingClientConfig,
     ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig,
+    ),
     private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(
       cfnClient,
     ),
@@ -105,6 +138,7 @@ export class NotificationsProjectTestProjectCreator implements TestProjectCreato
       this.dynamoDBClient,
       this.customerProfilesClient,
       this.cognitoIdentityProviderClient,
+      this.lambdaClient,
       this.resourceFinder,
     );
     await fs.cp(
@@ -160,6 +194,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     private readonly dynamoDBClient: DynamoDBClient,
     private readonly customerProfilesClient: CustomerProfilesClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
+    private readonly lambdaClient: LambdaClient,
     private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(
@@ -415,6 +450,23 @@ class NotificationsProjectTestProject extends TestProjectBase {
       tableName,
       guestCreds,
       guestId,
+      run,
+    );
+    // Push-delivery ownership gate (direct-invoke of the deployed push Lambda).
+    // Runs HERE, after the re-home, while device X is owned by the guest (B) and
+    // the original owner (auth, A) owns no devices — so the leak-prevention case
+    // is deterministic. A fresh authenticated identity (C) owns a second,
+    // never-re-homed device to prove an owned device IS targeted past the gate.
+    const pushOwnedUser =
+      await authFactory.getNewAuthenticatedUserCredentials();
+    await this.assertPushOwnershipGate(
+      backendId,
+      endpoint,
+      region,
+      tableName,
+      authId,
+      pushOwnedUser.iamCredentials,
+      pushOwnedUser.identityId,
       run,
     );
     const wrongPrincipalRemoveRes = await this.assertRemoveDeviceOwnershipGate(
@@ -831,6 +883,264 @@ class NotificationsProjectTestProject extends TestProjectBase {
     // to the non-existent-device response (ST-012/M-020 no-information-leak).
     return wrongRes;
   };
+
+  /**
+   * 4b. Push-delivery ownership gate (DIRECT-INVOKE of the deployed push
+   *     Lambda — no Amazon Connect / Journeys, no real device push receipt).
+   *
+   * This proves, end-to-end on the real deployed infrastructure, that the push
+   * Lambda routes and gates delivery SOLELY on
+   * `CustomerData.attributes.principalId` (see push `event.ts::extractPrincipalId`
+   * + `delivery.ts` ownership gate), reusing the device ownership state seeded by
+   * assertions 2 + 3:
+   *
+   *   1. LEAK PREVENTION — a synthetic profile owned by principal A (the ORIGINAL
+   *      owner of device X, which assertion 3 re-homed to the guest B). Because A
+   *      no longer owns X, a campaign to A MUST NOT reach X (now B's): the
+   *      strongly-consistent ownership gate drops X, so A resolves to zero devices
+   *      -> `skipped` / `no_devices`. This is the cross-user leak-prevention proof.
+   *   2. OWNED-DEVICE TARGETED — a SECOND, never-re-homed device Y registered to a
+   *      fresh authenticated identity C via the signed register-device route. A
+   *      campaign to C must get PAST the gate and ATTEMPT a send: status is
+   *      `delivered` OR `failed` (a `failed` is expected here without a live
+   *      APNS/GCM channel + real token), and crucially NOT `skipped`/`no_devices`.
+   *      Corroborated by a strongly-consistent GetItem showing C owns Y.
+   *   3. MISSING-PRINCIPAL — a profile whose `CustomerData.attributes` carries NO
+   *      `principalId` -> `skipped` / `missing_principal_id`.
+   *   4. RESPONSE CONTRACT — exactly one `ResultData` entry per input `ProfileId`,
+   *      with `Id` echoed back in request order.
+   *
+   * The push function NAME is resolved from the deployed stack's
+   * `AWS::Lambda::Function` PhysicalResourceIds (logical id contains
+   * `PushHandlerFn`) — no stack outputs. The invoke uses the same e2e-tooling
+   * credentials as the other assertion clients (`lambda:InvokeFunction` is already
+   * granted on `function:amplify-*`; NO new IAM is required).
+   */
+  private assertPushOwnershipGate = async (
+    backendId: BackendIdentifier,
+    endpoint: string,
+    region: string,
+    tableName: string,
+    reHomedOwnerId: string,
+    ownedDeviceCreds: IamCredentials,
+    ownedDeviceOwnerId: string,
+    run: string,
+  ): Promise<void> => {
+    // Resolve the deployed push Lambda by PhysicalResourceId (logical id
+    // contains `PushHandlerFn`) — DescribeStackResources, never stack outputs.
+    const pushFnNames = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      () => true,
+      (logicalId) => logicalId.includes('PushHandlerFn'),
+    );
+    assert.strictEqual(
+      pushFnNames.length,
+      1,
+      `Expected exactly one push handler Lambda, found: ${JSON.stringify(pushFnNames)}`,
+    );
+    const pushFnName = pushFnNames[0];
+
+    // Seed an OWNED, never-re-homed device Y for a fresh authenticated identity
+    // C via the real signed register-device flow (no direct DDB writes).
+    const ownedDeviceId = `notif-e2e-push-owned-${run}`;
+    const ownedToken = `notif-e2e-push-owned-token-${run}`;
+    const regRes = await this.signedPost(
+      endpoint,
+      '/register-device',
+      region,
+      ownedDeviceCreds,
+      {
+        device: {
+          token: ownedToken,
+          deviceId: ownedDeviceId,
+          platform: 'ios',
+          channelType: 'APNS',
+        },
+      },
+    );
+    assert.strictEqual(
+      regRes.status,
+      200,
+      `push owned-device register expected 200, got ${regRes.status}: ${regRes.body}`,
+    );
+    const ownedItem = await this.getDeviceItem(tableName, ownedDeviceId);
+    assert.ok(ownedItem, `No owned device item found for ${ownedDeviceId}`);
+    assert.strictEqual(
+      ownedItem.principalId?.S,
+      ownedDeviceOwnerId,
+      `Expected owned device ${ownedDeviceId} owned by ${ownedDeviceOwnerId}, got ${ownedItem.principalId?.S}`,
+    );
+
+    // Build a minimal synthetic direct-invoke event (current envelope shape,
+    // InvocationMetadata omitted so no Connect / Q Connect template resolution is
+    // triggered) with three profiles, each carrying a serialized-JSON-string
+    // CustomerData with camelCase keys and an injected attributes.principalId
+    // (mirrors push handler.test.ts CustomerData construction).
+    const leakProfileId = `push-leak-${run}`;
+    const ownedProfileId = `push-owned-${run}`;
+    const missingProfileId = `push-missing-${run}`;
+    const event = this.buildPushEvent([
+      { profileId: leakProfileId, attributes: { principalId: reHomedOwnerId } },
+      {
+        profileId: ownedProfileId,
+        attributes: { principalId: ownedDeviceOwnerId },
+      },
+      // attributes present but WITHOUT principalId -> missing_principal_id.
+      { profileId: missingProfileId, attributes: { seg: 'no-principal' } },
+    ]);
+
+    // The GSI(principalId) enumeration is eventually consistent, so the freshly
+    // registered device Y may not be indexed on the first invoke (-> transient
+    // no_devices for C). Re-invoke with a bounded backoff until C's owned device
+    // is attempted (delivered/failed). The leak + missing cases are
+    // deterministic on every invoke, so asserting on the final response is safe.
+    let response = await this.invokePushLambda(pushFnName, event);
+    let ownedResult = this.pushResultById(response, ownedProfileId);
+    for (
+      let i = 0;
+      i < 10 &&
+      ownedResult?.status !== 'delivered' &&
+      ownedResult?.status !== 'failed';
+      i++
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
+      response = await this.invokePushLambda(pushFnName, event);
+      ownedResult = this.pushResultById(response, ownedProfileId);
+    }
+
+    const entries = response.Items.CustomerProfiles;
+
+    // (4) RESPONSE CONTRACT: one entry per input ProfileId, Ids echoed in order.
+    assert.deepStrictEqual(
+      entries.map((e) => e.Id),
+      [leakProfileId, ownedProfileId, missingProfileId],
+      `Expected one echoed Id per input ProfileId in request order, got ${JSON.stringify(
+        entries.map((e) => e.Id),
+      )}`,
+    );
+
+    // (1) LEAK PREVENTION: principal A no longer owns device X (re-homed to B),
+    // so a campaign to A resolves to no devices and is skipped — X is never
+    // reached. This is the cross-user leak-prevention proof.
+    const leakResult = this.pushResultById(response, leakProfileId);
+    assert.strictEqual(
+      leakResult?.status,
+      'skipped',
+      `[leak] expected re-homed-away owner to be skipped, got ${JSON.stringify(leakResult)}`,
+    );
+    assert.strictEqual(
+      leakResult?.reason,
+      'no_devices',
+      `[leak] expected reason 'no_devices' (owned device re-homed away), got ${JSON.stringify(leakResult)}`,
+    );
+
+    // (2) OWNED-DEVICE TARGETED: C owns Y and IS targeted past the gate — a send
+    // was ATTEMPTED (delivered OR failed), and NOT dropped as skipped/no_devices.
+    assert.ok(
+      ownedResult?.status === 'delivered' || ownedResult?.status === 'failed',
+      `[owned] expected an ATTEMPTED send (delivered|failed) for owned device, got ${JSON.stringify(ownedResult)}`,
+    );
+    assert.notStrictEqual(
+      ownedResult?.status,
+      'skipped',
+      `[owned] owned device must NOT be dropped by the ownership gate, got ${JSON.stringify(ownedResult)}`,
+    );
+
+    // (3) MISSING-PRINCIPAL: no principalId on the profile's attributes.
+    const missingResult = this.pushResultById(response, missingProfileId);
+    assert.strictEqual(
+      missingResult?.status,
+      'skipped',
+      `[missing] expected skipped for missing principalId, got ${JSON.stringify(missingResult)}`,
+    );
+    assert.strictEqual(
+      missingResult?.reason,
+      'missing_principal_id',
+      `[missing] expected reason 'missing_principal_id', got ${JSON.stringify(missingResult)}`,
+    );
+
+    console.log(
+      `[4b] push ownership gate (direct-invoke ${pushFnName}): ` +
+        `leak(A re-homed away)=${leakResult?.status}/${leakResult?.reason}; ` +
+        `owned(C)=${ownedResult?.status} (attempted, not gated); ` +
+        `missing-principal=${missingResult?.status}/${missingResult?.reason}; ` +
+        `contract: ${entries.length} entries, Ids echoed in order`,
+    );
+  };
+
+  /**
+   * Build a minimal push-delivery invocation event in the CURRENT canonical
+   * envelope shape (`Items.CustomerProfiles[]`, each `CustomerData` a serialized
+   * JSON string with camelCase keys). `InvocationMetadata` is intentionally
+   * omitted so the direct invoke exercises the ownership gate + delivery path
+   * WITHOUT triggering any Amazon Connect / Q Connect template resolution.
+   */
+  /* eslint-disable @typescript-eslint/naming-convention -- Amazon Connect batch
+     custom-action wire envelope is PascalCase by contract. */
+  private buildPushEvent = (
+    profiles: Array<{
+      profileId: string;
+      attributes: Record<string, string>;
+    }>,
+  ): unknown => ({
+    Items: {
+      CustomerProfiles: profiles.map((p) => ({
+        ProfileId: p.profileId,
+        CustomerData: JSON.stringify({
+          firstName: 'Push',
+          attributes: p.attributes,
+        }),
+        IdempotencyToken: `notif-e2e-push-idem-${p.profileId}`,
+      })),
+    },
+  });
+  /* eslint-enable @typescript-eslint/naming-convention */
+
+  /**
+   * Direct-invoke the deployed push Lambda (RequestResponse) with the e2e-tooling
+   * credentials and parse its Amazon Connect batch response payload. Asserts the
+   * invoke did not surface a Lambda `FunctionError`.
+   */
+  private invokePushLambda = async (
+    functionName: string,
+    event: unknown,
+  ): Promise<PushBatchResponse> => {
+    const res = await this.lambdaClient.send(
+      new InvokeCommand({
+        FunctionName: functionName,
+        Payload: Buffer.from(JSON.stringify(event)),
+      }),
+    );
+    const payloadText = res.Payload
+      ? Buffer.from(res.Payload).toString('utf-8')
+      : '';
+    assert.ok(
+      !res.FunctionError,
+      `push Lambda invoke returned FunctionError '${res.FunctionError}': ${payloadText}`,
+    );
+    let parsed: PushBatchResponse;
+    try {
+      parsed = JSON.parse(payloadText) as PushBatchResponse;
+    } catch (err) {
+      throw new Error(
+        `push Lambda response was not valid JSON: ${payloadText}`,
+        { cause: err },
+      );
+    }
+    assert.ok(
+      Array.isArray(parsed?.Items?.CustomerProfiles),
+      `push Lambda response missing Items.CustomerProfiles[]: ${payloadText}`,
+    );
+    return parsed;
+  };
+
+  /** Look up a profile's `ResultData` in a push batch response by echoed `Id`. */
+  private pushResultById = (
+    response: PushBatchResponse,
+    profileId: string,
+  ): PushResultData | undefined =>
+    response.Items.CustomerProfiles.find((e) => e.Id === profileId)?.ResultData;
 
   /**
    * 5. Guest path: sign identify-user with GUEST credentials -> 200; the same
