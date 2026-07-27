@@ -148,10 +148,16 @@ void describe('parsePushEvent — REAL Connect Outbound-Campaigns-v2 journey sha
     assert.strictEqual(cd.lastName, 'Tester');
     assert.strictEqual(cd.emailAddress, 'manual-test@example.com');
     const attrs = cd.attributes as Record<string, unknown>;
-    assert.strictEqual(typeof attrs.cognitoSub, 'string');
-    assert.strictEqual(attrs.deviceId, 'manual-test-gcm-device');
-    assert.strictEqual(attrs.hasGCM, 'true');
-    assert.strictEqual(attrs.hasAPNS, 'true');
+    // The ONLY ownership key is attributes.principalId (no cognitoSub / deviceId
+    // / hasGCM / hasAPNS in the current model); incidental extra attributes
+    // survive the parse alongside it.
+    assert.strictEqual(typeof attrs.principalId, 'string');
+    assert.strictEqual(
+      attrs.principalId,
+      'us-east-1:22222222-2222-4222-8222-222222222222',
+    );
+    assert.strictEqual(attrs.appUserId, 'manual-test-user');
+    assert.strictEqual(attrs.platform, 'android');
 
     // Nested address object survives the parse (profile 3).
     const cd3 = targets[2].customerData as Record<string, unknown>;
