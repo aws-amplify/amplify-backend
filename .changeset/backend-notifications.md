@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-notifications': minor
+'@aws-amplify/backend-notifications': major
 '@aws-amplify/client-config': minor
 ---
 
