@@ -3,10 +3,13 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import * as path from 'path';
+import { fileURLToPath } from 'node:url';
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyNotifications,
+  AmplifyNotificationsInternalProps,
   AmplifyNotificationsProps,
 } from './construct.js';
 
@@ -50,6 +53,45 @@ const synthCreate = (
   });
   return { construct, template: Template.fromStack(stack) };
 };
+
+/** All Lambda asset S3 keys in a template (asset content hash — changes iff the injected asset dir changes). */
+const lambdaAssetKeys = (template: Template): string[] =>
+  Object.values(template.findResources('AWS::Lambda::Function'))
+    .map((res) => res.Properties?.Code?.S3Key)
+    .filter((k): k is string => typeof k === 'string')
+    .sort();
+
+const assetDir = (name: string): string =>
+  path.join(fileURLToPath(new URL('../lib', import.meta.url)), name);
+
+void describe('AmplifyNotifications construct — test-only code-path injection', () => {
+  // Exercises the AmplifyNotificationsInternalProps escape hatch (kept off the
+  // public props surface). Overriding the pre-bundled asset directory must be
+  // honored by the constructor — proven by the synthesized Lambda asset hash
+  // changing when a different (real) asset dir is injected.
+  void it('honors an injected lambdaCodePath override (internalProps is read, not ignored)', () => {
+    const build = (props: AmplifyNotificationsInternalProps): Template => {
+      const stack = new Stack(new App());
+      new AmplifyNotifications(stack, 'notifications', props);
+      return Template.fromStack(stack);
+    };
+
+    const baseline = build({ domainName: EXISTING_DOMAIN });
+    const overridden = build({
+      domainName: EXISTING_DOMAIN,
+      // Point the identify-user handler at a DIFFERENT real asset dir; its
+      // content hash differs from the default handler-asset, so the injected
+      // path must show up as a changed Lambda Code.S3Key.
+      lambdaCodePath: assetDir('push-handler-asset'),
+    });
+
+    assert.notDeepStrictEqual(
+      lambdaAssetKeys(baseline),
+      lambdaAssetKeys(overridden),
+      'injected lambdaCodePath must change the synthesized Lambda asset',
+    );
+  });
+});
 
 void describe('AmplifyNotifications construct — domain attach', () => {
   void it('does NOT create a Customer Profiles domain (attaches to the existing one)', () => {
@@ -748,7 +790,7 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
   });
 
-  void it('pins the push-Lambda invoke permission to the created Connect instance ARN in create mode (sourceArn confused-deputy guard)', () => {
+  void it('pins the push-Lambda invoke permission to the created Connect instance ARN for the Journey principal ONLY, in create mode (sourceArn confused-deputy guard)', () => {
     const { template } = synthCreate();
     const pushPermissions = Object.values(
       template.findResources('AWS::Lambda::Permission'),
@@ -760,19 +802,36 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
         getAtt[0].includes('PushHandlerFn')
       );
     });
-    // Both Connect principals' invoke permissions keep SourceAccount AND pin
-    // SourceArn to the created instance (Fn::GetAtt on the ConnectInstance).
     assert.strictEqual(pushPermissions.length, 2);
-    for (const res of pushPermissions) {
-      assert.ok(res.Properties?.SourceAccount !== undefined);
-      const getAtt = res.Properties?.SourceArn?.['Fn::GetAtt'];
-      assert.ok(
-        Array.isArray(getAtt) &&
-          typeof getAtt[0] === 'string' &&
-          getAtt[0].includes('ConnectInstance'),
-        'create mode must pin SourceArn to the created Connect instance ARN',
-      );
-    }
+
+    const byPrincipal = new Map(
+      pushPermissions.map((res) => [res.Properties?.Principal, res.Properties]),
+    );
+
+    // connect.amazonaws.com (Journey Custom-action): CloudTrail confirms it
+    // invokes with the CONNECT instance ARN as aws:SourceArn, so we pin it —
+    // SourceAccount AND SourceArn (Fn::GetAtt on the created ConnectInstance).
+    const journey = byPrincipal.get('connect.amazonaws.com');
+    assert.ok(journey?.SourceAccount !== undefined);
+    const journeyGetAtt = journey?.SourceArn?.['Fn::GetAtt'];
+    assert.ok(
+      Array.isArray(journeyGetAtt) &&
+        typeof journeyGetAtt[0] === 'string' &&
+        journeyGetAtt[0].includes('ConnectInstance'),
+      'Journey principal must pin SourceArn to the created Connect instance ARN',
+    );
+
+    // connect-campaigns.amazonaws.com (Outbound Campaigns v2): NOT authoritatively
+    // documented to invoke with the CONNECT instance ARN as aws:SourceArn, so we
+    // deliberately DO NOT pin SourceArn (over-tight pin could break campaign-driven
+    // push). Account scoping remains the confused-deputy guard.
+    const campaigns = byPrincipal.get('connect-campaigns.amazonaws.com');
+    assert.ok(campaigns?.SourceAccount !== undefined);
+    assert.strictEqual(
+      campaigns?.SourceArn,
+      undefined,
+      'connect-campaigns principal must NOT pin SourceArn (avoids potential AccessDenied)',
+    );
   });
 
   void it('adds the Outbound Campaigns domain-association custom resource wired to a Provider', () => {

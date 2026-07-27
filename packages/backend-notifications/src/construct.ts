@@ -134,6 +134,14 @@ export type NotificationsResources = {
   profilesDomain?: CfnDomain;
 };
 
+/**
+ * Properties for the framework-agnostic {@link AmplifyNotifications} CDK
+ * construct. Selects attach vs. create-from-scratch mode (via `domainName`) and
+ * carries the optional APNs / FCM push-channel configuration and create-mode
+ * tuning (`instanceAlias`, `expirationDays`). All values are plain (non-secret)
+ * inputs; the `defineNotifications` Gen2 factory resolves any Amplify
+ * `secret()` values before constructing this.
+ */
 export type AmplifyNotificationsProps = {
   /**
    * Name of an EXISTING Customer Profiles domain to attach to — e.g. the domain
@@ -159,33 +167,8 @@ export type AmplifyNotificationsProps = {
    */
   readonly instanceAlias?: string;
 
-  /**
-   * Override the directory containing the pre-bundled Lambda asset (an
-   * `index.js` exporting `handler`). Defaults to the handler bundled inside this
-   * package (`lib/handler-asset`, produced by `post:compile`).
-   * @internal
-   */
-  readonly lambdaCodePath?: string;
-
   /** Profile / object-type expiration in days. Default: 366. */
   readonly expirationDays?: number;
-
-  /**
-   * Override the directory containing the pre-bundled push Lambda asset (an
-   * `index.js` exporting `handler`). Defaults to the handler bundled inside this
-   * package (`lib/push-handler-asset`, produced by `post:compile`).
-   * @internal
-   */
-  readonly pushLambdaCodePath?: string;
-
-  /**
-   * Override the directory containing the pre-bundled campaign-association
-   * custom-resource Lambda asset (an `index.js` exporting `handler`). Defaults to
-   * the handler bundled inside this package (`lib/campaign-association-asset`,
-   * produced by `post:compile`). Only used in create-from-scratch mode.
-   * @internal
-   */
-  readonly campaignAssociationLambdaCodePath?: string;
 
   /**
    * OPTIONAL APNs channel configuration (token / `.p8` auth). When provided, the
@@ -222,6 +205,39 @@ export type AmplifyNotificationsProps = {
     /** The FCM HTTP v1 service-account JSON credential contents. */
     readonly serviceJson: string;
   };
+};
+
+/**
+ * Test-only extension of {@link AmplifyNotificationsProps} that allows injecting
+ * the directories of the pre-bundled Lambda assets, so unit tests can point the
+ * construct at fixture assets instead of the real `post:compile` bundles.
+ *
+ * These props are INTERNAL: they are deliberately kept off the public
+ * {@link AmplifyNotificationsProps} surface (and NOT re-exported from the
+ * package entry point) so they never leak into the published API. The
+ * constructor accepts {@link AmplifyNotificationsProps} publicly and reads these
+ * fields via an internal narrowing.
+ * @internal
+ */
+export type AmplifyNotificationsInternalProps = AmplifyNotificationsProps & {
+  /**
+   * Override the directory containing the pre-bundled identify-user Lambda asset
+   * (an `index.js` exporting `handler`). Defaults to `lib/handler-asset`.
+   */
+  readonly lambdaCodePath?: string;
+
+  /**
+   * Override the directory containing the pre-bundled push Lambda asset (an
+   * `index.js` exporting `handler`). Defaults to `lib/push-handler-asset`.
+   */
+  readonly pushLambdaCodePath?: string;
+
+  /**
+   * Override the directory containing the pre-bundled campaign-association
+   * custom-resource Lambda asset (an `index.js` exporting `handler`). Defaults to
+   * `lib/campaign-association-asset`. Only used in create-from-scratch mode.
+   */
+  readonly campaignAssociationLambdaCodePath?: string;
 };
 
 /**
@@ -320,6 +336,11 @@ export class AmplifyNotifications
    */
   constructor(scope: Construct, id: string, props: AmplifyNotificationsProps) {
     super(scope, id);
+
+    // The public props surface omits the test-only Lambda-asset code-path
+    // overrides; narrow here so the construct can honor them when injected by
+    // unit tests without exposing them on the published API.
+    const internalProps = props as AmplifyNotificationsInternalProps;
 
     const stack = Stack.of(this);
     this.stack = stack;
@@ -504,7 +525,7 @@ export class AmplifyNotifications
         connectInstance,
         profilesDomain,
         domainName,
-        props.campaignAssociationLambdaCodePath ??
+        internalProps.campaignAssociationLambdaCodePath ??
           defaultCampaignAssociationLambdaCodePath,
         isSandbox,
       );
@@ -514,7 +535,7 @@ export class AmplifyNotifications
     // Pre-bundled at build time (esbuild) into a self-contained asset, so the
     // construct works regardless of the consuming project's root (Amplify's
     // NodejsFunction guardrail forbids an entry outside the app root).
-    const codePath = props.lambdaCodePath ?? defaultLambdaCodePath;
+    const codePath = internalProps.lambdaCodePath ?? defaultLambdaCodePath;
 
     const apiFn = new lambda.Function(this, 'ApiFn', {
       code: lambda.Code.fromAsset(codePath),
@@ -635,6 +656,11 @@ export class AmplifyNotifications
       throttlingBurstLimit: 50,
       throttlingRateLimit: 100,
     };
+    // TODO(ST-009): rate throttling caps request FREQUENCY but not per-request
+    // body SIZE. A deferred defense-in-depth control is a request body-size cap
+    // (e.g. via a WAF SizeConstraint or handler-level guard) so an oversized
+    // payload on the guest-writable routes can't drive cost / memory abuse.
+    // Tracked in the threat model as ST-009.
 
     const routePaths = [
       this.identifyUserPath,
@@ -745,7 +771,8 @@ export class AmplifyNotifications
       });
     }
 
-    const pushCodePath = props.pushLambdaCodePath ?? defaultPushLambdaCodePath;
+    const pushCodePath =
+      internalProps.pushLambdaCodePath ?? defaultPushLambdaCodePath;
     const pushFn = new lambda.Function(this, 'PushHandlerFn', {
       code: lambda.Code.fromAsset(pushCodePath),
       handler: 'index.handler',
@@ -905,25 +932,37 @@ export class AmplifyNotifications
     );
 
     // ---- Invoke resource policy for Amazon Connect ------------------------
-    // A Connect Journey Custom-action (and Outbound Campaigns v2) invokes this
-    // Lambda through the connect / connect-campaigns service principal. Grant
+    // A Connect Journey Custom-action (connect.amazonaws.com) and Outbound
+    // Campaigns v2 (connect-campaigns.amazonaws.com) invoke this Lambda. Grant
     // lambda:InvokeFunction to both, scoped to THIS account (`sourceAccount`) so
     // only Connect resources in the deploying account — not any Connect instance
-    // anywhere — can invoke it (confused-deputy guard). In create-from-scratch
-    // mode the created instance ARN is additionally pinned via `sourceArn` (the
-    // tightest guard: only THIS instance can invoke); in attach mode the
-    // instance ARN is unknown at synth, so account scoping is the tightest guard
-    // available.
+    // anywhere — can invoke it (confused-deputy guard).
+    //
+    // sourceArn asymmetry: in create-from-scratch mode we ADDITIONALLY pin the
+    // created Connect instance ARN via `sourceArn` for the JOURNEY principal
+    // (connect.amazonaws.com) — CloudTrail confirms it invokes with
+    // `sourceArn = arn:aws:connect:<region>:<acct>:instance/<id>` (the instance
+    // ARN we hold), so this is the tightest guard. We deliberately do NOT pin
+    // `sourceArn` for connect-campaigns.amazonaws.com: it is NOT authoritatively
+    // documented that Outbound Campaigns invokes with the CONNECT instance ARN
+    // as aws:SourceArn (its own resource ARNs use the distinct
+    // `arn:aws:connect-campaigns:...` form), so an over-tight `sourceArn` could
+    // wrongly DENY and break campaign-driven push in create mode. Account
+    // scoping remains as the confused-deputy guard for that principal.
     for (const servicePrincipal of CONNECT_INVOKE_SERVICE_PRINCIPALS) {
+      const pinnedInstanceArn =
+        createFromScratch &&
+        connectInstance !== undefined &&
+        servicePrincipal === 'connect.amazonaws.com'
+          ? connectInstance.attrArn
+          : undefined;
       pushFn.addPermission(
         `Invoke-${servicePrincipal.replace(/[^a-zA-Z0-9]/g, '-')}`,
         {
           principal: new iam.ServicePrincipal(servicePrincipal),
           action: 'lambda:InvokeFunction',
           sourceAccount: stack.account,
-          ...(createFromScratch && connectInstance
-            ? { sourceArn: connectInstance.attrArn }
-            : {}),
+          ...(pinnedInstanceArn ? { sourceArn: pinnedInstanceArn } : {}),
         },
       );
     }
