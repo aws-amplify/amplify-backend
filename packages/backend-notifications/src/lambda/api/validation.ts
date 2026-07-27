@@ -37,8 +37,8 @@ const validateLocation = (loc: unknown): string | undefined => {
   }
   for (const key of ['city', 'country', 'postalCode', 'region'] as const) {
     const value = (loc as Record<string, unknown>)[key];
-    if (value !== undefined && !isBoundedString(value)) {
-      return `userProfile.location.${key} must be a string <= ${MAX_ATTRIBUTE_LENGTH} chars`;
+    if (value !== undefined && !isNonEmptyBoundedString(value)) {
+      return `userProfile.location.${key} must be a non-empty string <= ${MAX_ATTRIBUTE_LENGTH} chars`;
     }
   }
   return undefined;
@@ -61,10 +61,10 @@ export const validateIdentifyUser = (
 
   for (const key of ['email', 'name', 'phone'] as const) {
     const value = (userProfile as Record<string, unknown>)[key];
-    if (value !== undefined && !isBoundedString(value)) {
+    if (value !== undefined && !isNonEmptyBoundedString(value)) {
       return {
         ok: false,
-        error: `userProfile.${key} must be a string <= ${MAX_ATTRIBUTE_LENGTH} chars`,
+        error: `userProfile.${key} must be a non-empty string <= ${MAX_ATTRIBUTE_LENGTH} chars`,
       };
     }
   }

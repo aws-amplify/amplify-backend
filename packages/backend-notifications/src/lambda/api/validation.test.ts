@@ -53,6 +53,28 @@ void describe('validateIdentifyUser', () => {
     }
   });
 
+  void it('rejects a present-but-empty standard field with 400 (email: "")', () => {
+    const r = validateIdentifyUser({ userProfile: { email: '' } });
+    assert.strictEqual(r.ok, false);
+  });
+
+  void it('rejects a present-but-empty location sub-field (city: "")', () => {
+    const r = validateIdentifyUser({
+      userProfile: { location: { city: '' } },
+    });
+    assert.strictEqual(r.ok, false);
+  });
+
+  void it('accepts a present, non-empty standard field', () => {
+    const r = validateIdentifyUser({ userProfile: { email: 'a@b.com' } });
+    assert.ok(r.ok);
+  });
+
+  void it('accepts an absent standard field (userProfile with no email)', () => {
+    const r = validateIdentifyUser({ userProfile: { name: 'Ada' } });
+    assert.ok(r.ok);
+  });
+
   void it('rejects a non-object location', () => {
     const r = validateIdentifyUser({ userProfile: { location: 'nope' } });
     assert.strictEqual(r.ok, false);
