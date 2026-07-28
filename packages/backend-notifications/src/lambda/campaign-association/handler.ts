@@ -6,6 +6,7 @@ import { ConnectCampaignsV2Client } from '@aws-sdk/client-connectcampaignsv2';
 import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { IAMClient } from '@aws-sdk/client-iam';
 
+import { awsClientConfig } from '../shared/client_config.js';
 import { ensureInstanceOnboarded } from './onboarding.js';
 import {
   associateDomain,
@@ -14,9 +15,9 @@ import {
 } from './integration.js';
 
 /** Module-level clients reused across warm invocations. */
-const campaigns = new ConnectCampaignsV2Client({});
-const profiles = new CustomerProfilesClient({});
-const iam = new IAMClient({});
+const campaigns = new ConnectCampaignsV2Client(awsClientConfig());
+const profiles = new CustomerProfilesClient(awsClientConfig());
+const iam = new IAMClient(awsClientConfig());
 
 /** Result the Provider framework echoes back to CloudFormation. */
 /* eslint-disable @typescript-eslint/naming-convention -- CFN custom-resource

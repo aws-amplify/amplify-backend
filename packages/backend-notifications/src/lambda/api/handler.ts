@@ -9,6 +9,7 @@ import {
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import { ENV_DEVICES_TABLE_NAME, ENV_DOMAIN_NAME } from '../../constants.js';
+import { awsClientConfig } from '../shared/client_config.js';
 import { type WriteEvent, resolvePrincipal } from '../shared/principal.js';
 import { resolveOrCreateProfile } from '../shared/profile_resolver.js';
 import {
@@ -28,8 +29,8 @@ import { ErrorResponse, SuccessResponse, WriteRoute } from './types.js';
  * Module-level clients so warm invocations reuse the connection pool. Region is
  * resolved from the standard AWS_REGION Lambda environment variable.
  */
-const profiles = new CustomerProfilesClient({});
-const ddb = new DynamoDBClient({});
+const profiles = new CustomerProfilesClient(awsClientConfig());
+const ddb = new DynamoDBClient(awsClientConfig());
 
 const response = (
   statusCode: number,

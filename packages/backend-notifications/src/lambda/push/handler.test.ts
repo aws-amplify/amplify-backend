@@ -17,13 +17,18 @@ import {
   ConnectCampaignsV2Client,
   DescribeCampaignCommand,
 } from '@aws-sdk/client-connectcampaignsv2';
+import { ConnectClient } from '@aws-sdk/client-connect';
+import { QConnectClient } from '@aws-sdk/client-qconnect';
 
 import {
   ENV_DEVICES_TABLE_NAME,
   ENV_EUM_APPLICATION_ID,
 } from '../../constants.js';
+import { awsClientConfig } from '../shared/client_config.js';
 import { handler } from './handler.js';
 import type { ConnectBatchResponse } from './types.js';
+
+const EXPECTED_USER_AGENT = awsClientConfig().customUserAgent;
 
 const DEVICES_TABLE = 'Devices-table';
 const APP_ID = 'eum-app-1';
@@ -272,5 +277,126 @@ void describe('push handler', () => {
 
     const map = byId(res);
     assert.strictEqual(map.p1.ResultData?.status, 'delivered');
+  });
+
+  void it('constructs all five SDK clients with the Amplify custom user agent', async () => {
+    // Exercise the full campaign/template path so every module-scope client
+    // (ddb, pinpoint, campaigns, connect, qconnect) actually issues a call, and
+    // capture the user agent resolved on the sending client itself.
+    const seen: Record<string, unknown[]> = {
+      ddb: [],
+      pinpoint: [],
+      campaigns: [],
+      connect: [],
+      qconnect: [],
+    };
+
+    mockDevices({ p1: [{ key: 'k1', token: 't1', channel: 'APNS' }] });
+    const ddbSend = DynamoDBClient.prototype.send;
+    mock.method(
+      DynamoDBClient.prototype,
+      'send',
+      function (this: DynamoDBClient, command: CommandLike) {
+        seen.ddb.push(this.config.customUserAgent);
+        return (
+          ddbSend as unknown as (c: CommandLike) => Promise<unknown>
+        ).call(this, command);
+      },
+    );
+    mock.method(
+      PinpointClient.prototype,
+      'send',
+      function (this: PinpointClient, command: { input: unknown }) {
+        seen.pinpoint.push(this.config.customUserAgent);
+        const input = command.input as SendMessagesCommandInput;
+        const token = Object.keys(input.MessageRequest?.Addresses ?? {})[0];
+        return Promise.resolve({
+          MessageResponse: {
+            Result: {
+              [token]: { DeliveryStatus: 'SUCCESSFUL', StatusCode: 200 },
+            },
+          },
+        });
+      },
+    );
+    mock.method(
+      ConnectCampaignsV2Client.prototype,
+      'send',
+      function (this: ConnectCampaignsV2Client, command: CommandLike) {
+        seen.campaigns.push(this.config.customUserAgent);
+        assert.strictEqual(
+          command.constructor.name,
+          DescribeCampaignCommand.name,
+        );
+        return Promise.resolve({
+          campaign: { id: command.input.id, connectInstanceId: 'inst-ua' },
+        });
+      },
+    );
+    mock.method(
+      ConnectClient.prototype,
+      'send',
+      function (this: ConnectClient) {
+        seen.connect.push(this.config.customUserAgent);
+        return Promise.resolve({
+          IntegrationAssociationSummaryList: [
+            {
+              IntegrationArn:
+                'arn:aws:wisdom:us-east-1:996099992135:knowledge-base/kb-ua',
+            },
+          ],
+        });
+      },
+    );
+    mock.method(
+      QConnectClient.prototype,
+      'send',
+      function (this: QConnectClient, command: CommandLike) {
+        seen.qconnect.push(this.config.customUserAgent);
+        if (command.constructor.name === 'ListMessageTemplatesCommand') {
+          return Promise.resolve({
+            messageTemplateSummaries: [
+              {
+                name: 'Push Notification',
+                channelSubtype: 'PUSH',
+                messageTemplateId: 'tmpl-ua',
+              },
+            ],
+          });
+        }
+        return Promise.resolve({
+          content: {
+            push: {
+              apns: { title: 'Hi', body: { content: 'There' } },
+            },
+          },
+          attributesNotInterpolated: [],
+        });
+      },
+    );
+
+    const res = await handler(
+      canonicalEvent(['p1'], {
+        // A campaign id unique to this test: knowledge-base discovery is cached
+        // per module, so a shared id could skip the campaigns/connect calls.
+        CampaignId: 'camp-user-agent-probe',
+        ActionId: 'Push Notification',
+      }),
+    );
+    assert.strictEqual(byId(res).p1.ResultData?.status, 'delivered');
+
+    assert.deepStrictEqual(EXPECTED_USER_AGENT, [
+      ['amplify-backend-notifications', EXPECTED_USER_AGENT[0][1]],
+    ]);
+    for (const [client, resolvedList] of Object.entries(seen)) {
+      assert.ok(resolvedList.length > 0, `${client} client issued a call`);
+      for (const resolved of resolvedList) {
+        assert.deepStrictEqual(
+          resolved,
+          EXPECTED_USER_AGENT,
+          `${client} client must carry the Amplify user agent`,
+        );
+      }
+    }
   });
 });

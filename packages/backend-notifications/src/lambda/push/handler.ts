@@ -12,6 +12,7 @@ import {
   ENV_DEVICES_TABLE_NAME,
   ENV_EUM_APPLICATION_ID,
 } from '../../constants.js';
+import { awsClientConfig } from '../shared/client_config.js';
 import { parsePushEvent } from './event.js';
 import { deliverToTargets, mapToConnectResponse } from './delivery.js';
 import {
@@ -30,11 +31,11 @@ import { ConnectBatchResponse } from './types.js';
  * the journey's campaign and rendering the PUSH template whose name matches the
  * Custom-action ActionId.
  */
-const ddb = new DynamoDBClient({});
-const pinpoint = new PinpointClient({});
-const campaigns = new ConnectCampaignsV2Client({});
-const connect = new ConnectClient({});
-const qconnect = new QConnectClient({});
+const ddb = new DynamoDBClient(awsClientConfig());
+const pinpoint = new PinpointClient(awsClientConfig());
+const campaigns = new ConnectCampaignsV2Client(awsClientConfig());
+const connect = new ConnectClient(awsClientConfig());
+const qconnect = new QConnectClient(awsClientConfig());
 
 /**
  * Push-delivery Lambda invoked by an Amazon Connect Journey Custom-action

@@ -19,6 +19,9 @@ import {
 import { IAMClient, ListRolesCommand } from '@aws-sdk/client-iam';
 
 import { handler } from './handler.js';
+import { awsClientConfig } from '../shared/client_config.js';
+
+const EXPECTED_USER_AGENT = awsClientConfig().customUserAgent;
 
 const ACCOUNT = '996099992135';
 const REGION = 'us-east-1';
@@ -172,5 +175,62 @@ void describe('campaign-association handler', () => {
       } as unknown as CloudFormationCustomResourceEvent),
       /Missing required ResourceProperties/,
     );
+  });
+
+  void it('constructs all three SDK clients with the Amplify custom user agent', async () => {
+    // Capture the user agent resolved on whichever client issues each call, so
+    // the assertion covers the real module-scope client construction.
+    const seen: Record<string, unknown[]> = {
+      campaigns: [],
+      profiles: [],
+      iam: [],
+    };
+    mock.method(
+      ConnectCampaignsV2Client.prototype,
+      'send',
+      function (this: ConnectCampaignsV2Client, command: unknown) {
+        seen.campaigns.push(this.config.customUserAgent);
+        const name = (command as { constructor: { name: string } }).constructor
+          .name;
+        if (name === GetInstanceOnboardingJobStatusCommand.name) {
+          return Promise.resolve({
+            connectInstanceOnboardingJobStatus: { status: 'SUCCEEDED' },
+          });
+        }
+        return Promise.resolve({});
+      },
+    );
+    mock.method(
+      CustomerProfilesClient.prototype,
+      'send',
+      function (this: CustomerProfilesClient) {
+        seen.profiles.push(this.config.customUserAgent);
+        return Promise.resolve({});
+      },
+    );
+    mock.method(IAMClient.prototype, 'send', function (this: IAMClient) {
+      seen.iam.push(this.config.customUserAgent);
+      return Promise.resolve({ Roles: [{ Arn: SLR_ARN }] });
+    });
+
+    await handler({
+      ...baseEvent,
+      RequestType: 'Create',
+      ResourceProperties: props,
+    } as unknown as CloudFormationCustomResourceEvent);
+
+    assert.deepStrictEqual(EXPECTED_USER_AGENT, [
+      ['amplify-backend-notifications', EXPECTED_USER_AGENT[0][1]],
+    ]);
+    for (const [client, resolvedList] of Object.entries(seen)) {
+      assert.ok(resolvedList.length > 0, `${client} client issued a call`);
+      for (const resolved of resolvedList) {
+        assert.deepStrictEqual(
+          resolved,
+          EXPECTED_USER_AGENT,
+          `${client} client must carry the Amplify user agent`,
+        );
+      }
+    }
   });
 });

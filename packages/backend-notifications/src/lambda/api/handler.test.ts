@@ -9,7 +9,10 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { classifyRoute, handler } from './handler.js';
 import { WriteEvent } from '../shared/principal.js';
+import { awsClientConfig } from '../shared/client_config.js';
 import { ENV_DEVICES_TABLE_NAME, ENV_DOMAIN_NAME } from '../../constants.js';
+
+const EXPECTED_USER_AGENT = awsClientConfig().customUserAgent;
 
 const PRINCIPAL = 'us-east-1:principal-1';
 
@@ -30,6 +33,13 @@ const makeEvent = (
 /** Records every SDK command the handler issued, keyed by command name. */
 let profileCommands: any[];
 let ddbCommands: any[];
+/**
+ * The `customUserAgent` resolved on the client that actually issued each call.
+ * Captured from `this` inside the `send` mock, so it reflects the real
+ * module-scope client construction rather than a re-read of the config object.
+ */
+let profileUserAgents: unknown[];
+let ddbUserAgents: unknown[];
 
 const installMocks = (opts?: {
   searchProfileId?: string | null;
@@ -38,36 +48,48 @@ const installMocks = (opts?: {
 }): void => {
   profileCommands = [];
   ddbCommands = [];
-  mock.method(CustomerProfilesClient.prototype, 'send', (command: any) => {
-    const name = command.constructor.name;
-    profileCommands.push({ name, input: command.input });
-    if (opts?.profileSend) {
-      // The hook may throw to simulate an SDK rejection, or return a value to
-      // override the default; returning undefined falls through to defaults.
-      const override = opts.profileSend(command.input, name);
-      if (override !== undefined) {
-        return Promise.resolve(override);
+  profileUserAgents = [];
+  ddbUserAgents = [];
+  mock.method(
+    CustomerProfilesClient.prototype,
+    'send',
+    function (this: CustomerProfilesClient, command: any) {
+      const name = command.constructor.name;
+      profileUserAgents.push(this.config.customUserAgent);
+      profileCommands.push({ name, input: command.input });
+      if (opts?.profileSend) {
+        // The hook may throw to simulate an SDK rejection, or return a value to
+        // override the default; returning undefined falls through to defaults.
+        const override = opts.profileSend(command.input, name);
+        if (override !== undefined) {
+          return Promise.resolve(override);
+        }
       }
-    }
-    if (name === 'SearchProfilesCommand') {
-      const id =
-        opts && 'searchProfileId' in opts
-          ? opts.searchProfileId
-          : 'profile-123';
-      return Promise.resolve(
-        id ? { Items: [{ ProfileId: id }] } : { Items: [] },
-      );
-    }
-    return Promise.resolve({});
-  });
-  mock.method(DynamoDBClient.prototype, 'send', (command: any) => {
-    const name = command.constructor.name;
-    ddbCommands.push({ name, input: command.input });
-    if (opts?.ddbSend) {
-      return Promise.resolve(opts.ddbSend(command.input, name));
-    }
-    return Promise.resolve({});
-  });
+      if (name === 'SearchProfilesCommand') {
+        const id =
+          opts && 'searchProfileId' in opts
+            ? opts.searchProfileId
+            : 'profile-123';
+        return Promise.resolve(
+          id ? { Items: [{ ProfileId: id }] } : { Items: [] },
+        );
+      }
+      return Promise.resolve({});
+    },
+  );
+  mock.method(
+    DynamoDBClient.prototype,
+    'send',
+    function (this: DynamoDBClient, command: any) {
+      const name = command.constructor.name;
+      ddbUserAgents.push(this.config.customUserAgent);
+      ddbCommands.push({ name, input: command.input });
+      if (opts?.ddbSend) {
+        return Promise.resolve(opts.ddbSend(command.input, name));
+      }
+      return Promise.resolve({});
+    },
+  );
 };
 
 const named = (list: any[], name: string): any[] =>
@@ -142,6 +164,30 @@ void describe('write handler', () => {
     } as WriteEvent;
     const res = await handler(event);
     assert.strictEqual(res.statusCode, 400);
+  });
+
+  void it('constructs both SDK clients with the Amplify custom user agent', async () => {
+    // Drive one route per client so each module-scope client actually issues a
+    // call, then assert the user agent resolved on the sending client itself.
+    const identify = await handler(
+      makeEvent('/identify-user', { userProfile: { email: 'a@b.co' } }),
+    );
+    assert.strictEqual(identify.statusCode, 200);
+    const register = await handler(
+      makeEvent('/register-device', {
+        device: { deviceId: 'd1', token: 't1', channelType: 'APNS' },
+      }),
+    );
+    assert.strictEqual(register.statusCode, 200);
+
+    assert.ok(profileUserAgents.length > 0, 'CustomerProfilesClient was used');
+    assert.ok(ddbUserAgents.length > 0, 'DynamoDBClient was used');
+    assert.deepStrictEqual(EXPECTED_USER_AGENT, [
+      ['amplify-backend-notifications', EXPECTED_USER_AGENT[0][1]],
+    ]);
+    for (const resolved of [...profileUserAgents, ...ddbUserAgents]) {
+      assert.deepStrictEqual(resolved, EXPECTED_USER_AGENT);
+    }
   });
 
   void it('identify-user: 400 on invalid payload', async () => {
