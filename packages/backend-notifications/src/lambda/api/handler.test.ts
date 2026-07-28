@@ -5,6 +5,7 @@
 
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { Readable } from 'node:stream';
 import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { classifyRoute, handler } from './handler.js';
@@ -438,5 +439,179 @@ void describe('write handler', () => {
       !allLogged.includes(SENTINEL),
       'error log must never contain the caller-submitted email (PII)',
     );
+  });
+});
+
+/**
+ * Inbound user-agent propagation is asserted END-TO-END: rather than stubbing
+ * `send` (which bypasses the middleware stack entirely), the shared
+ * NodeHttpHandler prototype is mocked so the REAL client middleware runs and the
+ * genuine outgoing `user-agent` header can be inspected.
+ */
+void describe('inbound user agent propagation', () => {
+  /** The outgoing request headers of every SDK call, in order. */
+  let sentHeaders: Array<Record<string, string>>;
+  let restoreEnv: () => void;
+
+  /**
+   * The request-handler prototype is shared by every SDK v3 client, and is
+   * reached through a throwaway instance so no extra dependency is needed.
+   */
+  const requestHandlerPrototype = Object.getPrototypeOf(
+    new DynamoDBClient({ region: 'us-east-1' }).config.requestHandler,
+  );
+
+  beforeEach(() => {
+    process.env[ENV_DOMAIN_NAME] = 'Domain';
+    process.env[ENV_DEVICES_TABLE_NAME] = 'Devices';
+    // Static credentials + region so signing succeeds without any real lookup.
+    const previous = {
+      region: process.env.AWS_REGION,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    };
+    process.env.AWS_REGION = process.env.AWS_REGION ?? 'us-east-1';
+    process.env.AWS_ACCESS_KEY_ID = 'AKIAEXAMPLEEXAMPLE';
+    process.env.AWS_SECRET_ACCESS_KEY = 'example-secret';
+    restoreEnv = () => {
+      process.env.AWS_REGION = previous.region;
+      process.env.AWS_ACCESS_KEY_ID = previous.accessKeyId;
+      process.env.AWS_SECRET_ACCESS_KEY = previous.secretAccessKey;
+    };
+
+    sentHeaders = [];
+    mock.method(requestHandlerPrototype, 'handle', (request: any) => {
+      sentHeaders.push(request.headers);
+      // Canned SearchProfiles hit so identify-user resolves a profile and the
+      // subsequent UpdateProfile call is issued too.
+      return Promise.resolve({
+        response: {
+          statusCode: 200,
+          headers: { 'content-type': 'application/json' },
+          body: Readable.from([
+            Buffer.from(
+              JSON.stringify({ Items: [{ ProfileId: 'profile-123' }] }),
+            ),
+          ]),
+        },
+      });
+    });
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
+    restoreEnv();
+    delete process.env[ENV_DOMAIN_NAME];
+    delete process.env[ENV_DEVICES_TABLE_NAME];
+  });
+
+  const eventWithHeaders = (
+    resourcePath: string,
+    body: unknown,
+    headers?: Record<string, string | undefined>,
+  ): WriteEvent =>
+    ({
+      body: JSON.stringify(body),
+      headers,
+      requestContext: {
+        resourcePath,
+        httpMethod: 'POST',
+        identity: { cognitoIdentityId: PRINCIPAL },
+      },
+    }) as WriteEvent;
+
+  const userAgents = (): string[] =>
+    sentHeaders.map((h) => h['user-agent'] ?? '');
+
+  void it('propagates the inbound client user agent onto BOTH Customer Profiles and DynamoDB calls', async () => {
+    const identify = await handler(
+      eventWithHeaders(
+        '/identify-user',
+        { userProfile: { email: 'a@b.co' } },
+        { 'x-amz-user-agent': 'aws-amplify/6.15.4 analytics/2' },
+      ),
+    );
+    assert.strictEqual(identify.statusCode, 200);
+    const profilesCalls = userAgents().length;
+    assert.ok(profilesCalls > 0, 'Customer Profiles calls were made');
+
+    const register = await handler(
+      eventWithHeaders(
+        '/register-device',
+        { device: { deviceId: 'd1', token: 't1', channelType: 'APNS' } },
+        { 'x-amz-user-agent': 'aws-amplify/6.15.4 analytics/2' },
+      ),
+    );
+    assert.strictEqual(register.statusCode, 200);
+    assert.ok(
+      userAgents().length > profilesCalls,
+      'a DynamoDB call was made for register-device',
+    );
+
+    // Every outgoing request carries the inbound pairs AND our own token.
+    for (const ua of userAgents()) {
+      assert.match(ua, /aws-amplify\/6\.15\.4/);
+      assert.match(ua, /analytics\/2/);
+      assert.match(ua, /amplify-backend-notifications\/0\.\d+\.\d+/);
+    }
+  });
+
+  void it('sends only our own token when the inbound header is absent', async () => {
+    const res = await handler(
+      eventWithHeaders('/register-device', {
+        device: { deviceId: 'd1', token: 't1', channelType: 'APNS' },
+      }),
+    );
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(userAgents().length > 0, 'a DynamoDB call was made');
+    for (const ua of userAgents()) {
+      assert.match(ua, /amplify-backend-notifications\/0\.\d+\.\d+/);
+      assert.doesNotMatch(ua, /aws-amplify\/6\.15\.4/);
+    }
+  });
+
+  void it('does NOT inherit a previous caller user agent on a later header-less request (warm container)', async () => {
+    await handler(
+      eventWithHeaders(
+        '/register-device',
+        { device: { deviceId: 'd1', token: 't1', channelType: 'APNS' } },
+        { 'x-amz-user-agent': 'aws-amplify/6.15.4' },
+      ),
+    );
+    assert.ok(
+      userAgents().every((ua) => ua.includes('aws-amplify/6.15.4')),
+      'the first request must carry the inbound user agent',
+    );
+
+    const countAfterFirst = sentHeaders.length;
+    await handler(
+      eventWithHeaders('/register-device', {
+        device: { deviceId: 'd2', token: 't2', channelType: 'APNS' },
+      }),
+    );
+    const secondRequestUserAgents = userAgents().slice(countAfterFirst);
+    assert.ok(secondRequestUserAgents.length > 0, 'a second call was made');
+    for (const ua of secondRequestUserAgents) {
+      assert.doesNotMatch(
+        ua,
+        /aws-amplify\/6\.15\.4/,
+        'a header-less request must NOT inherit the previous caller user agent',
+      );
+    }
+  });
+
+  void it('reads the inbound header case-insensitively', async () => {
+    const res = await handler(
+      eventWithHeaders(
+        '/register-device',
+        { device: { deviceId: 'd1', token: 't1', channelType: 'APNS' } },
+        { 'X-Amz-User-Agent': 'aws-amplify/6.15.4' },
+      ),
+    );
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(userAgents().length > 0);
+    for (const ua of userAgents()) {
+      assert.match(ua, /aws-amplify\/6\.15\.4/);
+    }
   });
 });

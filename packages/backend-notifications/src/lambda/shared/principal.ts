@@ -30,6 +30,11 @@ export type WriteEvent = {
   resource?: string;
   path?: string;
   httpMethod?: string;
+  /**
+   * Request headers. Payload format 1.0 uses lower-case header keys, but consumers
+   * should still look them up case-insensitively.
+   */
+  headers?: Record<string, string | undefined>;
   requestContext?: {
     resourcePath?: string;
     httpMethod?: string;

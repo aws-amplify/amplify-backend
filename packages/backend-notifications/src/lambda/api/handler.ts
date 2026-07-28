@@ -10,6 +10,10 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import { ENV_DEVICES_TABLE_NAME, ENV_DOMAIN_NAME } from '../../constants.js';
 import { awsClientConfig } from '../shared/client_config.js';
+import {
+  setInboundUserAgent,
+  withInboundUserAgent,
+} from '../shared/client_ua.js';
 import { type WriteEvent, resolvePrincipal } from '../shared/principal.js';
 import { resolveOrCreateProfile } from '../shared/profile_resolver.js';
 import {
@@ -28,9 +32,34 @@ import { ErrorResponse, SuccessResponse, WriteRoute } from './types.js';
 /**
  * Module-level clients so warm invocations reuse the connection pool. Region is
  * resolved from the standard AWS_REGION Lambda environment variable.
+ *
+ * Each client is wrapped ONCE here so the inbound caller's user-agent is
+ * propagated onto its requests without middleware accumulating per invocation.
  */
-const profiles = new CustomerProfilesClient(awsClientConfig());
-const ddb = new DynamoDBClient(awsClientConfig());
+const profiles = withInboundUserAgent(
+  new CustomerProfilesClient(awsClientConfig()),
+);
+const ddb = withInboundUserAgent(new DynamoDBClient(awsClientConfig()));
+
+/**
+ * Case-insensitive header lookup. HTTP API payload format 1.0 uses lower-case
+ * header keys, but this does not rely on that.
+ */
+const getHeaderCaseInsensitive = (
+  headers: WriteEvent['headers'],
+  name: string,
+): string | undefined => {
+  if (!headers) {
+    return undefined;
+  }
+  const target = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === target) {
+      return value ?? undefined;
+    }
+  }
+  return undefined;
+};
 
 const response = (
   statusCode: number,
@@ -76,6 +105,13 @@ export const classifyRoute = (event: WriteEvent): WriteRoute | undefined => {
 export const handler = async (
   event: WriteEvent,
 ): Promise<APIGatewayProxyResult> => {
+  // FIRST, before any SDK call: stage the inbound caller's user-agent for
+  // propagation. Always called (even with no header) so a warm container can
+  // never attribute this request to the previous caller.
+  setInboundUserAgent(
+    getHeaderCaseInsensitive(event.headers, 'x-amz-user-agent'),
+  );
+
   const domainName = process.env[ENV_DOMAIN_NAME];
   const devicesTableName = process.env[ENV_DEVICES_TABLE_NAME];
   if (!domainName || !devicesTableName) {
