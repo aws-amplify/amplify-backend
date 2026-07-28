@@ -225,6 +225,7 @@ void describe('convertSchemaToCDK', () => {
             'SELECT * from post where id % 2 = 1;',
         },
         vpcConfiguration: undefined,
+        minimizeRdsVpcEndpoints: undefined,
       },
     );
   });
@@ -277,6 +278,7 @@ void describe('convertSchemaToCDK', () => {
         },
         customSqlStatements: {},
         vpcConfiguration: undefined,
+        minimizeRdsVpcEndpoints: undefined,
       },
     );
   });
@@ -390,6 +392,7 @@ void describe('convertSchemaToCDK', () => {
             },
           ],
         },
+        minimizeRdsVpcEndpoints: undefined,
         /* eslint-enable spellcheck/spell-checker */
       },
     );
@@ -450,6 +453,7 @@ void describe('convertSchemaToCDK', () => {
         dbType: 'MYSQL',
         name: '00034dcf3444861c3ca5mysql',
         vpcConfiguration: undefined,
+        minimizeRdsVpcEndpoints: undefined,
         /* eslint-enable spellcheck/spell-checker */
       },
     );
@@ -510,8 +514,58 @@ void describe('convertSchemaToCDK', () => {
         dbType: 'POSTGRES',
         name: '00034dcf3444861c3ca5postgresql',
         vpcConfiguration: undefined,
+        minimizeRdsVpcEndpoints: undefined,
         /* eslint-enable spellcheck/spell-checker */
       },
+    );
+  });
+
+  void it('maps minimizeRdsVpcEndpoints onto the SQL model data source strategy', () => {
+    const schema = configure({
+      database: {
+        engine: 'mysql',
+        connectionUri: new TestBackendSecret('MYSQL_CONNECTION_STRING'),
+        /* eslint-disable spellcheck/spell-checker */
+        vpcConfig: {
+          vpcId: 'vpc-a1aa11a1',
+          securityGroupIds: ['sg-11111a11'],
+          subnetAvailabilityZones: [
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1a',
+            },
+          ],
+          /* eslint-enable spellcheck/spell-checker */
+        },
+        minimizeRdsVpcEndpoints: true,
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const convertedDefinition = convertSchemaToCDK(
+      schema,
+      secretResolver,
+      stableBackendIdentifiers,
+    );
+
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1,
+    );
+    assert.equal(
+      (
+        Object.values(convertedDefinition.dataSourceStrategies)[0] as {
+          minimizeRdsVpcEndpoints?: boolean;
+        }
+      ).minimizeRdsVpcEndpoints,
+      true,
     );
   });
 });

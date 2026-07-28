@@ -8,6 +8,7 @@ import {
   GraphqlTypesGenerator,
   TypesGenerationParameters,
 } from './model_generator.js';
+import { isEmptyGraphqlDocument } from './empty_graphql_document.js';
 
 /**
  * Generates GraphQL types for a given AppSync API
@@ -43,9 +44,9 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
       target: 'graphql',
     });
 
-    const queries = Object.entries(generatedStatements).map(
-      ([filename, contents]) => new Source(contents, filename),
-    );
+    const queries = Object.entries(generatedStatements)
+      .filter(([, contents]) => !isEmptyGraphqlDocument(contents))
+      .map(([filename, contents]) => new Source(contents, filename));
 
     const generatedTypes = await generateTypes({
       schema,
