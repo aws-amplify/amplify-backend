@@ -291,11 +291,11 @@ export class AmplifyNotifications
   /** Base invoke URL. Clients call `POST {apiEndpoint}/{route}`. */
   public readonly apiEndpoint: string;
   /** The identify-user route path appended to {@link apiEndpoint}. */
-  public readonly identifyUserPath = '/identify-user';
+  public readonly identifyUserPath: string = '/identify-user';
   /** The register-device route path appended to {@link apiEndpoint}. */
-  public readonly registerDevicePath = '/register-device';
+  public readonly registerDevicePath: string = '/register-device';
   /** The remove-device route path appended to {@link apiEndpoint}. */
-  public readonly removeDevicePath = '/remove-device';
+  public readonly removeDevicePath: string = '/remove-device';
   /**
    * The `execute-api:Invoke` ARNs of the three SigV4 write routes, to grant to
    * the app's Cognito Identity Pool authenticated AND unauthenticated roles (a
