@@ -2,4 +2,4 @@
 '@aws-amplify/backend': patch
 ---
 
-Make Amplify branch linker custom resource deletion resilient so stack deletion always completes
+The Amplify branch-linker custom resource now completes deletion reliably so branch backend stacks tear down cleanly

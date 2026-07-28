@@ -72,7 +72,6 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
-import { isRetainedE2eStack } from './components/e2e_stack_retention.js';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -162,7 +161,6 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
         stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
-        !isRetainedE2eStack(stackSummary.StackName) &&
         isStackStale(stackSummary),
     ).forEach((item) => {
       stackSummaries.push(item);
