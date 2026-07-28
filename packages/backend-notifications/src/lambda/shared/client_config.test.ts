@@ -4,23 +4,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { awsClientConfig } from './client_config.js';
 
 void describe('awsClientConfig', () => {
   // Read package.json from disk (i.e. in a different way than the
   // implementation does) so the test can never trivially agree with itself.
   const packageVersion = JSON.parse(
-    fs.readFileSync(
-      path.resolve(
-        path.dirname(new URL(import.meta.url).pathname),
-        '..',
-        '..',
-        '..',
-        'package.json',
-      ),
-      'utf-8',
-    ),
+    fs.readFileSync(new URL('../../../package.json', import.meta.url), 'utf-8'),
   ).version;
 
   void it('tags SDK clients with the amplify-backend-notifications user agent', () => {

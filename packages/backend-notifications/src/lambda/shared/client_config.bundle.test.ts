@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * The Lambda handlers ship as esbuild `--bundle --format=cjs` assets, and
@@ -17,12 +18,7 @@ import * as path from 'node:path';
  *
  * These tests assert against the real built artifacts to close that gap.
  */
-const packageRoot = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
-  '..',
-  '..',
-  '..',
-);
+const packageRoot = fileURLToPath(new URL('../../../', import.meta.url));
 
 const packageVersion = JSON.parse(
   fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf-8'),
