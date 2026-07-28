@@ -1,8 +1,5 @@
 # @aws-amplify/backend-notifications
 
-> **Preview:** this package is in preview / prerelease. Its API and generated
-> resources may change in a future release.
-
 `defineNotifications` is an Amplify Gen2 backend factory that gives your app an
 Amazon Connect Customer Profiles–backed write API for user identification and
 mobile-device registration, plus a push-delivery Lambda that Amazon Connect
@@ -207,6 +204,65 @@ so you can enable the channel yourself afterwards with your own credentials:
 
 Push delivery reaches a device once a channel is enabled with credentials valid
 for a real Apple or Google project.
+
+## Creating message templates
+
+Push copy is authored as **Amazon Q in Connect message templates** with
+`channelSubtype = PUSH`. In create mode the resource provisions an empty
+`MESSAGE_TEMPLATES` knowledge base and associates it with the Connect instance
+(`Q_MESSAGE_TEMPLATES` integration), and the templates inside it are authored by
+you.
+
+At send time the push-delivery Lambda resolves the template for a journey run:
+
+1. `connectcampaignsv2:DescribeCampaign` on the campaign id from the event gives
+   the Connect instance id.
+2. `connect:ListIntegrationAssociations` filtered to `Q_MESSAGE_TEMPLATES` gives
+   the knowledge base id.
+3. `wisdom:ListMessageTemplates` on that knowledge base selects the template
+   whose `channelSubtype` is `PUSH` **and** whose **name equals the journey
+   custom-action block name** (`ActionId`) that invoked the Lambda.
+4. `wisdom:RenderMessageTemplate` renders `<templateId>:$ACTIVE_VERSION` per
+   profile, so only the published version is delivered.
+
+So the template name is the wiring: name the template exactly as the journey's
+custom-action block. Authoring is a manual step performed with the `qconnect`
+API/CLI against the knowledge base:
+
+```bash
+aws qconnect create-message-template \
+  --knowledge-base-id <KB_ID> \
+  --name 'Push Notification' \
+  --channel-subtype PUSH \
+  --content '{"push":{"apns":{"title":"Hello {{Attributes.firstName}}","body":{"content":"Your order shipped."}},"fcm":{"title":"Hello {{Attributes.firstName}}","body":{"content":"Your order shipped."}}}}'
+
+aws qconnect create-message-template-version \
+  --knowledge-base-id <KB_ID> \
+  --message-template-id <TEMPLATE_ID>
+```
+
+Notes on authoring:
+
+- Publishing a version is required: rendering targets `$ACTIVE_VERSION`, so a
+  saved draft alone is not delivered and a new version is published for each
+  copy change.
+- Per-platform content maps to channels as `push.apns` → `APNS` (and
+  `APNS_SANDBOX`) and `push.fcm` → `GCM`; a platform entry needs both a title
+  and a body to be used.
+- Personalization uses `{{Attributes.<key>}}` variables, resolved from the
+  profile's data: the profile's top-level fields (such as `firstName`) and each
+  entry of its `attributes` map are passed as flat custom attributes.
+- A variable with no matching profile value stays literal in the rendered copy,
+  and the Lambda delivers its default copy for that profile rather than the
+  unresolved text. The same default-copy path applies when no campaign metadata,
+  knowledge base association, or matching template is found.
+- Find the knowledge base id with
+  `aws connect list-integration-associations --instance-id <INSTANCE_ID> --integration-type Q_MESSAGE_TEMPLATES`
+  (the `IntegrationArn` ends in `knowledge-base/<KB_ID>`). In attach mode,
+  associate a `MESSAGE_TEMPLATES` knowledge base with your Connect instance so
+  this lookup resolves.
+
+See the [Amazon Q in Connect message template API reference](https://docs.aws.amazon.com/amazon-q-connect/latest/APIReference/API_CreateMessageTemplate.html).
 
 ## Construct resources
 
