@@ -29,10 +29,10 @@ export class AmplifyNotifications extends Construct implements ResourceProvider<
     readonly connectInstanceId?: string;
     readonly createsResources: boolean;
     readonly domainName: string;
-    readonly identifyUserPath = "/identify-user";
+    readonly identifyUserPath: string;
     readonly pushFunctionArn: string;
-    readonly registerDevicePath = "/register-device";
-    readonly removeDevicePath = "/remove-device";
+    readonly registerDevicePath: string;
+    readonly removeDevicePath: string;
     readonly resources: NotificationsResources;
     readonly routeInvokeArns: string[];
     readonly stack: Stack;
