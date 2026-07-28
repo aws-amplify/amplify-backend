@@ -228,6 +228,73 @@ void describe('Branch Linker Lambda Handler', () => {
         expectedUpdateBranchInput,
       );
     });
+
+    void it('succeeds when getting branch fails with a non-NotFound error', async () => {
+      amplifyClientSendMock.mock.mockImplementation((command: unknown) => {
+        if (command instanceof GetBranchCommand) {
+          return Promise.reject(
+            new Error('User is not authorized to perform amplify:GetBranch'),
+          );
+        }
+        return Promise.resolve();
+      });
+
+      const event = {
+        StackId: sampleStackArn,
+        RequestType: 'Delete',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      } as unknown as CloudFormationCustomResourceEvent;
+
+      const response = await handler.handleCustomResourceEvent(event);
+
+      assert.strictEqual(response.Status, 'SUCCESS');
+      assert.equal(amplifyClientSendMock.mock.callCount(), 1);
+    });
+
+    void it('succeeds when service does not return a branch', async () => {
+      amplifyClientSendMock.mock.mockImplementation((command: unknown) => {
+        if (command instanceof GetBranchCommand) {
+          const getBranchOutput: Pick<GetBranchCommandOutput, 'branch'> = {
+            branch: undefined,
+          };
+          return Promise.resolve(getBranchOutput);
+        }
+        return Promise.resolve();
+      });
+
+      const event = {
+        StackId: sampleStackArn,
+        RequestType: 'Delete',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      } as unknown as CloudFormationCustomResourceEvent;
+
+      const response = await handler.handleCustomResourceEvent(event);
+
+      assert.strictEqual(response.Status, 'SUCCESS');
+    });
+
+    void it('returns the existing physical resource id', async () => {
+      const event = {
+        StackId: sampleStackArn,
+        RequestType: 'Delete',
+        PhysicalResourceId: 'test-physical-id',
+        ResourceProperties: {
+          ServiceToken: 'test-service-token',
+          ...resourceProperties,
+        },
+      } as unknown as CloudFormationCustomResourceEvent;
+
+      const response = await handler.handleCustomResourceEvent(event);
+
+      assert.strictEqual(response.PhysicalResourceId, 'test-physical-id');
+      assert.strictEqual(response.Status, 'SUCCESS');
+    });
   });
 
   void describe('When service returns stage=NONE', () => {

@@ -49,6 +49,10 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
         console.info(
           `Un-setting stack reference for appId=${props.appId},branchName=${props.branchName}`,
         );
+        // Un-linking is best effort. The branch or the whole app may already be
+        // gone, or the call may be denied or throttled. Failing here would leave
+        // the stack in DELETE_FAILED state for a resource that carries no data,
+        // so all errors are swallowed and delete always reports success.
         try {
           await this.updateOrUnsetStackReference(
             props.appId,
@@ -61,7 +65,10 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
               `Branch branchName=${props.branchName} of appId=${props.appId} was not found while handling delete event`,
             );
           } else {
-            throw e;
+            console.error(
+              `Failed to un-set stack reference for appId=${props.appId},branchName=${props.branchName} while handling delete event. Continuing with successful deletion.`,
+              e,
+            );
           }
         }
         break;
@@ -137,8 +144,25 @@ export class AmplifyBranchLinkerCustomResourceEventHandler {
   };
 }
 
+/**
+ * Bounds the total time spent in the Amplify SDK, so that the handler always has
+ * time left to respond to CloudFormation before the Lambda times out.
+ * Without these bounds a throttled or slow call can consume the whole Lambda
+ * execution time, leaving CloudFormation without any response and the stack in
+ * DELETE_FAILED state.
+ */
+const amplifyClientConfig = {
+  maxAttempts: 3,
+  requestHandler: {
+    connectionTimeout: 3000,
+    requestTimeout: 5000,
+  },
+};
+
 const customResourceEventHandler =
-  new AmplifyBranchLinkerCustomResourceEventHandler(new AmplifyClient());
+  new AmplifyBranchLinkerCustomResourceEventHandler(
+    new AmplifyClient(amplifyClientConfig),
+  );
 
 /**
  * Entry point for the lambda-backend custom resource to link deployment to branch.

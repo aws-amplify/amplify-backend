@@ -41,7 +41,10 @@ export class AmplifyBranchLinkerConstruct extends Construct {
     }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
       runtime: LambdaRuntime.NODEJS_22_X,
-      timeout: Duration.seconds(10),
+      // The handler bounds its own AWS calls. The generous Lambda timeout leaves
+      // headroom for cold starts and SDK retries, so the handler always gets to
+      // respond to CloudFormation instead of being killed mid-flight.
+      timeout: Duration.seconds(60),
       entry: linkerLambdaFilePath,
       handler: 'handler',
       environment,
