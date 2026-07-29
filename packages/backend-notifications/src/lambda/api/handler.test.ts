@@ -5,6 +5,7 @@
 
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -14,6 +15,17 @@ import { awsClientConfig } from '../shared/client_config.js';
 import { ENV_DEVICES_TABLE_NAME, ENV_DOMAIN_NAME } from '../../constants.js';
 
 const EXPECTED_USER_AGENT = awsClientConfig().customUserAgent;
+
+/**
+ * Read the version straight from package.json so the assertions below track the
+ * real published version and never pin a major (a pinned major breaks the
+ * changesets release PR, which bumps the package before CI runs).
+ */
+const PACKAGE_VERSION: string = JSON.parse(
+  readFileSync(new URL('../../../package.json', import.meta.url), 'utf-8'),
+).version;
+
+const OWN_USER_AGENT_TOKEN = `amplify-backend-notifications/${PACKAGE_VERSION}`;
 
 const PRINCIPAL = 'us-east-1:principal-1';
 
@@ -552,7 +564,10 @@ void describe('inbound user agent propagation', () => {
     for (const ua of userAgents()) {
       assert.match(ua, /aws-amplify\/6\.15\.4/);
       assert.match(ua, /analytics\/2/);
-      assert.match(ua, /amplify-backend-notifications\/0\.\d+\.\d+/);
+      assert.ok(
+        ua.includes(OWN_USER_AGENT_TOKEN),
+        `expected "${ua}" to contain ${OWN_USER_AGENT_TOKEN}`,
+      );
     }
   });
 
@@ -565,7 +580,10 @@ void describe('inbound user agent propagation', () => {
     assert.strictEqual(res.statusCode, 200);
     assert.ok(userAgents().length > 0, 'a DynamoDB call was made');
     for (const ua of userAgents()) {
-      assert.match(ua, /amplify-backend-notifications\/0\.\d+\.\d+/);
+      assert.ok(
+        ua.includes(OWN_USER_AGENT_TOKEN),
+        `expected "${ua}" to contain ${OWN_USER_AGENT_TOKEN}`,
+      );
       assert.doesNotMatch(ua, /aws-amplify\/6\.15\.4/);
     }
   });
