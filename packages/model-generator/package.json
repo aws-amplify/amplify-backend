@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/model-generator",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -28,7 +28,7 @@
     "@aws-amplify/graphql-generator": "^0.5.1",
     "@aws-amplify/graphql-types-generator": "^3.6.0",
     "@aws-amplify/platform-core": "^1.11.1",
-    "@aws-amplify/plugin-types": "^1.12.1",
+    "@aws-amplify/plugin-types": "^1.12.2",
     "@aws-sdk/client-appsync": "^3.936.0",
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/credential-providers": "^3.936.0",

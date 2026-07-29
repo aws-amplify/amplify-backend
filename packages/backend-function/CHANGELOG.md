@@ -1,5 +1,16 @@
 # @aws-amplify/backend-function
 
+## 1.18.2
+
+### Patch Changes
+
+- 8b715d7: fix(backend-function): avoid serializing the full environment in the malformed data-env error
+
+  When the data environment variables are missing or malformed, `getAmplifyDataClientConfig` no longer serializes the entire runtime environment into the thrown error. The message now lists only the names of the missing/malformed variables, which keeps it debuggable without including unrelated environment values.
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
 ## 1.18.1
 
 ### Patch Changes

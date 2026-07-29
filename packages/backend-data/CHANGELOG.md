@@ -1,5 +1,16 @@
 # @aws-amplify/backend-data
 
+## 1.8.0
+
+### Minor Changes
+
+- a50ec3b: Map `minimizeRdsVpcEndpoints` from `DataSourceConfiguration` onto the generated SQL `ModelDataSourceStrategy` so the customer setting is forwarded to the SQL strategy.
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
 ## 1.7.0
 
 ### Minor Changes
