@@ -60,9 +60,8 @@ export abstract class PackageManagerControllerBase implements PackageManagerCont
   /**
    * initializeProject - initializes a project in the project root by checking the package.json file
    */
-  initializeProject = async () => {
+  async initializeProject() {
     if (this.packageJsonExists(this.cwd)) {
-      // if package.json already exists, no need to do anything
       return;
     }
 
@@ -86,12 +85,11 @@ export abstract class PackageManagerControllerBase implements PackageManagerCont
     }
 
     if (!this.packageJsonExists(this.cwd)) {
-      // this should only happen if the customer exits out of npm init before finishing
       throw new Error(
         `package.json does not exist after running \`${this.executable} init\`. Initialize a valid JavaScript package before continuing.'`,
       );
     }
-  };
+  }
 
   /**
    * initializeTsConfig - initializes a tsconfig.json file in the project root

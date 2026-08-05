@@ -29,7 +29,7 @@ jobs:
       # They don't bring much value, but may bring instability and extra latency.
       include-macos: false
       include-windows: false
-      node: '["18"]'
+      node: '["22"]'
       # Exclude package manager and create-amplify tests.
       # They don't bring functional coverage for CDK usage patterns.
       include-package-manager-e2e-tests: false

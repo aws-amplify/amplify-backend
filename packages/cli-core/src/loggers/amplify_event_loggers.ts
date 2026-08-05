@@ -175,6 +175,20 @@ export class AmplifyEventLogger {
       }
     }
 
+    // Express Mode stabilization warning. Emitted by @aws-cdk/toolkit-lib when a
+    // `--express` deployment completes while some resources are still stabilizing.
+    // The message is already formatted by the toolkit (e.g. "Stack deployed using
+    // Express Mode. Resources still stabilizing: ...").
+    if (msg.code === 'CDK_TOOLKIT_W5902') {
+      if (this.printer.isSpinnerRunning()) {
+        this.printer.stopSpinner();
+        this.printer.log(msg.message.trim());
+        this.printer.startSpinner('Deployment in progress...');
+      } else {
+        this.printer.log(msg.message.trim());
+      }
+    }
+
     // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message.
     // We save it so we can display at the end of the deployment.
     if (msg.code === 'CDK_TOOLKIT_I5900') {

@@ -1,5 +1,34 @@
 # @aws-amplify/sandbox
 
+## 2.3.0
+
+### Minor Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+### Patch Changes
+
+- Updated dependencies [3f331c5]
+- Updated dependencies [4849fad]
+  - @aws-amplify/client-config@1.11.0
+  - @aws-amplify/backend-deployer@2.2.0
+  - @aws-amplify/cli-core@2.2.6
+  - @aws-amplify/plugin-types@1.12.2
+
+## 2.2.1
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [bf4ee4b]
+- Updated dependencies [88c4759]
+  - @aws-amplify/cli-core@2.2.5
+  - @aws-amplify/backend-deployer@2.1.7
+  - @aws-amplify/client-config@1.10.2
+  - @aws-amplify/deployed-backend-client@1.8.2
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
 ## 2.2.0
 
 ### Minor Changes

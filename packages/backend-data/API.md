@@ -54,6 +54,7 @@ export type DataProps = {
     logging?: DataLoggingOptions;
     migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
     suppressTemplateIndentation?: boolean;
+    stackMappings?: Record<string, string>;
 };
 
 // @public

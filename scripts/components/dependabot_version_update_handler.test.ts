@@ -84,6 +84,7 @@ void describe('dependabot version update handler', async () => {
     await setPackageToPublic(platypusPackagePath);
 
     await npmClient.install(['@changesets/cli']);
+    await npmClient.install(['human-id@4.1.3']);
     await setPackageDependencies(cantaloupePackagePath, { testDep: '^1.0.0' });
     await setPackageDependencies(platypusPackagePath, { testDep: '^1.0.0' });
 

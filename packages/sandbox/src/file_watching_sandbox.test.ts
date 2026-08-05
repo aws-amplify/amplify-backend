@@ -424,6 +424,33 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
   });
 
+  void it('forwards express option to the deployer when set', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      {
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+        express: true,
+      },
+      false,
+    ));
+
+    assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+    assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
+      testSandboxBackendId,
+      {
+        secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+        validateAppSources: false,
+        express: true,
+      },
+    ]);
+  });
+
   void it('makes initial deployment with type checking at start if some typescript file is present', async () => {
     // using this file's dir, mocking a glob search appears to be impossible
     const testDir = path.dirname(fileURLToPath(new URL(import.meta.url)));

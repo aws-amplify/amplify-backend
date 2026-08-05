@@ -103,6 +103,7 @@ void describe('release lifecycle', async () => {
     );
 
     await npmClient.install(['@changesets/cli']);
+    await npmClient.install(['human-id@4.1.3']);
 
     await $`npx --package @changesets/cli -- changeset init`;
     await gitClient.commitAllChanges('Version Packages (baseline release)');

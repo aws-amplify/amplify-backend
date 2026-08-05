@@ -160,6 +160,22 @@ export type DataProps = {
    * Suppress indentation in generated CloudFormation templates.
    */
   suppressTemplateIndentation?: boolean;
+
+  /**
+   * Override the assigned nested stack on a per-resource basis.
+   * Only applies to resolvers, and takes the form { <logicalId>: <stackName> }.
+   * Use this to distribute resolver resources across multiple stacks.
+   * You can discover resolver logical IDs by running `npx ampx sandbox` and
+   * examining the CloudFormation output, or by running `cdk synth`.
+   * @example
+   * ```typescript
+   * stackMappings: {
+   *   "CreateOrderResolver": "OrderMutations",
+   *   "UpdateOrderResolver": "OrderMutations",
+   * }
+   * ```
+   */
+  stackMappings?: Record<string, string>;
 };
 
 export type AmplifyDataError =
