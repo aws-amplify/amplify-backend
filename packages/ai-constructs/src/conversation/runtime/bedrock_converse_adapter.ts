@@ -175,6 +175,13 @@ export class BedrockConverseAdapter {
     let blockIndex = 0;
     let lastBlockIndex = 0;
     let stopReason = '';
+    // The following metadata´ are overwritten on each iteration of the tool-use loop.
+    // Only the final iteration's values are reported, as intermediate iterations
+    // are tool-use round-trips and the final iteration contains the actual model response.
+    let latencyMs = 0;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let totalTokens = 0;
     // Accumulates client facing content per turn.
     // So that upstream can persist full message at the end of the streaming.
     const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
@@ -304,6 +311,14 @@ export class BedrockConverseAdapter {
             }
           } else if (chunk.messageStop) {
             stopReason = chunk.messageStop.stopReason ?? '';
+            this.logger.debug(
+              `Bedrock stop reason received: stopReason=${chunk.messageStop.stopReason ?? ''}`,
+            );
+          } else if (chunk.metadata) {
+            latencyMs = chunk.metadata.metrics?.latencyMs ?? 0;
+            inputTokens = chunk.metadata.usage?.inputTokens ?? 0;
+            outputTokens = chunk.metadata.usage?.outputTokens ?? 0;
+            totalTokens = chunk.metadata.usage?.totalTokens ?? 0;
           }
           processedBedrockChunks++;
           if (processedBedrockChunks % 1000 === 0) {
@@ -330,6 +345,8 @@ export class BedrockConverseAdapter {
           associatedUserMessageId: this.event.currentMessageId,
           contentBlockIndex: lastBlockIndex,
           stopReason: stopReason,
+          metrics: { latencyMs },
+          usage: { inputTokens, outputTokens, totalTokens },
         };
         return;
       }
@@ -359,6 +376,8 @@ export class BedrockConverseAdapter {
       associatedUserMessageId: this.event.currentMessageId,
       contentBlockIndex: lastBlockIndex,
       stopReason: stopReason,
+      metrics: { latencyMs },
+      usage: { inputTokens, outputTokens, totalTokens },
     };
   }
 

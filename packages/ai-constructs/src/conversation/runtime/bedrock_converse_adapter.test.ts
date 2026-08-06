@@ -201,6 +201,8 @@ void describe('Bedrock converse adapter', () => {
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 1,
               stopReason: 'end_turn',
+              metrics: { latencyMs: 150 },
+              usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
             },
           ]);
         } else {
@@ -712,6 +714,8 @@ void describe('Bedrock converse adapter', () => {
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 0,
               stopReason: 'tool_use',
+              metrics: { latencyMs: 150 },
+              usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
             },
           ]);
         } else {
@@ -1033,12 +1037,42 @@ void describe('Bedrock converse adapter', () => {
       progressCalls[1].arguments[0],
       'Processed 2000 chunks from Bedrock Converse Stream response, requestId=testRequestId',
     );
-    // each block is decomposed into 4 chunks + start and stop of whole message.
-    const expectedNumberOfAllChunks = numberOfBlocks * 4 + 2;
+    // each block is decomposed into 4 chunks + start, stop, and metadata of whole message.
+    const expectedNumberOfAllChunks = numberOfBlocks * 4 + 3;
     assert.strictEqual(
       progressCalls[2].arguments[0],
       `Completed processing ${expectedNumberOfAllChunks.toString()} chunks from Bedrock Converse Stream response, requestId=testRequestId`,
     );
+  });
+
+  void it('includes metrics and usage in the final streaming chunk', async () => {
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+    };
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const content = [{ text: 'block1' }];
+    const bedrockResponse = mockBedrockResponse(content, true);
+    mock.method(bedrockClient, 'send', () => Promise.resolve(bedrockResponse));
+
+    const adapter = new BedrockConverseAdapter(
+      event,
+      [],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever,
+    );
+
+    const chunks: Array<StreamingResponseChunk> =
+      await askBedrockWithStreaming(adapter);
+    const lastChunk = chunks[chunks.length - 1];
+    assert.ok(lastChunk.stopReason);
+    assert.deepStrictEqual(lastChunk.metrics, { latencyMs: 150 });
+    assert.deepStrictEqual(lastChunk.usage, {
+      inputTokens: 10,
+      outputTokens: 20,
+      totalTokens: 30,
+    });
   });
 
   void it('throws if tool is duplicated', () => {
@@ -1302,6 +1336,12 @@ const mockConverseStreamCommandOutput = (
   streamItems.push({
     messageStop: {
       stopReason: stopReason,
+    },
+  });
+  streamItems.push({
+    metadata: {
+      metrics: { latencyMs: 150 },
+      usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
     },
   });
   return {
