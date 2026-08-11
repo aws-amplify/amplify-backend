@@ -1,9 +1,5 @@
 import {
   CloudFormationClient,
-  DeleteStackCommand,
-  ListStacksCommand,
-  ListStacksCommandOutput,
-  StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
 import {
@@ -72,6 +68,7 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
+import { StackDeleter } from './components/e2e-cleanup/stack_deleter.js';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -145,44 +142,54 @@ const isStale = (creationDate: Date | undefined): boolean | undefined => {
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
-const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
-  let nextToken: string | undefined = undefined;
-  const stackSummaries: Array<StackSummary> = [];
-  do {
-    const listStacksResponse: ListStacksCommandOutput = await cfnClient.send(
-      new ListStacksCommand({
-        NextToken: nextToken,
-        StackStatusFilter: Object.keys(StackStatus).filter(
-          (status) => status != StackStatus.DELETE_COMPLETE,
-        ) as Array<StackStatus>,
-      }),
-    );
-    nextToken = listStacksResponse.NextToken;
-    listStacksResponse.StackSummaries?.filter(
-      (stackSummary) =>
-        stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
-        isStackStale(stackSummary),
-    ).forEach((item) => {
-      stackSummaries.push(item);
-    });
-  } while (nextToken);
-  return stackSummaries;
+const stackDeleter = new StackDeleter(
+  cfnClient,
+  TEST_AMPLIFY_RESOURCE_PREFIX,
+  isStackStale,
+);
+
+/**
+ * Deleting a resource that a stack still owns poisons the delete path of that stack, which is
+ * how stacks end up stuck in DELETE_FAILED forever. Deleting the execution role of a custom
+ * resource for example leaves CloudFormation waiting for a Lambda function that can no longer be
+ * assumed. The ownership index must be captured before any deletion is requested, otherwise the
+ * resources of the stacks that are being deleted look free while CloudFormation still uses them.
+ */
+const liveStackResources = await stackDeleter.getResourcesOwnedByLiveStacks();
+if (!liveStackResources.isComplete) {
+  console.log(
+    'Could not determine which resources still belong to stacks. Only stack deletion will run',
+  );
+}
+
+const isOwnedByLiveStack = (
+  resourceType: string,
+  physicalResourceId: string | undefined,
+): boolean => {
+  if (
+    !liveStackResources.isOwnedByLiveStack(resourceType, physicalResourceId)
+  ) {
+    return false;
+  }
+  console.log(
+    `Skipping direct deletion of ${physicalResourceId} ${resourceType}. It belongs to a stack that has not finished deleting`,
+  );
+  return true;
 };
 
-const allStaleStacks = await listAllStaleTestStacks();
+const allStaleStacks = await stackDeleter.listStaleTopLevelStacks();
 
 for (const staleStack of allStaleStacks) {
-  if (staleStack.StackName) {
-    const stackName = staleStack.StackName;
-    try {
-      await cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-      console.log(`Successfully kicked off ${stackName} stack deletion`);
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : '';
-      console.log(
-        `Failed to kick off ${stackName} stack deletion. ${errorMessage}`,
-      );
-    }
+  try {
+    await stackDeleter.deleteStack(staleStack);
+    console.log(
+      `Successfully kicked off ${staleStack.StackName} stack deletion`,
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to kick off ${staleStack.StackName} stack deletion. ${errorMessage}`,
+    );
   }
 }
 
@@ -262,6 +269,9 @@ const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
 for (const staleBucket of staleBuckets) {
   if (staleBucket.Name) {
     const bucketName = staleBucket.Name;
+    if (isOwnedByLiveStack('AWS::S3::Bucket', bucketName)) {
+      continue;
+    }
     try {
       await emptyAndDeleteS3Bucket(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
@@ -297,6 +307,9 @@ const staleUserPools = await listStaleCognitoUserPools();
 
 for (const staleUserPool of staleUserPools) {
   if (staleUserPool.Name) {
+    if (isOwnedByLiveStack('AWS::Cognito::UserPool', staleUserPool.Id)) {
+      continue;
+    }
     try {
       const describeUserPoolResponse = await cognitoClient.send(
         new DescribeUserPoolCommand({
@@ -446,6 +459,9 @@ const listAllStaleRoles = async (): Promise<Array<Role>> => {
 
 const allStaleRoles = await listAllStaleRoles();
 for (const staleRole of allStaleRoles) {
+  if (isOwnedByLiveStack('AWS::IAM::Role', staleRole.RoleName)) {
+    continue;
+  }
   try {
     // delete inline policies
     const inlinePolicies: ListRolePoliciesCommandOutput = await iamClient.send(
@@ -519,6 +535,9 @@ const listAllStaleSSMParameters = async (): Promise<
 
 const allStaleSSMParameters = await listAllStaleSSMParameters();
 for (const staleSSMParameter of allStaleSSMParameters) {
+  if (isOwnedByLiveStack('AWS::SSM::Parameter', staleSSMParameter.Name)) {
+    continue;
+  }
   try {
     await ssmClient.send(
       new DeleteParameterCommand({
@@ -568,6 +587,11 @@ const listAllStaleDynamoDBTables = async (): Promise<
 
 const allStaleDynamoDBTables = await listAllStaleDynamoDBTables();
 for (const staleDynamoDBTable of allStaleDynamoDBTables) {
+  if (
+    isOwnedByLiveStack('AWS::DynamoDB::Table', staleDynamoDBTable.TableName)
+  ) {
+    continue;
+  }
   try {
     await ddbClient.send(
       new DeleteTableCommand({
@@ -614,6 +638,9 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
 
 const allStaleLogGroups = await listAllStaleTestLogGroups();
 for (const logGroup of allStaleLogGroups) {
+  if (isOwnedByLiveStack('AWS::Logs::LogGroup', logGroup.logGroupName)) {
+    continue;
+  }
   try {
     await cloudWatchClient.send(
       new DeleteLogGroupCommand({
