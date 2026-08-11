@@ -2,6 +2,7 @@ import {
   CloudFormationClient,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
+import { CloudFrontClient } from '@aws-sdk/client-cloudfront';
 import {
   CloudWatchLogsClient,
   DeleteLogGroupCommand,
@@ -58,6 +59,7 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
+import { CloudFrontDistributionCleaner } from './components/e2e-cleanup/cloudfront_distribution_cleaner.js';
 import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
 import {
   GuardedResourceType,
@@ -70,6 +72,9 @@ const amplifyClient = new AmplifyClient({
 const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
   retryMode: 'adaptive',
+});
+const cloudFrontClient = new CloudFrontClient({
+  maxAttempts: 5,
 });
 const cloudWatchClient = new CloudWatchLogsClient({
   maxAttempts: 5,
@@ -143,6 +148,10 @@ const stackDeleter = new StackDeleter(
   isStackStale,
 );
 const s3BucketEmptier = new S3BucketEmptier(s3Client);
+const cloudFrontDistributionCleaner = new CloudFrontDistributionCleaner(
+  cloudFrontClient,
+  TEST_AMPLIFY_RESOURCE_PREFIX,
+);
 
 /**
  * Deleting a resource that a stack still owns poisons the delete path of that stack, which is
@@ -210,6 +219,8 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
 };
 
 const staleBuckets = await listStaleS3Buckets();
+const bucketToDistributions =
+  await cloudFrontDistributionCleaner.buildBucketToDistributionsIndex();
 
 for (const staleBucket of staleBuckets) {
   if (staleBucket.Name) {
@@ -218,6 +229,23 @@ for (const staleBucket of staleBuckets) {
       continue;
     }
     try {
+      /**
+       * Deleting the origin bucket of a distribution that still exists leaves a distribution
+       * that serves a bucket name anybody can claim, so the distributions go first. Disabling a
+       * distribution takes tens of minutes to propagate, therefore the bucket is retained until
+       * a subsequent run of this script is able to delete its distributions.
+       */
+      const distributionReapResult =
+        await cloudFrontDistributionCleaner.reapDistributionsForBucket(
+          bucketName,
+          bucketToDistributions,
+        );
+      if (distributionReapResult === 'disable-requested') {
+        console.log(
+          `Retaining ${bucketName} bucket. A CloudFront distribution still uses it as an origin`,
+        );
+        continue;
+      }
       await s3BucketEmptier.emptyAndDelete(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
     } catch (e) {
