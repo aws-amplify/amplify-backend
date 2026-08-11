@@ -9,17 +9,7 @@ import {
   DescribeLogGroupsCommandOutput,
   LogGroup,
 } from '@aws-sdk/client-cloudwatch-logs';
-import {
-  Bucket,
-  DeleteBucketCommand,
-  DeleteObjectsCommand,
-  ListBucketsCommand,
-  ListObjectVersionsCommand,
-  ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
-  ObjectIdentifier,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { Bucket, ListBucketsCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   CognitoIdentityProviderClient,
   DeleteUserPoolCommand,
@@ -68,6 +58,7 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
+import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
 import {
   GuardedResourceType,
   StackDeleter,
@@ -151,6 +142,7 @@ const stackDeleter = new StackDeleter(
   TEST_AMPLIFY_RESOURCE_PREFIX,
   isStackStale,
 );
+const s3BucketEmptier = new S3BucketEmptier(s3Client);
 
 /**
  * Deleting a resource that a stack still owns poisons the delete path of that stack, which is
@@ -219,66 +211,6 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
 
 const staleBuckets = await listStaleS3Buckets();
 
-const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
-  let nextToken: string | undefined = undefined;
-  do {
-    const listObjectsResponse: ListObjectsV2CommandOutput = await s3Client.send(
-      new ListObjectsV2Command({
-        Bucket: bucketName,
-        ContinuationToken: nextToken,
-      }),
-    );
-    const objectsToDelete: ObjectIdentifier[] | undefined =
-      listObjectsResponse.Contents?.map(
-        (s3Object) => s3Object as ObjectIdentifier,
-      );
-    if (objectsToDelete && objectsToDelete.length > 0) {
-      await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: {
-            Objects: objectsToDelete,
-          },
-        }),
-      );
-    }
-    nextToken = listObjectsResponse.NextContinuationToken;
-  } while (nextToken);
-
-  do {
-    const listVersionsResponse = await s3Client.send(
-      new ListObjectVersionsCommand({
-        Bucket: bucketName,
-        KeyMarker: nextToken,
-      }),
-    );
-    const objectsToDelete = ([] as ObjectIdentifier[])
-      .concat(
-        listVersionsResponse.DeleteMarkers?.map(
-          (s3Object) => s3Object as ObjectIdentifier,
-        ) ?? [],
-      )
-      .concat(
-        listVersionsResponse.Versions?.map(
-          (s3Object) => s3Object as ObjectIdentifier,
-        ) ?? [],
-      );
-    if (objectsToDelete.length > 0) {
-      await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: {
-            Objects: objectsToDelete,
-          },
-        }),
-      );
-    }
-    nextToken = listVersionsResponse.NextKeyMarker;
-  } while (nextToken);
-
-  await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }));
-};
-
 for (const staleBucket of staleBuckets) {
   if (staleBucket.Name) {
     const bucketName = staleBucket.Name;
@@ -286,7 +218,7 @@ for (const staleBucket of staleBuckets) {
       continue;
     }
     try {
-      await emptyAndDeleteS3Bucket(bucketName);
+      await s3BucketEmptier.emptyAndDelete(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
