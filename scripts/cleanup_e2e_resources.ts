@@ -68,13 +68,17 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
-import { StackDeleter } from './components/e2e-cleanup/stack_deleter.js';
+import {
+  GuardedResourceType,
+  StackDeleter,
+} from './components/e2e-cleanup/stack_deleter.js';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
 });
 const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
+  retryMode: 'adaptive',
 });
 const cloudWatchClient = new CloudWatchLogsClient({
   maxAttempts: 5,
@@ -157,19 +161,28 @@ const stackDeleter = new StackDeleter(
  */
 const liveStackResources = await stackDeleter.getResourcesOwnedByLiveStacks();
 if (!liveStackResources.isComplete) {
-  console.log(
-    'Could not determine which resources still belong to stacks. Only stack deletion will run',
+  console.warn(
+    'Could not determine which resources still belong to stacks. Only stack deletion and the Amplify branch sweep will run, every other stale resource is left to a later run',
   );
 }
 
+let resourcesSkippedWithIncompleteIndex = 0;
+
 const isOwnedByLiveStack = (
-  resourceType: string,
+  resourceType: GuardedResourceType,
   physicalResourceId: string | undefined,
 ): boolean => {
   if (
     !liveStackResources.isOwnedByLiveStack(resourceType, physicalResourceId)
   ) {
     return false;
+  }
+  if (!liveStackResources.isComplete) {
+    resourcesSkippedWithIncompleteIndex += 1;
+    console.warn(
+      `Skipping direct deletion of ${physicalResourceId} ${resourceType}. The stack ownership index is incomplete, so it cannot be told apart from a resource that a live stack still owns`,
+    );
+    return true;
   }
   console.log(
     `Skipping direct deletion of ${physicalResourceId} ${resourceType}. It belongs to a stack that has not finished deleting`,
@@ -654,4 +667,17 @@ for (const logGroup of allStaleLogGroups) {
       `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`,
     );
   }
+}
+
+/**
+ * An incomplete ownership index means the sweeps above fail closed and leave stale resources
+ * behind. That is the safe outcome, but a silent one: the script would still exit 0, the workflow
+ * would not retry, and a multi region cleanup outage could last for weeks unnoticed. Failing the
+ * job surfaces it. The exit code is set instead of thrown so that everything above still runs.
+ */
+if (!liveStackResources.isComplete) {
+  console.warn(
+    `Cleanup left ${resourcesSkippedWithIncompleteIndex} stale resources behind because the stack ownership index was incomplete. Failing the job so that the run is retried and the cause is visible`,
+  );
+  process.exitCode = 1;
 }

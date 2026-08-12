@@ -25,6 +25,21 @@ const RESOURCE_TYPES_SAFE_TO_RETAIN = [
 ];
 
 /**
+ * Resource types that the cleanup script sweeps directly, outside of CloudFormation.
+ *
+ * The guard is typed to this union so that a typo in a resource type string is a compile error.
+ * An unchecked string would silently match nothing, and the guard would let the sweep delete a
+ * resource that a live stack still owns, which is the failure this index exists to prevent.
+ */
+export type GuardedResourceType =
+  | 'AWS::Cognito::UserPool'
+  | 'AWS::DynamoDB::Table'
+  | 'AWS::IAM::Role'
+  | 'AWS::Logs::LogGroup'
+  | 'AWS::S3::Bucket'
+  | 'AWS::SSM::Parameter';
+
+/**
  * Resources of CloudFormation stacks that have not finished deleting.
  *
  * Deleting a resource that a stack still owns breaks the delete path of that stack. Deleting the
@@ -52,7 +67,7 @@ export class LiveStackResourceIndex {
    * fail closed instead of deleting a resource out from under a live stack.
    */
   isOwnedByLiveStack = (
-    resourceType: string,
+    resourceType: GuardedResourceType,
     physicalResourceId: string | undefined,
   ): boolean => {
     if (!this.isComplete) {
@@ -74,6 +89,7 @@ export class LiveStackResourceIndex {
  */
 export class StackDeleter {
   private activeStacks: Array<StackSummary> | undefined = undefined;
+  private deletionRequested = false;
 
   /**
    * Creates stack deleter.
@@ -106,9 +122,15 @@ export class StackDeleter {
    * Indexes the resources of all stacks that have not finished deleting.
    *
    * Must be called before any stack deletion is requested, otherwise resources of the stacks
-   * that are being deleted look free while CloudFormation is still working on them.
+   * that are being deleted look free while CloudFormation is still working on them. Calling it
+   * after a deletion was requested throws, so that the ordering cannot regress unnoticed.
    */
   getResourcesOwnedByLiveStacks = async (): Promise<LiveStackResourceIndex> => {
+    if (this.deletionRequested) {
+      throw new Error(
+        'The resources owned by live stacks must be indexed before any stack deletion is requested',
+      );
+    }
     const physicalResourceIdsByType = new Map<string, Set<string>>();
     let activeStacks: Array<StackSummary>;
     try {
@@ -157,18 +179,30 @@ export class StackDeleter {
     if (!stackName) {
       throw new Error('Cannot delete a stack without a name');
     }
+    this.deletionRequested = true;
     if (stackSummary.StackStatus !== StackStatus.DELETE_FAILED) {
       await this.cfnClient.send(
         new DeleteStackCommand({ StackName: stackName }),
       );
       return [];
     }
-    const failedResources = (
-      await this.listStackResources(stackSummary.StackId ?? stackName)
-    ).filter(
-      (stackResource) =>
-        stackResource.ResourceStatus === ResourceStatus.DELETE_FAILED,
-    );
+    let failedResources: Array<StackResourceSummary>;
+    try {
+      failedResources = (
+        await this.listStackResources(stackSummary.StackId ?? stackName)
+      ).filter(
+        (stackResource) =>
+          stackResource.ResourceStatus === ResourceStatus.DELETE_FAILED,
+      );
+    } catch (error) {
+      this.log(
+        `Unable to inspect the resources of the ${stackName} stack that is in DELETE_FAILED, so it cannot be unblocked automatically. Retrying its deletion as is. ${this.getErrorMessage(error)}`,
+      );
+      await this.cfnClient.send(
+        new DeleteStackCommand({ StackName: stackName }),
+      );
+      return [];
+    }
     const resourcesToKeepDeleting = failedResources.filter(
       (stackResource) =>
         !RESOURCE_TYPES_SAFE_TO_RETAIN.includes(

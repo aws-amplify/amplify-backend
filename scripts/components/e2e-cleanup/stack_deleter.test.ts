@@ -42,18 +42,42 @@ const buildResource = (
 const buildCfnClient = (
   handlers: {
     stacks?: Array<StackSummary>;
+    stackPages?: Array<Array<StackSummary>>;
     listStacksError?: Error;
     resourcesByStack?: Record<string, Array<StackResourceSummary> | Error>;
+    resourcePagesByStack?: Record<string, Array<Array<StackResourceSummary>>>;
   } = {},
 ) => {
   const send = mock.fn((command: unknown) => {
     if (command instanceof ListStacksCommand) {
-      return handlers.listStacksError
-        ? Promise.reject(handlers.listStacksError)
-        : Promise.resolve({ StackSummaries: handlers.stacks ?? [] });
+      if (handlers.listStacksError) {
+        return Promise.reject(handlers.listStacksError);
+      }
+      if (handlers.stackPages) {
+        const pageIndex = Number(command.input.NextToken ?? '0');
+        return Promise.resolve({
+          StackSummaries: handlers.stackPages[pageIndex] ?? [],
+          NextToken:
+            pageIndex + 1 < handlers.stackPages.length
+              ? String(pageIndex + 1)
+              : undefined,
+        });
+      }
+      return Promise.resolve({ StackSummaries: handlers.stacks ?? [] });
     }
     if (command instanceof ListStackResourcesCommand) {
       const stackNameOrId = command.input.StackName ?? '';
+      const pages = Object.entries(handlers.resourcePagesByStack ?? {}).find(
+        ([stackName]) => stackNameOrId.includes(stackName),
+      )?.[1];
+      if (pages) {
+        const pageIndex = Number(command.input.NextToken ?? '0');
+        return Promise.resolve({
+          StackResourceSummaries: pages[pageIndex] ?? [],
+          NextToken:
+            pageIndex + 1 < pages.length ? String(pageIndex + 1) : undefined,
+        });
+      }
       const resources = Object.entries(handlers.resourcesByStack ?? {}).find(
         ([stackName]) => stackNameOrId.includes(stackName),
       )?.[1];
@@ -76,6 +100,19 @@ const getDeleteStackInputs = (
     .map((call) => call.arguments[0])
     .filter((command) => command instanceof DeleteStackCommand)
     .map((command) => (command as DeleteStackCommand).input);
+
+const getNextTokens = (
+  send: ReturnType<typeof buildCfnClient>['send'],
+  commandType: typeof ListStacksCommand | typeof ListStackResourcesCommand,
+): Array<string | undefined> =>
+  send.mock.calls
+    .map((call) => call.arguments[0])
+    .filter((command) => command instanceof commandType)
+    .map(
+      (command) =>
+        (command as ListStacksCommand | ListStackResourcesCommand).input
+          .NextToken,
+    );
 
 const buildStackDeleter = (
   cfnClient: CloudFormationClient,
@@ -107,6 +144,25 @@ void describe('StackDeleter', () => {
         staleStacks.map((stackSummary) => stackSummary.StackName),
         ['amplify-stale'],
       );
+    });
+
+    void it('follows the next token so that stacks on later pages are not missed', async () => {
+      const { cfnClient, send } = buildCfnClient({
+        stackPages: [
+          [buildStack('amplify-first-page')],
+          [buildStack('amplify-second-page')],
+        ],
+      });
+
+      const staleStacks =
+        await buildStackDeleter(cfnClient).listStaleTopLevelStacks();
+
+      assert.deepStrictEqual(
+        staleStacks.map((stackSummary) => stackSummary.StackName),
+        ['amplify-first-page', 'amplify-second-page'],
+      );
+      const nextTokens = getNextTokens(send, ListStacksCommand);
+      assert.deepStrictEqual(nextTokens, [undefined, '1']);
     });
   });
 
@@ -232,6 +288,70 @@ void describe('StackDeleter', () => {
       assert.strictEqual(
         index.isOwnedByLiveStack('AWS::S3::Bucket', 'any-bucket'),
         true,
+      );
+    });
+
+    void it('follows the next token so that resources on later pages are protected too', async () => {
+      const { cfnClient, send } = buildCfnClient({
+        stacks: [buildStack('amplify-live')],
+        resourcePagesByStack: {
+          'amplify-live': [
+            [
+              buildResource(
+                'FirstBucket',
+                'AWS::S3::Bucket',
+                'amplify-first-page-bucket',
+              ),
+            ],
+            [
+              buildResource(
+                'SecondBucket',
+                'AWS::S3::Bucket',
+                'amplify-second-page-bucket',
+              ),
+            ],
+          ],
+        },
+      });
+
+      const index =
+        await buildStackDeleter(cfnClient).getResourcesOwnedByLiveStacks();
+
+      assert.strictEqual(index.isComplete, true);
+      assert.strictEqual(
+        index.isOwnedByLiveStack(
+          'AWS::S3::Bucket',
+          'amplify-first-page-bucket',
+        ),
+        true,
+      );
+      assert.strictEqual(
+        index.isOwnedByLiveStack(
+          'AWS::S3::Bucket',
+          'amplify-second-page-bucket',
+        ),
+        true,
+      );
+      const nextTokens = getNextTokens(send, ListStackResourcesCommand);
+      assert.deepStrictEqual(nextTokens, [undefined, '1']);
+    });
+
+    void it('refuses to build the index after a deletion was already requested', async () => {
+      const { cfnClient } = buildCfnClient({
+        stacks: [buildStack('amplify-stale')],
+      });
+      const stackDeleter = buildStackDeleter(cfnClient);
+      await stackDeleter.deleteStack(buildStack('amplify-stale'));
+
+      await assert.rejects(
+        () => stackDeleter.getResourcesOwnedByLiveStacks(),
+        (error: Error) => {
+          assert.match(
+            error.message,
+            /must be indexed before any stack deletion is requested/,
+          );
+          return true;
+        },
       );
     });
   });
@@ -370,6 +490,34 @@ void describe('StackDeleter', () => {
       assert.ok(
         logMessages.some((message) =>
           message.includes('needs manual attention'),
+        ),
+      );
+    });
+
+    void it('still requests the deletion when the resources of a DELETE_FAILED stack cannot be listed', async () => {
+      const logMessages: Array<string> = [];
+      const { cfnClient, send } = buildCfnClient({
+        resourcesByStack: {
+          'amplify-stuck': new Error(
+            'User is not authorized to perform: cloudformation:ListStackResources',
+          ),
+        },
+      });
+
+      const retainedResources = await buildStackDeleter(
+        cfnClient,
+        logMessages,
+      ).deleteStack(
+        buildStack('amplify-stuck', { StackStatus: StackStatus.DELETE_FAILED }),
+      );
+
+      assert.deepStrictEqual(retainedResources, []);
+      assert.deepStrictEqual(getDeleteStackInputs(send), [
+        { StackName: 'amplify-stuck' },
+      ]);
+      assert.ok(
+        logMessages.some((message) =>
+          message.includes('Unable to inspect the resources'),
         ),
       );
     });
