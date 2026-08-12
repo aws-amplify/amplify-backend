@@ -92,6 +92,31 @@ void describe('S3BucketEmptier', () => {
     ]);
   });
 
+  void it('leaves the bucket in place when it is only emptied', async () => {
+    const { s3Client, send } = buildS3Client({
+      listObjectVersions: [
+        {
+          Versions: [{ Key: 'a', VersionId: 'v1' }],
+          IsTruncated: false,
+          $metadata: {},
+        },
+      ],
+    });
+
+    await new S3BucketEmptier(s3Client, () => {}).empty('test-bucket');
+
+    assert.deepStrictEqual(getCommandInputs(send, DeleteObjectsCommand), [
+      {
+        Bucket: 'test-bucket',
+        Delete: {
+          Objects: [{ Key: 'a', VersionId: 'v1' }],
+          Quiet: true,
+        },
+      },
+    ]);
+    assert.deepStrictEqual(getCommandInputs(send, DeleteBucketCommand), []);
+  });
+
   void it('paginates on both key marker and version id marker', async () => {
     const { s3Client, send } = buildS3Client({
       listObjectVersions: [

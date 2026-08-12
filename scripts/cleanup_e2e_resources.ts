@@ -60,6 +60,7 @@ import {
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
 import { CloudFrontDistributionCleaner } from './components/e2e-cleanup/cloudfront_distribution_cleaner.js';
+import { E2E_TEST_REGIONS } from './components/e2e-cleanup/e2e_test_regions.js';
 import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
 import {
   GuardedResourceType,
@@ -69,10 +70,11 @@ import {
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
 });
-const cfnClient = new CloudFormationClient({
+const cfnClientConfig = {
   maxAttempts: 5,
   retryMode: 'adaptive',
-});
+};
+const cfnClient = new CloudFormationClient(cfnClientConfig);
 const cloudFrontClient = new CloudFrontClient({
   maxAttempts: 5,
 });
@@ -142,11 +144,16 @@ const isStale = (creationDate: Date | undefined): boolean | undefined => {
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
-const stackDeleter = new StackDeleter(
-  cfnClient,
-  TEST_AMPLIFY_RESOURCE_PREFIX,
-  isStackStale,
-);
+const createStackDeleter = (
+  cloudFormationClient: CloudFormationClient,
+): StackDeleter =>
+  new StackDeleter(
+    cloudFormationClient,
+    TEST_AMPLIFY_RESOURCE_PREFIX,
+    isStackStale,
+  );
+
+const stackDeleter = createStackDeleter(cfnClient);
 const s3BucketEmptier = new S3BucketEmptier(s3Client);
 const cloudFrontDistributionCleaner = new CloudFrontDistributionCleaner(
   cloudFrontClient,
@@ -160,8 +167,40 @@ const cloudFrontDistributionCleaner = new CloudFrontDistributionCleaner(
  * assumed. The ownership index must be captured before any deletion is requested, otherwise the
  * resources of the stacks that are being deleted look free while CloudFormation still uses them.
  */
-const liveStackResources = await stackDeleter.getResourcesOwnedByLiveStacks();
-if (!liveStackResources.isComplete) {
+const currentRegionLiveStackResources =
+  await stackDeleter.getResourcesOwnedByLiveStacks();
+
+/**
+ * S3 buckets and IAM roles are listed account wide, so this run sees the ones of every region that
+ * runs e2e tests, and the stacks of those regions have to be indexed as well. Without them a bucket
+ * or a role of another region looks free and gets deleted while a live stack of that region is still
+ * using it, which is exactly what poisons a stack delete path.
+ *
+ * Region scoped resource types are deliberately not checked against this index. Their names are
+ * only unique within a region, so the equally named resource of another region would keep a
+ * genuinely stale one from ever being cleaned up.
+ */
+const currentRegion = await cfnClient.config.region();
+const allRegionLiveStackResources = (
+  await Promise.all(
+    E2E_TEST_REGIONS.filter((region) => region !== currentRegion).map(
+      (region) =>
+        createStackDeleter(
+          new CloudFormationClient({ ...cfnClientConfig, region }),
+        ).getResourcesOwnedByLiveStacks(),
+    ),
+  )
+).reduce(
+  (mergedIndex, regionIndex) => mergedIndex.merge(regionIndex),
+  currentRegionLiveStackResources,
+);
+
+const ACCOUNT_WIDE_RESOURCE_TYPES: Array<GuardedResourceType> = [
+  'AWS::IAM::Role',
+  'AWS::S3::Bucket',
+];
+
+if (!allRegionLiveStackResources.isComplete) {
   console.warn(
     'Could not determine which resources still belong to stacks. Only stack deletion and the Amplify branch sweep will run, every other stale resource is left to a later run',
   );
@@ -173,6 +212,9 @@ const isOwnedByLiveStack = (
   resourceType: GuardedResourceType,
   physicalResourceId: string | undefined,
 ): boolean => {
+  const liveStackResources = ACCOUNT_WIDE_RESOURCE_TYPES.includes(resourceType)
+    ? allRegionLiveStackResources
+    : currentRegionLiveStackResources;
   if (
     !liveStackResources.isOwnedByLiveStack(resourceType, physicalResourceId)
   ) {
@@ -192,6 +234,29 @@ const isOwnedByLiveStack = (
 };
 
 const allStaleStacks = await stackDeleter.listStaleTopLevelStacks();
+
+/**
+ * A stack that is stuck in DELETE_FAILED because a bucket of one of its nested stacks is not empty
+ * fails the same way on every retry until that bucket is emptied. The bucket is emptied but not
+ * deleted, so that CloudFormation still owns the resource and its own delete of the bucket, and
+ * therefore of the whole stack, is what succeeds on the retry below.
+ */
+const bucketsBlockingStackDeletion =
+  await stackDeleter.findBucketsBlockingStackDeletion(allStaleStacks);
+
+for (const bucketName of bucketsBlockingStackDeletion) {
+  try {
+    await s3BucketEmptier.empty(bucketName);
+    console.log(
+      `Successfully emptied ${bucketName} bucket that blocked a stack deletion`,
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to empty ${bucketName} bucket that blocked a stack deletion. ${errorMessage}`,
+    );
+  }
+}
 
 for (const staleStack of allStaleStacks) {
   try {
@@ -635,7 +700,7 @@ for (const logGroup of allStaleLogGroups) {
  * would not retry, and a multi region cleanup outage could last for weeks unnoticed. Failing the
  * job surfaces it. The exit code is set instead of thrown so that everything above still runs.
  */
-if (!liveStackResources.isComplete) {
+if (!allRegionLiveStackResources.isComplete) {
   console.warn(
     `Cleanup left ${resourcesSkippedWithIncompleteIndex} stale resources behind because the stack ownership index was incomplete. Failing the job so that the run is retried and the cause is visible`,
   );

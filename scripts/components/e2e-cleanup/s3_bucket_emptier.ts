@@ -48,7 +48,15 @@ export class S3BucketEmptier {
     }
   };
 
-  private empty = async (bucketName: string): Promise<void> => {
+  /**
+   * Removes all object versions and delete markers from the bucket, leaving the bucket in place.
+   *
+   * Unblocks a CloudFormation stack whose bucket delete failed with `BucketNotEmpty`. The bucket
+   * itself is left to CloudFormation, so that its record of the resource stays intact and the
+   * retried stack deletion can complete normally.
+   * @throws if any object could not be deleted.
+   */
+  empty = async (bucketName: string): Promise<void> => {
     let keyMarker: string | undefined = undefined;
     let versionIdMarker: string | undefined = undefined;
     let isTruncated = false;

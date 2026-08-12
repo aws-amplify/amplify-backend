@@ -15,14 +15,60 @@ import {
  * Resource types that may be abandoned to unblock a stack that is stuck in `DELETE_FAILED`.
  *
  * The custom resources are the ones that time out on delete, and their bucket is deleted by the
- * bucket sweep of a subsequent run. Any other resource type, in particular
- * `AWS::CloudFront::Distribution`, must never be abandoned.
+ * bucket sweep of a subsequent run. Any other resource type must never be abandoned. Retaining an
+ * `AWS::CloudFront::Distribution` leaks a distribution that serves a bucket name anybody can
+ * claim, and retaining an `AWS::CloudFormation::Stack` detaches a nested stack from its root: the
+ * root reaches `DELETE_COMPLETE` while the nested stack silently keeps its resources, which turns
+ * a visible failure into an invisible orphan.
  */
 const RESOURCE_TYPES_SAFE_TO_RETAIN = [
   'Custom::S3AutoDeleteObjects',
   'Custom::CDKBucketDeployment',
   'AWS::S3::Bucket',
 ];
+
+const NESTED_STACK_RESOURCE_TYPE = 'AWS::CloudFormation::Stack';
+const BUCKET_RESOURCE_TYPE = 'AWS::S3::Bucket';
+
+/**
+ * How deep nested stacks are followed when looking for the resources that block a stack deletion.
+ *
+ * Amplify nests one level deep. The limit only exists so that an unexpected cycle cannot turn into
+ * unbounded recursion.
+ */
+const MAX_NESTED_STACK_DEPTH = 5;
+
+/**
+ * How many stacks are inspected at a time.
+ *
+ * An account accumulates hundreds of stacks, and inspecting them one after another took long
+ * enough for the cleanup job to time out before it deleted anything. The limit keeps the burst of
+ * `ListStackResources` calls small enough for the CloudFormation request quota.
+ */
+const STACK_INSPECTION_CONCURRENCY = 8;
+
+/**
+ * Runs the callback for every item, with at most `concurrency` calls in flight.
+ *
+ * The callback must handle its own errors. A rejection abandons the remaining items.
+ */
+const forEachWithBoundedConcurrency = async <T>(
+  items: Array<T>,
+  concurrency: number,
+  callback: (item: T) => Promise<void>,
+): Promise<void> => {
+  let nextIndex = 0;
+  const consumeItems = async (): Promise<void> => {
+    while (nextIndex < items.length) {
+      await callback(items[nextIndex++]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () =>
+      consumeItems(),
+    ),
+  );
+};
 
 /**
  * Resource types that the cleanup script sweeps directly, outside of CloudFormation.
@@ -82,6 +128,37 @@ export class LiveStackResourceIndex {
         ?.has(physicalResourceId) ?? false
     );
   };
+
+  /**
+   * Combines this index with another one, for example the index of another region.
+   *
+   * The result is only complete when both indexes are, so a region that could not be inspected
+   * makes every caller fail closed instead of deleting a resource of that region.
+   */
+  merge = (other: LiveStackResourceIndex): LiveStackResourceIndex => {
+    const mergedPhysicalResourceIdsByType = new Map<string, Set<string>>();
+    for (const source of [
+      this.physicalResourceIdsByType,
+      other.physicalResourceIdsByType,
+    ]) {
+      for (const [resourceType, physicalResourceIds] of source) {
+        const mergedPhysicalResourceIds =
+          mergedPhysicalResourceIdsByType.get(resourceType) ??
+          new Set<string>();
+        for (const physicalResourceId of physicalResourceIds) {
+          mergedPhysicalResourceIds.add(physicalResourceId);
+        }
+        mergedPhysicalResourceIdsByType.set(
+          resourceType,
+          mergedPhysicalResourceIds,
+        );
+      }
+    }
+    return new LiveStackResourceIndex(
+      mergedPhysicalResourceIdsByType,
+      this.isComplete && other.isComplete,
+    );
+  };
 }
 
 /**
@@ -126,11 +203,9 @@ export class StackDeleter {
    * after a deletion was requested throws, so that the ordering cannot regress unnoticed.
    */
   getResourcesOwnedByLiveStacks = async (): Promise<LiveStackResourceIndex> => {
-    if (this.deletionRequested) {
-      throw new Error(
-        'The resources owned by live stacks must be indexed before any stack deletion is requested',
-      );
-    }
+    this.assertNoDeletionRequested(
+      'The resources owned by live stacks must be indexed before any stack deletion is requested',
+    );
     const physicalResourceIdsByType = new Map<string, Set<string>>();
     let activeStacks: Array<StackSummary>;
     try {
@@ -142,36 +217,84 @@ export class StackDeleter {
       return new LiveStackResourceIndex(physicalResourceIdsByType, false);
     }
     let isComplete = true;
-    for (const stackSummary of activeStacks) {
-      const stackNameOrId = stackSummary.StackId ?? stackSummary.StackName;
-      if (!stackNameOrId) {
-        continue;
-      }
-      try {
-        const stackResources = await this.listStackResources(stackNameOrId);
-        for (const stackResource of stackResources) {
-          this.indexStackResource(physicalResourceIdsByType, stackResource);
+    await forEachWithBoundedConcurrency(
+      activeStacks,
+      STACK_INSPECTION_CONCURRENCY,
+      async (stackSummary) => {
+        const stackNameOrId = stackSummary.StackId ?? stackSummary.StackName;
+        if (!stackNameOrId) {
+          return;
         }
-      } catch (error) {
-        if (this.isStackNotFoundError(error)) {
-          continue;
+        try {
+          const stackResources = await this.listStackResources(stackNameOrId);
+          for (const stackResource of stackResources) {
+            this.indexStackResource(physicalResourceIdsByType, stackResource);
+          }
+        } catch (error) {
+          if (this.isStackNotFoundError(error)) {
+            return;
+          }
+          isComplete = false;
+          this.log(
+            `Unable to list resources of ${stackSummary.StackName} stack, skipping direct resource deletion. ${this.getErrorMessage(error)}`,
+          );
         }
-        isComplete = false;
-        this.log(
-          `Unable to list resources of ${stackSummary.StackName} stack, skipping direct resource deletion. ${this.getErrorMessage(error)}`,
-        );
-      }
-    }
+      },
+    );
     return new LiveStackResourceIndex(physicalResourceIdsByType, isComplete);
+  };
+
+  /**
+   * Finds the buckets whose contents block the deletion of the given stacks.
+   *
+   * Every stack of the known `DELETE_FAILED` backlog blocks on a single resource, its nested
+   * hosting stack, and that nested stack in turn blocks on a versioned bucket that CloudFormation
+   * cannot delete because it is not empty. The bucket is invisible from the root stack, so nested
+   * stacks are followed to find it.
+   *
+   * Emptying those buckets and leaving the deletion of the bucket itself to CloudFormation is what
+   * makes the retried stack deletion succeed. Retaining the nested stack instead would detach it
+   * from its root, so the root would reach `DELETE_COMPLETE` while the nested stack silently kept
+   * its bucket and its distribution.
+   *
+   * Must be called before any stack deletion is requested, otherwise the buckets are emptied after
+   * CloudFormation already retried and failed the deletion they block.
+   */
+  findBucketsBlockingStackDeletion = async (
+    stackSummaries: Array<StackSummary>,
+  ): Promise<Array<string>> => {
+    this.assertNoDeletionRequested(
+      'The buckets that block a stack deletion must be found before any stack deletion is requested',
+    );
+    const bucketNames = new Set<string>();
+    await forEachWithBoundedConcurrency(
+      stackSummaries.filter(
+        (stackSummary) =>
+          stackSummary.StackStatus === StackStatus.DELETE_FAILED,
+      ),
+      STACK_INSPECTION_CONCURRENCY,
+      async (stackSummary) => {
+        const stackNameOrId = stackSummary.StackId ?? stackSummary.StackName;
+        if (stackNameOrId) {
+          await this.collectBucketsBlockingStackDeletion(
+            stackNameOrId,
+            bucketNames,
+            1,
+          );
+        }
+      },
+    );
+    return [...bucketNames];
   };
 
   /**
    * Requests deletion of the stack.
    *
-   * A stack that is already in `DELETE_FAILED` fails the same way on every retry unless the
-   * resources that failed to delete are abandoned, which is what keeps stacks stuck for months.
-   * Those resources are only abandoned when all of them are safe to leak, and the bucket sweep
-   * of a subsequent run picks them up.
+   * A stack that is already in `DELETE_FAILED` fails the same way on every retry unless whatever
+   * blocks it is dealt with, which is what keeps stacks stuck for months. Resources that are safe
+   * to leak are abandoned, and the bucket sweep of a subsequent run picks them up. Everything else
+   * is retried as is, because `findBucketsBlockingStackDeletion` emptied the buckets that block the
+   * nested stacks of this stack before this deletion was requested.
    * @returns the logical ids of the resources that CloudFormation was asked to retain.
    */
   deleteStack = async (stackSummary: StackSummary): Promise<Array<string>> => {
@@ -188,11 +311,8 @@ export class StackDeleter {
     }
     let failedResources: Array<StackResourceSummary>;
     try {
-      failedResources = (
-        await this.listStackResources(stackSummary.StackId ?? stackName)
-      ).filter(
-        (stackResource) =>
-          stackResource.ResourceStatus === ResourceStatus.DELETE_FAILED,
+      failedResources = await this.listFailedResources(
+        stackSummary.StackId ?? stackName,
       );
     } catch (error) {
       this.log(
@@ -211,7 +331,7 @@ export class StackDeleter {
     );
     if (failedResources.length === 0 || resourcesToKeepDeleting.length > 0) {
       this.log(
-        `The ${stackName} stack cannot be unblocked automatically and needs manual attention. Retrying its deletion as is. Resources that failed to delete: ${this.describeResources(resourcesToKeepDeleting)}`,
+        this.describeRetriedStackDeletion(stackName, resourcesToKeepDeleting),
       );
       await this.cfnClient.send(
         new DeleteStackCommand({ StackName: stackName }),
@@ -233,6 +353,92 @@ export class StackDeleter {
       `Retrying deletion of the ${stackName} stack while retaining ${this.describeResources(failedResources)}`,
     );
     return retainResources;
+  };
+
+  private collectBucketsBlockingStackDeletion = async (
+    stackNameOrId: string,
+    bucketNames: Set<string>,
+    depth: number,
+  ): Promise<void> => {
+    if (depth > MAX_NESTED_STACK_DEPTH) {
+      this.log(
+        `Stopped looking for the buckets that block the deletion of ${stackNameOrId} at a nesting depth of ${MAX_NESTED_STACK_DEPTH}`,
+      );
+      return;
+    }
+    let failedResources: Array<StackResourceSummary>;
+    try {
+      failedResources = await this.listFailedResources(stackNameOrId);
+    } catch (error) {
+      if (!this.isStackNotFoundError(error)) {
+        this.log(
+          `Unable to inspect the resources of ${stackNameOrId}, so the buckets that block its deletion stay unknown. ${this.getErrorMessage(error)}`,
+        );
+      }
+      return;
+    }
+    for (const failedResource of failedResources) {
+      const physicalResourceId = failedResource.PhysicalResourceId;
+      if (!physicalResourceId) {
+        continue;
+      }
+      if (failedResource.ResourceType === NESTED_STACK_RESOURCE_TYPE) {
+        // The physical id of a nested stack resource is the arn of the nested stack itself.
+        await this.collectBucketsBlockingStackDeletion(
+          physicalResourceId,
+          bucketNames,
+          depth + 1,
+        );
+      } else if (
+        failedResource.ResourceType === BUCKET_RESOURCE_TYPE &&
+        physicalResourceId.startsWith(this.testResourcePrefix)
+      ) {
+        bucketNames.add(physicalResourceId);
+      } else if (depth > 1) {
+        // A failure inside a nested stack is invisible to `deleteStack`, which only ever sees the
+        // nested stack resource itself, so this is the only place it can be reported.
+        this.log(
+          `The ${stackNameOrId} nested stack failed to delete ${physicalResourceId} (${failedResource.ResourceType}), which emptying buckets cannot unblock, so its root stack needs manual attention`,
+        );
+      }
+    }
+  };
+
+  private listFailedResources = async (
+    stackNameOrId: string,
+  ): Promise<Array<StackResourceSummary>> =>
+    (await this.listStackResources(stackNameOrId)).filter(
+      (stackResource) =>
+        stackResource.ResourceStatus === ResourceStatus.DELETE_FAILED,
+    );
+
+  /**
+   * A stack whose blockers cannot be retained is retried as is, but for two very different reasons.
+   *
+   * A stack blocked by nested stacks is expected to be retried: the buckets that block those nested
+   * stacks were emptied earlier in this run, and the retry is what applies that. Any other blocker
+   * is something this script does not know how to resolve, and saying so is the only way it reaches
+   * a human instead of quietly repeating every hour.
+   */
+  private describeRetriedStackDeletion = (
+    stackName: string,
+    resourcesToKeepDeleting: Array<StackResourceSummary>,
+  ): string => {
+    const isBlockedOnlyByNestedStacks =
+      resourcesToKeepDeleting.length > 0 &&
+      resourcesToKeepDeleting.every(
+        (stackResource) =>
+          stackResource.ResourceType === NESTED_STACK_RESOURCE_TYPE,
+      );
+    return isBlockedOnlyByNestedStacks
+      ? `Retrying deletion of the ${stackName} stack, which is blocked by nested stacks whose blocking buckets were emptied by this run: ${this.describeResources(resourcesToKeepDeleting)}`
+      : `The ${stackName} stack cannot be unblocked automatically and needs manual attention. Retrying its deletion as is. Resources that failed to delete: ${this.describeResources(resourcesToKeepDeleting)}`;
+  };
+
+  private assertNoDeletionRequested = (message: string): void => {
+    if (this.deletionRequested) {
+      throw new Error(message);
+    }
   };
 
   private listActiveStacks = async (): Promise<Array<StackSummary>> => {
