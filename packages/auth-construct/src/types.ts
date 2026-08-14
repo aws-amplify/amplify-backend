@@ -10,6 +10,7 @@ import {
   UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { HostedZoneAttributes } from 'aws-cdk-lib/aws-route53';
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
@@ -309,6 +310,11 @@ export type SamlProviderProps = Omit<
   };
 } & IdentityProviderProps;
 
+export type CustomDomainOptions = {
+  hostedZone: HostedZoneAttributes;
+  domainName: string;
+};
+
 /**
  * External provider options.
  */
@@ -374,6 +380,8 @@ export type ExternalProviderOptions = {
    * List of allowed logout URLs for the identity providers.
    */
   logoutUrls: string[];
+
+  customDomainOptions?: CustomDomainOptions;
 };
 
 /**
