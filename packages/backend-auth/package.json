@@ -36,7 +36,7 @@
     "@types/aws-lambda": "^8.10.119"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.234.1",
+    "aws-cdk-lib": "^2.238.0",
     "constructs": "^10.0.0"
   }
 }
