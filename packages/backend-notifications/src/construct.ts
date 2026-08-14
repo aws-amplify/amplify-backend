@@ -567,7 +567,12 @@ export class AmplifyNotifications
     // enforced at DEPLOY time by a Lambda-backed custom resource that fails the
     // deployment when merging is on. In create mode the construct owns the domain
     // and disables both mechanisms on the resource itself (see ProfilesDomain),
-    // so no runtime check is needed.
+    // so there is nothing to gate the deployment on.
+    //
+    // Neither of those catches merging enabled AFTER a deployment, so the write
+    // Lambda ALSO re-checks per request (see checkMergingDisabled). That runtime
+    // gate is active in BOTH modes: a construct-owned domain can be changed out
+    // of band via the console or API just as easily as a customer-owned one.
     let identityResolutionGuard: CustomResource | undefined;
     if (!createFromScratch) {
       identityResolutionGuard = this.addIdentityResolutionGuard(
@@ -639,6 +644,18 @@ export class AmplifyNotifications
           'profile:UpdateProfile',
         ],
         resources: [domainArn, objectTypesArn],
+      }),
+    );
+    // Layer C runtime gate: the write Lambda re-checks, per request (TTL
+    // cached), that Identity Resolution is still disabled on the attached
+    // domain before it binds an identity to profile or device state. Read-only
+    // and scoped to THE domain — not the object types, which GetDomain does not
+    // address. This is the same grant the deploy-time guard Lambda holds.
+    apiFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['profile:GetDomain'],
+        resources: [domainArn],
       }),
     );
     // Device store is authoritative in DynamoDB: register/re-home is a

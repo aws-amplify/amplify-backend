@@ -1081,24 +1081,61 @@ void describe('AmplifyNotifications construct — Identity Resolution guard (att
   void it('grants the guard Lambda NOTHING that can mutate the domain or read profiles', () => {
     const { template } = synth();
     // The guard's own inline policy must contain exactly one action: GetDomain.
-    const policies = Object.values(template.findResources('AWS::IAM::Policy'));
-    const guardPolicies = policies.filter((p) =>
-      JSON.stringify(p.Properties?.PolicyDocument).includes(
-        'profile:GetDomain',
-      ),
-    );
+    // Selected by LOGICAL ID rather than by action, because the runtime write
+    // Lambda legitimately holds GetDomain too (the Layer C request-path gate).
+    const guardPolicies = Object.entries(
+      template.findResources('AWS::IAM::Policy'),
+    ).filter(([logicalId]) => logicalId.includes('IdentityResolutionGuardFn'));
     assert.strictEqual(
       guardPolicies.length,
       1,
-      'expected exactly one policy to carry profile:GetDomain',
+      'expected exactly one inline policy on the guard Lambda role',
     );
     const actions = (
-      guardPolicies[0].Properties.PolicyDocument.Statement as {
+      guardPolicies[0][1].Properties.PolicyDocument.Statement as {
         /* eslint-disable-next-line @typescript-eslint/naming-convention -- IAM policy documents are PascalCase by contract. */
         Action: string | string[];
       }[]
     ).flatMap((s) => (Array.isArray(s.Action) ? s.Action : [s.Action]));
     assert.deepStrictEqual(actions, ['profile:GetDomain']);
+  });
+
+  void it('grants the WRITE Lambda read-only profile:GetDomain on THE attached domain for the runtime gate', () => {
+    const { template } = synth();
+    const apiPolicies = Object.entries(
+      template.findResources('AWS::IAM::Policy'),
+    ).filter(([logicalId]) => logicalId.includes('ApiFn'));
+    assert.strictEqual(
+      apiPolicies.length,
+      1,
+      'expected exactly one inline policy on the write Lambda role',
+    );
+    const statements = apiPolicies[0][1].Properties.PolicyDocument
+      .Statement as {
+      /* eslint-disable @typescript-eslint/naming-convention -- IAM policy documents are PascalCase by contract. */
+      Action: string | string[];
+      Resource: unknown;
+      /* eslint-enable @typescript-eslint/naming-convention */
+    }[];
+    const getDomain = statements.filter((s) =>
+      (Array.isArray(s.Action) ? s.Action : [s.Action]).includes(
+        'profile:GetDomain',
+      ),
+    );
+    assert.strictEqual(
+      getDomain.length,
+      1,
+      'expected a single dedicated GetDomain statement',
+    );
+    // Granted ALONE, so the read-only gate cannot be widened by accident, and
+    // scoped to the domain itself — GetDomain does not address object types.
+    assert.deepStrictEqual(getDomain[0].Action, 'profile:GetDomain');
+    assert.ok(
+      JSON.stringify(getDomain[0].Resource).includes(
+        `:domains/${EXISTING_DOMAIN}`,
+      ),
+      'GetDomain must be scoped to the attached domain ARN',
+    );
   });
 
   void it('gates the object type, Devices table, both Lambdas, the HTTP API and the Pinpoint app on the guard', () => {

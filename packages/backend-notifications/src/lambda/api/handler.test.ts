@@ -11,6 +11,11 @@ import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { classifyRoute, handler } from './handler.js';
 import { WriteEvent } from '../shared/principal.js';
+import {
+  MERGING_REJECTED_MESSAGE,
+  MERGING_UNVERIFIED_MESSAGE,
+  clearMergingCache,
+} from '../shared/merging_guard.js';
 import { awsClientConfig } from '../shared/client_config.js';
 import { ENV_DEVICES_TABLE_NAME, ENV_DOMAIN_NAME } from '../../constants.js';
 
@@ -133,6 +138,9 @@ void describe('write handler', () => {
   beforeEach(() => {
     process.env[ENV_DOMAIN_NAME] = 'Domain';
     process.env[ENV_DEVICES_TABLE_NAME] = 'Devices';
+    // The merging verdict is cached at module scope, so it must be dropped
+    // between cases or a verdict from one case leaks into the next.
+    clearMergingCache();
     installMocks();
   });
 
@@ -455,6 +463,146 @@ void describe('write handler', () => {
 });
 
 /**
+ * Layer C: the RUNTIME gate. The deploy-time custom resource only runs during a
+ * deployment, so a customer who enables Identity Resolution afterwards would
+ * otherwise keep writing into a merging domain until the next deploy. These
+ * cases assert the write is refused per request instead, and — critically — that
+ * the refusal happens BEFORE any profile or device write is issued.
+ */
+void describe('write handler merging gate', () => {
+  /** Mocks where GetDomain reports the given matching configuration. */
+  const installWithDomain = (domain: unknown): void =>
+    installMocks({
+      profileSend: (_input, name) =>
+        name === 'GetDomainCommand' ? domain : undefined,
+    });
+
+  const MERGING_DOMAIN = {
+    Matching: { Enabled: false },
+    RuleBasedMatching: { Enabled: true, Status: 'PENDING' },
+  };
+
+  const identifyEvent = (): WriteEvent =>
+    makeEvent('/identify-user', { userProfile: { email: 'a@b.com' } });
+
+  const registerEvent = (): WriteEvent =>
+    makeEvent('/register-device', {
+      device: { deviceId: 'd1', token: 't1', channelType: 'APNS' },
+    });
+
+  const issued = (name: string): boolean =>
+    profileCommands.some((c) => c.name === name);
+
+  beforeEach(() => {
+    process.env[ENV_DOMAIN_NAME] = 'Domain';
+    process.env[ENV_DEVICES_TABLE_NAME] = 'Devices';
+    clearMergingCache();
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
+    clearMergingCache();
+    delete process.env[ENV_DOMAIN_NAME];
+    delete process.env[ENV_DEVICES_TABLE_NAME];
+  });
+
+  void it('identify-user: 409 and NO profile write when merging is enabled', async () => {
+    installWithDomain(MERGING_DOMAIN);
+
+    const res = await handler(identifyEvent());
+
+    assert.strictEqual(res.statusCode, 409);
+    assert.strictEqual(
+      JSON.parse(res.body).message,
+      MERGING_REJECTED_MESSAGE,
+      'the caller is told why, without naming the domain',
+    );
+    assert.ok(!issued('PutProfileObjectCommand'), 'no find-or-create');
+    assert.ok(!issued('UpdateProfileCommand'), 'no attribute write');
+    assert.ok(!issued('SearchProfilesCommand'), 'no profile read');
+    assert.deepStrictEqual(
+      profileCommands.map((c) => c.name),
+      ['GetDomainCommand'],
+      'the gate is the only call made',
+    );
+  });
+
+  void it('register-device: 409 and NO device write when merging is enabled', async () => {
+    installWithDomain(MERGING_DOMAIN);
+
+    const res = await handler(registerEvent());
+
+    assert.strictEqual(res.statusCode, 409);
+    assert.strictEqual(JSON.parse(res.body).message, MERGING_REJECTED_MESSAGE);
+    assert.deepStrictEqual(
+      ddbCommands.map((c) => c.name),
+      [],
+      'device ownership must not be claimed against a merging domain',
+    );
+  });
+
+  void it('remove-device: still succeeds when merging is enabled, and is not gated at all', async () => {
+    // De-registration must stay available. Blocking it would strand devices
+    // registered against a profile, so it is never gated.
+    installWithDomain(MERGING_DOMAIN);
+
+    const res = await handler(makeEvent('/remove-device', { deviceId: 'd1' }));
+
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(
+      !issued('GetDomainCommand'),
+      'remove-device does not even pay for the check',
+    );
+    assert.deepStrictEqual(
+      ddbCommands.map((c) => c.name),
+      ['DeleteItemCommand'],
+    );
+  });
+
+  void it('identify-user: 503 and NO profile write when the check cannot run (cold cache)', async () => {
+    installMocks({
+      profileSend: (_input, name) => {
+        if (name === 'GetDomainCommand') {
+          const err: any = new Error('denied');
+          err.name = 'AccessDeniedException';
+          throw err;
+        }
+        return undefined;
+      },
+    });
+
+    const res = await handler(identifyEvent());
+
+    assert.strictEqual(res.statusCode, 503);
+    assert.strictEqual(
+      JSON.parse(res.body).message,
+      MERGING_UNVERIFIED_MESSAGE,
+    );
+    assert.ok(!issued('PutProfileObjectCommand'));
+    assert.ok(!issued('UpdateProfileCommand'));
+  });
+
+  void it('allows writes on a non-merging domain and checks the domain only ONCE across requests', async () => {
+    installWithDomain({
+      Matching: { Enabled: false },
+      RuleBasedMatching: { Enabled: false },
+    });
+
+    const identify = await handler(identifyEvent());
+    const register = await handler(registerEvent());
+
+    assert.strictEqual(identify.statusCode, 200);
+    assert.strictEqual(register.statusCode, 200);
+    assert.ok(issued('UpdateProfileCommand'), 'the profile write happened');
+    assert.strictEqual(
+      profileCommands.filter((c) => c.name === 'GetDomainCommand').length,
+      1,
+      'the second request is served from the TTL cache',
+    );
+  });
+});
+
+/**
  * Inbound user-agent propagation is asserted END-TO-END: rather than stubbing
  * `send` (which bypasses the middleware stack entirely), the shared
  * NodeHttpHandler prototype is mocked so the REAL client middleware runs and the
@@ -476,6 +624,7 @@ void describe('inbound user agent propagation', () => {
   beforeEach(() => {
     process.env[ENV_DOMAIN_NAME] = 'Domain';
     process.env[ENV_DEVICES_TABLE_NAME] = 'Devices';
+    clearMergingCache();
     // Static credentials + region so signing succeeds without any real lookup.
     const previous = {
       region: process.env.AWS_REGION,
