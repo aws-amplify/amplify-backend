@@ -336,16 +336,18 @@ void describe('AmplifyNotifications construct — Devices table removal policy',
 });
 
 void describe('AmplifyNotifications construct — Lambda log retention', () => {
-  void it('sets a fixed 90-day CloudWatch log retention on the identify + push Lambdas (attach mode; KMS deferred)', () => {
+  void it('sets a fixed 90-day CloudWatch log retention on the identify + push + guard Lambdas (attach mode; KMS deferred)', () => {
     const { template } = synth();
-    // Two explicit log groups (identify + push Lambdas), each retained 90
-    // days. Explicit LogGroups (not the deprecated logRetention prop) means NO
-    // extra log-retention custom-resource Lambda is added.
-    template.resourceCountIs('AWS::Logs::LogGroup', 2);
+    // Three explicit log groups (identify + push Lambdas + the attach-mode
+    // identity-resolution guard), each retained 90 days. Explicit LogGroups (not
+    // the deprecated logRetention prop) means NO extra log-retention
+    // custom-resource Lambda is added; the Provider framework Lambda keeps its
+    // default group and is not counted here.
+    template.resourceCountIs('AWS::Logs::LogGroup', 3);
     template.resourcePropertiesCountIs(
       'AWS::Logs::LogGroup',
       { RetentionInDays: 90 },
-      2,
+      3,
     );
     // Non-sandbox default RETAINs the log groups (mirrors the Devices table) so
     // a teardown never drops logs needed for incident response.
@@ -371,7 +373,7 @@ void describe('AmplifyNotifications construct — Lambda log retention', () => {
     });
     const template = Template.fromStack(stack);
     const groups = Object.values(template.findResources('AWS::Logs::LogGroup'));
-    assert.strictEqual(groups.length, 2);
+    assert.strictEqual(groups.length, 3);
     for (const group of groups) {
       assert.strictEqual(group.DeletionPolicy, 'Delete');
     }
@@ -395,8 +397,9 @@ void describe('AmplifyNotifications construct — push path (always provisioned)
   void it('always provisions a Pinpoint app + push Lambda', () => {
     const { construct, template } = synth();
     template.resourceCountIs('AWS::Pinpoint::App', 1);
-    // identify Lambda + push Lambda.
-    template.resourceCountIs('AWS::Lambda::Function', 2);
+    // identify Lambda + push Lambda + the attach-mode identity-resolution guard
+    // and its custom-resource Provider framework Lambda.
+    template.resourceCountIs('AWS::Lambda::Function', 4);
     assert.ok(construct.resources.pushFunction);
     assert.ok(construct.resources.pushApplication);
     assert.strictEqual(typeof construct.pushFunctionArn, 'string');
@@ -901,6 +904,21 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
     template.resourceCountIs('Custom::OutboundCampaignsDomainAssociation', 0);
   });
 
+  void it('creates the domain with Identity Resolution EXPLICITLY disabled (create mode)', () => {
+    const { template } = synthCreate();
+    // Explicit-false (not omission) so the intent is visible in the template
+    // and a service-side default flip cannot silently enable profile merging.
+    template.hasResourceProperties('AWS::CustomerProfiles::Domain', {
+      Matching: { Enabled: false },
+      RuleBasedMatching: { Enabled: false },
+    });
+  });
+
+  void it('does NOT add the identity-resolution guard in create mode (the construct owns the domain)', () => {
+    const { template } = synthCreate();
+    template.resourceCountIs('Custom::NotificationsIdentityResolutionGuard', 0);
+  });
+
   void it('binds the created domain to the instance as a CTR Customer Profiles integration (create mode)', () => {
     const { template } = synthCreate();
     // Native CFN resource (NOT the association custom resource): the
@@ -1028,5 +1046,114 @@ void describe('AmplifyNotifications construct — create-from-scratch (default)'
         `unexpected campaign/segment/journey resource: ${t}`,
       );
     }
+  });
+});
+
+void describe('AmplifyNotifications construct — Identity Resolution guard (attach mode)', () => {
+  void it('adds the deploy-time guard custom resource for the attached domain', () => {
+    const { template } = synth();
+    template.resourceCountIs('Custom::NotificationsIdentityResolutionGuard', 1);
+    template.hasResourceProperties(
+      'Custom::NotificationsIdentityResolutionGuard',
+      { DomainName: EXISTING_DOMAIN },
+    );
+  });
+
+  void it('grants the guard Lambda read-only profile:GetDomain on THE attached domain only', () => {
+    const { template } = synth();
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: 'profile:GetDomain',
+            Effect: 'Allow',
+            Resource: Match.objectLike({
+              'Fn::Join': Match.arrayWith([
+                Match.arrayWith([`:domains/${EXISTING_DOMAIN}`]),
+              ]),
+            }),
+          }),
+        ]),
+      }),
+    });
+  });
+
+  void it('grants the guard Lambda NOTHING that can mutate the domain or read profiles', () => {
+    const { template } = synth();
+    // The guard's own inline policy must contain exactly one action: GetDomain.
+    const policies = Object.values(template.findResources('AWS::IAM::Policy'));
+    const guardPolicies = policies.filter((p) =>
+      JSON.stringify(p.Properties?.PolicyDocument).includes(
+        'profile:GetDomain',
+      ),
+    );
+    assert.strictEqual(
+      guardPolicies.length,
+      1,
+      'expected exactly one policy to carry profile:GetDomain',
+    );
+    const actions = (
+      guardPolicies[0].Properties.PolicyDocument.Statement as {
+        /* eslint-disable-next-line @typescript-eslint/naming-convention -- IAM policy documents are PascalCase by contract. */
+        Action: string | string[];
+      }[]
+    ).flatMap((s) => (Array.isArray(s.Action) ? s.Action : [s.Action]));
+    assert.deepStrictEqual(actions, ['profile:GetDomain']);
+  });
+
+  void it('gates the object type, Devices table, both Lambdas, the HTTP API and the Pinpoint app on the guard', () => {
+    const { template } = synth();
+    const guardLogicalId = Object.keys(
+      template.findResources('Custom::NotificationsIdentityResolutionGuard'),
+    )[0];
+    assert.ok(guardLogicalId, 'guard custom resource not found');
+
+    // Every resource that reads or writes profiles in the customer-owned domain
+    // must DependsOn the guard, so CloudFormation holds them until it passes.
+    for (const type of [
+      'AWS::CustomerProfiles::ObjectType',
+      'AWS::DynamoDB::GlobalTable',
+      'AWS::DynamoDB::Table',
+      'AWS::ApiGatewayV2::Api',
+      'AWS::Pinpoint::App',
+    ]) {
+      for (const [logicalId, resource] of Object.entries(
+        template.findResources(type),
+      )) {
+        const dependsOn = resource.DependsOn as string[] | undefined;
+        assert.ok(
+          dependsOn?.includes(guardLogicalId),
+          `${type} (${logicalId}) must DependsOn the guard, got ${JSON.stringify(dependsOn)}`,
+        );
+      }
+    }
+
+    // Both business Lambdas (identify + push) — but NOT the guard's own handler
+    // or the Provider framework Lambda, which must be free to run first.
+    const gatedFunctions = Object.values(
+      template.findResources('AWS::Lambda::Function'),
+    ).filter((fn) =>
+      (fn.DependsOn as string[] | undefined)?.includes(guardLogicalId),
+    );
+    assert.strictEqual(
+      gatedFunctions.length,
+      2,
+      'expected exactly the identify + push Lambdas to be gated on the guard',
+    );
+  });
+
+  void it('carries the domain name as a property so a domainName change re-runs the check on UPDATE', () => {
+    // CloudFormation invokes a custom resource on UPDATE only when its own
+    // properties change, so carrying DomainName is what makes re-pointing the
+    // construct at a different domain re-run the check (verified end-to-end: the
+    // update was refused). A no-change redeploy does NOT re-invoke it — the guard
+    // is a deploy-time gate on what this stack attaches to, not a continuous
+    // monitor of a domain the customer can reconfigure out-of-band.
+    const { template } = synth();
+    const [guard] = Object.values(
+      template.findResources('Custom::NotificationsIdentityResolutionGuard'),
+    );
+    assert.strictEqual(guard.Properties.DomainName, EXISTING_DOMAIN);
+    assert.ok(guard.Properties.ServiceToken, 'guard needs a ServiceToken');
   });
 });
