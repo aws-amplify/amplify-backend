@@ -80,17 +80,23 @@ const response = (
 const ok = (): APIGatewayProxyResult => response(200, {});
 
 /**
- * Routes whose write BINDS an end-user identity to profile or device state, and
- * which therefore must not run against a merging domain.
+ * Routes whose write can put an end-user identity into the Customer Profiles
+ * domain, and which therefore must not run while that domain is merging.
  *
- * `remove-device` is deliberately EXCLUDED. It only deletes a device binding, so
- * it cannot introduce a profile write — and blocking it would strand devices
- * registered against a profile precisely when merging is on. De-registration
- * stays available at all times.
+ * Only `identify-user` qualifies: it is the sole route that writes profile
+ * state, so it is the only one whose write can be absorbed into — or trigger —
+ * a merge of two end users' profiles.
+ *
+ * The device routes are deliberately EXCLUDED. Both address the authoritative
+ * DynamoDB Devices table by `deviceId` and gate ownership on the SigV4-derived
+ * `principalId`; neither reads or writes Customer Profiles, so no profile merge
+ * can create, redirect, or be triggered by them. `register-device` is a
+ * principalId-keyed last-writer-wins claim, and `remove-device` must stay
+ * available: blocking de-registration would strand devices registered against a
+ * profile precisely when merging is on.
  */
 const MERGING_GATED_ROUTES: ReadonlySet<WriteRoute> = new Set<WriteRoute>([
   'identify-user',
-  'register-device',
 ]);
 
 /**
@@ -197,11 +203,11 @@ export const handler = async (
   }
 
   try {
-    // Layer C: refuse identity-binding writes while the attached domain has
-    // Identity Resolution enabled. Checked HERE, per request, because a
-    // customer can enable matching long after the deploy-time guard ran. The
-    // verdict is cached with a TTL and fails CLOSED when it cannot be
-    // established at all — see checkMergingDisabled.
+    // Layer C: refuse profile writes while the attached domain has Identity
+    // Resolution enabled. Checked HERE, per request, because a customer can
+    // enable matching long after the deploy-time guard ran. The verdict is
+    // cached with a TTL and fails CLOSED when it cannot be established at all
+    // — see checkMergingDisabled.
     if (MERGING_GATED_ROUTES.has(route)) {
       const decision = await checkMergingDisabled(profiles, domainName);
       if (decision.outcome !== 'allow') {

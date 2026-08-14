@@ -293,18 +293,12 @@ void describe('write handler', () => {
       }),
     );
     assert.strictEqual(res.statusCode, 200);
-    // NO Customer Profiles calls at all — register-device is a pure DDB write.
-    assert.strictEqual(
-      named(profileCommands, 'PutProfileObjectCommand').length,
-      0,
-    );
-    assert.strictEqual(
-      named(profileCommands, 'SearchProfilesCommand').length,
-      0,
-    );
-    assert.strictEqual(
-      named(profileCommands, 'UpdateProfileCommand').length,
-      0,
+    // NO Customer Profiles calls at all — not even the merging gate's
+    // GetDomain, which this route is deliberately outside of.
+    assert.deepStrictEqual(
+      profileCommands.map((c) => c.name),
+      [],
+      'register-device is a pure DDB write; it must not call Customer Profiles',
     );
 
     const upsert = named(ddbCommands, 'UpdateItemCommand')[0];
@@ -466,8 +460,10 @@ void describe('write handler', () => {
  * Layer C: the RUNTIME gate. The deploy-time custom resource only runs during a
  * deployment, so a customer who enables Identity Resolution afterwards would
  * otherwise keep writing into a merging domain until the next deploy. These
- * cases assert the write is refused per request instead, and — critically — that
- * the refusal happens BEFORE any profile or device write is issued.
+ * cases assert the PROFILE write is refused per request instead, and — critically
+ * — that the refusal happens BEFORE any profile write is issued. They also pin
+ * the gate's SCOPE: the device routes are outside it, because neither touches
+ * Customer Profiles at all.
  */
 void describe('write handler merging gate', () => {
   /** Mocks where GetDomain reports the given matching configuration. */
@@ -527,17 +523,24 @@ void describe('write handler merging gate', () => {
     );
   });
 
-  void it('register-device: 409 and NO device write when merging is enabled', async () => {
+  void it('register-device: NOT gated — succeeds when merging is enabled, without paying for the check', async () => {
+    // The device claim is a principalId-keyed write into the authoritative
+    // DynamoDB Devices table. It never touches Customer Profiles, so no merge
+    // can absorb, redirect or be triggered by it — gating it would only cost a
+    // GetDomain and break device registration for no behavioral benefit.
     installWithDomain(MERGING_DOMAIN);
 
     const res = await handler(registerEvent());
 
-    assert.strictEqual(res.statusCode, 409);
-    assert.strictEqual(JSON.parse(res.body).message, MERGING_REJECTED_MESSAGE);
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(
+      !issued('GetDomainCommand'),
+      'register-device does not even pay for the check',
+    );
     assert.deepStrictEqual(
       ddbCommands.map((c) => c.name),
-      [],
-      'device ownership must not be claimed against a merging domain',
+      ['UpdateItemCommand'],
+      'the device claim still happens on a merging domain',
     );
   });
 
@@ -582,22 +585,24 @@ void describe('write handler merging gate', () => {
     assert.ok(!issued('UpdateProfileCommand'));
   });
 
-  void it('allows writes on a non-merging domain and checks the domain only ONCE across requests', async () => {
+  void it('allows both writes on a non-merging domain and checks the domain only ONCE across gated requests', async () => {
     installWithDomain({
       Matching: { Enabled: false },
       RuleBasedMatching: { Enabled: false },
     });
 
     const identify = await handler(identifyEvent());
+    const identifyAgain = await handler(identifyEvent());
     const register = await handler(registerEvent());
 
     assert.strictEqual(identify.statusCode, 200);
+    assert.strictEqual(identifyAgain.statusCode, 200);
     assert.strictEqual(register.statusCode, 200);
     assert.ok(issued('UpdateProfileCommand'), 'the profile write happened');
     assert.strictEqual(
       profileCommands.filter((c) => c.name === 'GetDomainCommand').length,
       1,
-      'the second request is served from the TTL cache',
+      'the second gated request is served from the TTL cache',
     );
   });
 });
