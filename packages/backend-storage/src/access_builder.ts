@@ -59,7 +59,10 @@ export const roleAccessBuilder: StorageAccessBuilder = {
   }),
   entity: (entityId) => ({
     to: (actions) => ({
-      getResourceAccessAcceptors: [getAuthRoleResourceAccessAcceptor],
+      getResourceAccessAcceptors: [
+        getAuthRoleResourceAccessAcceptor,
+        getEntityAccessForAllGroups,
+      ],
       uniqueDefinitionIdValidations: [
         {
           uniqueDefinitionId: `entity${entityId}`,
@@ -101,6 +104,71 @@ const getUnauthRoleResourceAccessAcceptor = (
     getInstanceProps,
     'unauthenticatedUserIamRole',
   );
+
+const getEntityAccessForAllGroups = (
+  getInstanceProps: ConstructFactoryGetInstanceProps,
+) => {
+  const authResources = getInstanceProps.constructContainer
+    .getConstructFactory<
+      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName | string>
+    >('AuthResources')
+    ?.getInstance(getInstanceProps);
+
+  if (!authResources) {
+    // If no auth resources, return a no-op acceptor
+    return {
+      identifier: 'entityAccessForAllGroups-empty',
+      acceptResourceAccess: () => {
+        // No groups to apply permissions to
+      },
+    };
+  }
+
+  const resources =
+    'resources' in authResources ? authResources.resources : undefined;
+  const groups =
+    resources && typeof resources === 'object' && 'groups' in resources
+      ? (resources as { groups: Record<string, unknown> }).groups
+      : undefined;
+
+  if (!groups) {
+    // If no groups defined, return a no-op acceptor
+    return {
+      identifier: 'entityAccessForAllGroups-empty',
+      acceptResourceAccess: () => {
+        // No groups to apply permissions to
+      },
+    };
+  }
+
+  // Create a compound acceptor that applies to all group roles
+  const groupNames = Object.keys(groups);
+
+  return {
+    identifier: `entityAccessForAllGroups-${groupNames.join('-')}`,
+    acceptResourceAccess: (policy: unknown, ssmEnvironmentEntries: unknown) => {
+      // Apply the policy to each group role
+      groupNames.forEach((groupName) => {
+        try {
+          const groupAcceptor = getUserRoleResourceAccessAcceptor(
+            getInstanceProps,
+            groupName,
+          );
+          groupAcceptor.acceptResourceAccess(
+            policy as Parameters<typeof groupAcceptor.acceptResourceAccess>[0],
+            ssmEnvironmentEntries as Parameters<
+              typeof groupAcceptor.acceptResourceAccess
+            >[1],
+          );
+        } catch (error) {
+          // Group role might not exist, ignore silently
+          // This is expected behavior when a group role hasn't been created yet
+          void error; // Acknowledge the error parameter to satisfy ESLint
+        }
+      });
+    },
+  };
+};
 
 const getUserRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
