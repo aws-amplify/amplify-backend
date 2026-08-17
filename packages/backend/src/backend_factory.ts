@@ -153,8 +153,9 @@ export class BackendFactory<
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
+  props?: { stack?: Stack },
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  const backend = new BackendFactory(constructFactories, props?.stack);
   return {
     ...backend.resources,
     createStack: backend.createStack,
