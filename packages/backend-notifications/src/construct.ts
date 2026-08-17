@@ -14,6 +14,7 @@ import {
   Stack,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -43,7 +44,10 @@ import {
   ResourceProvider,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { CDKContextKey } from '@aws-amplify/platform-core';
+import {
+  CDKContextKey,
+  addCfnResourceDependency,
+} from '@aws-amplify/platform-core';
 
 import {
   CONNECT_CAMPAIGNS_SERVICE_NAME,
@@ -422,8 +426,8 @@ export class AmplifyNotifications
           objectTypeName: 'CTR',
         },
       );
-      ctrIntegration.addDependency(connectInstance);
-      ctrIntegration.addDependency(profilesDomain);
+      addCfnResourceDependency(ctrIntegration, connectInstance);
+      addCfnResourceDependency(ctrIntegration, profilesDomain);
 
       // Message-templates knowledge base + its instance association. Both the
       // Connect console's message-template authoring UI and the push-delivery
@@ -450,8 +454,8 @@ export class AmplifyNotifications
           integrationArn: templatesKb.attrKnowledgeBaseArn,
         },
       );
-      templatesAssociation.addDependency(connectInstance);
-      templatesAssociation.addDependency(templatesKb);
+      addCfnResourceDependency(templatesAssociation, connectInstance);
+      addCfnResourceDependency(templatesAssociation, templatesKb);
     } else {
       domainName = props.domainName as string;
     }
@@ -511,7 +515,7 @@ export class AmplifyNotifications
     });
 
     if (profilesDomain) {
-      profileType.addDependency(profilesDomain);
+      addCfnResourceDependency(profileType, profilesDomain);
     }
 
     // ---- Outbound Campaigns association (create-from-scratch ONLY) ----------
