@@ -15,7 +15,10 @@ import {
   NotificationsAttachProjectTestProject,
   NotificationsAttachProjectTestProjectCreator,
 } from '../../test-project-setup/notifications_attach_project.js';
-import { cleanupAllCreatedProfilesDomains } from '../../resource-creation/customer_profiles_domain_creator.js';
+import {
+  cleanupAllCreatedProfilesDomains,
+  sweepStaleProfilesDomains,
+} from '../../resource-creation/customer_profiles_domain_creator.js';
 
 /**
  * Deploy-time compatibility of `defineNotifications` ATTACH mode with the
@@ -35,12 +38,18 @@ import { cleanupAllCreatedProfilesDomains } from '../../resource-creation/custom
 void describe('notifications attach-mode Identity Resolution compatibility', () => {
   before(async () => {
     await createTestDirectory(rootTestDir);
+    // A run that was killed outright leaves its throwaway domains behind, and
+    // nothing in the next run's process knows their names. Sweeping by age on
+    // both ends keeps a killed run from leaving a billable domain until the
+    // hourly cleanup job comes round.
+    await sweepStaleProfilesDomains();
   });
 
   after(async () => {
     // Safety net: a Customer Profiles domain is billable and must never outlive
     // the run, including when a test failed before its own cleanup ran.
     await cleanupAllCreatedProfilesDomains();
+    await sweepStaleProfilesDomains();
     await deleteTestDirectory(rootTestDir);
   });
 

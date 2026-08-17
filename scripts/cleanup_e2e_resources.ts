@@ -59,7 +59,9 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
+import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
 import { CloudFrontDistributionCleaner } from './components/e2e-cleanup/cloudfront_distribution_cleaner.js';
+import { CustomerProfilesDomainCleaner } from './components/e2e-cleanup/customer_profiles_domain_cleaner.js';
 import { E2E_TEST_REGIONS } from './components/e2e-cleanup/e2e_test_regions.js';
 import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
 import {
@@ -84,6 +86,9 @@ const cloudWatchClient = new CloudWatchLogsClient({
 const cognitoClient = new CognitoIdentityProviderClient({
   maxAttempts: 5,
 });
+const customerProfilesClient = new CustomerProfilesClient({
+  maxAttempts: 5,
+});
 const ddbClient = new DynamoDBClient({
   maxAttempts: 5,
 });
@@ -99,6 +104,12 @@ const ssmClient = new SSMClient({
 const now = new Date();
 const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
 const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
+/**
+ * Name prefix of the Customer Profiles domains the attach mode notifications e2e tests create.
+ * Deliberately distinct from the `amazon-connect-*` names the notifications construct generates,
+ * so this sweep can never touch a domain that a construct or a customer owns.
+ */
+const TEST_PROFILES_DOMAIN_PREFIX = 'amplify-notif-ir-';
 
 /**
  * Stacks are considered stale after 2 hours.
@@ -158,6 +169,11 @@ const s3BucketEmptier = new S3BucketEmptier(s3Client);
 const cloudFrontDistributionCleaner = new CloudFrontDistributionCleaner(
   cloudFrontClient,
   TEST_AMPLIFY_RESOURCE_PREFIX,
+);
+const customerProfilesDomainCleaner = new CustomerProfilesDomainCleaner(
+  customerProfilesClient,
+  TEST_PROFILES_DOMAIN_PREFIX,
+  isStale,
 );
 
 /**
@@ -693,6 +709,14 @@ for (const logGroup of allStaleLogGroups) {
     );
   }
 }
+
+/**
+ * Customer Profiles domains are created by the attach mode notifications tests with the SDK, not
+ * by CloudFormation, so no stack deletion ever reclaims one and the live stack ownership index
+ * does not apply to them. A leaked domain is billable, therefore the prefix match in the cleaner
+ * is what keeps this sweep safe rather than stack ownership.
+ */
+await customerProfilesDomainCleaner.deleteStaleTestDomains();
 
 /**
  * An incomplete ownership index means the sweeps above fail closed and leave stale resources

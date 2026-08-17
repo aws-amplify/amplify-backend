@@ -1,10 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import assert from 'assert';
 import {
   CreateDomainCommand,
   CustomerProfilesClient,
   DeleteDomainCommand,
+  ListDomainsCommand,
+  ListDomainsCommandOutput,
   UpdateDomainCommand,
 } from '@aws-sdk/client-customer-profiles';
 import { shortUuid } from '../short_uuid.js';
@@ -15,20 +18,37 @@ import {
 } from '../customer_profiles_identity_resolution.js';
 
 /**
- * Default name prefix for the throwaway Customer Profiles domains these tests
- * create. Deliberately distinct from the `amazon-connect-*` names the
+ * Name prefix EVERY domain these tests create carries, whatever the configured
+ * prefix is. Deliberately distinct from the `amazon-connect-*` names the
  * notifications construct generates in create-from-scratch mode, so a sweep of
- * test-created domains can never touch a construct-owned one.
+ * test-created domains can never touch a construct-owned one. It is also what
+ * the e2e IAM roles scope Customer Profiles access to, therefore what
+ * {@link sweepStaleProfilesDomains} and the hourly cleanup job can delete.
  */
-export const DEFAULT_TEST_PROFILES_DOMAIN_PREFIX = 'amplify-notif-ir-e2e';
+export const TEST_PROFILES_DOMAIN_PREFIX = 'amplify-notif-ir-';
+
+/**
+ * Default name prefix for the throwaway Customer Profiles domains these tests
+ * create.
+ */
+export const DEFAULT_TEST_PROFILES_DOMAIN_PREFIX = `${TEST_PROFILES_DOMAIN_PREFIX}e2e`;
 
 /**
  * Optional override for {@link DEFAULT_TEST_PROFILES_DOMAIN_PREFIX}. Lets a
  * local run namespace the domains it creates so its own leftovers can be
- * identified and swept independently of anything else in the account.
+ * identified and swept independently of anything else in the account. An
+ * override still has to start with {@link TEST_PROFILES_DOMAIN_PREFIX}, which is
+ * what the e2e IAM roles and the cleanup sweeps are scoped to.
  */
 export const ENV_TEST_PROFILES_DOMAIN_PREFIX =
   'AMPLIFY_BACKEND_TESTS_PROFILES_DOMAIN_PREFIX';
+
+/**
+ * Age at which a domain is treated as a leftover of an EARLIER run rather than
+ * a domain a test is currently using, so it can be swept. Matches the staleness
+ * threshold of the hourly cleanup job.
+ */
+const STALE_DOMAIN_AGE_IN_MILLISECONDS = 2 * 60 * 60 * 1000;
 
 /** Profiles are expired aggressively: these domains live for minutes. */
 const TEST_DOMAIN_EXPIRATION_DAYS = 1;
@@ -146,6 +166,92 @@ export const cleanupAllCreatedProfilesDomains = async (
 };
 
 /**
+ * Delete every test domain in the ACCOUNT that is old enough to belong to an
+ * earlier run.
+ *
+ * {@link cleanupAllCreatedProfilesDomains} can only reach the domains of the
+ * current process, so a run that was killed outright leaves domains nothing in
+ * the suite knows about. Those are billable, so the suite sweeps by age and name
+ * prefix instead: only names starting with {@link TEST_PROFILES_DOMAIN_PREFIX}
+ * are ever considered, and only once they are older than a run could plausibly
+ * still be using them, so a concurrent run's domains are never taken away.
+ *
+ * Best effort by design: it runs in `before` / `after` hooks where a Customer
+ * Profiles permission gap must not be the reason a test suite fails.
+ * @param client Customer Profiles client.
+ * @param maxAgeInMilliseconds Age above which a domain is swept.
+ */
+export const sweepStaleProfilesDomains = async (
+  client: CustomerProfilesClient = new CustomerProfilesClient(
+    e2eToolingClientConfig,
+  ),
+  maxAgeInMilliseconds: number = STALE_DOMAIN_AGE_IN_MILLISECONDS,
+): Promise<void> => {
+  const now = Date.now();
+  let staleDomainNames: string[];
+  try {
+    staleDomainNames = (await listTestProfilesDomains(client))
+      .filter(
+        (domain) =>
+          domain.createdAt !== undefined &&
+          now - domain.createdAt.getTime() > maxAgeInMilliseconds,
+      )
+      .map((domain) => domain.domainName);
+  } catch (err) {
+    console.warn(
+      'Could not list Customer Profiles domains, skipping the stale domain sweep',
+      err,
+    );
+    return;
+  }
+  if (staleDomainNames.length === 0) {
+    return;
+  }
+  console.log(
+    `Sweeping ${staleDomainNames.length} stale Customer Profiles domain(s) left by earlier runs: ${JSON.stringify(staleDomainNames)}`,
+  );
+  for (const domainName of staleDomainNames) {
+    try {
+      await deleteDomain(client, domainName);
+    } catch (err) {
+      console.warn(
+        `Failed to delete stale Customer Profiles domain ${domainName}, leaving it to the cleanup job`,
+        err,
+      );
+    }
+  }
+};
+
+/**
+ * List the name and creation time of every domain in the account that carries
+ * the test prefix.
+ * @param client Customer Profiles client.
+ */
+const listTestProfilesDomains = async (
+  client: CustomerProfilesClient,
+): Promise<Array<{ domainName: string; createdAt?: Date }>> => {
+  const domains: Array<{ domainName: string; createdAt?: Date }> = [];
+  let nextToken: string | undefined = undefined;
+  do {
+    const page: ListDomainsCommandOutput = await client.send(
+      /* eslint-disable-next-line @typescript-eslint/naming-convention --
+         Customer Profiles API request shapes are PascalCase by contract. */
+      new ListDomainsCommand({ NextToken: nextToken }),
+    );
+    nextToken = page.NextToken;
+    for (const domain of page.Items ?? []) {
+      if (domain.DomainName?.startsWith(TEST_PROFILES_DOMAIN_PREFIX)) {
+        domains.push({
+          domainName: domain.DomainName,
+          ...(domain.CreatedAt ? { createdAt: domain.CreatedAt } : {}),
+        });
+      }
+    }
+  } while (nextToken);
+  return domains;
+};
+
+/**
  * Creates and manages the throwaway Customer Profiles domains that the
  * attach-mode notifications e2e tests point `defineNotifications({ domainName })`
  * at.
@@ -172,11 +278,23 @@ export class CustomerProfilesDomainCreator {
 
   /**
    * The prefix every domain created by this instance carries.
+   *
+   * An override outside {@link TEST_PROFILES_DOMAIN_PREFIX} is rejected rather
+   * than honoured: the e2e roles are only permitted to create and delete domains
+   * under that prefix, so such a run would either fail on create or leak a
+   * billable domain no sweep is allowed to reclaim.
    * @returns The configured prefix.
    */
-  static prefix = (): string =>
-    process.env[ENV_TEST_PROFILES_DOMAIN_PREFIX] ??
-    DEFAULT_TEST_PROFILES_DOMAIN_PREFIX;
+  static prefix = (): string => {
+    const prefix =
+      process.env[ENV_TEST_PROFILES_DOMAIN_PREFIX] ??
+      DEFAULT_TEST_PROFILES_DOMAIN_PREFIX;
+    assert.ok(
+      prefix.startsWith(TEST_PROFILES_DOMAIN_PREFIX),
+      `${ENV_TEST_PROFILES_DOMAIN_PREFIX} must start with '${TEST_PROFILES_DOMAIN_PREFIX}', got '${prefix}'`,
+    );
+    return prefix;
+  };
 
   /**
    * Create a throwaway domain with Identity Resolution DISABLED.
