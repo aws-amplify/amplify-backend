@@ -30,7 +30,11 @@ inputs:
   attempt_timeout_minutes:
     description: Timeout for each attempt in minutes
     required: false
-    default: '25'
+    # 40 (was 25): a cold-cache create-amplify install from the local verdaccio
+    # proxy can legitimately exceed the old 25-min cap and time out; retries then
+    # outlive the 1h OIDC session token (ExpiredTokenException). A 40-min attempt
+    # lets a cold install finish in one pass within the credential window.
+    default: '40'
   retry_attempts:
     description: Number of retry attempts for the main script
     required: false
@@ -39,6 +43,18 @@ inputs:
     description: Delay between retry attempts in seconds
     required: false
     default: '300'
+  credential_duration_seconds:
+    description: >-
+      Requested session duration (seconds) for the per-attempt role re-assume.
+      Default 3600 (1h) matches the e2e roles' default MaxSessionDuration. Jobs
+      whose single attempt legitimately runs longer than ~55 min (e.g.
+      backwards-compatibility, which does multiple full installs + deploys) can
+      raise this so credentials outlive the attempt instead of expiring
+      mid-run. NOTE: STS caps this at the ROLE's MaxSessionDuration, so raising
+      it above 3600 only takes effect once the e2e roles' MaxSessionDuration is
+      raised in the account; until then the re-assume falls back to 3600.
+    required: false
+    default: '3600'
 runs:
   using: composite
   steps:
@@ -102,6 +118,99 @@ runs:
           SHELL_CMD="bash"
         fi
 
+        # Re-assume the e2e roles using a fresh GitHub OIDC token.
+        #
+        # configure-aws-credentials runs ONCE before this step, and the e2e
+        # roles cap MaxSessionDuration at 1h, so on long multi-attempt runs the
+        # session expires mid-retry and every subsequent attempt fails with
+        # ExpiredToken/ExpiredTokenException. Since each attempt is bounded by
+        # attempt_timeout_minutes (<= the 1h cap), re-assuming both roles at the
+        # start of every attempt guarantees each attempt runs on a fresh ~1h
+        # credential. This is exactly what configure-aws-credentials does
+        # internally (assume-role-with-web-identity), just repeated per attempt.
+        #
+        # Defensive: any failure here leaves the pre-existing credentials in
+        # place and returns 0, so this is never worse than the current behavior.
+        refresh_credentials() {
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "OIDC request env not present; keeping existing credentials"
+            return 0
+          fi
+          local oidc_token
+          oidc_token=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            | jq -r '.value')
+          if [ -z "$oidc_token" ] || [ "$oidc_token" = "null" ]; then
+            echo "WARN: could not fetch OIDC token; keeping existing credentials"
+            return 0
+          fi
+
+          # Requested session duration. STS caps this at the role's
+          # MaxSessionDuration; if the requested value is rejected we retry at
+          # the safe 3600s default so a not-yet-raised MaxSessionDuration never
+          # breaks the re-assume.
+          local requested_duration="${CREDENTIAL_DURATION_SECONDS:-3600}"
+
+          # assume_with_fallback <role-arn> <session-name>: echoes the
+          # Credentials JSON, trying the requested duration then 3600.
+          assume_with_fallback() {
+            local role_arn="$1" session_name="$2" creds
+            for dur in "$requested_duration" 3600; do
+              if creds=$(aws sts assume-role-with-web-identity \
+                --role-arn "$role_arn" \
+                --role-session-name "$session_name" \
+                --web-identity-token "$oidc_token" \
+                --duration-seconds "$dur" \
+                --query 'Credentials' --output json 2>/dev/null); then
+                echo "$creds"
+                return 0
+              fi
+              [ "$dur" = "3600" ] && break
+              echo "WARN: re-assume at ${dur}s failed (MaxSessionDuration too low?); retrying at 3600s" >&2
+            done
+            return 1
+          }
+
+          # Execution role -> default credential env (used by cdk/ampx deploy).
+          # Register the secret + session token with the runner's log masker
+          # (::add-mask::) BEFORE exporting, so they render as *** if any later
+          # step echoes the environment. configure-aws-credentials does this via
+          # core.setSecret(); assume-role-with-web-identity does not, and this
+          # repo is public, so we must mask them ourselves.
+          local exec_creds exec_ak exec_sk exec_st
+          if exec_creds=$(assume_with_fallback "$E2E_EXECUTION_ROLE_ARN" "gha-e2e-exec-${ATTEMPT}"); then
+            exec_ak=$(echo "$exec_creds" | jq -r '.AccessKeyId')
+            exec_sk=$(echo "$exec_creds" | jq -r '.SecretAccessKey')
+            exec_st=$(echo "$exec_creds" | jq -r '.SessionToken')
+            echo "::add-mask::$exec_sk"
+            echo "::add-mask::$exec_st"
+            export AWS_ACCESS_KEY_ID="$exec_ak"
+            export AWS_SECRET_ACCESS_KEY="$exec_sk"
+            export AWS_SESSION_TOKEN="$exec_st"
+            echo "Refreshed execution-role credentials for attempt ${ATTEMPT}"
+          else
+            echo "WARN: execution-role re-assume failed; keeping existing credentials"
+          fi
+
+          # Tooling role -> e2e-tooling profile (used by the test's AWS clients).
+          local tool_creds tool_ak tool_sk tool_st
+          if tool_creds=$(assume_with_fallback "$E2E_TOOLING_ROLE_ARN" "gha-e2e-tooling-${ATTEMPT}"); then
+            tool_ak=$(echo "$tool_creds" | jq -r '.AccessKeyId')
+            tool_sk=$(echo "$tool_creds" | jq -r '.SecretAccessKey')
+            tool_st=$(echo "$tool_creds" | jq -r '.SessionToken')
+            echo "::add-mask::$tool_sk"
+            echo "::add-mask::$tool_st"
+            aws configure set aws_access_key_id "$tool_ak" --profile e2e-tooling
+            aws configure set aws_secret_access_key "$tool_sk" --profile e2e-tooling
+            aws configure set aws_session_token "$tool_st" --profile e2e-tooling
+            echo "Refreshed tooling-role credentials for attempt ${ATTEMPT}"
+          else
+            echo "WARN: tooling-role re-assume failed; keeping existing credentials"
+          fi
+          return 0
+        }
+
         # Retry logic
         RETRY_ATTEMPTS=${{ inputs.retry_attempts }}
         RETRY_DELAY=${{ inputs.retry_delay }}
@@ -164,7 +273,11 @@ runs:
 
         while [ $ATTEMPT -le $RETRY_ATTEMPTS ]; do
           echo "Attempt $ATTEMPT of $RETRY_ATTEMPTS"
-          
+
+          # Start each attempt with fresh ~1h credentials so a retry never runs
+          # on an expired session (the roles cap MaxSessionDuration at 1h).
+          refresh_credentials
+
           if run_with_timeout '${{ inputs.run }}' "$SHELL_CMD"; then
             echo "Script succeeded on attempt $ATTEMPT"
             exit 0
@@ -197,3 +310,9 @@ runs:
       env:
         AWS_REGION: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
         AMPLIFY_BACKEND_TESTS_E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
+        # Consumed by refresh_credentials() to re-assume both roles per attempt.
+        E2E_EXECUTION_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
+        E2E_TOOLING_ROLE_ARN: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
+        # Requested per-attempt session duration; falls back to 3600 if the
+        # role's MaxSessionDuration is lower (see assume_with_fallback).
+        CREDENTIAL_DURATION_SECONDS: ${{ inputs.credential_duration_seconds }}

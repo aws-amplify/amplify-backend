@@ -37,6 +37,7 @@ export type SandboxOptions = {
   format?: ClientConfigFormat;
   watchForChanges?: boolean;
   functionStreamingOptions?: SandboxFunctionStreamingOptions;
+  express?: boolean;
 };
 
 export type SandboxFunctionStreamingOptions = {

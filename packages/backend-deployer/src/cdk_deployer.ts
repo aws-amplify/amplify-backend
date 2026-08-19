@@ -143,15 +143,17 @@ export class CDKDeployer implements BackendDeployer {
 
     // Perform actual deployment. CFN or hotswap
     const deployStartTime = Date.now();
+    const isSandbox = backendId.type === 'sandbox';
     try {
       await this.cdkToolkit.deploy(synthAssembly!, {
         stacks: {
           strategy: StackSelectionStrategy.ALL_STACKS,
         },
-        deploymentMethod:
-          backendId.type === 'sandbox'
-            ? { method: 'hotswap', fallback: { method: 'direct' } }
-            : { method: 'direct' },
+        deploymentMethod: isSandbox
+          ? { method: 'hotswap', fallback: { method: 'direct' } }
+          : { method: 'direct' },
+        // Opt-in Express mode is only wired for sandbox deployments.
+        ...(isSandbox && deployProps?.express ? { express: true } : {}),
       });
     } catch (error) {
       await this.ioHost.notify({

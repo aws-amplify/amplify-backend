@@ -36,3 +36,10 @@ allow-licenses:
 allow-ghsas:
   - 'GHSA-8gc5-j5rx-235r' # fast-xml-parser 4.x - no patched 4.x exists; transitive dep of aws-amplify@6.14.4
   - 'GHSA-jp2q-39xq-3w4g' # fast-xml-parser 4.x - no patched 4.x exists; transitive dep of aws-amplify@6.14.4
+  # fast-xml-parser vulnerabilities from transitive deps (bundled in @aws-amplify/data-construct,
+  # @aws-amplify/graphql-api-construct, and via aws-amplify SDK). Cannot be fixed without upstream releases.
+  - 'GHSA-m7jm-9gc2-mpf2' # fast-xml-parser entity encoding bypass via regex injection in DOCTYPE (CRITICAL)
+  - 'GHSA-37qj-frw5-hhjh' # fast-xml-parser RangeError DoS via numeric entities (HIGH)
+  - 'GHSA-jmr7-xgp7-cmfj' # fast-xml-parser DoS through entity expansion in DOCTYPE (HIGH)
+  - 'GHSA-gh4j-gqv2-49f6' # fast-xml-parser XMLBuilder XML Comment and CDATA injection (MODERATE)
+  - 'GHSA-fj3w-jwp8-x2g3' # fast-xml-parser stack overflow in XMLBuilder with preserveOrder (LOW)

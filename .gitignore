@@ -27,3 +27,4 @@ testDir
 *.d.ts
 *.map
 .roko/
+API.md.api.md

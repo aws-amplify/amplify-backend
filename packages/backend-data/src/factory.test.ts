@@ -1,23 +1,26 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory, defineData } from './factory.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyFunction,
   AuthResources,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  BackendSecret,
   ConstructContainer,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
+  ResolvePathResult,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
+import { configure } from '@aws-amplify/data-schema/internals';
 import { Policy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
@@ -1195,6 +1198,375 @@ void describe('Table Import', () => {
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
       message:
         'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMappings',
+    });
+  });
+});
+
+void describe('DataFactory stackMappings', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
+
+  void it('passes stackMappings to the underlying construct', () => {
+    const schema = /* GraphQL */ `
+      type Todo @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        content: String!
+        done: Boolean
+      }
+
+      type Order @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        item: String!
+        quantity: Int
+        status: String
+      }
+    `;
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+      stackMappings: {
+        CreateOrderResolver: 'OrderMutations',
+        UpdateOrderResolver: 'OrderMutations',
+        DeleteOrderResolver: 'OrderMutations',
+      },
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Verify that the OrderMutations nested stack was created
+    assert(
+      'OrderMutations' in dataConstruct.resources.nestedStacks,
+      'Expected OrderMutations nested stack to be created via stackMappings',
+    );
+
+    // Verify resolvers were placed in the OrderMutations stack
+    const orderMutationsTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['OrderMutations'],
+    );
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createOrder',
+      TypeName: 'Mutation',
+    });
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'updateOrder',
+      TypeName: 'Mutation',
+    });
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'deleteOrder',
+      TypeName: 'Mutation',
+    });
+  });
+
+  void it('works without stackMappings (default behavior)', () => {
+    const schema = /* GraphQL */ `
+      type Todo @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        content: String!
+        done: Boolean
+      }
+    `;
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Verify the default nested stacks exist
+    assert(
+      'Todo' in dataConstruct.resources.nestedStacks,
+      'Expected Todo nested stack to exist by default',
+    );
+    // Verify no extra stacks were created
+    assert(
+      !('OrderMutations' in dataConstruct.resources.nestedStacks),
+      'OrderMutations stack should not exist without stackMappings',
+    );
+  });
+
+  void it('distributes resolvers across multiple custom stacks', () => {
+    const schema = /* GraphQL */ `
+      type Todo @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        content: String!
+        done: Boolean
+      }
+
+      type Order @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        item: String!
+        quantity: Int
+        status: String
+      }
+
+      type Product @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        name: String!
+        price: Float
+      }
+    `;
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+      stackMappings: {
+        CreateOrderResolver: 'OrderMutations',
+        UpdateOrderResolver: 'OrderMutations',
+        DeleteOrderResolver: 'OrderMutations',
+        CreateProductResolver: 'ProductMutations',
+        UpdateProductResolver: 'ProductMutations',
+        DeleteProductResolver: 'ProductMutations',
+        CreateTodoResolver: 'TodoMutations',
+        UpdateTodoResolver: 'TodoMutations',
+        DeleteTodoResolver: 'TodoMutations',
+      },
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    assert(
+      'OrderMutations' in dataConstruct.resources.nestedStacks,
+      'Expected OrderMutations nested stack to be created',
+    );
+    assert(
+      'ProductMutations' in dataConstruct.resources.nestedStacks,
+      'Expected ProductMutations nested stack to be created',
+    );
+    assert(
+      'TodoMutations' in dataConstruct.resources.nestedStacks,
+      'Expected TodoMutations nested stack to be created',
+    );
+
+    const orderMutationsTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['OrderMutations'],
+    );
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createOrder',
+      TypeName: 'Mutation',
+    });
+
+    const productMutationsTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['ProductMutations'],
+    );
+    productMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createProduct',
+      TypeName: 'Mutation',
+    });
+
+    const todoMutationsTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['TodoMutations'],
+    );
+    todoMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createTodo',
+      TypeName: 'Mutation',
+    });
+  });
+
+  void it('handles empty stackMappings object', () => {
+    const schema = /* GraphQL */ `
+      type Todo @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        content: String!
+        done: Boolean
+      }
+    `;
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+      stackMappings: {},
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Verify default behavior when stackMappings is empty
+    assert(
+      'Todo' in dataConstruct.resources.nestedStacks,
+      'Expected Todo nested stack to exist with empty stackMappings',
+    );
+
+    const todoTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['Todo'],
+    );
+    todoTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createTodo',
+      TypeName: 'Mutation',
+    });
+  });
+
+  void it('maps some resolvers while leaving others in default stacks', () => {
+    const schema = /* GraphQL */ `
+      type Todo @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        content: String!
+        done: Boolean
+      }
+
+      type Order @model @auth(rules: [{ allow: public }]) {
+        id: ID!
+        item: String!
+        quantity: Int
+        status: String
+      }
+    `;
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+      stackMappings: {
+        CreateOrderResolver: 'OrderMutations',
+        UpdateOrderResolver: 'OrderMutations',
+      },
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    // Verify the custom stack was created for mapped resolvers
+    assert(
+      'OrderMutations' in dataConstruct.resources.nestedStacks,
+      'Expected OrderMutations nested stack to be created',
+    );
+
+    // Verify Todo resolvers without mapping remain in the default Todo stack
+    assert(
+      'Todo' in dataConstruct.resources.nestedStacks,
+      'Expected Todo nested stack to exist for resolvers without custom mapping',
+    );
+    const todoTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['Todo'],
+    );
+    todoTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createTodo',
+      TypeName: 'Mutation',
+    });
+
+    // Verify mapped resolvers are in the custom stack
+    const orderMutationsTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['OrderMutations'],
+    );
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'createOrder',
+      TypeName: 'Mutation',
+    });
+    orderMutationsTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'updateOrder',
+      TypeName: 'Mutation',
+    });
+
+    // Verify resolver without mapping stays in default stack
+    assert(
+      'Order' in dataConstruct.resources.nestedStacks,
+      'Expected Order nested stack to exist for resolvers without custom mapping',
+    );
+    const orderDefaultTemplate = Template.fromStack(
+      dataConstruct.resources.nestedStacks['Order'],
+    );
+    orderDefaultTemplate.hasResourceProperties('AWS::AppSync::Resolver', {
+      FieldName: 'deleteOrder',
+      TypeName: 'Mutation',
+    });
+  });
+});
+
+class TestBackendSecret implements BackendSecret {
+  constructor(private readonly secretName: string) {}
+  resolve = (): SecretValue => SecretValue.unsafePlainText(this.secretName);
+  resolvePath = (): ResolvePathResult => ({
+    branchSecretPath: `/amplify/branch/${this.secretName}`,
+    sharedSecretPath: `/amplify/shared/${this.secretName}`,
+  });
+}
+
+void describe('DataFactory minimizeRdsVpcEndpoints', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
+
+  void it('synthesizes a single ssm VPC endpoint when minimizeRdsVpcEndpoints is true', () => {
+    const schema = configure({
+      database: {
+        engine: 'mysql',
+        connectionUri: new TestBackendSecret('MYSQL_CONNECTION_STRING'),
+        /* eslint-disable spellcheck/spell-checker */
+        vpcConfig: {
+          vpcId: 'vpc-a1aa11a1',
+          securityGroupIds: ['sg-11111a11'],
+          subnetAvailabilityZones: [
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1a',
+            },
+          ],
+        },
+        /* eslint-enable spellcheck/spell-checker */
+        minimizeRdsVpcEndpoints: true,
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const dataFactory = defineData({
+      schema,
+      authorizationModes: {
+        defaultAuthorizationMode: 'apiKey',
+        apiKeyAuthorizationMode: { expiresInDays: 7 },
+      },
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    const sqlStack = Object.values(dataConstruct.resources.nestedStacks).find(
+      (nestedStack) => nestedStack.node.id.startsWith('SQLApiStack'),
+    );
+    assert(sqlStack, 'Expected a SQLApiStack nested stack to be created');
+
+    const template = Template.fromStack(sqlStack);
+    template.resourceCountIs('AWS::EC2::VPCEndpoint', 1);
+    template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
+      ServiceName: {
+        'Fn::Join': ['', Match.arrayWith(['.ssm'])],
+      },
     });
   });
 });

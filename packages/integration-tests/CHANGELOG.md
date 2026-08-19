@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.10.1
+
+### Patch Changes
+
+- ec892bb: Increase e2e hosting test timeout from 600s to 1200s to accommodate CodeBuild job durations.
+
 ## 0.10.0
 
 ### Minor Changes

@@ -1,5 +1,26 @@
 # @aws-amplify/model-generator
 
+## 1.2.4
+
+### Patch Changes
+
+- 424e1ef: fix(model-generator): skip empty graphql documents to prevent Unexpected <EOF> with @function resolvers
+
+  When an Amplify Data schema exposes only `@function`-backed custom operations and no `@model` types, AppSync generates no subscriptions. The code generation formatter still emits a comment-only document for the empty `subscriptions` operation type, and passing that comment-only string to `graphql.parse()` throws `Syntax Error: Unexpected <EOF>`, aborting the entire `ampx generate graphql-client-code` run. Empty and comment-only operation documents are now filtered out before they reach the parser, so codegen succeeds for `@function`-only schemas. Fixes #3280.
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
+## 1.2.3
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/deployed-backend-client@1.8.2
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
 ## 1.2.2
 
 ### Patch Changes

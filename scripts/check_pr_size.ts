@@ -3,7 +3,14 @@ import { GitClient } from './components/git_client.js';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
-const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
+// `.changeset/` is release metadata (like package-lock/API reports), not source
+// churn — consolidating/squashing changesets should not count against PR size.
+const EXCLUDE = [
+  'package-lock.json',
+  'API.md',
+  'expected-cdk-out',
+  '.changeset/',
+];
 
 const MAX_LINES_ADDED = 1000;
 const MAX_LINES_REMOVED = 1000;
@@ -24,7 +31,10 @@ if (baseRef === undefined) {
 const gitClient = new GitClient();
 const diffFileList = await gitClient.getChangedFiles(baseRef);
 const filteredList = diffFileList.filter(
-  (file) => !EXCLUDE.find((e) => file.includes(e)),
+  // Drop empty entries: an empty diff makes getChangedFiles return `['']`
+  // (splitting '' on EOL), which would otherwise survive the EXCLUDE filter
+  // and make `git diff ... -- ''` fail on an empty (no-op) PR.
+  (file) => file.length > 0 && !EXCLUDE.find((e) => file.includes(e)),
 );
 
 if (filteredList.length === 0) {

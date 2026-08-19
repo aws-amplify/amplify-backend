@@ -1,5 +1,31 @@
 # @aws-amplify/client-config
 
+## 1.11.0
+
+### Minor Changes
+
+- 3f331c5: Add `defineNotifications`, a backend construct for push notifications backed by Amazon Connect Customer Profiles.
+
+  It provisions a SigV4/IAM-authenticated HTTP API with three routes — `POST /identify-user`, `POST /register-device`, and `POST /remove-device` — callable by authenticated and guest Cognito Identity Pool identities; a Customer Profiles object type keyed on the caller's identity; a DynamoDB device store with single-owner semantics and TTL that backs cross-user-safe push delivery; and an Amazon Connect journey push-delivery Lambda. It can attach to an existing Customer Profiles domain or create one, and surfaces its endpoint under `notifications.amazon_connect` in the generated client configuration.
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+- Updated dependencies [424e1ef]
+  - @aws-amplify/plugin-types@1.12.2
+  - @aws-amplify/model-generator@1.2.4
+
+## 1.10.2
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/deployed-backend-client@1.8.2
+  - @aws-amplify/model-generator@1.2.3
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
 ## 1.10.1
 
 ### Patch Changes

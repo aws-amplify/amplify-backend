@@ -23,6 +23,16 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 // the same schema (version and other types)
 
 /**
+ * Translator for the version number of ClientConfig of V1.5
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_5 implements ClientConfigContributor {
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_5 };
+  };
+}
+
+/**
  * Translator for the version number of ClientConfig of V1.4
  */
 export class VersionContributor implements ClientConfigContributor {

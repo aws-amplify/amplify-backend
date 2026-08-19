@@ -84,10 +84,11 @@ void describe('dependabot version update handler', async () => {
     await setPackageToPublic(platypusPackagePath);
 
     await npmClient.install(['@changesets/cli']);
+    await npmClient.install(['human-id@4.1.3']);
     await setPackageDependencies(cantaloupePackagePath, { testDep: '^1.0.0' });
     await setPackageDependencies(platypusPackagePath, { testDep: '^1.0.0' });
 
-    await $`npx --package @changesets/cli -- changeset init`;
+    await $`npx --package @changesets/cli@^2 -- changeset init`;
     await gitClient.commitAllChanges('Initial setup');
     baseRef = await gitClient.getHashForCurrentCommit();
   });
