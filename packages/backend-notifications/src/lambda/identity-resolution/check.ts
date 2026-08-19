@@ -10,7 +10,7 @@
 /* eslint-disable @typescript-eslint/naming-convention -- Customer Profiles API
    response shapes are PascalCase by contract. */
 export type DomainMatchingView = {
-  Matching?: { Enabled?: boolean };
+  Matching?: { Enabled?: boolean; AutoMerging?: { Enabled?: boolean } };
   RuleBasedMatching?: { Enabled?: boolean; Status?: string };
 };
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -21,7 +21,7 @@ export type MergingVerdict =
   | {
       merging: true;
       /** The enabled mechanism, named as the API field, for the error message. */
-      mechanism: 'Matching' | 'RuleBasedMatching';
+      mechanism: 'Matching' | 'AutoMerging' | 'RuleBasedMatching';
       /** `RuleBasedMatching.Status`, when present — PENDING counts as enabled. */
       status?: string;
     };
@@ -30,15 +30,26 @@ export type MergingVerdict =
  * Decide whether Identity Resolution (profile merging) is enabled on a Customer
  * Profiles domain.
  *
- * Merging is treated as ENABLED when EITHER mechanism is on:
+ * Merging is treated as ENABLED when ANY mechanism is on:
  *   - `Matching.Enabled` — the ML/batch weekly identity-resolution job.
+ *   - `Matching.AutoMerging.Enabled` — auto-merge of the job's match groups.
  *   - `RuleBasedMatching.Enabled` — rule-based (real-time) matching.
+ *
+ * `Matching.AutoMerging.Enabled` is inspected INDEPENDENTLY of
+ * `Matching.Enabled` on purpose. The API contract is that auto-merging only runs
+ * as part of the matching job, so `AutoMerging.Enabled: true` should always be
+ * accompanied by `Matching.Enabled: true` and the first branch should already
+ * have caught it. That invariant is not enforced by the response schema, though
+ * (both flags are independently optional), so it is checked rather than assumed:
+ * the cost is one property read, and the failure mode being avoided is a domain
+ * that merges profiles while reporting a shape this predicate passed.
  *
  * `RuleBasedMatching.Status` is deliberately NOT used to soften the verdict:
  * enabling rule-based matching reports PENDING immediately and only becomes
- * ACTIVE up to ~an hour later, so PENDING / IN_PROGRESS / ACTIVE all mean "the
- * customer has asked for merging" and are all refused. Only the `Enabled` flag
- * being false (or the whole block being absent) is a pass.
+ * ACTIVE up to ~an hour later, so PENDING / IN_PROGRESS / ACTIVE (the complete
+ * `RuleBasedMatchingStatus` domain) all mean "the customer has asked for
+ * merging" and are all refused. Only the `Enabled` flag being false (or the
+ * whole block being absent) is a pass.
  *
  * Pure and side-effect free: the deploy-time guard handler calls this on a live
  * `GetDomain` response, and the unit tests call it on literal fixtures.
@@ -49,6 +60,9 @@ export type MergingVerdict =
 export const evaluateMerging = (domain: DomainMatchingView): MergingVerdict => {
   if (domain.Matching?.Enabled === true) {
     return { merging: true, mechanism: 'Matching' };
+  }
+  if (domain.Matching?.AutoMerging?.Enabled === true) {
+    return { merging: true, mechanism: 'AutoMerging' };
   }
   if (domain.RuleBasedMatching?.Enabled === true) {
     const status = domain.RuleBasedMatching.Status;

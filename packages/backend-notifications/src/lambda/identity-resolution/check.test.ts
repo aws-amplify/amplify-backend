@@ -47,6 +47,42 @@ void describe('evaluateMerging', () => {
     });
   });
 
+  void it('refuses auto-merging even if Matching.Enabled is not itself set', () => {
+    // AutoMerging is documented to run only as part of the matching job, so this
+    // shape should not occur — but the response schema makes both flags
+    // independently optional, so the predicate must not depend on the invariant.
+    assert.deepStrictEqual(
+      evaluateMerging({ Matching: { AutoMerging: { Enabled: true } } }),
+      { merging: true, mechanism: 'AutoMerging' },
+    );
+    assert.deepStrictEqual(
+      evaluateMerging({
+        Matching: { Enabled: false, AutoMerging: { Enabled: true } },
+        RuleBasedMatching: { Enabled: false },
+      }),
+      { merging: true, mechanism: 'AutoMerging' },
+    );
+  });
+
+  void it('reports Matching (not AutoMerging) when the documented shape has both', () => {
+    assert.deepStrictEqual(
+      evaluateMerging({
+        Matching: { Enabled: true, AutoMerging: { Enabled: true } },
+      }),
+      { merging: true, mechanism: 'Matching' },
+    );
+  });
+
+  void it('allows a domain whose AutoMerging block is present but disabled', () => {
+    assert.deepStrictEqual(
+      evaluateMerging({
+        Matching: { Enabled: false, AutoMerging: { Enabled: false } },
+        RuleBasedMatching: { Enabled: false },
+      }),
+      { merging: false },
+    );
+  });
+
   void it('refuses rule-based matching that is still PENDING', () => {
     // Enabling rule-based matching reports PENDING immediately and only becomes
     // ACTIVE up to ~an hour later. PENDING already means the customer asked for

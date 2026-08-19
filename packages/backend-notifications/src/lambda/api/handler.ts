@@ -106,6 +106,14 @@ const MERGING_GATED_ROUTES: ReadonlySet<WriteRoute> = new Set<WriteRoute>([
  * 409 vs 503 is a real distinction for clients: 409 means the domain
  * configuration must change and retrying is pointless, while 503 means the check
  * itself could not run and the request may be retried.
+ *
+ * 409 rather than 403: the caller's credentials are not in question — the
+ * request is well-formed and authorized, and it is the target domain's current
+ * configuration that conflicts with it, which is what 409 describes. 403 is
+ * already returned above for the genuinely authorization-related case (no
+ * verified caller identity), so reusing it here would collapse two conditions
+ * that need different fixes — "fix your credentials" vs "fix the domain" — into
+ * one status a client cannot tell apart.
  */
 const mergingRejection = (
   route: WriteRoute,

@@ -222,6 +222,49 @@ void describe('checkMergingDisabled', () => {
       });
     });
 
+    void it('REFETCHES rather than trusting an entry dated in the future (clock moved backwards)', async () => {
+      // A negative age means the stored timestamp cannot be reasoned about — the
+      // clock went backwards between the two calls. Treating that as "young"
+      // would serve the entry for as long as the skew lasts, so the guard must
+      // discard it and revalidate instead.
+      installGetDomain([DISABLED_DOMAIN]);
+      primeMergingCache(DOMAIN, { merging: false }, 10_000);
+
+      const decision = await checkMergingDisabled(profiles, DOMAIN, {
+        nowMs: 0,
+        ...NO_SLEEP,
+      });
+
+      assert.deepStrictEqual(decision, {
+        outcome: 'allow',
+        freshness: 'fresh',
+      });
+      assert.strictEqual(
+        getDomainInputs.length,
+        1,
+        'a future-dated entry must not be served as a cache hit',
+      );
+    });
+
+    void it('FAILS CLOSED on a future-dated entry when revalidation also fails', async () => {
+      // Same skew, but now revalidation fails too. The future-dated entry is not
+      // eligible for the stale grace window either, so this fails CLOSED rather
+      // than serving an entry whose age cannot be reasoned about — even though
+      // that entry says merging is disabled.
+      installGetDomain([throttling()]);
+      primeMergingCache(DOMAIN, { merging: false }, 10_000);
+
+      const decision = await checkMergingDisabled(profiles, DOMAIN, {
+        nowMs: 0,
+        ...NO_SLEEP,
+      });
+
+      assert.deepStrictEqual(decision, {
+        outcome: 'reject-unverified',
+        errorName: 'ThrottlingException',
+      });
+    });
+
     void it('keys the cache per domain', async () => {
       installGetDomain([DISABLED_DOMAIN]);
 
