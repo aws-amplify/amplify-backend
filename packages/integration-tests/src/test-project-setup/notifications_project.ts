@@ -23,9 +23,6 @@ import {
   Profile,
   SearchProfilesCommand,
 } from '@aws-sdk/client-customer-profiles';
-import { SignatureV4 } from '@smithy/signature-v4';
-import { HttpRequest } from '@smithy/protocol-http';
-import { Sha256 } from '@aws-crypto/sha256-js';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { shortUuid } from '../short_uuid.js';
@@ -33,6 +30,13 @@ import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 import { IamCredentials } from '../types.js';
+import {
+  SignedResponse,
+  parseResponseMessage,
+  signedPost,
+  signedPostRaw,
+} from '../notifications_signed_request.js';
+import { assertIdentityResolutionDisabled } from '../customer_profiles_identity_resolution.js';
 
 /**
  * Placeholder token in the fixture `backend.ts` replaced at project-creation
@@ -45,12 +49,6 @@ const INSTANCE_ALIAS_PLACEHOLDER = '$INSTANCE_ALIAS';
  * `principalId` on (frozen contract — see backend-notifications `PRINCIPAL_ID_KEY`).
  */
 const PRINCIPAL_ID_KEY = 'principalIdKey';
-
-/** Small HTTP result of a signed write-route call. */
-type SignedResponse = {
-  status: number;
-  body: string;
-};
 
 /**
  * The push Lambda's per-profile `ResultData` (a structural subset of the
@@ -217,10 +215,61 @@ class NotificationsProjectTestProject extends TestProjectBase {
     const amazonConnect = await this.assertAmazonConnectClientConfig();
     const tableName = await this.assertDevicesTable(backendId);
     await this.assertHttpApiRoutes(backendId);
+    const domainName = await this.resolveCreatedDomainName(backendId);
+    await this.assertCreatedDomainIdentityResolutionDisabled(domainName);
 
     // Phase 1 — functional SigV4 routes + security regression.
-    await this.assertFunctionalRoutes(backendId, amazonConnect, tableName);
+    await this.assertFunctionalRoutes(
+      backendId,
+      amazonConnect,
+      tableName,
+      domainName,
+    );
   }
+
+  /**
+   * Resolve the Customer Profiles domain the deployment CREATED, by physical
+   * resource id — DescribeStackResources, never stack outputs.
+   */
+  private resolveCreatedDomainName = async (
+    backendId: BackendIdentifier,
+  ): Promise<string> => {
+    const domainNames = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::CustomerProfiles::Domain',
+    );
+    assert.strictEqual(
+      domainNames.length,
+      1,
+      `Expected exactly one Customer Profiles domain, found: ${JSON.stringify(domainNames)}`,
+    );
+    console.log(`Customer Profiles domain: ${domainNames[0]}`);
+    return domainNames[0];
+  };
+
+  /**
+   * (d) The domain the construct created has BOTH Identity Resolution (profile
+   * merging) mechanisms disabled on the LIVE resource, not merely in the
+   * synthesized template.
+   *
+   * This is the compatibility contract the whole package rests on: profiles are
+   * keyed by the server-derived caller `principalId`, so one principal must map
+   * to exactly one profile. Merging combines profiles across principals, which
+   * does not preserve that mapping. In create-from-scratch mode the construct
+   * owns the domain and disables both mechanisms explicitly, so the deployed
+   * domain must report them off with no further configuration by the caller.
+   */
+  private assertCreatedDomainIdentityResolutionDisabled = async (
+    domainName: string,
+  ): Promise<void> => {
+    const state = await assertIdentityResolutionDisabled(
+      this.customerProfilesClient,
+      domainName,
+    );
+    console.log(
+      `Identity Resolution disabled on created domain ${domainName}: ${JSON.stringify(state)}`,
+    );
+  };
 
   /**
    * (a) The client config surfaces the canonical
@@ -388,21 +437,9 @@ class NotificationsProjectTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     amazonConnect: { endpoint: string; region: string },
     tableName: string,
+    domainName: string,
   ): Promise<void> => {
     const { endpoint, region } = amazonConnect;
-
-    // Resolve the created Customer Profiles domain name for profile lookups.
-    const domainNames = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::CustomerProfiles::Domain',
-    );
-    assert.strictEqual(
-      domainNames.length,
-      1,
-      `Expected exactly one Customer Profiles domain, found: ${JSON.stringify(domainNames)}`,
-    );
-    const domainName = domainNames[0];
-    console.log(`Customer Profiles domain: ${domainName}`);
 
     // Real Identity Pool credentials + their derived principalIds (identityId).
     const clientConfig = await generateClientConfig(backendId, '1.4');
@@ -1836,13 +1873,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     credentials: IamCredentials,
     body: unknown,
   ): Promise<SignedResponse> =>
-    this.signedPostRaw(
-      endpoint,
-      path,
-      region,
-      credentials,
-      JSON.stringify(body),
-    );
+    signedPost(endpoint, path, region, credentials, body);
 
   /**
    * Like {@link signedPost} but sends a RAW string body (used to exercise the
@@ -1854,35 +1885,8 @@ class NotificationsProjectTestProject extends TestProjectBase {
     region: string,
     credentials: IamCredentials,
     payload: string,
-  ): Promise<SignedResponse> => {
-    const url = new URL(`${endpoint}${path}`);
-    const request = new HttpRequest({
-      method: 'POST',
-      protocol: url.protocol,
-      hostname: url.hostname,
-      path: url.pathname,
-      headers: {
-        host: url.hostname,
-        'content-type': 'application/json',
-      },
-      body: payload,
-    });
-
-    const signer = new SignatureV4({
-      service: 'execute-api',
-      region,
-      credentials,
-      sha256: Sha256,
-    });
-    const signed = await signer.sign(request);
-
-    const res = await fetch(url.toString(), {
-      method: 'POST',
-      headers: signed.headers,
-      body: payload,
-    });
-    return { status: res.status, body: await res.text() };
-  };
+  ): Promise<SignedResponse> =>
+    signedPostRaw(endpoint, path, region, credentials, payload);
 
   /**
    * Poll SearchProfiles for the profile bound to `principalId`, absorbing the
@@ -1958,13 +1962,7 @@ class NotificationsProjectTestProject extends TestProjectBase {
     return res.Item;
   };
 
-  private parseMessage = (body: string): string => {
-    try {
-      return (JSON.parse(body) as { message?: string }).message ?? body;
-    } catch {
-      return body;
-    }
-  };
+  private parseMessage = (body: string): string => parseResponseMessage(body);
 
   /**
    * Parse a response body to a normalized value for deep-equality comparison,

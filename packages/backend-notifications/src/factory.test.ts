@@ -197,8 +197,9 @@ void describe('defineNotifications', () => {
 
     template.resourceCountIs('AWS::CustomerProfiles::Domain', 0);
     template.resourceCountIs('AWS::CustomerProfiles::ObjectType', 1);
-    // write Lambda + push Lambda (push is always provisioned).
-    template.resourceCountIs('AWS::Lambda::Function', 2);
+    // write Lambda + push Lambda (push is always provisioned) + the attach-mode
+    // identity-resolution guard and its custom-resource Provider framework Lambda.
+    template.resourceCountIs('AWS::Lambda::Function', 4);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
     template.resourceCountIs('AWS::ApiGatewayV2::Api', 1);
     // Three SigV4 routes: /identify-user, /register-device, /remove-device.
@@ -355,7 +356,8 @@ void describe('defineNotifications', () => {
     }).getInstance(getInstanceProps);
     const template = Template.fromStack(notifications.stack);
     template.resourceCountIs('AWS::Pinpoint::App', 1);
-    template.resourceCountIs('AWS::Lambda::Function', 2);
+    // identify + push + identity-resolution guard + Provider framework Lambda.
+    template.resourceCountIs('AWS::Lambda::Function', 4);
     assert.strictEqual(typeof notifications.pushFunctionArn, 'string');
     assert.ok(notifications.resources.pushFunction);
     assert.ok(notifications.resources.pushApplication);
