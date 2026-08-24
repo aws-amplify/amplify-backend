@@ -105,6 +105,9 @@
     "typescript": "~5.8.2",
     "verdaccio": "^6.5.2"
   },
+  "overrides": {
+    "@graphql-codegen/plugin-helpers": "7.2.0"
+  },
   "workspaces": [
     "packages/*"
   ],
