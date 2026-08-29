@@ -13,6 +13,7 @@
 '@aws-amplify/backend-cli': patch
 '@aws-amplify/backend-ai': patch
 '@aws-amplify/backend': patch
+'create-amplify': patch
 ---
 
 chore: raise aws-cdk-lib floor to ^2.254.0
