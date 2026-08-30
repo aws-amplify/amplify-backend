@@ -6,7 +6,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { BackendFactory } from './backend_factory.js';
+import { BackendFactory, defineBackend } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -226,6 +226,36 @@ void describe('Backend', () => {
     rootStackTemplate.hasOutput('customOutputs', {
       Value: JSON.stringify(clientConfigPartial),
     });
+  });
+});
+
+void describe('defineBackend', () => {
+  void it('accepts an external stack via props', () => {
+    const externalStack = createStackAndSetContext('branch');
+
+    const backend = defineBackend({}, { stack: externalStack });
+
+    assert.strictEqual(backend.stack, externalStack);
+  });
+
+  void it('produces equivalent result to BackendFactory when given same stack', () => {
+    const stack1 = createStackAndSetContext('branch');
+    const stack2 = createStackAndSetContext('branch');
+
+    const backend = new BackendFactory({}, stack1);
+    const backendViaDefine = defineBackend({}, { stack: stack2 });
+
+    assert.strictEqual(backend.stack, stack1);
+    assert.strictEqual(backendViaDefine.stack, stack2);
+  });
+
+  void it('uses default stack when props is empty object', () => {
+    const externalStack = createStackAndSetContext('sandbox');
+
+    const backend = defineBackend({}, { stack: externalStack });
+
+    assert.ok(backend.stack);
+    assert.strictEqual(backend.stack, externalStack);
   });
 });
 
