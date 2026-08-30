@@ -498,6 +498,16 @@ jobs:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    # The hosting e2e test intentionally deploys into a fixed, manually pre-connected
+    # Amplify app ('hosting-test-app') on a fixed branch, so it cannot use the random
+    # per-run app/branch naming the other e2e tests use. That means every run reuses the
+    # same CloudFormation stack (amplify-<appId>-<branch>-<hash>). When two runs overlap,
+    # the newer run's pipeline-deploy hits a stack the previous run is still asynchronously
+    # deleting, failing with `CloudFormationDeploymentError ... DELETE_IN_PROGRESS`.
+    # Serialize this job (queue, don't cancel) so runs never overlap on the shared app.
+    concurrency:
+      group: e2e-hosting-shared-app
+      cancel-in-progress: false
     needs:
       - do_include_e2e
       - build

@@ -20,10 +20,21 @@ import {
   UpdateAppCommand,
   UpdateBranchCommand,
 } from '@aws-sdk/client-amplify';
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+  DescribeStacksCommandOutput,
+  waitUntilStackDeleteComplete,
+} from '@aws-sdk/client-cloudformation';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { runWithRetry } from '../retry.js';
 
 const amplifyClient = new AmplifyClient({
+  ...e2eToolingClientConfig,
+  maxAttempts: 5,
+});
+
+const cloudFormationClient = new CloudFormationClient({
   ...e2eToolingClientConfig,
   maxAttempts: 5,
 });
@@ -126,6 +137,13 @@ void describe('hosting', () => {
   });
 
   void it('can deploy backend', async () => {
+    // The pipeline-deploy triggered by this job (see buildSpec) deploys into a fixed,
+    // shared CloudFormation stack (amplify-<appId>-<branchName>-<hash>) because this test
+    // reuses a manually pre-connected app/branch and cannot randomize its name like the
+    // other e2e tests. If a previous run's stack is still asynchronously deleting, the new
+    // deployment fails with `CloudFormationDeploymentError ... DELETE_IN_PROGRESS`. Wait for
+    // any in-progress deletion of the shared stack to reach a terminal state before deploying.
+    await waitForSharedStackToBeDeployable(appId, branchName);
     const deploymentJob = await startOrGetDeploymentJob(
       appId,
       branchName,
@@ -242,6 +260,74 @@ const startOrGetDeploymentJob = async (
     5, // maxAttempts
     60 * 1000, // delayMs
   );
+};
+
+/**
+ * Waits until the shared CloudFormation stack backing this app/branch is deployable, i.e. it
+ * is not currently being deleted.
+ *
+ * Unlike the other e2e tests, the hosting test intentionally reuses a fixed, manually
+ * pre-connected app and branch, so its stack name (amplify-<appId>-<branchName>-<hash>) is the
+ * same on every run rather than randomized. Overlapping runs can therefore race: a new
+ * deployment starts while the previous run's stack is still in DELETE_IN_PROGRESS, producing
+ * `CloudFormationDeploymentError ... DELETE_IN_PROGRESS`. This guard blocks until any such
+ * in-progress deletion completes before we kick off a new deployment.
+ *
+ * It is defensive: if no matching stack exists (nothing to delete), it returns immediately.
+ */
+const waitForSharedStackToBeDeployable = async (
+  appId: string,
+  branchName: string,
+) => {
+  const stackNamePrefix = `amplify-${appId}-${branchName}-`;
+  const deletingStack = await findStack(
+    stackNamePrefix,
+    (status) => status === 'DELETE_IN_PROGRESS',
+  );
+  if (!deletingStack?.StackName) {
+    return;
+  }
+  console.log(
+    `Stack ${deletingStack.StackName} is in ${deletingStack.StackStatus}. Waiting for deletion to complete before deploying.`,
+  );
+  const maxWaitSeconds = 10 * 60; // 10 minutes
+  const result = await waitUntilStackDeleteComplete(
+    { client: cloudFormationClient, maxWaitTime: maxWaitSeconds },
+    { StackName: deletingStack.StackName },
+  );
+  assert.ok(
+    result.state === 'SUCCESS',
+    `Stack ${deletingStack.StackName} did not finish deleting within ${maxWaitSeconds}s (waiter state: ${result.state}). Aborting to avoid deploying into a stack that is being deleted.`,
+  );
+  console.log(`Stack ${deletingStack.StackName} finished deleting.`);
+};
+
+/**
+ * Finds the first stack whose name starts with the given prefix and whose status matches the
+ * predicate. Returns undefined when there is no match.
+ */
+const findStack = async (
+  stackNamePrefix: string,
+  statusPredicate: (status: string) => boolean,
+) => {
+  let describeStacksResult: DescribeStacksCommandOutput | undefined;
+  do {
+    describeStacksResult = await cloudFormationClient.send(
+      new DescribeStacksCommand({
+        NextToken: describeStacksResult?.NextToken,
+      }),
+    );
+    const match = describeStacksResult.Stacks?.find(
+      (stack) =>
+        stack.StackName?.startsWith(stackNamePrefix) &&
+        !!stack.StackStatus &&
+        statusPredicate(stack.StackStatus),
+    );
+    if (match) {
+      return match;
+    }
+  } while (describeStacksResult.NextToken);
+  return undefined;
 };
 
 const listJobs = async (
