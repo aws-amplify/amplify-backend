@@ -14,7 +14,7 @@ export class EnvironmentInfoProvider {
     const info = await envinfo.run(
       {
         System: ['OS', 'CPU', 'Memory', 'Shell'],
-        Binaries: ['Node', 'Yarn', 'npm', 'pnpm'],
+        Binaries: ['Node', 'Yarn', 'npm', 'pnpm', 'Bun'],
         npmPackages: [
           '@aws-amplify/ai-constructs',
           '@aws-amplify/auth-construct',
