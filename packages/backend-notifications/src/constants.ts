@@ -35,6 +35,15 @@ export const MAX_ATTRIBUTE_LENGTH = 255;
 export const ENV_DOMAIN_NAME = 'PROFILES_DOMAIN_NAME';
 
 /**
+ * Optional override (milliseconds) for how long the write Lambda caches the
+ * Identity-Resolution-disabled verdict for its domain before revalidating with
+ * `GetDomain`. Operational tuning knob only: it is clamped to a maximum and
+ * cannot disable the check, so a smaller value revalidates more often and a
+ * larger one is capped. Unset means the built-in default.
+ */
+export const ENV_MERGING_CHECK_TTL_MS = 'PROFILES_MERGING_CHECK_TTL_MS';
+
+/**
  * Environment variable carrying the name of the DynamoDB Devices table — the
  * AUTHORITATIVE, strongly-consistent device store. Threaded to BOTH the
  * identify Lambda (last-writer-wins owner UpdateItem) and the push Lambda

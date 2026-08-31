@@ -60,8 +60,10 @@
     "@aws-amplify/eslint-plugin-amplify-backend-rules": "^0.0.2",
     "@aws-sdk/client-amplify": "^3.936.0",
     "@aws-sdk/client-cloudformation": "^3.936.0",
+    "@aws-sdk/client-cloudfront": "^3.936.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.936.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.936.0",
+    "@aws-sdk/client-customer-profiles": "^3.936.0",
     "@aws-sdk/client-dynamodb": "^3.936.0",
     "@aws-sdk/client-iam": "^3.936.0",
     "@aws-sdk/client-s3": "^3.936.0",
@@ -103,6 +105,9 @@
     "typedoc": "^0.28.1",
     "typescript": "~5.8.2",
     "verdaccio": "^6.5.2"
+  },
+  "overrides": {
+    "@graphql-codegen/plugin-helpers": "7.2.0"
   },
   "workspaces": [
     "packages/*"

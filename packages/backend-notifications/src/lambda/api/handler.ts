@@ -21,6 +21,13 @@ import {
   upsertDeviceOwner,
 } from '../shared/device_store.js';
 import { withTransientRetry } from '../shared/retry.js';
+import {
+  MERGING_REJECTED_MESSAGE,
+  MERGING_UNVERIFIED_MESSAGE,
+  type MergingGateDecision,
+  checkMergingDisabled,
+} from '../shared/merging_guard.js';
+import { mergingEnabledMessage } from '../identity-resolution/check.js';
 import { buildProfileUpdate } from './mapping.js';
 import {
   validateIdentifyUser,
@@ -71,6 +78,66 @@ const response = (
 });
 
 const ok = (): APIGatewayProxyResult => response(200, {});
+
+/**
+ * Routes whose write can put an end-user identity into the Customer Profiles
+ * domain, and which therefore must not run while that domain is merging.
+ *
+ * Only `identify-user` qualifies: it is the sole route that writes profile
+ * state, so it is the only one whose write can be absorbed into — or trigger —
+ * a merge of two end users' profiles.
+ *
+ * The device routes are deliberately EXCLUDED. Both address the authoritative
+ * DynamoDB Devices table by `deviceId` and gate ownership on the SigV4-derived
+ * `principalId`; neither reads or writes Customer Profiles, so no profile merge
+ * can create, redirect, or be triggered by them. `register-device` is a
+ * principalId-keyed last-writer-wins claim, and `remove-device` must stay
+ * available: blocking de-registration would strand devices registered against a
+ * profile precisely when merging is on.
+ */
+const MERGING_GATED_ROUTES: ReadonlySet<WriteRoute> = new Set<WriteRoute>([
+  'identify-user',
+]);
+
+/**
+ * Turn a non-allow gate decision into the caller's response, logging the
+ * actionable detail (which the response withholds) for the app owner.
+ *
+ * 409 vs 503 is a real distinction for clients: 409 means the domain
+ * configuration must change and retrying is pointless, while 503 means the check
+ * itself could not run and the request may be retried.
+ *
+ * 409 rather than 403: the caller's credentials are not in question — the
+ * request is well-formed and authorized, and it is the target domain's current
+ * configuration that conflicts with it, which is what 409 describes. 403 is
+ * already returned above for the genuinely authorization-related case (no
+ * verified caller identity), so reusing it here would collapse two conditions
+ * that need different fixes — "fix your credentials" vs "fix the domain" — into
+ * one status a client cannot tell apart.
+ */
+const mergingRejection = (
+  route: WriteRoute,
+  domainName: string,
+  decision: Exclude<MergingGateDecision, { outcome: 'allow' }>,
+): APIGatewayProxyResult => {
+  if (decision.outcome === 'reject-merging') {
+    console.error(
+      `[write] ${route}.refused`,
+      JSON.stringify({
+        freshness: decision.freshness,
+        mechanism: decision.verdict.mechanism,
+        status: decision.verdict.status,
+      }),
+      mergingEnabledMessage(domainName, decision.verdict),
+    );
+    return response(409, { message: MERGING_REJECTED_MESSAGE });
+  }
+  console.error(
+    `[write] ${route}.refused`,
+    JSON.stringify({ reason: 'unverified', errorName: decision.errorName }),
+  );
+  return response(503, { message: MERGING_UNVERIFIED_MESSAGE });
+};
 
 /**
  * Classify the target route from the payload-format-1.0 request context. The
@@ -144,6 +211,18 @@ export const handler = async (
   }
 
   try {
+    // Layer C: refuse profile writes while the attached domain has Identity
+    // Resolution enabled. Checked HERE, per request, because a customer can
+    // enable matching long after the deploy-time guard ran. The verdict is
+    // cached with a TTL and fails CLOSED when it cannot be established at all
+    // — see checkMergingDisabled.
+    if (MERGING_GATED_ROUTES.has(route)) {
+      const decision = await checkMergingDisabled(profiles, domainName);
+      if (decision.outcome !== 'allow') {
+        return mergingRejection(route, domainName, decision);
+      }
+    }
+
     switch (route) {
       case 'identify-user':
         return await handleIdentifyUser(parsed, domainName, principalId);

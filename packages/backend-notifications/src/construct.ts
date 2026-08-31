@@ -79,6 +79,11 @@ const defaultCampaignAssociationLambdaCodePath = path.join(
   'lib',
   'campaign-association-asset',
 );
+const defaultIdentityResolutionGuardLambdaCodePath = path.join(
+  packageRoot,
+  'lib',
+  'identity-resolution-asset',
+);
 
 /**
  * Upper bound on the raw instance-alias input {@link
@@ -238,6 +243,13 @@ export type AmplifyNotificationsInternalProps = AmplifyNotificationsProps & {
    * `lib/campaign-association-asset`. Only used in create-from-scratch mode.
    */
   readonly campaignAssociationLambdaCodePath?: string;
+
+  /**
+   * Override the directory containing the pre-bundled identity-resolution guard
+   * custom-resource Lambda asset (an `index.js` exporting `handler`). Defaults to
+   * `lib/identity-resolution-asset`. Only used in attach mode.
+   */
+  readonly identityResolutionGuardLambdaCodePath?: string;
 };
 
 /**
@@ -400,6 +412,20 @@ export class AmplifyNotifications
       profilesDomain = new CfnDomain(this, 'ProfilesDomain', {
         domainName,
         defaultExpirationDays: expirationDays,
+        // Identity Resolution (profile merging) is DISABLED EXPLICITLY, not by
+        // omission, so the intent is visible in the synthesized template and a
+        // future default flip by the service cannot silently enable it.
+        //
+        // Merging is unsafe for this backend's trust model: profiles are keyed by
+        // the authoritative, server-verified `principalId`, but merging combines
+        // DISTINCT principals' profiles whenever their contact attributes collide
+        // (same email / phone). A merged profile would let one principal's
+        // notifications and PII reach another principal's devices, breaking the
+        // per-principal isolation the whole design rests on. Attach mode enforces
+        // the same invariant at deploy time on the customer-owned domain (see
+        // addIdentityResolutionGuard).
+        matching: { enabled: false },
+        ruleBasedMatching: { enabled: false },
       });
 
       this.connectInstanceId = connectInstance.attrId;
@@ -531,6 +557,32 @@ export class AmplifyNotifications
       );
     }
 
+    // ---- Identity Resolution guard (ATTACH mode ONLY) -----------------------
+    // The construct's per-principal isolation assumes ONE profile per verified
+    // principalId. A domain with Identity Resolution (profile merging) enabled
+    // violates that: it merges DISTINCT principals' profiles on colliding contact
+    // attributes, so one end user's notifications and PII would reach another's
+    // devices. In attach mode the domain is customer-owned and its matching
+    // configuration can change independently of this stack, so the invariant is
+    // enforced at DEPLOY time by a Lambda-backed custom resource that fails the
+    // deployment when merging is on. In create mode the construct owns the domain
+    // and disables both mechanisms on the resource itself (see ProfilesDomain),
+    // so there is nothing to gate the deployment on.
+    //
+    // Neither of those catches merging enabled AFTER a deployment, so the write
+    // Lambda ALSO re-checks per request (see checkMergingDisabled). That runtime
+    // gate is active in BOTH modes: a construct-owned domain can be changed out
+    // of band via the console or API just as easily as a customer-owned one.
+    let identityResolutionGuard: CustomResource | undefined;
+    if (!createFromScratch) {
+      identityResolutionGuard = this.addIdentityResolutionGuard(
+        domainName,
+        internalProps.identityResolutionGuardLambdaCodePath ??
+          defaultIdentityResolutionGuardLambdaCodePath,
+        isSandbox,
+      );
+    }
+
     // ---- Lambda handler ----------------------------------------------------
     // Pre-bundled at build time (esbuild) into a self-contained asset, so the
     // construct works regardless of the consuming project's root (Amplify's
@@ -592,6 +644,18 @@ export class AmplifyNotifications
           'profile:UpdateProfile',
         ],
         resources: [domainArn, objectTypesArn],
+      }),
+    );
+    // Layer C runtime gate: the write Lambda re-checks, per request (TTL
+    // cached), that Identity Resolution is still disabled on the attached
+    // domain before it binds an identity to profile or device state. Read-only
+    // and scoped to THE domain — not the object types, which GetDomain does not
+    // address. This is the same grant the deploy-time guard Lambda holds.
+    apiFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['profile:GetDomain'],
+        resources: [domainArn],
       }),
     );
     // Device store is authoritative in DynamoDB: register/re-home is a
@@ -978,6 +1042,26 @@ export class AmplifyNotifications
         'Wire as a Connect Journey Custom-action (Invoke Lambda) target',
     });
 
+    // ---- Gate every notifications resource on the guard (attach mode) -------
+    // The guard only protects the stack if it runs BEFORE anything that reads or
+    // writes profiles in the customer-owned domain, so each of those resources
+    // takes an explicit dependency on it. CloudFormation then holds them all in
+    // CREATE/UPDATE_PENDING until the guard succeeds, and a merging domain fails
+    // the deployment with the object type never registered and neither Lambda
+    // able to touch a merged profile.
+    if (identityResolutionGuard) {
+      for (const gated of [
+        profileType,
+        devicesTable,
+        apiFn,
+        httpApi,
+        pushFn,
+        pushApplication,
+      ]) {
+        gated.node.addDependency(identityResolutionGuard);
+      }
+    }
+
     // ---- Create-mode outputs ----------------------------------------------
     // Surface the resources this construct provisioned from scratch so a human
     // can find the new instance / domain in the console. Their Outbound
@@ -1244,6 +1328,85 @@ export class AmplifyNotifications
     // Provision after — and tear down before — the instance + domain it links.
     association.node.addDependency(connectInstance);
     association.node.addDependency(profilesDomain);
+  }
+
+  /**
+   * ATTACH-MODE guard: a Lambda-backed custom resource that FAILS the deployment
+   * when the customer-owned Customer Profiles domain has Identity Resolution
+   * (profile merging) enabled.
+   *
+   * A `custom-resources.Provider` fronts the handler rather than an
+   * `AwsCustomResource` because the decision is made from the RESPONSE CONTENT:
+   * `GetDomain` succeeds either way, and the resource must fail only when
+   * `Matching.Enabled` or `RuleBasedMatching.Enabled` is true — which requires
+   * running code, not an SDK call declaration.
+   *
+   * Create / Update re-check on every deployment, so a domain that has merging
+   * enabled AFTER the initial deploy is caught by the next one. Delete is a
+   * no-op success so the gate never blocks teardown. The handler is fail-closed:
+   * a `GetDomain` error surviving its retries fails the deployment rather than
+   * assuming the domain is safe.
+   * @param domainName The existing domain the construct is attaching to.
+   * @param codePath Directory of the pre-bundled handler asset.
+   * @param isSandbox Whether this is an `ampx sandbox` deployment.
+   * @returns The custom resource, for the gated resources to depend on.
+   */
+  private addIdentityResolutionGuard(
+    domainName: string,
+    codePath: string,
+    isSandbox: boolean,
+  ): CustomResource {
+    const stack = this.stack;
+
+    const guardFn = new lambda.Function(this, 'IdentityResolutionGuardFn', {
+      code: lambda.Code.fromAsset(codePath),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      // A single GetDomain plus at most two backoff sleeps; a minute is ample.
+      timeout: Duration.minutes(1),
+      memorySize: 256,
+      // Fixed 90-day log retention via an explicit LogGroup (see ApiFn); no
+      // extra log-retention Lambda. Removal policy mirrors the Devices table
+      // (sandbox DESTROY, else RETAIN).
+      logGroup: new logs.LogGroup(this, 'IdentityResolutionGuardFnLogGroup', {
+        retention: logs.RetentionDays.THREE_MONTHS,
+        removalPolicy: isSandbox ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      }),
+    });
+
+    // Least privilege: read-only GetDomain on THE attached domain only (the IAM
+    // prefix for Customer Profiles is `profile`). The guard needs nothing else —
+    // it never mutates the domain and never reads profile data.
+    guardFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['profile:GetDomain'],
+        resources: [
+          Arn.format(
+            {
+              service: 'profile',
+              resource: 'domains',
+              resourceName: domainName,
+              arnFormat: ArnFormat.SLASH_RESOURCE_NAME,
+            },
+            stack,
+          ),
+        ],
+      }),
+    );
+
+    const provider = new Provider(this, 'IdentityResolutionGuardProvider', {
+      onEventHandler: guardFn,
+    });
+
+    return new CustomResource(this, 'IdentityResolutionGuard', {
+      serviceToken: provider.serviceToken,
+      resourceType: 'Custom::NotificationsIdentityResolutionGuard',
+      properties: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- CFN ResourceProperties are PascalCase.
+        DomainName: domainName,
+      },
+    });
   }
 
   /**

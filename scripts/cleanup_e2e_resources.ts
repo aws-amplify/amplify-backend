@@ -1,11 +1,8 @@
 import {
   CloudFormationClient,
-  DeleteStackCommand,
-  ListStacksCommand,
-  ListStacksCommandOutput,
-  StackStatus,
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
+import { CloudFrontClient } from '@aws-sdk/client-cloudfront';
 import {
   CloudWatchLogsClient,
   DeleteLogGroupCommand,
@@ -13,17 +10,7 @@ import {
   DescribeLogGroupsCommandOutput,
   LogGroup,
 } from '@aws-sdk/client-cloudwatch-logs';
-import {
-  Bucket,
-  DeleteBucketCommand,
-  DeleteObjectsCommand,
-  ListBucketsCommand,
-  ListObjectVersionsCommand,
-  ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
-  ObjectIdentifier,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { Bucket, ListBucketsCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   CognitoIdentityProviderClient,
   DeleteUserPoolCommand,
@@ -72,17 +59,34 @@ import {
   ListTablesCommandOutput,
   TableDescription,
 } from '@aws-sdk/client-dynamodb';
+import { CustomerProfilesClient } from '@aws-sdk/client-customer-profiles';
+import { CloudFrontDistributionCleaner } from './components/e2e-cleanup/cloudfront_distribution_cleaner.js';
+import { CustomerProfilesDomainCleaner } from './components/e2e-cleanup/customer_profiles_domain_cleaner.js';
+import { E2E_TEST_REGIONS } from './components/e2e-cleanup/e2e_test_regions.js';
+import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
+import {
+  GuardedResourceType,
+  StackDeleter,
+} from './components/e2e-cleanup/stack_deleter.js';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
 });
-const cfnClient = new CloudFormationClient({
+const cfnClientConfig = {
+  maxAttempts: 5,
+  retryMode: 'adaptive',
+};
+const cfnClient = new CloudFormationClient(cfnClientConfig);
+const cloudFrontClient = new CloudFrontClient({
   maxAttempts: 5,
 });
 const cloudWatchClient = new CloudWatchLogsClient({
   maxAttempts: 5,
 });
 const cognitoClient = new CognitoIdentityProviderClient({
+  maxAttempts: 5,
+});
+const customerProfilesClient = new CustomerProfilesClient({
   maxAttempts: 5,
 });
 const ddbClient = new DynamoDBClient({
@@ -100,6 +104,12 @@ const ssmClient = new SSMClient({
 const now = new Date();
 const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
 const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
+/**
+ * Name prefix of the Customer Profiles domains the attach mode notifications e2e tests create.
+ * Deliberately distinct from the `amazon-connect-*` names the notifications construct generates,
+ * so this sweep can never touch a domain that a construct or a customer owns.
+ */
+const TEST_PROFILES_DOMAIN_PREFIX = 'amplify-notif-ir-';
 
 /**
  * Stacks are considered stale after 2 hours.
@@ -145,44 +155,136 @@ const isStale = (creationDate: Date | undefined): boolean | undefined => {
   return now.getTime() - creationDate.getTime() > staleDurationInMilliseconds;
 };
 
-const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
-  let nextToken: string | undefined = undefined;
-  const stackSummaries: Array<StackSummary> = [];
-  do {
-    const listStacksResponse: ListStacksCommandOutput = await cfnClient.send(
-      new ListStacksCommand({
-        NextToken: nextToken,
-        StackStatusFilter: Object.keys(StackStatus).filter(
-          (status) => status != StackStatus.DELETE_COMPLETE,
-        ) as Array<StackStatus>,
-      }),
+const createStackDeleter = (
+  cloudFormationClient: CloudFormationClient,
+): StackDeleter =>
+  new StackDeleter(
+    cloudFormationClient,
+    TEST_AMPLIFY_RESOURCE_PREFIX,
+    isStackStale,
+  );
+
+const stackDeleter = createStackDeleter(cfnClient);
+const s3BucketEmptier = new S3BucketEmptier(s3Client);
+const cloudFrontDistributionCleaner = new CloudFrontDistributionCleaner(
+  cloudFrontClient,
+  TEST_AMPLIFY_RESOURCE_PREFIX,
+);
+const customerProfilesDomainCleaner = new CustomerProfilesDomainCleaner(
+  customerProfilesClient,
+  TEST_PROFILES_DOMAIN_PREFIX,
+  isStale,
+);
+
+/**
+ * Deleting a resource that a stack still owns poisons the delete path of that stack, which is
+ * how stacks end up stuck in DELETE_FAILED forever. Deleting the execution role of a custom
+ * resource for example leaves CloudFormation waiting for a Lambda function that can no longer be
+ * assumed. The ownership index must be captured before any deletion is requested, otherwise the
+ * resources of the stacks that are being deleted look free while CloudFormation still uses them.
+ */
+const currentRegionLiveStackResources =
+  await stackDeleter.getResourcesOwnedByLiveStacks();
+
+/**
+ * S3 buckets and IAM roles are listed account wide, so this run sees the ones of every region that
+ * runs e2e tests, and the stacks of those regions have to be indexed as well. Without them a bucket
+ * or a role of another region looks free and gets deleted while a live stack of that region is still
+ * using it, which is exactly what poisons a stack delete path.
+ *
+ * Region scoped resource types are deliberately not checked against this index. Their names are
+ * only unique within a region, so the equally named resource of another region would keep a
+ * genuinely stale one from ever being cleaned up.
+ */
+const currentRegion = await cfnClient.config.region();
+const allRegionLiveStackResources = (
+  await Promise.all(
+    E2E_TEST_REGIONS.filter((region) => region !== currentRegion).map(
+      (region) =>
+        createStackDeleter(
+          new CloudFormationClient({ ...cfnClientConfig, region }),
+        ).getResourcesOwnedByLiveStacks(),
+    ),
+  )
+).reduce(
+  (mergedIndex, regionIndex) => mergedIndex.merge(regionIndex),
+  currentRegionLiveStackResources,
+);
+
+const ACCOUNT_WIDE_RESOURCE_TYPES: Array<GuardedResourceType> = [
+  'AWS::IAM::Role',
+  'AWS::S3::Bucket',
+];
+
+if (!allRegionLiveStackResources.isComplete) {
+  console.warn(
+    'Could not determine which resources still belong to stacks. Only stack deletion and the Amplify branch sweep will run, every other stale resource is left to a later run',
+  );
+}
+
+let resourcesSkippedWithIncompleteIndex = 0;
+
+const isOwnedByLiveStack = (
+  resourceType: GuardedResourceType,
+  physicalResourceId: string | undefined,
+): boolean => {
+  const liveStackResources = ACCOUNT_WIDE_RESOURCE_TYPES.includes(resourceType)
+    ? allRegionLiveStackResources
+    : currentRegionLiveStackResources;
+  if (
+    !liveStackResources.isOwnedByLiveStack(resourceType, physicalResourceId)
+  ) {
+    return false;
+  }
+  if (!liveStackResources.isComplete) {
+    resourcesSkippedWithIncompleteIndex += 1;
+    console.warn(
+      `Skipping direct deletion of ${physicalResourceId} ${resourceType}. The stack ownership index is incomplete, so it cannot be told apart from a resource that a live stack still owns`,
     );
-    nextToken = listStacksResponse.NextToken;
-    listStacksResponse.StackSummaries?.filter(
-      (stackSummary) =>
-        stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
-        isStackStale(stackSummary),
-    ).forEach((item) => {
-      stackSummaries.push(item);
-    });
-  } while (nextToken);
-  return stackSummaries;
+    return true;
+  }
+  console.log(
+    `Skipping direct deletion of ${physicalResourceId} ${resourceType}. It belongs to a stack that has not finished deleting`,
+  );
+  return true;
 };
 
-const allStaleStacks = await listAllStaleTestStacks();
+const allStaleStacks = await stackDeleter.listStaleTopLevelStacks();
+
+/**
+ * A stack that is stuck in DELETE_FAILED because a bucket of one of its nested stacks is not empty
+ * fails the same way on every retry until that bucket is emptied. The bucket is emptied but not
+ * deleted, so that CloudFormation still owns the resource and its own delete of the bucket, and
+ * therefore of the whole stack, is what succeeds on the retry below.
+ */
+const bucketsBlockingStackDeletion =
+  await stackDeleter.findBucketsBlockingStackDeletion(allStaleStacks);
+
+for (const bucketName of bucketsBlockingStackDeletion) {
+  try {
+    await s3BucketEmptier.empty(bucketName);
+    console.log(
+      `Successfully emptied ${bucketName} bucket that blocked a stack deletion`,
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to empty ${bucketName} bucket that blocked a stack deletion. ${errorMessage}`,
+    );
+  }
+}
 
 for (const staleStack of allStaleStacks) {
-  if (staleStack.StackName) {
-    const stackName = staleStack.StackName;
-    try {
-      await cfnClient.send(new DeleteStackCommand({ StackName: stackName }));
-      console.log(`Successfully kicked off ${stackName} stack deletion`);
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : '';
-      console.log(
-        `Failed to kick off ${stackName} stack deletion. ${errorMessage}`,
-      );
-    }
+  try {
+    await stackDeleter.deleteStack(staleStack);
+    console.log(
+      `Successfully kicked off ${staleStack.StackName} stack deletion`,
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to kick off ${staleStack.StackName} stack deletion. ${errorMessage}`,
+    );
   }
 }
 
@@ -198,72 +300,34 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
 };
 
 const staleBuckets = await listStaleS3Buckets();
-
-const emptyAndDeleteS3Bucket = async (bucketName: string): Promise<void> => {
-  let nextToken: string | undefined = undefined;
-  do {
-    const listObjectsResponse: ListObjectsV2CommandOutput = await s3Client.send(
-      new ListObjectsV2Command({
-        Bucket: bucketName,
-        ContinuationToken: nextToken,
-      }),
-    );
-    const objectsToDelete: ObjectIdentifier[] | undefined =
-      listObjectsResponse.Contents?.map(
-        (s3Object) => s3Object as ObjectIdentifier,
-      );
-    if (objectsToDelete && objectsToDelete.length > 0) {
-      await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: {
-            Objects: objectsToDelete,
-          },
-        }),
-      );
-    }
-    nextToken = listObjectsResponse.NextContinuationToken;
-  } while (nextToken);
-
-  do {
-    const listVersionsResponse = await s3Client.send(
-      new ListObjectVersionsCommand({
-        Bucket: bucketName,
-        KeyMarker: nextToken,
-      }),
-    );
-    const objectsToDelete = ([] as ObjectIdentifier[])
-      .concat(
-        listVersionsResponse.DeleteMarkers?.map(
-          (s3Object) => s3Object as ObjectIdentifier,
-        ) ?? [],
-      )
-      .concat(
-        listVersionsResponse.Versions?.map(
-          (s3Object) => s3Object as ObjectIdentifier,
-        ) ?? [],
-      );
-    if (objectsToDelete.length > 0) {
-      await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: bucketName,
-          Delete: {
-            Objects: objectsToDelete,
-          },
-        }),
-      );
-    }
-    nextToken = listVersionsResponse.NextKeyMarker;
-  } while (nextToken);
-
-  await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }));
-};
+const bucketToDistributions =
+  await cloudFrontDistributionCleaner.buildBucketToDistributionsIndex();
 
 for (const staleBucket of staleBuckets) {
   if (staleBucket.Name) {
     const bucketName = staleBucket.Name;
+    if (isOwnedByLiveStack('AWS::S3::Bucket', bucketName)) {
+      continue;
+    }
     try {
-      await emptyAndDeleteS3Bucket(bucketName);
+      /**
+       * Deleting the origin bucket of a distribution that still exists leaves a distribution
+       * that serves a bucket name anybody can claim, so the distributions go first. Disabling a
+       * distribution takes tens of minutes to propagate, therefore the bucket is retained until
+       * a subsequent run of this script is able to delete its distributions.
+       */
+      const distributionReapResult =
+        await cloudFrontDistributionCleaner.reapDistributionsForBucket(
+          bucketName,
+          bucketToDistributions,
+        );
+      if (distributionReapResult === 'disable-requested') {
+        console.log(
+          `Retaining ${bucketName} bucket. A CloudFront distribution still uses it as an origin`,
+        );
+        continue;
+      }
+      await s3BucketEmptier.emptyAndDelete(bucketName);
       console.log(`Successfully deleted ${bucketName} bucket`);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '';
@@ -297,6 +361,9 @@ const staleUserPools = await listStaleCognitoUserPools();
 
 for (const staleUserPool of staleUserPools) {
   if (staleUserPool.Name) {
+    if (isOwnedByLiveStack('AWS::Cognito::UserPool', staleUserPool.Id)) {
+      continue;
+    }
     try {
       const describeUserPoolResponse = await cognitoClient.send(
         new DescribeUserPoolCommand({
@@ -446,6 +513,9 @@ const listAllStaleRoles = async (): Promise<Array<Role>> => {
 
 const allStaleRoles = await listAllStaleRoles();
 for (const staleRole of allStaleRoles) {
+  if (isOwnedByLiveStack('AWS::IAM::Role', staleRole.RoleName)) {
+    continue;
+  }
   try {
     // delete inline policies
     const inlinePolicies: ListRolePoliciesCommandOutput = await iamClient.send(
@@ -519,6 +589,9 @@ const listAllStaleSSMParameters = async (): Promise<
 
 const allStaleSSMParameters = await listAllStaleSSMParameters();
 for (const staleSSMParameter of allStaleSSMParameters) {
+  if (isOwnedByLiveStack('AWS::SSM::Parameter', staleSSMParameter.Name)) {
+    continue;
+  }
   try {
     await ssmClient.send(
       new DeleteParameterCommand({
@@ -568,6 +641,11 @@ const listAllStaleDynamoDBTables = async (): Promise<
 
 const allStaleDynamoDBTables = await listAllStaleDynamoDBTables();
 for (const staleDynamoDBTable of allStaleDynamoDBTables) {
+  if (
+    isOwnedByLiveStack('AWS::DynamoDB::Table', staleDynamoDBTable.TableName)
+  ) {
+    continue;
+  }
   try {
     await ddbClient.send(
       new DeleteTableCommand({
@@ -614,6 +692,9 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
 
 const allStaleLogGroups = await listAllStaleTestLogGroups();
 for (const logGroup of allStaleLogGroups) {
+  if (isOwnedByLiveStack('AWS::Logs::LogGroup', logGroup.logGroupName)) {
+    continue;
+  }
   try {
     await cloudWatchClient.send(
       new DeleteLogGroupCommand({
@@ -627,4 +708,25 @@ for (const logGroup of allStaleLogGroups) {
       `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`,
     );
   }
+}
+
+/**
+ * Customer Profiles domains are created by the attach mode notifications tests with the SDK, not
+ * by CloudFormation, so no stack deletion ever reclaims one and the live stack ownership index
+ * does not apply to them. A leaked domain is billable, therefore the prefix match in the cleaner
+ * is what keeps this sweep safe rather than stack ownership.
+ */
+await customerProfilesDomainCleaner.deleteStaleTestDomains();
+
+/**
+ * An incomplete ownership index means the sweeps above fail closed and leave stale resources
+ * behind. That is the safe outcome, but a silent one: the script would still exit 0, the workflow
+ * would not retry, and a multi region cleanup outage could last for weeks unnoticed. Failing the
+ * job surfaces it. The exit code is set instead of thrown so that everything above still runs.
+ */
+if (!allRegionLiveStackResources.isComplete) {
+  console.warn(
+    `Cleanup left ${resourcesSkippedWithIncompleteIndex} stale resources behind because the stack ownership index was incomplete. Failing the job so that the run is retried and the cause is visible`,
+  );
+  process.exitCode = 1;
 }
