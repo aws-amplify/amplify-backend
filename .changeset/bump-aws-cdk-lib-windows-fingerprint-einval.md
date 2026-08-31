@@ -13,6 +13,7 @@
 '@aws-amplify/backend-cli': patch
 '@aws-amplify/backend-ai': patch
 '@aws-amplify/backend': patch
+'create-amplify': patch
 ---
 
 Bump aws-cdk-lib to ^2.267.0 to fix Windows asset-fingerprint EINVAL under Node.js >= 26.8.0 (aws/aws-cdk#38692)
