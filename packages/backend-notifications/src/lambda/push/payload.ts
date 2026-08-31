@@ -1,0 +1,63 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+import type { DirectMessageConfiguration } from '@aws-sdk/client-pinpoint';
+import { PushChannelType, PushMessage } from './types.js';
+
+/**
+ * Normalize a stored / event channel identifier to a Pinpoint push channel.
+ *
+ * The identify path stores whatever channel the client registered. Clients (and
+ * Firebase) use several spellings for Android push — `FCM` (the current Firebase
+ * Cloud Messaging name) is normalized to `GCM` (the Pinpoint channel that
+ * fronts FCM). Apple variants map to `APNS` / `APNS_SANDBOX`. Anything else
+ * (e.g. `IN_APP`, empty, unknown) yields `undefined` so the caller skips it.
+ */
+export const normalizeChannelType = (
+  raw: string | undefined,
+): PushChannelType | undefined => {
+  if (!raw) {
+    return undefined;
+  }
+  switch (raw.trim().toUpperCase()) {
+    // `FCM` is accepted for forward-compatibility with stored device records:
+    // identify validation normalizes Android to `GCM`, but a record written
+    // with the newer `FCM` spelling still maps correctly here.
+    case 'FCM':
+    case 'GCM':
+      return 'GCM';
+    case 'APNS':
+      return 'APNS';
+    case 'APNS_SANDBOX':
+    case 'APNSSANDBOX':
+      return 'APNS_SANDBOX';
+    default:
+      return undefined;
+  }
+};
+
+/**
+ * Build the Pinpoint `DirectMessageConfiguration` for a single device, carrying
+ * only the platform message matching that device's channel.
+ *
+ * - `GCM` -> `GCMMessage` (Android / FCM)
+ * - `APNS` / `APNS_SANDBOX` -> `APNSMessage` (iOS)
+ *
+ * `title` / `body` map to the platform message's `Title` / `Body`.
+ */
+export const buildMessageConfiguration = (
+  channelType: PushChannelType,
+  message: PushMessage,
+): DirectMessageConfiguration => {
+  const common = {
+    Title: message.title,
+    Body: message.body,
+  };
+
+  if (channelType === 'GCM') {
+    return { GCMMessage: { ...common, Priority: 'high' } };
+  }
+  // APNS and APNS_SANDBOX both use APNSMessage; the channel is selected per
+  // address via AddressConfiguration.ChannelType.
+  return { APNSMessage: common };
+};
