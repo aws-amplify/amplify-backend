@@ -149,6 +149,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
+    suppressTemplateIndentation?: boolean;
     generateContainerEntry: (props: GenerateContainerEntryProps) => ResourceProvider<T>;
 };
 
