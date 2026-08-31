@@ -3,9 +3,9 @@ import path from 'path';
 
 const lockFileNames = [
   'package-lock.json',
-  'npm-shrinkwrap.json',
   'yarn.lock',
   'pnpm-lock.yaml',
+  // eslint-disable-next-line spellcheck/spell-checker
   'bun.lockb',
 ];
 

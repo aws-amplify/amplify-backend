@@ -3,10 +3,11 @@ import assert from 'node:assert';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { resolveBundlingRoots } from './bundling_roots.js';
 
 void describe('resolveBundlingRoots', () => {
-  it('resolves the nearest ancestor containing a lock file', () => {
+  void it('resolves the nearest ancestor containing a lock file', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bundling-roots-'));
     const lockFilePath = path.join(root, 'package-lock.json');
     fs.writeFileSync(lockFilePath, '{}');
@@ -21,7 +22,7 @@ void describe('resolveBundlingRoots', () => {
     });
   });
 
-  it('prefers the closest lock file when several ancestors have one', () => {
+  void it('prefers the closest lock file when several ancestors have one', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bundling-roots-'));
     fs.writeFileSync(path.join(root, 'package-lock.json'), '{}');
     const nested = path.join(root, 'nested');
@@ -37,11 +38,10 @@ void describe('resolveBundlingRoots', () => {
     });
   });
 
-  it('resolves the lock file of the real amplify backend lambda entry', () => {
-    const entryPath = new URL(
-      './branch-linker/lambda/branch_linker.ts',
-      import.meta.url,
-    ).pathname;
+  void it('resolves the lock file of the real amplify backend lambda entry', () => {
+    const entryPath = fileURLToPath(
+      new URL('./branch-linker/lambda/branch_linker.ts', import.meta.url),
+    );
     const roots = resolveBundlingRoots(entryPath);
     assert.ok(roots);
     assert.ok(fs.existsSync(roots.depsLockFilePath));
