@@ -43,8 +43,8 @@
     "@aws-amplify/backend-output-storage": "^1.3.4",
     "@aws-amplify/platform-core": "^1.11.0",
     "@aws-amplify/plugin-types": "^1.12.0",
-    "@aws-blocks/hosting": "^0.1.10",
-    "@aws-blocks/pipeline": "^0.1.1"
+    "@aws-blocks/hosting": "^0.2.0",
+    "@aws-blocks/pipeline": "^0.2.0"
   },
   "peerDependencies": {
     "@opennextjs/aws": ">=3.10.0",
