@@ -16,6 +16,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import { CommandMiddleware } from '../../command_middleware.js';
+import { NamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import {
   GetParameterCommand,
   ParameterNotFound,
@@ -43,6 +44,19 @@ type DeployCommandOptionsCamelCase = {
 // CloudFormation stack name constraints
 const IDENTIFIER_PATTERN = /^[A-Za-z][A-Za-z0-9-]*$/;
 const IDENTIFIER_MAX_LENGTH = 128;
+
+/**
+ * Sanitize a package.json `name` into a valid deployment identifier: drop an
+ * npm scope, replace disallowed characters with hyphens, ensure it starts with
+ * a letter, and cap the length. Returns `''` if nothing usable remains.
+ */
+const sanitizeIdentifier = (name: string): string =>
+  name
+    .replace(/^@[^/]+\//, '') // drop @scope/
+    .replace(/[^A-Za-z0-9-]/g, '-') // only letters, digits + hyphens
+    .replace(/^[^A-Za-z]+/, '') // must start with a letter
+    .replace(/-+$/, '') // no trailing hyphens
+    .slice(0, IDENTIFIER_MAX_LENGTH);
 
 // CDK bootstrap version parameter (same as sandbox uses)
 const CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME =
@@ -78,6 +92,7 @@ export class DeployCommand implements CommandModule<
     private readonly backendDeployerFactory: BackendDeployerFactory,
     private readonly commandMiddleware: CommandMiddleware,
     private readonly ssmClient: SSMClient,
+    private readonly namespaceResolver: NamespaceResolver,
     private readonly execaCommand: typeof execa = execa,
   ) {
     this.command = 'deploy';
@@ -90,23 +105,37 @@ export class DeployCommand implements CommandModule<
   handler = async (
     args: ArgumentsCamelCase<DeployCommandOptions>,
   ): Promise<void> => {
-    // --identifier is required for non-pipeline deployments
-    if (!args.pipeline && !args.identifier) {
-      throw new AmplifyUserError('InvalidCommandInputError', {
-        message: 'Missing required argument: identifier',
-        resolution:
-          'Provide --identifier <name> for backend/frontend deployments. Example: ampx deploy --identifier my-app',
-      });
+    // Resolve the deployment identifier (CloudFormation stack name / namespace).
+    // Explicit --identifier wins; for non-pipeline deploys we otherwise default
+    // to the sanitized package.json `name` (the same source `ampx sandbox` uses),
+    // printed so the choice is never silent. (--pipeline supplies stage
+    // identifiers itself, so no default is needed there.)
+    let resolvedIdentifier = args.identifier;
+    if (!args.pipeline && !resolvedIdentifier) {
+      resolvedIdentifier = sanitizeIdentifier(
+        await this.namespaceResolver.resolve(),
+      );
+      if (!resolvedIdentifier) {
+        throw new AmplifyUserError('InvalidCommandInputError', {
+          message:
+            'Could not derive a deployment identifier from the package.json "name".',
+          resolution:
+            'Pass --identifier <name> explicitly. Example: ampx deploy --identifier my-app',
+        });
+      }
+      printer.print(
+        `No --identifier provided; using "${resolvedIdentifier}" (from package.json name). Override with --identifier <name>.`,
+      );
     }
 
-    // Validate identifier format when provided
+    // Validate the identifier format (explicit or derived).
     if (
-      args.identifier &&
-      (!IDENTIFIER_PATTERN.test(args.identifier) ||
-        args.identifier.length > IDENTIFIER_MAX_LENGTH)
+      resolvedIdentifier &&
+      (!IDENTIFIER_PATTERN.test(resolvedIdentifier) ||
+        resolvedIdentifier.length > IDENTIFIER_MAX_LENGTH)
     ) {
       throw new AmplifyUserError('InvalidCommandInputError', {
-        message: `Invalid --identifier: "${args.identifier}"`,
+        message: `Invalid --identifier: "${resolvedIdentifier}"`,
         resolution: `--identifier must be 1-${IDENTIFIER_MAX_LENGTH} characters, start with a letter, and contain only alphanumeric characters and hyphens.`,
       });
     }
@@ -222,8 +251,9 @@ export class DeployCommand implements CommandModule<
     const deployBackend = args.backend || (!args.backend && !args.frontend);
     const deployFrontend = args.frontend || (!args.backend && !args.frontend);
 
-    // At this point, identifier is guaranteed to be defined (validated above for non-pipeline paths)
-    const identifier = args.identifier as string;
+    // At this point, identifier is guaranteed to be defined for non-pipeline
+    // paths (explicit or derived + validated above).
+    const identifier = resolvedIdentifier as string;
 
     const backendId: BackendIdentifier = {
       namespace: identifier,

@@ -75,11 +75,15 @@ void describe('deploy command', () => {
   };
 
   const getCommandRunner = () => {
+    const mockNamespaceResolver = {
+      resolve: () => Promise.resolve('test-app-name'),
+    };
     const deployCommand = new DeployCommand(
       clientConfigGenerator as never,
       mockDeployerFactory,
       mockMiddleware as never,
       mockSsmClient as never,
+      mockNamespaceResolver,
       mockPipelineExecaFn as never,
     ) as unknown as import('yargs').CommandModule<object, DeployCommandOptions>;
     const parser = yargs().command(deployCommand);
@@ -290,15 +294,12 @@ void describe('deploy command', () => {
     assert.strictEqual(mockHostingDeployFn.mock.callCount(), 0);
   });
 
-  void it('fails if --identifier is not provided', async () => {
-    await assert.rejects(
-      () => getCommandRunner().runCommand('deploy'),
-      (err: TestCommandError) => {
-        assert.match(err.output, /Missing required argument/);
-        return true;
-      },
-    );
-    assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
+  void it('defaults --identifier to the sanitized package.json name when omitted', async () => {
+    // mockNamespaceResolver resolves 'test-app-name'.
+    await getCommandRunner().runCommand('deploy --yes');
+    assert.strictEqual(mockBackendDeployFn.mock.callCount(), 1);
+    const deployedId = mockBackendDeployFn.mock.calls[0].arguments[0];
+    assert.strictEqual(deployedId.namespace, 'test-app-name');
   });
 
   void it('allows --outputs-out-dir argument', async () => {
