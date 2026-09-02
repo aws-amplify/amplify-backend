@@ -29,6 +29,10 @@
     "./pipeline": {
       "types": "./lib/pipeline/index.d.ts",
       "default": "./lib/pipeline/index.js"
+    },
+    "./runtime": {
+      "types": "./lib/runtime.d.ts",
+      "default": "./lib/runtime.js"
     }
   },
   "main": "lib/index.js",

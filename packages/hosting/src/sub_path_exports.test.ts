@@ -17,6 +17,14 @@ void describe('sub-path exports', () => {
     assert.ok(require.resolve('@aws-amplify/hosting/error'));
   });
 
+  void it('resolves ./pipeline', () => {
+    assert.ok(require.resolve('@aws-amplify/hosting/pipeline'));
+  });
+
+  void it('resolves ./runtime (CDK-free value API)', () => {
+    assert.ok(require.resolve('@aws-amplify/hosting/runtime'));
+  });
+
   void it('resolves main entry', () => {
     assert.ok(require.resolve('@aws-amplify/hosting'));
   });
