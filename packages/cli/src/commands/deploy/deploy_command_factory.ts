@@ -6,6 +6,8 @@ import {
   format,
   printer,
 } from '@aws-amplify/cli-core';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
+import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 
 import { DeployCommand, DeployCommandOptions } from './deploy_command.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -47,10 +49,12 @@ export const createDeployCommand = (): CommandModule<
   );
   const commandMiddleware = new CommandMiddleware(printer);
   const ssmClient = new SSMClient();
+  const namespaceResolver = new LocalNamespaceResolver(new PackageJsonReader());
   return new DeployCommand(
     clientConfigGenerator,
     backendDeployerFactory,
     commandMiddleware,
     ssmClient,
+    namespaceResolver,
   );
 };
