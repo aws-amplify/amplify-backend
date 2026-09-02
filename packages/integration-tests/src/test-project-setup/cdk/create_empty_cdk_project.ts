@@ -34,23 +34,25 @@ export const createEmptyCdkProject = async (
     force: true,
   });
 
-  // Remove the generated test/ directory — it contains test files using
-  // Jest's `test()` without @types/jest, causing tsc to fail during synth.
+  // The CDK app template type checks the whole project before synthesizing
+  // (`cdk.json` runs `tsc`), and its `tsconfig.json` pins type resolution to the
+  // project local `node_modules/@types` which was just removed. Drop those
+  // settings so types resolve from the hoisted workspace dependencies instead.
+  const tsConfigPath = path.join(projectRoot, 'tsconfig.json');
+  const tsConfig = JSON.parse(await fsp.readFile(tsConfigPath, 'utf-8')) as {
+    compilerOptions?: Record<string, unknown>;
+  };
+  delete tsConfig.compilerOptions?.types;
+  delete tsConfig.compilerOptions?.typeRoots;
+  await fsp.writeFile(tsConfigPath, JSON.stringify(tsConfig, null, 2));
+
+  // The template unit tests target the template stack which is replaced by the
+  // test project sources, and they rely on test runner globals that are not
+  // dependencies of this workspace.
   await fsp.rm(path.join(projectRoot, 'test'), {
     recursive: true,
     force: true,
   });
-
-  // The generated tsconfig.json sets typeRoots to ["./node_modules/@types"],
-  // which prevents TypeScript from finding @types/node in the monorepo root
-  // after we removed the local node_modules above. Remove the typeRoots
-  // restriction so TypeScript can resolve types from the monorepo root.
-  const tsconfigPath = path.join(projectRoot, 'tsconfig.json');
-  const tsconfig = JSON.parse(await fsp.readFile(tsconfigPath, 'utf-8'));
-  if (tsconfig.compilerOptions?.typeRoots) {
-    delete tsconfig.compilerOptions.typeRoots;
-    await fsp.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-  }
 
   return { projectName, projectRoot };
 };
