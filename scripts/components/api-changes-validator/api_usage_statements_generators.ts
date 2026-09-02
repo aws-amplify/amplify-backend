@@ -80,74 +80,17 @@ export class GenericTypeParameterUsageStatementsGenerator implements UsageStatem
 /**
  * Generates import statements from import declarations.
  *
- * This is mostly a pass through process — imports present in the API.md report
- * are required for the types defined in that report.
- *
- * The one transformation is `excludedTypes`: named specifiers whose local name
- * is excluded are dropped from the import. This lets a package opt out of a type
- * whose *origin* import (the module api-extractor recorded it as coming from)
- * would otherwise fail to compile — e.g. when a dependency relocates a
- * re-exported type to a different entry point. If every named specifier is
- * excluded, the whole import line is dropped.
+ * This is a pass through process. Imports present in API.md report are
+ * required for types defined in that report.
  */
 export class ImportUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */
-  constructor(
-    private readonly node: ts.ImportDeclaration,
-    private readonly excludedTypes: Array<string> = [],
-  ) {}
+  constructor(private readonly node: ts.ImportDeclaration) {}
   generate = (): UsageStatementsGeneratorOutput => {
-    const importClause = this.node.importClause;
-    const namedBindings = importClause?.namedBindings;
-
-    // Only named imports (`import { A, B } from '...'`) can be partially
-    // excluded. Default and namespace imports pass through unchanged.
-    if (
-      this.excludedTypes.length === 0 ||
-      !namedBindings ||
-      !ts.isNamedImports(namedBindings)
-    ) {
-      return { importStatement: this.node.getText() };
-    }
-
-    const retainedElements = namedBindings.elements.filter(
-      // element.name is the local binding name (the RHS of `X as Y`), which is
-      // what the generated usage references and what excludedTypes lists.
-      (element) => !this.excludedTypes.includes(element.name.getText()),
-    );
-
-    if (retainedElements.length === namedBindings.elements.length) {
-      // Nothing excluded — preserve the original text verbatim.
-      return { importStatement: this.node.getText() };
-    }
-
-    if (
-      retainedElements.length === 0 &&
-      !importClause?.name /* no default import to keep */
-    ) {
-      // Every specifier was excluded and there is no default import — drop the
-      // entire import line.
-      return {};
-    }
-
-    const typeOnlyPrefix = importClause?.isTypeOnly ? 'type ' : '';
-    const defaultImport = importClause?.name
-      ? importClause.name.getText()
-      : undefined;
-    const namedImports = retainedElements
-      .map((element) => element.getText())
-      .join(', ');
-    const clauseParts = [
-      defaultImport,
-      retainedElements.length > 0 ? `{ ${namedImports} }` : undefined,
-    ].filter((part): part is string => part !== undefined);
-
     return {
-      importStatement: `import ${typeOnlyPrefix}${clauseParts.join(
-        ', ',
-      )} from ${this.node.moduleSpecifier.getText()};`,
+      importStatement: this.node.getText(),
     };
   };
 }

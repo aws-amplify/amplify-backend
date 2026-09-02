@@ -48,29 +48,6 @@ console.log(
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
 const excludedTypesByPackageName: Record<string, Array<string>> = {
-  hosting: [
-    // `@aws-blocks/hosting` 0.2.0 relocated these re-exported types from the
-    // package root (`@aws-blocks/hosting`) to the `@aws-blocks/hosting/constructs`
-    // entry point. The baseline API.md (generated against the previous version)
-    // records their origin import as the package root, so the generated usage
-    // fails to compile against 0.2.0 with TS2305 "no exported member".
-    //
-    // This is NOT a break in the `@aws-amplify/hosting` public surface — these
-    // types are still re-exported from `@aws-amplify/hosting`; only their
-    // upstream module moved. Excluding them skips the stale origin imports.
-    'CacheConfig',
-    'ComputeResource',
-    'CustomHeader',
-    'DeployManifest',
-    'FrameworkType',
-    'HostingProps',
-    'HostingResources',
-    'ImageConfig',
-    'MiddlewareConfig',
-    'Redirect',
-    'Rewrite',
-    'RouteBehavior',
-  ],
   'ai-constructs': [
     // FromJSONSchema is complex enough to trigger
     // index.ts(113,9): error TS2589: Type instantiation is excessively deep and possibly infinite.

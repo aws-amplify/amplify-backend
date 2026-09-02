@@ -62,7 +62,6 @@ export class ApiUsageGenerator {
       case ts.SyntaxKind.ImportDeclaration:
         return new ImportUsageStatementsGenerator(
           node as ts.ImportDeclaration,
-          this.excludedTypes,
         ).generate();
       case ts.SyntaxKind.TypeAliasDeclaration:
         return new TypeUsageStatementsGenerator(
