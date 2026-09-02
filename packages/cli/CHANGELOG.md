@@ -1,5 +1,23 @@
 # @aws-amplify/backend-cli
 
+## 1.9.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/backend-deployer@2.2.1
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
 ## 1.9.0
 
 ### Minor Changes
