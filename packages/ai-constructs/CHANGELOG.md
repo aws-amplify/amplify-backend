@@ -1,5 +1,31 @@
 # @aws-amplify/ai-constructs
 
+## 1.6.3
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- 014303a: fix(ai-constructs): strip extra Bedrock tool use fields before sending to AppSync
+
+  `ConversationTurnResponseSender.serializeContent` spread the entire Bedrock
+  `ToolUseBlock` into the AppSync mutation. Newer `@aws-sdk/client-bedrock-runtime`
+  versions add fields (e.g. `type`) that are not part of the generated
+  `AmplifyAIToolUseBlockInput`, causing the conversation handler to fail with
+  "Field 'type' is not defined by type 'AmplifyAIToolUseBlockInput'" whenever a
+  tool (such as a `responseComponents` tool) is invoked. Only `toolUseId`, `name`,
+  and the stringified `input` are now forwarded.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/plugin-types@1.12.3
+
 ## 1.6.2
 
 ### Patch Changes
