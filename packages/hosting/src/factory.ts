@@ -20,6 +20,7 @@ import {
   AmplifyHostingConstructProps,
 } from './constructs/hosting_construct.js';
 import { detectFramework, getAdapter } from './adapters/index.js';
+import { getHostingStorePrefixes } from './store_paths.js';
 import { runBuild } from './build/runner.js';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -115,47 +116,6 @@ const releaseLock = (projectDir: string): void => {
 };
 
 const rootStackTypeIdentifier = 'hosting';
-
-/**
- * Derive a stable, per-project identifier for self-managed secret/config store
- * paths. Read from the project `package.json` `name` (sanitized) so it is
- * identical at CLI set-time and at deploy/runtime, and independent of the
- * deploy context (standalone vs pipeline stage). Falls back to `app`.
- */
-const resolveStoreIdentifier = (projectDir: string): string => {
-  let name: string | undefined;
-  try {
-    const pkg = JSON.parse(
-      fs.readFileSync(path.join(projectDir, 'package.json'), 'utf-8'),
-    );
-    name = typeof pkg?.name === 'string' ? pkg.name : undefined;
-    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-  } catch {
-    // No/invalid package.json — fall back to the default identifier below.
-  }
-  // Strip an npm scope (`@org/`) and sanitize to SSM/Secrets-Manager-safe chars.
-  const sanitized = (name ?? '')
-    .replace(/^@[^/]+\//, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return sanitized || 'app';
-};
-
-/**
- * Default per-kind store prefixes for self-managed hosting values, namespaced by
- * the project identifier so multiple self-managed apps in one account don't
- * collide. Blocks normalizes the leading slash per store (SSM keeps it; Secrets
- * Manager strips it).
- */
-const defaultStorePrefixes = (
-  projectDir: string,
-): { secretPrefix: string; configPrefix: string } => {
-  const id = resolveStoreIdentifier(projectDir);
-  return {
-    secretPrefix: `/amplify/hosting/${id}/secrets`,
-    configPrefix: `/amplify/hosting/${id}/config`,
-  };
-};
 
 /**
  * Read backend identifier from CDK context.
@@ -478,7 +438,7 @@ const doBuildHostingConstruct = (
   // Default the self-managed value store namespaces to a per-project path when
   // the caller hasn't overridden them, so `secret('KEY')` / `config('KEY')`
   // markers in `environment` resolve to `/amplify/hosting/<project>/…`.
-  const { secretPrefix, configPrefix } = defaultStorePrefixes(projectDir);
+  const { secretPrefix, configPrefix } = getHostingStorePrefixes(projectDir);
 
   const constructProps: AmplifyHostingConstructProps = {
     manifest,
