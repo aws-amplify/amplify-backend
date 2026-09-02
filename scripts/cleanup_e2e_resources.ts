@@ -64,6 +64,7 @@ import { CloudFrontDistributionCleaner } from './components/e2e-cleanup/cloudfro
 import { CustomerProfilesDomainCleaner } from './components/e2e-cleanup/customer_profiles_domain_cleaner.js';
 import { E2E_TEST_REGIONS } from './components/e2e-cleanup/e2e_test_regions.js';
 import { S3BucketEmptier } from './components/e2e-cleanup/s3_bucket_emptier.js';
+import { StaleBucketSweeper } from './components/e2e-cleanup/stale_bucket_sweeper.js';
 import {
   GuardedResourceType,
   StackDeleter,
@@ -249,6 +250,12 @@ const isOwnedByLiveStack = (
   return true;
 };
 
+const staleBucketSweeper = new StaleBucketSweeper(
+  s3BucketEmptier,
+  cloudFrontDistributionCleaner,
+  (bucketName) => isOwnedByLiveStack('AWS::S3::Bucket', bucketName),
+);
+
 const allStaleStacks = await stackDeleter.listStaleTopLevelStacks();
 
 /**
@@ -303,38 +310,12 @@ const staleBuckets = await listStaleS3Buckets();
 const bucketToDistributions =
   await cloudFrontDistributionCleaner.buildBucketToDistributionsIndex();
 
-for (const staleBucket of staleBuckets) {
-  if (staleBucket.Name) {
-    const bucketName = staleBucket.Name;
-    if (isOwnedByLiveStack('AWS::S3::Bucket', bucketName)) {
-      continue;
-    }
-    try {
-      /**
-       * Deleting the origin bucket of a distribution that still exists leaves a distribution
-       * that serves a bucket name anybody can claim, so the distributions go first. Disabling a
-       * distribution takes tens of minutes to propagate, therefore the bucket is retained until
-       * a subsequent run of this script is able to delete its distributions.
-       */
-      const distributionReapResult =
-        await cloudFrontDistributionCleaner.reapDistributionsForBucket(
-          bucketName,
-          bucketToDistributions,
-        );
-      if (distributionReapResult === 'disable-requested') {
-        console.log(
-          `Retaining ${bucketName} bucket. A CloudFront distribution still uses it as an origin`,
-        );
-        continue;
-      }
-      await s3BucketEmptier.emptyAndDelete(bucketName);
-      console.log(`Successfully deleted ${bucketName} bucket`);
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : '';
-      console.log(`Failed to delete ${bucketName} bucket. ${errorMessage}`);
-    }
-  }
-}
+await staleBucketSweeper.sweep(
+  staleBuckets
+    .map((staleBucket) => staleBucket.Name)
+    .filter((bucketName): bucketName is string => bucketName !== undefined),
+  bucketToDistributions,
+);
 
 const listStaleCognitoUserPools = async () => {
   let nextToken: string | undefined = undefined;
