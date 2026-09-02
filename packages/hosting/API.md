@@ -7,41 +7,61 @@
 import { HostingConstruct as AmplifyHostingConstruct } from '@aws-blocks/hosting/constructs';
 import { HostingConstructProps as AmplifyHostingConstructProps } from '@aws-blocks/hosting/constructs';
 import { BranchConfig } from '@aws-blocks/pipeline';
-import { CacheConfig } from '@aws-blocks/hosting';
-import * as cdk from 'aws-cdk-lib';
-import * as codebuild from 'aws-cdk-lib/aws-codebuild';
-import { CodeBuildStep } from 'aws-cdk-lib/pipelines';
+import { CacheConfig } from '@aws-blocks/hosting/constructs';
+import type * as cdk from 'aws-cdk-lib';
+import type { CodeBuildStep } from 'aws-cdk-lib/pipelines';
 import { CodePipeline } from 'aws-cdk-lib/pipelines';
-import { CodePipelineSource } from 'aws-cdk-lib/pipelines';
-import { ComputeResource } from '@aws-blocks/hosting';
-import { Construct } from 'constructs';
-import { CustomHeader } from '@aws-blocks/hosting';
-import { DeployManifest } from '@aws-blocks/hosting';
+import type { CodePipelineSource } from 'aws-cdk-lib/pipelines';
+import { ComputeResource } from '@aws-blocks/hosting/constructs';
+import { config } from '@aws-blocks/hosting';
+import { ConfigKey } from '@aws-blocks/hosting';
+import { ConfigValue } from '@aws-blocks/hosting';
+import { ConfigValueOf } from '@aws-blocks/hosting';
+import type { Construct } from 'constructs';
+import { CustomHeader } from '@aws-blocks/hosting/constructs';
+import { DeployManifest } from '@aws-blocks/hosting/constructs';
+import { EnvValue } from '@aws-blocks/hosting/constructs';
 import { FrameworkAdapterFn } from '@aws-blocks/hosting/adapters';
-import { FrameworkType } from '@aws-blocks/hosting';
+import { FrameworkType } from '@aws-blocks/hosting/constructs';
 import { generateBuildId } from '@aws-blocks/hosting/constructs';
 import { generateBuildIdFunctionCode } from '@aws-blocks/hosting/constructs';
+import { getConfig } from '@aws-blocks/hosting';
+import { getSecret } from '@aws-blocks/hosting';
+import { HostingConfigRegistry } from '@aws-blocks/hosting';
 import { HostingDomainConfig } from '@aws-blocks/hosting/constructs';
 import { HostingError } from '@aws-blocks/hosting/error';
-import { HostingProps } from '@aws-blocks/hosting';
-import { HostingResources } from '@aws-blocks/hosting';
+import type { HostingProps as HostingProps_2 } from '@aws-blocks/hosting/constructs';
+import { HostingResources } from '@aws-blocks/hosting/constructs';
+import { HostingSecretRegistry } from '@aws-blocks/hosting';
 import { HostingWafConfig } from '@aws-blocks/hosting/constructs';
-import { IFileSetProducer } from 'aws-cdk-lib/pipelines';
-import { ImageConfig } from '@aws-blocks/hosting';
-import { MiddlewareConfig } from '@aws-blocks/hosting';
+import type { IFileSetProducer } from 'aws-cdk-lib/pipelines';
+import { ImageConfig } from '@aws-blocks/hosting/constructs';
+import { isConfig } from '@aws-blocks/hosting';
+import { isManagedValue } from '@aws-blocks/hosting';
+import { isSecret } from '@aws-blocks/hosting';
+import { KindStoreOptions } from '@aws-blocks/hosting/constructs';
+import { ManagedValue } from '@aws-blocks/hosting';
+import { ManagedValueOptions } from '@aws-blocks/hosting';
+import { MiddlewareConfig } from '@aws-blocks/hosting/constructs';
 import { NextjsAdapterOptions } from '@aws-blocks/hosting/adapters';
 import { Pipeline } from '@aws-blocks/pipeline';
-import { PipelineProps as PipelineProps_2 } from '@aws-blocks/pipeline';
+import type { PipelineProps as PipelineProps_2 } from '@aws-blocks/pipeline';
 import { PipelineSourceConfig } from '@aws-blocks/pipeline';
 import { PipelineStageConfig } from '@aws-blocks/pipeline';
 import { PipelineSynthConfig } from '@aws-blocks/pipeline';
-import { Redirect } from '@aws-blocks/hosting';
+import { Redirect } from '@aws-blocks/hosting/constructs';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { Rewrite } from '@aws-blocks/hosting';
-import { RouteBehavior } from '@aws-blocks/hosting';
-import { ShellStep } from 'aws-cdk-lib/pipelines';
+import { Rewrite } from '@aws-blocks/hosting/constructs';
+import { RouteBehavior } from '@aws-blocks/hosting/constructs';
+import { secret } from '@aws-blocks/hosting';
+import { SecretKey } from '@aws-blocks/hosting';
+import { SecretStore } from '@aws-blocks/hosting';
+import { SecretValue } from '@aws-blocks/hosting';
+import { SecretValueOf } from '@aws-blocks/hosting';
+import type { ShellStep } from 'aws-cdk-lib/pipelines';
 import { SkewProtectionConfig } from '@aws-blocks/hosting/constructs';
 import { Stack } from 'aws-cdk-lib';
+import { ValueKind } from '@aws-blocks/hosting';
 
 export { AmplifyHostingConstruct }
 
@@ -65,6 +85,14 @@ export { CacheConfig }
 
 export { ComputeResource }
 
+export { config }
+
+export { ConfigKey }
+
+export { ConfigValue }
+
+export { ConfigValueOf }
+
 export { CustomHeader }
 
 // @public
@@ -85,6 +113,8 @@ export type DefinePipelineProps<TConfig = Record<string, unknown>> = {
 
 export { DeployManifest }
 
+export { EnvValue }
+
 export { FrameworkAdapterFn }
 
 export { FrameworkType }
@@ -93,16 +123,27 @@ export { generateBuildId }
 
 export { generateBuildIdFunctionCode }
 
+export { getConfig }
+
+export { getSecret }
+
 // @public
 export function getStageConfig<T = Record<string, unknown>>(): (PipelineStageConfig<T> & {
     name: string;
 }) | undefined;
 
+export { HostingConfigRegistry }
+
 export { HostingDomainConfig }
 
 export { HostingError }
 
-export { HostingProps }
+// @public
+export type HostingProps = Omit<HostingProps_2, 'environment'> & {
+    environment?: Record<string, EnvValue>;
+    secretStore?: KindStoreOptions;
+    configStore?: KindStoreOptions;
+};
 
 export { HostingResources }
 
@@ -113,9 +154,23 @@ export type HostingResult = {
     createStack: (name: string) => Stack;
 };
 
+export { HostingSecretRegistry }
+
 export { HostingWafConfig }
 
 export { ImageConfig }
+
+export { isConfig }
+
+export { isManagedValue }
+
+export { isSecret }
+
+export { KindStoreOptions }
+
+export { ManagedValue }
+
+export { ManagedValueOptions }
 
 export { MiddlewareConfig }
 
@@ -144,7 +199,19 @@ export { Rewrite }
 
 export { RouteBehavior }
 
+export { secret }
+
+export { SecretKey }
+
+export { SecretStore }
+
+export { SecretValue }
+
+export { SecretValueOf }
+
 export { SkewProtectionConfig }
+
+export { ValueKind }
 
 // (No @packageDocumentation comment for this package)
 
