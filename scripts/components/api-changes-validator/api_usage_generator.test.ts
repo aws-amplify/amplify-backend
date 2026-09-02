@@ -346,6 +346,22 @@ export type SampleIgnoredType = {
     `,
     expectedApiUsage: '',
   },
+  {
+    description: 'Drops import of an excluded type',
+    apiReportCode: `
+import { SampleIgnoredType } from 'some-package';
+    `,
+    expectedApiUsage: '',
+  },
+  {
+    description: 'Drops only the excluded specifier from a shared import',
+    apiReportCode: `
+import { SampleIgnoredType, SomeKeptType } from 'some-package';
+    `,
+    expectedApiUsage: `
+import { SomeKeptType } from 'some-package';
+    `,
+  },
 ];
 
 const nestInMarkdownCodeBlock = (apiReportCode: string) => {
