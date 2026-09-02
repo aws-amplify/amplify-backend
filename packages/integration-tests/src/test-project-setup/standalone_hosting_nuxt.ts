@@ -93,10 +93,10 @@ export class StandaloneHostingNuxtTestProjectCreator implements TestProjectCreat
     // `.amplify-hosting/image-optimization/` bundle.
     process.stderr.write(`Installing Nuxt dependencies in ${projectRoot}...\n`);
     // --legacy-peer-deps: the Nuxt fixture's dependency graph (Nuxt + the
-    // @aws-amplify/hosting → @aws-blocks/hosting tree) reproducibly crashes npm's
-    // dependency resolver with "Cannot read properties of null (reading
-    // 'edgesOut')" during peer resolution. Relaxing peer resolution sidesteps the
-    // bug; the other framework fixtures don't hit it, so the flag is scoped to Nuxt.
+    // @aws-amplify/hosting → @aws-blocks/hosting tree) consistently crashes npm's
+    // dependency resolver with a "Cannot read properties of null" error during
+    // peer resolution. Relaxing peer resolution sidesteps the bug; the other
+    // framework fixtures don't hit it, so the flag is scoped to Nuxt.
     execSync(
       'npm install --prefer-offline --no-audit --no-fund --prefer-dedupe --legacy-peer-deps',
       {
