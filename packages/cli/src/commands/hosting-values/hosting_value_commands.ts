@@ -53,9 +53,7 @@ type KeyArgs = { key: string; value?: string };
  * `set <key> [value]` — create or overwrite a value. Secrets are read from a
  * hidden prompt or stdin (never argv); config accepts an inline `value`.
  */
-export class HostingValueSetCommand
-  implements CommandModule<object, KeyArgs>
-{
+export class HostingValueSetCommand implements CommandModule<object, KeyArgs> {
   readonly command = 'set <key> [value]';
   readonly describe: string;
 
@@ -80,7 +78,8 @@ export class HostingValueSetCommand
     const value =
       this.kind === 'secret'
         ? await this.readSensitiveValue()
-        : (args.value ?? (await AmplifyPrompter.input({ message: 'Enter value' })));
+        : (args.value ??
+          (await AmplifyPrompter.input({ message: 'Enter value' })));
     await this.store.setValue(args.key, value);
     printer.print(
       `Successfully set ${this.kind} '${args.key}' at ${this.store.locator(args.key)}`,
@@ -89,7 +88,11 @@ export class HostingValueSetCommand
 
   builder = (yargs: Argv): Argv<KeyArgs> =>
     yargs
-      .positional('key', { describe: 'Value key', type: 'string', demandOption: true })
+      .positional('key', {
+        describe: 'Value key',
+        type: 'string',
+        demandOption: true,
+      })
       .positional('value', {
         describe:
           this.kind === 'config'
@@ -117,9 +120,10 @@ export class HostingValueSetCommand
 }
 
 /** `get <key>` — print a value (secrets print their plaintext; use with care). */
-export class HostingValueGetCommand
-  implements CommandModule<object, { key: string }>
-{
+export class HostingValueGetCommand implements CommandModule<
+  object,
+  { key: string }
+> {
   readonly command = 'get <key>';
   readonly describe: string;
 
@@ -186,9 +190,10 @@ export class HostingValueListCommand implements CommandModule<object> {
 }
 
 /** `remove <key>` — delete a value. */
-export class HostingValueRemoveCommand
-  implements CommandModule<object, { key: string }>
-{
+export class HostingValueRemoveCommand implements CommandModule<
+  object,
+  { key: string }
+> {
   readonly command = 'remove <key>';
   readonly describe: string;
 

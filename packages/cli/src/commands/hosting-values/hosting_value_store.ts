@@ -91,7 +91,10 @@ export class HostingValueStore {
 
   /** The store-appropriate locator for a key (SM name or SSM path). */
   locator = (key: string): string =>
-    secretStoreLocator(key, { prefix: this.prefix, store: storeForKind(this.kind) });
+    secretStoreLocator(key, {
+      prefix: this.prefix,
+      store: storeForKind(this.kind),
+    });
 
   /** Set (create or overwrite) a value. */
   setValue = async (key: string, value: string): Promise<void> => {
@@ -137,7 +140,10 @@ export class HostingValueStore {
       );
       return res.Parameter?.Value;
     } catch (e) {
-      if (e instanceof ResourceNotFoundException || e instanceof ParameterNotFound) {
+      if (
+        e instanceof ResourceNotFoundException ||
+        e instanceof ParameterNotFound
+      ) {
         return undefined;
       }
       throw e;
@@ -161,7 +167,8 @@ export class HostingValueStore {
           }),
         );
         for (const s of res.SecretList ?? []) {
-          if (s.Name?.startsWith(`${base}/`)) keys.push(s.Name.slice(base.length + 1));
+          if (s.Name?.startsWith(`${base}/`))
+            keys.push(s.Name.slice(base.length + 1));
         }
         nextToken = res.NextToken;
       } while (nextToken);
@@ -176,7 +183,8 @@ export class HostingValueStore {
           }),
         );
         for (const p of res.Parameters ?? []) {
-          if (p.Name?.startsWith(`${base}/`)) keys.push(p.Name.slice(base.length + 1));
+          if (p.Name?.startsWith(`${base}/`))
+            keys.push(p.Name.slice(base.length + 1));
         }
         nextToken = res.NextToken;
       } while (nextToken);

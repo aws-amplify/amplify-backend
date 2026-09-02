@@ -11,7 +11,10 @@ import { HostingValueStore } from './hosting_value_store.js';
  */
 const fakeClient = (
   responses: Record<string, unknown> = {},
-): { send: (cmd: unknown) => Promise<unknown>; calls: Array<{ name: string; input: unknown }> } => {
+): {
+  send: (cmd: unknown) => Promise<unknown>;
+  calls: Array<{ name: string; input: unknown }>;
+} => {
   const calls: Array<{ name: string; input: unknown }> = [];
   return {
     calls,

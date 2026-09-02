@@ -13,11 +13,17 @@ import type {
 } from '@aws-blocks/hosting/constructs';
 import type { ByoValue } from './byo.js';
 
-export type { FrameworkType, HostingResources } from '@aws-blocks/hosting/constructs';
+export type {
+  FrameworkType,
+  HostingResources,
+} from '@aws-blocks/hosting/constructs';
 
 // Re-export the marker/store types so consumers can reference them directly
 // (e.g. when typing their own `environment` maps).
-export type { EnvValue, KindStoreOptions } from '@aws-blocks/hosting/constructs';
+export type {
+  EnvValue,
+  KindStoreOptions,
+} from '@aws-blocks/hosting/constructs';
 
 /**
  * Configuration for `defineHosting()`.

@@ -22,7 +22,10 @@ export const createSecretCommand = (): CommandModule => {
       new HostingValueSetCommand('secret', store) as unknown as CommandModule,
       new HostingValueGetCommand('secret', store) as unknown as CommandModule,
       new HostingValueListCommand('secret', store) as unknown as CommandModule,
-      new HostingValueRemoveCommand('secret', store) as unknown as CommandModule,
+      new HostingValueRemoveCommand(
+        'secret',
+        store,
+      ) as unknown as CommandModule,
     ],
   );
 };

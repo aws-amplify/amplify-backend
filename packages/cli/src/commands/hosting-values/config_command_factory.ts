@@ -22,7 +22,10 @@ export const createConfigCommand = (): CommandModule => {
       new HostingValueSetCommand('config', store) as unknown as CommandModule,
       new HostingValueGetCommand('config', store) as unknown as CommandModule,
       new HostingValueListCommand('config', store) as unknown as CommandModule,
-      new HostingValueRemoveCommand('config', store) as unknown as CommandModule,
+      new HostingValueRemoveCommand(
+        'config',
+        store,
+      ) as unknown as CommandModule,
     ],
   );
 };
