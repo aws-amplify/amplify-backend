@@ -11,6 +11,7 @@ import type {
   EnvValue,
   KindStoreOptions,
 } from '@aws-blocks/hosting/constructs';
+import type { ByoValue } from './byo.js';
 
 export type { FrameworkType, HostingResources } from '@aws-blocks/hosting/constructs';
 
@@ -45,6 +46,9 @@ export type HostingProps = Omit<BlocksHostingProps, 'environment'> & {
    *   runtime with `getSecret('KEY')`;
    * - `config('KEY')` — a non-sensitive value in SSM Parameter Store, read at
    *   runtime with `getConfig('KEY')`;
+   * - `byoSecret('name-or-arn')` / `byoConfig('name-or-arn')` — a bring-your-own
+   *   reference to an EXISTING Secrets Manager secret / SSM parameter (resolved
+   *   to a CDK handle internally, no user CDK required);
    * - a BYO `ISecret` / `IParameter` CDK handle to an existing store entry.
    *
    * For the marker forms only the store locator is injected; the value never
@@ -61,7 +65,7 @@ export type HostingProps = Omit<BlocksHostingProps, 'environment'> & {
    * });
    * ```
    */
-  environment?: Record<string, EnvValue>;
+  environment?: Record<string, EnvValue | ByoValue>;
 
   /**
    * Namespace/cache options for `secret()` values (AWS Secrets Manager).

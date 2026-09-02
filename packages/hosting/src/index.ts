@@ -31,6 +31,10 @@ export {
   isConfig,
   isManagedValue,
 } from '@aws-blocks/hosting';
+// Bring-your-own references to existing Secrets Manager / SSM entries. Resolved
+// to CDK handles inside `defineHosting` (no user CDK required).
+export { byoSecret, byoConfig, isByoValue } from './byo.js';
+export type { ByoValue } from './byo.js';
 export type {
   SecretValue,
   ConfigValue,

@@ -81,6 +81,19 @@ export type BackendHosting = ResourceProvider<HostingResources>;
 
 export { BranchConfig }
 
+// @public
+export const byoConfig: (parameterNameOrArn: string) => ByoValue;
+
+// @public
+export const byoSecret: (secretNameOrArn: string) => ByoValue;
+
+// @public
+export type ByoValue = {
+    readonly [BYO_BRAND]: true;
+    readonly kind: 'secret' | 'config';
+    readonly ref: string;
+};
+
 export { CacheConfig }
 
 export { ComputeResource }
@@ -140,7 +153,7 @@ export { HostingError }
 
 // @public
 export type HostingProps = Omit<HostingProps_2, 'environment'> & {
-    environment?: Record<string, EnvValue>;
+    environment?: Record<string, EnvValue | ByoValue>;
     secretStore?: KindStoreOptions;
     configStore?: KindStoreOptions;
 };
@@ -159,6 +172,9 @@ export { HostingSecretRegistry }
 export { HostingWafConfig }
 
 export { ImageConfig }
+
+// @public
+export const isByoValue: (v: unknown) => v is ByoValue;
 
 export { isConfig }
 

@@ -54,6 +54,22 @@ void describe('self-managed hosting secret/config value API', () => {
     assert.strictEqual(hosting.isManagedValue(marker), true);
   });
 
+  void it('byoSecret/byoConfig produce inert BYO reference markers', () => {
+    const s = hosting.byoSecret('my/app/legacy-token');
+    assert.strictEqual(s.kind, 'secret');
+    assert.strictEqual(s.ref, 'my/app/legacy-token');
+    assert.strictEqual(hosting.isByoValue(s), true);
+    assert.strictEqual(hosting.isSecret(s), false);
+
+    const c = hosting.byoConfig('/my/app/flags');
+    assert.strictEqual(c.kind, 'config');
+    assert.strictEqual(c.ref, '/my/app/flags');
+    assert.strictEqual(hosting.isByoValue(c), true);
+
+    assert.strictEqual(hosting.isByoValue({}), false);
+    assert.strictEqual(hosting.isByoValue(hosting.secret('X')), false);
+  });
+
   void it('markers are inert plain objects (safe to commit — no value)', () => {
     const marker = hosting.secret('STRIPE_KEY') as unknown as Record<
       string,

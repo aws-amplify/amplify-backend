@@ -1,4 +1,6 @@
 import { App, NestedStack, Stack, Stage, Tags } from 'aws-cdk-lib';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import {
   AmplifyUserError,
   BackendIdentifierConversions,
@@ -14,7 +16,8 @@ import {
   DeploymentType,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { HostingProps, HostingResources } from './types.js';
+import { EnvValue, HostingProps, HostingResources } from './types.js';
+import { isByoValue } from './byo.js';
 import {
   AmplifyHostingConstruct,
   AmplifyHostingConstructProps,
@@ -403,6 +406,39 @@ const copyAmplifyOutputsToComputeBundles = (
   }
 };
 
+/**
+ * Resolve any BYO (`byoSecret`/`byoConfig`) markers in `environment` to concrete
+ * CDK handles using the hosting scope, so the user doesn't need to build the
+ * `ISecret`/`IParameter` themselves. Non-BYO values (literals, `secret()`/
+ * `config()` markers, or handles the caller already built) pass through.
+ */
+const resolveByoEnvironment = (
+  environment: HostingProps['environment'],
+  scope: Stack,
+): Record<string, EnvValue> | undefined => {
+  if (!environment) return undefined;
+  const resolved: Record<string, EnvValue> = {};
+  for (const [key, value] of Object.entries(environment)) {
+    if (isByoValue(value)) {
+      const id = `Byo-${key}`;
+      if (value.kind === 'secret') {
+        resolved[key] = value.ref.startsWith('arn:')
+          ? Secret.fromSecretCompleteArn(scope, id, value.ref)
+          : Secret.fromSecretNameV2(scope, id, value.ref);
+      } else {
+        resolved[key] = StringParameter.fromStringParameterName(
+          scope,
+          id,
+          value.ref,
+        );
+      }
+    } else {
+      resolved[key] = value as EnvValue;
+    }
+  }
+  return resolved;
+};
+
 const doBuildHostingConstruct = (
   props: HostingProps,
   scope: Stack,
@@ -449,7 +485,7 @@ const doBuildHostingConstruct = (
     storage: props.storage,
     logging: props.logging,
     monitoring: props.monitoring,
-    environment: props.environment,
+    environment: resolveByoEnvironment(props.environment, scope),
     secretStore: { prefix: secretPrefix, ...props.secretStore },
     configStore: { prefix: configPrefix, ...props.configStore },
     errorPages: props.errorPages,
