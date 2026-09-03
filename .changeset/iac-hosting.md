@@ -24,6 +24,9 @@
 '@aws-amplify/seed': patch
 ---
 
-feat: standalone SSR hosting for Gen 2 backends
+feat: standalone SSR hosting & CI/CD for Gen 2
 
-Adds `defineHosting` to `@aws-amplify/hosting` — a framework-agnostic L3 construct (Next.js, Nuxt/Nitro, Astro, SPA) that deploys SSR/SSG apps on CloudFront + Lambda via an OpenNext build, KVS edge routing, ISR cache seeding, multi-domain/WAF, and configurable cache/headers, all re-exported from `@aws-blocks/hosting`. Extends the `ampx` CLI with `--backend`/`--frontend` deploy flags and backend/hosting entry-point discovery so a single command deploys both. Introduces `definePipeline` for CI/CD — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy, delegated to `@aws-blocks/pipeline`. Aligns the workspace `aws-cdk-lib` peer floor to `^2.257.0` and the `constructs` peer floor to `^10.6.0` across all packages to match the aws-blocks constructs (and reflect that `aws-cdk-lib@2.257.0` itself requires `constructs@^10.5.0`).
+- **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.2.0.
+- **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.0.
+- **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+- **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
