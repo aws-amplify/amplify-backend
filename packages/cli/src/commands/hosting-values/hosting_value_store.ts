@@ -192,15 +192,17 @@ export class HostingValueStore {
     return keys.sort();
   };
 
-  /** Remove a value. */
+  /**
+   * Remove a value. Secrets are *scheduled* for deletion with the default
+   * Secrets Manager recovery window (30 days) — NOT force-deleted — so a
+   * mistaken removal can be restored with `aws secretsmanager restore-secret`.
+   * (SSM parameters have no recovery window; deletion is always immediate.)
+   */
   removeKey = async (key: string): Promise<void> => {
     const name = this.locator(key);
     if (this.kind === 'secret') {
       await this.secretsClient.send(
-        new DeleteSecretCommand({
-          SecretId: name,
-          ForceDeleteWithoutRecovery: true,
-        }),
+        new DeleteSecretCommand({ SecretId: name }),
       );
     } else {
       await this.ssmClient.send(new DeleteParameterCommand({ Name: name }));

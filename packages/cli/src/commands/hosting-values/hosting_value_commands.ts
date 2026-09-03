@@ -189,10 +189,12 @@ export class HostingValueListCommand implements CommandModule<object> {
   builder = (yargs: Argv): Argv => yargs;
 }
 
-/** `remove <key>` — delete a value. */
+type RemoveArgs = { key: string; force?: boolean };
+
+/** `remove <key>` — delete a value (confirmation-gated). */
 export class HostingValueRemoveCommand implements CommandModule<
   object,
-  { key: string }
+  RemoveArgs
 > {
   readonly command = 'remove <key>';
   readonly describe: string;
@@ -209,17 +211,35 @@ export class HostingValueRemoveCommand implements CommandModule<
     this.describe = `Remove a hosting ${kind} value`;
   }
 
-  handler = async (
-    args: ArgumentsCamelCase<{ key: string }>,
-  ): Promise<void> => {
+  handler = async (args: ArgumentsCamelCase<RemoveArgs>): Promise<void> => {
+    assertValidKey(args.key);
+    // Deletion is destructive: SSM parameters have no recovery window, and a
+    // secret starts a (recoverable) scheduled deletion. Gate on an explicit
+    // confirmation unless --force is passed (for non-interactive/CI use).
+    if (!args.force) {
+      const confirmed = await AmplifyPrompter.yesOrNo({
+        message: `Remove ${this.kind} '${args.key}'? This cannot be easily undone.`,
+        defaultValue: false,
+      });
+      if (!confirmed) {
+        printer.print('Aborted.');
+        return;
+      }
+    }
     await this.store.removeKey(args.key);
     printer.print(`Successfully removed ${this.kind} '${args.key}'`);
   };
 
-  builder = (yargs: Argv): Argv<{ key: string }> =>
-    yargs.positional('key', {
-      describe: 'Value key',
-      type: 'string',
-      demandOption: true,
-    }) as Argv<{ key: string }>;
+  builder = (yargs: Argv): Argv<RemoveArgs> =>
+    yargs
+      .positional('key', {
+        describe: 'Value key',
+        type: 'string',
+        demandOption: true,
+      })
+      .option('force', {
+        describe: 'Skip the confirmation prompt (for non-interactive use)',
+        type: 'boolean',
+        default: false,
+      }) as Argv<RemoveArgs>;
 }
