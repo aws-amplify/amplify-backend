@@ -195,7 +195,7 @@ export class HostingValueStore {
   /**
    * Remove a value. Secrets are *scheduled* for deletion with the default
    * Secrets Manager recovery window (30 days) — NOT force-deleted — so a
-   * mistaken removal can be restored with `aws secretsmanager restore-secret`.
+   * mistaken removal can be restored via the Secrets Manager RestoreSecret API.
    * (SSM parameters have no recovery window; deletion is always immediate.)
    */
   removeKey = async (key: string): Promise<void> => {
