@@ -248,10 +248,11 @@ const createHostingDeployHook = (
           actions: ['sts:AssumeRole'],
           resources: ['arn:aws:iam::*:role/cdk-*'],
         }),
-        // Broad read/write permissions for `ampx generate outputs` and `cdk deploy`.
+        // Service permissions for `ampx generate outputs` and `cdk deploy`.
         // Mirrors the scope of AWS managed policy AdministratorAccess-Amplify
         // which covers all services Amplify backends use (CloudFormation, S3,
-        // Cognito, AppSync, DynamoDB, Lambda, IAM, SSM, etc.).
+        // Cognito, AppSync, DynamoDB, Lambda, SSM, etc.). IAM role-write actions
+        // are split out below and scoped to CDK/Amplify role names.
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: [
@@ -263,6 +264,27 @@ const createHostingDeployHook = (
             'cognito-identity:*',
             'dynamodb:*',
             'lambda:*',
+            'ssm:GetParameter*',
+            'ssm:PutParameter',
+            'logs:*',
+            'cloudfront:*',
+            'route53:*',
+            'acm:*',
+          ],
+          resources: ['*'],
+        }),
+        // IAM role-write + PassRole, scoped to the role-name prefixes that CDK
+        // (`cdk-*`) and Amplify hosting stacks (`amplify*`) actually create —
+        // NOT `*`. This removes the privilege-escalation surface flagged in
+        // review (a compromised build minting/passing an ARBITRARY role):
+        // create/pass is now limited to this feature's own role families.
+        // NOTE (pre-GA): additionally attach a permission boundary and pin the
+        // `sts:AssumeRole` above to the deploying account(s) once the pipeline
+        // path is exercised end-to-end (the `::*:` account is intentional today
+        // to keep cross-account stages working).
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
             'iam:PassRole',
             'iam:CreateRole',
             'iam:AttachRolePolicy',
@@ -272,14 +294,11 @@ const createHostingDeployHook = (
             'iam:DeleteRole',
             'iam:DeleteRolePolicy',
             'iam:DetachRolePolicy',
-            'ssm:GetParameter*',
-            'ssm:PutParameter',
-            'logs:*',
-            'cloudfront:*',
-            'route53:*',
-            'acm:*',
           ],
-          resources: ['*'],
+          resources: [
+            'arn:aws:iam::*:role/cdk-*',
+            'arn:aws:iam::*:role/amplify*',
+          ],
         }),
       ],
     });
