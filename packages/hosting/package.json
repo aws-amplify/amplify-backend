@@ -33,6 +33,10 @@
     "./runtime": {
       "types": "./lib/runtime.d.ts",
       "default": "./lib/runtime.js"
+    },
+    "./store-paths": {
+      "types": "./lib/store_paths.d.ts",
+      "default": "./lib/store_paths.js"
     }
   },
   "main": "lib/index.js",

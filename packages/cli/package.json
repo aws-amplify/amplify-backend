@@ -36,6 +36,7 @@
     "@aws-amplify/backend-secret": "^1.4.2",
     "@aws-amplify/cli-core": "^2.2.6",
     "@aws-amplify/client-config": "^1.11.0",
+    "@aws-amplify/hosting": "^1.0.0",
     "@aws-amplify/deployed-backend-client": "^1.8.2",
     "@aws-amplify/form-generator": "^1.2.7",
     "@aws-amplify/model-generator": "^1.2.4",

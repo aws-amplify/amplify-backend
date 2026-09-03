@@ -38,14 +38,16 @@ export const byoSecret = (secretNameOrArn: string): ByoValue => ({
 });
 
 /**
- * Reference an EXISTING SSM parameter by name or ARN, to wire into
- * `defineHosting`'s `environment`. Read at runtime with `getConfig('<key>')`.
- * @param parameterNameOrArn - the parameter's name (e.g. `/my/app/flags`) or ARN.
+ * Reference an EXISTING SSM parameter by name, to wire into `defineHosting`'s
+ * `environment`. Read at runtime with `getConfig('<key>')`. Unlike
+ * {@link byoSecret}, this takes a parameter **name**, not an ARN (SSM parameters
+ * are resolved by name).
+ * @param parameterName - the parameter's name (e.g. `/my/app/flags`).
  */
-export const byoConfig = (parameterNameOrArn: string): ByoValue => ({
+export const byoConfig = (parameterName: string): ByoValue => ({
   [BYO_BRAND]: true,
   kind: 'config',
-  ref: parameterNameOrArn,
+  ref: parameterName,
 });
 
 /** Type guard: a BYO marker produced by {@link byoSecret} / {@link byoConfig}. */

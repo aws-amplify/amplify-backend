@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { getHostingStorePrefixes } from '@aws-amplify/hosting/store-paths';
 import {
   CreateSecretCommand,
   DeleteSecretCommand,
@@ -29,39 +28,14 @@ import {
 const storeForKind = (kind: ValueKind): SecretStore =>
   kind === 'secret' ? 'secrets-manager' : 'ssm';
 
-/**
- * Derive the per-project store identifier for self-managed hosting values.
- *
- * ⚠️ MUST stay in sync with `resolveStoreIdentifier` /
- * `getHostingStorePrefixes` in `@aws-amplify/hosting`'s `store_paths.ts` — the
- * CLI (which writes the value) and `defineHosting` (which wires the read at
- * synth) both compute this independently, and they must produce the identical
- * path or the runtime `getSecret`/`getConfig` won't find what the CLI set. The
- * `hosting_value_store.test.ts` pins the expected locator to guard against drift.
- */
-const resolveStoreIdentifier = (projectDir: string): string => {
-  let name: string | undefined;
-  try {
-    const pkg = JSON.parse(
-      fs.readFileSync(path.join(projectDir, 'package.json'), 'utf-8'),
-    );
-    name = typeof pkg?.name === 'string' ? pkg.name : undefined;
-    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-  } catch {
-    // No/invalid package.json — fall back to the default identifier.
-  }
-  const sanitized = (name ?? '')
-    .replace(/^@[^/]+\//, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return sanitized || 'app';
-};
-
+// Single source of truth for the store prefixes: `@aws-amplify/hosting`'s
+// `store-paths` (the CDK-free module `defineHosting` also uses at synth). The
+// CLI (which writes the value) and the hosting construct (which wires the read)
+// therefore compute the identical `/amplify/hosting/<project>/{secrets,config}`
+// path from one implementation — no duplicated sanitization to drift.
 const prefixForKind = (kind: ValueKind, projectDir: string): string => {
-  const id = resolveStoreIdentifier(projectDir);
-  return kind === 'secret'
-    ? `/amplify/hosting/${id}/secrets`
-    : `/amplify/hosting/${id}/config`;
+  const { secretPrefix, configPrefix } = getHostingStorePrefixes(projectDir);
+  return kind === 'secret' ? secretPrefix : configPrefix;
 };
 
 /**

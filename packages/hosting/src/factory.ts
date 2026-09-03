@@ -127,25 +127,30 @@ const getBackendIdentifier = (scope: App): BackendIdentifier => {
   const backendNamespace = scope.node.getContext(
     CDKContextKey.BACKEND_NAMESPACE,
   );
+  const missingContextResolution =
+    'Deploy hosting via `ampx deploy` (or `ampx sandbox`), which sets the backend-identifier CDK context. Do not run `cdk` against amplify/hosting.ts directly.';
   if (typeof backendNamespace !== 'string') {
-    throw new Error(
-      `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`,
-    );
+    throw new AmplifyUserError('MissingCDKContextError', {
+      message: `${CDKContextKey.BACKEND_NAMESPACE} CDK context value is not a string`,
+      resolution: missingContextResolution,
+    });
   }
   const backendName = scope.node.getContext(CDKContextKey.BACKEND_NAME);
   if (typeof backendName !== 'string') {
-    throw new Error(
-      `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`,
-    );
+    throw new AmplifyUserError('MissingCDKContextError', {
+      message: `${CDKContextKey.BACKEND_NAME} CDK context value is not a string`,
+      resolution: missingContextResolution,
+    });
   }
   const deploymentType: DeploymentType = scope.node.getContext(
     CDKContextKey.DEPLOYMENT_TYPE,
   );
   const expectedDeploymentTypeValues = ['sandbox', 'branch', 'standalone'];
   if (!expectedDeploymentTypeValues.includes(deploymentType)) {
-    throw new Error(
-      `${CDKContextKey.DEPLOYMENT_TYPE} CDK context value is not in (${expectedDeploymentTypeValues.join(', ')})`,
-    );
+    throw new AmplifyUserError('MissingCDKContextError', {
+      message: `${CDKContextKey.DEPLOYMENT_TYPE} CDK context value is not in (${expectedDeploymentTypeValues.join(', ')})`,
+      resolution: missingContextResolution,
+    });
   }
   return {
     type: deploymentType,
@@ -399,9 +404,13 @@ const copyAmplifyOutputsToComputeBundles = (
       process.stderr.write(
         `Copied amplify_outputs.json → ${path.relative(projectDir, dest)}\n`,
       );
-      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/no-empty-catch
-    } catch {
-      // Best-effort: a missing/locked bundle dir must not fail the deploy.
+    } catch (err) {
+      // Best-effort: a missing/locked bundle dir must not fail the deploy, but
+      // surface it at deploy time — otherwise the SSR Lambda ships without
+      // amplify_outputs.json and fails opaquely at request time.
+      process.stderr.write(
+        `WARN: could not copy amplify_outputs.json → ${path.relative(projectDir, dest)}: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
     }
   }
 };

@@ -82,7 +82,7 @@ export type BackendHosting = ResourceProvider<HostingResources>;
 export { BranchConfig }
 
 // @public
-export const byoConfig: (parameterNameOrArn: string) => ByoValue;
+export const byoConfig: (parameterName: string) => ByoValue;
 
 // @public
 export const byoSecret: (secretNameOrArn: string) => ByoValue;
