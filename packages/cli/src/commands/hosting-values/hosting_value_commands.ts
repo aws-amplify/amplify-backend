@@ -142,6 +142,7 @@ export class HostingValueGetCommand implements CommandModule<
   handler = async (
     args: ArgumentsCamelCase<{ key: string }>,
   ): Promise<void> => {
+    assertValidKey(args.key);
     const value = await this.store.getValue(args.key);
     if (value === undefined) {
       throw new AmplifyUserError('SecretNotFoundError', {
