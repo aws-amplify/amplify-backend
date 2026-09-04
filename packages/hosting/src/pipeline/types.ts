@@ -62,8 +62,20 @@ export type {
  * ```
  */
 export type DefinePipelineProps<TConfig = Record<string, unknown>> = {
-  /** Source repository configuration. */
-  readonly source: PipelineSourceConfig;
+  /**
+   * Source repository configuration.
+   *
+   * `connectionArn` is narrowed to a **plain string** here. `@aws-blocks/pipeline`
+   * additionally accepts a `config('CONNECTION_ARN')` marker, but only on its
+   * async `Pipeline.create()` path (which awaits synth-time resolution).
+   * `definePipeline()` synthesizes synchronously (`new AmplifyPipelineConstruct`),
+   * which rejects a marker connectionArn — so allowing one in the type would be a
+   * contract the runtime can't honor. Pass the ARN literally, or read it into a
+   * string before calling `definePipeline()`.
+   */
+  readonly source: Omit<PipelineSourceConfig, 'connectionArn'> & {
+    readonly connectionArn: string;
+  };
 
   /** Synth step configuration. */
   readonly synth?: PipelineSynthConfig;
