@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import {
   ConstructFactory,
   DeepPartialAmplifyGeneratedConfigs,
@@ -6,8 +6,8 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { BackendFactory } from './backend_factory.js';
-import { App, Stack } from 'aws-cdk-lib';
+import { BackendFactory, defineBackend } from './backend_factory.js';
+import { App, Stack, Stage } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { ClientConfig } from '@aws-amplify/client-config';
@@ -230,3 +230,115 @@ void describe('Backend', () => {
 });
 
 type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;
+
+void describe('defineBackend with pipeline ambient scope', () => {
+  const PIPELINE_SCOPE_KEY = '__AMPLIFY_PIPELINE_SCOPE__';
+
+  afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any)[PIPELINE_SCOPE_KEY];
+  });
+
+  void it('attaches to pipeline stage when ambient scope is set', () => {
+    const app = new App();
+    const stage = new Stage(app, 'TestStage');
+    stage.node.setContext('AMPLIFY_STAGE_NAME', 'beta');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[PIPELINE_SCOPE_KEY] = stage;
+
+    const testFactory: ConstructFactory<TestResourceProvider> = {
+      getInstance: ({ constructContainer }) => {
+        return constructContainer.getOrCompute({
+          resourceGroupName: 'test',
+          generateContainerEntry: ({ scope }) => {
+            return {
+              resources: {
+                bucket: new Bucket(scope, 'test-bucket'),
+              },
+            };
+          },
+        }) as TestResourceProvider;
+      },
+    };
+
+    const backend = defineBackend({ testFactory });
+
+    assert.ok(backend.stack);
+    assert.equal(Stack.of(backend.stack).node.scope, stage);
+    const template = Template.fromStack(backend.stack);
+    template.resourceCountIs('AWS::CloudFormation::Stack', 1);
+  });
+
+  void it('does not create branch linker in pipeline mode (standalone type)', () => {
+    const app = new App();
+    const stage = new Stage(app, 'TestStage');
+    stage.node.setContext('AMPLIFY_STAGE_NAME', 'prod');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[PIPELINE_SCOPE_KEY] = stage;
+
+    const backend = defineBackend({});
+
+    const template = Template.fromStack(backend.stack);
+    template.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
+  });
+
+  void it('sets standalone deployment type in platform output', () => {
+    const app = new App();
+    const stage = new Stage(app, 'TestStage');
+    stage.node.setContext('AMPLIFY_STAGE_NAME', 'gamma');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[PIPELINE_SCOPE_KEY] = stage;
+
+    const backend = defineBackend({});
+
+    const template = Template.fromStack(backend.stack);
+    template.hasOutput('deploymentType', { Value: 'standalone' });
+  });
+
+  void it('uses stage name as backend name', () => {
+    const app = new App();
+    const stage = new Stage(app, 'TestStage');
+    stage.node.setContext('AMPLIFY_STAGE_NAME', 'staging');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[PIPELINE_SCOPE_KEY] = stage;
+
+    const backend = defineBackend({});
+
+    const template = Template.fromStack(backend.stack);
+    template.hasOutput('deploymentType', { Value: 'standalone' });
+    assert.ok(backend.stack.stackName.includes('BackendStack'));
+  });
+
+  void it('falls back to default stage name when not provided', () => {
+    const app = new App();
+    const stage = new Stage(app, 'TestStage');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any)[PIPELINE_SCOPE_KEY] = stage;
+
+    const backend = defineBackend({});
+
+    assert.ok(backend.stack);
+    const template = Template.fromStack(backend.stack);
+    template.hasOutput('deploymentType', { Value: 'standalone' });
+  });
+
+  void it('follows normal path when ambient scope is not set', () => {
+    // Ensure no ambient scope
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any)[PIPELINE_SCOPE_KEY];
+
+    const app = new App();
+    app.node.setContext('amplify-backend-type', 'sandbox');
+    app.node.setContext('amplify-backend-namespace', 'testProject');
+    app.node.setContext('amplify-backend-name', 'testUser');
+
+    const stack = new Stack(app);
+    const backend = new BackendFactory({}, stack);
+    assert.equal(backend.stack, stack);
+  });
+});

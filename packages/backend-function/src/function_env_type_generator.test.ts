@@ -5,6 +5,7 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import assert from 'assert';
 import { pathToFileURL } from 'url';
 import path from 'path';
+import os from 'os';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
   after(async () => {
@@ -67,14 +68,24 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
   });
 
   void it('generated type definition file has valid syntax', async () => {
-    const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction');
-    const filePath = `${process.cwd()}/.amplify/generated/env/testFunction.ts`;
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'env-gen-test-'));
+    const originalCwd = process.cwd;
+    process.cwd = () => tmpDir;
+    try {
+      const functionEnvironmentTypeGenerator =
+        new FunctionEnvironmentTypeGenerator('testFunction');
+      const filePath = `${tmpDir}/.amplify/generated/env/testFunction.ts`;
 
-    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
+      functionEnvironmentTypeGenerator.generateTypedProcessEnvShim([
+        'TEST_ENV',
+      ]);
 
-    // import to validate syntax of type definition file
-    await import(pathToFileURL(filePath).toString());
+      // import to validate syntax of type definition file
+      await import(pathToFileURL(filePath).toString());
+    } finally {
+      process.cwd = originalCwd;
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   void it('does not generate duplicate environment variables', () => {

@@ -1,0 +1,20 @@
+---
+const buildTime = new Date().toISOString();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Astro hosting smoke test</title>
+  </head>
+  <body>
+    <h1>Astro hosting smoke test</h1>
+    <p>Rendered at: <span data-testid="render-time">{buildTime}</span></p>
+    <ul>
+      <li><a href="/about">/about</a></li>
+      <li><a href="/api/health">/api/health</a></li>
+      <li><a href="/api/echo">/api/echo (POST)</a></li>
+      <li><a href="/api/stream">/api/stream</a></li>
+    </ul>
+  </body>
+</html>

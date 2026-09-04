@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.open-next/
+
+# Override root .gitignore — source JS files in this test project must be committed
+!apps/web/next.config.js

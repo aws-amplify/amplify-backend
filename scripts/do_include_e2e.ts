@@ -14,9 +14,13 @@ const gitHubClient = new GithubClient();
 const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['main']);
 const INTERNAL_REPO = 'aws-amplify/amplify-backend';
 
-const shouldPullRequestRunE2E = async () => {
+const shouldPullRequestRunE2E = async (): Promise<boolean> => {
   if (!ghContext.payload.pull_request) {
-    // event is not a pull request
+    // Non-PR events must return a plain boolean, not an object: this value
+    // flows into `doIncludeE2e` and is `console.log`-ed as the workflow output.
+    // A truthy `{ runE2E: false }` object would stringify to `[object Object]`
+    // and wrongly enable/invalidate e2e gating on any non-PR event that isn't
+    // already covered by the push/dispatch/schedule branches.
     return false;
   }
   const prInfo = await gitHubClient.fetchPullRequest(

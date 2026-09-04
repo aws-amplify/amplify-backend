@@ -2,9 +2,12 @@ import yargs, { Argv } from 'yargs';
 import { createGenerateCommand } from './commands/generate/generate_command_factory.js';
 import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory.js';
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
+import { createDeployCommand } from './commands/deploy/deploy_command_factory.js';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
 import { createInfoCommand } from './commands/info/info_command_factory.js';
 import { createNoticesCommand } from './commands/notices/notices_command_factory.js';
+import { createSecretCommand } from './commands/hosting-values/secret_command_factory.js';
+import { createConfigCommand } from './commands/hosting-values/config_command_factory.js';
 import * as path from 'path';
 import { NoticesRenderer } from './notices/notices_renderer.js';
 
@@ -31,9 +34,12 @@ export const createMainParser = (
     .command(createGenerateCommand())
     .command(createSandboxCommand(noticesRenderer))
     .command(createPipelineDeployCommand())
+    .command(createDeployCommand())
     .command(createConfigureCommand())
     .command(createInfoCommand())
     .command(createNoticesCommand())
+    .command(createSecretCommand())
+    .command(createConfigCommand())
     .help()
     .alias('h', 'help')
     .alias('v', 'version')

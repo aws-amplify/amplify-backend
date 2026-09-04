@@ -6,6 +6,7 @@ on:
       - main
       - hotfix
       - feature/**
+      - snapshot/iac-hosting
   schedule:
     # Run every two hours. A single run takes about 40min so we should
     # get about 10 runs per day. If at least one of them succeeds, we are happy.
