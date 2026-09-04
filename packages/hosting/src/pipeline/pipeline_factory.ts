@@ -56,7 +56,10 @@ const STACK_NAME_MAX_LENGTH = 128;
 export const defaultPipelineStackName = (repo: string): string => {
   const prefix = 'amplify-pipeline-';
   const hash = createHash('sha256').update(repo).digest('hex').slice(0, 8);
-  const sanitized = repo.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  // The first replace collapses every run of non-alphanumerics to a SINGLE '-',
+  // so the trim only ever removes one leading/trailing hyphen — no `-+` needed
+  // (avoids the polynomial-backtracking pattern CodeQL flags on `-+$`).
+  const sanitized = repo.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
   // Reserve room for the prefix, the separator hyphen, and the hash suffix.
   const readableRoom = STACK_NAME_MAX_LENGTH - prefix.length - 1 - hash.length;
   const readable = sanitized.slice(0, Math.max(0, readableRoom));
