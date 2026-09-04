@@ -17,7 +17,7 @@ export type ByoValue = {
   readonly [BYO_BRAND]: true;
   /** `secret` → Secrets Manager, `config` → SSM Parameter Store. */
   readonly kind: 'secret' | 'config';
-  /** The secret name/ARN (secret) or parameter name/ARN (config). */
+  /** The secret name/ARN (secret) or parameter name (config; ARNs not accepted). */
   readonly ref: string;
 };
 

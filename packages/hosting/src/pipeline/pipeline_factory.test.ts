@@ -12,6 +12,7 @@ import * as os from 'os';
 
 const require = createRequire(import.meta.url);
 import {
+  defaultPipelineStackName,
   definePipeline,
   findFile,
   getStageConfig,
@@ -765,6 +766,38 @@ void describe('findFile', () => {
   });
 });
 
+void describe('defaultPipelineStackName', () => {
+  void it('produces a readable, prefixed name within the 128-char CFN limit', () => {
+    const name = defaultPipelineStackName('my-org/my-app');
+    assert.match(name, /^amplify-pipeline-my-org-my-app-[0-9a-f]{8}$/);
+    assert.ok(name.length <= 128);
+  });
+
+  void it('disambiguates repos whose sanitized forms would collide', () => {
+    // 'org/app' and 'org-app' both sanitize to 'org-app'; the hash suffix keeps
+    // them distinct so they map to different stacks.
+    const a = defaultPipelineStackName('org/app');
+    const b = defaultPipelineStackName('org-app');
+    assert.notStrictEqual(a, b);
+  });
+
+  void it('bounds the name for very long repo identifiers', () => {
+    const name = defaultPipelineStackName(
+      'a'.repeat(300) + '/' + 'b'.repeat(300),
+    );
+    assert.ok(name.length <= 128, `expected <= 128 chars, got ${name.length}`);
+    assert.ok(name.startsWith('amplify-pipeline-'));
+    assert.match(name, /-[0-9a-f]{8}$/);
+  });
+
+  void it('is stable for the same repo', () => {
+    assert.strictEqual(
+      defaultPipelineStackName('org/app'),
+      defaultPipelineStackName('org/app'),
+    );
+  });
+});
+
 void describe('getStageConfig', () => {
   void it('returns undefined when not in pipeline context', () => {
     const result = getStageConfig();
@@ -811,7 +844,7 @@ void describe('getStageConfig', () => {
     }
   });
 
-  void it('returns undefined when AMPLIFY_STAGE_CONFIG is invalid JSON', () => {
+  void it('throws a descriptive error when AMPLIFY_STAGE_CONFIG is invalid JSON', () => {
     const originalEnv = { ...process.env };
     process.env.AMPLIFY_STAGE_CONFIG = 'not-valid-json{{{';
     process.env.STAGE_NAME = 'beta';
@@ -819,8 +852,22 @@ void describe('getStageConfig', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (globalThis as any).__AMPLIFY_PIPELINE_SCOPE__;
     try {
-      const result = getStageConfig();
-      assert.strictEqual(result, undefined);
+      // A present-but-malformed value is a corrupted stage transport, not
+      // "no config": fail loudly instead of silently defaulting.
+      assert.throws(() => getStageConfig(), /Malformed AMPLIFY_STAGE_CONFIG/);
+    } finally {
+      process.env = originalEnv;
+    }
+  });
+
+  void it('throws when AMPLIFY_STAGE_CONFIG is set but STAGE_NAME is empty', () => {
+    const originalEnv = { ...process.env };
+    process.env.AMPLIFY_STAGE_CONFIG = JSON.stringify({ domain: 'x' });
+    delete process.env.STAGE_NAME;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).__AMPLIFY_PIPELINE_SCOPE__;
+    try {
+      assert.throws(() => getStageConfig(), /STAGE_NAME is empty/);
     } finally {
       process.env = originalEnv;
     }

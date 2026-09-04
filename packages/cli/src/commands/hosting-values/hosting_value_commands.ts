@@ -115,7 +115,10 @@ export class HostingValueSetCommand implements CommandModule<object, KeyArgs> {
       if (chunk !== null) value += chunk;
     });
     await once(this.readStream, 'end');
-    return value.replace(/\n$/, '');
+    // Strip a single trailing newline, CRLF-aware: `echo secret | ampx …` on
+    // Windows sends `\r\n`, and a leftover `\r` would silently corrupt the
+    // stored credential. Only the final line terminator is removed.
+    return value.replace(/\r?\n$/, '');
   };
 }
 

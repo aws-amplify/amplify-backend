@@ -14,7 +14,7 @@ import {
   BackendIdentifierConversions,
   BackendLocator,
 } from '@aws-amplify/platform-core';
-import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { NamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import {
@@ -157,6 +157,17 @@ export class DeployCommand implements CommandModule<
       });
     }
 
+    // --pipeline derives its own per-stage identifiers; --identifier does NOT
+    // influence pipeline identity. Reject the combination rather than silently
+    // ignore --identifier and give a false impression it controls the pipeline.
+    if (args.pipeline && args.identifier) {
+      throw new AmplifyUserError('InvalidCommandInputError', {
+        message: 'Cannot specify --identifier with --pipeline.',
+        resolution:
+          'Pipeline stack/stage identity comes from amplify/pipeline.ts (stage names and optional stackName), not --identifier. Remove --identifier, or drop --pipeline to deploy a standalone backend.',
+      });
+    }
+
     // ampx deploy is a preview feature — confirm before proceeding
     if (!args.yes) {
       const confirmed = await AmplifyPrompter.yesOrNo({
@@ -173,19 +184,16 @@ export class DeployCommand implements CommandModule<
     const bootstrapped = await this.isBootstrapped();
     const region = await this.ssmClient.config.region();
     if (!bootstrapped) {
-      printer.log(
-        `The region ${format.highlight(
-          region,
-        )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then re-run the deploy command.`,
-      );
+      // Throw (non-zero exit) rather than log-and-return: returning normally
+      // gave automation exit code 0 even though nothing was deployed, silently
+      // masking an environment that was never bootstrapped in CI.
       const bootstrapUrl = getBootstrapUrl(region);
-      printer.log(`Open ${bootstrapUrl} in the browser.`);
-      printer.log(
-        format.dim(
-          'Note: This check requires ssm:GetParameter permission on /cdk-bootstrap/* resources.',
-        ),
-      );
-      return;
+      throw new AmplifyUserError('RegionNotBootstrappedError', {
+        message: `The region ${region} has not been bootstrapped.`,
+        resolution:
+          `Sign in to the AWS console as a Root user or Admin and complete the bootstrap process at ${bootstrapUrl}, then re-run the deploy command. ` +
+          'Note: this check requires ssm:GetParameter permission on /cdk-bootstrap/* resources.',
+      });
     }
 
     // --pipeline: deploy only the pipeline stack and return early

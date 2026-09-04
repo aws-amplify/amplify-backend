@@ -91,7 +91,7 @@ The hosting package uses a two-layer architecture:
 
 The construct is completely framework-agnostic. It never knows whether the manifest came from Next.js, Astro, or a custom adapter.
 
-> **Implementation note:** The framework adapters and the L3 CDK construct are provided by [`@aws-blocks/hosting`](https://www.npmjs.com/package/@aws-blocks/core). `@aws-amplify/hosting` re-exports them (the construct under the `AmplifyHostingConstruct` alias) and adds the Amplify-specific glue — `defineHosting()`, `definePipeline()`, and the backend-output integration.
+> **Implementation note:** The framework adapters and the L3 CDK construct are provided by [`@aws-blocks/hosting`](https://www.npmjs.com/package/@aws-blocks/hosting). `@aws-amplify/hosting` re-exports them (the construct under the `AmplifyHostingConstruct` alias) and adds the Amplify-specific glue — `defineHosting()`, `definePipeline()`, and the backend-output integration.
 
 ### Adapter Pipeline
 
@@ -108,7 +108,12 @@ The construct is completely framework-agnostic. It never knows whether the manif
 | Adapter     | Description                                                                                                                                                                       |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Next.js** | Uses [@opennextjs/aws](https://opennext.js.org/) to process Next.js build output. Supports App Router, Pages Router, ISR, middleware, image optimization, and response streaming. |
+| **Nitro**   | Nitro-based SSR output (`.output/`). The engine behind Nuxt and Astro's Node/Lambda targets.                                                                                      |
+| **Nuxt**    | Nuxt 3 apps (built on the Nitro adapter).                                                                                                                                         |
+| **Astro**   | Astro SSR apps using the Node/Lambda adapter (built on the Nitro adapter).                                                                                                        |
 | **SPA**     | Static single-page apps (React, Vue, Angular, etc.). All routes serve `index.html` with client-side routing.                                                                      |
+
+All of the above are exported from [`@aws-amplify/hosting/adapters`](./src/adapters/index.ts) (`nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`, `spaAdapter`) and auto-selected by framework detection; you only need a custom adapter for a framework not listed here.
 
 ### Infrastructure
 
@@ -285,7 +290,7 @@ Streaming SSR routes (Nitro `nitro.awsLambda.streaming: true`, Astro 5, Next.js 
 
 ## Custom Framework Adapters
 
-For frameworks not built in (Astro, Remix, SvelteKit, etc.), provide a custom adapter that returns a `DeployManifest`:
+For frameworks not built in (Remix, SvelteKit, etc. — note Nuxt and Astro are already built in), provide a custom adapter that returns a `DeployManifest`:
 
 ```typescript
 // amplify/hosting.ts
@@ -588,7 +593,7 @@ new AmplifyHostingConstruct(stack, 'Hosting', {
 
 ### Writing a Custom Adapter
 
-The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`) process framework build output and produce this manifest. You can write your own adapter for any framework (Astro, Remix, SvelteKit, etc.).
+The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`) process framework build output and produce this manifest. You can write your own adapter for any framework not covered above (Remix, SvelteKit, etc.).
 
 **Skeleton adapter for a custom framework:**
 

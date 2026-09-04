@@ -372,14 +372,20 @@ void describe('deploy command', () => {
       ),
     );
 
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app --yes',
-    );
-
-    assert.match(output, /has not been bootstrapped/);
-    assert.ok(
-      output.includes('console.aws.amazon.com/amplify/create/bootstrap'),
-      'output should contain the bootstrap URL',
+    // Unbootstrapped now throws (non-zero exit) so CI/automation can't treat
+    // "nothing deployed" as success.
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /has not been bootstrapped/);
+        assert.ok(
+          err.output.includes(
+            'console.aws.amazon.com/amplify/create/bootstrap',
+          ),
+          'error should contain the bootstrap URL',
+        );
+        return true;
+      },
     );
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
   });
@@ -389,11 +395,13 @@ void describe('deploy command', () => {
       Promise.resolve({ Parameter: { Value: '3' } }),
     );
 
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app --yes',
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /has not been bootstrapped/);
+        return true;
+      },
     );
-
-    assert.match(output, /has not been bootstrapped/);
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
   });
 
@@ -412,11 +420,13 @@ void describe('deploy command', () => {
       Promise.resolve({ Parameter: { Value: 'corrupted' } }),
     );
 
-    const output = await getCommandRunner().runCommand(
-      'deploy --identifier my-app --yes',
+    await assert.rejects(
+      () => getCommandRunner().runCommand('deploy --identifier my-app --yes'),
+      (err: TestCommandError) => {
+        assert.match(err.output, /has not been bootstrapped/);
+        return true;
+      },
     );
-
-    assert.match(output, /has not been bootstrapped/);
     assert.strictEqual(mockBackendDeployFn.mock.callCount(), 0);
   });
 
@@ -589,12 +599,27 @@ void describe('deploy command', () => {
     assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 0);
   });
 
+  void it('rejects --identifier with --pipeline', async () => {
+    pipelineExists = true;
+    await assert.rejects(
+      () =>
+        getCommandRunner().runCommand(
+          'deploy --identifier my-app --pipeline --yes',
+        ),
+      (err: TestCommandError) => {
+        assert.match(err.output, /Cannot specify --identifier with --pipeline/);
+        return true;
+      },
+    );
+    assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 0);
+  });
+
   void describe('--pipeline flag', () => {
     void it('deploys pipeline via cdk deploy when pipeline.ts exists', async () => {
       pipelineExists = true;
 
       const output = await getCommandRunner().runCommand(
-        'deploy --identifier my-app --pipeline --yes',
+        'deploy --pipeline --yes',
       );
 
       assert.strictEqual(mockPipelineExecaFn.mock.callCount(), 1);
@@ -605,7 +630,9 @@ void describe('deploy command', () => {
         'cdk',
         'deploy',
         '--app',
-        'npx tsx amplify/pipeline.ts',
+        // The entry path is single-quoted inside the --app value so CDK's shell
+        // re-parse survives paths with spaces/special chars (see deploy_command).
+        "npx tsx 'amplify/pipeline.ts'",
         '--require-approval',
         'never',
         '--all',
@@ -621,10 +648,7 @@ void describe('deploy command', () => {
       pipelineExists = false;
 
       await assert.rejects(
-        () =>
-          getCommandRunner().runCommand(
-            'deploy --identifier my-app --pipeline --yes',
-          ),
+        () => getCommandRunner().runCommand('deploy --pipeline --yes'),
         (err: TestCommandError) => {
           assert.match(
             err.output,
@@ -640,9 +664,7 @@ void describe('deploy command', () => {
     void it('does not generate client config', async () => {
       pipelineExists = true;
 
-      await getCommandRunner().runCommand(
-        'deploy --identifier my-app --pipeline --yes',
-      );
+      await getCommandRunner().runCommand('deploy --pipeline --yes');
 
       assert.strictEqual(generateClientConfigMock.mock.callCount(), 0);
     });
@@ -654,10 +676,7 @@ void describe('deploy command', () => {
       );
 
       await assert.rejects(
-        () =>
-          getCommandRunner().runCommand(
-            'deploy --identifier my-app --pipeline --yes',
-          ),
+        () => getCommandRunner().runCommand('deploy --pipeline --yes'),
         (err: TestCommandError) => {
           assert.match(err.error.message, /Pipeline deployment failed/);
           return true;

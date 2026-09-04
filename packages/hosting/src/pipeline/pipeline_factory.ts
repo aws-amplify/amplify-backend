@@ -4,6 +4,7 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import {
   CodeBuildStep,
   IFileSetProducer,
@@ -32,6 +33,35 @@ const BACKEND_PIPELINE_OUTPUTS_KEY = '__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__';
  * Note: .mjs is excluded because native ESM cannot be loaded via require().
  */
 const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.cjs'];
+
+/**
+ * Extensions that name a valid entry file but cannot be loaded by the
+ * synchronous, `require()`-based stage importer (native ESM). Detected only to
+ * emit an actionable error instead of a misleading "not found".
+ */
+const UNSUPPORTED_ENTRY_EXTENSIONS = ['.mjs'];
+
+// CloudFormation stack names are capped at 128 chars.
+const STACK_NAME_MAX_LENGTH = 128;
+
+/**
+ * Default pipeline stack name for a source repo.
+ *
+ * `amplify-pipeline-<readable>-<hash>`: a readable, hyphen-sanitized (and
+ * length-bounded) slice of the repo id for humans, plus a short stable hash of
+ * the ORIGINAL repo string so that distinct repos whose sanitized forms would
+ * otherwise collide (e.g. `org/app` vs `org-app`) still map to distinct stacks.
+ * The total is bounded to CloudFormation's 128-char limit.
+ */
+export const defaultPipelineStackName = (repo: string): string => {
+  const prefix = 'amplify-pipeline-';
+  const hash = createHash('sha256').update(repo).digest('hex').slice(0, 8);
+  const sanitized = repo.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  // Reserve room for the prefix, the separator hyphen, and the hash suffix.
+  const readableRoom = STACK_NAME_MAX_LENGTH - prefix.length - 1 - hash.length;
+  const readable = sanitized.slice(0, Math.max(0, readableRoom));
+  return `${prefix}${readable}-${hash}`;
+};
 
 /**
  * Define a CI/CD pipeline for Amplify applications.
@@ -87,8 +117,8 @@ const DISCOVERABLE_EXTENSIONS = ['.ts', '.js', '.cjs'];
  */
 export const definePipeline = (props: DefinePipelineProps): void => {
   const app = new cdk.App();
-  const repoSuffix = props.source.repo.replace(/[^a-zA-Z0-9]/g, '-');
-  const stackName = props.stackName ?? `amplify-pipeline-${repoSuffix}`;
+  const stackName =
+    props.stackName ?? defaultPipelineStackName(props.source.repo);
   const rootStack = new cdk.Stack(app, stackName, {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -101,6 +131,20 @@ export const definePipeline = (props: DefinePipelineProps): void => {
   const backendFile = findFile(amplifyDir, 'backend');
 
   if (!hostingFile && !backendFile) {
+    // If the only candidate is an unsupported extension (.mjs), say so
+    // explicitly instead of the generic "not found" — the file IS there, it
+    // just can't be loaded by the synchronous require()-based stage importer.
+    const unsupported =
+      findUnsupportedEntry(amplifyDir, 'hosting') ??
+      findUnsupportedEntry(amplifyDir, 'backend');
+    if (unsupported) {
+      throw new Error(
+        `Found ${path.basename(unsupported)} but native ESM (.mjs) entry points ` +
+          'are not supported by the pipeline stage importer. Rename it to ' +
+          `${DISCOVERABLE_EXTENSIONS.join(', ')} (a .ts/.cjs file, or a .js in a ` +
+          'CommonJS package).',
+      );
+    }
     throw new Error(
       'Could not find amplify/hosting.ts or amplify/backend.ts. ' +
         'Create at least one to define your application.',
@@ -188,9 +232,17 @@ const createHostingDeployHook = (
       | undefined;
 
     if (!backendOutputs?.stackNameOutput) {
-      // No backend stack — skip hosting deploy step.
-      // This happens when there's no backend.ts or defineBackend() wasn't called.
-      return [];
+      // This hook only exists in the two-phase (backend + hosting) case, so a
+      // missing backend stack-name output here means backend.ts exists but did
+      // not publish outputs (defineBackend() wasn't called, or synth threw).
+      // Fail loudly rather than silently synthesizing a backend-only pipeline
+      // that omits the explicitly-configured hosting deploy.
+      throw new Error(
+        `Hosting deploy for stage "${stageConfig.name}" cannot be wired: the ` +
+          'backend stack-name output was not published during synthesis. Ensure ' +
+          'amplify/backend.ts calls defineBackend({ ... }) so the pipeline can ' +
+          'generate amplify_outputs.json before building the frontend.',
+      );
     }
 
     const deployStep = new CodeBuildStep(`DeployHosting-${stageConfig.name}`, {
@@ -344,15 +396,32 @@ export function getStageConfig<T = Record<string, unknown>>():
   const envConfig = process.env.AMPLIFY_STAGE_CONFIG;
   const envStageName = process.env.STAGE_NAME;
   if (envConfig) {
+    // AMPLIFY_STAGE_CONFIG is present → env-transport is active (a CodeBuild
+    // hosting step). A malformed value is a corrupted stage transport, not
+    // "no config": swallowing it silently let defaults deploy with no
+    // diagnostic. Fail with a descriptive error instead.
+    let parsed: T;
     try {
-      const parsed = JSON.parse(envConfig) as T;
-      return {
-        name: envStageName ?? '',
-        config: parsed,
-      } as PipelineStageConfig<T> & { name: string };
-    } catch {
-      return undefined;
+      parsed = JSON.parse(envConfig) as T;
+    } catch (e) {
+      throw new Error(
+        `Malformed AMPLIFY_STAGE_CONFIG: could not parse as JSON (${
+          (e as Error).message
+        }). This value is set by the pipeline; a bad value means the stage ` +
+          'configuration was corrupted in transport.',
+        { cause: e },
+      );
     }
+    if (!envStageName) {
+      throw new Error(
+        'AMPLIFY_STAGE_CONFIG is set but STAGE_NAME is empty. The pipeline must ' +
+          'provide a non-empty stage name alongside the stage config.',
+      );
+    }
+    return {
+      name: envStageName,
+      config: parsed,
+    } as PipelineStageConfig<T> & { name: string };
   }
 
   return undefined;
@@ -396,6 +465,24 @@ export async function withPipelineScope<T>(
 // eslint-disable-next-line no-restricted-syntax
 export function findFile(dir: string, baseName: string): string | undefined {
   for (const ext of DISCOVERABLE_EXTENSIONS) {
+    const filePath = path.join(dir, baseName + ext);
+    if (fs.existsSync(filePath)) return filePath;
+  }
+  return undefined;
+}
+
+/**
+ * Find an entry file that exists but uses an extension the stage importer
+ * cannot load (e.g. `.mjs`), so callers can emit an actionable error rather
+ * than a misleading "not found".
+ * @internal
+ */
+// eslint-disable-next-line no-restricted-syntax
+export function findUnsupportedEntry(
+  dir: string,
+  baseName: string,
+): string | undefined {
+  for (const ext of UNSUPPORTED_ENTRY_EXTENSIONS) {
     const filePath = path.join(dir, baseName + ext);
     if (fs.existsSync(filePath)) return filePath;
   }
