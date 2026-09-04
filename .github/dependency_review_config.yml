@@ -77,3 +77,27 @@ allow-ghsas:
   - 'GHSA-j687-52p2-xcff' # astro XSS in define:vars via incomplete </script> sanitization (MODERATE)
   - 'GHSA-jrpj-wcv7-9fh9' # astro XSS via unescaped attribute names in spread props (MODERATE)
   - 'GHSA-xr5h-phrj-8vxv' # astro server island encrypted params vulnerable to cross-component replay (LOW)
+  # Additional fixture-framework advisories surfaced as the demo apps track the
+  # latest framework releases (same throwaway-app rationale as above — not shipped,
+  # unreachable from Amplify product code, tracked upstream).
+  # next (standalone-hosting-ssr @ next 16.x, vanilla-cdk-ssr @ next 15.x):
+  - 'GHSA-89xv-2m56-2m9x' # next SSRF in Server Actions on custom servers (HIGH)
+  - 'GHSA-p9j2-gv94-2wf4' # next SSRF in rewrites via attacker-controlled destination hostname (HIGH)
+  - 'GHSA-m99w-x7hq-7vfj' # next DoS in App Router using Server Actions (HIGH)
+  - 'GHSA-6gpp-xcg3-4w24' # next Middleware/Proxy bypass w/ Turbopack + single locale (HIGH)
+  - 'GHSA-955p-x3mx-jcvp' # next unauthenticated disclosure of internal Server Function endpoints (MODERATE)
+  - 'GHSA-q8wf-6r8g-63ch' # next DoS in Image Optimization API using SVGs (MODERATE)
+  - 'GHSA-4c39-4ccg-62r3' # next unbounded Server Action payload in Edge runtime (MODERATE)
+  - 'GHSA-4633-3j49-mh5q' # next cache confusion for request bodies with invalid UTF-8 (MODERATE)
+  - 'GHSA-68g3-v927-f742' # next cache confusion of response bodies for requests with bodies (MODERATE)
+  # astro (standalone-hosting-astro, standalone-hosting-astro-basepath):
+  - 'GHSA-4g3v-8h47-v7g6' # astro Reflected XSS via unescaped View Transition animation properties (MODERATE)
+  - 'GHSA-f48w-9m4c-m7f5' # astro XSS via unescaped spread attribute names in renderHTMLElement (MODERATE)
+  - 'GHSA-7pw4-f3q4-r2p2' # astro XSS via unescaped transition:* directive values on hydrated islands (LOW)
+  # transitive deps of the SSR fixtures (postcss/nanoid via next, sharp via image opt):
+  - 'GHSA-6g55-p6wh-862q' # postcss arbitrary file read via attacker-controlled sourceMappingURL (HIGH)
+  - 'GHSA-r28c-9q8g-f849' # postcss path traversal in previous source-map auto-loading (HIGH)
+  - 'GHSA-fxqj-rqcc-2cmp' # postcss incomplete fix of GHSA-6g55 — arbitrary .map read when `from` unset (MODERATE)
+  - 'GHSA-28wg-ghj8-5hjv' # nanoid non-secure generators can loop indefinitely with negative size (HIGH)
+  - 'GHSA-2v37-7h3g-55p8' # nanoid custom generators can loop indefinitely when size is zero (HIGH)
+  - 'GHSA-f88m-g3jw-g9cj' # sharp inherited libvips CVEs (CVE-2026-33327/33328/35590/35591) (HIGH)
