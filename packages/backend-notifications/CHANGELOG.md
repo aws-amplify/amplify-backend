@@ -1,5 +1,31 @@
 # @aws-amplify/backend-notifications
 
+## 2.0.0
+
+### Major Changes
+
+- 8456adc: Guarantee `defineNotifications` operates only against a Customer Profiles domain with Identity Resolution (profile merging) disabled.
+  - Create-from-scratch mode provisions the Customer Profiles domain with automatic (`Matching`) and rule-based (`RuleBasedMatching`) matching disabled.
+  - Attach mode validates the target domain at deploy time and fails the deployment with an actionable message when Identity Resolution is enabled.
+  - The `identify-user` API verifies at request time that the attached domain has Identity Resolution disabled, returning an error when it is enabled (short-lived per-domain cache; fails closed when the domain's configuration cannot be confirmed).
+
+  Impact: a deployment that attaches to — or a running app whose attached domain has — Identity Resolution enabled will be rejected. Attach `defineNotifications` to a dedicated Customer Profiles domain with Identity Resolution disabled.
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
 ## 1.0.0
 
 ### Major Changes
