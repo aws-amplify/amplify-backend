@@ -630,9 +630,11 @@ void describe('deploy command', () => {
         'cdk',
         'deploy',
         '--app',
-        // The entry path is single-quoted inside the --app value so CDK's shell
-        // re-parse survives paths with spaces/special chars (see deploy_command).
-        "npx tsx 'amplify/pipeline.ts'",
+        // A plain relative entry path is passed UNQUOTED so CDK's shell re-parse
+        // works cross-platform (POSIX single-quotes are literal on Windows cmd).
+        // Paths with spaces/quotes get shell-appropriate quoting — see
+        // buildPipelineAppCommand in deploy_command.
+        'npx tsx amplify/pipeline.ts',
         '--require-approval',
         'never',
         '--all',

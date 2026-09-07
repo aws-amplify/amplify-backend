@@ -51,6 +51,12 @@ export class VanillaCdkSsrTestCdkProjectCreator implements TestCdkProjectCreator
       ...pkgJson.devDependencies,
       '@opennextjs/aws': '^3.10.0',
       tsx: '^4.0.0',
+      // React type declarations are required for the pre-deploy `npx tsc` to
+      // type-check app/*.tsx (matching the react ^19 runtime above). Without
+      // them tsc fails with TS7016 (no declaration for 'react') + missing
+      // JSX.IntrinsicElements.
+      '@types/react': '^19.0.0',
+      '@types/react-dom': '^19.0.0',
     };
     await fs.writeFile(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
 
@@ -88,7 +94,10 @@ export class VanillaCdkSsrTestCdkProjectCreator implements TestCdkProjectCreator
     const tsconfig = JSON.parse(await fs.readFile(tsconfigPath, 'utf-8'));
     tsconfig.compilerOptions = {
       ...tsconfig.compilerOptions,
-      jsx: 'preserve',
+      // `react-jsx` (automatic runtime) so app/*.tsx type-check against
+      // react/jsx-runtime — React 19's @types dropped the global JSX namespace,
+      // so `jsx: 'preserve'` would fail with no-JSX.IntrinsicElements.
+      jsx: 'react-jsx',
       lib: ['dom', 'dom.iterable', 'esnext'],
       allowJs: true,
       skipLibCheck: true,

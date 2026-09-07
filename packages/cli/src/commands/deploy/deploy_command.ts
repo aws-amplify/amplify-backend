@@ -68,6 +68,25 @@ const getBootstrapUrl = (region: string) =>
   `https://${region}.console.aws.amazon.com/amplify/create/bootstrap?region=${region}`;
 
 /**
+ * Build the `npx tsx <entry>` value passed to CDK's `--app`. CDK re-executes
+ * this string through the *platform* shell, so:
+ * - A plain relative path (the common case) is left UNQUOTED — it works on both
+ *   POSIX and Windows. It must NOT be POSIX single-quoted, because cmd.exe /
+ *   PowerShell treat single quotes literally, so `'amplify/pipeline.ts'` would be
+ *   passed to tsx with the quotes still attached (ERR_MODULE_NOT_FOUND).
+ * - Only when the path contains whitespace or a quote do we quote it, using the
+ *   style the target shell understands (double on Windows, single on POSIX).
+ */
+const buildPipelineAppCommand = (entry: string): string => {
+  if (!/[\s'"]/.test(entry)) {
+    return `npx tsx ${entry}`;
+  }
+  return process.platform === 'win32'
+    ? `npx tsx "${entry.replace(/"/g, '""')}"`
+    : `npx tsx '${entry.replace(/'/g, `'\\''`)}'`;
+};
+
+/**
  * Deploys Amplify backend resources without Amplify Hosting.
  */
 export class DeployCommand implements CommandModule<
@@ -226,12 +245,11 @@ export class DeployCommand implements CommandModule<
             'deploy',
             '--app',
             // execa passes this as a single argv element (shell: false), but CDK
-            // itself re-executes the --app VALUE through a shell — so the entry
-            // path must be quoted here or a path containing spaces or special
-            // shell characters is word-split by CDK's shell. Single-quote it
-            // (and escape any embedded
-            // single quotes) so the path survives CDK's re-parse intact.
-            `npx tsx '${pipelineEntryPoint.replace(/'/g, `'\\''`)}'`,
+            // re-executes the --app VALUE through the platform shell. Quote the
+            // entry path only when needed, using a shell-appropriate style — a
+            // plain relative path stays unquoted so it works on Windows too (see
+            // buildPipelineAppCommand).
+            buildPipelineAppCommand(pipelineEntryPoint),
             '--require-approval',
             'never',
             '--all',
