@@ -76,6 +76,10 @@ on:
         type: string
         default: '["22", "24", "26"]'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   # Health checks can run on un-released code. Often work in progress.
   # Disable data from there.
