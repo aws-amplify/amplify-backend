@@ -16,6 +16,11 @@ const getExpectedMajorVersion = (packageName: string) => {
     case '@aws-amplify/cli-core':
     case '@aws-amplify/sandbox':
       return '2.';
+    // backend-notifications goes to 2.x via the `notifications-identity-resolution-guard`
+    // changeset (a declared breaking change: defineNotifications now rejects domains with
+    // Identity Resolution enabled). Bless the intended major so the guard stops flagging it.
+    case '@aws-amplify/backend-notifications':
+      return '2.';
     default:
       return '1.';
   }
