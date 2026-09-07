@@ -163,7 +163,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         buildDistributionWithOrigins('D8', [
           {
             Id: 'origin-0',
-            DomainName: 'amplify-odd-suffix.s3.some-new-endpoint.example',
+            DomainName: 'amplify-dotted.bucket.s3.us-west-2.amazonaws.com',
             S3OriginConfig: { OriginAccessIdentity: '' },
           },
         ]),
@@ -171,10 +171,10 @@ void describe('CloudFrontDistributionCleaner', () => {
 
       assert.deepStrictEqual(index.getBucketNames().sort(), [
         'amplify-china',
+        'amplify-dotted.bucket',
         'amplify-dualstack',
         'amplify-global',
         'amplify-legacy-path-style',
-        'amplify-odd-suffix',
         'amplify-path-style',
         'amplify-regional',
         'amplify-website',
@@ -189,9 +189,24 @@ void describe('CloudFrontDistributionCleaner', () => {
         'D7',
       );
       assert.strictEqual(
-        index.getDistributions('amplify-odd-suffix')[0].Id,
+        index.getDistributions('amplify-dotted.bucket')[0].Id,
         'D8',
       );
+    });
+
+    void it('marks the index incomplete for an unrecognized S3 origin', async () => {
+      const index = await buildIndexOf([
+        buildDistributionWithOrigins('D1', [
+          {
+            Id: 'origin-0',
+            DomainName: 'amplify-app.s3.some-new-endpoint.example',
+            S3OriginConfig: { OriginAccessIdentity: '' },
+          },
+        ]),
+      ]);
+
+      assert.deepStrictEqual(index.getBucketNames(), []);
+      assert.strictEqual(index.isComplete, false);
     });
 
     void it('ignores origins that are not test buckets and follows pagination', async () => {
@@ -238,6 +253,75 @@ void describe('CloudFrontDistributionCleaner', () => {
       ]);
       assert.deepStrictEqual(index.getBucketNames(), ['amplify-app']);
       assert.strictEqual(index.getDistributions('amplify-app').length, 1);
+    });
+
+    void it('marks the index incomplete when a truncated page has no next marker', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient({
+        listDistributions: [
+          {
+            DistributionList: {
+              Marker: '',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+        ],
+      });
+
+      const index = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).buildBucketToDistributionsIndex();
+
+      assert.strictEqual(index.isComplete, false);
+      assert.deepStrictEqual(getCommandInputs(send, ListDistributionsCommand), [
+        { Marker: undefined },
+      ]);
+    });
+
+    void it('marks the index incomplete when a pagination marker repeats', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient({
+        listDistributions: [
+          {
+            DistributionList: {
+              Marker: '',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+              NextMarker: 'D1',
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+          {
+            DistributionList: {
+              Marker: 'D1',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+              NextMarker: 'D1',
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+        ],
+      });
+
+      const index = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).buildBucketToDistributionsIndex();
+
+      assert.strictEqual(index.isComplete, false);
+      assert.deepStrictEqual(getCommandInputs(send, ListDistributionsCommand), [
+        { Marker: undefined },
+        { Marker: 'D1' },
+      ]);
     });
 
     void it('ignores origins that are not S3 buckets at all', async () => {

@@ -193,6 +193,27 @@ void describe('StaleBucketSweeper', () => {
     );
   });
 
+  void it('retains a bucket when its indexed distribution is missing an id', async () => {
+    const distribution = {
+      Enabled: false,
+      Status: 'Deployed',
+    } as DistributionSummary;
+    const index = new BucketToDistributionsIndex(
+      new Map([['amplify-app-1', [distribution]]]),
+      true,
+    );
+    const { sweeper, s3Send, cloudFrontSend } = buildSweeper();
+
+    const result = await sweeper.sweep(['amplify-app-1'], index);
+
+    assert.deepStrictEqual(result, {
+      deletedBucketNames: [],
+      retainedBucketNames: ['amplify-app-1'],
+    });
+    assert.deepStrictEqual(getDeletedBucketNames(s3Send), []);
+    assert.strictEqual(cloudFrontSend.mock.callCount(), 0);
+  });
+
   void it('skips a bucket that a live stack still owns without touching CloudFront', async () => {
     const index = new BucketToDistributionsIndex(new Map(), true);
     const { sweeper, s3Send, cloudFrontSend } = buildSweeper({

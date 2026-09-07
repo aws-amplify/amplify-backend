@@ -31,6 +31,11 @@ const S3_PATH_STYLE_ORIGIN_HOST_PATTERN =
 
 const DEPLOYED_STATUS = 'Deployed';
 
+type OriginBucketNameResult =
+  | { kind: 'matched'; bucket: string }
+  | { kind: 'not-s3' }
+  | { kind: 'unrecognized-s3' };
+
 /**
  * Outcome of an attempt to reap the distributions of a single bucket.
  *
@@ -111,6 +116,7 @@ export class CloudFrontDistributionCleaner {
         Array<DistributionSummary>
       >();
       let marker: string | undefined = undefined;
+      const seenMarkers = new Set<string>();
       try {
         do {
           const listDistributionsResponse: ListDistributionsCommandOutput =
@@ -120,17 +126,40 @@ export class CloudFrontDistributionCleaner {
           const distributionList: DistributionList | undefined =
             listDistributionsResponse.DistributionList;
           for (const distribution of distributionList?.Items ?? []) {
-            for (const bucketName of this.getTestBucketOrigins(distribution)) {
+            const { bucketNames, hasUnrecognizedS3Origin } =
+              this.getTestBucketOrigins(distribution);
+            if (hasUnrecognizedS3Origin) {
+              this.log(
+                `CloudFront distribution ${distribution.Id ?? '<unknown>'} has an unrecognized S3 origin. Stale buckets must be retained because the origin bucket cannot be identified`,
+              );
+              return new BucketToDistributionsIndex(
+                distributionsByBucketName,
+                false,
+              );
+            }
+            for (const bucketName of bucketNames) {
               const distributions =
                 distributionsByBucketName.get(bucketName) ?? [];
               distributions.push(distribution);
               distributionsByBucketName.set(bucketName, distributions);
             }
           }
-          marker =
-            distributionList?.IsTruncated === true
-              ? distributionList.NextMarker
-              : undefined;
+          if (distributionList?.IsTruncated === true) {
+            const nextMarker = distributionList.NextMarker;
+            if (!nextMarker || seenMarkers.has(nextMarker)) {
+              this.log(
+                `CloudFront distribution pagination did not provide a new marker. Stale buckets must be retained because the distribution index is incomplete`,
+              );
+              return new BucketToDistributionsIndex(
+                distributionsByBucketName,
+                false,
+              );
+            }
+            seenMarkers.add(nextMarker);
+            marker = nextMarker;
+          } else {
+            marker = undefined;
+          }
         } while (marker);
       } catch (error) {
         this.log(
@@ -160,7 +189,12 @@ export class CloudFrontDistributionCleaner {
     let result: DistributionReapResult = 'none';
     for (const distribution of distributions) {
       const distributionResult = await this.reapDistribution(distribution);
-      if (distributionResult === 'disable-requested') {
+      if (distributionResult === 'index-incomplete') {
+        result = 'index-incomplete';
+      } else if (
+        result !== 'index-incomplete' &&
+        distributionResult === 'disable-requested'
+      ) {
         result = 'disable-requested';
       } else if (result === 'none') {
         result = distributionResult;
@@ -174,7 +208,10 @@ export class CloudFrontDistributionCleaner {
   ): Promise<DistributionReapResult> => {
     const distributionId = distribution.Id;
     if (!distributionId) {
-      return 'none';
+      this.log(
+        'CloudFront distribution summary is missing an id. Retaining its origin bucket because the distribution cannot be reaped safely',
+      );
+      return 'index-incomplete';
     }
     try {
       if (distribution.Enabled !== false) {
@@ -240,15 +277,24 @@ export class CloudFrontDistributionCleaner {
 
   private getTestBucketOrigins = (
     distribution: DistributionSummary,
-  ): Array<string> => {
+  ): {
+    bucketNames: Array<string>;
+    hasUnrecognizedS3Origin: boolean;
+  } => {
     const bucketNames = new Set<string>();
+    let hasUnrecognizedS3Origin = false;
     for (const origin of distribution.Origins?.Items ?? []) {
-      const bucketName = this.getOriginBucketName(origin);
-      if (bucketName?.startsWith(this.testResourcePrefix)) {
-        bucketNames.add(bucketName);
+      const originBucketName = this.getOriginBucketName(origin);
+      if (originBucketName.kind === 'unrecognized-s3') {
+        hasUnrecognizedS3Origin = true;
+      } else if (
+        originBucketName.kind === 'matched' &&
+        originBucketName.bucket.startsWith(this.testResourcePrefix)
+      ) {
+        bucketNames.add(originBucketName.bucket);
       }
     }
-    return [...bucketNames];
+    return { bucketNames: [...bucketNames], hasUnrecognizedS3Origin };
   };
 
   /**
@@ -256,46 +302,41 @@ export class CloudFrontDistributionCleaner {
    * the test accounts. An origin form that is not recognized here makes its bucket look origin
    * free, therefore each form must be handled explicitly rather than falling through.
    */
-  private getOriginBucketName = (origin: Origin): string | undefined => {
+  private getOriginBucketName = (origin: Origin): OriginBucketNameResult => {
     const domainName = origin.DomainName;
     if (!domainName) {
-      return undefined;
+      return origin.S3OriginConfig
+        ? { kind: 'unrecognized-s3' }
+        : { kind: 'not-s3' };
     }
     // A domain name is normally a bare host, but tolerate one that carries a path style path.
     const [host, ...domainNamePathSegments] = domainName.split('/');
     const virtualHostedBucketName =
       S3_VIRTUAL_HOSTED_ORIGIN_DOMAIN_PATTERN.exec(host)?.[1];
     if (virtualHostedBucketName) {
-      return virtualHostedBucketName;
+      return { kind: 'matched', bucket: virtualHostedBucketName };
     }
     if (S3_PATH_STYLE_ORIGIN_HOST_PATTERN.test(host)) {
       // Legacy path style: the host names no bucket, the leading path segment does.
-      return (
+      const pathStyleBucketName =
         this.getLeadingPathSegment(domainNamePathSegments.join('/')) ??
-        this.getLeadingPathSegment(origin.OriginPath)
-      );
+        this.getLeadingPathSegment(origin.OriginPath);
+      if (pathStyleBucketName) {
+        return { kind: 'matched', bucket: pathStyleBucketName };
+      }
+      return origin.S3OriginConfig
+        ? { kind: 'unrecognized-s3' }
+        : { kind: 'not-s3' };
     }
-    if (origin.S3OriginConfig) {
-      // The origin is an S3 origin even though its suffix is not one we know, for example in a
-      // partition or an endpoint form this script has never seen. The bucket name is still the
-      // leading label of the host.
-      return this.getLeadingHostLabel(host);
-    }
-    return undefined;
+    return origin.S3OriginConfig
+      ? { kind: 'unrecognized-s3' }
+      : { kind: 'not-s3' };
   };
 
   private getLeadingPathSegment = (
     path: string | undefined,
   ): string | undefined =>
     path?.split('/').find((segment) => segment.length > 0);
-
-  private getLeadingHostLabel = (host: string): string | undefined => {
-    const [leadingLabel, ...remainingLabels] = host.split('.');
-    // A single label host cannot carry both a bucket name and an S3 endpoint.
-    return remainingLabels.length > 0 && leadingLabel.length > 0
-      ? leadingLabel
-      : undefined;
-  };
 
   private getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : '';
