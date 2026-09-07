@@ -51,13 +51,11 @@ export class VanillaCdkSsrTestCdkProjectCreator implements TestCdkProjectCreator
       ...pkgJson.devDependencies,
       '@opennextjs/aws': '^3.10.0',
       tsx: '^4.0.0',
-      // React type declarations are required for the pre-deploy `npx tsc` to
-      // type-check app/*.tsx (matching the react ^19 runtime above). Without
-      // them tsc fails with TS7016 (no declaration for 'react') + missing
-      // JSX.IntrinsicElements.
-      '@types/react': '^19.0.0',
-      '@types/react-dom': '^19.0.0',
     };
+    // NOTE: react type declarations for the pre-deploy `npx tsc` come from the
+    // hoisted WORKSPACE node_modules (createEmptyCdkProject removes the project's
+    // own node_modules), so `@types/react`/`@types/react-dom` are declared on
+    // `@aws-amplify/integration-tests` — not here, where they'd be a no-op.
     await fs.writeFile(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
 
     // Patch cdk.json to use `tsx` instead of `ts-node`.
