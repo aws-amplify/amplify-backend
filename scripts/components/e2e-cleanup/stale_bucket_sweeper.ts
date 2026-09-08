@@ -47,7 +47,7 @@ export class StaleBucketSweeper {
   ): Promise<StaleBucketSweepResult> => {
     if (!bucketToDistributions.isComplete) {
       this.log(
-        `Retaining all ${bucketNames.length} stale buckets of this run. The CloudFront distribution index is incomplete, so no bucket can be told apart from the origin bucket of a distribution that still exists. Failing the job so that the run is retried and the cause is visible`,
+        `CloudFrontDistributionIndexIncomplete: Retaining all ${bucketNames.length} stale buckets of this run. No bucket can be told apart from the origin bucket of a distribution that still exists. Failing the job so that the run is retried. Reason: ${bucketToDistributions.incompleteReason ?? 'unknown'}`,
       );
       this.signalIncompleteRun();
       return {

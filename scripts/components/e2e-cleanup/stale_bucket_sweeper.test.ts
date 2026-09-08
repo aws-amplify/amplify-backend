@@ -105,7 +105,11 @@ void describe('StaleBucketSweeper', () => {
 
     const result = await sweeper.sweep(
       ['amplify-app-1', 'amplify-app-2'],
-      new BucketToDistributionsIndex(new Map(), false),
+      new BucketToDistributionsIndex(
+        new Map(),
+        false,
+        'unrecognized-s3-origin: distribution D1',
+      ),
     );
 
     assert.deepStrictEqual(result, {
@@ -119,7 +123,8 @@ void describe('StaleBucketSweeper', () => {
       logMessages.some(
         (message) =>
           message.includes('Retaining all 2 stale buckets') &&
-          message.includes('CloudFront distribution index is incomplete'),
+          message.includes('CloudFrontDistributionIndexIncomplete') &&
+          message.includes('unrecognized-s3-origin: distribution D1'),
       ),
     );
   });

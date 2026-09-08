@@ -207,6 +207,10 @@ void describe('CloudFrontDistributionCleaner', () => {
 
       assert.deepStrictEqual(index.getBucketNames(), []);
       assert.strictEqual(index.isComplete, false);
+      assert.strictEqual(
+        index.incompleteReason,
+        'unrecognized-s3-origin: distribution D1',
+      );
     });
 
     void it('ignores origins that are not test buckets and follows pagination', async () => {
@@ -366,6 +370,10 @@ void describe('CloudFrontDistributionCleaner', () => {
       ).buildBucketToDistributionsIndex();
 
       assert.strictEqual(index.isComplete, false);
+      assert.strictEqual(
+        index.incompleteReason,
+        'list-distributions-error: User is not authorized to perform cloudfront:ListDistributions',
+      );
       assert.deepStrictEqual(index.getBucketNames(), []);
       assert.ok(
         logMessages.some((message) =>

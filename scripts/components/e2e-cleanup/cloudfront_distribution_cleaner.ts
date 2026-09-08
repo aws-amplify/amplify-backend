@@ -68,6 +68,7 @@ export class BucketToDistributionsIndex {
       Array<DistributionSummary>
     >,
     readonly isComplete: boolean,
+    readonly incompleteReason?: string,
   ) {}
 
   /**
@@ -135,6 +136,7 @@ export class CloudFrontDistributionCleaner {
               return new BucketToDistributionsIndex(
                 distributionsByBucketName,
                 false,
+                `unrecognized-s3-origin: distribution ${distribution.Id ?? '<unknown>'}`,
               );
             }
             for (const bucketName of bucketNames) {
@@ -153,6 +155,7 @@ export class CloudFrontDistributionCleaner {
               return new BucketToDistributionsIndex(
                 distributionsByBucketName,
                 false,
+                `invalid-pagination: marker ${marker ?? '<initial>'}`,
               );
             }
             seenMarkers.add(nextMarker);
@@ -162,10 +165,15 @@ export class CloudFrontDistributionCleaner {
           }
         } while (marker);
       } catch (error) {
+        const errorMessage = this.getErrorMessage(error);
         this.log(
-          `Unable to list CloudFront distributions. Stale buckets must be retained by this run because their origin usage is unknown. ${this.getErrorMessage(error)}`,
+          `Unable to list CloudFront distributions. Stale buckets must be retained by this run because their origin usage is unknown. ${errorMessage}`,
         );
-        return new BucketToDistributionsIndex(distributionsByBucketName, false);
+        return new BucketToDistributionsIndex(
+          distributionsByBucketName,
+          false,
+          `list-distributions-error: ${errorMessage || 'unknown error'}`,
+        );
       }
       return new BucketToDistributionsIndex(distributionsByBucketName, true);
     };
