@@ -56,7 +56,10 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
-import { CDKContextKey } from '@aws-amplify/platform-core';
+import {
+  CDKContextKey,
+  addCfnResourceDependency,
+} from '@aws-amplify/platform-core';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -391,7 +394,7 @@ export class AmplifyAuth
           },
         },
       );
-    identityPoolRoleAttachment.addDependency(identityPool);
+    addCfnResourceDependency(identityPoolRoleAttachment, identityPool);
     identityPoolRoleAttachment.node.addDependency(userPoolClient);
     // add cognito provider
     identityPool.cognitoIdentityProviders = [
