@@ -438,6 +438,26 @@ void describe('CloudFrontDistributionCleaner', () => {
       assert.strictEqual(send.mock.callCount(), 0);
     });
 
+    void it('reports unreapable when an indexed distribution is missing an id', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient();
+      const distribution = {
+        Enabled: false,
+        Status: 'Deployed',
+      } as DistributionSummary;
+
+      const result = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).reapDistributionsForBucket(
+        'amplify-app',
+        buildIndex([['amplify-app', [distribution]]]),
+      );
+
+      assert.strictEqual(result, 'unreapable');
+      assert.strictEqual(send.mock.callCount(), 0);
+    });
+
     void it('disables an enabled distribution and keeps the bucket', async () => {
       const { cloudFrontClient, send } = buildCloudFrontClient({
         getDistributionConfig: [

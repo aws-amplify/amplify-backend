@@ -39,14 +39,15 @@ type OriginBucketNameResult =
 /**
  * Outcome of an attempt to reap the distributions of a single bucket.
  *
- * `disable-requested` means at least one distribution still exists, therefore the origin
- * bucket must be retained. `index-incomplete` means the distributions of the bucket are unknown,
- * therefore the origin bucket must be retained as well. `deleted` means every distribution of the
- * bucket is gone.
+ * `disable-requested` means at least one distribution still exists, therefore the origin bucket
+ * must be retained. `unreapable` means a distribution cannot be managed safely and the run must
+ * fail. `index-incomplete` means the distributions of the bucket are unknown, therefore the origin
+ * bucket must be retained as well. `deleted` means every distribution of the bucket is gone.
  */
 export type DistributionReapResult =
   | 'none'
   | 'index-incomplete'
+  | 'unreapable'
   | 'disable-requested'
   | 'deleted';
 
@@ -197,9 +198,15 @@ export class CloudFrontDistributionCleaner {
     let result: DistributionReapResult = 'none';
     for (const distribution of distributions) {
       const distributionResult = await this.reapDistribution(distribution);
-      if (distributionResult === 'index-incomplete') {
+      if (distributionResult === 'unreapable') {
+        result = 'unreapable';
+      } else if (
+        result !== 'unreapable' &&
+        distributionResult === 'index-incomplete'
+      ) {
         result = 'index-incomplete';
       } else if (
+        result !== 'unreapable' &&
         result !== 'index-incomplete' &&
         distributionResult === 'disable-requested'
       ) {
@@ -219,7 +226,7 @@ export class CloudFrontDistributionCleaner {
       this.log(
         'CloudFront distribution summary is missing an id. Retaining its origin bucket because the distribution cannot be reaped safely',
       );
-      return 'index-incomplete';
+      return 'unreapable';
     }
     try {
       if (distribution.Enabled !== false) {

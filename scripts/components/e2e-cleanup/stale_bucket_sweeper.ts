@@ -76,6 +76,14 @@ export class StaleBucketSweeper {
             bucketName,
             bucketToDistributions,
           );
+        if (distributionReapResult === 'unreapable') {
+          this.log(
+            `CloudFrontDistributionUnreapable: Retaining ${bucketName} bucket and failing the job because an indexed CloudFront distribution cannot be reaped safely`,
+          );
+          this.signalIncompleteRun();
+          result.retainedBucketNames.push(bucketName);
+          continue;
+        }
         if (
           distributionReapResult === 'disable-requested' ||
           distributionReapResult === 'index-incomplete'

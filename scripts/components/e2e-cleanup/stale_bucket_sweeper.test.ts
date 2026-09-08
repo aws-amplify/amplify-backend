@@ -207,7 +207,12 @@ void describe('StaleBucketSweeper', () => {
       new Map([['amplify-app-1', [distribution]]]),
       true,
     );
-    const { sweeper, s3Send, cloudFrontSend } = buildSweeper();
+    let incompleteRunSignalCount = 0;
+    const { sweeper, s3Send, cloudFrontSend, logMessages } = buildSweeper({
+      signalIncompleteRun: () => {
+        incompleteRunSignalCount += 1;
+      },
+    });
 
     const result = await sweeper.sweep(['amplify-app-1'], index);
 
@@ -217,6 +222,14 @@ void describe('StaleBucketSweeper', () => {
     });
     assert.deepStrictEqual(getDeletedBucketNames(s3Send), []);
     assert.strictEqual(cloudFrontSend.mock.callCount(), 0);
+    assert.strictEqual(incompleteRunSignalCount, 1);
+    assert.ok(
+      logMessages.some(
+        (message) =>
+          message.includes('CloudFrontDistributionUnreapable') &&
+          message.includes('amplify-app-1'),
+      ),
+    );
   });
 
   void it('skips a bucket that a live stack still owns without touching CloudFront', async () => {
