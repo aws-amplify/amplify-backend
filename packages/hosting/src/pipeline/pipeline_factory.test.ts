@@ -20,6 +20,13 @@ import {
 } from './pipeline_factory.js';
 import { AmplifyPipelineConstruct } from './pipeline_construct.js';
 import type { PipelineProps } from './types.js';
+import {
+  config,
+  isConfig,
+  isSecret,
+  managedValueReplacer,
+  secret,
+} from '@aws-blocks/hosting';
 
 const VALID_CONNECTION_ARN =
   'arn:aws:codeconnections:us-east-1:123456789012:connection/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
@@ -844,6 +851,38 @@ void describe('getStageConfig', () => {
     }
   });
 
+  void it('rehydrates secret()/config() markers in the stage config across env transport (C11)', () => {
+    // Encode exactly as definePipeline does (managedValueReplacer); a plain
+    // JSON.stringify would drop the markers' Symbol brand.
+    const originalEnv = { ...process.env };
+    process.env.AMPLIFY_STAGE_CONFIG = JSON.stringify(
+      { domain: config('DOMAIN'), apiKey: secret('API_KEY'), plain: 'lit' },
+      managedValueReplacer,
+    );
+    process.env.STAGE_NAME = 'prod';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).__AMPLIFY_PIPELINE_SCOPE__;
+    try {
+      const result = getStageConfig<{
+        domain: unknown;
+        apiKey: unknown;
+        plain: string;
+      }>();
+      assert.ok(result?.config, 'expected a config from env transport');
+      assert.ok(
+        isConfig(result!.config!.domain),
+        'config() marker should survive transport as a real marker',
+      );
+      assert.ok(
+        isSecret(result!.config!.apiKey),
+        'secret() marker should survive transport as a real marker',
+      );
+      assert.strictEqual(result!.config!.plain, 'lit');
+    } finally {
+      process.env = originalEnv;
+    }
+  });
+
   void it('throws a descriptive error when AMPLIFY_STAGE_CONFIG is invalid JSON', () => {
     const originalEnv = { ...process.env };
     process.env.AMPLIFY_STAGE_CONFIG = 'not-valid-json{{{';
@@ -990,7 +1029,7 @@ const createPipelineWithHostingHook = (
       };
     },
     _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
-    _postStageHook: ({ source, stageConfig }) => {
+    postStage: ({ source, stageConfig }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const backendOutputs = (globalThis as any)
         .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
@@ -1143,7 +1182,7 @@ void describe('CDK template assertions for hosting deploy step', () => {
         };
       },
       _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
-      _postStageHook: ({ source, stageConfig }) => {
+      postStage: ({ source, stageConfig }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const backendOutputs = (globalThis as any)
           .__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__ as
@@ -1248,7 +1287,7 @@ void describe('CDK template assertions for hosting deploy step', () => {
         new Stack(scope, 'HostingStack');
       },
       _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
-      _postStageHook: () => {
+      postStage: () => {
         // Simulate createHostingDeployHook when no backend outputs exist
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const backendOutputs = (globalThis as any)
@@ -1308,7 +1347,7 @@ void describe('CDK template assertions for hosting deploy step', () => {
         new Stack(scope, 'AppStack');
       },
       _sourceOverride: CodePipelineSource.s3(sourceBucket, 'source.zip'),
-      _postStageHook: ({ source, stageConfig }) => {
+      postStage: ({ source, stageConfig }) => {
         // Replicate the logic from createHostingDeployHook
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const backendOutputs = (globalThis as any)
