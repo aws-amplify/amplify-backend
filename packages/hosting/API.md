@@ -9,8 +9,6 @@ import { HostingConstructProps as AmplifyHostingConstructProps } from '@aws-bloc
 import { BranchConfig } from '@aws-blocks/pipeline';
 import { CacheConfig } from '@aws-blocks/hosting/constructs';
 import type * as cdk from 'aws-cdk-lib';
-import type { CodeBuildStep } from 'aws-cdk-lib/pipelines';
-import { CodePipeline } from 'aws-cdk-lib/pipelines';
 import type { CodePipelineSource } from 'aws-cdk-lib/pipelines';
 import { ComputeResource } from '@aws-blocks/hosting/constructs';
 import { config } from '@aws-blocks/hosting';
@@ -34,7 +32,6 @@ import type { HostingProps as HostingProps_2 } from '@aws-blocks/hosting/constru
 import { HostingResources } from '@aws-blocks/hosting/constructs';
 import { HostingSecretRegistry } from '@aws-blocks/hosting';
 import { HostingWafConfig } from '@aws-blocks/hosting/constructs';
-import type { IFileSetProducer } from 'aws-cdk-lib/pipelines';
 import { ImageConfig } from '@aws-blocks/hosting/constructs';
 import { isConfig } from '@aws-blocks/hosting';
 import { isManagedValue } from '@aws-blocks/hosting';
@@ -58,7 +55,6 @@ import { SecretKey } from '@aws-blocks/hosting';
 import { SecretStore } from '@aws-blocks/hosting';
 import { SecretValue } from '@aws-blocks/hosting';
 import { SecretValueOf } from '@aws-blocks/hosting';
-import type { ShellStep } from 'aws-cdk-lib/pipelines';
 import { SkewProtectionConfig } from '@aws-blocks/hosting/constructs';
 import { Stack } from 'aws-cdk-lib';
 import { ValueKind } from '@aws-blocks/hosting';
@@ -69,11 +65,8 @@ export { AmplifyHostingConstructProps }
 
 // @public
 export class AmplifyPipelineConstruct<TConfig = Record<string, unknown>> extends Pipeline<TConfig> {
-    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>, _internal?: {
-        marker: symbol;
-        pipelines: Map<string, CodePipeline>;
-    });
-    static create<TConfig = Record<string, unknown>>(scope: Construct, id: string, props: PipelineProps<TConfig>): Promise<AmplifyPipelineConstruct<TConfig>>;
+    constructor(scope: Construct, id: string, props: PipelineProps<TConfig>);
+    static create<TConfig = Record<string, unknown>>(scope: Construct, id: string, props: PipelineProps<TConfig>): Promise<Pipeline<TConfig>>;
 }
 
 // @public (undocumented)
@@ -116,7 +109,9 @@ export const definePipeline: (props: DefinePipelineProps) => void;
 
 // @public
 export type DefinePipelineProps<TConfig = Record<string, unknown>> = {
-    readonly source: PipelineSourceConfig;
+    readonly source: Omit<PipelineSourceConfig, 'connectionArn'> & {
+        readonly connectionArn: string;
+    };
     readonly synth?: PipelineSynthConfig;
     readonly branches: Array<BranchConfig<TConfig>>;
     readonly selfMutation?: boolean;
@@ -196,11 +191,6 @@ export { NextjsAdapterOptions }
 export type PipelineProps<TConfig = Record<string, unknown>> = PipelineProps_2<TConfig> & {
     readonly stageFactory: (scope: cdk.Stage, stageConfig: PipelineStageConfig<TConfig>) => void | Promise<void>;
     readonly _sourceOverride?: CodePipelineSource;
-    readonly _postStageHook?: (params: {
-        source: IFileSetProducer;
-        stage: cdk.Stage;
-        stageConfig: PipelineStageConfig<TConfig>;
-    }) => Array<ShellStep | CodeBuildStep>;
 };
 
 export { PipelineSourceConfig }

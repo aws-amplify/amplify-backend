@@ -10,6 +10,7 @@ import {
   IFileSetProducer,
   ShellStep,
 } from 'aws-cdk-lib/pipelines';
+import { managedValueReplacer, managedValueReviver } from '@aws-blocks/hosting';
 import { AmplifyPipelineConstruct } from './pipeline_construct.js';
 import type { DefinePipelineProps, PipelineStageConfig } from './types.js';
 
@@ -172,7 +173,12 @@ export const definePipeline = (props: DefinePipelineProps): void => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY] = scope;
-    scope.node.setContext('AMPLIFY_STAGE_CONFIG', JSON.stringify(stageConfig));
+    // Encode with managedValueReplacer so any secret()/config() markers in the
+    // stage config survive JSON transport (a plain stringify drops their brand).
+    scope.node.setContext(
+      'AMPLIFY_STAGE_CONFIG',
+      JSON.stringify(stageConfig, managedValueReplacer),
+    );
     scope.node.setContext('AMPLIFY_STAGE_NAME', stageConfig.name);
 
     try {
@@ -203,14 +209,19 @@ export const definePipeline = (props: DefinePipelineProps): void => {
   new AmplifyPipelineConstruct(rootStack, 'Pipeline', {
     ...props,
     stageFactory: internalStageFactory,
-    _postStageHook: postStageHook,
+    // `postStage` is @aws-blocks/pipeline's public per-stage hook: it runs after
+    // each stage's stacks synthesize (when defineBackend has published its
+    // CfnOutput), hands us the resolved pipeline `source`, and makes the stage's
+    // bakeTime wait for the returned steps. Supersedes the former private
+    // `_postStageHook` + construct-id source matching.
+    postStage: postStageHook,
   });
 
   app.synth();
 };
 
 /**
- * Create the _postStageHook that produces hosting deploy steps.
+ * Create the `postStage` hook that produces hosting deploy steps.
  *
  * The returned hook reads the backend CfnOutput from globalThis (set by
  * `defineBackend()` during the stageFactory call) and creates a CodeBuildStep
@@ -257,7 +268,14 @@ const createHostingDeployHook = (
         STAGE_NAME: stageConfig.name,
         HOSTING_ENTRY_POINT: relativeHostingPath,
         ...(stageConfig.config
-          ? { AMPLIFY_STAGE_CONFIG: JSON.stringify(stageConfig.config) }
+          ? {
+              // Encode markers so secret()/config() in the stage config survive
+              // transport into the CodeBuild step's env (getStageConfig revives).
+              AMPLIFY_STAGE_CONFIG: JSON.stringify(
+                stageConfig.config,
+                managedValueReplacer,
+              ),
+            }
           : {}),
       },
       commands: [
@@ -392,7 +410,9 @@ export function getStageConfig<T = Record<string, unknown>>():
   if (scope) {
     const raw = scope.node.tryGetContext('AMPLIFY_STAGE_CONFIG');
     if (raw)
-      return JSON.parse(raw) as PipelineStageConfig<T> & { name: string };
+      return JSON.parse(raw, managedValueReviver) as PipelineStageConfig<T> & {
+        name: string;
+      };
   }
 
   // Phase 2 fallback: read from env var (standalone CodeBuild step)
@@ -405,7 +425,7 @@ export function getStageConfig<T = Record<string, unknown>>():
     // diagnostic. Fail with a descriptive error instead.
     let parsed: T;
     try {
-      parsed = JSON.parse(envConfig) as T;
+      parsed = JSON.parse(envConfig, managedValueReviver) as T;
     } catch (e) {
       throw new Error(
         `Malformed AMPLIFY_STAGE_CONFIG: could not parse as JSON (${
@@ -448,7 +468,10 @@ export async function withPipelineScope<T>(
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY] = scope;
-  scope.node.setContext('AMPLIFY_STAGE_CONFIG', JSON.stringify(stageConfig));
+  scope.node.setContext(
+    'AMPLIFY_STAGE_CONFIG',
+    JSON.stringify(stageConfig, managedValueReplacer),
+  );
   scope.node.setContext('AMPLIFY_STAGE_NAME', stageConfig.name);
   try {
     await fn();

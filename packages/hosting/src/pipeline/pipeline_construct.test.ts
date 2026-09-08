@@ -6,22 +6,21 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { CodePipelineSource, ShellStep } from 'aws-cdk-lib/pipelines';
 import { Pipeline as BlocksPipeline } from '@aws-blocks/pipeline';
-import {
-  AmplifyPipelineConstruct,
-  resolveSource,
-} from './pipeline_construct.js';
+import { AmplifyPipelineConstruct } from './pipeline_construct.js';
 import type { PipelineProps } from './types.js';
 
 /**
- * Shim + glue coverage for `AmplifyPipelineConstruct`.
+ * Shim coverage for `AmplifyPipelineConstruct`.
  *
- * The generic pipeline behavior (source, synth, branches, approvals, bake time,
- * validation, cross-account, trigger filters) is owned and tested upstream by
- * `@aws-blocks/pipeline`. These tests assert only the seam this package adds:
- *   1. the construct IS the upstream `Pipeline` (thin subclass, real delegation),
- *   2. it still synthesizes a working CodePipeline (smoke), and
- *   3. the Amplify-specific `_postStageHook` steps are injected onto the right
- *      stage (the one piece of behavior aws-blocks does not model).
+ * The construct is a thin named re-export (subclass) of `@aws-blocks/pipeline`'s
+ * `Pipeline`; all generic pipeline behavior — including the public `postStage`
+ * hook (per-stage post-deploy steps, source resolution, and bake-after-postStage
+ * ordering) — is owned and tested upstream. These tests assert only that:
+ *   1. the construct IS the upstream `Pipeline` (real delegation),
+ *   2. it synthesizes a working CodePipeline (smoke),
+ *   3. it delegates upstream validation, and
+ *   4. `postStage` steps supplied through it land as CodeBuild actions
+ *      (integration smoke over the public hook, sync and async paths).
  */
 
 const ARN =
@@ -73,10 +72,8 @@ void describe('AmplifyPipelineConstruct — shim parity', () => {
     template.resourceCountIs('AWS::CodePipeline::Pipeline', 1);
   });
 
-  // Canary for the upstream validation contract. The full validation suite
-  // (empty branches, duplicate names, bake time, cross-account, ComputeType,
-  // etc.) is owned and tested by @aws-blocks/pipeline; re-testing all of it here
-  // would re-fork what this shim exists to delete. This single case confirms the
+  // Canary for the upstream validation contract. The full validation suite is
+  // owned and tested by @aws-blocks/pipeline; this single case confirms the
   // delegation is live — if a dependency upgrade ever stops enforcing the public
   // validation contract, this trips instead of silently accepting bad input.
   void it('delegates upstream prop validation (invalid connection ARN throws)', () => {
@@ -101,23 +98,22 @@ void describe('AmplifyPipelineConstruct — shim parity', () => {
         new Stack(scope, 'AppStack');
       },
     });
-    assert.ok(pipeline instanceof AmplifyPipelineConstruct);
     assert.ok(pipeline.codePipelines.get('main'));
   });
 });
 
-void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
-  void it('appends the hook steps as a post-deploy action on the matching stage', () => {
+void describe('AmplifyPipelineConstruct — postStage passthrough', () => {
+  void it('attaches postStage steps as a post-deploy CodeBuild action on the stage', () => {
     const stack = makeStack();
     let hookStageName: string | undefined;
 
     new AmplifyPipelineConstruct(stack, 'Pipeline', {
       ...baseProps(stack),
-      _postStageHook: ({ source, stage, stageConfig }) => {
+      postStage: ({ source, stage, stageConfig }) => {
         hookStageName = stageConfig.name;
-        // The hook receives the branch source and the stage scope.
-        assert.ok(source, 'hook should receive a source producer');
-        assert.ok(stage instanceof Stage, 'hook should receive the Stage');
+        // The upstream hook hands us the resolved branch source + the Stage.
+        assert.ok(source, 'postStage should receive a source producer');
+        assert.ok(stage instanceof Stage, 'postStage should receive the Stage');
         return [
           new ShellStep(`DeployHosting-${stageConfig.name}`, {
             input: source,
@@ -127,10 +123,12 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
       },
     });
 
-    assert.strictEqual(hookStageName, 'beta', 'hook should run for the stage');
+    assert.strictEqual(
+      hookStageName,
+      'beta',
+      'postStage should run for the stage',
+    );
 
-    // The injected step becomes a CodeBuild action in the pipeline. With
-    // self-mutation off, the only CodeBuild projects are Synth + our step.
     const template = Template.fromStack(stack);
     const projects = template.findResources('AWS::CodeBuild::Project');
     const buildSpecs = Object.values(projects).map((p: any) =>
@@ -138,27 +136,23 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
     );
     assert.ok(
       buildSpecs.some((b) => b.includes('echo deploy-hosting')),
-      'expected the injected DeployHosting step to appear as a CodeBuild action',
+      'expected the postStage DeployHosting step to appear as a CodeBuild action',
     );
   });
 
-  void it('does not require a hook (plain pipelines still build)', () => {
+  void it('does not require postStage (plain pipelines still build)', () => {
     const stack = makeStack();
     const pipeline = new AmplifyPipelineConstruct(stack, 'Pipeline', {
       ...baseProps(stack),
     });
-    // No _postStageHook → behaves exactly like the upstream Pipeline.
     assert.ok(pipeline.codePipelines.get('main'));
     Template.fromStack(stack).resourceCountIs('AWS::CodePipeline::Pipeline', 1);
   });
 
-  // Guards the id-prefix coupling to @aws-blocks/pipeline's construct naming
-  // (see resolveSource). For every stage across MULTIPLE branches, the hook
-  // must receive a real source file set from that stage's OWN branch pipeline.
-  // If upstream renames its stage / branch-pipeline constructs, this resolution
-  // fails loud (resolveSource throws) so CI catches it instead of silently
-  // dropping the hosting deploy step.
-  void it('resolves each stage source from its own branch pipeline (multi-branch)', () => {
+  // Each stage across MULTIPLE branches must receive a real source file set from
+  // its OWN branch pipeline (upstream `postStage` resolves this — the shim no
+  // longer matches construct ids itself).
+  void it('runs postStage per stage with a resolved source (multi-branch)', () => {
     const stack = makeStack();
     const seen = new Map<string, boolean>();
 
@@ -168,9 +162,7 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
         { branch: 'main', stages: [{ name: 'beta' }, { name: 'prod' }] },
         { branch: 'staging', stages: [{ name: 'gamma' }] },
       ],
-      _postStageHook: ({ source, stageConfig }) => {
-        // A real, resolved source (not an undefined cast) is required here —
-        // the step below feeds it straight into CodeBuildStep.input.
+      postStage: ({ source, stageConfig }) => {
         assert.ok(
           source,
           `expected a resolved source for stage "${stageConfig.name}"`,
@@ -185,14 +177,12 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
       },
     });
 
-    // The hook ran for every stage across both branches with a valid source.
     assert.deepStrictEqual(
       [...seen.keys()].sort(),
       ['beta', 'gamma', 'prod'],
-      'hook should run once per stage across all branches',
+      'postStage should run once per stage across all branches',
     );
 
-    // Each branch pipeline gets its injected DeployHosting CodeBuild action.
     const template = Template.fromStack(stack);
     const projects = template.findResources('AWS::CodeBuild::Project');
     const buildSpecs = Object.values(projects).map((p: any) =>
@@ -204,29 +194,27 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
     assert.strictEqual(
       deployHostingActions.length,
       3,
-      'expected one injected DeployHosting step per stage (beta, prod, gamma)',
+      'expected one postStage DeployHosting step per stage (beta, prod, gamma)',
     );
   });
 
-  // The async create() path builds its own postSteps map, drives the wrapped
-  // stageFactory, and drains it via applyPostStageHook() AFTER the
-  // Object.setPrototypeOf re-tag. The sync path is covered above; this asserts
-  // the fragile async+prototype-swap interaction also lands the hook steps on
-  // the right StageDeployment.
-  void it('injects _postStageHook steps via the async create() path', async () => {
+  void it('attaches postStage steps via the async create() path', async () => {
     const stack = makeStack();
     let hookStageName: string | undefined;
 
-    const pipeline = await AmplifyPipelineConstruct.create(stack, 'Pipeline', {
+    await AmplifyPipelineConstruct.create(stack, 'Pipeline', {
       ...baseProps(stack),
       stageFactory: async (scope) => {
         await Promise.resolve();
         new Stack(scope, 'AppStack');
       },
-      _postStageHook: ({ source, stage, stageConfig }) => {
+      postStage: ({ source, stage, stageConfig }) => {
         hookStageName = stageConfig.name;
-        assert.ok(source, 'hook should receive a resolved source producer');
-        assert.ok(stage instanceof Stage, 'hook should receive the Stage');
+        assert.ok(
+          source,
+          'postStage should receive a resolved source producer',
+        );
+        assert.ok(stage instanceof Stage, 'postStage should receive the Stage');
         return [
           new ShellStep(`DeployHosting-${stageConfig.name}`, {
             input: source,
@@ -236,8 +224,11 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
       },
     });
 
-    assert.ok(pipeline instanceof AmplifyPipelineConstruct);
-    assert.strictEqual(hookStageName, 'beta', 'hook should run for the stage');
+    assert.strictEqual(
+      hookStageName,
+      'beta',
+      'postStage should run for the stage',
+    );
 
     const template = Template.fromStack(stack);
     const projects = template.findResources('AWS::CodeBuild::Project');
@@ -246,28 +237,7 @@ void describe('AmplifyPipelineConstruct — _postStageHook injection', () => {
     );
     assert.ok(
       buildSpecs.some((b) => b.includes('echo deploy-hosting-async')),
-      'expected the async-injected DeployHosting step as a CodeBuild action',
-    );
-  });
-});
-
-void describe('resolveSource — fail-loud on upstream naming break', () => {
-  // resolveSource() couples to @aws-blocks/pipeline's stage/branch-pipeline id
-  // naming (`${id}-${safeBranch}-Stage-${name}`). If a future upstream release
-  // renames those constructs, no owning CodePipeline matches the `-Stage-`
-  // prefix. This asserts we THROW a descriptive error (rather than the old
-  // silent `undefined` cast that fed a broken CodeBuildStep.input) — so such a
-  // rename trips CI here instead of silently dropping the hosting deploy step.
-  void it('throws a descriptive error when no owning branch pipeline matches', () => {
-    const stack = makeStack();
-    // A Stage whose scope contains NO matching CodePipeline (simulates the
-    // post-rename world where the id-prefix convention no longer holds).
-    const stage = new Stage(stack, 'Unmatched-Stage-beta');
-
-    assert.throws(
-      () => resolveSource(stage),
-      /could not resolve the source file set|construct naming|-Stage-/,
-      'expected resolveSource to throw a descriptive fail-loud error',
+      'expected the async postStage DeployHosting step as a CodeBuild action',
     );
   });
 });
