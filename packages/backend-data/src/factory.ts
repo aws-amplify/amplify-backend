@@ -346,7 +346,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
     }
 
-    convertJsResolverDefinition(scope, amplifyApi, schemasJsFunctions);
+    convertJsResolverDefinition(
+      scope,
+      amplifyApi,
+      schemasJsFunctions,
+      this.props.customResolverStackMap,
+    );
 
     const namePrefix = this.name === defaultName ? '' : defaultName;
 
