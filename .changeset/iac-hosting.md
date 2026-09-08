@@ -5,7 +5,7 @@
 '@aws-amplify/backend-data': minor
 '@aws-amplify/backend-deployer': minor
 '@aws-amplify/backend-storage': minor
-'@aws-amplify/hosting': minor
+'@aws-amplify/hosting': major
 '@aws-amplify/platform-core': minor
 '@aws-amplify/ai-constructs': minor
 '@aws-amplify/auth-construct': minor
