@@ -7,6 +7,7 @@
     { "path": "../backend-secret" },
     { "path": "../cli-core" },
     { "path": "../client-config" },
+    { "path": "../hosting" },
     { "path": "../deployed-backend-client" },
     { "path": "../form-generator" },
     { "path": "../model-generator" },

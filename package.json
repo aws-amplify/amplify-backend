@@ -107,7 +107,8 @@
     "verdaccio": "^6.5.2"
   },
   "overrides": {
-    "@graphql-codegen/plugin-helpers": "7.2.0"
+    "@graphql-codegen/plugin-helpers": "7.2.0",
+    "fast-uri": "^3.1.3"
   },
   "workspaces": [
     "packages/*"

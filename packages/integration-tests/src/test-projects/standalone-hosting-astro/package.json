@@ -1,0 +1,17 @@
+{
+  "name": "standalone-hosting-astro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "dev": "astro dev",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  },
+  "overrides": {
+    "aws-cdk-lib": "2.244.0"
+  }
+}

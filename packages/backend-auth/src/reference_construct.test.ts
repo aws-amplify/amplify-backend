@@ -112,7 +112,7 @@ void describe('AmplifyConstruct', () => {
     const outputs = template.findOutputs('*');
     for (const property of OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE) {
       const expectedValue = {
-        'Fn::GetAtt': ['AmplifyRefAuthCustomResource', `${property}`],
+        'Fn::GetAtt': ['AmplifyRefAuthCustomResource', property],
       };
       assert.ok(outputs[property]);
       const actualValue = outputs[property]['Value'];

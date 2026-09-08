@@ -3,7 +3,7 @@ import {
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { CfnOutput, Stack, Stage } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -25,7 +25,7 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
+import { CDKContextKey, ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
@@ -148,13 +148,58 @@ export class BackendFactory<
 }
 
 /**
+ * Global key used by `definePipeline()` to pass the pipeline stage scope.
+ * When set, `defineBackend()` creates its stack inside the pipeline stage
+ * rather than creating a standalone CDK App.
+ */
+const AMPLIFY_PIPELINE_SCOPE_KEY = '__AMPLIFY_PIPELINE_SCOPE__';
+
+/**
+ * Creates a stack inside the pipeline stage scope with required context values
+ * for the BackendFactory to operate correctly.
+ *
+ * Uses deployment type 'standalone' because pipeline-managed backends are
+ * independent of Amplify Console — no branch linker is needed.
+ */
+const createPipelineStack = (pipelineScope: Stage): Stack => {
+  const stageName =
+    pipelineScope.node.tryGetContext('AMPLIFY_STAGE_NAME') || 'default';
+
+  const stack = new Stack(pipelineScope, 'BackendStack');
+  stack.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'pipeline');
+  stack.node.setContext(CDKContextKey.BACKEND_NAME, stageName);
+  stack.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'standalone');
+
+  // Expose stack name as CfnOutput so the pipeline post-deploy step can
+  // run `ampx generate outputs --stack <name>` after deployment.
+  const stackNameOutput = new CfnOutput(stack, 'BackendStackName', {
+    value: stack.stackName,
+    description: 'Backend stack name for amplify_outputs.json generation',
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any)['__AMPLIFY_BACKEND_PIPELINE_OUTPUTS__'] = {
+    stackNameOutput,
+    backendStack: stack,
+  };
+
+  return stack;
+};
+
+/**
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
 export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  // Check for pipeline ambient scope
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pipelineScope = (globalThis as any)[AMPLIFY_PIPELINE_SCOPE_KEY] as
+    | Stage
+    | undefined;
+  const stack = pipelineScope ? createPipelineStack(pipelineScope) : undefined;
+  const backend = new BackendFactory(constructFactories, stack);
   return {
     ...backend.resources,
     createStack: backend.createStack,

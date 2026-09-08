@@ -12,6 +12,8 @@ const getExpectedMajorVersion = (packageName: string) => {
   switch (packageName) {
     case 'ampx':
       return '0.';
+    // backend-notifications is 2.x (declared breaking change: defineNotifications
+    // rejects domains with Identity Resolution enabled).
     case '@aws-amplify/backend-deployer':
     case '@aws-amplify/backend-notifications':
     case '@aws-amplify/cli-core':
