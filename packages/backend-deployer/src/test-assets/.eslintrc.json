@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "spellcheck/spell-checker": "off",
+    "no-console": "off"
+  }
+}

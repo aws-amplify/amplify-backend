@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "references": [
+    { "path": "../backend-deployer" },
+    { "path": "../backend-output-schemas" },
+    { "path": "../backend-secret" },
+    { "path": "../cli-core" },
+    { "path": "../client-config" },
+    { "path": "../hosting" },
+    { "path": "../deployed-backend-client" },
+    { "path": "../form-generator" },
+    { "path": "../model-generator" },
+    { "path": "../platform-core" },
+    { "path": "../plugin-types" },
+    { "path": "../sandbox" },
+    { "path": "../schema-generator" }
+  ]
+}

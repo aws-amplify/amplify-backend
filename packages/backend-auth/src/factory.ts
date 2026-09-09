@@ -1,0 +1,400 @@
+import * as path from 'path';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import {
+  UserPool,
+  UserPoolOperation,
+  UserPoolSESOptions,
+} from 'aws-cdk-lib/aws-cognito';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
+  AmplifyAuth,
+  AuthProps,
+  TriggerEvent,
+  UserPoolSnsOptions,
+} from '@aws-amplify/auth-construct';
+import {
+  AmplifyResourceGroupName,
+  AuthResources,
+  AuthRoleName,
+  ConstructContainerEntryGenerator,
+  ConstructFactory,
+  ConstructFactoryGetInstanceProps,
+  FunctionResources,
+  GenerateContainerEntryProps,
+  ResourceAccessAcceptor,
+  ResourceAccessAcceptorFactory,
+  ResourceProvider,
+  StackProvider,
+} from '@aws-amplify/plugin-types';
+import {
+  translateToAuthConstructLoginWith,
+  translateToAuthConstructSenders,
+} from './translate_auth_props.js';
+import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
+import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
+import {
+  AuthAccessGenerator,
+  AuthLoginWithFactoryProps,
+  CustomEmailSender,
+  CustomSmsSender,
+  Expand,
+} from './types.js';
+import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+import { Stack, Tags } from 'aws-cdk-lib';
+
+export type BackendAuth = ResourceProvider<AuthResources> &
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  StackProvider;
+
+export type AmplifyAuthProps = Expand<
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
+    /**
+     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
+     */
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+    /**
+     * Configure custom auth triggers
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/triggers/
+     */
+    triggers?: Partial<
+      Record<
+        TriggerEvent,
+        ConstructFactory<ResourceProvider<FunctionResources>>
+      >
+    >;
+    /**
+     * Configure access to auth for other Amplify resources
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/
+     * @example
+     * access: (allow) => [allow.resource(postConfirmation).to(["addUserToGroup"])]
+     * @example
+     * access: (allow) => [allow.resource(groupManager).to(["manageGroups"])]
+     */
+    access?: AuthAccessGenerator;
+    /**
+     * Configure email sender options
+     */
+    senders?: {
+      email?:
+        | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
+        | CustomEmailSender;
+      sms?: UserPoolSnsOptions | CustomSmsSender;
+    };
+  }
+>;
+
+/**
+ * Singleton factory for AmplifyAuth that can be used in Amplify project files.
+ *
+ * Exported for testing purpose only & should NOT be exported out of the package.
+ */
+export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
+  // publicly accessible for testing purpose only.
+  static factoryCount = 0;
+
+  readonly provides = 'AuthResources';
+
+  private generator: ConstructContainerEntryGenerator;
+
+  /**
+   * Set the properties that will be used to initialize AmplifyAuth
+   */
+  constructor(
+    private readonly props: AmplifyAuthProps,
+    // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
+    private readonly importStack = new Error().stack,
+  ) {
+    if (AmplifyAuthFactory.factoryCount > 0) {
+      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
+      });
+    }
+    AmplifyAuthFactory.factoryCount++;
+
+    const validationResult = validatePasswordlessConfig(props);
+
+    if (validationResult.warnings && validationResult.warnings.length > 0) {
+      process.stderr.write('\nWARNINGS:\n');
+      validationResult.warnings.forEach((warning) => {
+        process.stderr.write(`  • ${warning}\n`);
+      });
+    }
+
+    if (!validationResult.valid) {
+      throw new AmplifyUserError('InvalidPasswordlessConfigError', {
+        message: 'Invalid passwordless authentication configuration',
+        details: validationResult.errors.join('\n\n'),
+        resolution: 'Fix the configuration errors listed above',
+      });
+    }
+  }
+
+  /**
+   * Get a singleton instance of AmplifyAuth
+   */
+  getInstance = (
+    getInstanceProps: ConstructFactoryGetInstanceProps,
+  ): BackendAuth => {
+    const { constructContainer, importPathVerifier, resourceNameValidator } =
+      getInstanceProps;
+    importPathVerifier?.verify(
+      this.importStack,
+      path.join('amplify', 'auth', 'resource'),
+      'Amplify Auth must be defined in amplify/auth/resource.ts',
+    );
+    if (this.props.name) {
+      resourceNameValidator?.validate(this.props.name);
+    }
+    if (!this.generator) {
+      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
+    }
+    return constructContainer.getOrCompute(this.generator) as BackendAuth;
+  };
+}
+
+class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
+  readonly resourceGroupName: AmplifyResourceGroupName = 'auth';
+  private readonly name: string;
+
+  constructor(
+    private readonly props: AmplifyAuthProps,
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly authAccessBuilder = _authAccessBuilder,
+    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory(),
+  ) {
+    this.name = props.name ?? 'amplifyAuth';
+  }
+
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+    ssmEnvironmentEntriesGenerator,
+    stableBackendIdentifiers,
+  }: GenerateContainerEntryProps) => {
+    const authProps: AuthProps = {
+      ...this.props,
+      loginWith: translateToAuthConstructLoginWith(
+        this.props.loginWith,
+        backendSecretResolver,
+      ),
+      senders: translateToAuthConstructSenders(
+        this.props.senders,
+        this.getInstanceProps,
+      ),
+      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
+    };
+    if (authProps.loginWith.externalProviders) {
+      authProps.loginWith.externalProviders.domainPrefix =
+        stableBackendIdentifiers.getStableBackendHash();
+    }
+
+    let authConstruct: AmplifyAuth;
+    try {
+      authConstruct = new AmplifyAuth(scope, this.name, authProps);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'AmplifyAuthConstructInitializationError',
+        {
+          message: 'Failed to instantiate auth construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error,
+      );
+    }
+
+    Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
+
+    Object.entries(this.props.triggers || {}).forEach(
+      ([triggerEvent, handlerFactory]) => {
+        (authConstruct.resources.userPool as UserPool).addTrigger(
+          UserPoolOperation.of(triggerEvent),
+          handlerFactory.getInstance(this.getInstanceProps).resources.lambda,
+        );
+      },
+    );
+
+    const authConstructMixin: BackendAuth = {
+      ...authConstruct,
+      /**
+       * Returns a resourceAccessAcceptor for the given role
+       * @param roleIdentifier Either the auth or unauth role name or the name of a UserPool group
+       */
+      getResourceAccessAcceptor: (
+        roleIdentifier: AuthRoleName | string,
+      ): ResourceAccessAcceptor => ({
+        identifier: `${roleIdentifier}ResourceAccessAcceptor`,
+        acceptResourceAccess: (policy: Policy) => {
+          const role = roleNameIsAuthRoleName(roleIdentifier)
+            ? authConstruct.resources[roleIdentifier]
+            : authConstruct.resources.groups?.[roleIdentifier]?.role;
+          if (!role) {
+            throw new AmplifyUserError('InvalidResourceAccessConfigError', {
+              message: `No auth IAM role found for "${roleIdentifier}".`,
+              resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
+            });
+          }
+          policy.attachToRole(role);
+        },
+      }),
+      stack: Stack.of(authConstruct),
+    };
+    if (!this.props.access) {
+      return authConstructMixin;
+    }
+    // props.access is the access callback defined by the customer
+    // here we inject the authAccessBuilder into the callback and run it
+    // this produces the access definition that will be used to create the auth access policies
+    const accessDefinition = this.props.access(this.authAccessBuilder);
+
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.name}_USERPOOL_ID`]:
+          authConstructMixin.resources.userPool.userPoolId,
+      });
+
+    const authPolicyArbiter = this.authAccessPolicyArbiterFactory.getInstance(
+      accessDefinition,
+      this.getInstanceProps,
+      ssmEnvironmentEntries,
+      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool),
+    );
+
+    authPolicyArbiter.arbitratePolicies();
+
+    return authConstructMixin;
+  };
+}
+
+const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
+  return (
+    roleName === 'authenticatedUserIamRole' ||
+    roleName === 'unauthenticatedUserIamRole'
+  );
+};
+
+type ValidationResult = {
+  valid: boolean;
+  errors: string[];
+  warnings?: string[];
+};
+
+/**
+ * Validates the format of a WebAuthn relying party ID.
+ * @param relyingPartyId - The relying party ID to validate
+ * @returns Error message if invalid, undefined if valid
+ */
+const validateRelyingPartyId = (relyingPartyId: string): string | undefined => {
+  if (relyingPartyId === 'AUTO' || relyingPartyId === 'localhost') {
+    return undefined;
+  }
+
+  if (relyingPartyId.includes('://')) {
+    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain without protocol (e.g., "example.com"), "localhost" for development, or "AUTO" for Amplify Hosting.
+
+Examples:
+  - Valid: "example.com", "app.example.com", "localhost", "AUTO"
+  - Invalid: "http://example.com", "https://example.com"`;
+  }
+
+  // Must contain at least one dot or be a single word (for local domains)
+  const domainPattern =
+    /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/;
+
+  if (!domainPattern.test(relyingPartyId)) {
+    return `Invalid relying party ID: "${relyingPartyId}". Must be a valid domain format.
+
+Examples:
+  - Valid: "example.com", "app.example.com", "localhost", "AUTO"
+  - Invalid: "example", "192.168.1.1", "my app.com"`;
+  }
+
+  return undefined;
+};
+
+/**
+ * Validates passwordless authentication configuration.
+ * @param props - The auth configuration props to validate
+ * @returns Validation result with errors and warnings
+ */
+const validatePasswordlessConfig = (
+  props: AmplifyAuthProps,
+): ValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  const { loginWith, multifactor } = props;
+
+  const emailEnabled = !!loginWith.email;
+  const phoneEnabled = !!loginWith.phone;
+  const emailOtpEnabled =
+    typeof loginWith.email === 'object' && loginWith.email.otpLogin === true;
+  const smsOtpEnabled =
+    typeof loginWith.phone === 'object' && loginWith.phone.otpLogin === true;
+  const webAuthnEnabled = !!loginWith.webAuthn;
+
+  let webAuthnRelyingPartyId: string | undefined;
+  if (webAuthnEnabled && typeof loginWith.webAuthn === 'object') {
+    webAuthnRelyingPartyId = loginWith.webAuthn.relyingPartyId;
+  }
+
+  const anyPasswordlessEnabled =
+    emailOtpEnabled || smsOtpEnabled || webAuthnEnabled;
+
+  if (!emailEnabled && !phoneEnabled && !loginWith.externalProviders) {
+    errors.push(
+      'At least one authentication method must be enabled. Configure email, phone, or external providers in loginWith.',
+    );
+  }
+
+  if (webAuthnEnabled && !emailEnabled && !phoneEnabled) {
+    errors.push(
+      `Passkeys (WebAuthn) require at least one sign-up method (email or phone).
+
+Email OTP and SMS OTP are valid passwordless sign-up methods.
+Passkeys can only be registered after initial account creation.
+
+Resolution: Add email or phone to loginWith configuration.`,
+    );
+  }
+
+  if (webAuthnEnabled && webAuthnRelyingPartyId) {
+    const relyingPartyIdError = validateRelyingPartyId(webAuthnRelyingPartyId);
+    if (relyingPartyIdError) {
+      errors.push(relyingPartyIdError);
+    } else if (
+      webAuthnRelyingPartyId !== 'AUTO' &&
+      webAuthnRelyingPartyId !== 'localhost'
+    ) {
+      // Warning about immutability for custom domains
+      warnings.push(
+        `WebAuthn relying party ID is set to "${webAuthnRelyingPartyId}". Changing this value after deployment will invalidate all existing passkeys. Users will need to re-register their passkeys.`,
+      );
+    }
+  }
+
+  if (anyPasswordlessEnabled && multifactor?.mode === 'REQUIRED') {
+    errors.push(
+      `Passwordless authentication (Email OTP, SMS OTP, WebAuthn) cannot be used when MFA is set to REQUIRED. Amazon Cognito does not support combining MFA with passwordless authentication methods.
+
+Resolution: Choose either passwordless authentication or MFA, not both.
+Note: WebAuthn passkeys with user verification can provide similar security to MFA without requiring separate MFA configuration.`,
+    );
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+};
+
+/**
+ * Provide the settings that will be used for authentication.
+ */
+export const defineAuth = (
+  props: AmplifyAuthProps,
+): ConstructFactory<BackendAuth> =>
+  // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
+  new AmplifyAuthFactory(props, new Error().stack);

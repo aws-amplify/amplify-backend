@@ -1,0 +1,42 @@
+import { glob } from 'glob';
+import { readPackageJson } from './components/package-json/package_json.js';
+
+/**
+ * script that verifies expected major versions for all packages in the repo.
+ * This is to prevent accidental major version bumps.
+ */
+
+const packagePaths = await glob('./packages/*');
+
+const getExpectedMajorVersion = (packageName: string) => {
+  switch (packageName) {
+    case 'ampx':
+      return '0.';
+    // backend-notifications is 2.x (declared breaking change: defineNotifications
+    // rejects domains with Identity Resolution enabled).
+    case '@aws-amplify/backend-deployer':
+    case '@aws-amplify/backend-notifications':
+    case '@aws-amplify/cli-core':
+    case '@aws-amplify/sandbox':
+      return '2.';
+    default:
+      return '1.';
+  }
+};
+
+for (const packagePath of packagePaths) {
+  const {
+    version,
+    private: isPrivate,
+    name,
+  } = await readPackageJson(packagePath);
+  if (isPrivate) {
+    continue;
+  }
+  const expectedMajorVersion = getExpectedMajorVersion(name);
+  if (!version.startsWith(expectedMajorVersion)) {
+    throw new Error(
+      `Expected package ${name} version to start with "${expectedMajorVersion}" but found version ${version}.`,
+    );
+  }
+}

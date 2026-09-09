@@ -1,0 +1,69 @@
+name: deprecate_release
+
+on:
+  workflow_dispatch:
+    inputs:
+      deprecationMessage:
+        required: true
+        type: string
+        description: The deprecation message to apply to the affected package versions.
+      useNpmRegistry:
+        required: false
+        type: boolean
+        default: false
+        description: |
+          Whether to run the workflow against the live npm registry or not.
+          Defaults to false. Must be explicitly set to true to run against the npm registry.
+      searchForReleaseStartingFrom:
+        required: false
+        type: string
+        default: HEAD
+        description: |
+          By default, the most recent release from HEAD (inclusive) of the target branch will be deprecated.
+          To deprecate a different release, specify the release commit to deprecate here.
+      packagesToSkip:
+        required: false
+        type: string
+        default: '[]'
+        description: |
+          JSON array with packages to skip. Empty by default.
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 22
+      - uses: ./.github/actions/install_with_cache
+        with:
+          node-version: 22
+          cdk-lib-version: FROM_PACKAGE_LOCK
+  deprecate_release:
+    needs:
+      - install
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # mapping the inputs to these environment variables allows the @actions/core toolkit to pick up the inputs
+      INPUT_DEPRECATIONMESSAGE: ${{ inputs.deprecationMessage }}
+      INPUT_USENPMREGISTRY: ${{ inputs.useNpmRegistry }}
+      INPUT_SEARCHFORRELEASESTARTINGFROM: ${{ inputs.searchForReleaseStartingFrom }}
+      INPUT_PACKAGESTOSKIP: ${{ inputs.packagesToSkip }}
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        with:
+          # fetch full history so that we can properly lookup past releases
+          fetch-depth: 0
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 22
+      - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 22
+          cdk-lib-version: FROM_PACKAGE_LOCK
+      - name: Deprecate release versions
+        run: npx tsx scripts/deprecate_release.ts

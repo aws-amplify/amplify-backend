@@ -1,0 +1,29 @@
+{
+  "name": "@aws-amplify/schema-generator",
+  "version": "1.4.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/graphql-schema-generator": "^0.11.0",
+    "@aws-amplify/platform-core": "^1.10.1"
+  },
+  "license": "Apache-2.0"
+}

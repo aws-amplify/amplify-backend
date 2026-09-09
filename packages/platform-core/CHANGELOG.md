@@ -1,0 +1,600 @@
+# @aws-amplify/platform-core
+
+## 1.11.2
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/plugin-types@1.12.3
+
+## 1.11.1
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/plugin-types@1.12.1
+
+## 1.11.0
+
+### Minor Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+
+### Patch Changes
+
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+
+## 1.10.4
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/plugin-types@1.11.2
+
+## 1.10.3
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- 34dc06f: Remove freeform error message text from telemetry
+
+## 1.10.2
+
+### Patch Changes
+
+- 2455768: update screaming snake case test
+
+## 1.10.1
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+
+## 1.10.0
+
+### Minor Changes
+
+- 17fe9cb: pinning zod
+- dd00ce1: zod upgrade
+
+### Patch Changes
+
+- 3b4f18f: Update error path processing to include current working directory for anonymization
+
+## 1.9.0
+
+### Minor Changes
+
+- 701bc20: switch to new version of telemetry
+
+### Patch Changes
+
+- 854aa25: Add permissions related error mapping
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+- Updated dependencies [edb1896]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/plugin-types@1.10.1
+
+## 1.8.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+- d09014b: add telemetry schema
+- d09014b: fix: exclude logs streaming options from sandbox command help output
+
+### Patch Changes
+
+- 8483297: Bumps [uuid](https://github.com/uuidjs/uuid) from 9.0.1 to 11.1.0.
+- baaaba9: Bumps [@types/uuid](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/uuid) from 9.0.7 to 10.0.0.
+- ece77e7: remove cdk cli dependency
+- d8a7304: update api after bumping typescript
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+
+## 1.7.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+- 0cc2de3: add telemetry schema
+- b2f9042: fix: exclude logs streaming options from sandbox command help output
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+
+## 1.6.5
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- fad46a4: wrap inotify errors in AmplifyUserError
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [2102071]
+  - @aws-amplify/plugin-types@1.8.1
+
+## 1.6.4
+
+### Patch Changes
+
+- dafb530: Bumps [is-ci](https://github.com/watson/is-ci) from 3.0.1 to 4.1.0.
+- aec5e08: Handle signature mismatch error
+
+## 1.6.3
+
+### Patch Changes
+
+- b5f785f: anonymize account id and file paths/stacks in error details for telemetry
+- ce8e4fc: improve anonymization for accountId
+
+## 1.6.2
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
+## 1.6.1
+
+### Patch Changes
+
+- ec7826d: Handle connect ENOMEM error
+
+## 1.6.0
+
+### Minor Changes
+
+- 2dab201: Report cdk versions
+
+### Patch Changes
+
+- Updated dependencies [2dab201]
+  - @aws-amplify/plugin-types@1.8.0
+
+## 1.5.1
+
+### Patch Changes
+
+- a712983: Base64 encode serialized Amplify Errors
+
+## 1.5.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- a7506f9: add InsufficientMemorySpaceError wrapping
+- Updated dependencies [a7506f9]
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.4.0
+
+### Minor Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
+### Patch Changes
+
+- 95942c5: expand wrapping of credentials related errors
+- f679cf6: expand handling of getaddrinfo ENOTFOUND errors
+
+## 1.3.0
+
+### Minor Changes
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- cfdc854: return amplify user error as it is from `AmplifyError.fromError`
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.2.2
+
+### Patch Changes
+
+- 249c0e5: Handle insufficient disk space errors
+
+## 1.2.1
+
+### Patch Changes
+
+- 71ef398: Report npm user agent
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
+## 1.1.0
+
+### Minor Changes
+
+- 99c8b6a: Add new @aws-amplify/ai-constructs and @aws-amplify/backend-ai packages with a conversation handler.
+
+## 1.0.7
+
+### Patch Changes
+
+- 5b6ae85: relax object accumulator to accumulate parts with different versions with same major version
+
+## 1.0.6
+
+### Patch Changes
+
+- 4cce19f: wrap SyntaxErrors in AmplifyUserError
+- Updated dependencies [a65371c]
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.0.5
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- 320a86d: wrap getaddrinfo ENOTFOUND errors in AmplifyUserError
+- Updated dependencies [3c698e0]
+  - @aws-amplify/plugin-types@1.1.1
+
+## 1.0.4
+
+### Patch Changes
+
+- 2294683: Add missing dependent arguments error in the yargs validations
+
+## 1.0.3
+
+### Patch Changes
+
+- c784e40: Catch and wrap DeploymentInProgress exception while generating artifacts
+- Updated dependencies [697bc8a]
+  - @aws-amplify/plugin-types@1.1.0
+
+## 1.0.2
+
+### Patch Changes
+
+- 44ca7d7: refactor top level cli error handling
+- ca92f23: wrap yargs validation errors in AmplifyUserError
+
+## 1.0.1
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+  - @aws-amplify/plugin-types@1.0.0
+
+## 0.5.1
+
+### Patch Changes
+
+- ce5a5ac: Update types for configs not generated by Amplify when adding outputs
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/plugin-types@0.10.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+- ef111b4: Add friendly-name tag to resources
+- 937086b: require "resolution" in AmplifyUserError options
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- ab7533d: Add output and configuration for customer owned lambdas
+- aec89f9: chore: correctly handle quotes in the error messages
+- 2a69684: chore: handle generic error serialization correctly
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- b0b4dea: fix: serialize downstream errors when they are not generic Errors
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.5.0-beta.7
+
+### Minor Changes
+
+- ef111b4: Add friendly-name tag to resources
+
+### Patch Changes
+
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+
+## 0.5.0-beta.6
+
+### Patch Changes
+
+- b0b4dea: fix: serialize downstream errors when they are not generic Errors
+
+## 0.5.0-beta.5
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+
+## 0.5.0-beta.4
+
+### Patch Changes
+
+- aec89f9: chore: correctly handle quotes in the error messages
+- 2a69684: chore: handle generic error serialization correctly
+
+## 0.5.0-beta.3
+
+### Patch Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- Updated dependencies [5e12247]
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+
+## 0.5.0-beta.2
+
+### Minor Changes
+
+- 937086b: require "resolution" in AmplifyUserError options
+
+## 0.5.0-beta.1
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.5.0-beta.0
+
+### Minor Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/plugin-types@0.8.0
+
+## 0.4.3
+
+### Patch Changes
+
+- 0809ad36d: fix empty catch block
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+
+## 0.4.1
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+
+## 0.4.0
+
+### Minor Changes
+
+- 5678ab4d4: Sanitize invalid characters when constructing SSM parameter paths.
+  Uses the same convention that is used for sanitizing stack names.
+
+  **NOTE:** Any secrets created before this change will no longer be found.
+  Recreate sandbox secrets using `npx amplify sandbox secret set` and recreate branch secrets in the Amplify console.
+
+## 0.3.4
+
+### Patch Changes
+
+- 8688aa00f: Classify package json parsing errors as user errors
+- e5da97e37: Move parameter path methods to ParameterPathConversions
+- Updated dependencies [e5da97e37]
+  - @aws-amplify/plugin-types@0.7.0
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
+## 0.3.2
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
+## 0.3.1
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.3.0
+
+### Minor Changes
+
+- aabe5dd61: Bump to minor version for usage data consent
+
+### Patch Changes
+
+- 5f336ffbb: close file handle after reading config
+- 85e619116: integrate usage data tracking consent with usage-data-emitter
+
+## 0.2.2
+
+### Patch Changes
+
+- cb855dfa5: chore: refactor packageJsonReader and generate installationIds from hostname
+
+## 0.2.1
+
+### Patch Changes
+
+- 70685f36b: Add usage data metrics
+
+## 0.2.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+
+## 0.1.4
+
+### Patch Changes
+
+- 68dc91e3: chore: support for JS backend apps
+
+## 0.1.3
+
+### Patch Changes
+
+- 0bd8a3f3: add 'main' entry to package.json
+
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [457b1662]
+  - @aws-amplify/plugin-types@0.3.0
+
+## 0.1.1
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+- 36d93e46: add license to package.json
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+- 5b9aac15: add backend identifier to sandbox metadata response
+- f6618771: add deployment type to stack outputs
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [18874854]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [2ef006f1]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [7103735b]
+- Updated dependencies [3c36ace9]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [407a09ff]
+- Updated dependencies [f201c94a]
+- Updated dependencies [512f0778]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/plugin-types@0.2.0
+
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 47456c26: Remove ESM features from construct dependency packages and make corresponding updates in consumer packages
+
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- 915c0325: Offer to reset the sandbox if a non deployable change is detected
+
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- 5b9aac15: add backend identifier to sandbox metadata response
+
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/plugin-types@0.2.0-alpha.7
+
+## 0.1.1-alpha.0
+
+### Patch Changes
+
+- f6618771: add deployment type to stack outputs
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- Updated dependencies [0398b8e1]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [512f0778]
+  - @aws-amplify/plugin-types@0.2.0-alpha.6

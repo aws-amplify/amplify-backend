@@ -1,0 +1,14 @@
+{
+  "name": "@aws-amplify/eslint-plugin-amplify-backend-rules",
+  "private": true,
+  "version": "0.0.2",
+  "type": "commonjs",
+  "main": "lib/index.js",
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/rule-tester": "^8.0.0"
+  },
+  "license": "Apache-2.0"
+}

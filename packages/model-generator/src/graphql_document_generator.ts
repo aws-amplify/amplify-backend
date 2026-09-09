@@ -1,0 +1,51 @@
+import { generateStatements } from '@aws-amplify/graphql-generator';
+import {
+  DocumentGenerationParameters,
+  GenerationResult,
+  GraphqlDocumentGenerator,
+} from './model_generator.js';
+import { isEmptyGraphqlDocument } from './empty_graphql_document.js';
+
+/**
+ * Generates GraphQL documents for a given AppSync API
+ */
+export class AppSyncGraphqlDocumentGenerator implements GraphqlDocumentGenerator {
+  /**
+   * Configures the AppSyncGraphqlDocumentGenerator
+   */
+  constructor(
+    private fetchSchema: () => Promise<string>,
+    private resultBuilder: (
+      fileMap: Record<string, string>,
+    ) => GenerationResult,
+  ) {}
+  generateModels = async ({
+    targetFormat,
+    maxDepth,
+    typenameIntrospection,
+    relativeTypesPath,
+  }: DocumentGenerationParameters) => {
+    const schema = await this.fetchSchema();
+
+    if (!schema) {
+      // eslint-disable-next-line @aws-amplify/amplify-backend-rules/prefer-amplify-errors
+      throw new Error('Invalid schema');
+    }
+
+    const generatedStatements = generateStatements({
+      schema,
+      target: targetFormat,
+      maxDepth,
+      typenameIntrospection,
+      relativeTypesPath,
+    });
+
+    const nonEmptyStatements = Object.fromEntries(
+      Object.entries(generatedStatements).filter(
+        ([, contents]) => !isEmptyGraphqlDocument(contents),
+      ),
+    );
+
+    return this.resultBuilder(nonEmptyStatements);
+  };
+}

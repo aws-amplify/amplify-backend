@@ -1,0 +1,6 @@
+{
+  "name": "package3",
+  "dependencies": {
+    "glob": "^10.3.10"
+  }
+}

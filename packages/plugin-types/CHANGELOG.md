@@ -1,0 +1,425 @@
+# @aws-amplify/plugin-types
+
+## 1.12.3
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- 4ee0260: fix: bump `@aws-cdk/toolkit-lib` to 1.40.0 so hotswap fallback deployments stay in STANDARD mode
+
+  `@aws-cdk/toolkit-lib` 1.32.0 forced `express: true` whenever a `hotswap`
+  deployment fell back to a full deployment, so every `ampx sandbox` deploy that
+  could not be hotswapped was sent to CloudFormation with
+  `DeploymentConfig.Mode=EXPRESS` even though `--express` was not passed. Express
+  mode is opt-in, and the override also relaxed the rollback and replacement
+  checks of the fallback deployment.
+
+  The override was reverted upstream in `@aws-cdk/toolkit-lib` 1.38.1
+  (aws/aws-cdk-cli#1801). Bumping to 1.40.0 restores the intended behavior:
+  `--express` is honored when passed, and a hotswap fallback deploys in STANDARD
+  mode otherwise.
+
+## 1.12.2
+
+### Patch Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+## 1.12.1
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+
+## 1.12.0
+
+### Minor Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+
+### Patch Changes
+
+- 0ee9189: Bump @aws-cdk/toolkit-lib from 1.6.1 to 1.16.0 to support latest cloud assembly schema versions.
+
+## 1.11.2
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+
+## 1.11.1
+
+### Patch Changes
+
+- b6ef34d: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 1.1.1 to 1.2.4.
+- 016ee87: adding repository to package.json configuration for trusted publishing
+
+## 1.11.0
+
+### Minor Changes
+
+- 3726005: update aws-cdk/toolkit to latest GA version
+
+## 1.10.1
+
+### Patch Changes
+
+- edb1896: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 0.2.0 to 0.3.2.
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+
+## 1.10.0
+
+### Minor Changes
+
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- a93aa54: upgrade cdk-toolkit to 0.2.0
+- d09014b: change AmplifyEventMessage interface to type
+- d8a7304: update api after bumping typescript
+- 96fe987: Upgrade to cdk toolkit-lib and use new hotswap event markers
+
+## 1.9.0
+
+### Minor Changes
+
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 9a00a6b: change AmplifyEventMessage interface to type
+
+## 1.8.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+
+## 1.8.0
+
+### Minor Changes
+
+- 2dab201: Report cdk versions
+
+## 1.7.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+## 1.6.0
+
+### Minor Changes
+
+- f6ba240: Upgrade execa
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+
+## 1.5.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
+## 1.4.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+## 1.3.1
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: add new type to handle exposing stack
+
+## 1.2.2
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
+## 1.2.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+
+## 1.2.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+## 1.1.1
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+
+## 1.1.0
+
+### Minor Changes
+
+- 697bc8a: Prevent CTRL-C handling for yarn classic package manager
+
+## 1.0.1
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+## 0.10.0
+
+### Minor Changes
+
+- 8995e3b: refactor format.runner().amplifyCommand() into format.backendCliCommand()
+
+### Patch Changes
+
+- ce5a5ac: Update types for configs not generated by Amplify when adding outputs
+
+## 0.9.0
+
+### Minor Changes
+
+- db23a3f: add AWSClientProvider type
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 697d791: Use screaming snake case for SSM entries
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- 48ff3bd: Add cfnFunction to function resources
+
+## 0.9.0-beta.3
+
+### Minor Changes
+
+- db23a3f: add AWSClientProvider type
+
+## 0.9.0-beta.2
+
+### Patch Changes
+
+- 48ff3bd: Add cfnFunction to function resources
+
+## 0.9.0-beta.1
+
+### Patch Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+
+## 0.9.0-beta.0
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+
+## 0.8.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
+## 0.7.1
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+
+## 0.7.0
+
+### Minor Changes
+
+- e5da97e37: Implement function secret access
+
+## 0.6.0
+
+### Minor Changes
+
+- 6714cd69c: Reinstate accessing all properties on backend construct objects
+- fd6516c8b: Rework Backend platform type to allow accessing CDK constructs using backend.<name>.<constructName> rather than backend.resources.<name>.resources.<constructName>
+
+## 0.5.0
+
+### Minor Changes
+
+- c6c39d04c: Expose new `defineFunction` interface
+
+## 0.4.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+
+## 0.4.1
+
+### Patch Changes
+
+- 65fe3a8fd: remove unused type
+- cd5feeed0: Expand types for Auth to improve auto completion suggestions.
+
+## 0.4.0
+
+### Minor Changes
+
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+
+## 0.3.1
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+
+## 0.3.0
+
+### Minor Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+
+## 0.2.0
+
+### Minor Changes
+
+- dc22fdf4: Integrate secret to Auth
+- 883d9da7: Migrate auth dependencies to CommonJS.
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- b2b0c2da: force version bump
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+- 7296e9d9: Initial publish
+- 2ef006f1: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96ff: update methods to use arrow notation
+- 7103735b: cdk lib dependency declaration
+- 3c36ace9: Implement UserPool trigger config
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- f201c94a: add support for external auth providers
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+
+## 0.2.0-alpha.10
+
+### Minor Changes
+
+- 883d9da7: Migrate auth dependencies to CommonJS.
+
+### Patch Changes
+
+- 18874854: Rename MFA enforcementType to mode. Convert accountRecovery to string union instead of enum. Make totp setting optional. Make auth/unauth roles required properties.
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- dc22fdf4: Integrate secret to Auth
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- 512f0778: move UniqueBackendIdentifier to platform-core package
+
+## 0.1.1-alpha.5
+
+### Patch Changes
+
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 3c36ace: Implement UserPool trigger config
+
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- f201c94: add support for external auth providers
+
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 2ef006f: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96f: update methods to use arrow notation
+
+## 0.1.1-alpha.0
+
+### Patch Changes
+
+- 7296e9d: Initial publish

@@ -1,0 +1,912 @@
+# @aws-amplify/backend-data
+
+## 1.8.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/backend-output-storage@1.3.6
+  - @aws-amplify/plugin-types@1.12.3
+
+## 1.8.0
+
+### Minor Changes
+
+- a50ec3b: Map `minimizeRdsVpcEndpoints` from `DataSourceConfiguration` onto the generated SQL `ModelDataSourceStrategy` so the customer setting is forwarded to the SQL strategy.
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
+## 1.7.0
+
+### Minor Changes
+
+- 077bd98: Added `stackMappings` option to `defineData()` for distributing resolvers across multiple nested CloudFormation stacks. This helps avoid the 500-resource limit for projects with complex data models.
+
+### Patch Changes
+
+- Updated dependencies [88c4759]
+  - @aws-amplify/backend-output-storage@1.3.5
+  - @aws-amplify/plugin-types@1.12.1
+
+## 1.6.4
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.6.3
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/backend-output-storage@1.3.3
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
+## 1.6.2
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/backend-output-storage@1.3.2
+
+## 1.6.1
+
+### Patch Changes
+
+- f7c7ff0: Update error handling for js resolvers input path validations
+- d5a6553: Update aws-cdk-lib to ^2.189.1
+- Updated dependencies [edb1896]
+- Updated dependencies [d5a6553]
+  - @aws-amplify/plugin-types@1.10.1
+  - @aws-amplify/backend-output-storage@1.3.1
+
+## 1.6.0
+
+### Minor Changes
+
+- d09014b: Add imported tables to data.
+- d09014b: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- 2ba971d: Fix amplifyApiEnvironmentName in non sandbox environments
+- 995c3de: Use Node 20 as default runtime in functions
+- 1f44f11: Remove experimental tag from migratedAmplifyGen1DynamoDbTableMappings
+- Updated dependencies [a93aa54]
+- Updated dependencies [d09014b]
+- Updated dependencies [d50ffb7]
+- Updated dependencies [d09014b]
+- Updated dependencies [d8a7304]
+- Updated dependencies [96fe987]
+  - @aws-amplify/plugin-types@1.10.0
+  - @aws-amplify/backend-output-storage@1.3.0
+  - @aws-amplify/backend-output-schemas@1.6.0
+
+## 1.5.0
+
+### Minor Changes
+
+- d854912: Add imported tables to data.
+- 8f59d16: integrate with aws cdk toolkit
+
+### Patch Changes
+
+- Updated dependencies [8f59d16]
+- Updated dependencies [9a00a6b]
+  - @aws-amplify/plugin-types@1.9.0
+  - @aws-amplify/backend-output-storage@1.2.0
+  - @aws-amplify/backend-output-schemas@1.5.0
+
+## 1.4.1
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- 2102071: Upgrade CDK version to 2.180.0
+- Updated dependencies [99f5d0b]
+- Updated dependencies [2102071]
+  - @aws-amplify/backend-output-schemas@1.4.1
+  - @aws-amplify/backend-output-storage@1.1.5
+  - @aws-amplify/plugin-types@1.8.1
+
+## 1.4.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.3.0
+
+### Minor Changes
+
+- fbf209e: Add GraphQL API ID and Amplify environment name to custom JS resolver stash
+
+### Patch Changes
+
+- 07fe7d4: Allow apiKeyAuthorizationMode to be undefined if defaultAuthorizationMode is apiKey
+
+## 1.2.3
+
+### Patch Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
+## 1.2.2
+
+### Patch Changes
+
+- 5cbe318: Add lambda data client
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.2.1
+
+### Patch Changes
+
+- f1db886: add resourceGroupName prop to function
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.1.7
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
+## 1.1.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.1.5
+
+### Patch Changes
+
+- 0d6489d: Update data-schema-types
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.1.4
+
+### Patch Changes
+
+- ffc3b42: update data construct
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [8dd7286]
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
+## 1.1.3
+
+### Patch Changes
+
+- c8d1f10: added provisionHotswapFriendlyResources and getDeploymentType to determine if we are in sandbox and would like to enable hotswap
+
+## 1.1.2
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+
+## 1.1.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [a65371c]
+  - @aws-amplify/backend-output-storage@1.1.1
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.1.0
+
+### Minor Changes
+
+- f5eeb67: support custom SSL certificates in SQL data sources
+
+## 1.0.3
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/plugin-types@1.0.1
+
+## 1.0.2
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [15c2b7c]
+  - @aws-amplify/backend-output-schemas@1.1.0
+  - @aws-amplify/backend-output-storage@1.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+  - @aws-amplify/backend-output-schemas@1.0.0
+  - @aws-amplify/backend-output-storage@1.0.0
+  - @aws-amplify/plugin-types@1.0.0
+
+## 0.15.0
+
+### Minor Changes
+
+- 8dfab74: support identityPool defaultAuthMode aliased to iam
+
+## 0.14.0
+
+### Minor Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+
+## 0.13.0
+
+### Minor Changes
+
+- c4a88d3: use latest data-schema
+
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/backend-output-storage@0.4.1
+
+## 0.12.0
+
+### Minor Changes
+
+- ba684bd: support connection URI as a shared secret
+- d0f1452: bump codegen and amplify data cdk construct, schema generator dependencies
+
+## 0.11.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
+## 0.10.0
+
+### Minor Changes
+
+- a777488: plumb function access definition from schema into IAM policies attached to the functions
+- 8fd5c5c: bump data-schema deps to latest
+- f76e983: Use updated metadata fields in form and model generation
+- 91dae55: remove allowListedRoleNames from defineData
+- f6489a8: enable iam auth in defineData
+- 268acd8: feat: enable destructive schema updates in amplify sandbox
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- a6f35a8: feat: Allow defineData to process combined and RDS schemas
+- 912034e: limit defineData call to one
+- 74cbda0: decentralize AmplifyErrorType
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 915bf98: upgrade @aws-amplify/data-construct dependency
+- 7857f0a: backend-data: add js resolver support
+- 26cdffd: backend-data: add support for first-class defineFunction
+- ef111b4: Add friendly-name tag to resources
+- 109cd1b: Add support for generating user pool groups.
+- ab739ea: backend-data sql PR naming cleanup
+- 060b6e5: Upgrade data packages
+- 937086b: require "resolution" in AmplifyUserError options
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+- 10c9447: Fix dependent bot alert for mysql2
+- 48ff3bd: Add cfnFunction to function resources
+- 6b217e6: Fixes bug where apiName can resolve to undefined
+- 0e6f436: chore: bump data-schema packages version (0.16.0)
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [1e93535]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.10.0-beta.14
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
+## 0.10.0-beta.13
+
+### Patch Changes
+
+- 10c9447: Fix dependent bot alert for mysql2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
+## 0.10.0-beta.12
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
+### Patch Changes
+
+- ab739ea: backend-data sql PR naming cleanup
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
+## 0.10.0-beta.11
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- a6f35a8: feat: Allow defineData to process combined and RDS schemas
+- 48ff3bd: Add cfnFunction to function resources
+- 6b217e6: Fixes bug where apiName can resolve to undefined
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
+## 0.10.0-beta.10
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+
+## 0.10.0-beta.9
+
+### Patch Changes
+
+- 915bf98: upgrade @aws-amplify/data-construct dependency
+
+## 0.10.0-beta.8
+
+### Minor Changes
+
+- f6489a8: enable iam auth in defineData
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.4.0-beta.4
+
+## 0.10.0-beta.7
+
+### Patch Changes
+
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+
+## 0.10.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.3
+
+## 0.10.0-beta.5
+
+### Minor Changes
+
+- 91dae55: remove allowListedRoleNames from defineData
+
+### Patch Changes
+
+- 26cdffd: backend-data: add support for first-class defineFunction
+- 937086b: require "resolution" in AmplifyUserError options
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+
+## 0.10.0-beta.4
+
+### Minor Changes
+
+- a777488: plumb function access definition from schema into IAM policies attached to the functions
+- 268acd8: feat: enable destructive schema updates in amplify sandbox
+
+## 0.10.0-beta.3
+
+### Patch Changes
+
+- 912034e: limit defineData call to one
+- 7857f0a: backend-data: add js resolver support
+
+## 0.10.0-beta.2
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/backend-output-storage@0.4.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.10.0-beta.1
+
+### Patch Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+  - @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.10.0-beta.0
+
+### Minor Changes
+
+- 8fd5c5c30: bump data-schema deps to latest
+
+## 0.9.6
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
+## 0.9.5
+
+### Patch Changes
+
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/backend-output-storage@0.2.11
+
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-output-storage@0.2.10
+
+## 0.9.3
+
+### Patch Changes
+
+- 04f067837: Implement consistent dependency declaration check. Bumped dependencies where necessary.
+- Updated dependencies [04f067837]
+  - @aws-amplify/backend-output-schemas@0.5.1
+  - @aws-amplify/backend-output-storage@0.2.9
+
+## 0.9.2
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.8
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [e5da97e37]
+- Updated dependencies [6a1c252e1]
+- Updated dependencies [6a1c252e1]
+  - @aws-amplify/plugin-types@0.7.0
+  - @aws-amplify/backend-output-schemas@0.5.0
+  - @aws-amplify/backend-output-storage@0.2.7
+
+## 0.9.0
+
+### Minor Changes
+
+- 6714cd69c: Reinstate accessing all properties on backend construct objects
+- fd6516c8b: Rework Backend platform type to allow accessing CDK constructs using backend.<name>.<constructName> rather than backend.resources.<name>.resources.<constructName>
+
+### Patch Changes
+
+- Updated dependencies [6714cd69c]
+- Updated dependencies [fd6516c8b]
+  - @aws-amplify/plugin-types@0.6.0
+
+## 0.8.3
+
+### Patch Changes
+
+- db775ad6e: Refactor error handling, introduce two new AmplifyErrors
+- 308d1729a: Add messaging and test about not updating provision strategy
+- Updated dependencies [c6c39d04c]
+  - @aws-amplify/plugin-types@0.5.0
+
+## 0.8.2
+
+### Patch Changes
+
+- 5ed51cbd5: Upgrade aws-cdk to 2.110.1
+- Updated dependencies [5ed51cbd5]
+  - @aws-amplify/backend-output-storage@0.2.6
+  - @aws-amplify/plugin-types@0.4.2
+
+## 0.8.1
+
+### Patch Changes
+
+- a2ed0ae14: Update data-schema version
+  - @aws-amplify/backend-output-storage@0.2.5
+
+## 0.8.0
+
+### Minor Changes
+
+- f449188cf: fix(@aws-amplify/backend-data) - Align with authorization modes used in the aws-amplify client library
+
+## 0.7.1
+
+### Patch Changes
+
+- 0af242db4: Update import to data construct to allow for specific attribution tags
+- Updated dependencies [cb855dfa5]
+  - @aws-amplify/backend-output-storage@0.2.4
+
+## 0.7.0
+
+### Minor Changes
+
+- 688db7bf8: Update deployment strategy to use amplify tables, and allow drop/replace semantics for sandbox tables
+
+### Patch Changes
+
+- 85bbab431: Use correct reference to identity pool id in IAM auth
+- Updated dependencies [70685f36b]
+  - @aws-amplify/backend-output-storage@0.2.3
+
+## 0.6.0
+
+### Minor Changes
+
+- 3cda50cb7: Update backend-data to use new data-construct and explicitly specific default ddb strategy.
+
+## 0.5.1
+
+### Patch Changes
+
+- bd8b5d1a5: update data/resource template; bump data-schema versions
+- Updated dependencies [65fe3a8fd]
+- Updated dependencies [cd5feeed0]
+- Updated dependencies [07b0dfc9f]
+  - @aws-amplify/plugin-types@0.4.1
+  - @aws-amplify/backend-output-schemas@0.4.0
+  - @aws-amplify/backend-output-storage@0.2.2
+
+## 0.5.0
+
+### Minor Changes
+
+- 85a015b7: switch to using data-schema packages
+- 71a63a16: Change stack naming strategy to include deployment type as a suffix
+
+### Patch Changes
+
+- 8181509a: Added a prefix to the auth cfnResources.
+- Updated dependencies [8181509a]
+- Updated dependencies [71a63a16]
+  - @aws-amplify/plugin-types@0.4.0
+  - @aws-amplify/backend-output-schemas@0.3.0
+  - @aws-amplify/backend-output-storage@0.2.1
+
+## 0.4.0
+
+### Minor Changes
+
+- 6be68224: Update authorizationMode config to simplify inputs, and more closely align with final interface
+- 14a18c6e: Rename backend-graphql to backend-data
+
+### Patch Changes
+
+- a126d8df: bump amplify data versions
+
+## 0.3.2
+
+### Patch Changes
+
+- 3bff764b: Expose user pool and client as cfn resources.
+- Updated dependencies [3bff764b]
+  - @aws-amplify/plugin-types@0.3.1
+
+## 0.3.1
+
+### Patch Changes
+
+- 0bd8a3f3: add missing dev deps
+
+## 0.3.0
+
+### Minor Changes
+
+- 42127d0a: Add support for functions as input to the defineData call.
+
+### Patch Changes
+
+- 1dd824cb: Bump graphql-api construct version
+
+## 0.2.1
+
+### Patch Changes
+
+- 457b1662: getConstructFactory no longer throws an error if the factory is not found, and returns undefined instead.
+- 46e0aad6: Update backend-graphql library to start decomposing translation layer from backend definitions into CDK
+- Updated dependencies [79a6e09f]
+- Updated dependencies [457b1662]
+- Updated dependencies [79a6e09f]
+  - @aws-amplify/backend-output-schemas@0.2.1
+  - @aws-amplify/plugin-types@0.3.0
+
+## 0.2.0
+
+### Minor Changes
+
+- 66190beb: integrate api-next as the default data experience
+- b89c5397: Update to use v1.1.0 graphql-api-construct
+- ae9e9f10: Create factory functions for defining category config
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- b2b0c2da: force version bump
+- baa7a905: Move types package from peer deps to deps
+- 7296e9d9: Initial publish
+- c5d18967: Re-export category entry points from @aws-amplify/backend and move shared test classes to new private package
+- 34c3fd38: Update backend definition file path convention
+- 2ef006f1: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96ff: update methods to use arrow notation
+- 7103735b: cdk lib dependency declaration
+- f8df0ed6: add defineData authorizationModes passthrough
+- 30820177: Update @aws-amplify/graphql-api-construct dependency to 1.1.4
+- 36d93e46: add license to package.json
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- dc22fdf4: Integrate secret to Auth
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- f6618771: add deployment type to stack outputs
+- f201c94a: add support for external auth providers
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [47456c26]
+- Updated dependencies [ac3df080]
+- Updated dependencies [0398b8e1]
+- Updated dependencies [b2b0c2da]
+- Updated dependencies [18874854]
+- Updated dependencies [7296e9d9]
+- Updated dependencies [53779253]
+- Updated dependencies [2ef006f1]
+- Updated dependencies [3bda96ff]
+- Updated dependencies [7103735b]
+- Updated dependencies [3c36ace9]
+- Updated dependencies [395c8f0d]
+- Updated dependencies [ce008a2c]
+- Updated dependencies [36d93e46]
+- Updated dependencies [8f99476e]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [407a09ff]
+- Updated dependencies [47456c26]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [2525b582]
+- Updated dependencies [f75fa531]
+- Updated dependencies [f6618771]
+- Updated dependencies [f201c94a]
+- Updated dependencies [512f0778]
+- Updated dependencies [883d9da7]
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.2.0
+  - @aws-amplify/backend-output-schemas@0.2.0
+  - @aws-amplify/plugin-types@0.2.0
+
+## 0.2.0-alpha.13
+
+### Patch Changes
+
+- Updated dependencies [47456c26]
+- Updated dependencies [47456c26]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.6
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.8
+
+## 0.2.0-alpha.12
+
+### Patch Changes
+
+- 8f99476e: chore: upgrade aws-cdk to 2.103.0
+- Updated dependencies [8f99476e]
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.5
+  - @aws-amplify/plugin-types@0.2.0-alpha.11
+
+## 0.2.0-alpha.11
+
+### Patch Changes
+
+- Updated dependencies [18874854]
+- Updated dependencies [883d9da7]
+  - @aws-amplify/plugin-types@0.2.0-alpha.10
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.7
+  - @aws-amplify/backend-output-storage@0.2.0-alpha.4
+
+## 0.2.0-alpha.10
+
+### Patch Changes
+
+- 30820177: Update @aws-amplify/graphql-api-construct dependency to 1.1.4
+
+## 0.2.0-alpha.9
+
+### Patch Changes
+
+- 59f5ea24: chore: upgrade aws-cdk to 2.100.0
+- Updated dependencies [59f5ea24]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.3
+  - @aws-amplify/plugin-types@0.2.0-alpha.9
+
+## 0.2.0-alpha.8
+
+### Patch Changes
+
+- 7103735b: cdk lib dependency declaration
+- Updated dependencies [7103735b]
+  - @aws-amplify/plugin-types@0.2.0-alpha.8
+
+## 0.2.0-alpha.7
+
+### Patch Changes
+
+- f8df0ed6: add defineData authorizationModes passthrough
+
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- 66190beb: integrate api-next as the default data experience
+
+### Patch Changes
+
+- 36d93e46: add license to package.json
+- Updated dependencies [36d93e46]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.5
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.2
+  - @aws-amplify/plugin-types@0.2.0-alpha.7
+
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- b89c5397: Update to use v1.1.0 graphql-api-construct
+- ae9e9f10: Create factory functions for defining category config
+
+### Patch Changes
+
+- 0398b8e1: Bump graphql construct to 0.9.0 and remove some interface cruft
+- baa7a905: Move types package from peer deps to deps
+- 34c3fd38: Update backend definition file path convention
+- dc22fdf4: Integrate secret to Auth
+- f6618771: add deployment type to stack outputs
+- Updated dependencies [0398b8e1]
+- Updated dependencies [dc22fdf4]
+- Updated dependencies [f6618771]
+- Updated dependencies [512f0778]
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.1
+  - @aws-amplify/plugin-types@0.2.0-alpha.6
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.4
+
+## 0.1.1-alpha.4
+
+### Patch Changes
+
+- 407a09ff: Implements backend secret feature, include backend secret resolver and the backend-secret pkg.
+- f75fa531: Refactor OutputStorageStrategy into stateless shared dependency
+- Updated dependencies [ac3df080]
+- Updated dependencies [53779253]
+- Updated dependencies [1dada824]
+- Updated dependencies [407a09ff]
+- Updated dependencies [b4f82717]
+- Updated dependencies [05f97b26]
+- Updated dependencies [f75fa531]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.3
+  - @aws-amplify/backend-output-storage@0.1.1-alpha.0
+  - @aws-amplify/plugin-types@0.1.1-alpha.5
+
+## 0.1.1-alpha.3
+
+### Patch Changes
+
+- f201c94: add support for external auth providers
+- Updated dependencies [ce008a2]
+- Updated dependencies [f201c94]
+  - @aws-amplify/backend-output-schemas@0.2.0-alpha.2
+  - @aws-amplify/plugin-types@0.1.1-alpha.3
+
+## 0.1.1-alpha.2
+
+### Patch Changes
+
+- b2b0c2d: force version bump
+- Updated dependencies [b2b0c2d]
+- Updated dependencies [395c8f0]
+  - @aws-amplify/backend-output-schemas@0.1.1-alpha.1
+  - @aws-amplify/plugin-types@0.1.1-alpha.2
+
+## 0.1.1-alpha.1
+
+### Patch Changes
+
+- 2ef006f: Support for email and phone number login has been updated to reflect new type structures. User attributes and verification settings have also been added.
+- 3bda96f: update methods to use arrow notation
+- Updated dependencies [2ef006f]
+- Updated dependencies [3bda96f]
+  - @aws-amplify/plugin-types@0.1.1-alpha.1
+
+## 0.1.1-alpha.0
+
+### Patch Changes
+
+- 7296e9d: Initial publish
+- Updated dependencies [7296e9d]
+  - @aws-amplify/backend-output-schemas@0.1.1-alpha.0
+  - @aws-amplify/plugin-types@0.1.1-alpha.0

@@ -1,0 +1,60 @@
+name: canary_checks
+
+on:
+  schedule:
+    - cron: '0 */1 * * *' # runs every hour
+  workflow_dispatch:
+
+jobs:
+  local_checks_with_latest_dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: lts/*
+      - name: Install and build without lock file
+        shell: bash
+        run: |
+          rm package-lock.json
+          ./scripts/retry.js npm install
+          npm run build
+      # - name: Check dependencies
+      #   shell: bash
+      #   run: |
+      #     npm run check:dependencies
+      - name: Run unit and integration tests
+        shell: bash
+        run: |
+          # Integration tests snapshots can change when new construct or CDK version is pulled in
+          # However we still want to run synthesis in these tests to verify that it doesn't fail
+          export AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON=true
+          npm run test
+  live_dependency_health_checks:
+    runs-on: ubuntu-latest
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        region: [us-west-2, us-east-1, ca-central-1, eu-central-1]
+    timeout-minutes: 20
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - name: Run live dependency health checks
+        uses: ./.github/actions/run_with_e2e_account
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          node_version: 22
+          # Use version from package lock. Tests projects are created outside of repository root
+          # and are using latest CDK version.
+          cdk-lib-version: FROM_PACKAGE_LOCK
+          # TODO temporarily bring back CDK CLI parameter since we bring back repo from before pretty sandbox work.
+          cdk-cli-version: FROM_PACKAGE_LOCK
+          aws_region: ${{ matrix.region }}
+          fresh_build: true
+          shell: bash
+          run: ./scripts/retry.js npm run live-dependency-health-checks

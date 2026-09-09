@@ -1,0 +1,52 @@
+{
+  "name": "@aws-amplify/platform-core",
+  "version": "1.11.2",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./cdk": {
+      "types": "./lib/cdk/index.d.ts",
+      "import": "./lib/cdk/index.js",
+      "require": "./lib/cdk/index.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/is-ci": "^3.0.4",
+    "@types/lodash.mergewith": "^4.6.2",
+    "@types/uuid": "10.0.0"
+  },
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^1.12.3",
+    "@aws-sdk/client-sts": "^3.936.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.0.0",
+    "@opentelemetry/sdk-trace-base": "^2.0.0",
+    "is-ci": "^4.1.0",
+    "lodash.mergewith": "^4.6.2",
+    "lodash.snakecase": "^4.1.1",
+    "semver": "^7.6.3",
+    "uuid": "^11.1.0",
+    "zod": "3.25.17"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.257.0",
+    "constructs": "^10.6.0"
+  }
+}

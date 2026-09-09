@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest an idea to help us improve Amplify Gen 2
+labels: ['pending-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment information
+      description: |
+        Please copy and paste output of the following command. This will be automatically formatted into code, so no need for backticks.
+        ```bash
+        npx ampx info
+        ```
+      render: plain text
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature
+      description: A clear and concise description of the feature you are proposing.
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: |
+        Please provide information about your use case and how this feature will help with it.
+    validations:
+      required: true

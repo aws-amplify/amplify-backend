@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "include": ["**/*", "src/**/*.json"],
+  "exclude": ["templates", "lib"],
+  "references": [
+    { "path": "../cli-core" },
+    { "path": "../platform-core" },
+    { "path": "../plugin-types" }
+  ]
+}
