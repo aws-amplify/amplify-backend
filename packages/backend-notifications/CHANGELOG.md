@@ -1,5 +1,15 @@
 # @aws-amplify/backend-notifications
 
+## 2.0.1
+
+### Patch Changes
+
+- a0421b3: migrate deprecated CfnResource#addDependency usage to addResourceDependency
+- Updated dependencies [02be24d]
+- Updated dependencies [a0421b3]
+  - @aws-amplify/platform-core@1.12.0
+  - @aws-amplify/plugin-types@1.13.0
+
 ## 2.0.0
 
 ### Major Changes
