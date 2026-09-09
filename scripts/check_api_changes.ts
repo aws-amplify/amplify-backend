@@ -57,6 +57,17 @@ const excludedTypesByPackageName: Record<string, Array<string>> = {
     // Therefore, excluding this type from checks.
     'FromJSONSchema',
   ],
+  hosting: [
+    // ByoValue is branded with a module-local `unique symbol` (BYO_BRAND) used
+    // as a computed property key. API Extractor's single-file report references
+    // that key as `[BYO_BRAND]` but does not emit the private symbol's
+    // declaration, so the usage generated from the report fails to compile:
+    //   index.ts: error TS2304: Cannot find name 'BYO_BRAND'.
+    // The published types (tsc-emitted lib/*.d.ts) declare the symbol correctly,
+    // so consumers are unaffected — this is purely a report-generation limitation.
+    // Exclude the type from usage generation (same rationale as FromJSONSchema).
+    'ByoValue',
+  ],
 };
 
 const validateSinglePackage = async (packagePath: string): Promise<void> => {
