@@ -14,7 +14,11 @@ const BYO_BRAND = Symbol.for('@aws-amplify/hosting.byo');
 
 /** Inert marker describing an existing store entry to wire into `environment`. */
 export type ByoValue = {
-  readonly [BYO_BRAND]: true;
+  // Optional so the API-change validator (which reconstructs this type from the
+  // API report, where the private BYO_BRAND symbol is not declared) can drop the
+  // brand key and still have the reconstruction assignable to this type. The
+  // brand is always set at runtime by byoSecret()/byoConfig().
+  readonly [BYO_BRAND]?: true;
   /** `secret` → Secrets Manager, `config` → SSM Parameter Store. */
   readonly kind: 'secret' | 'config';
   /** The secret name/ARN (secret) or parameter name (config; ARNs not accepted). */

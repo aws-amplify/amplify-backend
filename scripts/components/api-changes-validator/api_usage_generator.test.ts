@@ -338,6 +338,27 @@ const someTypeUnderSubNamespaceUsageFunction = (someTypeUnderSubNamespaceFunctio
     `,
   },
   {
+    // A `unique symbol` brand (computed key like `[BRAND]`) is referenced in the
+    // API report but the private symbol itself is not declared there. Copying it
+    // verbatim would not compile (TS2304), so the brand member is dropped from
+    // the reconstructed baseline type. Other members are preserved.
+    description: 'drops symbol-brand computed keys from reconstructed type',
+    apiReportCode: `
+export type Branded = {
+    readonly [BRAND]?: true;
+    someProperty: string;
+};
+    `,
+    expectedApiUsage: `
+import { Branded } from 'samplePackageName';
+
+type BrandedBaseline = { someProperty: string }
+const brandedUsageFunction = (brandedFunctionParameter: BrandedBaseline) => {
+  const branded: Branded = brandedFunctionParameter;
+}
+    `,
+  },
+  {
     description: 'Skips ignored type',
     apiReportCode: `
 export type SampleIgnoredType = {

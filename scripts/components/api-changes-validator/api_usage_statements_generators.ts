@@ -6,6 +6,75 @@ import ts from 'typescript';
 import { EOL } from 'os';
 
 /**
+ * A type member keyed by a computed property whose key is a bare identifier —
+ * i.e. a `unique symbol` brand such as `readonly [BYO_BRAND]: true`.
+ *
+ * (`[Symbol.iterator]` is a PropertyAccessExpression, not an Identifier, so
+ * well-known symbols are intentionally NOT matched; nor are string/number
+ * computed keys like `['foo']`.)
+ */
+const isSymbolBrandMember = (member: ts.TypeElement): boolean =>
+  !!member.name &&
+  ts.isComputedPropertyName(member.name) &&
+  ts.isIdentifier(member.name.expression);
+
+/**
+ * Whether a type node (descending through intersections, unions and
+ * parentheses) declares a symbol-brand member.
+ */
+const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
+  if (ts.isTypeLiteralNode(typeNode)) {
+    return typeNode.members.some(isSymbolBrandMember);
+  }
+  if (ts.isUnionTypeNode(typeNode) || ts.isIntersectionTypeNode(typeNode)) {
+    return typeNode.types.some(containsSymbolBrandMember);
+  }
+  if (ts.isParenthesizedTypeNode(typeNode)) {
+    return containsSymbolBrandMember(typeNode.type);
+  }
+  return false;
+};
+
+/**
+ * Render a type node's text with symbol-brand members removed.
+ *
+ * API Extractor's single-file report references a brand `unique symbol` by name
+ * (`[BYO_BRAND]`) but does not emit the private symbol's declaration, so copying
+ * the type text verbatim into generated usage does not compile
+ * (`TS2304: Cannot find name 'BYO_BRAND'`). A brand key is a nominal marker that
+ * cannot be exercised in generated usage anyway, so it is dropped from the
+ * baseline reconstruction. When no brand is present the text is returned
+ * verbatim, so every other type is unaffected.
+ *
+ * For assignability to hold, a brand exposed this way should be declared
+ * OPTIONAL in the source type (`readonly [BRAND]?: true`); otherwise the
+ * imported "latest" type still requires the (now-absent) brand.
+ */
+const renderTypeWithoutSymbolBrands = (typeNode: ts.TypeNode): string => {
+  if (!containsSymbolBrandMember(typeNode)) {
+    return typeNode.getText();
+  }
+  if (ts.isTypeLiteralNode(typeNode)) {
+    const members = typeNode.members
+      .filter((member) => !isSymbolBrandMember(member))
+      // `getText()` includes each member's terminating `;`; strip it so the
+      // rejoined members are not doubly-separated.
+      .map((member) => member.getText().replace(/;\s*$/, ''));
+    return `{ ${members.join('; ')} }`;
+  }
+  if (ts.isIntersectionTypeNode(typeNode)) {
+    return typeNode.types.map(renderTypeWithoutSymbolBrands).join(' & ');
+  }
+  if (ts.isUnionTypeNode(typeNode)) {
+    return typeNode.types.map(renderTypeWithoutSymbolBrands).join(' | ');
+  }
+  if (ts.isParenthesizedTypeNode(typeNode)) {
+    return `(${renderTypeWithoutSymbolBrands(typeNode.type)})`;
+  }
+  return typeNode.getText();
+};
+
+/**
  * This class generates generic type declaration.
  *
  * The generator is useful in situations where generic types need to be declared
@@ -136,7 +205,9 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     const baselineTypeName = `${typeName}Baseline`;
     const functionParameterName = `${constName}FunctionParameter`;
     // declare type with same content under different name.
-    let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${this.typeAliasDeclaration.type.getText()}${EOL}`;
+    let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${renderTypeWithoutSymbolBrands(
+      this.typeAliasDeclaration.type,
+    )}${EOL}`;
     // add statement that checks if old type can be assigned to new type.
     const assignmentStatement = `const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};`;
     usageStatement += `const ${toLowerCamelCase(
