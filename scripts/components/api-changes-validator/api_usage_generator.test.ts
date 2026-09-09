@@ -359,6 +359,56 @@ const brandedUsageFunction = (brandedFunctionParameter: BrandedBaseline) => {
     `,
   },
   {
+    // Narrow match (comment 1): only an inert `: true` brand is stripped. A
+    // symbol-keyed member with a real value type is kept verbatim so a breaking
+    // change to it fails loud (TS2304 at compile time) rather than vanishing.
+    description: 'keeps a symbol-keyed member whose value type is not `true`',
+    apiReportCode: `
+export type WithSymbolValue = {
+    readonly [SYM]: string;
+    someProperty: string;
+};
+    `,
+    expectedApiUsage: `
+import { WithSymbolValue } from 'samplePackageName';
+
+type WithSymbolValueBaseline = {
+    readonly [SYM]: string;
+    someProperty: string;
+}
+const withSymbolValueUsageFunction = (withSymbolValueFunctionParameter: WithSymbolValueBaseline) => {
+  const withSymbolValue: WithSymbolValue = withSymbolValueFunctionParameter;
+}
+    `,
+  },
+  {
+    // Boundary (comment 3): a brand NESTED in a member's value type is not
+    // descended into, so it is emitted verbatim and fails loud (TS2304) rather
+    // than being silently dropped. Documents the completeness limit.
+    description: 'does not strip a brand nested in a member value type',
+    apiReportCode: `
+export type NestedBrand = {
+    inner: {
+        readonly [SYM]?: true;
+        value: string;
+    };
+};
+    `,
+    expectedApiUsage: `
+import { NestedBrand } from 'samplePackageName';
+
+type NestedBrandBaseline = {
+    inner: {
+        readonly [SYM]?: true;
+        value: string;
+    };
+}
+const nestedBrandUsageFunction = (nestedBrandFunctionParameter: NestedBrandBaseline) => {
+  const nestedBrand: NestedBrand = nestedBrandFunctionParameter;
+}
+    `,
+  },
+  {
     description: 'Skips ignored type',
     apiReportCode: `
 export type SampleIgnoredType = {
@@ -391,4 +441,24 @@ void describe('Api usage generator', () => {
       );
     });
   }
+
+  // Comment 2 regression: a REQUIRED inert symbol brand cannot be validated
+  // (the brand-stripped baseline would not be assignable to the required
+  // brand), so generation fails with an actionable error rather than emitting
+  // usage that later dies with a cryptic TS2741.
+  void it('throws an actionable error for a required symbol brand', () => {
+    const apiReportAST = ApiReportParser.parse(
+      nestInMarkdownCodeBlock(`
+export type RequiredBrand = {
+    readonly [SYM]: true;
+    someProperty: string;
+};
+      `),
+    );
+    assert.throws(
+      () =>
+        new ApiUsageGenerator('samplePackageName', apiReportAST, []).generate(),
+      /required unique-symbol brand '\[SYM\]' cannot be validated/,
+    );
+  });
 });

@@ -6,21 +6,40 @@ import ts from 'typescript';
 import { EOL } from 'os';
 
 /**
- * A type member keyed by a computed property whose key is a bare identifier —
- * i.e. a `unique symbol` brand such as `readonly [BYO_BRAND]: true`.
+ * An inert `unique symbol` brand member — a computed property whose key is a
+ * bare identifier AND whose value type is the literal `true`
+ * (`readonly [BYO_BRAND]?: true`).
+ *
+ * The match is deliberately narrow. Matching key SHAPE alone (`[Identifier]`)
+ * would silently strip any symbol-keyed member — including one that carries
+ * real API — and a breaking change to it would then pass this guard undetected
+ * (the worst failure mode for a check that runs on every PR). Requiring the
+ * value type to be `true` limits stripping to the inert brand pattern; a
+ * symbol-keyed member with any other value type falls through to verbatim and
+ * fails loud (`TS2304`) instead of vanishing.
  *
  * (`[Symbol.iterator]` is a PropertyAccessExpression, not an Identifier, so
- * well-known symbols are intentionally NOT matched; nor are string/number
- * computed keys like `['foo']`.)
+ * well-known symbols are NOT matched; nor are string/number computed keys.)
  */
 const isSymbolBrandMember = (member: ts.TypeElement): boolean =>
   !!member.name &&
   ts.isComputedPropertyName(member.name) &&
-  ts.isIdentifier(member.name.expression);
+  ts.isIdentifier(member.name.expression) &&
+  ts.isPropertySignature(member) &&
+  !!member.type &&
+  ts.isLiteralTypeNode(member.type) &&
+  member.type.literal.kind === ts.SyntaxKind.TrueKeyword;
 
 /**
- * Whether a type node (descending through intersections, unions and
- * parentheses) declares a symbol-brand member.
+ * Whether a type node declares a symbol-brand member.
+ *
+ * Descends through intersections, unions and parentheses and inspects
+ * top-level type-literal members. It does NOT descend into a member's own
+ * value type, nor into arrays/generics/mapped types: a brand nested there
+ * (`foo: { [SYM]: true }`) is left verbatim and fails loud (`TS2304`) rather
+ * than being silently dropped. That is a completeness limit (fail-loud), not a
+ * safety hole; see the `does not strip a brand nested in a member value type`
+ * test.
  */
 const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
   if (ts.isTypeLiteralNode(typeNode)) {
@@ -36,7 +55,7 @@ const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
 };
 
 /**
- * Render a type node's text with symbol-brand members removed.
+ * Render a type node's text with inert symbol-brand members removed.
  *
  * API Extractor's single-file report references a brand `unique symbol` by name
  * (`[BYO_BRAND]`) but does not emit the private symbol's declaration, so copying
@@ -46,21 +65,44 @@ const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
  * baseline reconstruction. When no brand is present the text is returned
  * verbatim, so every other type is unaffected.
  *
- * For assignability to hold, a brand exposed this way should be declared
- * OPTIONAL in the source type (`readonly [BRAND]?: true`); otherwise the
- * imported "latest" type still requires the (now-absent) brand.
+ * This supports **optional** symbol brands only. Because the brand is dropped
+ * from the baseline reconstruction, the assignment against the imported "latest"
+ * type only compiles when the brand is optional there (`readonly [BRAND]?:
+ * true`). A REQUIRED brand cannot pass while keeping a real assignability check
+ * — a non-exported unique symbol can't be reconstructed or imported so both
+ * sides reference the same nominal symbol — so it is rejected here with an
+ * actionable error rather than a cryptic downstream "property is missing".
  */
 const renderTypeWithoutSymbolBrands = (typeNode: ts.TypeNode): string => {
   if (!containsSymbolBrandMember(typeNode)) {
     return typeNode.getText();
   }
   if (ts.isTypeLiteralNode(typeNode)) {
-    const members = typeNode.members
-      .filter((member) => !isSymbolBrandMember(member))
-      // `getText()` includes each member's terminating `;`; strip it so the
-      // rejoined members are not doubly-separated.
-      .map((member) => member.getText().replace(/;\s*$/, ''));
-    return `{ ${members.join('; ')} }`;
+    const keptMembers: Array<string> = [];
+    for (const member of typeNode.members) {
+      if (!isSymbolBrandMember(member)) {
+        // `getText()` includes each member's terminating `;` (API Extractor
+        // emits `;`-separated members); strip it so the rejoined members are
+        // not doubly-separated.
+        keptMembers.push(member.getText().replace(/;\s*$/, ''));
+        continue;
+      }
+      // A matched (inert `true`) brand that is REQUIRED can't be satisfied by
+      // the brand-stripped reconstruction, so fail with guidance instead of a
+      // cryptic TS2741 downstream.
+      if (!(member as ts.PropertySignature).questionToken) {
+        const brandName = (
+          (member.name as ts.ComputedPropertyName).expression as ts.Identifier
+        ).getText();
+        throw new Error(
+          `A required unique-symbol brand '[${brandName}]' cannot be validated. ` +
+            `Declare it optional ('readonly [${brandName}]?: true') so the ` +
+            `baseline reconstruction stays assignable, or add the type to ` +
+            `'excludedTypesByPackageName' in check_api_changes.ts.`,
+        );
+      }
+    }
+    return `{ ${keptMembers.join('; ')} }`;
   }
   if (ts.isIntersectionTypeNode(typeNode)) {
     return typeNode.types.map(renderTypeWithoutSymbolBrands).join(' & ');
