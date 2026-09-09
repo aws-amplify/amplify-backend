@@ -1,5 +1,47 @@
 # @aws-amplify/backend-deployer
 
+## 2.2.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- 4ee0260: fix: bump `@aws-cdk/toolkit-lib` to 1.40.0 so hotswap fallback deployments stay in STANDARD mode
+
+  `@aws-cdk/toolkit-lib` 1.32.0 forced `express: true` whenever a `hotswap`
+  deployment fell back to a full deployment, so every `ampx sandbox` deploy that
+  could not be hotswapped was sent to CloudFormation with
+  `DeploymentConfig.Mode=EXPRESS` even though `--express` was not passed. Express
+  mode is opt-in, and the override also relaxed the rollback and replacement
+  checks of the fallback deployment.
+
+  The override was reverted upstream in `@aws-cdk/toolkit-lib` 1.38.1
+  (aws/aws-cdk-cli#1801). Bumping to 1.40.0 restores the intended behavior:
+  `--express` is honored when passed, and a hotswap fallback deploys in STANDARD
+  mode otherwise.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
+## 2.2.0
+
+### Minor Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
 ## 2.1.7
 
 ### Patch Changes

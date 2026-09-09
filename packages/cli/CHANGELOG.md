@@ -1,5 +1,41 @@
 # @aws-amplify/backend-cli
 
+## 1.9.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/backend-deployer@2.2.1
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
+## 1.9.0
+
+### Minor Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+### Patch Changes
+
+- Updated dependencies [3f331c5]
+- Updated dependencies [4849fad]
+- Updated dependencies [424e1ef]
+  - @aws-amplify/client-config@1.11.0
+  - @aws-amplify/sandbox@2.3.0
+  - @aws-amplify/backend-deployer@2.2.0
+  - @aws-amplify/cli-core@2.2.6
+  - @aws-amplify/plugin-types@1.12.2
+  - @aws-amplify/model-generator@1.2.4
+
 ## 1.8.3
 
 ### Patch Changes

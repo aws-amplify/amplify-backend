@@ -26,7 +26,7 @@ void describe('ClientConfigLegacyConverter', () => {
           version: '3' as any,
         }),
       new AmplifyFault('UnsupportedClientConfigVersionFault', {
-        message: 'Only version 1.4 of ClientConfig is supported.',
+        message: 'Only version 1.4 or 1.5 of ClientConfig is supported.',
       }),
     );
   });

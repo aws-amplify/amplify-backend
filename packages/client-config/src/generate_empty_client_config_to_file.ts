@@ -2,6 +2,8 @@ import {
   ClientConfig,
   ClientConfigFormat,
   ClientConfigVersion,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
   GenerateClientConfigToFileResult,
 } from './client-config-types/client_config.js';
 import { writeClientConfigToFile } from './write_client_config_to_file.js';
@@ -14,8 +16,15 @@ export const generateEmptyClientConfigToFile = async (
   outDir?: string,
   format?: ClientConfigFormat,
 ): Promise<GenerateClientConfigToFileResult> => {
+  // The emitted schema version is derived from the requested version. Legacy
+  // (V0) has no unified schema of its own and is converted from the latest
+  // unified config, so it carries DEFAULT_CLIENT_CONFIG_VERSION.
+  const bodyVersion =
+    version === ClientConfigVersionOption.V0
+      ? DEFAULT_CLIENT_CONFIG_VERSION
+      : version;
   const clientConfig: ClientConfig = {
-    version: '1.4',
-  };
+    version: bodyVersion,
+  } as ClientConfig;
   return writeClientConfigToFile(clientConfig, version, outDir, format);
 };

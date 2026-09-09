@@ -300,6 +300,118 @@ void describe('Conversation turn response sender', () => {
     });
   });
 
+  void it('does not forward extra tool use fields not accepted by AppSync', async () => {
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent,
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider,
+    );
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
+        // Mock successful Appsync response
+        Promise.resolve(),
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      userAgentProvider,
+      graphqlRequestExecutor,
+    );
+    // Newer `@aws-sdk/client-bedrock-runtime` versions add extra fields (e.g. `type`)
+    // to the tool use block. These are not part of the AppSync-generated
+    // `AmplifyAIToolUseBlockInput` and must not be forwarded, otherwise the mutation
+    // is rejected with "Field 'type' is not defined by type 'AmplifyAIToolUseBlockInput'".
+    const toolUseBlock = {
+      toolUse: {
+        name: 'testTool',
+        toolUseId: 'testToolUseId',
+        input: {
+          testPropertyKey: 'testPropertyValue',
+        },
+        type: 'tool_use',
+      },
+    } as unknown as ContentBlock.ToolUseMember;
+    const response: Array<ContentBlock> = [toolUseBlock];
+    await sender.sendResponse(response);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationResponseInput>;
+    assert.deepStrictEqual(request.variables.input.content, [
+      {
+        toolUse: {
+          input: JSON.stringify(toolUseBlock.toolUse.input),
+          name: toolUseBlock.toolUse.name,
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+        },
+      },
+    ]);
+  });
+
+  void it('does not forward extra tool use fields not accepted by AppSync when streaming', async () => {
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent,
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider,
+    );
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
+        // Mock successful Appsync response
+        Promise.resolve(),
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      userAgentProvider,
+      graphqlRequestExecutor,
+    );
+    // See the non-streaming test above: the streaming path accumulates tool use
+    // blocks that may carry extra SDK fields (e.g. `type`), which must be stripped
+    // before the accumulated content is sent to AppSync.
+    const toolUseBlock = {
+      toolUse: {
+        name: 'testTool',
+        toolUseId: 'testToolUseId',
+        input: {
+          testPropertyKey: 'testPropertyValue',
+        },
+        type: 'tool_use',
+      },
+    } as unknown as ContentBlock.ToolUseMember;
+    const chunk: StreamingResponseChunk = {
+      accumulatedTurnContent: [toolUseBlock],
+      associatedUserMessageId: 'testAssociatedUserMessageId',
+      contentBlockIndex: 1,
+      contentBlockDeltaIndex: 2,
+      conversationId: 'testConversationId',
+      contentBlockText: 'testBlockText',
+    };
+    await sender.sendResponseChunk(chunk);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationStreamingResponseInput>;
+    assert.deepStrictEqual(request.variables.input.accumulatedTurnContent, [
+      {
+        toolUse: {
+          input: JSON.stringify(toolUseBlock.toolUse.input),
+          name: toolUseBlock.toolUse.name,
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+        },
+      },
+    ]);
+  });
+
   void it('sends errors response back to appsync', async () => {
     const userAgentProvider = new UserAgentProvider(
       {} as unknown as ConversationTurnEvent,

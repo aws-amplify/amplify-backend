@@ -47,6 +47,7 @@ export class AmplifyAuthCredentialsFactory {
   getNewAuthenticatedUserCredentials = async (): Promise<{
     iamCredentials: IamCredentials;
     accessToken: string;
+    identityId: string;
   }> => {
     await AmplifyAuthCredentialsFactory.lock.acquire();
     try {
@@ -98,10 +99,14 @@ export class AmplifyAuthCredentialsFactory {
       if (!authSession.tokens?.accessToken) {
         throw new Error('No accessToken in auth session');
       }
+      if (!authSession.identityId) {
+        throw new Error('No identityId in auth session');
+      }
 
       return {
         iamCredentials: authSession.credentials,
         accessToken: authSession.tokens.accessToken.toString(),
+        identityId: authSession.identityId,
       };
     } finally {
       AmplifyAuthCredentialsFactory.lock.release();
@@ -131,6 +136,48 @@ export class AmplifyAuthCredentialsFactory {
       }
 
       return authSession.credentials;
+    } finally {
+      AmplifyAuthCredentialsFactory.lock.release();
+    }
+  };
+
+  /**
+   * Like {@link getGuestAccessCredentials} but also returns the guest
+   * (unauthenticated) Cognito Identity Pool `identityId` — the value the server
+   * derives as the caller `principalId` for SigV4 requests.
+   */
+  getGuestAccessCredentialsWithIdentityId = async (): Promise<{
+    iamCredentials: IamCredentials;
+    identityId: string;
+  }> => {
+    await AmplifyAuthCredentialsFactory.lock.acquire();
+    try {
+      Amplify.configure({
+        Auth: {
+          Cognito: {
+            userPoolId: this.userPoolId,
+            userPoolClientId: this.userPoolClientId,
+            identityPoolId: this.identityPoolId,
+            allowGuestAccess: this.allowGuestAccess,
+          },
+        },
+      });
+
+      await auth.signOut();
+
+      const authSession = await auth.fetchAuthSession();
+
+      if (!authSession.credentials) {
+        throw new Error('No credentials in auth session');
+      }
+      if (!authSession.identityId) {
+        throw new Error('No identityId in auth session');
+      }
+
+      return {
+        iamCredentials: authSession.credentials,
+        identityId: authSession.identityId,
+      };
     } finally {
       AmplifyAuthCredentialsFactory.lock.release();
     }
