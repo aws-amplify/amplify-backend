@@ -82,7 +82,7 @@ export const byoSecret: (secretNameOrArn: string) => ByoValue;
 
 // @public
 export type ByoValue = {
-    readonly [BYO_BRAND]: true;
+    readonly byoBrand: true;
     readonly kind: 'secret' | 'config';
     readonly ref: string;
 };

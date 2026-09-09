@@ -9,12 +9,14 @@
 // This module is CDK-free (just an inert marker); the CDK resolution happens in
 // `factory.ts` where the construct scope exists.
 
-/** Brand for BYO markers. `Symbol.for` so it survives across module copies. */
-const BYO_BRAND = Symbol.for('@aws-amplify/hosting.byo');
-
 /** Inert marker describing an existing store entry to wire into `environment`. */
 export type ByoValue = {
-  readonly [BYO_BRAND]: true;
+  /**
+   * Discriminant identifying a BYO marker produced by {@link byoSecret} /
+   * {@link byoConfig}. A literal-typed property (rather than a `unique symbol`
+   * key) so the exported type is self-contained in the generated API report.
+   */
+  readonly byoBrand: true;
   /** `secret` → Secrets Manager, `config` → SSM Parameter Store. */
   readonly kind: 'secret' | 'config';
   /** The secret name/ARN (secret) or parameter name (config; ARNs not accepted). */
@@ -32,7 +34,7 @@ export type ByoValue = {
  * ```
  */
 export const byoSecret = (secretNameOrArn: string): ByoValue => ({
-  [BYO_BRAND]: true,
+  byoBrand: true,
   kind: 'secret',
   ref: secretNameOrArn,
 });
@@ -45,7 +47,7 @@ export const byoSecret = (secretNameOrArn: string): ByoValue => ({
  * @param parameterName - the parameter's name (e.g. `/my/app/flags`).
  */
 export const byoConfig = (parameterName: string): ByoValue => ({
-  [BYO_BRAND]: true,
+  byoBrand: true,
   kind: 'config',
   ref: parameterName,
 });
@@ -54,4 +56,4 @@ export const byoConfig = (parameterName: string): ByoValue => ({
 export const isByoValue = (v: unknown): v is ByoValue =>
   typeof v === 'object' &&
   v !== null &&
-  (v as Record<symbol, unknown>)[BYO_BRAND] === true;
+  (v as Record<string, unknown>).byoBrand === true;
