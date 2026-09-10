@@ -168,6 +168,34 @@ export class CdkErrorMapper {
         error,
       );
     } else if (
+      error.name === 'TypeError' &&
+      /Cannot convert undefined or null to object/.test(error.message) &&
+      /countAssemblyResults/.test(error.stack ?? '')
+    ) {
+      // @aws-cdk/toolkit-lib bug: countAssemblyResults calls
+      // Object.values(stack.metadata) with no null guard and throws when a
+      // synthesized stack has no metadata. This is a library fault, not a
+      // customer backend error, so it must not fall through to the generic
+      // TypeError branch below. Refs aws-amplify/amplify-backend#3316.
+      // This match relies on the TypeError reaching the mapper without being
+      // wrapped by an intermediate layer: the countAssemblyResults stack frame
+      // is the stable anchor, while the error.name check would silently miss
+      // if a layer wraps the error into a new type before it gets here.
+      // TODO(aws-amplify/amplify-backend#3316): the upstream null guard is
+      // merged (aws/aws-cdk-cli#1952). Once a @aws-cdk/toolkit-lib release ships
+      // it and this package bumps its pin, countAssemblyResults no longer throws
+      // and this branch becomes dead code — remove it as part of that bump.
+      return new AmplifyFault(
+        'CDKSynthAssemblyMetadataFault',
+        {
+          message:
+            'Unable to synthesize the Amplify backend due to a bug in the CDK toolkit library (@aws-cdk/toolkit-lib) that fails when a synthesized stack has no metadata.',
+          resolution:
+            'This is a known upstream bug in @aws-cdk/toolkit-lib, not an issue in your backend code; retrying is unlikely to help. Track aws-amplify/amplify-backend#3316 for a fix.',
+        },
+        error,
+      );
+    } else if (
       ['TypeError', 'TransformError', 'ReferenceError', 'SyntaxError'].some(
         (errorName) => errorName === error.name,
       )
@@ -628,6 +656,7 @@ export type CDKDeploymentError =
   | 'CDKAssetBundleError'
   | 'CDKNotFoundError'
   | 'CDKResolveAWSAccountError'
+  | 'CDKSynthAssemblyMetadataFault'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudformationResourceCircularDependencyError'
