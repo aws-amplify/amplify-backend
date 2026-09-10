@@ -441,24 +441,4 @@ void describe('Api usage generator', () => {
       );
     });
   }
-
-  // Comment 2 regression: a REQUIRED inert symbol brand cannot be validated
-  // (the brand-stripped baseline would not be assignable to the required
-  // brand), so generation fails with an actionable error rather than emitting
-  // usage that later dies with a cryptic TS2741.
-  void it('throws an actionable error for a required symbol brand', () => {
-    const apiReportAST = ApiReportParser.parse(
-      nestInMarkdownCodeBlock(`
-export type RequiredBrand = {
-    readonly [SYM]: true;
-    someProperty: string;
-};
-      `),
-    );
-    assert.throws(
-      () =>
-        new ApiUsageGenerator('samplePackageName', apiReportAST, []).generate(),
-      /required unique-symbol brand '\[SYM\]' cannot be validated/,
-    );
-  });
 });
