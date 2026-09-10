@@ -221,7 +221,8 @@ export type ActionMeta =
   | 'manageGroups'
   | 'manageGroupMembership'
   | 'manageUserDevices'
-  | 'managePasswordRecovery';
+  | 'managePasswordRecovery'
+  | 'manageProviderForUser';
 
 /**
  * This maps to Cognito IAM actions.
