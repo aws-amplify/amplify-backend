@@ -15,8 +15,8 @@ const BYO_BRAND = Symbol.for('@aws-amplify/hosting.byo');
 /** Inert marker describing an existing store entry to wire into `environment`. */
 export type ByoValue = {
   // The brand is OPTIONAL by necessity of the API-change validator: it
-  // reconstructs this type from the API report, where the private BYO_BRAND
-  // symbol is not declared, drops the brand key, and checks the remainder is
+  // reconstructs this type from the API report (where the private BYO_BRAND
+  // symbol is not declared), drops the brand key, and checks the remainder is
   // still assignable to this type — which only holds when the brand is optional.
   //
   // Trade-off: this weakens the nominal guarantee (a plain `{ kind, ref }`
