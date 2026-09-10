@@ -1,6 +1,6 @@
 # @aws-amplify/hosting
 
-Deploy static sites, SPAs, and SSR (Next.js) applications to AWS using CloudFront + S3 + Lambda.
+Deploy static sites, SPAs, and SSR applications (Next.js, Nuxt, Astro, SvelteKit) to AWS using CloudFront + S3 + Lambda.
 
 ## ⚠️ Important: Separate File Required
 
@@ -105,15 +105,16 @@ The construct is completely framework-agnostic. It never knows whether the manif
 
 ### Built-in Adapters
 
-| Adapter     | Description                                                                                                                                                                       |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Next.js** | Uses [@opennextjs/aws](https://opennext.js.org/) to process Next.js build output. Supports App Router, Pages Router, ISR, middleware, image optimization, and response streaming. |
-| **Nitro**   | Nitro-based SSR output (`.output/`). The engine behind Nuxt and Astro's Node/Lambda targets.                                                                                      |
-| **Nuxt**    | Nuxt 3 apps (built on the Nitro adapter).                                                                                                                                         |
-| **Astro**   | Astro SSR apps using the Node/Lambda adapter (built on the Nitro adapter).                                                                                                        |
-| **SPA**     | Static single-page apps (React, Vue, Angular, etc.). All routes serve `index.html` with client-side routing.                                                                      |
+| Adapter       | Description                                                                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Next.js**   | Uses [@opennextjs/aws](https://opennext.js.org/) to process Next.js build output. Supports App Router, Pages Router, ISR, middleware, image optimization, and response streaming. |
+| **Nitro**     | Nitro-based SSR output (`.output/`). The engine behind Nuxt and Astro's Node/Lambda targets.                                                                                      |
+| **Nuxt**      | Nuxt 3 apps (built on the Nitro adapter).                                                                                                                                         |
+| **Astro**     | Astro SSR apps using the Node/Lambda adapter (built on the Nitro adapter).                                                                                                        |
+| **SvelteKit** | SvelteKit apps via `@sveltejs/adapter-node` (SSR) plus static/prerendered output.                                                                                                 |
+| **SPA**       | Static single-page apps (React, Vue, Angular, etc.). All routes serve `index.html` with client-side routing.                                                                      |
 
-All of the above are exported from [`@aws-amplify/hosting/adapters`](./src/adapters/index.ts) (`nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`, `spaAdapter`) and auto-selected by framework detection; you only need a custom adapter for a framework not listed here.
+All of the above are exported from [`@aws-amplify/hosting/adapters`](./src/adapters/index.ts) (`nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`, `sveltekitAdapter`, `spaAdapter`) and auto-selected by framework detection; you only need a custom adapter for a framework not listed here.
 
 ### Infrastructure
 
@@ -173,21 +174,26 @@ SSR responses are streamed using Lambda response streaming (via Function URLs), 
 
 ## Configuration
 
-| Prop                        | Type                                                             | Default             | Description                                                            |
-| --------------------------- | ---------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------- |
-| `framework`                 | `'nextjs' \| 'spa' \| 'static' \| string`                        | auto-detected       | Framework type. Auto-detected from package.json.                       |
-| `buildCommand`              | `string`                                                         | -                   | Build command to run before deployment.                                |
-| `domain`                    | `{ domainName, hostedZone }`                                     | -                   | Custom domain with SSL. Requires Route53 hosted zone.                  |
-| `waf`                       | `{ enabled, rateLimit? }`                                        | -                   | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.     |
-| `customAdapter`             | `FrameworkAdapterFn`                                             | -                   | Custom framework adapter for unsupported frameworks.                   |
-| `compute`                   | `{ memorySize?, timeout?, logRetention?, reservedConcurrency? }` | `1024MB, 30s`       | Lambda configuration for SSR.                                          |
-| `cdn.priceClass`            | `PriceClass`                                                     | `PRICE_CLASS_100`   | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution. |
-| `cdn.contentSecurityPolicy` | `string`                                                         | restrictive default | Custom CSP header value.                                               |
-| `cdn.geoRestriction`        | `{ type, countries }`                                            | -                   | Geo-restriction for CloudFront distribution.                           |
-| `storage.retainOnDelete`    | `boolean`                                                        | `false`             | Retain S3 bucket on stack deletion.                                    |
-| `storage.encryption`        | `'S3_MANAGED' \| 'KMS'`                                          | `'S3_MANAGED'`      | Encryption type for the hosting bucket.                                |
-| `logging.enabled`           | `boolean`                                                        | `false`             | Enable CloudFront access logging to S3.                                |
-| `logging.retentionDays`     | `number`                                                         | `90`                | Days to retain access logs.                                            |
+| Prop                          | Type                                                                                     | Default             | Description                                                                                                                                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `framework`                   | `'nextjs' \| 'nitro' \| 'nuxt' \| 'astro' \| 'sveltekit' \| 'spa' \| 'static' \| string` | auto-detected       | Framework type. Auto-detected from package.json.                                                                                                                                                      |
+| `buildCommand`                | `string`                                                                                 | -                   | Build command to run before deployment.                                                                                                                                                               |
+| `buildOutputDir`              | `string`                                                                                 | auto-detected       | Path to pre-built output (SPA/static). Ignored for Next.js (OpenNext builds).                                                                                                                         |
+| `environment`                 | `Record<string, string \| ByoValue>`                                                     | -                   | Env vars injected into SSR compute. Use `secret()`/`config()`/`byoSecret()`/`byoConfig()` for sensitive or rotatable values — see [Secrets & Environment Variables](#secrets--environment-variables). |
+| `secretStore` / `configStore` | `{ prefix?, stage? }`                                                                    | per-project default | Override the store path/namespace for `secret()` / `config()` values.                                                                                                                                 |
+| `monitoring`                  | `{ enabled?, snsTopicArn? }`                                                             | `{ enabled: true }` | CloudWatch alarms (5xx, Lambda errors/throttles, revalidation DLQ). **On by default**; a few cents/month per alarm. Set `{ enabled: false }` to opt out.                                              |
+| `skewProtection`              | `{ enabled, maxAge? }`                                                                   | `{ enabled: true }` | Cookie-based version skew protection during rolling deploys. **On by default.**                                                                                                                       |
+| `domain`                      | `{ domainName, hostedZone }`                                                             | -                   | Custom domain with SSL. Requires Route53 hosted zone.                                                                                                                                                 |
+| `waf`                         | `{ enabled, rateLimit? }`                                                                | -                   | Enable AWS WAF with managed rules + rate limiting. Adds ~$5/month.                                                                                                                                    |
+| `customAdapter`               | `FrameworkAdapterFn`                                                                     | -                   | Custom framework adapter for unsupported frameworks.                                                                                                                                                  |
+| `compute`                     | `{ memorySize?, timeout?, logRetention?, reservedConcurrency? }`                         | `1024MB, 30s`       | Lambda configuration for SSR.                                                                                                                                                                         |
+| `cdn.priceClass`              | `PriceClass`                                                                             | `PRICE_CLASS_100`   | CloudFront price class. Use `PRICE_CLASS_ALL` for global distribution.                                                                                                                                |
+| `cdn.contentSecurityPolicy`   | `string`                                                                                 | restrictive default | Custom CSP header value.                                                                                                                                                                              |
+| `cdn.geoRestriction`          | `{ type, countries }`                                                                    | -                   | Geo-restriction for CloudFront distribution.                                                                                                                                                          |
+| `storage.retainOnDelete`      | `boolean`                                                                                | `false`             | Retain S3 bucket on stack deletion.                                                                                                                                                                   |
+| `storage.encryption`          | `'S3_MANAGED' \| 'KMS'`                                                                  | `'S3_MANAGED'`      | Encryption type for the hosting bucket.                                                                                                                                                               |
+| `logging.enabled`             | `boolean`                                                                                | `false`             | Enable CloudFront access logging to S3.                                                                                                                                                               |
+| `logging.retentionDays`       | `number`                                                                                 | `90`                | Days to retain access logs.                                                                                                                                                                           |
 
 > **⚠️ Production warning:** By default `storage.retainOnDelete` is `false`, which means the S3 bucket and **all hosted assets are permanently deleted** when the CloudFormation stack is destroyed. This is convenient for dev/test but **risky for production**. For production stacks, set `storage: { retainOnDelete: true }` to preserve the bucket on stack deletion. In standalone CDK usage, you can also set `removalPolicy: RemovalPolicy.RETAIN` on the construct's bucket directly.
 
@@ -260,15 +266,134 @@ Running `ampx deploy` without flags deploys both phases sequentially.
 
 **Note:** `--backend` and `--frontend` are mutually exclusive. Specifying both is an error.
 
+## Secrets & Environment Variables
+
+The `environment` prop injects values into your SSR compute. Three kinds are supported:
+
+- **Plain env vars** — non-sensitive literals, baked into the CloudFormation template (never put a secret here):
+
+  ```typescript
+  defineHosting({ environment: { APP_REGION: 'us-east-1' } });
+  // read at runtime with process.env.APP_REGION
+  ```
+
+- **Secrets** (`secret()`) — sensitive values stored in AWS Secrets Manager. Only a store locator is injected; the value never enters the template.
+- **Config** (`config()`) — non-sensitive but rotatable values stored in SSM Parameter Store.
+
+```typescript
+// amplify/hosting.ts
+import { defineHosting, secret, config } from '@aws-amplify/hosting';
+
+defineHosting({
+  environment: {
+    STRIPE_SECRET_KEY: secret('STRIPE_SECRET_KEY'), // → AWS Secrets Manager
+    FEATURE_FLAGS: config('FEATURE_FLAGS'), // → SSM Parameter Store
+  },
+});
+```
+
+Set the values out of band with the CLI (both support `set` / `get` / `list` / `remove`):
+
+```bash
+npx ampx secret set STRIPE_SECRET_KEY sk_live_xxx
+npx ampx config set FEATURE_FLAGS '{"newCheckout":true}'
+```
+
+Read them at runtime from the **CDK-free** runtime entry (`@aws-amplify/hosting/runtime` — keep it out of your CDK/build code):
+
+```typescript
+import { getSecret, getConfig } from '@aws-amplify/hosting/runtime';
+
+const key = await getSecret('STRIPE_SECRET_KEY');
+const flags = JSON.parse(await getConfig('FEATURE_FLAGS'));
+```
+
+**Reference existing resources** — point at a secret/parameter you already manage (no CLI `set` needed) with `byoSecret()` (name or ARN) and `byoConfig()` (SSM parameter name):
+
+```typescript
+import { defineHosting, byoSecret, byoConfig } from '@aws-amplify/hosting';
+
+defineHosting({
+  environment: {
+    DB_PASSWORD: byoSecret(
+      'arn:aws:secretsmanager:us-east-1:123456789012:secret:prod/db-AbCdEf',
+    ),
+    LD_ENV: byoConfig('/my-org/launchdarkly/prod'),
+  },
+});
+```
+
+By default, stores are namespaced per project: secrets at `/amplify/hosting/<project>/secrets/<KEY>`, config at `/amplify/hosting/<project>/config/<KEY>`. Override the prefix or add a per-stage segment via `secretStore` / `configStore`.
+
+## CI/CD with `definePipeline()`
+
+`definePipeline()` provisions a self-mutating AWS CodePipeline (V2) — one pipeline per branch — that deploys your app on every push, with multi-stage rollouts, approval gates, bake times, and typed per-stage config. Define it in `amplify/pipeline.ts` and deploy the pipeline once with `npx ampx deploy --pipeline` (this flag cannot be combined with `--identifier`).
+
+```typescript
+// amplify/pipeline.ts
+import { definePipeline } from '@aws-amplify/hosting/pipeline';
+import { Duration } from 'aws-cdk-lib';
+
+export const pipeline = definePipeline({
+  source: {
+    repo: 'my-org/my-app',
+    connectionArn:
+      'arn:aws:codeconnections:us-east-1:123456789012:connection/abc-123',
+    triggerOnPush: true,
+    // triggerFilters: ['src/**', 'amplify/**'], // optional monorepo path filters
+  },
+  crossAccountKeys: true, // needed for cross-account stage targets
+  branches: [
+    {
+      branch: 'main',
+      stages: [
+        {
+          name: 'staging',
+          config: { domain: 'staging.example.com' },
+        },
+        {
+          name: 'prod',
+          requireApproval: true,
+          bakeTime: Duration.minutes(30),
+          env: { account: '222222222222', region: 'us-west-2' },
+          config: { domain: 'app.example.com' },
+        },
+      ],
+    },
+  ],
+});
+```
+
+- **`source`** — `repo` (`owner/repo`), a CodeConnections `connectionArn` (plain string), optional `triggerOnPush` / `triggerFilters`.
+- **`branches[].stages[]`** — `name`, optional `env` (`{ account, region }`), `requireApproval`, `bakeTime` (a `Duration`), and typed per-stage `config`.
+- **`synth`** — override the build: `commands`, `installCommands`, `computeType` (`ComputeType` enum), `env`, `primaryOutputDirectory`.
+- **`crossAccountKeys`** / **`selfMutation`** — cross-account artifact keys, and whether the pipeline updates itself on `amplify/pipeline.ts` changes (default `true`).
+
+Read the active stage's config inside `amplify/hosting.ts` with `getStageConfig()`:
+
+```typescript
+import { defineHosting } from '@aws-amplify/hosting';
+import { getStageConfig } from '@aws-amplify/hosting/pipeline';
+
+const stage = getStageConfig<{ domain: string }>();
+defineHosting({
+  domain: stage?.config?.domain
+    ? { domainName: stage.config.domain, hostedZone: 'example.com' }
+    : undefined,
+});
+```
+
+`getStageConfig()` returns `undefined` outside a pipeline (e.g. a local `ampx deploy`), so guard the access.
+
 ## Limitations
 
 ### Sandbox
 
 `defineHosting` is not supported in `ampx sandbox`. Hosting resources are silently skipped during sandbox development. Use `ampx deploy --identifier <name>` for full hosting deployment.
 
-### Pipeline Deploy
+### Managed `ampx pipeline-deploy`
 
-`defineHosting` is not supported with `ampx pipeline-deploy` (branch deployments). Use `ampx deploy` for standalone hosting deployment.
+`defineHosting` is not supported with the managed `ampx pipeline-deploy` (Amplify Hosting branch deployments). For CI/CD, either run `ampx deploy` from your own pipeline or use the built-in self-managed CodePipeline via [`definePipeline()`](#cicd-with-definepipeline).
 
 ### `HEAD` request `Content-Length` parity
 
@@ -290,7 +415,7 @@ Streaming SSR routes (Nitro `nitro.awsLambda.streaming: true`, Astro 5, Next.js 
 
 ## Custom Framework Adapters
 
-For frameworks not built in (Remix, SvelteKit, etc. — note Nuxt and Astro are already built in), provide a custom adapter that returns a `DeployManifest`:
+For frameworks not built in (Remix, etc. — note Nuxt, Astro, and SvelteKit are already built in), provide a custom adapter that returns a `DeployManifest`:
 
 ```typescript
 // amplify/hosting.ts
@@ -593,7 +718,7 @@ new AmplifyHostingConstruct(stack, 'Hosting', {
 
 ### Writing a Custom Adapter
 
-The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`) process framework build output and produce this manifest. You can write your own adapter for any framework not covered above (Remix, SvelteKit, etc.).
+The construct is driven by a `DeployManifest`. Built-in adapters (`spaAdapter`, `nextjsAdapter`, `nitroAdapter`, `nuxtAdapter`, `astroAdapter`, `sveltekitAdapter`) process framework build output and produce this manifest. You can write your own adapter for any framework not covered above (Remix, etc.).
 
 **Skeleton adapter for a custom framework:**
 
