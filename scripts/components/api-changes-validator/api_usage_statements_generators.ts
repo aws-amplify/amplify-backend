@@ -65,43 +65,26 @@ const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
  * baseline reconstruction. When no brand is present the text is returned
  * verbatim, so every other type is unaffected.
  *
- * This supports **optional** symbol brands only. Because the brand is dropped
- * from the baseline reconstruction, the assignment against the imported "latest"
- * type only compiles when the brand is optional there (`readonly [BRAND]?:
- * true`). A REQUIRED brand cannot pass while keeping a real assignability check
- * — a non-exported unique symbol can't be reconstructed or imported so both
- * sides reference the same nominal symbol — so it is rejected here with an
- * actionable error rather than a cryptic downstream "property is missing".
+ * For the brand-stripped reconstruction to stay assignable to the imported
+ * "latest" type, the brand must be OPTIONAL there (`readonly [BRAND]?: true`) —
+ * a required brand surfaces downstream as `TS2741` ("property is missing").
+ * We cannot pre-empt that with a clearer error here: API Extractor renders
+ * symbol-keyed properties WITHOUT the `?` in the report (a source
+ * `[BRAND]?: true` shows as `[BRAND]: true`), so optional-vs-required is not
+ * recoverable from the baseline AST. The convention is therefore: declare such
+ * brands optional in the source type.
  */
 const renderTypeWithoutSymbolBrands = (typeNode: ts.TypeNode): string => {
   if (!containsSymbolBrandMember(typeNode)) {
     return typeNode.getText();
   }
   if (ts.isTypeLiteralNode(typeNode)) {
-    const keptMembers: Array<string> = [];
-    for (const member of typeNode.members) {
-      if (!isSymbolBrandMember(member)) {
-        // `getText()` includes each member's terminating `;` (API Extractor
-        // emits `;`-separated members); strip it so the rejoined members are
-        // not doubly-separated.
-        keptMembers.push(member.getText().replace(/;\s*$/, ''));
-        continue;
-      }
-      // A matched (inert `true`) brand that is REQUIRED can't be satisfied by
-      // the brand-stripped reconstruction, so fail with guidance instead of a
-      // cryptic TS2741 downstream.
-      if (!(member as ts.PropertySignature).questionToken) {
-        const brandName = (
-          (member.name as ts.ComputedPropertyName).expression as ts.Identifier
-        ).getText();
-        throw new Error(
-          `A required unique-symbol brand '[${brandName}]' cannot be validated. ` +
-            `Declare it optional ('readonly [${brandName}]?: true') so the ` +
-            `baseline reconstruction stays assignable, or add the type to ` +
-            `'excludedTypesByPackageName' in check_api_changes.ts.`,
-        );
-      }
-    }
+    const keptMembers = typeNode.members
+      .filter((member) => !isSymbolBrandMember(member))
+      // `getText()` includes each member's terminating `;` (API Extractor
+      // emits `;`-separated members); strip it so the rejoined members are
+      // not doubly-separated.
+      .map((member) => member.getText().replace(/;\s*$/, ''));
     return `{ ${keptMembers.join('; ')} }`;
   }
   if (ts.isIntersectionTypeNode(typeNode)) {
