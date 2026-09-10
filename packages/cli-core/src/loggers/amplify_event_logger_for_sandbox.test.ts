@@ -39,6 +39,24 @@ void describe('amplify sandbox event logging', () => {
     printerStopSpinnerMock.mock.resetCalls();
   });
 
+  void it('prints the Express Mode stabilization warning emitted on --express deployments', async () => {
+    const expressWarning =
+      '⚠️  Stack deployed using Express Mode. Resources still stabilizing: Worker11F36D0F\n';
+    await classUnderTest.notify({
+      code: 'CDK_TOOLKIT_W5902',
+      action: 'cdk',
+      level: 'warn',
+      message: expressWarning,
+      time: new Date(),
+      data: undefined,
+    } as unknown as AmplifyIoHostEventMessage<unknown>);
+
+    assert.deepStrictEqual(
+      printerLogMock.mock.calls.map((call) => call.arguments[0]),
+      [expressWarning.trim()],
+    );
+  });
+
   void it('generates correct events when customer updated amplify outputs and nothing else', async () => {
     for (const event of updateAmplifyOutputsCdkEvents) {
       await classUnderTest.notify(

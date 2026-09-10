@@ -9,11 +9,13 @@ import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_t
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BackendEnvironmentVariables } from '../../environment_variables.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { resolveBundlingRoots } from '../bundling_roots.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const linkerLambdaFilePath = path.join(resourcesRoot, 'branch_linker.js');
+const bundlingRoots = resolveBundlingRoots(linkerLambdaFilePath);
 
 /**
  * Type of the backend custom CFN resource.
@@ -40,9 +42,10 @@ export class AmplifyBranchLinkerConstruct extends Construct {
         process.env[BackendEnvironmentVariables.AWS_ENDPOINT_URL_AMPLIFY];
     }
     const linkerLambda = new NodejsFunction(this, 'CustomResourceLambda', {
-      runtime: LambdaRuntime.NODEJS_20_X,
+      runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: linkerLambdaFilePath,
+      ...bundlingRoots,
       handler: 'handler',
       environment,
       bundling: {

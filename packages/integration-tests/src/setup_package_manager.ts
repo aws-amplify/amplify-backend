@@ -18,7 +18,7 @@ const initializeNpm = async () => {
   }
 };
 
-const initializePnpm = async () => {
+const initializePnpm = async (dir: string) => {
   const packageManager = 'pnpm';
   await execa('npm', ['install', '-g', packageManager], {
     stdio: 'inherit',
@@ -26,6 +26,21 @@ const initializePnpm = async () => {
   await execa(packageManager, ['--version']);
   await execa(packageManager, ['config', 'set', 'registry', customRegistry]);
   await execa(packageManager, ['config', 'get', 'registry']);
+
+  // Write pnpm-workspace.yaml with allowBuilds for pnpm v11+ which blocks
+  // build scripts by default. This must exist before any pnpm install runs.
+  const workspaceYamlContent = [
+    'allowBuilds:',
+    '  esbuild: true',
+    "  '@parcel/watcher': true",
+    '  core-js: true',
+    '',
+  ].join('\n');
+  await fsp.writeFile(
+    path.join(dir, 'pnpm-workspace.yaml'),
+    workspaceYamlContent,
+    'utf-8',
+  );
 };
 
 const initializeYarnClassic = async (execaOptions: {
@@ -98,7 +113,7 @@ export const setupPackageManager = async (
 
     case 'pnpm':
       packageManagerExecutable = 'pnpm';
-      await initializePnpm();
+      await initializePnpm(dir);
       break;
 
     case 'yarn-classic':

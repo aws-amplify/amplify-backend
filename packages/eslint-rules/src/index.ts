@@ -58,6 +58,13 @@ export const configs = {
           '@aws-amplify/amplify-backend-rules/no-amplify-errors': 'error',
         },
       },
+      {
+        files: ['packages/hosting/src/**'],
+        excludedFiles: ['**/factory.ts'],
+        rules: {
+          '@aws-amplify/amplify-backend-rules/no-amplify-errors': 'error',
+        },
+      },
     ],
   },
 };

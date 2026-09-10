@@ -36,7 +36,7 @@ export const funcProvided = defineFunction((scope) => {
       'func-src',
       'handler_provider.ts',
     ),
-    runtime: Runtime.NODEJS_20_X,
+    runtime: Runtime.NODEJS_22_X,
   });
 });
 

@@ -30,7 +30,7 @@ export class PackageLockValidator {
         return {
           status: 'fail',
           jsonPath,
-          failureMessage: `The ${jsonPath} property value ${value} seems to point to localhost. Run 'npm run stop:npm-proxy && npm install' to recover`,
+          failureMessage: `The ${jsonPath} property value ${value} seems to point to localhost. Run 'npm run stop:npm-proxy && npm ci' to recover`,
         };
       }
       return { status: 'pass', jsonPath };

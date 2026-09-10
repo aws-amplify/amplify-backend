@@ -13,6 +13,7 @@ import { BaseCredentials, Toolkit } from '@aws-cdk/toolkit-lib';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  express?: boolean;
 };
 
 export type DeployResult = {
@@ -43,8 +44,6 @@ export type BackendDeployer = {
  * Factory to create a backend deployer
  */
 export class BackendDeployerFactory {
-  private static instance: BackendDeployer | undefined;
-
   /**
    * constructor - sets the packageManagerController
    */
@@ -56,27 +55,26 @@ export class BackendDeployerFactory {
   ) {}
 
   /**
-   * Returns a single instance of BackendDeployer
+   * Returns a BackendDeployer for the given locator.
+   * If no locator is provided, defaults to the standard `amplify/backend` entry point.
    */
-  getInstance(): BackendDeployer {
-    if (!BackendDeployerFactory.instance) {
-      BackendDeployerFactory.instance = new CDKDeployer(
-        new CdkErrorMapper(this.formatter),
-        new BackendLocator(),
-        this.packageManagerController,
-        new Toolkit({
-          ioHost: this.backendDeployerIOHost,
-          emojis: false,
-          color: false,
-          sdkConfig: {
-            baseCredentials: BaseCredentials.awsCliCompatible({
-              profile: this.sdkProfileResolver(),
-            }),
-          },
-        }),
-        this.backendDeployerIOHost,
-      );
-    }
-    return BackendDeployerFactory.instance;
+  getInstance(locator?: BackendLocator): BackendDeployer {
+    const resolvedLocator = locator ?? new BackendLocator();
+    return new CDKDeployer(
+      new CdkErrorMapper(this.formatter),
+      resolvedLocator,
+      this.packageManagerController,
+      new Toolkit({
+        ioHost: this.backendDeployerIOHost,
+        emojis: false,
+        color: false,
+        sdkConfig: {
+          baseCredentials: BaseCredentials.awsCliCompatible({
+            profile: this.sdkProfileResolver(),
+          }),
+        },
+      }),
+      this.backendDeployerIOHost,
+    );
   }
 }

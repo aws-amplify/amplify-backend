@@ -34,7 +34,10 @@ export type AddEnvironmentFactory = {
 };
 
 // @public (undocumented)
-export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type CronSchedule = CronScheduleExpression | ZonedCronSchedule;
+
+// @public (undocumented)
+export type CronScheduleExpression = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public (undocumented)
 type DataClientConfig = {
@@ -63,6 +66,12 @@ export type FunctionArchitecture = 'x86_64' | 'arm64';
 // @public (undocumented)
 export type FunctionBundlingOptions = {
     minify?: boolean;
+};
+
+// @public (undocumented)
+export type FunctionDurableConfigOptions = {
+    executionTimeoutSeconds: number;
+    retentionPeriodDays?: number;
 };
 
 // @public (undocumented)
@@ -96,6 +105,7 @@ export type FunctionProps = {
     bundling?: FunctionBundlingOptions;
     resourceGroupName?: AmplifyResourceGroupName;
     logging?: FunctionLoggingOptions;
+    durableConfig?: FunctionDurableConfigOptions;
 };
 
 // @public (undocumented)
@@ -121,7 +131,7 @@ type LibraryOptions = {
 };
 
 // @public (undocumented)
-export type NodeVersion = 16 | 18 | 20 | 22;
+export type NodeVersion = 18 | 20 | 22 | 24;
 
 // @public (undocumented)
 export type ProvidedFunctionProps = {
@@ -141,7 +151,24 @@ type ResourceConfig = {
 };
 
 // @public (undocumented)
-export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
+export type TimeInterval = ZonedTimeInterval | TimeIntervalExpression;
+
+// @public (undocumented)
+export type TimeIntervalExpression = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
+
+// @public (undocumented)
+export type ZonedCronSchedule = {
+    cron: CronScheduleExpression;
+    timezone: string;
+    description?: string;
+};
+
+// @public (undocumented)
+export type ZonedTimeInterval = {
+    rate: TimeIntervalExpression;
+    timezone: string;
+    description?: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

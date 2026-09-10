@@ -14,9 +14,10 @@ const profileSetupInstruction = `Follow the instructions at ${configureAccountUr
 /**
  * Command to configure AWS Amplify profile.
  */
-export class ConfigureProfileCommand
-  implements CommandModule<object, ConfigureProfileCommandOptions>
-{
+export class ConfigureProfileCommand implements CommandModule<
+  object,
+  ConfigureProfileCommandOptions
+> {
   /**
    * @inheritDoc
    */

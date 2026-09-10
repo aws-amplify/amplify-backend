@@ -13,6 +13,7 @@ void describe('screaming snake conversions', () => {
     { input: 'testTest', expected: 'TEST_TEST' },
     { input: 'test3-te3st', expected: 'TEST_3_TE_3_ST' },
     { input: 'test Test_Test-test TEST', expected: 'TEST_TEST_TEST_TEST_TEST' },
+    { input: 'tEsT-teST', expected: 'T_ES_T_TE_ST' },
   ];
   testCases.forEach((testCase) => {
     void it(`should successfully convert ${testCase.input} to ${testCase.expected}`, () => {

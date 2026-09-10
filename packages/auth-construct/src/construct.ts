@@ -22,6 +22,7 @@ import {
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
+  PasskeyUserVerification,
   ProviderAttribute,
   StandardAttribute,
   UserPool,
@@ -55,6 +56,10 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
+import {
+  CDKContextKey,
+  addCfnResourceDependency,
+} from '@aws-amplify/platform-core';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -141,6 +146,11 @@ export class AmplifyAuth
   private customSenderKMSkey: IKey | undefined;
 
   /**
+   * The preferred authentication challenge
+   */
+  private readonly preferredChallenge: string | undefined;
+
+  /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
    */
@@ -152,6 +162,11 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
+    // Validate preferredChallenge against enabled authentication methods before setting
+    this.validatePreferredChallenge(props);
+
+    this.preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
 
@@ -213,6 +228,8 @@ export class AmplifyAuth
       },
     );
 
+    this.applyUserAuthFlow(userPoolClient, props);
+
     // Identity Pool
     const {
       identityPool,
@@ -231,6 +248,7 @@ export class AmplifyAuth
     if (!(cfnUserPool instanceof CfnUserPool)) {
       throw Error('Could not find CfnUserPool resource in stack.');
     }
+
     const cfnUserPoolClient = userPoolClient.node.findChild(
       'Resource',
     ) as CfnUserPoolClient;
@@ -376,7 +394,7 @@ export class AmplifyAuth
           },
         },
       );
-    identityPoolRoleAttachment.addDependency(identityPool);
+    addCfnResourceDependency(identityPoolRoleAttachment, identityPool);
     identityPoolRoleAttachment.node.addDependency(userPoolClient);
     // add cognito provider
     identityPool.cognitoIdentityProviders = [
@@ -576,12 +594,21 @@ export class AmplifyAuth
       }
     }
     const smsConfiguration = this.getSmsConfiguration(props.senders?.sms);
+    const signInPolicy = this.getSignInPolicy(props);
+    const passkeyConfig = this.getPasskeyConfig(props);
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
         phone: phoneEnabled,
         email: emailEnabled,
       },
+      ...(signInPolicy && { signInPolicy }),
+      ...(passkeyConfig.relyingPartyId && {
+        passkeyRelyingPartyId: passkeyConfig.relyingPartyId,
+      }),
+      ...(passkeyConfig.userVerification && {
+        passkeyUserVerification: passkeyConfig.userVerification,
+      }),
       keepOriginal: {
         email: emailEnabled,
         phone: phoneEnabled,
@@ -810,7 +837,7 @@ export class AmplifyAuth
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
-   * @returns cognito MFA type (sms or totp)
+   * @returns cognito MFA type (sms, totp, or email)
    */
   private getMFAType = (
     mfa: AuthProps['multifactor'],
@@ -819,6 +846,7 @@ export class AmplifyAuth
       ? {
           sms: mfa.sms ? true : false,
           otp: mfa.totp ? true : false,
+          email: mfa.email ? true : false,
         }
       : undefined;
   };
@@ -1128,6 +1156,174 @@ export class AmplifyAuth
   };
 
   /**
+   * Get sign-in policy configuration for passwordless authentication.
+   */
+  private getSignInPolicy = (props: AuthProps) => {
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!emailOtpEnabled && !smsOtpEnabled && !webAuthnEnabled) {
+      return undefined;
+    }
+
+    return {
+      allowedFirstAuthFactors: {
+        // PASSWORD is always included per Cognito requirements
+        password: true,
+        emailOtp: emailOtpEnabled,
+        smsOtp: smsOtpEnabled,
+        passkey: webAuthnEnabled,
+      },
+    };
+  };
+
+  /**
+   * Get passkey configuration for WebAuthn.
+   */
+  private getPasskeyConfig = (props: AuthProps) => {
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    if (!webAuthnEnabled) {
+      return {};
+    }
+
+    const webAuthnConfig = props.loginWith.webAuthn!;
+    let relyingPartyId: string;
+    let userVerification: PasskeyUserVerification;
+
+    if (webAuthnConfig === true) {
+      relyingPartyId = this.resolveRelyingPartyId('AUTO');
+      userVerification = PasskeyUserVerification.PREFERRED;
+    } else {
+      relyingPartyId = this.resolveRelyingPartyId(
+        webAuthnConfig.relyingPartyId,
+      );
+      userVerification =
+        webAuthnConfig.userVerification === 'required'
+          ? PasskeyUserVerification.REQUIRED
+          : PasskeyUserVerification.PREFERRED;
+    }
+
+    return { relyingPartyId, userVerification };
+  };
+
+  /**
+   * Resolve the relying party ID for WebAuthn configuration.
+   * Handles AUTO resolution based on deployment context.
+   */
+  private resolveRelyingPartyId = (relyingPartyId: string): string => {
+    if (relyingPartyId !== 'AUTO') {
+      return relyingPartyId;
+    }
+
+    const deploymentType = this.node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    );
+
+    if (deploymentType === 'branch') {
+      const appId = this.node.tryGetContext(CDKContextKey.BACKEND_NAMESPACE);
+      const branchName = this.node.tryGetContext(CDKContextKey.BACKEND_NAME);
+
+      if (appId && branchName) {
+        return `${branchName}.${appId}.amplifyapp.com`;
+      }
+    }
+
+    // Standalone deployments have no Amplify Hosting domain.
+    if (deploymentType === 'standalone') {
+      throw new Error(
+        'WebAuthn relyingPartyId "AUTO" is not supported for standalone deployments because there is no Amplify Hosting domain to resolve against. ' +
+          'Set an explicit relyingPartyId matching your hosting domain. ' +
+          'Example: loginWith: { webAuthn: { relyingPartyId: "app.example.com" } }',
+      );
+    }
+
+    // For sandbox or undefined (pure CDK usage), default to localhost
+    return 'localhost';
+  };
+
+  /**
+   * Apply USER_AUTH flow to UserPoolClient when passwordless factors are enabled.
+   */
+  private applyUserAuthFlow = (
+    userPoolClient: UserPoolClient,
+    props: AuthProps,
+  ): void => {
+    const emailOtpEnabled =
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin === true;
+    const smsOtpEnabled =
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin === true;
+    const webAuthnEnabled = props.loginWith.webAuthn !== undefined;
+
+    const hasPasswordlessFactors =
+      emailOtpEnabled || smsOtpEnabled || webAuthnEnabled;
+
+    if (!hasPasswordlessFactors) {
+      return;
+    }
+
+    const cfnUserPoolClient = userPoolClient.node.findChild(
+      'Resource',
+    ) as CfnUserPoolClient;
+    if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
+      throw Error('Could not find CfnUserPoolClient resource in stack.');
+    }
+
+    const existingFlows = cfnUserPoolClient.explicitAuthFlows || [];
+    cfnUserPoolClient.explicitAuthFlows = [...existingFlows, 'ALLOW_USER_AUTH'];
+  };
+
+  /**
+   * Validates that the preferredChallenge matches enabled authentication methods
+   */
+  private validatePreferredChallenge = (props: AuthProps): void => {
+    const preferredChallenge = props.passwordlessOptions?.preferredChallenge;
+    if (!preferredChallenge) {
+      return; // No validation needed if preferredChallenge is not set
+    }
+
+    const enabledChallenges: string[] = ['PASSWORD']; // PASSWORD is always available
+
+    // Check for EMAIL_OTP
+    if (
+      props.loginWith.email &&
+      typeof props.loginWith.email === 'object' &&
+      props.loginWith.email.otpLogin
+    ) {
+      enabledChallenges.push('EMAIL_OTP');
+    }
+
+    // Check for SMS_OTP
+    if (
+      props.loginWith.phone &&
+      typeof props.loginWith.phone === 'object' &&
+      props.loginWith.phone.otpLogin
+    ) {
+      enabledChallenges.push('SMS_OTP');
+    }
+
+    // Check for WEB_AUTHN
+    if (props.loginWith.webAuthn) {
+      enabledChallenges.push('WEB_AUTHN');
+    }
+
+    if (!enabledChallenges.includes(preferredChallenge)) {
+      throw new Error(
+        `Preferred challenge "${preferredChallenge}" is not enabled in your authentication configuration. ` +
+          `Enabled challenges: ${enabledChallenges.join(', ')}. ` +
+          `This will result in a broken authentication flow in the frontend.`,
+      );
+    }
+  };
+
+  /**
    * Stores auth output using the provided strategy
    */
   private storeOutput = (
@@ -1222,16 +1418,65 @@ export class AmplifyAuth
     // extract the MFA types from the UserPool resource
     output.mfaTypes = Lazy.string({
       produce: () => {
+        const enabledMfas = cfnUserPool.enabledMfas ?? [];
         const mfaTypes: string[] = [];
-        (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+        enabledMfas.forEach((type) => {
           if (type === 'SMS_MFA') {
             mfaTypes.push('SMS');
           }
           if (type === 'SOFTWARE_TOKEN_MFA') {
             mfaTypes.push('TOTP');
           }
+          if (type === 'EMAIL_OTP') {
+            mfaTypes.push('EMAIL');
+          }
         });
         return JSON.stringify(mfaTypes);
+      },
+    });
+
+    // extract passwordless configuration
+    output.passwordlessOptions = Lazy.string({
+      produce: () => {
+        const passwordlessConfig: {
+          emailOtpEnabled?: boolean;
+          smsOtpEnabled?: boolean;
+          webAuthn?: {
+            relyingPartyId: string;
+            userVerification: 'required' | 'preferred';
+          };
+          preferredChallenge?: string;
+        } = {};
+
+        const signInPolicy = (
+          cfnUserPool.policies as CfnUserPool.PoliciesProperty
+        )?.signInPolicy;
+        if (signInPolicy) {
+          const allowedFactors =
+            (signInPolicy as CfnUserPool.SignInPolicyProperty)
+              .allowedFirstAuthFactors || [];
+          passwordlessConfig.emailOtpEnabled =
+            allowedFactors.includes('EMAIL_OTP');
+          passwordlessConfig.smsOtpEnabled = allowedFactors.includes('SMS_OTP');
+
+          if (allowedFactors.includes('WEB_AUTHN')) {
+            passwordlessConfig.webAuthn = {
+              relyingPartyId: cfnUserPool.webAuthnRelyingPartyId || '',
+              userVerification:
+                (cfnUserPool.webAuthnUserVerification as
+                  | 'required'
+                  | 'preferred') || 'preferred',
+            };
+          }
+        }
+
+        if (this.preferredChallenge) {
+          passwordlessConfig.preferredChallenge = this.preferredChallenge;
+        }
+
+        return Object.keys(passwordlessConfig).length > 0
+          ? JSON.stringify(passwordlessConfig)
+          : '';
       },
     });
 

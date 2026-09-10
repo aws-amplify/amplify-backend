@@ -1,5 +1,217 @@
 # @aws-amplify/backend
 
+## 1.25.0
+
+### Minor Changes
+
+- 02be24d: feat: standalone SSR hosting & CI/CD for Gen 2
+  - **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.3.0.
+  - **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.1.
+  - **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+  - **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
+
+### Patch Changes
+
+- Updated dependencies [02be24d]
+- Updated dependencies [a0421b3]
+  - @aws-amplify/backend-data@1.9.0
+  - @aws-amplify/backend-storage@1.6.0
+  - @aws-amplify/platform-core@1.12.0
+  - @aws-amplify/backend-auth@1.10.0
+  - @aws-amplify/backend-function@1.19.0
+  - @aws-amplify/backend-output-storage@1.4.0
+  - @aws-amplify/client-config@1.11.1
+  - @aws-amplify/plugin-types@1.13.0
+
+## 1.24.1
+
+### Patch Changes
+
+- 9db547a: Set explicit `projectRoot`/`depsLockFilePath` on internal `NodejsFunction` bundling so Lambda entry files shipped with this package are no longer resolved relative to the current working directory, which aws-cdk-lib 2.254 rejects with `PathNotUnderRoot`.
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/backend-output-storage@1.3.6
+  - @aws-amplify/backend-function@1.18.3
+  - @aws-amplify/backend-storage@1.5.1
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+  - @aws-amplify/backend-data@1.8.1
+  - @aws-amplify/backend-auth@1.9.5
+
+## 1.24.0
+
+### Minor Changes
+
+- a50ec3b: Map `minimizeRdsVpcEndpoints` from `DataSourceConfiguration` onto the generated SQL `ModelDataSourceStrategy` so the customer setting is forwarded to the SQL strategy.
+
+### Patch Changes
+
+- 8b715d7: fix(backend-function): avoid serializing the full environment in the malformed data-env error
+
+  When the data environment variables are missing or malformed, `getAmplifyDataClientConfig` no longer serializes the entire runtime environment into the thrown error. The message now lists only the names of the missing/malformed variables, which keeps it debuggable without including unrelated environment values.
+
+- Updated dependencies [3f331c5]
+- Updated dependencies [a50ec3b]
+- Updated dependencies [8b715d7]
+- Updated dependencies [4849fad]
+  - @aws-amplify/client-config@1.11.0
+  - @aws-amplify/backend-data@1.8.0
+  - @aws-amplify/backend-function@1.18.2
+  - @aws-amplify/plugin-types@1.12.2
+
+## 1.23.0
+
+### Minor Changes
+
+- 757e2ce: Add optional keepOnDelete prop to defineStorage() to support production bucket retention. Defaults to false (destroy) for backward compatibility. Sandbox deployments always delete the bucket regardless of this setting.
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+- Updated dependencies [077bd98]
+- Updated dependencies [757e2ce]
+  - @aws-amplify/backend-auth@1.9.4
+  - @aws-amplify/backend-function@1.18.1
+  - @aws-amplify/backend-output-storage@1.3.5
+  - @aws-amplify/backend-storage@1.5.0
+  - @aws-amplify/client-config@1.10.2
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+  - @aws-amplify/backend-data@1.7.0
+
+## 1.22.0
+
+### Minor Changes
+
+- 1d109e9: drop support of Node 16 functions
+
+### Patch Changes
+
+- Updated dependencies [1d109e9]
+- Updated dependencies [1d109e9]
+  - @aws-amplify/backend-auth@1.9.3
+  - @aws-amplify/backend-function@1.18.0
+
+## 1.21.1
+
+### Patch Changes
+
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+- Updated dependencies [3c46984]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+  - @aws-amplify/backend-output-storage@1.3.4
+  - @aws-amplify/client-config@1.10.1
+
+## 1.21.0
+
+### Minor Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+### Patch Changes
+
+- Updated dependencies [4c5dd61]
+  - @aws-amplify/backend-function@1.17.0
+  - @aws-amplify/backend-auth@1.9.2
+  - @aws-amplify/backend-data@1.6.4
+
+## 1.20.0
+
+### Minor Changes
+
+- 7d0ba5e: feat: add durable function configuration support
+- a34cd89: feat: add `description` prop to function schedule
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- f470ca7: Update lambda logging configuration to use non-deprecated AWS CDK properties
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [4603f7a]
+- Updated dependencies [f470ca7]
+- Updated dependencies [a34cd89]
+  - @aws-amplify/backend-output-storage@1.3.3
+  - @aws-amplify/backend-function@1.16.0
+  - @aws-amplify/backend-storage@1.4.3
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/backend-auth@1.9.1
+  - @aws-amplify/backend-data@1.6.3
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+  - @aws-amplify/client-config@1.10.0
+
+## 1.19.0
+
+### Minor Changes
+
+- f35e393: Added support for passwordless authentication
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+- Updated dependencies [f35e393]
+  - @aws-amplify/backend-function@1.15.2
+  - @aws-amplify/backend-secret@1.4.2
+  - @aws-amplify/client-config@1.9.1
+  - @aws-amplify/platform-core@1.10.3
+  - @aws-amplify/backend-auth@1.9.0
+
+## 1.18.0
+
+### Minor Changes
+
+- 477139e: feat(auth): Added support for email-MFA in Amplify Auth construct
+
+### Patch Changes
+
+- 6aa209f: fix: function schedule deployment failure issue in the 1.17 update
+- Updated dependencies [477139e]
+- Updated dependencies [6aa209f]
+  - @aws-amplify/client-config@1.9.0
+  - @aws-amplify/backend-auth@1.8.0
+  - @aws-amplify/backend-function@1.15.1
+
+## 1.17.0
+
+### Minor Changes
+
+- b6ef34d: feat: add timezone support to scheduling Lambda functions
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [b6ef34d]
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-auth@1.7.2
+  - @aws-amplify/backend-function@1.15.0
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/backend-output-storage@1.3.2
+  - @aws-amplify/backend-storage@1.4.2
+  - @aws-amplify/backend-secret@1.4.1
+  - @aws-amplify/client-config@1.8.1
+  - @aws-amplify/platform-core@1.10.1
+  - @aws-amplify/backend-data@1.6.2
+
 ## 1.16.1
 
 ### Patch Changes

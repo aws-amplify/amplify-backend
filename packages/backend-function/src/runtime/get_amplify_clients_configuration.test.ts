@@ -136,4 +136,86 @@ void describe('getAmplifyDataClientConfig', () => {
       });
     });
   });
+
+  void describe('when the data environment variables are malformed', () => {
+    const malformedEnv = {
+      AWS_ACCESS_KEY_ID: 'TEST_VALUE for AWS_ACCESS_KEY_ID',
+      AWS_SECRET_ACCESS_KEY: 'TEST_VALUE for AWS_SECRET_ACCESS_KEY',
+      AWS_SESSION_TOKEN: 'TEST_VALUE for AWS_SESSION_TOKEN',
+      AWS_REGION: 'TEST_VALUE for AWS_REGION',
+      AMPLIFY_DATA_DEFAULT_NAME: 'AmplifyData',
+      MY_OTHER_ENV_VAR: 'TEST_VALUE for MY_OTHER_ENV_VAR',
+      // The derived data env vars (bucket/key/endpoint) are intentionally
+      // absent, which triggers the malformed-env validation.
+    };
+
+    // None of the entries present in the fixture are the missing data
+    // variables, so none of their values should appear in the error. Deriving
+    // the list from the fixture keeps the two in sync if the fixture changes.
+    const unrelatedEnvValues = Object.values(malformedEnv);
+
+    void it('names the missing variables without echoing unrelated env values', async () => {
+      await assert.rejects(
+        async () =>
+          await getAmplifyDataClientConfig(malformedEnv, mockS3Client),
+        (error: Error) => {
+          // The message pinpoints the three expected data variables by name.
+          assert.match(
+            error.message,
+            /AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME/,
+          );
+          assert.match(
+            error.message,
+            /AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY/,
+          );
+          assert.match(error.message, /AMPLIFY_DATA_GRAPHQL_ENDPOINT/);
+          // Unrelated environment values do not appear in the message.
+          for (const value of unrelatedEnvValues) {
+            assert.ok(
+              !error.message.includes(value),
+              `error message must not contain the value "${value}"`,
+            );
+          }
+          return true;
+        },
+      );
+    });
+
+    void it('lists only the invalid variable names, not the ones present', async () => {
+      // Only the GraphQL endpoint is missing; the bucket and key are present
+      // as valid strings, so the error must name the endpoint alone.
+      const envMissingOnlyEndpoint = {
+        ...malformedEnv,
+        AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME:
+          'TEST_VALUE for AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME',
+        AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY:
+          'TEST_VALUE for AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY',
+        // AMPLIFY_DATA_GRAPHQL_ENDPOINT is still absent.
+      };
+
+      await assert.rejects(
+        async () =>
+          await getAmplifyDataClientConfig(
+            envMissingOnlyEndpoint,
+            mockS3Client,
+          ),
+        (error: Error) => {
+          assert.match(error.message, /AMPLIFY_DATA_GRAPHQL_ENDPOINT/);
+          assert.ok(
+            !error.message.includes(
+              'AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME',
+            ),
+            'present bucket variable must not be listed as malformed',
+          );
+          assert.ok(
+            !error.message.includes(
+              'AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY',
+            ),
+            'present key variable must not be listed as malformed',
+          );
+          return true;
+        },
+      );
+    });
+  });
 });

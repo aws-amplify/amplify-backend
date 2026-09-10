@@ -1,5 +1,94 @@
 # @aws-amplify/ai-constructs
 
+## 1.7.0
+
+### Minor Changes
+
+- 02be24d: feat: standalone SSR hosting & CI/CD for Gen 2
+  - **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.3.0.
+  - **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.1.
+  - **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+  - **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
+
+### Patch Changes
+
+- Updated dependencies [02be24d]
+  - @aws-amplify/plugin-types@1.13.0
+
+## 1.6.3
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- 014303a: fix(ai-constructs): strip extra Bedrock tool use fields before sending to AppSync
+
+  `ConversationTurnResponseSender.serializeContent` spread the entire Bedrock
+  `ToolUseBlock` into the AppSync mutation. Newer `@aws-sdk/client-bedrock-runtime`
+  versions add fields (e.g. `type`) that are not part of the generated
+  `AmplifyAIToolUseBlockInput`, causing the conversation handler to fail with
+  "Field 'type' is not defined by type 'AmplifyAIToolUseBlockInput'" whenever a
+  tool (such as a `responseComponents` tool) is invoked. Only `toolUseId`, `name`,
+  and the stringified `input` are now forwarded.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/plugin-types@1.12.3
+
+## 1.6.2
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/plugin-types@1.12.1
+
+## 1.6.1
+
+### Patch Changes
+
+- 4c5dd61: Update default function version to 22 and add Node 24 as runtime option, additionally update all functions that use Node 20 to Node 22
+
+## 1.6.0
+
+### Minor Changes
+
+- b3f0e35: feat: add support for the global Bedrock inference profiles
+
+## 1.5.6
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
+## 1.5.5
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+
+## 1.5.4
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+
 ## 1.5.3
 
 ### Patch Changes

@@ -7,7 +7,7 @@ const {
 } = require('ssh2');
 /**
  * This import is for tests to use the generated type generation file.
- * Currently we only use defaultNodeFunction because node16Function has the same environment variables at runtime.
+ * Currently we only use defaultNodeFunction
  */
 import { env } from '$amplify/env/defaultNodeFunction.js';
 
@@ -84,10 +84,10 @@ const s3RoundTrip = async (): Promise<string> => {
 // if the action fails a second time, the error is re-thrown
 const retry = async <T>(action: () => Promise<T>) => {
   try {
-    return action();
+    return await action();
   } catch (err) {
     console.log(err);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    return action();
+    return await action();
   }
 };

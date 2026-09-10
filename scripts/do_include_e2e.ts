@@ -6,28 +6,41 @@ const { GITHUB_EVENT_NAME: eventName, GITHUB_REF_NAME: refName } = process.env;
 
 const gitHubClient = new GithubClient();
 
-const prHasRunE2ELabel = async () => {
+// Base branches whose (internal) PRs always run e2e without needing the
+// `run-e2e` label — long-lived branches where an e2e regression must surface
+// before merge. e2e needs AWS OIDC credentials that fork PRs cannot obtain, so
+// auto-run is gated on the PR originating from this repo (not a fork); fork PRs
+// still fall back to the label path and never trip the error below.
+const E2E_AUTO_RUN_BASE_BRANCHES = new Set(['main']);
+const INTERNAL_REPO = 'aws-amplify/amplify-backend';
+
+const shouldPullRequestRunE2E = async (): Promise<boolean> => {
   if (!ghContext.payload.pull_request) {
-    // event is not a pull request
+    // Non-PR events must return a plain boolean, not an object: this value
+    // flows into `doIncludeE2e` and is `console.log`-ed as the workflow output.
+    // A truthy `{ runE2E: false }` object would stringify to `[object Object]`
+    // and wrongly enable/invalidate e2e gating on any non-PR event that isn't
+    // already covered by the push/dispatch/schedule branches.
     return false;
   }
   const prInfo = await gitHubClient.fetchPullRequest(
     ghContext.payload.pull_request.number,
   );
+  const isInternalPr = prInfo.head?.repo?.full_name === INTERNAL_REPO;
   const hasRunE2ELabel = prInfo.labels.some(
     (label) => label.name === 'run-e2e',
   );
+  const targetsAutoRunBase =
+    isInternalPr && E2E_AUTO_RUN_BASE_BRANCHES.has(prInfo.base.ref);
+  const runE2E = hasRunE2ELabel || targetsAutoRunBase;
 
-  if (
-    hasRunE2ELabel &&
-    prInfo.head?.repo?.full_name !== 'aws-amplify/amplify-backend'
-  ) {
+  if (runE2E && !isInternalPr) {
     throw new Error(
       'PR must be opened from a branch in aws-amplify/amplify-backend repository when running e2e tests.',
     );
   }
 
-  return hasRunE2ELabel;
+  return runE2E;
 };
 
 const isPushToBranchBesidesHotfix =
@@ -37,14 +50,14 @@ const isVersionPackagesPushToHotfix =
 
 const isWorkflowTriggeredManually = eventName === 'workflow_dispatch';
 const isWorkflowTriggeredBySchedule = eventName == 'schedule';
-const isPullRequestWithRunE2ELabel = await prHasRunE2ELabel();
+const isPullRequestThatShouldRunE2E = await shouldPullRequestRunE2E();
 
 const doIncludeE2e =
   isPushToBranchBesidesHotfix ||
   isVersionPackagesPushToHotfix ||
   isWorkflowTriggeredManually ||
   isWorkflowTriggeredBySchedule ||
-  isPullRequestWithRunE2ELabel;
+  isPullRequestThatShouldRunE2E;
 
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);

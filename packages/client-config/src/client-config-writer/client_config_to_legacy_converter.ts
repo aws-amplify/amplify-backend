@@ -3,6 +3,7 @@ import {
   ClientConfig,
   ClientConfigLegacy,
   clientConfigTypesV1_4,
+  clientConfigTypesV1_5,
 } from '../client-config-types/client_config.js';
 
 import {
@@ -22,10 +23,10 @@ export class ClientConfigLegacyConverter {
    * Converts client config to a shape consumable by legacy libraries.
    */
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
-    // We can only convert from V1.4 of ClientConfig. For everything else, throw
-    if (!this.isClientConfigV1_4(clientConfig)) {
+    // We can only convert from V1.4 / V1.5 of ClientConfig. For everything else, throw
+    if (!this.isClientConfigV1_4OrLater(clientConfig)) {
       throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
-        message: 'Only version 1.4 of ClientConfig is supported.',
+        message: 'Only version 1.4 or 1.5 of ClientConfig is supported.',
       });
     }
 
@@ -232,7 +233,12 @@ export class ClientConfigLegacyConverter {
     }
 
     // Notifications
-    if (clientConfig.notifications) {
+    if (
+      clientConfig.notifications &&
+      clientConfig.notifications.amazon_pinpoint_app_id &&
+      clientConfig.notifications.aws_region &&
+      clientConfig.notifications.channels
+    ) {
       const pinPointConfig = {
         AWSPinpoint: {
           appId: clientConfig.notifications.amazon_pinpoint_app_id,
@@ -274,9 +280,11 @@ export class ClientConfigLegacyConverter {
   };
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  isClientConfigV1_4 = (
+  isClientConfigV1_4OrLater = (
     clientConfig: ClientConfig,
-  ): clientConfig is clientConfigTypesV1_4.AWSAmplifyBackendOutputs => {
-    return clientConfig.version === '1.4';
+  ): clientConfig is
+    | clientConfigTypesV1_4.AWSAmplifyBackendOutputs
+    | clientConfigTypesV1_5.AWSAmplifyBackendOutputs => {
+    return clientConfig.version === '1.4' || clientConfig.version === '1.5';
   };
 }

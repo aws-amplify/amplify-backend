@@ -311,6 +311,38 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
+  void it('handles custom domain with external login providers', async () => {
+    describeUserPoolResponse = {
+      ...httpSuccess,
+      UserPool: {
+        ...UserPool,
+        CustomDomain: 'auth.dev.example.com',
+      },
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.strictEqual(result.Status, 'SUCCESS');
+    assert.ok(result.Data);
+    assert.strictEqual(result.Data.oauthCognitoDomain, 'auth.dev.example.com');
+  });
+
+  void it('handles cognito-managed domain with external login providers', async () => {
+    describeUserPoolResponse = {
+      ...httpSuccess,
+      UserPool: {
+        ...UserPool,
+        CustomDomain: undefined,
+        Domain: 'ref-auth-userpool-1',
+      },
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.strictEqual(result.Status, 'SUCCESS');
+    assert.ok(result.Data);
+    assert.strictEqual(
+      result.Data.oauthCognitoDomain,
+      'ref-auth-userpool-1.auth.us-east-1.amazoncognito.com',
+    );
+  });
+
   void it('throws if user pool group is not found', async () => {
     listGroupsResponse = {
       ...httpSuccess,

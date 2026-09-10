@@ -39,8 +39,17 @@ void describe('client config backwards compatibility', () => {
     console.log(`Temp dir is ${tempDir}`);
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-    baselineNpmProxyController = new NpmProxyController(baselineDir);
-    currentNpmProxyController = new NpmProxyController();
+    // preserveThirdPartyCache: this test sets up the proxy 3 times (baseline ->
+    // current -> baseline). Without cache preservation each setUp re-proxies
+    // every third-party dependency from the registry (~20 min/install), pushing
+    // the single attempt past the 1h e2e credential window. Preserving
+    // verdaccio's third-party cache keeps the repeat installs fast.
+    baselineNpmProxyController = new NpmProxyController(baselineDir, {
+      preserveThirdPartyCache: true,
+    });
+    currentNpmProxyController = new NpmProxyController(process.cwd(), {
+      preserveThirdPartyCache: true,
+    });
     testBranch = await amplifyAppPool.createTestBranch();
     branchBackendIdentifier = {
       namespace: testBranch.appId,
@@ -85,16 +94,35 @@ void describe('client config backwards compatibility', () => {
   };
 
   const reinstallDependencies = async (): Promise<void> => {
+    // Full clean reinstall to switch the installed Amplify version
+    // (baseline <-> current). A targeted "remove only the workspace packages"
+    // reinstall was tried and REVERTED: npm did a minimal diff against the
+    // mostly-intact tree ("added 20, removed 70") and left the wrong version
+    // installed, breaking the test's assertion. A full nuke + reinstall is the
+    // only reliable way to fully swap the resolved version.
     await fsp.rm(path.join(tempDir, 'node_modules'), {
       recursive: true,
       force: true,
     });
-    await fsp.unlink(path.join(tempDir, 'package-lock.json'));
+    await fsp.rm(path.join(tempDir, 'package-lock.json'), { force: true });
 
-    await execa('npm', ['install'], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
+    // --prefer-offline reuses the runner/proxy cache for unchanged deps;
+    // --no-audit/--no-fund skip advisory round-trips; --prefer-dedupe writes
+    // fewer packages. None change which versions resolve.
+    await execa(
+      'npm',
+      [
+        'install',
+        '--prefer-offline',
+        '--no-audit',
+        '--no-fund',
+        '--prefer-dedupe',
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      },
+    );
   };
 
   const assertGenerateClientConfigAPI = async (
@@ -179,9 +207,19 @@ void describe('client config backwards compatibility', () => {
   void it('outputs generation should be backwards and forward compatible', async () => {
     // build an app using previous (baseline) version
     await baselineNpmProxyController.setUp();
+    // These npm_config_* vars propagate into the nested `npm install` that
+    // create-amplify runs (flags on the outer `npm create` would not reach it):
+    // prefer_offline reuses cached third-party deps; audit/fund skip advisory
+    // round-trips; prefer_dedupe writes fewer packages. Resolution is unchanged.
     await execa('npm', ['create', amplifyAtTag, '--yes'], {
       cwd: tempDir,
       stdio: 'inherit',
+      env: {
+        npm_config_prefer_offline: 'true',
+        npm_config_audit: 'false',
+        npm_config_fund: 'false',
+        npm_config_prefer_dedupe: 'true',
+      },
     });
 
     // Replace backend.ts to add custom outputs without version as well.

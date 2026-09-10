@@ -29,7 +29,10 @@ const publishDefaults: PublishOptions = {
   snapshotRelease: false,
 };
 
-const snapshotTag = 'test';
+const refName = process.env.GITHUB_REF_NAME || '';
+const snapshotTag = refName.startsWith('snapshot/')
+  ? refName.replace('snapshot/', '')
+  : 'test';
 
 /**
  * Wrapper around `changeset publish` that exposes a few config options

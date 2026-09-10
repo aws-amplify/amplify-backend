@@ -12,9 +12,7 @@ import { Construct } from 'constructs';
 /**
  * Generates SsmEnvironmentEntry[] with SSM parameters that are scoped to a specific backend identifier
  */
-export class BackendIdScopedSsmEnvironmentEntriesGenerator
-  implements SsmEnvironmentEntriesGenerator
-{
+export class BackendIdScopedSsmEnvironmentEntriesGenerator implements SsmEnvironmentEntriesGenerator {
   /**
    * Initialize with the backend identifier
    */

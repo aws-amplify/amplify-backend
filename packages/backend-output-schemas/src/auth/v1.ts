@@ -28,5 +28,6 @@ export const authOutputSchema = z.object({
     oauthClientId: z.string().optional(),
     oauthResponseType: z.string().optional(),
     groups: z.string().optional(), // JSON array as string
+    passwordlessOptions: z.string().optional(), // JSON object as string
   }),
 });

@@ -7,9 +7,7 @@ import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 /**
  * Resolves the main stack name for a given project environment
  */
-export class BackendIdentifierMainStackNameResolver
-  implements MainStackNameResolver
-{
+export class BackendIdentifierMainStackNameResolver implements MainStackNameResolver {
   /**
    * Initialize with the project environment identifier and an SSMClient
    */

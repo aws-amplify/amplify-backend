@@ -130,7 +130,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'SUCCEEDED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, [
@@ -205,7 +205,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'FAILED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, [
@@ -250,10 +250,12 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     assert.strictEqual(telemetryPayloadSent.latency.deployment, 740);
     assert.strictEqual(telemetryPayloadSent.error?.name, 'test error');
     assert.strictEqual(
-      telemetryPayloadSent.error.message,
-      'test error message',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (telemetryPayloadSent.error as any).message,
+      undefined,
     );
-    assert.strictEqual(telemetryPayloadSent.error.stack, 'test error stack');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    assert.strictEqual((telemetryPayloadSent.error as any).stack, undefined);
     assert.deepStrictEqual(mockResultCallback.mock.calls[0].arguments[0], {
       code: ExportResultCode.SUCCESS,
     });
@@ -287,7 +289,7 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     );
     assert.ok(validate(telemetryPayloadSent.identifiers.eventId));
     assert.ok(validate(telemetryPayloadSent.identifiers.localProjectId));
-    assert.ok(validate(telemetryPayloadSent.identifiers.accountId));
+    assert.ok(validate(telemetryPayloadSent.identifiers.accountId!));
     assert.strictEqual(telemetryPayloadSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryPayloadSent.event.state, 'FAILED');
     assert.deepStrictEqual(telemetryPayloadSent.event.command.path, []);
@@ -329,11 +331,6 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       telemetryPayloadSent.error?.name,
       'TelemetrySpanAttributeCountLimitFault',
     );
-    assert.strictEqual(
-      telemetryPayloadSent.error.message,
-      `Telemetry span attribute count has hit the limit of ${telemetrySpanAttributeCountLimit}`,
-    );
-    assert.ok(telemetryPayloadSent.error.stack);
     assert.deepStrictEqual(mockResultCallback.mock.calls[0].arguments[0], {
       code: ExportResultCode.SUCCESS,
     });

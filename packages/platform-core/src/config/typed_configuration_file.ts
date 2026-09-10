@@ -8,9 +8,9 @@ import { TypedConfigurationFile } from './typed_configuration_file_factory';
 /**
  * A configuration file with content validation.
  */
-export class ZodSchemaTypedConfigurationFile<T extends z.ZodTypeAny>
-  implements TypedConfigurationFile<z.infer<T>>
-{
+export class ZodSchemaTypedConfigurationFile<
+  T extends z.ZodTypeAny,
+> implements TypedConfigurationFile<z.infer<T>> {
   private readonly filePath: string;
   private data: z.infer<T> | undefined;
 

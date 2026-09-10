@@ -1,9 +1,16 @@
-import { CronOptions, Schedule } from 'aws-cdk-lib/aws-events';
+import {
+  CronOptionsWithTimezone,
+  ScheduleExpression,
+  ScheduleProps,
+} from 'aws-cdk-lib/aws-scheduler';
+import { TimeZone } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import type {
-  CronSchedule,
+  CronScheduleExpression,
   FunctionSchedule,
-  TimeInterval,
+  TimeIntervalExpression,
+  ZonedCronSchedule,
+  ZonedTimeInterval,
 } from './factory.js';
 import os from 'os';
 
@@ -15,23 +22,54 @@ type CronPart =
   | 'day-of-week'
   | 'year';
 
+type ZonedSchedule = ZonedCronSchedule | ZonedTimeInterval;
+
+type Writable<T, K extends keyof T> = {
+  -readonly [P in K]: T[P];
+} & Omit<T, K>;
+
+const DEFAULT_TIMEZONE = 'UTC';
+
+const hydrateDefaults = (schedule: FunctionSchedule): ZonedSchedule => {
+  if (typeof schedule === 'string') {
+    return schedule.includes('every')
+      ? { rate: schedule as TimeIntervalExpression, timezone: DEFAULT_TIMEZONE }
+      : {
+          cron: schedule as CronScheduleExpression,
+          timezone: DEFAULT_TIMEZONE,
+        };
+  } else if ('rate' in schedule) {
+    return { ...schedule, timezone: schedule.timezone ?? DEFAULT_TIMEZONE };
+  } else if ('cron' in schedule) {
+    return { ...schedule, timezone: schedule.timezone ?? DEFAULT_TIMEZONE };
+  }
+  throw new Error("Could not determine the function's schedule type");
+};
+
+type ScheduleConfig = Pick<ScheduleProps, 'schedule' | 'description'>;
+
 /**
- * Parses function schedule props in order to create EventBridge rules.
+ * Converts function schedules to schedule props.
+ * @param lambda The Lambda function to associate with the schedules.
+ * @param functionSchedules The function schedules to convert.
+ * @returns An array of schedule props.
  */
-export const convertFunctionSchedulesToRuleSchedules = (
+export const convertFunctionSchedulesToScheduleProps = (
   lambda: NodejsFunction,
   functionSchedules: FunctionSchedule | FunctionSchedule[],
-) => {
+): ScheduleConfig[] => {
   const errors: string[] = [];
-  const ruleSchedules: Schedule[] = [];
+  const scheduleProps: ScheduleConfig[] = [];
 
   const schedules = Array.isArray(functionSchedules)
     ? functionSchedules
     : [functionSchedules];
 
-  schedules.forEach((schedule) => {
+  const zonedSchedules = schedules.map(hydrateDefaults);
+
+  zonedSchedules.forEach((schedule) => {
     if (isTimeInterval(schedule)) {
-      const { value, unit } = parseTimeInterval(schedule);
+      const { value, unit } = parseTimeInterval(schedule.rate);
 
       if (value && !isPositiveWholeNumber(value)) {
         errors.push(
@@ -51,7 +89,7 @@ export const convertFunctionSchedulesToRuleSchedules = (
         );
       }
     } else {
-      const cronErrors = validateCron(schedule);
+      const cronErrors = validateCron(schedule.cron);
 
       if (cronErrors.length > 0) {
         errors.push(...cronErrors);
@@ -59,7 +97,12 @@ export const convertFunctionSchedulesToRuleSchedules = (
     }
 
     if (errors.length === 0) {
-      ruleSchedules.push(Schedule.cron(translateToCronOptions(schedule)));
+      scheduleProps.push({
+        schedule: ScheduleExpression.cron(
+          translateToCronOptionsWithTimezone(schedule),
+        ),
+        description: schedule.description,
+      });
     }
   });
 
@@ -67,13 +110,14 @@ export const convertFunctionSchedulesToRuleSchedules = (
     throw new Error(errors.join(os.EOL));
   }
 
-  return ruleSchedules;
+  return scheduleProps;
 };
 
 const isTimeInterval = (
-  schedule: FunctionSchedule,
-): schedule is TimeInterval => {
-  const parts = schedule.split(' ');
+  schedule: ZonedSchedule,
+): schedule is ZonedTimeInterval => {
+  const expression = 'rate' in schedule ? schedule.rate : '';
+  const parts = expression.split(' ');
 
   return (
     parts[0] === 'every' &&
@@ -84,7 +128,7 @@ const isTimeInterval = (
   );
 };
 
-const parseTimeInterval = (timeInterval: TimeInterval) => {
+const parseTimeInterval = (timeInterval: TimeIntervalExpression) => {
   const part = timeInterval.split(' ')[1];
   const value = part.match(/-?\d+\.?\d*/);
   const unit = part.match(/[a-zA-Z]+/);
@@ -97,7 +141,7 @@ const parseTimeInterval = (timeInterval: TimeInterval) => {
 
 const isPositiveWholeNumber = (test: number) => test > 0 && test % 1 === 0;
 
-const validateCron = (cron: CronSchedule) => {
+const validateCron = (cron: CronScheduleExpression) => {
   const errors: string[] = [];
   const cronParts = cron.split(' ');
 
@@ -270,20 +314,45 @@ const isWholeNumberBetweenInclusive = (
   max: number,
 ) => min <= test && test <= max && test % 1 === 0;
 
-const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
+const translateToCronOptionsWithTimezone = (
+  schedule: ZonedSchedule,
+): CronOptionsWithTimezone => {
   if (isTimeInterval(schedule)) {
-    const { value, unit } = parseTimeInterval(schedule);
+    const { value, unit } = parseTimeInterval(schedule.rate);
     switch (unit) {
       case 'm':
-        return { minute: `*/${value}` };
+        return {
+          minute: `*/${value}`,
+          timeZone: TimeZone.of(schedule.timezone),
+        };
       case 'h':
-        return { minute: '0', hour: `*/${value}` };
+        return {
+          minute: '0',
+          hour: `*/${value}`,
+          timeZone: TimeZone.of(schedule.timezone),
+        };
       case 'day':
-        return { minute: '0', hour: '0', day: `*` };
+        return {
+          minute: '0',
+          hour: '0',
+          day: `*`,
+          timeZone: TimeZone.of(schedule.timezone),
+        };
       case 'week':
-        return { minute: '0', hour: '0', weekDay: `1` };
+        return {
+          minute: '0',
+          hour: '0',
+          weekDay: `1`,
+          timeZone: TimeZone.of(schedule.timezone),
+        };
       case 'month':
-        return { minute: '0', hour: '0', day: '1', month: `*` };
+        return {
+          minute: '0',
+          hour: '0',
+          day: '1',
+          month: `*`,
+          timeZone: TimeZone.of(schedule.timezone),
+        };
       case 'year':
         return {
           minute: '0',
@@ -291,6 +360,7 @@ const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
           day: '1',
           month: '1',
           year: `*`,
+          timeZone: TimeZone.of(schedule.timezone),
         };
       default:
         // This should never happen with strict types
@@ -299,12 +369,13 @@ const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
         );
     }
   } else {
-    const cronArray = schedule.split(' ');
-    const result: Record<string, string> = {
+    const cronArray = schedule.cron.split(' ');
+    const result: Writable<CronOptionsWithTimezone, 'day' | 'weekDay'> = {
       minute: cronArray[0],
       hour: cronArray[1],
       month: cronArray[3],
       year: cronArray.length === 6 ? cronArray[5] : '*',
+      timeZone: TimeZone.of(schedule.timezone),
     };
 
     // Branching logic here is because we cannot supply both day and weekDay

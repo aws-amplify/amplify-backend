@@ -515,3 +515,79 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
     },
   );
 });
+
+void describe('Node version error per deployment type', () => {
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
+  const nodeVersionError = new Error('does not support module.register()');
+
+  void it('returns standalone-specific message without Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(
+      nodeVersionError,
+      'standalone',
+    );
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.ok(
+      !error.resolution?.includes('Amplify Hosting'),
+      'standalone resolution must not mention Amplify Hosting',
+    );
+    assert.ok(
+      !error.resolution?.includes('amplify.yml'),
+      'standalone resolution must not mention amplify.yml',
+    );
+  });
+
+  void it('returns branch-specific message with Amplify Hosting references', () => {
+    const error = cdkErrorMapper.getAmplifyError(nodeVersionError, 'branch');
+    assert.equal(error.name, 'NodeVersionNotSupportedError');
+    assert.ok(
+      error.resolution?.includes('Amplify Hosting'),
+      'branch resolution must mention Amplify Hosting',
+    );
+  });
+});
+
+void describe('toolkit-lib countAssemblyResults metadata crash', () => {
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
+
+  // The TypeError @aws-cdk/toolkit-lib throws when a stack has no metadata.
+  // Refs aws-amplify/amplify-backend#3316.
+  const buildCountAssemblyResultsError = () => {
+    const error = new TypeError('Cannot convert undefined or null to object');
+    error.stack = [
+      'TypeError: Cannot convert undefined or null to object',
+      '    at Object.values (<anonymous>)',
+      '    at node_modules/@aws-cdk/toolkit-lib/lib/toolkit/private/count-assembly-results.js:12:30',
+      '    at Array.flatMap (<anonymous>)',
+      '    at countAssemblyResults (node_modules/@aws-cdk/toolkit-lib/lib/toolkit/private/count-assembly-results.js:12:10)',
+      '    at synthAndMeasure (node_modules/@aws-cdk/toolkit-lib/lib/toolkit/toolkit.js:1709:59)',
+    ].join('\n');
+    return error;
+  };
+
+  void it('classifies the crash as a fault, not a user error', () => {
+    const error = cdkErrorMapper.getAmplifyError(
+      buildCountAssemblyResultsError(),
+    );
+    assert.equal(error.name, 'CDKSynthAssemblyMetadataFault');
+    // Must be classified as a FAULT (internal/library bug), not a user ERROR
+    // that would tell the customer to fix their own backend code.
+    assert.equal(error.classification, 'FAULT');
+    assert.match(error.message, /@aws-cdk\/toolkit-lib/);
+  });
+
+  void it('preserves the original TypeError as the cause', () => {
+    const original = buildCountAssemblyResultsError();
+    const error = cdkErrorMapper.getAmplifyError(original);
+    assert.equal(error.cause, original);
+  });
+
+  void it('does not intercept unrelated TypeErrors (still a backend SyntaxError)', () => {
+    const unrelated = new TypeError('foo is not a function');
+    unrelated.stack =
+      'TypeError: foo is not a function\n    at amplify/backend.ts:3:1';
+    assert.throws(
+      () => cdkErrorMapper.getAmplifyError(unrelated),
+      (thrown: Error) => thrown.name === 'SyntaxError',
+    );
+  });
+});

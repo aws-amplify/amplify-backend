@@ -29,6 +29,7 @@ export type AmplifyStorageProps = {
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    keepOnDelete?: boolean;
 };
 
 // @public (undocumented)

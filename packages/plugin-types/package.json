@@ -1,22 +1,26 @@
 {
   "name": "@aws-amplify/plugin-types",
-  "version": "1.11.0",
+  "version": "1.13.0",
   "types": "lib/index.d.ts",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
   },
   "scripts": {
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "aws-cdk-lib": "^2.189.1",
-    "constructs": "^10.0.0",
+    "aws-cdk-lib": "^2.257.0",
+    "constructs": "^10.6.0",
     "@aws-sdk/types": "^3.734.0"
   },
   "dependencies": {
-    "@aws-cdk/toolkit-lib": "1.1.1"
+    "@aws-cdk/toolkit-lib": "1.32.0"
   },
   "imports": {
     "#package.json": "./package.json"

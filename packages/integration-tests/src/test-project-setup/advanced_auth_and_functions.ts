@@ -27,9 +27,7 @@ import {
 /**
  * Creates test projects with advanced use cases of auth and functions categories.
  */
-export class AdvancedAuthAndFunctionsTestProjectCreator
-  implements TestProjectCreator
-{
+export class AdvancedAuthAndFunctionsTestProjectCreator implements TestProjectCreator {
   readonly name = 'advanced-auth-and-functions';
 
   /**
@@ -211,6 +209,7 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     const entries = await zipReader.getEntries();
     const entry = entries.find((entry) => entry.filename.endsWith('index.mjs'));
     assert(entry !== undefined);
+    assert(entry.directory === false); // we are expecting to get a file
     const sourceCode = await entry.getData!(new TextWriter());
     assert(sourceCode.includes(expectedCode));
   };

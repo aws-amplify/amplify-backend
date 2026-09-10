@@ -305,6 +305,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
         logging: cdkLoggingOptions,
+        stackMappings: this.props.stackMappings,
       });
     } catch (error) {
       throw new AmplifyUserError(

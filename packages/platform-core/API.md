@@ -89,7 +89,8 @@ export class BackendIdentifierConversions {
 
 // @public
 export class BackendLocator {
-    constructor(rootDir?: string);
+    constructor(rootDir?: string, basePath?: string);
+    exists: () => boolean;
     // (undocumented)
     locate: () => string;
 }
@@ -131,8 +132,6 @@ export class ConfigurationControllerFactory {
 // @public (undocumented)
 export type ErrorDetails = {
     name: string;
-    message: string;
-    stack: string;
     caused?: ErrorDetails;
 };
 

@@ -10,12 +10,14 @@ import {
 import {
   BackendOutputStorageStrategy,
   ConstructFactory,
+  DeploymentType,
   FunctionResources,
   ResourceProvider,
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -63,6 +65,23 @@ export type AmplifyStorageProps = {
       ConstructFactory<ResourceProvider<FunctionResources>>
     >
   >;
+  /**
+   * Whether to keep the S3 bucket when the stack is deleted.
+   *
+   * - `true` — The bucket and its objects are preserved when the stack is removed.
+   * - `false` — The bucket and all objects are deleted when the stack is removed.
+   *
+   * Sandbox deployments (via `npx ampx sandbox`) always delete the bucket regardless of this setting.
+   * @example
+   * ```typescript
+   * export const storage = defineStorage({
+   *   name: 'productionData',
+   *   keepOnDelete: true,
+   * });
+   * ```
+   * @default false
+   */
+  keepOnDelete?: boolean;
 };
 
 export type StorageResources = {
@@ -95,6 +114,19 @@ export class AmplifyStorage
     this.name = props.name;
     this.stack = Stack.of(scope);
 
+    const deploymentType = Stack.of(scope).node.tryGetContext(
+      CDKContextKey.DEPLOYMENT_TYPE,
+    ) as DeploymentType | undefined;
+    const isSandbox = deploymentType === 'sandbox';
+    const isDestroy = isSandbox || !props.keepOnDelete;
+
+    if (isSandbox && props.keepOnDelete) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[@aws-amplify/backend-storage] keepOnDelete is ignored in sandbox deployments. The bucket will be deleted.`,
+      );
+    }
+
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
       cors: [
@@ -117,8 +149,8 @@ export class AmplifyStorage
           ],
         },
       ],
-      autoDeleteObjects: true,
-      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: isDestroy,
+      removalPolicy: isDestroy ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       enforceSSL: true,
     };
 

@@ -5,9 +5,7 @@ import { Construct } from 'constructs';
 /**
  * Stub implementation of SsmEnvironmentEntriesGenerator used for backend unit testing
  */
-export class SsmEnvironmentEntriesGeneratorStub
-  implements SsmEnvironmentEntriesGenerator
-{
+export class SsmEnvironmentEntriesGeneratorStub implements SsmEnvironmentEntriesGenerator {
   /**
    * Constructs a new instance of the SsmEnvironmentEntriesGeneratorStub class.
    * @param scope The scope of the construct.

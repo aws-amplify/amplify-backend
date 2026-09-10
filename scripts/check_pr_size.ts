@@ -3,10 +3,28 @@ import { GitClient } from './components/git_client.js';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
-const EXCLUDE = ['package-lock.json', 'API.md', 'expected-cdk-out'];
+// `.changeset/` is release metadata (like package-lock/API reports), not source
+// churn — consolidating/squashing changesets should not count against PR size.
+const EXCLUDE = [
+  'package-lock.json',
+  'API.md',
+  'expected-cdk-out',
+  '.changeset/',
+];
 
-const MAX_LINES_ADDED = 1000;
-const MAX_LINES_REMOVED = 1000;
+// Raised from 3500 to 18000 for the snapshot/iac-hosting -> main release
+// PR (#3174), which lands the entire IaC hosting feature on mainline in one merge:
+// the defineHosting/definePipeline constructs, framework adapters, and their e2e
+// test fixtures (~17.3k insertions vs main, excluding lockfile/API.md/changesets;
+// the review-round fixes — dep waivers, floor bumps, extra fixtures — grew it past
+// the initial 17000 estimate). This is an aggregate feature-branch merge, not
+// typical PR churn. Tighten back toward the usual ~3500 once the hosting branch is merged.
+const MAX_LINES_ADDED = 18000;
+// Raised from 1000 to 2500 for the pipeline-shim PR, which deletes the ~2,000-line
+// forked pipeline implementation (pipeline_construct.ts / types.ts / its test) in
+// favor of a thin re-export of @aws-blocks/pipeline. The cap is intentionally left
+// at 2500 as headroom for similar de-fork/deletion PRs; tighten if it proves loose.
+const MAX_LINES_REMOVED = 2500;
 
 /**
  * Checks that the diff between HEAD and the specified base ref is within the allowed number of changed lines
@@ -24,7 +42,10 @@ if (baseRef === undefined) {
 const gitClient = new GitClient();
 const diffFileList = await gitClient.getChangedFiles(baseRef);
 const filteredList = diffFileList.filter(
-  (file) => !EXCLUDE.find((e) => file.includes(e)),
+  // Drop empty entries: an empty diff makes getChangedFiles return `['']`
+  // (splitting '' on EOL), which would otherwise survive the EXCLUDE filter
+  // and make `git diff ... -- ''` fail on an empty (no-op) PR.
+  (file) => file.length > 0 && !EXCLUDE.find((e) => file.includes(e)),
 );
 
 if (filteredList.length === 0) {

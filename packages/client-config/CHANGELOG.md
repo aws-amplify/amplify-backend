@@ -1,5 +1,102 @@
 # @aws-amplify/client-config
 
+## 1.11.1
+
+### Patch Changes
+
+- 02be24d: feat: standalone SSR hosting & CI/CD for Gen 2
+  - **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.3.0.
+  - **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.1.
+  - **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+  - **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
+
+- Updated dependencies [02be24d]
+- Updated dependencies [a0421b3]
+  - @aws-amplify/platform-core@1.12.0
+  - @aws-amplify/deployed-backend-client@1.8.3
+  - @aws-amplify/model-generator@1.2.5
+  - @aws-amplify/plugin-types@1.13.0
+
+## 1.11.0
+
+### Minor Changes
+
+- 3f331c5: Add `defineNotifications`, a backend construct for push notifications backed by Amazon Connect Customer Profiles.
+
+  It provisions a SigV4/IAM-authenticated HTTP API with three routes — `POST /identify-user`, `POST /register-device`, and `POST /remove-device` — callable by authenticated and guest Cognito Identity Pool identities; a Customer Profiles object type keyed on the caller's identity; a DynamoDB device store with single-owner semantics and TTL that backs cross-user-safe push delivery; and an Amazon Connect journey push-delivery Lambda. It can attach to an existing Customer Profiles domain or create one, and surfaces its endpoint under `notifications.amazon_connect` in the generated client configuration.
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+- Updated dependencies [424e1ef]
+  - @aws-amplify/plugin-types@1.12.2
+  - @aws-amplify/model-generator@1.2.4
+
+## 1.10.2
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/deployed-backend-client@1.8.2
+  - @aws-amplify/model-generator@1.2.3
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
+## 1.10.1
+
+### Patch Changes
+
+- 3c46984: Add `amplifyconfig` alias in gen1 Dart output for backwards compatibility
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+
+## 1.10.0
+
+### Minor Changes
+
+- 299c804: Add passwordless authentication options to client config
+
+### Patch Changes
+
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+
+## 1.9.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/model-generator@1.2.2
+  - @aws-amplify/platform-core@1.10.3
+
+## 1.9.0
+
+### Minor Changes
+
+- 477139e: feat(auth): Added support for email-MFA in Amplify Auth construct
+
+## 1.8.1
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/deployed-backend-client@1.8.1
+  - @aws-amplify/backend-output-schemas@1.7.1
+  - @aws-amplify/model-generator@1.2.1
+  - @aws-amplify/platform-core@1.10.1
+
 ## 1.8.0
 
 ### Minor Changes

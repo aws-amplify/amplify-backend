@@ -1,2 +1,2 @@
-npx changeset status --since main
+npx --package @changesets/cli -- changeset status --since main
 npm run check:api

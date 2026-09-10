@@ -7,9 +7,10 @@ import { ArgumentsKebabCase } from '../../../kebab_case.js';
 /**
  * Command that deletes the sandbox environment.
  */
-export class SandboxDeleteCommand
-  implements CommandModule<object, SandboxDeleteCommandOptionsKebabCase>
-{
+export class SandboxDeleteCommand implements CommandModule<
+  object,
+  SandboxDeleteCommandOptionsKebabCase
+> {
   /**
    * @inheritDoc
    */

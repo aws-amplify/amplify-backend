@@ -10,9 +10,10 @@ type NoticesListCommandOptionsKebabCase = ArgumentsKebabCase<{
 /**
  * Notices list command.
  */
-export class NoticesListCommand
-  implements CommandModule<object, NoticesListCommandOptionsKebabCase>
-{
+export class NoticesListCommand implements CommandModule<
+  object,
+  NoticesListCommandOptionsKebabCase
+> {
   /**
    * @inheritDoc
    */

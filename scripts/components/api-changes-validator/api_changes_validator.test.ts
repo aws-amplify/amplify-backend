@@ -70,7 +70,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
         (error: Error) => {
           assert.ok(
             error.message.includes(expectedErrorMessage),
-            `Error message ${EOL}${error.message}${EOL} must contain ${EOL}${expectedErrorMessage}${EOL}`,
+            `Error message ${EOL}\`\`\`${EOL}${error.message}${EOL}\`\`\`${EOL} must contain ${EOL}\`\`\`${EOL}${expectedErrorMessage}${EOL}\`\`\`${EOL}`,
           );
           return true;
         },

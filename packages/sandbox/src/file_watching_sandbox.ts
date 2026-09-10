@@ -301,6 +301,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           // It's important to pass this as callback so that debounce does
           // not reset tracker prematurely
           this.shouldValidateAppSources,
+          options.express,
         );
         const data: DeepPartial<TelemetryPayload> = {
           latency: {
@@ -527,17 +528,27 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   private interceptStderr = () => {
     process.stderr.write = (chunk) => {
-      if (
-        typeof chunk !== 'string' ||
-        !['Bundling asset'].some((prohibitedStrings) =>
-          chunk.includes(prohibitedStrings),
-        )
-      ) {
-        this.printer.log(
-          typeof chunk === 'string' ? chunk : chunk.toLocaleString(),
-        );
+      const message =
+        typeof chunk === 'string' ? chunk : chunk.toLocaleString();
+      if (this.isNodeProcessWarning(message)) {
+        return true;
       }
+      this.printer.log(message);
       return true;
     };
+  };
+
+  /**
+   * Detects Node.js process warnings that should be silently dropped rather
+   * than forwarded to the printer. Covers DeprecationWarning, ExperimentalWarning,
+   * and any other runtime warning emitted via process.emitWarning().
+   */
+  private isNodeProcessWarning = (message: string): boolean => {
+    return (
+      message.includes('Bundling asset') ||
+      message.includes('DeprecationWarning') ||
+      message.includes('ExperimentalWarning') ||
+      (message.includes('(node:') && message.includes('Warning'))
+    );
   };
 }

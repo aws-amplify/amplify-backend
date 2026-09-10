@@ -7,9 +7,7 @@ import {
 /**
  * Resolves the backend id when branch or stack is passed as an arg, otherwise returns a sandbox backend identifier
  */
-export class BackendIdentifierResolverWithFallback
-  implements BackendIdentifierResolver
-{
+export class BackendIdentifierResolverWithFallback implements BackendIdentifierResolver {
   /**
    * Accepts the sandbox id resolver as a parameter
    */

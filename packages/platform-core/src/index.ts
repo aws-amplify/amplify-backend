@@ -9,6 +9,7 @@ export * from './config/typed_configuration_file_factory.js';
 export * from './errors';
 export { USAGE_DATA_TRACKING_ENABLED } from './usage-data/constants.js';
 export { CDKContextKey } from './cdk_context_key.js';
+export { addCfnResourceDependency } from './cdk/cfn_dependency.js';
 export * from './parameter_path_conversions.js';
 export * from './object_accumulator.js';
 export { TagName } from './tag_name.js';

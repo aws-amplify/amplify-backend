@@ -34,4 +34,26 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
       );
     });
   });
+
+  void it('handles an empty file map without throwing (all operation documents filtered out) (aws-amplify/amplify-backend#3285)', async () => {
+    // Reviewer edge case (PR #3285): the document generator hands the filtered
+    // statement map straight to the resultBuilder, i.e.
+    // `new AppsyncGraphqlGenerationResult(fileMap)`. If every generated
+    // statement is empty, `fileMap` is `{}`. An empty map must be handled
+    // gracefully - zero files written, no throw.
+    const mkdirMock = mock.method(fs, 'mkdir');
+    const writeFileMock = mock.method(fs, 'writeFile');
+    mkdirMock.mock.mockImplementation(async () => {});
+    writeFileMock.mock.mockImplementation(async () => {});
+
+    const result = new AppsyncGraphqlGenerationResult({});
+
+    assert.deepEqual(await result.getResults(), {});
+
+    const { filesWritten } = await result.writeToDirectory('./fake-dir');
+
+    assert.deepEqual(filesWritten, []);
+    assert.strictEqual(writeFileMock.mock.calls.length, 0);
+    assert.strictEqual(mkdirMock.mock.calls.length, 0);
+  });
 });

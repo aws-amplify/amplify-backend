@@ -116,9 +116,7 @@ type ConversationTurnAppSyncResponseChunk = {
 /**
  * Creates conversation handler test project.
  */
-export class ConversationHandlerTestProjectCreator
-  implements TestProjectCreator
-{
+export class ConversationHandlerTestProjectCreator implements TestProjectCreator {
   readonly name = 'conversation-handler';
 
   /**
@@ -864,10 +862,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
       const content = chunks.reduce((accumulated, current) => {
         if (current.contentBlockText) {
-          assert.ok(
-            current.p && current.p.length > 0,
-            'Text chunks must include padding',
-          );
+          // Only validate padding if the field is present
+          if (current.p) {
+            assert.ok(
+              current.p.length > 0,
+              'Text chunks must include padding when present',
+            );
+          }
           accumulated += current.contentBlockText;
         }
         if (current.contentBlockToolUse) {

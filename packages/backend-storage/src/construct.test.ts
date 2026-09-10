@@ -3,6 +3,7 @@ import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { CDKContextKey } from '@aws-amplify/platform-core';
 
 void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
@@ -117,6 +118,138 @@ void describe('AmplifyStorage', () => {
           AccelerationStatus: 'Enabled',
         },
       });
+    });
+  });
+});
+
+void describe('AmplifyStorage keepOnDelete', () => {
+  void it('defaults to destroy when no keepOnDelete is specified', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
+    });
+  });
+
+  void it('sets retain policy when keepOnDelete is true in non-sandbox', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'branch');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', {
+      name: 'testName',
+      keepOnDelete: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Retain');
+    assert.equal(bucket.UpdateReplacePolicy, 'Retain');
+
+    // auto-delete objects custom resource should NOT exist when retaining
+    template.resourceCountIs('Custom::S3AutoDeleteObjects', 0);
+  });
+
+  void it('sets destroy policy when keepOnDelete is explicitly false', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'branch');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', {
+      name: 'testName',
+      keepOnDelete: false,
+    });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
+    });
+  });
+
+  void it('forces destroy in sandbox even when keepOnDelete is true', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', {
+      name: 'testName',
+      keepOnDelete: true,
+    });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
+    });
+  });
+
+  void it('respects explicit keepOnDelete false in sandbox', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', {
+      name: 'testName',
+      keepOnDelete: false,
+    });
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: { Ref: 'testBucketIdBucket3B30067A' },
+    });
+  });
+
+  void it('defaults to destroy in sandbox when no keepOnDelete is specified', () => {
+    const app = new App();
+    app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, 'sandbox');
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
     });
   });
 });

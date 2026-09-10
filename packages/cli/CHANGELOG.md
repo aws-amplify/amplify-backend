@@ -1,5 +1,113 @@
 # @aws-amplify/backend-cli
 
+## 1.10.0
+
+### Minor Changes
+
+- 02be24d: feat: standalone SSR hosting & CI/CD for Gen 2
+  - **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.3.0.
+  - **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.1.
+  - **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+  - **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
+
+### Patch Changes
+
+- Updated dependencies [02be24d]
+- Updated dependencies [a0421b3]
+  - @aws-amplify/backend-deployer@2.3.0
+  - @aws-amplify/hosting@1.0.0
+  - @aws-amplify/platform-core@1.12.0
+  - @aws-amplify/cli-core@2.2.7
+  - @aws-amplify/client-config@1.11.1
+  - @aws-amplify/deployed-backend-client@1.8.3
+  - @aws-amplify/form-generator@1.2.8
+  - @aws-amplify/model-generator@1.2.5
+  - @aws-amplify/plugin-types@1.13.0
+  - @aws-amplify/sandbox@2.3.1
+
+## 1.9.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/backend-deployer@2.2.1
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
+## 1.9.0
+
+### Minor Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+### Patch Changes
+
+- Updated dependencies [3f331c5]
+- Updated dependencies [4849fad]
+- Updated dependencies [424e1ef]
+  - @aws-amplify/client-config@1.11.0
+  - @aws-amplify/sandbox@2.3.0
+  - @aws-amplify/backend-deployer@2.2.0
+  - @aws-amplify/cli-core@2.2.6
+  - @aws-amplify/plugin-types@1.12.2
+  - @aws-amplify/model-generator@1.2.4
+
+## 1.8.3
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [bf4ee4b]
+- Updated dependencies [88c4759]
+  - @aws-amplify/cli-core@2.2.5
+  - @aws-amplify/backend-deployer@2.1.7
+  - @aws-amplify/sandbox@2.2.1
+  - @aws-amplify/client-config@1.10.2
+  - @aws-amplify/deployed-backend-client@1.8.2
+  - @aws-amplify/form-generator@1.2.7
+  - @aws-amplify/model-generator@1.2.3
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
+## 1.8.2
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [299c804]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/backend-deployer@2.1.5
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+  - @aws-amplify/backend-output-schemas@1.8.0
+  - @aws-amplify/client-config@1.10.0
+
+## 1.8.1
+
+### Patch Changes
+
+- 6469019: chore: upgrade SDK dependencies to recent versions
+- Updated dependencies [6469019]
+- Updated dependencies [34dc06f]
+  - @aws-amplify/model-generator@1.2.2
+  - @aws-amplify/backend-secret@1.4.2
+  - @aws-amplify/form-generator@1.2.6
+  - @aws-amplify/client-config@1.9.1
+  - @aws-amplify/platform-core@1.10.3
+  - @aws-amplify/cli-core@2.2.3
+  - @aws-amplify/sandbox@2.1.4
+
 ## 1.8.0
 
 ### Minor Changes

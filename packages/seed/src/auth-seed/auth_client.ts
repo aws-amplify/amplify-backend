@@ -42,12 +42,34 @@ export class AuthClient {
 
       const tempPassword = `Test1@Temp${randomUUID().toString()}`;
       // in the future will need to check that the preferredSignInFlow is not passwordless
+      const userAttributes = Object.entries({
+        address: newUser.userAttributes?.address,
+        birthdate: newUser.userAttributes?.birthdate,
+        email: newUser.userAttributes?.email,
+        family_name: newUser.userAttributes?.familyName,
+        gender: newUser.userAttributes?.gender,
+        given_name: newUser.userAttributes?.givenName,
+        locale: newUser.userAttributes?.locale,
+        middle_name: newUser.userAttributes?.middleName,
+        name: newUser.userAttributes?.name,
+        nickname: newUser.userAttributes?.nickname,
+        phone_number: newUser.userAttributes?.phoneNumber,
+        picture: newUser.userAttributes?.picture,
+        preferred_username: newUser.userAttributes?.preferredUsername,
+        profile: newUser.userAttributes?.profile,
+        zoneinfo: newUser.userAttributes?.zoneinfo,
+        updated_at: newUser.userAttributes?.updatedAt,
+        website: newUser.userAttributes?.website,
+      })
+        .filter(([, v]) => v !== undefined)
+        .map(([name, value]) => ({ Name: name, Value: value }));
       try {
         await this.cognitoIdentityProviderClient.send(
           new AdminCreateUserCommand({
             Username: newUser.username,
             TemporaryPassword: tempPassword,
             UserPoolId: authConfig.userPoolId,
+            UserAttributes: userAttributes,
             MessageAction: 'SUPPRESS',
           }),
         );

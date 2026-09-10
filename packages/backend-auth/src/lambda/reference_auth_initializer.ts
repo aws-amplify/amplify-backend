@@ -430,6 +430,10 @@ export class ReferenceAuthInitializer {
     if (userPoolMFA.SoftwareTokenMfaConfiguration?.Enabled) {
       mfaTypes.push('TOTP');
     }
+
+    if (userPoolMFA.EmailMfaConfiguration) {
+      mfaTypes.push('EMAIL_MFA');
+    }
     // social providers
     const socialProviders: string[] = [];
     if (userPoolProviders) {
@@ -459,7 +463,9 @@ export class ReferenceAuthInitializer {
 
     // domain
     const oauthDomain = userPool.CustomDomain ?? userPool.Domain ?? '';
-    const fullDomainPath = `${oauthDomain}.auth.${region}.amazoncognito.com`;
+    const fullDomainPath = userPool.CustomDomain
+      ? userPool.CustomDomain
+      : `${oauthDomain}.auth.${region}.amazoncognito.com`;
     const data = {
       signupAttributes: JSON.stringify(
         userPool.SchemaAttributes?.filter(

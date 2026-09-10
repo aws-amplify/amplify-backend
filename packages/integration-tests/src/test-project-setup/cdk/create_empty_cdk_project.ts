@@ -34,5 +34,25 @@ export const createEmptyCdkProject = async (
     force: true,
   });
 
+  // The CDK app template type checks the whole project before synthesizing
+  // (`cdk.json` runs `tsc`), and its `tsconfig.json` pins type resolution to the
+  // project local `node_modules/@types` which was just removed. Drop those
+  // settings so types resolve from the hoisted workspace dependencies instead.
+  const tsConfigPath = path.join(projectRoot, 'tsconfig.json');
+  const tsConfig = JSON.parse(await fsp.readFile(tsConfigPath, 'utf-8')) as {
+    compilerOptions?: Record<string, unknown>;
+  };
+  delete tsConfig.compilerOptions?.types;
+  delete tsConfig.compilerOptions?.typeRoots;
+  await fsp.writeFile(tsConfigPath, JSON.stringify(tsConfig, null, 2));
+
+  // The template unit tests target the template stack which is replaced by the
+  // test project sources, and they rely on test runner globals that are not
+  // dependencies of this workspace.
+  await fsp.rm(path.join(projectRoot, 'test'), {
+    recursive: true,
+    force: true,
+  });
+
   return { projectName, projectRoot };
 };

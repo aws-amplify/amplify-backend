@@ -160,6 +160,91 @@ void describe('UnifiedClientConfigGenerator', () => {
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 
+    void it('stamps version 1.5 when generating for V1.5', async () => {
+      const stubOutput: UnifiedBackendOutput = {
+        [platformOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: 'branch',
+            region: 'us-east-1',
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider,
+      );
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined,
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter,
+      ).getContributors('1.5');
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors,
+      );
+      const result = await clientConfigGenerator.generateClientConfig();
+      assert.strictEqual(result.version, '1.5');
+    });
+
+    void it('emits notifications.amazon_connect under version 1.5 for a Connect notifications backend (typed v1.5 path)', async () => {
+      const stubOutput: UnifiedBackendOutput = {
+        [platformOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: 'branch',
+            region: 'us-east-1',
+          },
+        },
+        // The backend-notifications factory surfaces its endpoint by serializing a
+        // Partial<ClientConfig> into the custom-output payload; the client-config
+        // CustomClientConfigContributor merges it into the typed v1.5 output.
+        [customOutputKey]: {
+          version: '1',
+          payload: {
+            customOutputs: JSON.stringify({
+              notifications: {
+                amazon_connect: {
+                  endpoint:
+                    'https://abc123.execute-api.us-east-1.amazonaws.com',
+                  aws_region: 'us-east-1',
+                },
+              },
+            }),
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider,
+      );
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined,
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter,
+      ).getContributors('1.5');
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors,
+      );
+      const result = await clientConfigGenerator.generateClientConfig();
+      assert.deepStrictEqual(result, {
+        version: '1.5',
+        notifications: {
+          amazon_connect: {
+            endpoint: 'https://abc123.execute-api.us-east-1.amazonaws.com',
+            aws_region: 'us-east-1',
+          },
+        },
+      });
+    });
+
     void it('transforms backend output into client config for V1.3', async () => {
       const groups = [
         {

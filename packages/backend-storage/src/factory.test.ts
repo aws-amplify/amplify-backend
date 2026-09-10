@@ -21,7 +21,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -196,5 +196,125 @@ void describe('AmplifyStorageFactory', () => {
     storageFactory.getInstance(getInstanceProps);
 
     assert.ok(Template.fromStack(stack));
+  });
+});
+
+const createStackAndSetContextWithDeploymentType = (
+  deploymentType: string,
+): Stack => {
+  const app = new App();
+  app.node.setContext(CDKContextKey.BACKEND_NAME, 'testEnvName');
+  app.node.setContext(CDKContextKey.BACKEND_NAMESPACE, 'testBackendId');
+  app.node.setContext(CDKContextKey.DEPLOYMENT_TYPE, deploymentType);
+  const stack = new Stack(app);
+  return stack;
+};
+
+void describe('AmplifyStorageFactory keepOnDelete integration', () => {
+  void it('sets Retain deletion policy when keepOnDelete is true in branch deployment', () => {
+    const stack = createStackAndSetContextWithDeploymentType('branch');
+
+    const constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack),
+    );
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack,
+    );
+
+    const getInstanceProps: ConstructFactoryGetInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier: new ImportPathVerifierStub(),
+      resourceNameValidator: new ResourceNameValidatorStub(),
+    };
+
+    const storageConstruct = defineStorage({
+      name: 'testName',
+      keepOnDelete: true,
+    }).getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(storageConstruct.resources.bucket),
+    );
+
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Retain');
+    assert.equal(bucket.UpdateReplacePolicy, 'Retain');
+
+    template.resourceCountIs('Custom::S3AutoDeleteObjects', 0);
+  });
+
+  void it('sets Delete deletion policy with auto-delete when no keepOnDelete is specified', () => {
+    const stack = createStackAndSetContextWithDeploymentType('branch');
+
+    const constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack),
+    );
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack,
+    );
+
+    const getInstanceProps: ConstructFactoryGetInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier: new ImportPathVerifierStub(),
+      resourceNameValidator: new ResourceNameValidatorStub(),
+    };
+
+    const storageConstruct = defineStorage({
+      name: 'testName',
+    }).getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(storageConstruct.resources.bucket),
+    );
+
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.resourceCountIs('Custom::S3AutoDeleteObjects', 1);
+  });
+
+  void it('forces Delete deletion policy in sandbox even when keepOnDelete is true', () => {
+    const stack = createStackAndSetContextWithDeploymentType('sandbox');
+
+    const constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack),
+    );
+    const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack,
+    );
+
+    const getInstanceProps: ConstructFactoryGetInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier: new ImportPathVerifierStub(),
+      resourceNameValidator: new ResourceNameValidatorStub(),
+    };
+
+    const storageConstruct = defineStorage({
+      name: 'testName',
+      keepOnDelete: true,
+    }).getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(storageConstruct.resources.bucket),
+    );
+
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.resourceCountIs('Custom::S3AutoDeleteObjects', 1);
   });
 });

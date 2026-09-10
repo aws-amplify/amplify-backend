@@ -1,5 +1,11 @@
 # ampx
 
+## 0.2.3
+
+### Patch Changes
+
+- 016ee87: adding repository to package.json configuration for trusted publishing
+
 ## 0.2.2
 
 ### Patch Changes

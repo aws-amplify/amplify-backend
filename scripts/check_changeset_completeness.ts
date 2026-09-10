@@ -50,7 +50,7 @@ const checkForMissingChangesets = async (
     throw new Error(
       `The following packages have changes but are not included in any changeset:${EOL}${EOL}${packagesMissingChangesets.join(
         EOL,
-      )}${EOL}${EOL}Add a changeset using 'npx changeset add'.`,
+      )}${EOL}${EOL}Add a changeset using 'npx --package @changesets/cli -- changeset add'.`,
     );
   }
 };

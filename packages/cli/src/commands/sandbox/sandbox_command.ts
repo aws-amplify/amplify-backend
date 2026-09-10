@@ -34,6 +34,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     streamFunctionLogs: boolean | undefined;
     logsFilter: string[] | undefined;
     logsOutFile: string | undefined;
+    express: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -57,9 +58,10 @@ export type SandboxEventHandlerCreator = (
 /**
  * Command that starts sandbox.
  */
-export class SandboxCommand
-  implements CommandModule<object, SandboxCommandOptionsKebabCase>
-{
+export class SandboxCommand implements CommandModule<
+  object,
+  SandboxCommandOptionsKebabCase
+> {
   /**
    * @inheritDoc
    */
@@ -155,6 +157,7 @@ export class SandboxCommand
       identifier: args.identifier,
       watchForChanges: !args.once,
       functionStreamingOptions,
+      express: args.express,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -228,6 +231,12 @@ export class SandboxCommand
             'logs-filter',
             'logs-out-file',
           ],
+        })
+        .option('express', {
+          describe:
+            'Deploy using CloudFormation/CDK Express mode for faster sandbox deployments',
+          boolean: true,
+          global: false,
         })
         .option('stream-function-logs', {
           describe:

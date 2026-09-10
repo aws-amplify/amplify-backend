@@ -1,5 +1,106 @@
 # @aws-amplify/backend-deployer
 
+## 2.3.0
+
+### Minor Changes
+
+- 02be24d: feat: standalone SSR hosting & CI/CD for Gen 2
+  - **`defineHosting`** (`@aws-amplify/hosting`) — framework-agnostic SSR/SSG (Next.js, Nuxt/Nitro, Astro, SPA) on CloudFront + Lambda via an OpenNext build (KVS edge routing, ISR cache seeding, image optimization, multi-domain/WAF, cache/headers, skew protection), built on `@aws-blocks/hosting` 0.3.0.
+  - **`definePipeline`** (`@aws-amplify/hosting/pipeline`) — a self-mutating CodePipeline (one per branch) with a two-phase backend-then-hosting deploy and typed per-stage config, built on `@aws-blocks/pipeline` 0.2.1.
+  - **Self-managed values** — `secret()` (AWS Secrets Manager) / `config()` (SSM Parameter Store) in `defineHosting`'s `environment`, read at runtime with `getSecret`/`getConfig` from the CDK-free `@aws-amplify/hosting/runtime` entry; `byoSecret()`/`byoConfig()` reference existing entries with no user CDK. Only the store locator is injected into compute — never the value; namespaces default to `/amplify/hosting/<project>/{secrets,config}`.
+  - **CLI** — `ampx deploy` gains `--backend`/`--frontend` and defaults `--identifier` to the sanitized `package.json` name; new `ampx secret` / `ampx config` (`set`/`get`/`list`/`remove`) manage self-managed hosting values.
+
+### Patch Changes
+
+- Updated dependencies [02be24d]
+- Updated dependencies [a0421b3]
+  - @aws-amplify/platform-core@1.12.0
+  - @aws-amplify/plugin-types@1.13.0
+
+## 2.2.1
+
+### Patch Changes
+
+- 9db547a: chore: raise aws-cdk-lib floor to ^2.254.0
+
+  Bump the `aws-cdk-lib` peer dependency floor from `^2.234.1` to `^2.254.0`
+  across all packages. This picks up the upstream fix for a crash during asset
+  fingerprinting on Windows with newer Node.js releases, where `fs.openSync` was
+  called with `O_SYNC | O_DSYNC` and failed with `EINVAL`. The fix shipped in
+  `aws-cdk-lib` 2.254.0.
+
+- 4ee0260: fix: bump `@aws-cdk/toolkit-lib` to 1.40.0 so hotswap fallback deployments stay in STANDARD mode
+
+  `@aws-cdk/toolkit-lib` 1.32.0 forced `express: true` whenever a `hotswap`
+  deployment fell back to a full deployment, so every `ampx sandbox` deploy that
+  could not be hotswapped was sent to CloudFormation with
+  `DeploymentConfig.Mode=EXPRESS` even though `--express` was not passed. Express
+  mode is opt-in, and the override also relaxed the rollback and replacement
+  checks of the fallback deployment.
+
+  The override was reverted upstream in `@aws-cdk/toolkit-lib` 1.38.1
+  (aws/aws-cdk-cli#1801). Bumping to 1.40.0 restores the intended behavior:
+  `--express` is honored when passed, and a hotswap fallback deploys in STANDARD
+  mode otherwise.
+
+- Updated dependencies [9db547a]
+- Updated dependencies [4ee0260]
+  - @aws-amplify/platform-core@1.11.2
+  - @aws-amplify/plugin-types@1.12.3
+
+## 2.2.0
+
+### Minor Changes
+
+- 4849fad: Add opt-in `ampx sandbox --express` flag that enables CloudFormation/CDK Express mode for faster sandbox deployments. When a deployment completes with resources still stabilizing, the Express Mode warning (e.g. `Stack deployed using Express Mode. Resources still stabilizing: ...`) is surfaced in the sandbox output. Bumps `@aws-cdk/toolkit-lib` to `1.32.0` and `@aws-sdk/client-cloudformation` to `^3.1078.0` (the version that adds the `DeploymentConfig` Express mode field to the CloudFormation request; older SDK versions silently drop it).
+
+### Patch Changes
+
+- Updated dependencies [4849fad]
+  - @aws-amplify/plugin-types@1.12.2
+
+## 2.1.7
+
+### Patch Changes
+
+- 88c4759: Fix high and critical Dependabot vulnerabilities: upgrade @aws-sdk/client-bedrock-runtime in ai-constructs to fix fast-xml-parser CRITICAL vulnerability, remove all npm overrides in favor of direct dependency upgrades.
+- Updated dependencies [88c4759]
+  - @aws-amplify/platform-core@1.11.1
+  - @aws-amplify/plugin-types@1.12.1
+
+## 2.1.6
+
+### Patch Changes
+
+- 0ee9189: Bump @aws-cdk/toolkit-lib from 1.6.1 to 1.16.0 to support latest cloud assembly schema versions.
+- 67e8773: Add standalone deployment type for deploying Gen2 backends without Amplify Hosting
+- Updated dependencies [0ee9189]
+- Updated dependencies [67e8773]
+  - @aws-amplify/plugin-types@1.12.0
+  - @aws-amplify/platform-core@1.11.0
+
+## 2.1.5
+
+### Patch Changes
+
+- 7d0ba5e: chore: upgrade CDK dependencies
+- 4603f7a: bump aws-cdk-lib version to ^2.234.1 across all packages
+- Updated dependencies [7d0ba5e]
+- Updated dependencies [4603f7a]
+  - @aws-amplify/platform-core@1.10.4
+  - @aws-amplify/plugin-types@1.11.2
+
+## 2.1.4
+
+### Patch Changes
+
+- b6ef34d: Bumps [@aws-cdk/toolkit-lib](https://github.com/aws/aws-cdk-cli/tree/HEAD/packages/@aws-cdk/toolkit-lib) from 1.1.1 to 1.2.4.
+- 016ee87: adding repository to package.json configuration for trusted publishing
+- Updated dependencies [b6ef34d]
+- Updated dependencies [016ee87]
+  - @aws-amplify/plugin-types@1.11.1
+  - @aws-amplify/platform-core@1.10.1
+
 ## 2.1.3
 
 ### Patch Changes

@@ -6,6 +6,100 @@ import ts from 'typescript';
 import { EOL } from 'os';
 
 /**
+ * An inert `unique symbol` brand member — a computed property whose key is a
+ * bare identifier AND whose value type is the literal `true`
+ * (`readonly [BYO_BRAND]?: true`).
+ *
+ * The match is deliberately narrow. Matching key SHAPE alone (`[Identifier]`)
+ * would silently strip any symbol-keyed member — including one that carries
+ * real API — and a breaking change to it would then pass this guard undetected
+ * (the worst failure mode for a check that runs on every PR). Requiring the
+ * value type to be `true` limits stripping to the inert brand pattern; a
+ * symbol-keyed member with any other value type falls through to verbatim and
+ * fails loud (`TS2304`) instead of vanishing.
+ *
+ * (`[Symbol.iterator]` is a PropertyAccessExpression, not an Identifier, so
+ * well-known symbols are NOT matched; nor are string/number computed keys.)
+ */
+const isSymbolBrandMember = (member: ts.TypeElement): boolean =>
+  !!member.name &&
+  ts.isComputedPropertyName(member.name) &&
+  ts.isIdentifier(member.name.expression) &&
+  ts.isPropertySignature(member) &&
+  !!member.type &&
+  ts.isLiteralTypeNode(member.type) &&
+  member.type.literal.kind === ts.SyntaxKind.TrueKeyword;
+
+/**
+ * Whether a type node declares a symbol-brand member.
+ *
+ * Descends through intersections, unions and parentheses and inspects
+ * top-level type-literal members. It does NOT descend into a member's own
+ * value type, nor into arrays/generics/mapped types: a brand nested there
+ * (`foo: { [SYM]: true }`) is left verbatim and fails loud (`TS2304`) rather
+ * than being silently dropped. That is a completeness limit (fail-loud), not a
+ * safety hole; see the `does not strip a brand nested in a member value type`
+ * test.
+ */
+const containsSymbolBrandMember = (typeNode: ts.TypeNode): boolean => {
+  if (ts.isTypeLiteralNode(typeNode)) {
+    return typeNode.members.some(isSymbolBrandMember);
+  }
+  if (ts.isUnionTypeNode(typeNode) || ts.isIntersectionTypeNode(typeNode)) {
+    return typeNode.types.some(containsSymbolBrandMember);
+  }
+  if (ts.isParenthesizedTypeNode(typeNode)) {
+    return containsSymbolBrandMember(typeNode.type);
+  }
+  return false;
+};
+
+/**
+ * Render a type node's text with inert symbol-brand members removed.
+ *
+ * API Extractor's single-file report references a brand `unique symbol` by name
+ * (`[BYO_BRAND]`) but does not emit the private symbol's declaration, so copying
+ * the type text verbatim into generated usage does not compile
+ * (`TS2304: Cannot find name 'BYO_BRAND'`). A brand key is a nominal marker that
+ * cannot be exercised in generated usage anyway, so it is dropped from the
+ * baseline reconstruction. When no brand is present the text is returned
+ * verbatim, so every other type is unaffected.
+ *
+ * For the brand-stripped reconstruction to stay assignable to the imported
+ * "latest" type, the brand must be OPTIONAL there (`readonly [BRAND]?: true`) —
+ * a required brand surfaces downstream as `TS2741` ("property is missing").
+ * We cannot pre-empt that with a clearer error here: API Extractor renders
+ * symbol-keyed properties WITHOUT the `?` in the report (a source
+ * `[BRAND]?: true` shows as `[BRAND]: true`), so optional-vs-required is not
+ * recoverable from the baseline AST. The convention is therefore: declare such
+ * brands optional in the source type.
+ */
+const renderTypeWithoutSymbolBrands = (typeNode: ts.TypeNode): string => {
+  if (!containsSymbolBrandMember(typeNode)) {
+    return typeNode.getText();
+  }
+  if (ts.isTypeLiteralNode(typeNode)) {
+    const keptMembers = typeNode.members
+      .filter((member) => !isSymbolBrandMember(member))
+      // `getText()` includes each member's terminating `;` (API Extractor
+      // emits `;`-separated members); strip it so the rejoined members are
+      // not doubly-separated.
+      .map((member) => member.getText().replace(/;\s*$/, ''));
+    return `{ ${keptMembers.join('; ')} }`;
+  }
+  if (ts.isIntersectionTypeNode(typeNode)) {
+    return typeNode.types.map(renderTypeWithoutSymbolBrands).join(' & ');
+  }
+  if (ts.isUnionTypeNode(typeNode)) {
+    return typeNode.types.map(renderTypeWithoutSymbolBrands).join(' | ');
+  }
+  if (ts.isParenthesizedTypeNode(typeNode)) {
+    return `(${renderTypeWithoutSymbolBrands(typeNode.type)})`;
+  }
+  return typeNode.getText();
+};
+
+/**
  * This class generates generic type declaration.
  *
  * The generator is useful in situations where generic types need to be declared
@@ -14,9 +108,7 @@ import { EOL } from 'os';
  * Example:
  * type TemporaryType<here goes output from this generator> = {}
  */
-export class GenericTypeParameterDeclarationUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class GenericTypeParameterDeclarationUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * Constructor
    */
@@ -54,9 +146,7 @@ export class GenericTypeParameterDeclarationUsageStatementsGenerator
  *
  * Note: this generator generates minimal required usage at this time.
  */
-export class GenericTypeParameterUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class GenericTypeParameterUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * Constructor
    */
@@ -87,9 +177,7 @@ export class GenericTypeParameterUsageStatementsGenerator
  * This is a pass through process. Imports present in API.md report are
  * required for types defined in that report.
  */
-export class ImportUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class ImportUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */
@@ -142,7 +230,9 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     const baselineTypeName = `${typeName}Baseline`;
     const functionParameterName = `${constName}FunctionParameter`;
     // declare type with same content under different name.
-    let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${this.typeAliasDeclaration.type.getText()}${EOL}`;
+    let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${renderTypeWithoutSymbolBrands(
+      this.typeAliasDeclaration.type,
+    )}${EOL}`;
     // add statement that checks if old type can be assigned to new type.
     const assignmentStatement = `const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};`;
     usageStatement += `const ${toLowerCamelCase(
@@ -270,9 +360,7 @@ export class ClassUsageStatementsGenerator implements UsageStatementsGenerator {
  *    - attempt to read property and assign its value to local const.
  *    - attempt to call method, which is wrapped in inner function that provides parameters for the method call.
  */
-class ClassPropertyUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+class ClassPropertyUsageStatementsGenerator implements UsageStatementsGenerator {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly propertyDeclaration: ts.PropertyDeclaration,
@@ -330,9 +418,7 @@ class ClassPropertyUsageStatementsGenerator
 /**
  * Generates usage snippets for class constructor.
  */
-class ClassConstructorUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+class ClassConstructorUsageStatementsGenerator implements UsageStatementsGenerator {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly constructorDeclaration: ts.ConstructorDeclaration,
@@ -441,9 +527,7 @@ class ClassConstructorUsageStatementsGenerator
  * Generated snippets attempt to use a reference typed with class (provided via usage function parameter)
  * and assign it to local constant that is typed with super type from extend or implement clauses.
  */
-class ClassInheritanceUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+class ClassInheritanceUsageStatementsGenerator implements UsageStatementsGenerator {
   constructor(
     private readonly classDeclaration: ts.ClassDeclaration,
     private readonly heritageClauses: ts.NodeArray<ts.HeritageClause>,
@@ -489,9 +573,7 @@ class ClassInheritanceUsageStatementsGenerator
  *
  * TODO this handles functions for now, add variable/const.
  */
-export class VariableUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class VariableUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */
@@ -544,9 +626,7 @@ export class VariableUsageStatementsGenerator
  *     someFunction(param1, param2);
  * }
  */
-export class CallableUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class CallableUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */
@@ -605,9 +685,7 @@ export class CallableUsageStatementsGenerator
  * const someFunctionUsageFunction = (<code from this generator goes here>) => {
  * }
  */
-export class CallableParameterDeclarationUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class CallableParameterDeclarationUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */
@@ -633,9 +711,7 @@ export class CallableParameterDeclarationUsageStatementsGenerator
  *     someFunction(<code from this generator goes here>);
  * }
  */
-export class CallableParameterUsageStatementsGenerator
-  implements UsageStatementsGenerator
-{
+export class CallableParameterUsageStatementsGenerator implements UsageStatementsGenerator {
   /**
    * @inheritDoc
    */

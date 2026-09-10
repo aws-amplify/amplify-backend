@@ -35,7 +35,7 @@ export class ClientConfigFormatterLegacy implements ClientConfigFormatter {
           this.configConverter.convertToMobileConfig(legacyConfig),
           null,
           2,
-        )}''';`;
+        )}''';\n\nconst amplifyconfig = amplifyConfig;`;
       }
       case ClientConfigFormat.JSON_MOBILE:
         return JSON.stringify(

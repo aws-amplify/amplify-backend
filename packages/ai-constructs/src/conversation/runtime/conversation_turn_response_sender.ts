@@ -152,7 +152,13 @@ export class ConversationTurnResponseSender {
         // arbitrary JSON values.
         // We need to stringify it before sending it to AppSync to prevent type errors.
         const input = JSON.stringify(block.toolUse.input);
-        return { toolUse: { ...block.toolUse, input } };
+        // Only forward the fields that the AppSync-generated `AmplifyAIToolUseBlockInput`
+        // accepts. We intentionally avoid spreading the whole Bedrock SDK `ToolUseBlock`,
+        // because newer `@aws-sdk/client-bedrock-runtime` versions add extra fields (e.g.
+        // `type`) that are not part of the AppSync input type and cause the mutation to be
+        // rejected with "Field '...' is not defined by type 'AmplifyAIToolUseBlockInput'".
+        const { toolUseId, name } = block.toolUse;
+        return { toolUse: { toolUseId, name, input } };
       }
       return block;
     });

@@ -4,6 +4,7 @@ import { existsSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createHash } from 'crypto';
+import { cpus } from 'os';
 
 // Until npm supports concurrent workspace command execution, this can be used to run commands concurrently
 // https://github.com/npm/feedback/discussions/781
@@ -45,8 +46,33 @@ const runInDir = (dir: string) =>
     stdio: 'inherit',
   });
 
-// iterate over all the packages in the project
-const runPromises = packagePaths.map(async (packagePath) => {
+// Limit concurrency to avoid OOM when each child process (e.g. api-extractor)
+// loads the full TypeScript compiler. Cap at CPU count to balance speed and memory.
+const MAX_CONCURRENCY = Math.max(1, Math.min(cpus().length, 4));
+
+const runWithConcurrencyLimit = async (
+  tasks: Array<() => Promise<unknown>>,
+  limit: number,
+) => {
+  const results: unknown[] = [];
+  let index = 0;
+
+  const runNext = async (): Promise<void> => {
+    while (index < tasks.length) {
+      const currentIndex = index++;
+      results[currentIndex] = await tasks[currentIndex]();
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, () =>
+    runNext(),
+  );
+  await Promise.all(workers);
+  return results;
+};
+
+// iterate over all the packages in the project and build task list
+const tasks = packagePaths.map((packagePath) => async () => {
   const packageTsBuildInfoPath = path.join(packagePath, 'tsconfig.tsbuildinfo');
   // if the package doesn't have a tsbuildinfo file, execute the command
   if (!existsSync(packageTsBuildInfoPath)) {
@@ -64,7 +90,7 @@ const runPromises = packagePaths.map(async (packagePath) => {
   return undefined;
 });
 
-await Promise.all(runPromises);
+await runWithConcurrencyLimit(tasks, MAX_CONCURRENCY);
 
 // set the command cache in the main cache object
 hashCache[commandCacheKey] = commandHashCache;

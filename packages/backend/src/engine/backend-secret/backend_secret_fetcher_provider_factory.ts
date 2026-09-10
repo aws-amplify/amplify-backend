@@ -8,6 +8,7 @@ import { Provider } from 'aws-cdk-lib/custom-resources';
 import { fileURLToPath } from 'node:url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
+import { resolveBundlingRoots } from '../bundling_roots.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -16,6 +17,7 @@ const backendSecretLambdaFilePath = path.join(
   resourcesRoot,
   'backend_secret_fetcher.js',
 );
+const bundlingRoots = resolveBundlingRoots(backendSecretLambdaFilePath);
 
 /**
  * The factory to create secret-fetcher provider.
@@ -36,9 +38,10 @@ export class BackendSecretFetcherProviderFactory {
     }
 
     const secretLambda = new NodejsFunction(scope, `${providerId}Lambda`, {
-      runtime: LambdaRuntime.NODEJS_20_X,
+      runtime: LambdaRuntime.NODEJS_22_X,
       timeout: Duration.seconds(10),
       entry: backendSecretLambdaFilePath,
+      ...bundlingRoots,
       handler: 'handler',
     });
 

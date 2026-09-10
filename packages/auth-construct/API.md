@@ -45,6 +45,7 @@ export type AuthProps = {
     loginWith: {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;
+        webAuthn?: WebAuthnLogin;
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
@@ -55,6 +56,9 @@ export type AuthProps = {
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     groups?: string[];
+    passwordlessOptions?: {
+        preferredChallenge?: 'EMAIL_OTP' | 'SMS_OTP' | 'PASSWORD' | 'WEB_AUTHN';
+    };
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
@@ -108,6 +112,7 @@ export type EmailLoginSettings = (VerificationEmailWithLink | VerificationEmailW
         emailBody?: (username: () => string, code: () => string) => string;
         smsMessage?: (username: () => string, code: () => string) => string;
     };
+    otpLogin?: boolean;
 };
 
 // @public
@@ -145,12 +150,21 @@ export type MFA = {
 } & MFASettings);
 
 // @public
+export type MFAEmailSettings = boolean;
+
+// @public
 export type MFASettings = {
     totp?: MFATotpSettings;
+    sms?: MFASmsSettings;
+    email: MFAEmailSettings;
+} | {
+    totp?: MFATotpSettings;
     sms: MFASmsSettings;
+    email?: MFAEmailSettings;
 } | {
     totp: MFATotpSettings;
     sms?: MFASmsSettings;
+    email?: MFAEmailSettings;
 };
 
 // @public
@@ -169,6 +183,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 // @public
 export type PhoneNumberLogin = true | {
     verificationMessage?: (createCode: () => string) => string;
+    otpLogin?: boolean;
 };
 
 // @public
@@ -206,6 +221,15 @@ export type VerificationEmailWithLink = {
     verificationEmailStyle?: 'LINK';
     verificationEmailBody?: (createLink: (text?: string) => string) => string;
     verificationEmailSubject?: string;
+};
+
+// @public
+export type WebAuthnLogin = true | WebAuthnOptions;
+
+// @public
+export type WebAuthnOptions = {
+    relyingPartyId: string;
+    userVerification?: 'required' | 'preferred';
 };
 
 // (No @packageDocumentation comment for this package)
