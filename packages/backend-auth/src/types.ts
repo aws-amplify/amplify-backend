@@ -6,6 +6,7 @@ import {
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
+  SamlProviderProps,
 } from '@aws-amplify/auth-construct';
 import {
   AmplifyFunction,
@@ -138,6 +139,28 @@ export type OidcProviderFactoryProps = Omit<
 };
 
 /**
+ * SAML provider properties.
+ */
+export type SamlProviderFactoryProps = Omit<SamlProviderProps, 'metadata'> & {
+  /**
+   * The SAML metadata.
+   */
+  metadata: {
+    /**
+     * The SAML metadata content (URL or file content).
+     * Can be a string or a BackendSecret for secure storage.
+     */
+    metadataContent: string | BackendSecret;
+    /**
+     * Metadata types that can be used for a SAML user pool identity provider.
+     * 'URL' - Metadata provided via a URL.
+     * 'FILE' - Metadata provided via the contents of a file.
+     */
+    metadataType: 'URL' | 'FILE';
+  };
+};
+
+/**
  * External provider general properties.
  */
 export type ExternalProviderGeneralFactoryProps = Omit<
@@ -147,6 +170,7 @@ export type ExternalProviderGeneralFactoryProps = Omit<
   | 'facebook'
   | 'oidc'
   | 'google'
+  | 'saml'
   | 'domainPrefix'
 >;
 
@@ -175,6 +199,10 @@ export type ExternalProviderSpecificFactoryProps =
      * Google OAuth Settings
      */
     google?: GoogleProviderFactoryProps;
+    /**
+     * SAML Settings
+     */
+    saml?: SamlProviderFactoryProps;
   };
 
 /**
