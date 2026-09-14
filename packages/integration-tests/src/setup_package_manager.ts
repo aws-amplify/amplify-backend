@@ -34,6 +34,7 @@ const initializePnpm = async (dir: string) => {
     '  esbuild: true',
     "  '@parcel/watcher': true",
     '  core-js: true',
+    "  '@aws-amplify/hosting': true",
     '',
   ].join('\n');
   await fsp.writeFile(
