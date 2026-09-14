@@ -24,6 +24,7 @@ import {
 const RESOURCE_TYPES_SAFE_TO_RETAIN = [
   'Custom::S3AutoDeleteObjects',
   'Custom::CDKBucketDeployment',
+  'Custom::LogRetention',
   'AWS::S3::Bucket',
 ];
 

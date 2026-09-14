@@ -472,6 +472,33 @@ void describe('StackDeleter', () => {
       );
     });
 
+    void it('retains a LogRetention resource that is the only failed resource', async () => {
+      const { cfnClient, send } = buildCfnClient({
+        resourcesByStack: {
+          'amplify-stuck': [
+            buildResource(
+              'LogRetention',
+              'Custom::LogRetention',
+              'log-retention',
+              ResourceStatus.DELETE_FAILED,
+            ),
+          ],
+        },
+      });
+
+      const retainedResources = await buildStackDeleter(cfnClient).deleteStack(
+        buildStack('amplify-stuck', { StackStatus: StackStatus.DELETE_FAILED }),
+      );
+
+      assert.deepStrictEqual(retainedResources, ['LogRetention']);
+      assert.deepStrictEqual(getDeleteStackInputs(send), [
+        {
+          StackName: 'amplify-stuck',
+          RetainResources: ['LogRetention'],
+        },
+      ]);
+    });
+
     void it('never abandons a CloudFront distribution and asks for manual attention', async () => {
       const logMessages: Array<string> = [];
       const { cfnClient, send } = buildCfnClient({

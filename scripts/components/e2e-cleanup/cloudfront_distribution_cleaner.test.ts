@@ -7,9 +7,13 @@ import {
   GetDistributionConfigCommand,
   ListDistributionsCommand,
   ListDistributionsCommandOutput,
+  Origin,
   UpdateDistributionCommand,
 } from '@aws-sdk/client-cloudfront';
-import { CloudFrontDistributionCleaner } from './cloudfront_distribution_cleaner.js';
+import {
+  BucketToDistributionsIndex,
+  CloudFrontDistributionCleaner,
+} from './cloudfront_distribution_cleaner.js';
 
 const TEST_RESOURCE_PREFIX = 'amplify-';
 
@@ -18,19 +22,36 @@ const buildDistribution = (
   originDomainNames: Array<string>,
   overrides: Partial<DistributionSummary> = {},
 ): DistributionSummary =>
+  buildDistributionWithOrigins(
+    id,
+    originDomainNames.map((domainName, index) => ({
+      Id: `origin-${index}`,
+      DomainName: domainName,
+    })),
+    overrides,
+  );
+
+const buildDistributionWithOrigins = (
+  id: string,
+  origins: Array<Partial<Origin>>,
+  overrides: Partial<DistributionSummary> = {},
+): DistributionSummary =>
   ({
     Id: id,
     Status: 'Deployed',
     Enabled: true,
     Origins: {
-      Quantity: originDomainNames.length,
-      Items: originDomainNames.map((domainName, index) => ({
-        Id: `origin-${index}`,
-        DomainName: domainName,
-      })),
+      Quantity: origins.length,
+      Items: origins,
     },
     ...overrides,
   }) as DistributionSummary;
+
+const buildIndex = (
+  entries: Array<[string, Array<DistributionSummary>]> = [],
+  isComplete = true,
+): BucketToDistributionsIndex =>
+  new BucketToDistributionsIndex(new Map(entries), isComplete);
 
 const buildCloudFrontClient = (
   handlers: {
@@ -91,41 +112,105 @@ const getCommandInputs = (
     )
     .map((command) => (command as { input: Record<string, unknown> }).input);
 
+const buildIndexOf = async (
+  distributions: Array<DistributionSummary>,
+): Promise<BucketToDistributionsIndex> => {
+  const { cloudFrontClient } = buildCloudFrontClient({
+    listDistributions: [
+      {
+        DistributionList: { Items: distributions, IsTruncated: false },
+        $metadata: {},
+      } as ListDistributionsCommandOutput,
+    ],
+  });
+  return new CloudFrontDistributionCleaner(
+    cloudFrontClient,
+    TEST_RESOURCE_PREFIX,
+    () => {},
+  ).buildBucketToDistributionsIndex();
+};
+
 void describe('CloudFrontDistributionCleaner', () => {
   void describe('buildBucketToDistributionsIndex', () => {
     void it('indexes test bucket origins of all supported domain formats', async () => {
-      const { cloudFrontClient } = buildCloudFrontClient({
-        listDistributions: [
+      const index = await buildIndexOf([
+        buildDistribution('D1', [
+          'amplify-regional.s3.us-west-2.amazonaws.com',
+        ]),
+        buildDistribution('D2', ['amplify-global.s3.amazonaws.com']),
+        buildDistribution('D3', [
+          'amplify-website.s3-website-us-west-2.amazonaws.com',
+        ]),
+        buildDistribution('D4', [
+          'amplify-dualstack.s3.dualstack.us-west-2.amazonaws.com',
+        ]),
+        buildDistribution('D5', [
+          'amplify-china.s3.cn-north-1.amazonaws.com.cn',
+        ]),
+        buildDistributionWithOrigins('D6', [
           {
-            DistributionList: {
-              Items: [
-                buildDistribution('D1', [
-                  'amplify-regional.s3.us-west-2.amazonaws.com',
-                ]),
-                buildDistribution('D2', ['amplify-global.s3.amazonaws.com']),
-                buildDistribution('D3', [
-                  'amplify-website.s3-website-us-west-2.amazonaws.com',
-                ]),
-              ],
-              IsTruncated: false,
-            },
-            $metadata: {},
-          } as ListDistributionsCommandOutput,
-        ],
-      });
+            Id: 'origin-0',
+            DomainName: 's3.us-west-2.amazonaws.com',
+            OriginPath: '/amplify-path-style',
+          },
+        ]),
+        buildDistributionWithOrigins('D7', [
+          {
+            Id: 'origin-0',
+            DomainName: 's3.amazonaws.com/amplify-legacy-path-style/site',
+          },
+        ]),
+        buildDistributionWithOrigins('D8', [
+          {
+            Id: 'origin-0',
+            DomainName: 'amplify-dotted.bucket.s3.us-west-2.amazonaws.com',
+            S3OriginConfig: { OriginAccessIdentity: '' },
+          },
+        ]),
+      ]);
 
-      const index = await new CloudFrontDistributionCleaner(
-        cloudFrontClient,
-        TEST_RESOURCE_PREFIX,
-        () => {},
-      ).buildBucketToDistributionsIndex();
-
-      assert.deepStrictEqual([...index.keys()].sort(), [
+      assert.deepStrictEqual(index.getBucketNames().sort(), [
+        'amplify-china',
+        'amplify-dotted.bucket',
+        'amplify-dualstack',
         'amplify-global',
+        'amplify-legacy-path-style',
+        'amplify-path-style',
         'amplify-regional',
         'amplify-website',
       ]);
-      assert.strictEqual(index.get('amplify-regional')?.[0].Id, 'D1');
+      assert.strictEqual(index.isComplete, true);
+      assert.strictEqual(
+        index.getDistributions('amplify-regional')[0].Id,
+        'D1',
+      );
+      assert.strictEqual(
+        index.getDistributions('amplify-legacy-path-style')[0].Id,
+        'D7',
+      );
+      assert.strictEqual(
+        index.getDistributions('amplify-dotted.bucket')[0].Id,
+        'D8',
+      );
+    });
+
+    void it('marks the index incomplete for an unrecognized S3 origin', async () => {
+      const index = await buildIndexOf([
+        buildDistributionWithOrigins('D1', [
+          {
+            Id: 'origin-0',
+            DomainName: 'amplify-app.s3.some-new-endpoint.example',
+            S3OriginConfig: { OriginAccessIdentity: '' },
+          },
+        ]),
+      ]);
+
+      assert.deepStrictEqual(index.getBucketNames(), []);
+      assert.strictEqual(index.isComplete, false);
+      assert.strictEqual(
+        index.incompleteReason,
+        'unrecognized-s3-origin: distribution D1',
+      );
     });
 
     void it('ignores origins that are not test buckets and follows pagination', async () => {
@@ -170,11 +255,105 @@ void describe('CloudFrontDistributionCleaner', () => {
         { Marker: undefined },
         { Marker: 'D1' },
       ]);
-      assert.deepStrictEqual([...index.keys()], ['amplify-app']);
-      assert.strictEqual(index.get('amplify-app')?.length, 1);
+      assert.deepStrictEqual(index.getBucketNames(), ['amplify-app']);
+      assert.strictEqual(index.getDistributions('amplify-app').length, 1);
     });
 
-    void it('returns an empty index instead of throwing when listing is not permitted', async () => {
+    void it('marks the index incomplete when a truncated page has no next marker', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient({
+        listDistributions: [
+          {
+            DistributionList: {
+              Marker: '',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+        ],
+      });
+
+      const index = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).buildBucketToDistributionsIndex();
+
+      assert.strictEqual(index.isComplete, false);
+      assert.deepStrictEqual(getCommandInputs(send, ListDistributionsCommand), [
+        { Marker: undefined },
+      ]);
+    });
+
+    void it('marks the index incomplete when a pagination marker repeats', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient({
+        listDistributions: [
+          {
+            DistributionList: {
+              Marker: '',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+              NextMarker: 'D1',
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+          {
+            DistributionList: {
+              Marker: 'D1',
+              MaxItems: 100,
+              Quantity: 0,
+              Items: [],
+              IsTruncated: true,
+              NextMarker: 'D1',
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+        ],
+      });
+
+      const index = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).buildBucketToDistributionsIndex();
+
+      assert.strictEqual(index.isComplete, false);
+      assert.deepStrictEqual(getCommandInputs(send, ListDistributionsCommand), [
+        { Marker: undefined },
+        { Marker: 'D1' },
+      ]);
+    });
+
+    void it('ignores origins that are not S3 buckets at all', async () => {
+      const index = await buildIndexOf([
+        buildDistributionWithOrigins('D1', [
+          { Id: 'origin-0', DomainName: 'amplify-app.example.com' },
+          {
+            Id: 'origin-1',
+            DomainName: 'amplify-api.execute-api.us-west-2.amazonaws.com',
+          },
+          {
+            Id: 'origin-2',
+            DomainName: 'amplify-lb.elb.us-west-2.amazonaws.com',
+            CustomOriginConfig: {
+              HTTPPort: 80,
+              HTTPSPort: 443,
+              OriginProtocolPolicy: 'https-only',
+            },
+          },
+          { Id: 'origin-3', DomainName: 's3.us-west-2.amazonaws.com' },
+        ]),
+      ]);
+
+      assert.deepStrictEqual(index.getBucketNames(), []);
+      assert.strictEqual(index.isComplete, true);
+    });
+
+    void it('reports an incomplete index instead of throwing when listing is not permitted', async () => {
       const logMessages: Array<string> = [];
       const { cloudFrontClient } = buildCloudFrontClient({
         listDistributions: [
@@ -190,12 +369,45 @@ void describe('CloudFrontDistributionCleaner', () => {
         (message) => logMessages.push(message),
       ).buildBucketToDistributionsIndex();
 
-      assert.strictEqual(index.size, 0);
+      assert.strictEqual(index.isComplete, false);
+      assert.strictEqual(
+        index.incompleteReason,
+        'list-distributions-error: User is not authorized to perform cloudfront:ListDistributions',
+      );
+      assert.deepStrictEqual(index.getBucketNames(), []);
       assert.ok(
         logMessages.some((message) =>
           message.includes('Unable to list CloudFront distributions'),
         ),
       );
+    });
+
+    void it('reports an incomplete index when a later page of distributions cannot be listed', async () => {
+      const { cloudFrontClient } = buildCloudFrontClient({
+        listDistributions: [
+          {
+            DistributionList: {
+              Items: [
+                buildDistribution('D1', [
+                  'amplify-app.s3.us-west-2.amazonaws.com',
+                ]),
+              ],
+              IsTruncated: true,
+              NextMarker: 'D1',
+            },
+            $metadata: {},
+          } as ListDistributionsCommandOutput,
+          new Error('Rate exceeded'),
+        ],
+      });
+
+      const index = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).buildBucketToDistributionsIndex();
+
+      assert.strictEqual(index.isComplete, false);
     });
   });
 
@@ -207,9 +419,42 @@ void describe('CloudFrontDistributionCleaner', () => {
         cloudFrontClient,
         TEST_RESOURCE_PREFIX,
         () => {},
-      ).reapDistributionsForBucket('amplify-app', new Map());
+      ).reapDistributionsForBucket('amplify-app', buildIndex());
 
       assert.strictEqual(result, 'none');
+      assert.strictEqual(send.mock.callCount(), 0);
+    });
+
+    void it('reports index-incomplete without calling CloudFront when the index is incomplete', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient();
+
+      const result = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).reapDistributionsForBucket('amplify-app', buildIndex([], false));
+
+      assert.strictEqual(result, 'index-incomplete');
+      assert.strictEqual(send.mock.callCount(), 0);
+    });
+
+    void it('reports unreapable when an indexed distribution is missing an id', async () => {
+      const { cloudFrontClient, send } = buildCloudFrontClient();
+      const distribution = {
+        Enabled: false,
+        Status: 'Deployed',
+      } as DistributionSummary;
+
+      const result = await new CloudFrontDistributionCleaner(
+        cloudFrontClient,
+        TEST_RESOURCE_PREFIX,
+        () => {},
+      ).reapDistributionsForBucket(
+        'amplify-app',
+        buildIndex([['amplify-app', [distribution]]]),
+      );
+
+      assert.strictEqual(result, 'unreapable');
       assert.strictEqual(send.mock.callCount(), 0);
     });
 
@@ -232,7 +477,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         () => {},
       ).reapDistributionsForBucket(
         'amplify-app',
-        new Map([['amplify-app', [distribution]]]),
+        buildIndex([['amplify-app', [distribution]]]),
       );
 
       assert.strictEqual(result, 'disable-requested');
@@ -266,7 +511,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         () => {},
       ).reapDistributionsForBucket(
         'amplify-app',
-        new Map([['amplify-app', [distribution]]]),
+        buildIndex([['amplify-app', [distribution]]]),
       );
 
       assert.strictEqual(result, 'disable-requested');
@@ -291,7 +536,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         () => {},
       ).reapDistributionsForBucket(
         'amplify-app',
-        new Map([['amplify-app', [distribution]]]),
+        buildIndex([['amplify-app', [distribution]]]),
       );
 
       assert.strictEqual(result, 'deleted');
@@ -318,7 +563,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         (message) => logMessages.push(message),
       ).reapDistributionsForBucket(
         'amplify-app',
-        new Map([['amplify-app', [distribution]]]),
+        buildIndex([['amplify-app', [distribution]]]),
       );
 
       assert.strictEqual(result, 'disable-requested');
@@ -350,7 +595,7 @@ void describe('CloudFrontDistributionCleaner', () => {
         () => {},
       ).reapDistributionsForBucket(
         'amplify-app',
-        new Map([['amplify-app', distributions]]),
+        buildIndex([['amplify-app', distributions]]),
       );
 
       assert.strictEqual(result, 'disable-requested');
