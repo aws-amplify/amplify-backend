@@ -5,6 +5,31 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { workerData } from 'worker_threads';
 
 /**
+ * The type-check relies on the TypeScript JavaScript Compiler API (ts.sys,
+ * ts.readConfigFile, ts.createIncrementalProgram, ...). TypeScript 7.0 (the Go
+ * rewrite) does not ship that API, so these members are undefined and calling
+ * into them throws an opaque "Cannot read properties of undefined (reading
+ * 'readFile')". Detect that up front and surface an actionable error instead of
+ * a worker crash. Accepts the ts module as a parameter so it can be unit-tested
+ * without mutating the real (non-configurable) typescript namespace object.
+ */
+export const assertTypeScriptCompilerApi = (tsModule: typeof ts = ts) => {
+  const missingApiMembers = [
+    !tsModule.sys && 'ts.sys',
+    typeof tsModule.readConfigFile !== 'function' && 'ts.readConfigFile',
+  ].filter((member): member is string => typeof member === 'string');
+  if (missingApiMembers.length > 0) {
+    throw new AmplifyUserError('TypeScriptCompilerApiUnavailableError', {
+      message: `The installed 'typescript' does not expose the JavaScript Compiler API required to type-check your backend (missing: ${missingApiMembers.join(
+        ', ',
+      )}).`,
+      resolution:
+        "Use a TypeScript 5.x release for your project's 'typescript' dependency. TypeScript 7.0 (the Go rewrite) removed the JavaScript Compiler API; it is expected to return in a later release.",
+    });
+  }
+};
+
+/**
  * Function to compile TypeScript project using Compiler API
  */
 export const compileProject = (projectDirectory: string) => {
@@ -13,6 +38,8 @@ export const compileProject = (projectDirectory: string) => {
   if (!fs.existsSync(configPath)) {
     return; // Not a typescript project, turn off TS compilation
   }
+
+  assertTypeScriptCompilerApi(ts);
 
   // Read and parse tsconfig.json
   const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
