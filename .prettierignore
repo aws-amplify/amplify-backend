@@ -1,0 +1,18 @@
+# Ignore artifacts:
+.amplify
+build
+coverage
+bin
+lib
+docs
+tsconfig.tsbuildinfo
+API.md
+API.md.api.md
+verdaccio-cache
+expected-cdk-out
+.changeset/pre.json
+concurrent_workspace_script_cache.json
+packages/integration-tests/src/e2e-tests
+scripts/components/api-changes-validator/test-resources/working-directory
+/test-projects
+testDir

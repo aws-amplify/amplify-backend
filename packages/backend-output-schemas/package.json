@@ -1,0 +1,31 @@
+{
+  "name": "@aws-amplify/backend-output-schemas",
+  "version": "1.8.0",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-amplify/amplify-backend.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@aws-amplify/plugin-types": "^1.11.2"
+  },
+  "peerDependencies": {
+    "zod": "3.25.17"
+  }
+}

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask the Community
+    url: https://discord.gg/invite/amplify
+    about: Check out the help channel on Amplify's community Discord to ask your questions about building applications with the Amplify Gen 2.

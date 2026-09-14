@@ -1,0 +1,5 @@
+{
+  "entryPoints": ["packages/*"],
+  "name": "Amplify Toolbox",
+  "entryPointStrategy": "packages"
+}

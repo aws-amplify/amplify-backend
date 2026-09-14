@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["aws-cdk-lib", "aws-cdk-lib/*", "constructs"],
+            "message": "Usage of CDK lib is not allowed in platform-core. Except /cdk entry point. This is to ensure that we don't load CDK eagerly from package root."
+          }
+        ]
+      }
+    ]
+  }
+}

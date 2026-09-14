@@ -1,0 +1,33 @@
+name: warm_verdaccio_cache
+description: >-
+  Restores (and, at job end, saves) the shared verdaccio proxy storage used by
+  e2e tests that opt into NpmProxyController's preserveThirdPartyCache. The
+  cache holds the ~hundreds of third-party packages verdaccio proxies from the
+  public registry. Warming it across runs means even the FIRST install in a job
+  is served from local disk instead of a cold ~20-min re-proxy from the network.
+
+  Only third-party packages are cached; the workspace packages are re-published
+  by `vend` on every setUp (and NpmProxyController deletes their storage dirs
+  before republish), so a stale workspace build can never be served from here.
+inputs:
+  node-version:
+    description: node version, mixed into the cache key
+    required: true
+runs:
+  using: composite
+  steps:
+    # Keyed on package-lock.json: the third-party dependency set only changes
+    # when the lockfile changes, so a new lockfile starts a fresh cache (no
+    # stale third-party versions) while unchanged lockfiles reuse the warm one.
+    # restore-keys lets a slightly-outdated cache still seed most packages;
+    # verdaccio proxies only the delta from the registry.
+    - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # version 4.2.0
+      with:
+        # Must match SHARED_VERDACCIO_STORAGE_PATH in
+        # packages/integration-tests/src/npm_proxy_controller.ts, which roots the
+        # storage at RUNNER_TEMP (== ${{ runner.temp }}) so this path is stable
+        # and correct on the Linux, macOS, and Windows runners alike.
+        path: ${{ runner.temp }}/amplify-e2e-verdaccio-shared-storage
+        key: ${{ runner.os }}-verdaccio-store-node${{ inputs.node-version }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-verdaccio-store-node${{ inputs.node-version }}-

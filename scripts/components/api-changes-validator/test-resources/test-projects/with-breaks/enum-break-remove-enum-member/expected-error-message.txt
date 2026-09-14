@@ -1,0 +1,1 @@
+index.ts(5,38): error TS2339: Property 'SECOND_MEMBER' does not exist on type 'typeof SampleEnum'.

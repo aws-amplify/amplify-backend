@@ -1,0 +1,8 @@
+{
+  "name": "pipeline-e2e",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "echo \"Build complete — SPA uses static files\""
+  }
+}

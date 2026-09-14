@@ -1,0 +1,23 @@
+{
+  "name": "@aws-amplify/backend-platform-test-stubs",
+  "version": "0.3.10",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^1.11.2",
+    "aws-cdk-lib": "^2.257.0",
+    "constructs": "^10.0.0"
+  }
+}

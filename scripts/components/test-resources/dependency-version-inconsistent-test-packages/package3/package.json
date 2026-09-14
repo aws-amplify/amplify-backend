@@ -1,0 +1,9 @@
+{
+  "name": "package2",
+  "dependencies": {
+    "glob": "^1.6.0"
+  },
+  "devDependencies": {
+    "zod": "^3.8.2-alpha.6"
+  }
+}

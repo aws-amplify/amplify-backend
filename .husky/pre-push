@@ -1,0 +1,2 @@
+npx --package @changesets/cli -- changeset status --since main
+npm run check:api

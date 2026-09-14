@@ -1,0 +1,6 @@
+index.ts(30,83): error TS2339: Property 'someProperty1' does not exist on type 'SomeClass'.
+index.ts(33,83): error TS2339: Property 'someProperty2' does not exist on type 'SomeClass'.
+index.ts(36,83): error TS2339: Property 'someProperty3' does not exist on type 'SomeClass'.
+index.ts(39,9): error TS2741: Property 'someMethod1' is missing in type 'SomeClass' but required in type 'SomeAbstractClass'.
+index.ts(40,9): error TS2741: Property 'someProperty1' is missing in type 'SomeClass' but required in type 'SomeType1'.
+index.ts(41,9): error TS2739: Type 'SomeClass' is missing the following properties from type 'SomeType2': someProperty2, someProperty3

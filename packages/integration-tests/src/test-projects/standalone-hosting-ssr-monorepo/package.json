@@ -1,0 +1,7 @@
+{
+  "name": "standalone-hosting-ssr-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ]
+}

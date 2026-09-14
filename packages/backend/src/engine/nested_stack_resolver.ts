@@ -1,0 +1,57 @@
+import { NestedStack, Stack } from 'aws-cdk-lib';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { fileURLToPath } from 'node:url';
+
+/**
+ * Vends stacks for a resource grouping
+ */
+export type StackResolver = {
+  getStackFor: (resourceGroupName: string) => Stack;
+  createCustomStack: (name: string) => Stack;
+};
+
+/**
+ * Vends and caches nested stacks under a provided root stack
+ */
+export class NestedStackResolver implements StackResolver {
+  private readonly stacks: Record<string, Stack> = {};
+
+  /**
+   * Initialize with a root stack
+   */
+  constructor(
+    private readonly rootStack: Stack,
+    private readonly attributionMetadataStorage: AttributionMetadataStorage,
+  ) {}
+
+  /**
+   * Proxy to getStackFor that appends attribution metadata for custom stacks
+   */
+  createCustomStack = (name: string): Stack => {
+    if (this.stacks[name]) {
+      throw new Error(`Custom stack named ${name} has already been created`);
+    }
+    const stack = this.getStackFor(name);
+    // this is safe even if stack is cached from an earlier invocation because storeAttributionMetadata is a noop if the stack description already exists
+    this.attributionMetadataStorage.storeAttributionMetadata(
+      stack,
+      `custom`,
+      fileURLToPath(new URL('../../package.json', import.meta.url)),
+    );
+    return stack;
+  };
+
+  /**
+   * Returns a cached NestedStack if resourceGroupName has been seen before
+   * Otherwise, creates a new NestedStack, caches it and returns it
+   */
+  getStackFor = (resourceGroupName: string): Stack => {
+    if (!this.stacks[resourceGroupName]) {
+      this.stacks[resourceGroupName] = new NestedStack(
+        this.rootStack,
+        resourceGroupName,
+      );
+    }
+    return this.stacks[resourceGroupName];
+  };
+}
