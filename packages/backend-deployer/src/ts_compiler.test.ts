@@ -3,6 +3,7 @@ import { beforeEach, describe, mock, test } from 'node:test';
 import { compileProject } from './ts_compiler.js';
 import assert from 'node:assert';
 import fs from 'fs';
+import ts from 'typescript';
 import { fileURLToPath } from 'node:url';
 
 void describe('ts_compiler.ts', () => {
@@ -14,6 +15,66 @@ void describe('ts_compiler.ts', () => {
     fsExistsSyncMock.mock.mockImplementationOnce(() => false);
 
     compileProject('something'); // doesn't matter what is passed here
+  });
+
+  void test('should throw a clear error when the resolved typescript lacks the JS Compiler API', async () => {
+    // Simulate TypeScript 7.0 (the Go rewrite), which does not ship the
+    // JavaScript Compiler API: ts.sys and ts.readConfigFile are undefined.
+    fsExistsSyncMock.mock.mockImplementationOnce(() => true);
+    const sysDescriptor = Object.getOwnPropertyDescriptor(ts, 'sys');
+    const readConfigFileDescriptor = Object.getOwnPropertyDescriptor(
+      ts,
+      'readConfigFile',
+    );
+    Object.defineProperty(ts, 'sys', {
+      value: undefined,
+      configurable: true,
+    });
+    Object.defineProperty(ts, 'readConfigFile', {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      assert.throws(() => compileProject('something'), {
+        name: 'TypeScriptCompilerApiUnavailableError',
+      });
+    } finally {
+      if (sysDescriptor) {
+        Object.defineProperty(ts, 'sys', sysDescriptor);
+      } else {
+        delete (ts as { sys?: unknown }).sys;
+      }
+      if (readConfigFileDescriptor) {
+        Object.defineProperty(ts, 'readConfigFile', readConfigFileDescriptor);
+      } else {
+        delete (ts as { readConfigFile?: unknown }).readConfigFile;
+      }
+    }
+  });
+
+  void test('should throw a clear error when ts.readConfigFile is missing but ts.sys is present', async () => {
+    // Guards the second disjunct: ts.sys can be present while the rest of the
+    // JavaScript Compiler API is not (a partial/incompatible typescript).
+    fsExistsSyncMock.mock.mockImplementationOnce(() => true);
+    const readConfigFileDescriptor = Object.getOwnPropertyDescriptor(
+      ts,
+      'readConfigFile',
+    );
+    Object.defineProperty(ts, 'readConfigFile', {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      assert.throws(() => compileProject('something'), {
+        name: 'TypeScriptCompilerApiUnavailableError',
+      });
+    } finally {
+      if (readConfigFileDescriptor) {
+        Object.defineProperty(ts, 'readConfigFile', readConfigFileDescriptor);
+      } else {
+        delete (ts as { readConfigFile?: unknown }).readConfigFile;
+      }
+    }
   });
 
   void test('should throw error if ts cannot read of parse tsconfig', async () => {

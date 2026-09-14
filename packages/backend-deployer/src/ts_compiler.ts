@@ -14,6 +14,26 @@ export const compileProject = (projectDirectory: string) => {
     return; // Not a typescript project, turn off TS compilation
   }
 
+  // The type-check below relies on the JavaScript Compiler API (ts.sys,
+  // ts.readConfigFile, ts.createIncrementalProgram, ...). TypeScript 7.0
+  // (the Go rewrite) does not ship that API, so these members are undefined
+  // and calling into them throws an opaque
+  // "Cannot read properties of undefined (reading 'readFile')". Detect that
+  // up front and surface an actionable error instead of a worker crash.
+  const missingApiMembers = [
+    !ts.sys && 'ts.sys',
+    typeof ts.readConfigFile !== 'function' && 'ts.readConfigFile',
+  ].filter((member): member is string => typeof member === 'string');
+  if (missingApiMembers.length > 0) {
+    throw new AmplifyUserError('TypeScriptCompilerApiUnavailableError', {
+      message: `The installed 'typescript' does not expose the JavaScript Compiler API required to type-check your backend (missing: ${missingApiMembers.join(
+        ', ',
+      )}).`,
+      resolution:
+        "Use a TypeScript 5.x release for your project's 'typescript' dependency. TypeScript 7.0 (the Go rewrite) removed the JavaScript Compiler API; it is expected to return in a later release.",
+    });
+  }
+
   // Read and parse tsconfig.json
   const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
   if (configFile.error) {
