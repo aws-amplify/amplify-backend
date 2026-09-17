@@ -115,4 +115,70 @@ void describe('config controller', () => {
       JSON.stringify({ hello: { world: true } }),
     );
   });
+
+  void describe('prototype pollution guard', () => {
+    void it('set with a "__proto__" segment throws and does not pollute Object.prototype', async () => {
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await assert.rejects(() => controller.set('__proto__.isAdmin', true), {
+        name: 'InvalidConfigurationPathError',
+      });
+      assert.strictEqual(({} as { isAdmin?: unknown }).isAdmin, undefined);
+      assert.strictEqual(mockedFsWriteFile.mock.callCount(), 0);
+    });
+
+    void it('set with a "constructor.prototype" path throws and does not pollute Object.prototype', async () => {
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await assert.rejects(
+        () => controller.set('constructor.prototype.polluted', 'x'),
+        {
+          name: 'InvalidConfigurationPathError',
+        },
+      );
+      assert.strictEqual(({} as { polluted?: unknown }).polluted, undefined);
+      assert.strictEqual(mockedFsWriteFile.mock.callCount(), 0);
+    });
+
+    void it('set with a "prototype" segment throws', async () => {
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await assert.rejects(() => controller.set('prototype.x', 1), {
+        name: 'InvalidConfigurationPathError',
+      });
+    });
+
+    void it('set with a reserved key as a later segment throws', async () => {
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await assert.rejects(() => controller.set('a.__proto__.b', 1), {
+        name: 'InvalidConfigurationPathError',
+      });
+    });
+
+    void it('get with a "__proto__" segment throws', async () => {
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await assert.rejects(() => controller.get('__proto__.isAdmin'), {
+        name: 'InvalidConfigurationPathError',
+      });
+    });
+
+    void it('a normal nested path still round-trips via get', async () => {
+      // Prevent the terminal write() from touching the real filesystem.
+      mockedFsWriteFile.mock.mockImplementationOnce(() => Promise.resolve());
+      const controller = new LocalConfigurationController();
+      controller._store = {};
+
+      await controller.set('a.b.c', 42);
+      assert.deepStrictEqual(controller._store, { a: { b: { c: 42 } } });
+      const resolvedValue = await controller.get('a.b.c');
+      assert.strictEqual(resolvedValue, 42);
+    });
+  });
 });
