@@ -1,8 +1,9 @@
 // write tests using node:test framework for ts_compiler.ts file
 import { beforeEach, describe, mock, test } from 'node:test';
-import { compileProject } from './ts_compiler.js';
+import { assertTypeScriptCompilerApi, compileProject } from './ts_compiler.js';
 import assert from 'node:assert';
 import fs from 'fs';
+import type ts from 'typescript';
 import { fileURLToPath } from 'node:url';
 
 void describe('ts_compiler.ts', () => {
@@ -14,6 +15,49 @@ void describe('ts_compiler.ts', () => {
     fsExistsSyncMock.mock.mockImplementationOnce(() => false);
 
     compileProject('something'); // doesn't matter what is passed here
+  });
+
+  void test('assertTypeScriptCompilerApi throws when both ts.sys and ts.readConfigFile are missing', async () => {
+    // Simulate TypeScript 7.0 (the Go rewrite), which does not ship the
+    // JavaScript Compiler API: ts.sys and ts.readConfigFile are undefined. A
+    // fake ts is passed in rather than mutating the real typescript namespace,
+    // whose members are non-configurable (Object.defineProperty would throw).
+    const fakeTs = { sys: undefined, readConfigFile: undefined } as never;
+    assert.throws(
+      () => assertTypeScriptCompilerApi(fakeTs),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'TypeScriptCompilerApiUnavailableError');
+        assert.match(error.message, /ts\.sys/);
+        assert.match(error.message, /ts\.readConfigFile/);
+        return true;
+      },
+    );
+  });
+
+  void test('assertTypeScriptCompilerApi throws naming only ts.readConfigFile when ts.sys is present', async () => {
+    // Guards the second disjunct: ts.sys can be present while the rest of the
+    // JavaScript Compiler API is not (a partial/incompatible typescript).
+    const fakeTs = {
+      sys: { readFile: () => undefined },
+      readConfigFile: undefined,
+    } as never;
+    assert.throws(
+      () => assertTypeScriptCompilerApi(fakeTs),
+      (error: Error) => {
+        assert.strictEqual(error.name, 'TypeScriptCompilerApiUnavailableError');
+        assert.match(error.message, /ts\.readConfigFile/);
+        assert.doesNotMatch(error.message, /ts\.sys/);
+        return true;
+      },
+    );
+  });
+
+  void test('assertTypeScriptCompilerApi passes for a ts exposing the JS Compiler API', async () => {
+    const fakeTs = {
+      sys: { readFile: () => undefined },
+      readConfigFile: () => ({ config: {} }),
+    } as unknown as typeof ts;
+    assert.doesNotThrow(() => assertTypeScriptCompilerApi(fakeTs));
   });
 
   void test('should throw error if ts cannot read of parse tsconfig', async () => {
