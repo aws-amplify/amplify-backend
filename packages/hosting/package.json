@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/hosting",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -49,7 +49,7 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.5.0",
     "@aws-amplify/backend-output-storage": "^1.4.0",
-    "@aws-amplify/platform-core": "^1.12.0",
+    "@aws-amplify/platform-core": "^1.12.1",
     "@aws-amplify/plugin-types": "^1.13.0",
     "@aws-blocks/hosting": "^0.3.0",
     "@aws-blocks/pipeline": "^0.2.1"

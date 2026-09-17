@@ -1,5 +1,15 @@
 # @aws-amplify/backend
 
+## 1.25.1
+
+### Patch Changes
+
+- 71f6e18: Bump `@aws-amplify/backend` alongside the `@aws-amplify/backend-auth` `manageProviderForUser` change so the umbrella package stays version-consistent with its sub-dependencies (satisfies `check_changeset_completeness`).
+- Updated dependencies [3231b13]
+- Updated dependencies [d3b0a79]
+  - @aws-amplify/platform-core@1.12.1
+  - @aws-amplify/backend-auth@1.10.1
+
 ## 1.25.0
 
 ### Minor Changes
