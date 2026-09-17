@@ -1,5 +1,16 @@
 # create-amplify
 
+## 1.4.1
+
+### Patch Changes
+
+- cb7aa4c: fix(create-amplify): exit quietly when a prompt is cancelled with ctrl+c
+
+  `getProjectRoot` was awaited at module top level, outside the `try` that guards the rest of `npm create amplify`. Pressing ctrl+c at the "Where should we create your project?" prompt therefore rejected with an unhandled `ExitPromptError` and printed a stack trace. The prompt is now inside the same `try`, and a cancelled prompt exits without reporting an error, matching how the CLI's error handler treats it.
+
+- Updated dependencies [3231b13]
+  - @aws-amplify/platform-core@1.12.1
+
 ## 1.4.0
 
 ### Minor Changes
