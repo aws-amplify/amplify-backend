@@ -14,18 +14,20 @@ const workflowPath = fileURLToPath(
 void describe('E2E_TEST_REGIONS', () => {
   void it('lists the regions of the cleanup workflow matrix', () => {
     const workflow = readFileSync(workflowPath, 'utf-8');
-    const matrixRegions = /^\s*region:\s*\[(?<regions>[^\]]+)\]\s*$/m.exec(
-      workflow,
-    )?.groups?.regions;
+    // The matrix array may be inline (`region: [a, b]`) or, once prettier wraps a long list,
+    // spread across multiple lines. Match either form by allowing newlines inside the brackets.
+    const matrixRegions = /^\s*region:\s*\[(?<regions>[^\]]+)\]/m.exec(workflow)
+      ?.groups?.regions;
     assert.ok(
       matrixRegions,
-      'The cleanup workflow no longer declares its regions as a single line matrix entry, so this test cannot keep E2E_TEST_REGIONS in sync with it anymore',
+      'The cleanup workflow no longer declares its regions as a bracketed matrix entry, so this test cannot keep E2E_TEST_REGIONS in sync with it anymore',
     );
     assert.deepStrictEqual(
       [...E2E_TEST_REGIONS].sort(),
       matrixRegions
         .split(',')
         .map((region) => region.trim())
+        .filter((region) => region.length > 0)
         .sort(),
       'E2E_TEST_REGIONS is out of sync with the region matrix of the e2e_resource_cleanup workflow. A region that runs e2e tests but is missing here is a region whose live stacks do not protect their account wide resources from the cleanup sweeps',
     );

@@ -32,6 +32,35 @@ const NESTED_STACK_RESOURCE_TYPE = 'AWS::CloudFormation::Stack';
 const BUCKET_RESOURCE_TYPE = 'AWS::S3::Bucket';
 
 /**
+ * Statuses of a stack that is wedged: it has settled into a terminal failed state that
+ * CloudFormation will not move it out of on its own, and from which nothing useful can still be
+ * running. A stack that has been wedged since before the stale cutoff is never going to recover, so
+ * its resources must not shield the direct resource sweeps. The resources of such a stack (a
+ * Cognito user pool a failed in place update left behind, for example) would otherwise dangle
+ * forever, because the live stack guard keeps protecting them every run.
+ *
+ * The `*_ROLLBACK_COMPLETE` "recovered" states are deliberately NOT wedged:
+ * - UPDATE_ROLLBACK_COMPLETE and IMPORT_ROLLBACK_COMPLETE mean a failed update/import was cleanly
+ *   rolled back to the last working state. The stack is healthy, updatable, and may well still be
+ *   in use, so its resources must stay protected. Being old (stale) does not make it dead.
+ * - ROLLBACK_COMPLETE is different: it can only follow a failed initial create, so the stack never
+ *   deployed anything usable and delete is the only operation CloudFormation still allows. Its
+ *   resources are genuinely orphaned, so it belongs in the wedged set.
+ *
+ * DELETE_FAILED is also deliberately excluded: those stacks are actively unblocked and retried by
+ * `findBucketsBlockingStackDeletion` and `deleteStack`, so their resources are expected to be
+ * deleted by CloudFormation and must stay protected from the direct sweeps in the meantime.
+ */
+const WEDGED_STACK_STATUSES: ReadonlyArray<StackStatus> = [
+  StackStatus.CREATE_FAILED,
+  StackStatus.ROLLBACK_FAILED,
+  StackStatus.ROLLBACK_COMPLETE,
+  StackStatus.UPDATE_FAILED,
+  StackStatus.UPDATE_ROLLBACK_FAILED,
+  StackStatus.IMPORT_ROLLBACK_FAILED,
+];
+
+/**
  * How deep nested stacks are followed when looking for the resources that block a stack deletion.
  *
  * Amplify nests one level deep. The limit only exists so that an unexpected cycle cannot turn into
@@ -224,6 +253,20 @@ export class StackDeleter {
       async (stackSummary) => {
         const stackNameOrId = stackSummary.StackId ?? stackSummary.StackName;
         if (!stackNameOrId) {
+          return;
+        }
+        // A stack that is wedged in a terminal failed state and is already stale will never make
+        // progress on its own, so its resources must not be treated as owned by a live stack.
+        // Otherwise a resource such as a Cognito user pool left behind by a stack stuck in
+        // UPDATE_FAILED (for example an in place user pool schema update that CloudFormation
+        // cannot apply) is shielded from the direct sweeps forever and dangles indefinitely. The
+        // top level stack itself is still retried by `listStaleTopLevelStacks`/`deleteStack`; this
+        // only stops it from protecting its resources from the sweeps that would otherwise clean
+        // them up.
+        if (this.isStackWedged(stackSummary)) {
+          this.log(
+            `Not treating the resources of ${stackSummary.StackName} as owned by a live stack because it is wedged in ${stackSummary.StackStatus} and is stale`,
+          );
           return;
         }
         try {
@@ -441,6 +484,16 @@ export class StackDeleter {
       throw new Error(message);
     }
   };
+
+  /**
+   * Whether the stack has settled into a wedged terminal state and has been there long enough to
+   * be considered stale. Such a stack will not recover on its own, so its resources must not shield
+   * the direct resource sweeps.
+   */
+  private isStackWedged = (stackSummary: StackSummary): boolean =>
+    stackSummary.StackStatus !== undefined &&
+    WEDGED_STACK_STATUSES.includes(stackSummary.StackStatus) &&
+    this.isStackStale(stackSummary) === true;
 
   private listActiveStacks = async (): Promise<Array<StackSummary>> => {
     if (this.activeStacks) {

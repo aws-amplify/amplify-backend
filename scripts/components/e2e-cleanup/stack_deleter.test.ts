@@ -343,6 +343,106 @@ void describe('StackDeleter', () => {
       assert.deepStrictEqual(nextTokens, [undefined, '1']);
     });
 
+    void it('does not treat resources of a stale wedged stack as owned by a live stack', async () => {
+      const logMessages: Array<string> = [];
+      const { cfnClient } = buildCfnClient({
+        stacks: [
+          buildStack('amplify-wedged', {
+            StackStatus: StackStatus.UPDATE_FAILED,
+          }),
+        ],
+        resourcesByStack: {
+          'amplify-wedged': [
+            buildResource(
+              'UserPool',
+              'AWS::Cognito::UserPool',
+              'us-east-1_wedgedPool',
+            ),
+          ],
+        },
+      });
+
+      const index = await buildStackDeleter(
+        cfnClient,
+        logMessages,
+      ).getResourcesOwnedByLiveStacks();
+
+      assert.strictEqual(index.isComplete, true);
+      assert.strictEqual(
+        index.isOwnedByLiveStack(
+          'AWS::Cognito::UserPool',
+          'us-east-1_wedgedPool',
+        ),
+        false,
+      );
+      assert.ok(
+        logMessages.some((message) =>
+          message.includes('wedged in UPDATE_FAILED'),
+        ),
+      );
+    });
+
+    void it('still protects resources of a wedged stack that is not yet stale', async () => {
+      // 'amplify-fresh' is the only stack the test staleness predicate considers not stale.
+      const { cfnClient } = buildCfnClient({
+        stacks: [
+          buildStack('amplify-fresh', {
+            StackStatus: StackStatus.UPDATE_FAILED,
+          }),
+        ],
+        resourcesByStack: {
+          'amplify-fresh': [
+            buildResource(
+              'UserPool',
+              'AWS::Cognito::UserPool',
+              'us-east-1_freshWedgedPool',
+            ),
+          ],
+        },
+      });
+
+      const index =
+        await buildStackDeleter(cfnClient).getResourcesOwnedByLiveStacks();
+
+      assert.strictEqual(
+        index.isOwnedByLiveStack(
+          'AWS::Cognito::UserPool',
+          'us-east-1_freshWedgedPool',
+        ),
+        true,
+      );
+    });
+
+    void it('still protects resources of a stack that cleanly rolled back an update, since it is recovered and usable', async () => {
+      const { cfnClient } = buildCfnClient({
+        stacks: [
+          buildStack('amplify-recovered', {
+            StackStatus: StackStatus.UPDATE_ROLLBACK_COMPLETE,
+          }),
+        ],
+        resourcesByStack: {
+          'amplify-recovered': [
+            buildResource(
+              'UserPool',
+              'AWS::Cognito::UserPool',
+              'us-east-1_recoveredPool',
+            ),
+          ],
+        },
+      });
+
+      const index =
+        await buildStackDeleter(cfnClient).getResourcesOwnedByLiveStacks();
+
+      assert.strictEqual(
+        index.isOwnedByLiveStack(
+          'AWS::Cognito::UserPool',
+          'us-east-1_recoveredPool',
+        ),
+        true,
+      );
+    });
+
     void it('indexes every stack even when many of them are inspected at once', async () => {
       const stacks = Array.from({ length: 25 }, (unused, index) =>
         buildStack(`amplify-live-${index}`),
