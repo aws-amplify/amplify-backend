@@ -229,4 +229,41 @@ void describe('CustomerProfilesDomainCleaner', () => {
     );
     assert.deepStrictEqual(getDeletedDomainNames(send), []);
   });
+
+  void it('skips the sweep when Customer Profiles is not available in the region instead of throwing', async () => {
+    const logMessages: Array<string> = [];
+    // The SDK fails to resolve the endpoint in a region that does not offer Customer Profiles.
+    const endpointError = Object.assign(
+      new Error('getaddrinfo ENOTFOUND profile.ap-northeast-3.amazonaws.com'),
+      { code: 'ENOTFOUND' },
+    );
+    const { customerProfilesClient, send } = buildCustomerProfilesClient({
+      listDomains: [endpointError],
+    });
+
+    await assert.doesNotReject(
+      buildCleaner(customerProfilesClient, (message) =>
+        logMessages.push(message),
+      ).deleteStaleTestDomains(),
+    );
+
+    assert.deepStrictEqual(getDeletedDomainNames(send), []);
+    assert.ok(
+      logMessages.some((message) =>
+        message.includes('Customer Profiles is not available in this region'),
+      ),
+      `Expected a region-unavailable skip message, got ${JSON.stringify(logMessages)}`,
+    );
+  });
+
+  void it('rethrows a genuine list failure in a region where the service exists', async () => {
+    const { customerProfilesClient } = buildCustomerProfilesClient({
+      listDomains: [new Error('Throttling: Rate exceeded')],
+    });
+
+    await assert.rejects(
+      buildCleaner(customerProfilesClient).deleteStaleTestDomains(),
+      /Throttling: Rate exceeded/,
+    );
+  });
 });
