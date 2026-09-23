@@ -100,6 +100,13 @@ void describe('translateToAuthConstructLoginWith', () => {
           keyId: new TestBackendSecret(appleKeyId),
           privateKey: new TestBackendSecret(applePrivateKey),
         },
+        saml: {
+          name: 'MySAMLProvider',
+          metadata: {
+            metadataContent: new TestBackendSecret('samlMetadataUrl'),
+            metadataType: 'URL',
+          },
+        },
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
       },
@@ -137,6 +144,13 @@ void describe('translateToAuthConstructLoginWith', () => {
           teamId: appleTeamId,
           keyId: appleKeyId,
           privateKey: applePrivateKey,
+        },
+        saml: {
+          name: 'MySAMLProvider',
+          metadata: {
+            metadataContent: 'samlMetadataUrl',
+            metadataType: 'URL',
+          },
         },
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
