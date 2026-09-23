@@ -221,7 +221,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
               this.filesChangesTracker.trackFileChange(filePath);
               if (latch === 'open') {
                 this.printer.clearConsole();
-                await this.printSandboxNameInfo();
+                await this.printSandboxNameInfo(options.identifier);
               }
               this.printer.log(
                 `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
