@@ -18,6 +18,7 @@ export {
   MFASettings,
   PhoneNumberLogin,
   TriggerEvent,
+  PreTokenGenerationVersion,
   IdentityProviderProps,
   AttributeMapping,
   UserAttributes,
