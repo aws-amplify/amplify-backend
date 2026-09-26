@@ -20,12 +20,14 @@ const pathSchema = z.record(
   ),
 );
 
-const bucketSchema = z.object({
+export const bucketSchema = z.object({
   name: z.string(),
   bucketName: z.string(),
   storageRegion: z.string(),
   paths: pathSchema.optional(),
 });
+
+export type BucketOutput = z.infer<typeof bucketSchema>;
 
 export const storageOutputSchema = z.object({
   version: z.literal('1'),
