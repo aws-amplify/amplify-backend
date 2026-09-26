@@ -179,6 +179,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     // --------  'cdk deploy' done  --------------  'cdk deploy' done  --------------
 
     let latch: 'open' | 'deploying' | 'queued' = 'open';
+    const debounceMs = options.debounceMs ?? 300;
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
@@ -209,7 +210,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         await this.backendIdSandboxResolver(options.identifier),
         options.functionStreamingOptions,
       );
-    });
+    }, debounceMs);
 
     if (watchForChanges) {
       this.watcherSubscription = await this.subscribe(
