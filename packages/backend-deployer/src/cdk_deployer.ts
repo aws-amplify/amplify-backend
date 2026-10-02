@@ -152,6 +152,13 @@ export class CDKDeployer implements BackendDeployer {
         deploymentMethod: isSandbox
           ? { method: 'hotswap', fallback: { method: 'direct' } }
           : { method: 'direct' },
+        // Defensively keep the hotswap fallback on CloudFormation standard mode
+        // with rollback enabled. A prior toolkit-lib version forced the fallback
+        // into express mode with rollback disabled regardless of this flag, which
+        // left failed sandbox deploys stuck in UPDATE_FAILED with no recovery.
+        // Setting rollback explicitly keeps the behavior correct even if the
+        // toolkit-lib pin drifts back into that window.
+        rollback: true,
         // Opt-in Express mode is only wired for sandbox deployments.
         ...(isSandbox && deployProps?.express ? { express: true } : {}),
       });
