@@ -123,6 +123,7 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+      rollback: true,
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
       contextStore: new MemoryContext({
@@ -144,6 +145,7 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+      rollback: true,
       express: true,
     } as DeployOptions);
   });
