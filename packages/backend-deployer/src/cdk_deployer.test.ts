@@ -123,6 +123,7 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+      rollback: true,
     } as DeployOptions);
     assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
       contextStore: new MemoryContext({
@@ -144,8 +145,22 @@ void describe('invokeCDKCommand', () => {
     assert.deepStrictEqual(deployMock.mock.calls[0].arguments[1], {
       deploymentMethod: { method: 'hotswap', fallback: { method: 'direct' } },
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
+      rollback: true,
       express: true,
     } as DeployOptions);
+  });
+
+  void it('does not enable Express mode for sandbox deployments by default', async () => {
+    await invoker.deploy(sandboxBackendId, sandboxDeployProps);
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+    const deployOptions = deployMock.mock.calls[0]
+      .arguments[1] as DeployOptions;
+    assert.ok(
+      !('express' in deployOptions),
+      'sandbox deploys must not pass express unless explicitly requested',
+    );
+    assert.strictEqual(deployOptions.express, undefined);
+    assert.strictEqual(deployOptions.rollback, true);
   });
 
   void it('does not enable Express mode for branch deployments', async () => {
