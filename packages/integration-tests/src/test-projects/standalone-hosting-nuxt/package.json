@@ -10,12 +10,13 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxt/image": "^2.0.0",
-    "nuxt": "^4.4.5",
-    "vue": "^3.5.34",
-    "vue-router": "^5.0.6"
+    "@nuxt/image": "2.0.0",
+    "nuxt": "4.6.0",
+    "vue": "3.5.43",
+    "vue-router": "5.3.1"
   },
   "overrides": {
-    "aws-cdk-lib": "2.244.0"
+    "aws-cdk-lib": "2.244.0",
+    "vue-bundle-renderer": "2.4.0"
   }
 }
