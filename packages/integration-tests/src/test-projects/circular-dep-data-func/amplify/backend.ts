@@ -14,6 +14,10 @@ const backend = defineBackend({
   queryFunction,
   customAPIFunction,
 });
+backend.auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
+  'AdminCreateUserConfig.AllowAdminCreateUserOnly',
+  true,
+);
 
 const eventSource = new DynamoEventSource(
   backend.data.resources.tables['Todo'],

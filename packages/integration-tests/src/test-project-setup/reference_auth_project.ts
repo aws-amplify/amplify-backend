@@ -156,7 +156,7 @@ class ReferenceAuthTestProject extends TestProjectBase {
           ],
         },
         AdminCreateUserConfig: {
-          AllowAdminCreateUserOnly: false,
+          AllowAdminCreateUserOnly: true,
         },
         AutoVerifiedAttributes: ['email'],
         UserAttributeUpdateSettings: {
