@@ -187,6 +187,9 @@ export type PhoneNumberLogin = true | {
 };
 
 // @public
+export type PreTokenGenerationVersion = 'v1_0' | 'v2_0' | 'v3_0';
+
+// @public
 export type SamlProviderProps = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool' | 'metadata' | 'attributeMapping'> & {
     metadata: Omit<UserPoolIdentityProviderSamlMetadata, 'metadataType'> & {
         metadataType: 'URL' | 'FILE';
