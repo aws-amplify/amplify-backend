@@ -163,6 +163,7 @@ export interface AWSAmplifyBackendOutputs {
     model_introspection?: {
       [k: string]: unknown;
     };
+    api_id?: string;
     api_key?: string;
     default_authorization_type: AwsAppsyncAuthorizationType;
     authorization_types: AwsAppsyncAuthorizationType[];
