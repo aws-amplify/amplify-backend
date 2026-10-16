@@ -156,7 +156,11 @@ export class BedrockConverseAdapter {
       }
     } while (bedrockResponse.stopReason === 'tool_use');
 
-    return bedrockResponse.output?.message?.content ?? [];
+    // Reasoning (thinking) blocks are only needed by Bedrock in the tool use loop above.
+    // They're not client facing, and AppSync input types don't accept them.
+    return (bedrockResponse.output?.message?.content ?? []).filter(
+      (block) => !block.reasoningContent,
+    );
   };
 
   /**
@@ -204,6 +208,9 @@ export class BedrockConverseAdapter {
       let toolUseBlock: ContentBlock.ToolUseMember | undefined;
       let clientToolsRequested = false;
       let text: string = '';
+      let reasoning:
+        | { text: string; signature?: string; redactedContent?: Uint8Array }
+        | undefined;
       let toolUseInput: string = '';
       let blockDeltaIndex = 0;
       let lastBlockDeltaIndex = 0;
@@ -257,6 +264,19 @@ export class BedrockConverseAdapter {
               yield amplifyChunk;
               lastBlockDeltaIndex = blockDeltaIndex;
               blockDeltaIndex++;
+            } else if (chunk.contentBlockDelta.delta?.reasoningContent) {
+              const reasoningDelta =
+                chunk.contentBlockDelta.delta.reasoningContent;
+              reasoning ??= { text: '' };
+              if (reasoningDelta.text) {
+                reasoning.text += reasoningDelta.text;
+              }
+              if (reasoningDelta.signature) {
+                reasoning.signature = reasoningDelta.signature;
+              }
+              if (reasoningDelta.redactedContent) {
+                reasoning.redactedContent = reasoningDelta.redactedContent;
+              }
             }
           } else if (chunk.contentBlockStop) {
             if (toolUseBlock) {
@@ -286,6 +306,20 @@ export class BedrockConverseAdapter {
               }
               toolUseBlock = undefined;
               toolUseInput = '';
+            } else if (reasoning) {
+              // Reasoning (thinking) blocks are not client facing, so they're neither
+              // streamed nor persisted. Bedrock needs them back unchanged in the tool use loop.
+              accumulatedAssistantMessage.content?.push({
+                reasoningContent: reasoning.redactedContent
+                  ? { redactedContent: reasoning.redactedContent }
+                  : {
+                      reasoningText: {
+                        text: reasoning.text,
+                        signature: reasoning.signature,
+                      },
+                    },
+              });
+              reasoning = undefined;
             } else {
               accumulatedAssistantMessage.content?.push({
                 text,
@@ -376,6 +410,14 @@ export class BedrockConverseAdapter {
     for (const message of eventMessages) {
       const messageContent: Array<ContentBlock> = [];
       for (const contentElement of message.content) {
+        if (
+          contentElement.text === '' &&
+          message.content.some((block) => block.text !== '')
+        ) {
+          // Previous versions persisted reasoning blocks as empty text blocks,
+          // which Bedrock rejects. Skip them so that such conversations can continue.
+          continue;
+        }
         if (typeof contentElement.image?.source?.bytes === 'string') {
           messageContent.push({
             image: {
