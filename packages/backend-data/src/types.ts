@@ -157,6 +157,11 @@ export type DataProps = {
   migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
 
   /**
+   * Suppress indentation in generated CloudFormation templates.
+   */
+  suppressTemplateIndentation?: boolean;
+
+  /**
    * Override the assigned nested stack on a per-resource basis.
    * Only applies to resolvers, and takes the form { <logicalId>: <stackName> }.
    * Use this to distribute resolver resources across multiple stacks.

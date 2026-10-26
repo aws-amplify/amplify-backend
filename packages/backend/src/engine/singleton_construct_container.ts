@@ -36,7 +36,10 @@ export class SingletonConstructContainer implements ConstructContainer {
     generator: ConstructContainerEntryGenerator,
   ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
-      const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
+      const scope = this.stackResolver.getStackFor(
+        generator.resourceGroupName,
+        generator.suppressTemplateIndentation,
+      );
       const backendId = getBackendIdentifier(scope);
       const ssmEnvironmentEntriesGenerator =
         new BackendIdScopedSsmEnvironmentEntriesGenerator(scope, backendId);
