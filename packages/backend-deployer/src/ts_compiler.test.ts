@@ -3,6 +3,8 @@ import { beforeEach, describe, mock, test } from 'node:test';
 import { assertTypeScriptCompilerApi, compileProject } from './ts_compiler.js';
 import assert from 'node:assert';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import type ts from 'typescript';
 import { fileURLToPath } from 'node:url';
 
@@ -88,5 +90,44 @@ void describe('ts_compiler.ts', () => {
       new URL('../src/test-assets/valid-app', import.meta.url),
     );
     compileProject(appDir);
+  });
+
+  void test('should resolve tsconfig extends from a hoisted node_modules when the project directory is relative', async () => {
+    // In an npm workspace, a shared base config is hoisted to the root
+    // node_modules, above the directory that ampx runs in. The deployer passes
+    // the relative directory of the backend entry point, 'amplify'.
+    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ts-compiler-'));
+    const packageDir = path.join(rootDir, 'packages', 'backend');
+    const baseDir = path.join(rootDir, 'node_modules', 'test-tsconfig-base');
+    fs.mkdirSync(path.join(packageDir, 'amplify'), { recursive: true });
+    fs.mkdirSync(baseDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(baseDir, 'package.json'),
+      JSON.stringify({ name: 'test-tsconfig-base', version: '1.0.0' }),
+    );
+    fs.writeFileSync(
+      path.join(baseDir, 'tsconfig.json'),
+      JSON.stringify({ compilerOptions: { target: 'es2022' } }),
+    );
+    fs.writeFileSync(
+      path.join(packageDir, 'amplify', 'tsconfig.json'),
+      JSON.stringify({
+        extends: 'test-tsconfig-base/tsconfig.json',
+        compilerOptions: { module: 'es2022', moduleResolution: 'bundler' },
+      }),
+    );
+    // Top-level await compiles only with the target from the base config.
+    fs.writeFileSync(
+      path.join(packageDir, 'amplify', 'backend.ts'),
+      'await Promise.resolve();\nexport {};\n',
+    );
+    const cwd = process.cwd();
+    try {
+      process.chdir(packageDir);
+      compileProject('amplify');
+    } finally {
+      process.chdir(cwd);
+      fs.rmSync(rootDir, { recursive: true, force: true });
+    }
   });
 });
