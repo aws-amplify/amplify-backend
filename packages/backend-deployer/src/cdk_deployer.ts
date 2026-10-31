@@ -84,106 +84,119 @@ export class CDKDeployer implements BackendDeployer {
       synthError = error as Error;
     }
 
-    const synthTimeSeconds =
-      Math.floor((Date.now() - synthStartTime) / 10) / 100;
-
-    await this.ioHost.notify({
-      message: `Backend synthesized in ${synthTimeSeconds} seconds`,
-      code: 'SYNTH_FINISHED',
-      action: 'amplify',
-      time: new Date(),
-      level: 'result',
-      data: undefined,
-    });
-
-    // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
-    const typeCheckStartTime = Date.now();
-    await this.ioHost.notify({
-      message: `Backend type checks started`,
-      code: 'TS_STARTED',
-      action: 'amplify',
-      time: new Date(),
-      level: 'info',
-      data: undefined,
-    });
-
-    if (deployProps?.validateAppSources) {
-      try {
-        await this.compileProject(path.dirname(this.backendLocator.locate()));
-      } catch (typeError) {
-        if (
-          synthError &&
-          AmplifyError.isAmplifyError(typeError) &&
-          typeError.name === 'FunctionEnvVarFileNotGeneratedError'
-        ) {
-          // synth has failed and we don't have auto generated function environment definition files. This
-          // resulted in the exception caught here, which is not very useful for the customers.
-          // We instead throw the synth error for customers to fix what caused the synth to fail.
-          throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
-        }
-        throw typeError;
-      } finally {
-        const typeCheckTimeSeconds =
-          Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
-        await this.ioHost.notify({
-          message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
-          code: 'TS_FINISHED',
-          action: 'amplify',
-          time: new Date(),
-          level: 'result',
-          data: undefined,
-        });
-      }
-    }
-
-    // If typescript compilation was successful but synth had failed, we throw synth error
-    if (synthError) {
-      throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
-    }
-
-    // Perform actual deployment. CFN or hotswap
-    const deployStartTime = Date.now();
-    const isSandbox = backendId.type === 'sandbox';
+    // The synthesized assembly holds a read lock on cdk.out until it is
+    // disposed. Release it on every exit path, including a failed type check,
+    // or the next deployment in this process fails with "Other CLIs
+    // (PID=<own pid>) are currently reading from cdk.out", which surfaces as
+    // MultipleSandboxInstancesError.
     try {
-      await this.cdkToolkit.deploy(synthAssembly!, {
-        stacks: {
-          strategy: StackSelectionStrategy.ALL_STACKS,
-        },
-        deploymentMethod: isSandbox
-          ? { method: 'hotswap', fallback: { method: 'direct' } }
-          : { method: 'direct' },
-        // Defensively keep the sandbox hotswap fallback on CloudFormation standard
-        // mode with rollback enabled. A prior toolkit-lib version forced the
-        // fallback into express mode with rollback disabled, which left failed
-        // sandbox deploys stuck in UPDATE_FAILED with no recovery. Setting rollback
-        // explicitly keeps the behavior correct even if the toolkit-lib pin drifts
-        // back into that window.
-        ...(isSandbox ? { rollback: true } : {}),
-        // Opt-in Express mode is only wired for sandbox deployments.
-        ...(isSandbox && deployProps?.express ? { express: true } : {}),
-      });
-    } catch (error) {
+      const synthTimeSeconds =
+        Math.floor((Date.now() - synthStartTime) / 10) / 100;
+
       await this.ioHost.notify({
-        message: 'Deployment failed',
-        code: 'DEPLOY_FAILED',
+        message: `Backend synthesized in ${synthTimeSeconds} seconds`,
+        code: 'SYNTH_FINISHED',
         action: 'amplify',
         time: new Date(),
-        level: 'error',
+        level: 'result',
         data: undefined,
       });
-      throw this.cdkErrorMapper.getAmplifyError(error as Error, backendId.type);
+
+      // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
+      const typeCheckStartTime = Date.now();
+      await this.ioHost.notify({
+        message: `Backend type checks started`,
+        code: 'TS_STARTED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'info',
+        data: undefined,
+      });
+
+      if (deployProps?.validateAppSources) {
+        try {
+          await this.compileProject(path.dirname(this.backendLocator.locate()));
+        } catch (typeError) {
+          if (
+            synthError &&
+            AmplifyError.isAmplifyError(typeError) &&
+            typeError.name === 'FunctionEnvVarFileNotGeneratedError'
+          ) {
+            // synth has failed and we don't have auto generated function environment definition files. This
+            // resulted in the exception caught here, which is not very useful for the customers.
+            // We instead throw the synth error for customers to fix what caused the synth to fail.
+            throw this.cdkErrorMapper.getAmplifyError(
+              synthError,
+              backendId.type,
+            );
+          }
+          throw typeError;
+        } finally {
+          const typeCheckTimeSeconds =
+            Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
+          await this.ioHost.notify({
+            message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
+            code: 'TS_FINISHED',
+            action: 'amplify',
+            time: new Date(),
+            level: 'result',
+            data: undefined,
+          });
+        }
+      }
+
+      // If typescript compilation was successful but synth had failed, we throw synth error
+      if (synthError) {
+        throw this.cdkErrorMapper.getAmplifyError(synthError, backendId.type);
+      }
+
+      // Perform actual deployment. CFN or hotswap
+      const deployStartTime = Date.now();
+      const isSandbox = backendId.type === 'sandbox';
+      try {
+        await this.cdkToolkit.deploy(synthAssembly!, {
+          stacks: {
+            strategy: StackSelectionStrategy.ALL_STACKS,
+          },
+          deploymentMethod: isSandbox
+            ? { method: 'hotswap', fallback: { method: 'direct' } }
+            : { method: 'direct' },
+          // Defensively keep the sandbox hotswap fallback on CloudFormation standard
+          // mode with rollback enabled. A prior toolkit-lib version forced the
+          // fallback into express mode with rollback disabled, which left failed
+          // sandbox deploys stuck in UPDATE_FAILED with no recovery. Setting rollback
+          // explicitly keeps the behavior correct even if the toolkit-lib pin drifts
+          // back into that window.
+          ...(isSandbox ? { rollback: true } : {}),
+          // Opt-in Express mode is only wired for sandbox deployments.
+          ...(isSandbox && deployProps?.express ? { express: true } : {}),
+        });
+      } catch (error) {
+        await this.ioHost.notify({
+          message: 'Deployment failed',
+          code: 'DEPLOY_FAILED',
+          action: 'amplify',
+          time: new Date(),
+          level: 'error',
+          data: undefined,
+        });
+        throw this.cdkErrorMapper.getAmplifyError(
+          error as Error,
+          backendId.type,
+        );
+      }
+
+      return {
+        deploymentTimes: {
+          synthesisTime: synthTimeSeconds,
+          totalTime:
+            synthTimeSeconds +
+            Math.floor((Date.now() - deployStartTime) / 10) / 100,
+        },
+      };
     } finally {
       await synthAssembly?.dispose();
     }
-
-    return {
-      deploymentTimes: {
-        synthesisTime: synthTimeSeconds,
-        totalTime:
-          synthTimeSeconds +
-          Math.floor((Date.now() - deployStartTime) / 10) / 100,
-      },
-    };
   };
 
   /**
