@@ -238,6 +238,56 @@ void describe('invokeCDKCommand', () => {
     );
   });
 
+  // Makes the next synth return an assembly whose dispose() is observable.
+  const mockSynthesizedAssembly = () => {
+    const disposeMock = mock.fn(() => Promise.resolve());
+    synthMock.mock.mockImplementationOnce((() =>
+      Promise.resolve({ dispose: disposeMock })) as never);
+    return disposeMock;
+  };
+
+  void it('releases the synthesized assembly when type checks fail', async (context) => {
+    const disposeMock = mockSynthesizedAssembly();
+    const tsErrorFromCompiler = new AmplifyUserError('SyntaxError', {
+      message: 'TypeScript validation check failed.',
+      resolution: 'Fix the syntax and type errors in your backend definition.',
+      details: 'some tsc error',
+    });
+    context.mock.method(invoker, 'compileProject', () => {
+      throw tsErrorFromCompiler;
+    });
+
+    await assert.rejects(
+      () =>
+        invoker.deploy(sandboxBackendId, {
+          validateAppSources: true,
+        }),
+      tsErrorFromCompiler,
+    );
+    assert.strictEqual(deployMock.mock.callCount(), 0);
+    // An assembly that is never disposed keeps its read lock on cdk.out, so the
+    // next deployment in this process would fail with MultipleSandboxInstancesError.
+    assert.strictEqual(disposeMock.mock.callCount(), 1);
+  });
+
+  void it('releases the synthesized assembly when the deployment fails', async () => {
+    const disposeMock = mockSynthesizedAssembly();
+    deployMock.mock.mockImplementationOnce(() => {
+      throw new Error('Access Denied');
+    });
+
+    await assert.rejects(() => invoker.deploy(sandboxBackendId));
+    assert.strictEqual(disposeMock.mock.callCount(), 1);
+  });
+
+  void it('releases the synthesized assembly once after a successful deployment', async () => {
+    const disposeMock = mockSynthesizedAssembly();
+
+    await invoker.deploy(sandboxBackendId);
+    assert.strictEqual(deployMock.mock.callCount(), 1);
+    assert.strictEqual(disposeMock.mock.callCount(), 1);
+  });
+
   void it('throws the original synth error if the synth failed but tsc succeeded', async () => {
     // simulate first execa call for synth as throwing error
     const synthError = new Error('some cdk esbuild transform error');
