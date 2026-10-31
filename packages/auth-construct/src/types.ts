@@ -375,11 +375,18 @@ export type ExternalProviderOptions = {
    */
   logoutUrls: string[];
   /**
-   * Enable Cognito Managed Login instead of the classic Hosted UI.
-   * Managed Login provides modern authentication flows including the
-   * OIDC prompt parameter and a no-code branding designer.
-   * Requires User Pool to be on the Essentials tier or higher (default for new pools).
-   * @default false
+   * Serve the user pool domain with Cognito managed login instead of the
+   * classic hosted UI. Managed login supports the OIDC `prompt` parameter,
+   * localization, and the branding editor.
+   *
+   * When `true`, the domain is set to managed login and the app client gets a
+   * branding style with the Cognito defaults. When `false`, the domain is set to
+   * the classic hosted UI. When omitted, the branding version is left unset, and
+   * Cognito serves the classic hosted UI on a new domain.
+   *
+   * Managed login requires the Essentials or Plus feature plan. New user pools
+   * default to Essentials.
+   * @default undefined
    */
   managedLogin?: boolean;
 };

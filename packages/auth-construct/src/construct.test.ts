@@ -1390,7 +1390,7 @@ void describe('Auth construct', () => {
       });
     });
 
-    void it('configures managed login version when managedLogin is true', () => {
+    const authWithManagedLogin = (managedLogin?: boolean) =>
       new AmplifyAuth(stack, 'test', {
         name: 'test_name',
         loginWith: {
@@ -1403,15 +1403,61 @@ void describe('Auth construct', () => {
             domainPrefix: 'test-prefix',
             callbackUrls: ['http://callback.com'],
             logoutUrls: ['http://logout.com'],
-            managedLogin: true,
+            ...(managedLogin === undefined ? {} : { managedLogin }),
           },
         },
       });
+
+    void it('configures managed login version when managedLogin is true', () => {
+      authWithManagedLogin(true);
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
         Domain: 'test-prefix',
         ManagedLoginVersion: 2,
       });
+    });
+
+    void it('assigns the app client a default branding style when managedLogin is true', () => {
+      authWithManagedLogin(true);
+      const template = Template.fromStack(stack);
+      const [userPoolId] = Object.keys(
+        template.findResources('AWS::Cognito::UserPool'),
+      );
+      const [clientId] = Object.keys(
+        template.findResources('AWS::Cognito::UserPoolClient'),
+      );
+      const [domainId] = Object.keys(
+        template.findResources('AWS::Cognito::UserPoolDomain'),
+      );
+      template.resourceCountIs('AWS::Cognito::ManagedLoginBranding', 1);
+      template.hasResource('AWS::Cognito::ManagedLoginBranding', {
+        Properties: {
+          UserPoolId: { Ref: userPoolId },
+          ClientId: { Ref: clientId },
+          UseCognitoProvidedValues: true,
+        },
+        DependsOn: Match.arrayWith([domainId]),
+      });
+    });
+
+    void it('switches the domain to the hosted UI when managedLogin is false', () => {
+      authWithManagedLogin(false);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
+        Domain: 'test-prefix',
+        ManagedLoginVersion: 1,
+      });
+      template.resourceCountIs('AWS::Cognito::ManagedLoginBranding', 0);
+    });
+
+    void it('leaves the branding version unset when managedLogin is omitted', () => {
+      authWithManagedLogin();
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
+        Domain: 'test-prefix',
+        ManagedLoginVersion: Match.absent(),
+      });
+      template.resourceCountIs('AWS::Cognito::ManagedLoginBranding', 0);
     });
   });
 
