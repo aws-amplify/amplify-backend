@@ -279,6 +279,12 @@ const translateSamlProps = (
   }
 
   const { metadata, ...otherProps } = samlProviderProps;
+  // The construct's `metadataContent` is a plain string, so the resolved
+  // SecretValue has to be unwrapped. This does not expose the secret:
+  // CfnTokenBackendSecret.resolve() wraps a CloudFormation `Fn::GetAtt`
+  // token (see backend_secret.ts), so unwrapping yields a deploy-time token,
+  // never the plaintext. The other unwrapped secrets in this file rely on the
+  // same property.
   const metadataContent = isBackendSecret(metadata.metadataContent)
     ? backendSecretResolver
         .resolveSecret(metadata.metadataContent)
