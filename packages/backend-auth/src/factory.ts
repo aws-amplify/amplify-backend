@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import {
+  LambdaVersion,
   UserPool,
   UserPoolOperation,
   UserPoolSESOptions,
@@ -9,6 +10,7 @@ import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
   AuthProps,
+  PreTokenGenerationVersion,
   TriggerEvent,
   UserPoolSnsOptions,
 } from '@aws-amplify/auth-construct';
@@ -57,10 +59,20 @@ export type AmplifyAuthProps = Expand<
      * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/triggers/
      */
     triggers?: Partial<
-      Record<
-        TriggerEvent,
-        ConstructFactory<ResourceProvider<FunctionResources>>
-      >
+      Omit<
+        Record<
+          TriggerEvent,
+          ConstructFactory<ResourceProvider<FunctionResources>>
+        >,
+        'preTokenGeneration'
+      > & {
+        preTokenGeneration:
+          | ConstructFactory<ResourceProvider<FunctionResources>>
+          | {
+              handler: ConstructFactory<ResourceProvider<FunctionResources>>;
+              version: PreTokenGenerationVersion;
+            };
+      }
     >;
     /**
      * Configure access to auth for other Amplify resources
@@ -207,11 +219,36 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
 
     Object.entries(this.props.triggers || {}).forEach(
-      ([triggerEvent, handlerFactory]) => {
-        (authConstruct.resources.userPool as UserPool).addTrigger(
-          UserPoolOperation.of(triggerEvent),
-          handlerFactory.getInstance(this.getInstanceProps).resources.lambda,
-        );
+      ([triggerEvent, handlerOrConfig]) => {
+        if (
+          typeof handlerOrConfig === 'object' &&
+          'handler' in handlerOrConfig &&
+          'version' in handlerOrConfig
+        ) {
+          if (triggerEvent !== 'preTokenGeneration') {
+            throw new AmplifyUserError('InvalidTriggerConfigError', {
+              message: `Versioned trigger configuration is only supported for "preTokenGeneration", but was provided for "${triggerEvent}"`,
+              resolution:
+                'Use a direct handler reference for this trigger event, or move the versioned configuration to "preTokenGeneration"',
+            });
+          }
+          const versionMap: Record<PreTokenGenerationVersion, LambdaVersion> = {
+            v1_0: LambdaVersion.V1_0,
+            v2_0: LambdaVersion.V2_0,
+            v3_0: LambdaVersion.V3_0,
+          };
+          (authConstruct.resources.userPool as UserPool).addTrigger(
+            UserPoolOperation.PRE_TOKEN_GENERATION_CONFIG,
+            handlerOrConfig.handler.getInstance(this.getInstanceProps).resources
+              .lambda,
+            versionMap[handlerOrConfig.version],
+          );
+        } else {
+          (authConstruct.resources.userPool as UserPool).addTrigger(
+            UserPoolOperation.of(triggerEvent),
+            handlerOrConfig.getInstance(this.getInstanceProps).resources.lambda,
+          );
+        }
       },
     );
 

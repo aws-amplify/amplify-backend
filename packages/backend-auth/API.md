@@ -21,6 +21,7 @@ import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
+import { PreTokenGenerationVersion } from '@aws-amplify/auth-construct';
 import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -45,7 +46,12 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 // @public (undocumented)
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
-    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    triggers?: Partial<Omit<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>, 'preTokenGeneration'> & {
+        preTokenGeneration: ConstructFactory<ResourceProvider<FunctionResources>> | {
+            handler: ConstructFactory<ResourceProvider<FunctionResources>>;
+            version: PreTokenGenerationVersion;
+        };
+    }>;
     access?: AuthAccessGenerator;
     senders?: {
         email?: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
