@@ -22,9 +22,9 @@ if (!Number.isInteger(maxTestsPerJob)) {
 }
 
 os = os.map((entry) => {
-  if (entry === 'macos-14') {
+  if (entry === 'macos-15') {
     // replace with large.
-    return 'macos-14-xlarge';
+    return 'macos-15-xlarge';
   }
   return entry;
 });

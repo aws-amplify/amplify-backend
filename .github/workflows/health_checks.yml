@@ -111,8 +111,8 @@ jobs:
           os='["ubuntu-latest"'
           os_for_e2e='["ubuntu-latest"'
           if [ "${{ inputs.include-macos }}" != "false" ]; then
-            os+=', "macos-14"'
-            os_for_e2e+=', "macos-14-xlarge"'
+            os+=', "macos-15"'
+            os_for_e2e+=', "macos-15-xlarge"'
           fi
           if [ "${{ inputs.include-windows }}" != "false" ]; then
             os+=', "windows-2025"'
@@ -720,11 +720,11 @@ jobs:
         node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
         # skip multiple node version test on other os
         exclude:
-          - os: macos-14
+          - os: macos-15
             node-version: 24
           - os: windows-2025
             node-version: 22
-          - os: macos-14
+          - os: macos-15
             node-version: 26
           - os: windows-2025
             node-version: 26
