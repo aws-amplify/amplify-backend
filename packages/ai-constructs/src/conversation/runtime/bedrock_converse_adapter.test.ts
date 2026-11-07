@@ -761,6 +761,170 @@ void describe('Bedrock converse adapter', () => {
         assert.deepStrictEqual(bedrockRequest.input, expectedBedrockInput);
       });
 
+      void it('keeps reasoning blocks in the tool use loop but not in the response', async () => {
+        const toolOutput: ToolResultContentBlock = {
+          text: 'toolOutput',
+        };
+        const tool: ExecutableTool = {
+          name: 'toolId',
+          description: 'tool description',
+          inputSchema: {
+            json: {},
+          },
+          execute: () => Promise.resolve(toolOutput),
+        };
+        const event: ConversationTurnEvent = {
+          ...commonEvent,
+        };
+
+        const bedrockClient = new BedrockRuntimeClient();
+        const bedrockResponseQueue: Array<
+          ConverseCommandOutput | ConverseStreamCommandOutput
+        > = [];
+        // Claude models that think by default return the text written between tool calls
+        // as reasoning blocks, with empty text unless thinking display is enabled.
+        const toolUseReasoningBlock: ContentBlock.ReasoningContentMember = {
+          reasoningContent: {
+            reasoningText: { text: '', signature: 'signature1' },
+          },
+        };
+        const toolUseBlock: ContentBlock.ToolUseMember = {
+          toolUse: {
+            toolUseId: randomUUID().toString(),
+            name: tool.name,
+            input: { test: 'input' },
+          },
+        };
+        bedrockResponseQueue.push(
+          mockBedrockResponse(
+            [toolUseReasoningBlock, toolUseBlock],
+            streamResponse,
+          ),
+        );
+        const redactedReasoningBlock: ContentBlock.ReasoningContentMember = {
+          reasoningContent: {
+            redactedContent: new Uint8Array([1, 2, 3]),
+          },
+        };
+        const finalReasoningBlock: ContentBlock.ReasoningContentMember = {
+          reasoningContent: {
+            reasoningText: { text: 'thinking', signature: 'signature2' },
+          },
+        };
+        const finalTextBlock: ContentBlock.TextMember = {
+          text: 'finalResponse',
+        };
+        bedrockResponseQueue.push(
+          mockBedrockResponse(
+            [redactedReasoningBlock, finalReasoningBlock, finalTextBlock],
+            streamResponse,
+          ),
+        );
+        const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
+          Promise.resolve(bedrockResponseQueue.shift()),
+        );
+
+        const adapter = new BedrockConverseAdapter(
+          event,
+          [tool],
+          bedrockClient,
+          undefined,
+          messageHistoryRetriever,
+        );
+
+        if (streamResponse) {
+          const chunks: Array<StreamingResponseChunk> =
+            await askBedrockWithStreaming(adapter);
+          for (const chunk of chunks) {
+            assert.strictEqual(chunk.contentBlockIndex, 0);
+            assert.ok(
+              chunk.accumulatedTurnContent.every(
+                (block) => !block.reasoningContent && block.text !== '',
+              ),
+            );
+          }
+          assert.deepStrictEqual(chunks[chunks.length - 1], {
+            accumulatedTurnContent: [finalTextBlock],
+            conversationId: event.conversationId,
+            associatedUserMessageId: event.currentMessageId,
+            contentBlockIndex: 0,
+            stopReason: 'end_turn',
+          });
+        } else {
+          const responseContent = await adapter.askBedrock();
+          assert.deepStrictEqual(responseContent, [finalTextBlock]);
+        }
+
+        assert.strictEqual(bedrockClientSendMock.mock.calls.length, 2);
+        const secondRequest = bedrockClientSendMock.mock.calls[1]
+          .arguments[0] as unknown as ConverseCommand;
+        assert.deepStrictEqual(secondRequest.input.messages, [
+          ...messages,
+          {
+            role: 'assistant',
+            content: [toolUseReasoningBlock, toolUseBlock],
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                toolResult: {
+                  toolUseId: toolUseBlock.toolUse.toolUseId,
+                  content: [toolOutput],
+                  status: 'success',
+                },
+              },
+            ],
+          },
+        ]);
+      });
+
+      void it('drops empty text blocks persisted next to other content', async () => {
+        const event: ConversationTurnEvent = {
+          ...commonEvent,
+        };
+        const history: Array<ConversationMessage> = [
+          { role: 'user', content: [{ text: 'question' }] },
+          {
+            role: 'assistant',
+            content: [{ text: '' }, { text: 'answer' }],
+          },
+          { role: 'user', content: [{ text: 'follow up' }] },
+        ];
+        const historyRetriever = new ConversationMessageHistoryRetriever(event);
+        mock.method(historyRetriever, 'getMessageHistory', () =>
+          Promise.resolve(history),
+        );
+
+        const bedrockClient = new BedrockRuntimeClient();
+        const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
+          Promise.resolve(
+            mockBedrockResponse([{ text: 'response' }], streamResponse),
+          ),
+        );
+
+        const adapter = new BedrockConverseAdapter(
+          event,
+          [],
+          bedrockClient,
+          undefined,
+          historyRetriever,
+        );
+        if (streamResponse) {
+          await askBedrockWithStreaming(adapter);
+        } else {
+          await adapter.askBedrock();
+        }
+
+        const bedrockRequest = bedrockClientSendMock.mock.calls[0]
+          .arguments[0] as unknown as ConverseCommand;
+        assert.deepStrictEqual(bedrockRequest.input.messages, [
+          { role: 'user', content: [{ text: 'question' }] },
+          { role: 'assistant', content: [{ text: 'answer' }] },
+          { role: 'user', content: [{ text: 'follow up' }] },
+        ]);
+      });
+
       void it('decodes base64 encoded images', async () => {
         const event: ConversationTurnEvent = {
           ...commonEvent,
@@ -1165,9 +1329,7 @@ const askBedrockWithStreaming = async (
 };
 
 const mockBedrockResponse = (
-  contentBlocks:
-    | Array<ContentBlock.TextMember>
-    | Array<ContentBlock.ToolUseMember>,
+  contentBlocks: Array<ContentBlock>,
   streamResponse: boolean,
 ): ConverseStreamCommandOutput | ConverseCommandOutput => {
   if (streamResponse) {
@@ -1176,9 +1338,7 @@ const mockBedrockResponse = (
   return mockConverseCommandOutput(contentBlocks);
 };
 const mockConverseCommandOutput = (
-  contentBlocks:
-    | Array<ContentBlock.TextMember>
-    | Array<ContentBlock.ToolUseMember>,
+  contentBlocks: Array<ContentBlock>,
 ): ConverseCommandOutput => {
   let stopReason: StopReason = 'end_turn';
   if (contentBlocks.find((block) => block.toolUse)) {
@@ -1199,9 +1359,7 @@ const mockConverseCommandOutput = (
 };
 
 const mockConverseStreamCommandOutput = (
-  contentBlocks:
-    | Array<ContentBlock.TextMember>
-    | Array<ContentBlock.ToolUseMember>,
+  contentBlocks: Array<ContentBlock>,
 ): ConverseStreamCommandOutput => {
   const streamItems: Array<ConverseStreamOutput> = [];
   let stopReason: StopReason | undefined;
@@ -1287,6 +1445,41 @@ const mockConverseStreamCommandOutput = (
             },
             // @ts-expect-error padding is sent by Bedrock but not in their API.
             p: 'testPadding',
+          },
+        });
+      }
+      streamItems.push({
+        contentBlockStop: {
+          contentBlockIndex: i,
+        },
+      });
+    } else if (block.reasoningContent) {
+      // Bedrock streams reasoning without a content block start.
+      if (block.reasoningContent.redactedContent) {
+        streamItems.push({
+          contentBlockDelta: {
+            contentBlockIndex: i,
+            delta: {
+              reasoningContent: {
+                redactedContent: block.reasoningContent.redactedContent,
+              },
+            },
+          },
+        });
+      } else {
+        const reasoningText = block.reasoningContent.reasoningText;
+        streamItems.push({
+          contentBlockDelta: {
+            contentBlockIndex: i,
+            delta: { reasoningContent: { text: reasoningText?.text ?? '' } },
+          },
+        });
+        streamItems.push({
+          contentBlockDelta: {
+            contentBlockIndex: i,
+            delta: {
+              reasoningContent: { signature: reasoningText?.signature ?? '' },
+            },
           },
         });
       }
