@@ -51,11 +51,16 @@ export const compileProject = (projectDirectory: string) => {
     });
   }
 
-  // Parse JSON config into a TypeScript compiler options object
+  // Parse JSON config into a TypeScript compiler options object.
+  // Pass absolute paths, as tsc does: with a relative project directory, a
+  // package in `extends` is not found in a node_modules above the working
+  // directory, such as the root of an npm workspace.
   const parsedCommandLine = ts.parseJsonConfigFileContent(
     configFile.config,
     ts.sys,
-    projectDirectory,
+    path.dirname(configPath),
+    undefined,
+    configPath,
   );
 
   const tsBuildInfoFile = path.resolve(
