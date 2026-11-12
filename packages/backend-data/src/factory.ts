@@ -121,6 +121,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 
 class DataGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName: AmplifyResourceGroupName = 'data';
+  readonly suppressTemplateIndentation?: boolean;
   private readonly name: string;
 
   constructor(
@@ -130,6 +131,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>,
   ) {
     this.name = props.name ?? defaultName;
+    this.suppressTemplateIndentation = props.suppressTemplateIndentation;
   }
 
   generateContainerEntry = ({
