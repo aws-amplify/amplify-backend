@@ -14,6 +14,12 @@ To get started with Amplify Gen 2, visit [AWS Amplify Gen 2 Quickstart](https://
 npm create amplify@latest
 ```
 
+You can also use [Amplify Agent Plugins](https://github.com/awslabs/agent-plugins/tree/main/plugins/aws-amplify) - 
+```
+/plugin marketplace add awslabs/agent-plugins
+/plugin install aws-amplify@agent-plugins-for-aws
+```
+
 ## Package Manager Support
 
 - NPM, Yarn, and PNPM are officially supported.
