@@ -24,4 +24,4 @@ setInterval(
     }
   },
   SSM_PARAMETER_REFRESH_MS,
-);
+).unref(); // don't let the refresh timer alone keep the event loop alive, otherwise response streaming handlers never complete
