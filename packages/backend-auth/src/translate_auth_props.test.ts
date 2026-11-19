@@ -100,6 +100,13 @@ void describe('translateToAuthConstructLoginWith', () => {
           keyId: new TestBackendSecret(appleKeyId),
           privateKey: new TestBackendSecret(applePrivateKey),
         },
+        saml: {
+          name: 'MySAMLProvider',
+          metadata: {
+            metadataContent: new TestBackendSecret('samlMetadataUrl'),
+            metadataType: 'URL',
+          },
+        },
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
       },
@@ -138,11 +145,102 @@ void describe('translateToAuthConstructLoginWith', () => {
           keyId: appleKeyId,
           privateKey: applePrivateKey,
         },
+        saml: {
+          name: 'MySAMLProvider',
+          metadata: {
+            metadataContent: 'samlMetadataUrl',
+            metadataType: 'URL',
+          },
+        },
         callbackUrls: callbackUrls,
         logoutUrls: logoutUrls,
       },
     };
     assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('passes a plain-string SAML metadataContent through unchanged', () => {
+    const loginWith: AuthLoginWithFactoryProps = {
+      phone,
+      externalProviders: {
+        saml: {
+          name: 'MySAMLProvider',
+          identifiers: ['example.com'],
+          metadata: {
+            metadataContent: 'https://idp.example.com/metadata',
+            metadataType: 'URL',
+          },
+        },
+        callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
+      },
+    };
+
+    const translated = translateToAuthConstructLoginWith(
+      loginWith,
+      backendResolver,
+    );
+
+    const expected: AuthProps['loginWith'] = {
+      phone,
+      externalProviders: {
+        saml: {
+          name: 'MySAMLProvider',
+          identifiers: ['example.com'],
+          metadata: {
+            metadataContent: 'https://idp.example.com/metadata',
+            metadataType: 'URL',
+          },
+        },
+        callbackUrls: callbackUrls,
+        logoutUrls: logoutUrls,
+      },
+    };
+    assert.deepStrictEqual(translated, expected);
+  });
+
+  void it('translates SAML FILE metadata from a string and from a secret', () => {
+    const metadataXml = '<EntityDescriptor entityID="urn:example:idp" />';
+    for (const metadataContent of [
+      metadataXml,
+      new TestBackendSecret(metadataXml),
+    ]) {
+      const loginWith: AuthLoginWithFactoryProps = {
+        phone,
+        externalProviders: {
+          saml: {
+            name: 'MySAMLProvider',
+            metadata: {
+              metadataContent,
+              metadataType: 'FILE',
+            },
+          },
+          callbackUrls: callbackUrls,
+          logoutUrls: logoutUrls,
+        },
+      };
+
+      const translated = translateToAuthConstructLoginWith(
+        loginWith,
+        backendResolver,
+      );
+
+      const expected: AuthProps['loginWith'] = {
+        phone,
+        externalProviders: {
+          saml: {
+            name: 'MySAMLProvider',
+            metadata: {
+              metadataContent: metadataXml,
+              metadataType: 'FILE',
+            },
+          },
+          callbackUrls: callbackUrls,
+          logoutUrls: logoutUrls,
+        },
+      };
+      assert.deepStrictEqual(translated, expected);
+    }
   });
 
   void it('translates with only a general provider attribute', () => {

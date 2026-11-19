@@ -5,8 +5,10 @@ import {
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
+  SamlProviderProps,
 } from '@aws-amplify/auth-construct';
 import {
+  BackendSecret,
   BackendSecretResolver,
   ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
@@ -18,6 +20,7 @@ import {
   FacebookProviderFactoryProps,
   GoogleProviderFactoryProps,
   OidcProviderFactoryProps,
+  SamlProviderFactoryProps,
 } from './types.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { AmplifyAuthProps } from './factory.js';
@@ -96,6 +99,14 @@ export const translateToAuthConstructLoginWith = (
   );
   if (googleProps) {
     result.externalProviders.google = googleProps;
+  }
+
+  const samlProps = translateSamlProps(
+    backendSecretResolver,
+    externalProviders.saml,
+  );
+  if (samlProps) {
+    result.externalProviders.saml = samlProps;
   }
 
   return result;
@@ -250,5 +261,41 @@ const translateGoogleProps = (
     ...noSecretProps,
     clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
     clientSecret: backendSecretResolver.resolveSecret(clientSecretValue),
+  };
+};
+
+const isBackendSecret = (
+  value: string | BackendSecret,
+): value is BackendSecret => {
+  return typeof value !== 'string';
+};
+
+const translateSamlProps = (
+  backendSecretResolver: BackendSecretResolver,
+  samlProviderProps?: SamlProviderFactoryProps,
+): SamlProviderProps | undefined => {
+  if (!samlProviderProps) {
+    return undefined;
+  }
+
+  const { metadata, ...otherProps } = samlProviderProps;
+  // The construct's `metadataContent` is a plain string, so the resolved
+  // SecretValue has to be unwrapped. This does not expose the secret:
+  // CfnTokenBackendSecret.resolve() wraps a CloudFormation `Fn::GetAtt`
+  // token (see backend_secret.ts), so unwrapping yields a deploy-time token,
+  // never the plaintext. The other unwrapped secrets in this file rely on the
+  // same property.
+  const metadataContent = isBackendSecret(metadata.metadataContent)
+    ? backendSecretResolver
+        .resolveSecret(metadata.metadataContent)
+        .unsafeUnwrap()
+    : metadata.metadataContent;
+
+  return {
+    ...otherProps,
+    metadata: {
+      metadataContent,
+      metadataType: metadata.metadataType,
+    },
   };
 };
