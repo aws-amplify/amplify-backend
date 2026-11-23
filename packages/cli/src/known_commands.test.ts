@@ -59,6 +59,19 @@ void describe('resolveKnownCommand', () => {
     );
   });
 
+  void it('does not resume matching after an unknown argument', () => {
+    // 'list' is a known command name, but it follows an unknown argument
+    assert.deepStrictEqual(
+      resolveKnownCommand(['sandbox', 'secret', 'set', canary, 'list']).path,
+      ['sandbox', 'secret', 'set', unknown, unknown],
+    );
+    // 'list' is a known subcommand of 'secret', but it follows an unknown argument
+    assert.deepStrictEqual(
+      resolveKnownCommand(['sandbox', 'secret', canary, 'list']).path,
+      ['sandbox', 'secret', unknown, unknown],
+    );
+  });
+
   void it('placeholder does not depend on the unrecognized argument', () => {
     const expected = ['sandbox', unknown];
     for (const arg of ['a', canary, canary.repeat(10), '', ' ', '<unknown>']) {

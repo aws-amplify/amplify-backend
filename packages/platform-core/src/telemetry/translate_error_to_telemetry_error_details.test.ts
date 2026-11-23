@@ -39,6 +39,25 @@ void describe('translateErrorToTelemetryErrorDetails', () => {
     assert.deepStrictEqual(actual, expectedError);
   });
 
+  void it('returns only error names and codes for every error in the cause chain', () => {
+    const canary = 'AMPX_TEST_CANARY_VALUE';
+    const nestedError = Object.assign(new Error(`nested ${canary}`), {
+      code: 'NestedErrorCode',
+    });
+    nestedError.stack = `stack ${canary}`;
+    const error = new Error(`top level ${canary}`, { cause: nestedError });
+    error.name = 'TopLevelError';
+    error.stack = `stack ${canary}`;
+
+    const actual = translateErrorToTelemetryErrorDetails(error);
+
+    assert.deepStrictEqual(actual, {
+      name: 'NestedErrorCode',
+      caused: { name: 'TopLevelError' },
+    });
+    assert.ok(!JSON.stringify(actual).includes(canary));
+  });
+
   void it('returns undefined if there is no error', () => {
     const actual = translateErrorToTelemetryErrorDetails();
     assert.strictEqual(actual, undefined);
