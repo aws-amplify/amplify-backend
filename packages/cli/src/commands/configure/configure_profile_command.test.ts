@@ -6,6 +6,7 @@ import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
 import { ProfileController } from './profile_controller.js';
+import { ConfigureCommand } from './configure_command.js';
 import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 const testAccessKeyId = 'testAccessKeyId';
@@ -30,7 +31,10 @@ void describe('configure command', () => {
   );
 
   const configureCommand = new ConfigureProfileCommand(profileController);
-  const parser = yargs().command(configureCommand as unknown as CommandModule);
+  // mount under the parent command so that telemetry command info matches the CLI command tree
+  const parser = yargs().command(
+    new ConfigureCommand([configureCommand as unknown as CommandModule]),
+  );
   const commandRunner = new TestCommandRunner(parser, {
     emitSuccess: emitSuccessMock,
     emitFailure: emitFailureMock,
@@ -50,7 +54,7 @@ void describe('configure command', () => {
     );
     const mockPrint = contextual.mock.method(printer, 'print');
 
-    await commandRunner.runCommand(`profile --name ${testProfile}`);
+    await commandRunner.runCommand(`configure profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 1);
@@ -61,7 +65,7 @@ void describe('configure command', () => {
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'profile',
+      command: 'configure profile',
     });
   });
 
@@ -101,7 +105,7 @@ void describe('configure command', () => {
       () => Promise.resolve(true),
     );
 
-    await commandRunner.runCommand(`profile --name ${testProfile}`);
+    await commandRunner.runCommand(`configure profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
@@ -117,7 +121,7 @@ void describe('configure command', () => {
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'profile',
+      command: 'configure profile',
     });
   });
 
@@ -163,7 +167,7 @@ void describe('configure command', () => {
       () => Promise.resolve(false),
     );
 
-    await commandRunner.runCommand(`profile --name ${testProfile}`);
+    await commandRunner.runCommand(`configure profile --name ${testProfile}`);
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
@@ -184,17 +188,17 @@ void describe('configure command', () => {
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'profile',
+      command: 'configure profile',
     });
   });
 
   void it('show --help', async () => {
-    const output = await commandRunner.runCommand('profile --help');
+    const output = await commandRunner.runCommand('configure profile --help');
     assert.match(output, /Configure an AWS Amplify profile/);
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'profile',
+      command: 'configure profile',
     });
   });
 });

@@ -153,10 +153,120 @@ void describe('UsageDataEmitter', () => {
     );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
-    assert.strictEqual(usageDataSent.error?.message, 'some error message');
-    assert.ok(
-      usageDataSent.downstreamException?.message == 'some downstream exception',
-    );
+    assert.deepStrictEqual(usageDataSent.error, { name: 'BackendBuildError' });
+    assert.deepStrictEqual(usageDataSent.downstreamException, {
+      name: 'Error',
+    });
+  });
+
+  void describe('does not include free-form error text in usage data', () => {
+    const canary = 'AMPX_TEST_CANARY_VALUE';
+
+    const assertNoCanary = (serializedPayload: string) => {
+      assert.ok(!serializedPayload.includes(canary), serializedPayload);
+      // yargs also reports camelCase variants of unknown option names, e.g. xAMPXTESTCANARYVALUE
+      const normalizedPayload = serializedPayload
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9]/g, '');
+      assert.ok(
+        !normalizedPayload.includes(canary.toLowerCase().replaceAll('_', '')),
+        serializedPayload,
+      );
+    };
+
+    const createParserError = (message: string) => {
+      const error = new Error(message);
+      error.name = 'YError';
+      return error;
+    };
+
+    const testCases: Array<{
+      description: string;
+      error: AmplifyError;
+      command: string;
+      expectedErrorName: string;
+      expectedDownstreamExceptionName?: string;
+    }> = [
+      {
+        description: 'undeclared positional argument after a command',
+        error: AmplifyError.fromError(
+          createParserError(`Unknown command: ${canary}`),
+        ),
+        command: 'sandbox secret set <unknown>',
+        expectedErrorName: 'InvalidCommandInputError',
+        expectedDownstreamExceptionName: 'YError',
+      },
+      {
+        description: 'invalid argument value',
+        error: new AmplifyUserError('InvalidCommandInputError', {
+          message: `Invalid name provided: NAME=${canary}`,
+          details: `details ${canary}`,
+          resolution: `resolution ${canary}`,
+        }),
+        command: 'sandbox secret set',
+        expectedErrorName: 'InvalidCommandInputError',
+      },
+      {
+        description: 'unknown option name',
+        error: AmplifyError.fromError(
+          createParserError(
+            `Unknown arguments: x-${canary}, x${canary.replaceAll('_', '')}`,
+          ),
+        ),
+        command: 'sandbox',
+        expectedErrorName: 'InvalidCommandInputError',
+        expectedDownstreamExceptionName: 'YError',
+      },
+      {
+        description: 'unknown command',
+        error: AmplifyError.fromError(
+          createParserError(`Unknown command: ${canary}`),
+        ),
+        command: '<unknown>',
+        expectedErrorName: 'InvalidCommandInputError',
+        expectedDownstreamExceptionName: 'YError',
+      },
+      {
+        description: 'unexpected error with a cause',
+        error: AmplifyError.fromError(
+          new Error(`outer ${canary}`, {
+            cause: new Error(`inner ${canary}`),
+          }),
+        ),
+        command: 'generate outputs',
+        expectedErrorName: 'UnknownFault',
+        expectedDownstreamExceptionName: 'Error',
+      },
+    ];
+
+    for (const testCase of testCases) {
+      void test(testCase.description, async () => {
+        await setupAndInvokeUsageEmitter({
+          isSuccess: false,
+          error: testCase.error,
+          command: testCase.command,
+        });
+
+        const serializedPayload: string =
+          onReqWriteMock.mock.calls[0].arguments[0];
+        assertNoCanary(serializedPayload);
+
+        const usageDataSent: UsageData = JSON.parse(serializedPayload);
+        assert.deepStrictEqual(usageDataSent.input, {
+          command: testCase.command,
+          plugin: 'Gen2',
+        });
+        assert.deepStrictEqual(usageDataSent.error, {
+          name: testCase.expectedErrorName,
+        });
+        assert.deepStrictEqual(
+          usageDataSent.downstreamException,
+          testCase.expectedDownstreamExceptionName
+            ? { name: testCase.expectedDownstreamExceptionName }
+            : undefined,
+        );
+      });
+    }
   });
 
   /**
@@ -173,6 +283,7 @@ void describe('UsageDataEmitter', () => {
     isSuccess: boolean;
     error?: AmplifyError;
     metrics?: Record<string, number>;
+    command?: string;
   }) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
       onReqEndMock.mock.mockImplementationOnce(() => {
@@ -188,15 +299,18 @@ void describe('UsageDataEmitter', () => {
       accountIdFetcherMock,
     );
 
+    const dimensions = { command: testData.command ?? 'testCommandName' };
     let usageDataEmitterPromise;
     if (testData.isSuccess) {
-      usageDataEmitterPromise = usageDataEmitter.emitSuccess(testData.metrics, {
-        command: 'testCommandName',
-      });
+      usageDataEmitterPromise = usageDataEmitter.emitSuccess(
+        testData.metrics,
+        dimensions,
+      );
     } else if (testData.error) {
-      usageDataEmitterPromise = usageDataEmitter.emitFailure(testData.error, {
-        command: 'testCommandName',
-      });
+      usageDataEmitterPromise = usageDataEmitter.emitFailure(
+        testData.error,
+        dimensions,
+      );
     }
 
     await reqEndHandlerAttached;

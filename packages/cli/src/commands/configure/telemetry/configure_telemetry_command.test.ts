@@ -1,8 +1,9 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import yargs from 'yargs';
+import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
+import { ConfigureCommand } from '../configure_command.js';
 import {
   TELEMETRY_ENABLED,
   USAGE_DATA_TRACKING_ENABLED,
@@ -27,7 +28,10 @@ void describe('configure command', () => {
   const telemetryCommand = new ConfigureTelemetryCommand(
     configControllerFactory.getInstance('usage_data_preferences.json'),
   );
-  const parser = yargs().command(telemetryCommand);
+  // mount under the parent command so that telemetry command info matches the CLI command tree
+  const parser = yargs().command(
+    new ConfigureCommand([telemetryCommand as unknown as CommandModule]),
+  );
   const commandRunner = new TestCommandRunner(parser, {
     emitSuccess: emitSuccessMock,
     emitFailure: emitFailureMock,
@@ -41,7 +45,7 @@ void describe('configure command', () => {
   });
 
   void it('enable telemetry & updates local config', async () => {
-    await commandRunner.runCommand(`telemetry enable`);
+    await commandRunner.runCommand(`configure telemetry enable`);
     assert.match(
       logMock.mock.calls[0].arguments[0],
       /You have enabled telemetry data collection/,
@@ -57,7 +61,7 @@ void describe('configure command', () => {
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'telemetry enable',
+      command: 'configure telemetry enable',
     });
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[1].arguments[0],
@@ -70,7 +74,7 @@ void describe('configure command', () => {
   });
 
   void it('disables telemetry & updates local config', async () => {
-    await commandRunner.runCommand(`telemetry disable`);
+    await commandRunner.runCommand(`configure telemetry disable`);
     assert.match(
       logMock.mock.calls[0].arguments[0],
       /You have disabled telemetry data collection/,
@@ -86,7 +90,7 @@ void describe('configure command', () => {
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
-      command: 'telemetry disable',
+      command: 'configure telemetry disable',
     });
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[1].arguments[0],
@@ -99,7 +103,7 @@ void describe('configure command', () => {
   });
 
   void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
-    const output = await commandRunner.runCommand(`telemetry`);
+    const output = await commandRunner.runCommand(`configure telemetry`);
     assert.match(
       output,
       /Not enough non-option arguments: got 0, need at least 1/,
@@ -111,7 +115,7 @@ void describe('configure command', () => {
       /Not enough non-option arguments: got 0, need at least 1/,
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
-      command: 'telemetry',
+      command: 'configure telemetry',
     });
   });
 });
