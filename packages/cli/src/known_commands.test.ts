@@ -163,7 +163,7 @@ const describeRegisteredCommands = (
   // positional arguments declared in the command string, e.g. 'set <key> [value]'
   for (const match of commandString.matchAll(/[<[]([^>\]]+)[>\]]/g)) {
     match[1]
-      .replace('..', '')
+      .replace(/\.\./g, '')
       .split('|')
       .forEach((name) => optionNames.add(name));
   }
