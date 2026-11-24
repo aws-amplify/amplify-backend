@@ -58,16 +58,16 @@ void describe('extractCommandInfo', () => {
     const parser = {
       parsed: {
         argv: {
-          _: ['sandbox', 'secret', 'set', canary],
-          'secret-name': 'NAME',
-          secretName: 'NAME',
+          _: ['generate', 'outputs', canary],
+          'app-id': 'testAppId',
+          appId: 'testAppId',
         },
       },
     } as unknown as Argv;
     const actual = extractCommandInfo(parser);
     assert.deepEqual(actual, {
-      path: ['sandbox', 'secret', 'set', '<unknown>'],
-      parameters: ['secret-name', 'secretName'],
+      path: ['generate', 'outputs', '<unknown>'],
+      parameters: ['app-id', 'appId'],
     });
   });
 

@@ -289,8 +289,8 @@ void describe('DefaultTelemetryPayloadExporter', () => {
       event: {
         state: 'FAILED',
         command: {
-          path: ['sandbox', 'secret', 'set', '<unknown>'],
-          parameters: ['secret-name', 'secretName'],
+          path: ['generate', 'outputs', '<unknown>'],
+          parameters: ['app-id', 'appId'],
         },
       },
       latency: { total: 10, init: 1 },
@@ -313,8 +313,8 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     assert.deepStrictEqual(telemetryPayloadSent.event, {
       state: 'FAILED',
       command: {
-        path: ['sandbox', 'secret', 'set', '<unknown>'],
-        parameters: ['secret-name', 'secretName'],
+        path: ['generate', 'outputs', '<unknown>'],
+        parameters: ['app-id', 'appId'],
       },
     });
     assert.deepStrictEqual(telemetryPayloadSent.error, {

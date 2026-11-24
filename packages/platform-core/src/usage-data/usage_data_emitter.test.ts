@@ -192,18 +192,18 @@ void describe('UsageDataEmitter', () => {
         error: AmplifyError.fromError(
           createParserError(`Unknown command: ${canary}`),
         ),
-        command: 'sandbox secret set <unknown>',
+        command: 'generate outputs <unknown>',
         expectedErrorName: 'InvalidCommandInputError',
         expectedDownstreamExceptionName: 'YError',
       },
       {
         description: 'invalid argument value',
         error: new AmplifyUserError('InvalidCommandInputError', {
-          message: `Invalid name provided: NAME=${canary}`,
+          message: `Invalid value provided: ${canary}`,
           details: `details ${canary}`,
           resolution: `resolution ${canary}`,
         }),
-        command: 'sandbox secret set',
+        command: 'generate outputs',
         expectedErrorName: 'InvalidCommandInputError',
       },
       {

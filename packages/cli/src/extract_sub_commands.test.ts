@@ -24,8 +24,10 @@ void describe('extractSubCommands', () => {
 
   void it('returns known commands', () => {
     assert.equal(
-      extractSubCommands(createParsedParser(['sandbox', 'secret', 'set'])),
-      'sandbox secret set',
+      extractSubCommands(
+        createParsedParser(['configure', 'telemetry', 'disable']),
+      ),
+      'configure telemetry disable',
     );
     assert.equal(
       extractSubCommands(createParsedParser(['generate', 'outputs'])),
@@ -39,10 +41,8 @@ void describe('extractSubCommands', () => {
 
   void it('records undeclared positional arguments as placeholder', () => {
     assert.equal(
-      extractSubCommands(
-        createParsedParser(['sandbox', 'secret', 'set', canary]),
-      ),
-      'sandbox secret set <unknown>',
+      extractSubCommands(createParsedParser(['generate', 'outputs', canary])),
+      'generate outputs <unknown>',
     );
   });
 

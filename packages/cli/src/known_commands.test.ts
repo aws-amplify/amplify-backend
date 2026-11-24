@@ -20,8 +20,8 @@ void describe('resolveKnownCommand', () => {
 
   void it('returns path for known commands', () => {
     assert.deepStrictEqual(
-      resolveKnownCommand(['sandbox', 'secret', 'set']).path,
-      ['sandbox', 'secret', 'set'],
+      resolveKnownCommand(['configure', 'telemetry', 'disable']).path,
+      ['configure', 'telemetry', 'disable'],
     );
     assert.deepStrictEqual(resolveKnownCommand(['generate', 'outputs']).path, [
       'generate',
@@ -34,8 +34,8 @@ void describe('resolveKnownCommand', () => {
 
   void it('records undeclared positional arguments as placeholder', () => {
     assert.deepStrictEqual(
-      resolveKnownCommand(['sandbox', 'secret', 'set', canary]).path,
-      ['sandbox', 'secret', 'set', unknown],
+      resolveKnownCommand(['generate', 'outputs', canary]).path,
+      ['generate', 'outputs', unknown],
     );
     assert.deepStrictEqual(resolveKnownCommand(['sandbox', canary]).path, [
       'sandbox',
@@ -62,13 +62,13 @@ void describe('resolveKnownCommand', () => {
   void it('does not resume matching after an unknown argument', () => {
     // 'list' is a known command name, but it follows an unknown argument
     assert.deepStrictEqual(
-      resolveKnownCommand(['sandbox', 'secret', 'set', canary, 'list']).path,
-      ['sandbox', 'secret', 'set', unknown, unknown],
+      resolveKnownCommand(['notices', 'acknowledge', canary, 'list']).path,
+      ['notices', 'acknowledge', unknown, unknown],
     );
-    // 'list' is a known subcommand of 'secret', but it follows an unknown argument
+    // 'list' is a known subcommand of 'notices', but it follows an unknown argument
     assert.deepStrictEqual(
-      resolveKnownCommand(['sandbox', 'secret', canary, 'list']).path,
-      ['sandbox', 'secret', unknown, unknown],
+      resolveKnownCommand(['notices', canary, 'list']).path,
+      ['notices', unknown, unknown],
     );
   });
 

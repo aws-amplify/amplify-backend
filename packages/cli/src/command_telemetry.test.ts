@@ -1,11 +1,10 @@
 import { after, before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { PassThrough } from 'node:stream';
-import { ReadStream } from 'node:tty';
-import yargs, { Argv, CommandModule } from 'yargs';
+import { Argv } from 'yargs';
 import { Span } from '@opentelemetry/api';
 import {
   AmplifyError,
+  AmplifyUserError,
   TelemetryPayload,
   UsageDataEmitter,
   setSpanAttributes,
@@ -14,14 +13,11 @@ import {
 } from '@aws-amplify/platform-core';
 import { DeepPartial } from '@aws-amplify/plugin-types';
 import { printer } from '@aws-amplify/cli-core';
-import { SecretClient } from '@aws-amplify/backend-secret';
 import { createMainParser } from './main_parser_factory.js';
 import { NoticesRenderer } from './notices/notices_renderer.js';
 import { extractCommandInfo } from './extract_command_info.js';
 import { extractSubCommands } from './extract_sub_commands.js';
 import { generateCommandFailureHandler } from './error_handler.js';
-import { SandboxSecretSetCommand } from './commands/sandbox/sandbox-secret/sandbox_secret_set_command.js';
-import { SandboxBackendIdResolver } from './commands/sandbox/sandbox_id_resolver.js';
 
 const canary = 'AMPX_TEST_CANARY_VALUE';
 const unknown = '<unknown>';
@@ -62,34 +58,6 @@ const parseWithoutRunningCommand = async (args: string[]) => {
   }
   assert.ok(error, 'Expected parsing to stop before running the command');
   return { parser, error };
-};
-
-/**
- * Produces the error raised by input validation of the `set` subcommand.
- * Uses the subcommand on its own so that no other middleware is involved.
- */
-const getSetCommandValidationError = async (args: string[]) => {
-  const readStream = new PassThrough();
-  readStream.end();
-  const sandboxSecretSetCommand = new SandboxSecretSetCommand(
-    {
-      resolve: () => Promise.reject(new Error('Not expected in this test')),
-    } as unknown as SandboxBackendIdResolver,
-    {
-      setSecret: () => Promise.reject(new Error('Not expected in this test')),
-    } as unknown as SecretClient,
-    readStream as unknown as ReadStream,
-  );
-  const parser = yargs()
-    .command(sandboxSecretSetCommand as unknown as CommandModule)
-    .exitProcess(false)
-    .fail(false);
-  try {
-    await parser.parseAsync(args);
-  } catch (e) {
-    return e as Error;
-  }
-  assert.fail('Expected input validation error');
 };
 
 // Mirrors how the telemetry exporter turns span attributes into a payload.
@@ -191,16 +159,27 @@ void describe('command telemetry', () => {
     }> = [
       {
         description: 'undeclared positional argument after a command',
-        args: ['sandbox', 'secret', 'set', 'NAME', canary],
-        expectedPath: ['sandbox', 'secret', 'set', unknown],
-        expectedParameters: ['secret-name', 'secretName'],
+        args: ['generate', 'outputs', canary],
+        expectedPath: ['generate', 'outputs', unknown],
+        expectedParameters: ['outputs-version', 'outputsVersion'],
       },
       {
-        description: 'NAME=VALUE positional argument',
-        args: ['sandbox', 'secret', 'set', `NAME=${canary}`],
-        getError: () => getSetCommandValidationError(['set', `NAME=${canary}`]),
-        expectedPath: ['sandbox', 'secret', 'set'],
-        expectedParameters: ['secret-name', 'secretName'],
+        description: 'error message containing an argument value',
+        args: ['generate', 'outputs', '--app-id', canary],
+        getError: () =>
+          Promise.resolve(
+            new AmplifyUserError('InvalidCommandInputError', {
+              message: `Invalid value provided: ${canary}`,
+              resolution: 'Check the command input.',
+            }),
+          ),
+        expectedPath: ['generate', 'outputs'],
+        expectedParameters: [
+          'app-id',
+          'appId',
+          'outputs-version',
+          'outputsVersion',
+        ],
       },
       {
         description: 'unknown option name',
@@ -234,8 +213,8 @@ void describe('command telemetry', () => {
       },
       {
         description: 'undeclared positional argument after positional values',
-        args: ['secret', 'set', 'KEY', 'VALUE', canary],
-        expectedPath: ['secret', 'set', unknown],
+        args: ['config', 'set', 'KEY', 'VALUE', canary],
+        expectedPath: ['config', 'set', unknown],
         expectedParameters: ['key', 'value'],
       },
       {
@@ -293,9 +272,9 @@ void describe('command telemetry', () => {
       expectedParameters: string[];
     }> = [
       {
-        args: ['sandbox', 'secret', 'set', 'NAME'],
-        expectedPath: ['sandbox', 'secret', 'set'],
-        expectedParameters: ['secret-name', 'secretName'],
+        args: ['configure', 'telemetry', 'disable'],
+        expectedPath: ['configure', 'telemetry', 'disable'],
+        expectedParameters: [],
       },
       {
         args: ['generate', 'outputs', '--app-id', 'a', '--branch', 'b'],

@@ -6,7 +6,6 @@ const stackRegex = /amplify-[a-zA-Z0-9-]+/g;
  * Wrapper around Error for serialization for telemetry.
  *
  * Only the error name (or code, when available) is included.
- * Free-form text such as the error message and stack trace is purposely omitted.
  */
 export class SerializableError {
   name: string;

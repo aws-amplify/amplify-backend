@@ -47,7 +47,7 @@ void describe('serializable error', () => {
 
   void test('that error message, details and stack trace are not included', () => {
     const error = new ErrorWithDetailsAndCode(
-      `Invalid name provided: NAME=${canary}`,
+      `message ${canary}`,
       `details ${canary}`,
     );
     error.name = 'InvalidCommandInputError';
