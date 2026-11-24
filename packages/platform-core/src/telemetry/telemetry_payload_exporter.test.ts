@@ -13,6 +13,10 @@ import { RegionFetcher } from './region_fetcher';
 import isCI from 'is-ci';
 import { ExportResultCode } from '@opentelemetry/core';
 import { telemetrySpanAttributeCountLimit } from './constants';
+import { Span } from '@opentelemetry/api';
+import { setSpanAttributes } from './set_span_attributes';
+import { translateErrorToTelemetryErrorDetails } from './translate_error_to_telemetry_error_details';
+import { AmplifyUserError } from '../errors';
 
 void describe('DefaultTelemetryPayloadExporter', () => {
   let telemetryPayloadExporter: DefaultTelemetryPayloadExporter;
@@ -258,6 +262,64 @@ void describe('DefaultTelemetryPayloadExporter', () => {
     assert.strictEqual((telemetryPayloadSent.error as any).stack, undefined);
     assert.deepStrictEqual(mockResultCallback.mock.calls[0].arguments[0], {
       code: ExportResultCode.SUCCESS,
+    });
+  });
+
+  void it('does not include free-form error text in telemetry payload', async () => {
+    const canary = 'AMPX_TEST_CANARY_VALUE';
+    const cause = new Error(`Unknown command: ${canary}`);
+    cause.name = 'YError';
+    const error = new AmplifyUserError(
+      'InvalidCommandInputError',
+      {
+        message: `YError: Unknown command: ${canary}`,
+        details: `details ${canary}`,
+        resolution: `resolution ${canary}`,
+      },
+      cause,
+    );
+
+    const attributes: Record<string, unknown> = {};
+    const recordingSpan = {
+      setAttribute: (key: string, value: unknown) => {
+        attributes[key] = value;
+      },
+    } as unknown as Span;
+    setSpanAttributes(recordingSpan, {
+      event: {
+        state: 'FAILED',
+        command: {
+          path: ['generate', 'outputs', '<unknown>'],
+          parameters: ['app-id', 'appId'],
+        },
+      },
+      latency: { total: 10, init: 1 },
+      error: translateErrorToTelemetryErrorDetails(error),
+    });
+    // attributes that are not part of the payload schema are not sent
+    attributes['error.message'] = error.message;
+    attributes['error.stack'] = error.stack;
+    attributes['event.command.values'] = [canary];
+
+    await setUpAndSendTelemetryPayload({
+      ...mockSpan,
+      attributes,
+    } as unknown as ReadableSpan);
+    const serializedPayload: string = onReqWriteMock.mock.calls[0].arguments[0];
+
+    assert.ok(!serializedPayload.includes(canary), serializedPayload);
+    const telemetryPayloadSent: TelemetryPayload =
+      JSON.parse(serializedPayload);
+    assert.deepStrictEqual(telemetryPayloadSent.event, {
+      state: 'FAILED',
+      command: {
+        path: ['generate', 'outputs', '<unknown>'],
+        parameters: ['app-id', 'appId'],
+      },
+    });
+    assert.deepStrictEqual(telemetryPayloadSent.error, {
+      name: 'YError',
+      caused: { name: 'InvalidCommandInputError' },
     });
   });
 
