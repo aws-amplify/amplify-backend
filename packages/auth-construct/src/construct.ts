@@ -12,12 +12,14 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
+  CfnManagedLoginBranding,
   CfnUserPool,
   CfnUserPoolClient,
   CfnUserPoolGroup,
   CfnUserPoolIdentityProvider,
   CustomAttributeConfig,
   ICustomAttribute,
+  ManagedLoginVersion,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
@@ -230,6 +232,10 @@ export class AmplifyAuth
 
     this.applyUserAuthFlow(userPoolClient, props);
 
+    if (props.loginWith.externalProviders?.managedLogin) {
+      this.setupManagedLoginBranding(userPoolClient);
+    }
+
     // Identity Pool
     const {
       identityPool,
@@ -354,6 +360,32 @@ export class AmplifyAuth
         role: groupRole,
       };
     });
+  };
+
+  /**
+   * Assign the app client a managed login branding style with the Cognito
+   * defaults. Setting the domain to managed login does not activate managed
+   * login for an app client created programmatically: without a style, its
+   * managed login pages do not work.
+   */
+  private setupManagedLoginBranding = (userPoolClient: UserPoolClient) => {
+    const branding = new CfnManagedLoginBranding(
+      this,
+      `${this.name}ManagedLoginBranding`,
+      {
+        userPoolId: this.userPool.userPoolId,
+        clientId: userPoolClient.userPoolClientId,
+        useCognitoProvidedValues: true,
+      },
+    );
+    // Styles are assigned to app clients on a domain that already serves
+    // managed login, so create the style after the domain.
+    const userPoolDomain = this.userPool.node.tryFindChild(
+      `${this.name}UserPoolDomain`,
+    );
+    if (userPoolDomain) {
+      branding.node.addDependency(userPoolDomain);
+    }
   };
 
   /**
@@ -1080,6 +1112,15 @@ export class AmplifyAuth
     if (this.domainPrefix) {
       this.userPool.addDomain(`${this.name}UserPoolDomain`, {
         cognitoDomain: { domainPrefix: this.domainPrefix },
+        // Leave the branding version unset when managedLogin is omitted, so a
+        // domain someone switched to managed login outside Amplify is not
+        // reverted. An explicit `false` switches the domain back to the hosted UI.
+        managedLoginVersion:
+          external.managedLogin === undefined
+            ? undefined
+            : external.managedLogin
+              ? ManagedLoginVersion.NEWER_MANAGED_LOGIN
+              : ManagedLoginVersion.CLASSIC_HOSTED_UI,
       });
     } else {
       throw new Error(
