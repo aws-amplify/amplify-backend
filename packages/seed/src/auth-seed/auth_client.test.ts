@@ -9,6 +9,7 @@ import {
   AdminCreateUserResponse,
   CognitoIdentityProviderClient,
   NotAuthorizedException,
+  ResourceNotFoundException,
   UserNotFoundException,
   UsernameExistsException,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -26,7 +27,7 @@ const testUserpoolId = 'us-east-1_userpoolTest';
 
 void describe('seeding auth APIs', () => {
   void describe('adding to user group', () => {
-    void describe('no groups exist on userpool', () => {
+    void describe('outputs do not list groups', () => {
       const mockConfigReader = {
         getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>
           Promise.resolve({
@@ -35,23 +36,61 @@ void describe('seeding auth APIs', () => {
         ),
       };
 
+      const mockCognitoIdProviderClient = {
+        send: mock.fn<(input: AdminAddUserToGroupCommand) => Promise<void>>(
+          async () => Promise.resolve(),
+        ),
+      };
+
       const authClient = new AuthClient(
         mockConfigReader as unknown as ConfigReader,
+        mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       );
 
-      void it('throws error if no groups exist', async () => {
-        const expectedErr = new AmplifyUserError('NoGroupsError', {
-          message: `There are no groups in this userpool.`,
-          resolution: `Create a group called ${testGroup0}.`,
+      beforeEach(() => {
+        mockCognitoIdProviderClient.send.mock.resetCalls();
+      });
+
+      void it('asks the userpool to add the user to the group', async () => {
+        await authClient.addToUserGroup({ username: testUsername }, testGroup0);
+
+        assert.strictEqual(
+          mockCognitoIdProviderClient.send.mock.callCount(),
+          1,
+        );
+        const command = mockCognitoIdProviderClient.send.mock.calls[0]
+          .arguments[0] as AdminAddUserToGroupCommand;
+        assert.deepStrictEqual(command.input, {
+          UserPoolId: testUserpoolId,
+          Username: testUsername,
+          GroupName: testGroup0,
         });
+      });
+
+      void it('throws error if group does not exist on userpool', async () => {
+        mockCognitoIdProviderClient.send.mock.mockImplementationOnce(() =>
+          Promise.reject(
+            new ResourceNotFoundException({
+              $metadata: {},
+              message: 'Group not found.',
+            }),
+          ),
+        );
 
         await assert.rejects(
           async () =>
             await authClient.addToUserGroup(
               { username: testUsername },
-              testGroup0,
+              testGroup1,
             ),
-          expectedErr,
+          (error: AmplifyUserError) => {
+            assert.strictEqual(error.name, 'NoGroupError');
+            assert.strictEqual(
+              error.message,
+              `There is no group called ${testGroup1} in this userpool.`,
+            );
+            return true;
+          },
         );
       });
     });
@@ -122,22 +161,6 @@ void describe('seeding auth APIs', () => {
             assert.strictEqual(error.resolution, expectedErr.resolution);
             return true;
           },
-        );
-      });
-
-      void it('throws error if group does not exist on userpool', async () => {
-        const expectedErr = new AmplifyUserError('NoGroupError', {
-          message: `There is no group called ${testGroup1} in this userpool.`,
-          resolution: `Either create a group called ${testGroup1} or assign this user to a group that exists on this userpool.`,
-        });
-
-        await assert.rejects(
-          async () =>
-            await authClient.addToUserGroup(
-              { username: testUsername },
-              testGroup1,
-            ),
-          expectedErr,
         );
       });
     });

@@ -139,41 +139,38 @@ export class AuthClient {
     group: string,
   ): Promise<void> => {
     const authConfig = await this.authOutputs;
-    if (!authConfig.groups) {
-      throw new AmplifyUserError('NoGroupsError', {
-        message: `There are no groups in this userpool.`,
-        resolution: `Create a group called ${group}.`,
-      });
-    } else {
-      if (authConfig.groups?.includes(group)) {
-        try {
-          await this.cognitoIdentityProviderClient.send(
-            new AdminAddUserToGroupCommand({
-              UserPoolId: authConfig.userPoolId,
-              Username: user.username,
-              GroupName: group,
-            }),
-          );
-        } catch (err) {
-          const error = err as Error;
-          if (error.name === 'UserNotFoundException') {
-            throw new AmplifyUserError(
-              'UserNotFoundError',
-              {
-                message: `The user, ${user.username}, does not exist`,
-                resolution: `Create a user called ${user.username} or try again with a different user`,
-              },
-              error,
-            );
-          } else {
-            throw error;
-          }
-        }
+    // The generated outputs do not list groups for every backend (e.g.
+    // referenceAuth), so the user pool is the authority on whether one exists.
+    try {
+      await this.cognitoIdentityProviderClient.send(
+        new AdminAddUserToGroupCommand({
+          UserPoolId: authConfig.userPoolId,
+          Username: user.username,
+          GroupName: group,
+        }),
+      );
+    } catch (err) {
+      const error = err as Error;
+      if (error.name === 'UserNotFoundException') {
+        throw new AmplifyUserError(
+          'UserNotFoundError',
+          {
+            message: `The user, ${user.username}, does not exist`,
+            resolution: `Create a user called ${user.username} or try again with a different user`,
+          },
+          error,
+        );
+      } else if (error.name === 'ResourceNotFoundException') {
+        throw new AmplifyUserError(
+          'NoGroupError',
+          {
+            message: `There is no group called ${group} in this userpool.`,
+            resolution: `Either create a group called ${group} or assign this user to a group that exists on this userpool.`,
+          },
+          error,
+        );
       } else {
-        throw new AmplifyUserError('NoGroupError', {
-          message: `There is no group called ${group} in this userpool.`,
-          resolution: `Either create a group called ${group} or assign this user to a group that exists on this userpool.`,
-        });
+        throw error;
       }
     }
   };
