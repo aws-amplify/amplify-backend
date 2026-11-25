@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.12.2
+
+### Patch Changes
+
+- 52a4b6c: update telemetry collection
+
 ## 1.12.1
 
 ### Patch Changes
