@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 1.10.1
+
+### Patch Changes
+
+- 52a4b6c: update telemetry collection
+- Updated dependencies [52a4b6c]
+  - @aws-amplify/platform-core@1.12.2
+
 ## 1.10.0
 
 ### Minor Changes
